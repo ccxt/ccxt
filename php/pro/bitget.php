@@ -965,11 +965,13 @@ class bitget extends \ccxt\async\bitget {
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+             * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
@@ -983,11 +985,13 @@ class bitget extends \ccxt\async\bitget {
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+             * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             $symbolsLength = count($symbols);
@@ -996,20 +1000,27 @@ class bitget extends \ccxt\async\bitget {
             }
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
+            $uta = null;
+            list($uta, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'uta', false);
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $instType = null;
-                list($instType, $params) = $this->get_inst_type($market, false, $params);
+                list($instType, $params) = $this->get_inst_type($market, $uta, $params);
                 $args = array(
                     'instType' => $instType,
-                    'channel' => 'trade',
-                    'instId' => $market['id'],
                 );
+                $topicOrChannel = $uta ? 'topic' : 'channel';
+                $symbolOrInstId = $uta ? 'symbol' : 'instId';
+                $args[$topicOrChannel] = $uta ? 'publicTrade' : 'trade';
+                $args[$symbolOrInstId] = $market['id'];
                 $topics[] = $args;
                 $messageHashes[] = 'trade:' . $symbol;
+            }
+            if ($uta) {
+                $params['uta'] = true;
             }
             $trades = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             if ($this->newUpdates) {
@@ -1034,13 +1045,17 @@ class bitget extends \ccxt\async\bitget {
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+             * @see https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel
              *
              * @param {string} $symbol unified $symbol of the market to unwatch the trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {any} status of the unwatch request
              */
-            Async\await($this->load_markets());
-            return Async\await($this->un_watch_channel($symbol, 'trade', 'trade', $params));
+            $uta = null;
+            list($uta, $params) = $this->handle_option_and_params($params, 'unWatchTrades', 'uta', false);
+            $channelTopic = $uta ? 'publicTrade' : 'trade';
+            return Async\await($this->un_watch_channel($symbol, $channelTopic, 'trade', $params));
         }) ();
     }
 
@@ -1061,10 +1076,28 @@ class bitget extends \ccxt\async\bitget {
         //         "ts" => 1701910980730
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "action" => "snapshot",
+        //         "arg" => array( "instType" => "spot", "topic" => "publicTrade", "symbol" => "BTCUSDT" ),
+        //         "data" => array(
+        //             array(
+        //                 "T" => "1756287827920",
+        //                 "P" => "110878.5",
+        //                 "v" => "0.07",
+        //                 "S" => "buy",
+        //                 "L" => "1344534089797185550"
+        //                 "i" => "1344534089797185549"
+        //             ),
+        //         ),
+        //         "ts" => 1701910980730
+        //     }
+        //
         $arg = $this->safe_value($message, 'arg', array());
-        $instType = $this->safe_string($arg, 'instType');
-        $marketType = ($instType === 'SPOT') ? 'spot' : 'contract';
-        $marketId = $this->safe_string($arg, 'instId');
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $marketType = ($instType === 'spot') ? 'spot' : 'contract';
+        $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $stored = $this->safe_value($this->trades, $symbol);
@@ -1144,13 +1177,24 @@ class bitget extends \ccxt\async\bitget {
         //           "uTime" => "1714471204194"
         //        }
         //
+        // uta
+        //
+        //     {
+        //         "i" => "1344534089797185549", // Fill execution ID
+        //         "L" => "1344534089797185550", // Execution correlation ID
+        //         "p" => "110878.5", // Fill price
+        //         "v" => "0.07", // Fill size
+        //         "S" => "buy", // Fill side
+        //         "T" => "1756287827920" // Fill $timestamp
+        //     }
+        //
         $instId = $this->safe_string_2($trade, 'symbol', 'instId');
         $posMode = $this->safe_string($trade, 'posMode');
         $defaultType = ($posMode !== null) ? 'contract' : 'spot';
         if ($market === null) {
             $market = $this->safe_market($instId, null, null, $defaultType);
         }
-        $timestamp = $this->safe_integer_n($trade, array( 'uTime', 'cTime', 'ts' ));
+        $timestamp = $this->safe_integer_n($trade, array( 'uTime', 'cTime', 'ts', 'T' ));
         $feeDetail = $this->safe_list($trade, 'feeDetail', array());
         $first = $this->safe_dict($feeDetail, 0);
         $fee = null;
@@ -1164,16 +1208,16 @@ class bitget extends \ccxt\async\bitget {
         }
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $this->safe_string($trade, 'tradeId'),
-            'order' => $this->safe_string($trade, 'orderId'),
+            'id' => $this->safe_string_2($trade, 'tradeId', 'i'),
+            'order' => $this->safe_string_2($trade, 'orderId', 'L'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
             'type' => $this->safe_string($trade, 'orderType'),
-            'side' => $this->safe_string($trade, 'side'),
+            'side' => $this->safe_string_2($trade, 'side', 'S'),
             'takerOrMaker' => $this->safe_string($trade, 'tradeScope'),
-            'price' => $this->safe_string_2($trade, 'priceAvg', 'price'),
-            'amount' => $this->safe_string_2($trade, 'size', 'baseVolume'),
+            'price' => $this->safe_string_n($trade, array( 'priceAvg', 'price', 'P' )),
+            'amount' => $this->safe_string_n($trade, array( 'size', 'baseVolume', 'v' )),
             'cost' => $this->safe_string_2($trade, 'amount', 'quoteVolume'),
             'fee' => $fee,
         ), $market);
@@ -2316,6 +2360,7 @@ class bitget extends \ccxt\async\bitget {
         $methods = array(
             'ticker' => array($this, 'handle_ticker'),
             'trade' => array($this, 'handle_trades'),
+            'publicTrade' => array($this, 'handle_trades'),
             'fill' => array($this, 'handle_my_trades'),
             'orders' => array($this, 'handle_order'),
             'ordersAlgo' => array($this, 'handle_order'),
@@ -2394,7 +2439,7 @@ class bitget extends \ccxt\async\bitget {
         $arg = $this->safe_dict($message, 'arg', array());
         $instType = $this->safe_string_lower($arg, 'instType');
         $type = ($instType === 'spot') ? 'spot' : 'contract';
-        $instId = $this->safe_string($arg, 'instId');
+        $instId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($instId, null, null, $type);
         $symbol = $market['symbol'];
         $messageHash = 'unsubscribe:trade:' . $market['symbol'];
@@ -2511,7 +2556,7 @@ class bitget extends \ccxt\async\bitget {
             if ($channel === 'books') {
                 // for now only unWatchOrderBook is supporteod
                 $this->handle_order_book_un_subscription($client, $message);
-            } elseif ($channel === 'trade') {
+            } elseif (($channel === 'trade') || ($channel === 'publicTrade')) {
                 $this->handle_trades_un_subscription($client, $message);
             } elseif ($channel === 'ticker') {
                 $this->handle_ticker_un_subscription($client, $message);
