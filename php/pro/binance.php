@@ -3338,8 +3338,8 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $this->get_market_type('cancelAllOrdersWs', $market, $params);
-            if ($type !== 'spot' && $type !== 'future') {
-                throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot or swap markets');
+            if ($type !== 'spot') {
+                throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot markets');
             }
             $url = $this->urls['api']['ws']['ws-api'][$type];
             $requestId = $this->request_id($url);
@@ -3352,7 +3352,7 @@ class binance extends \ccxt\async\binance {
             );
             $message = array(
                 'id' => $messageHash,
-                'method' => 'order.cancel',
+                'method' => 'openOrders.cancelAll',
                 'params' => $this->sign_params($this->extend($payload, $params)),
             );
             $subscription = array(

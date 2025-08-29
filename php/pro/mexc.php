@@ -184,7 +184,7 @@ class mexc extends \ccxt\async\mexc {
         $this->handle_bid_ask($client, $message);
         $rawTicker = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreBookTicker' ));
         $marketId = $this->safe_string_2($message, 's', 'symbol');
-        $timestamp = $this->safe_integer_2($message, 't', 'sendtime');
+        $timestamp = $this->safe_integer_2($message, 't', 'sendTime');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $ticker = null;
@@ -1581,7 +1581,7 @@ class mexc extends \ccxt\async\mexc {
         //         "ts" => 1680059188190
         //     }
         //
-        $c = $this->safe_string_2($message, 'c', 'channel');
+        $c = $this->safe_string($message, 'c'); // do not add 'channel' here, this is especially for spot
         $type = ($c === null) ? 'swap' : 'spot';
         $messageHash = 'balance:' . $type;
         $data = $this->safe_dict_n($message, array( 'd', 'data', 'privateAccount' ));
@@ -1596,7 +1596,11 @@ class mexc extends \ccxt\async\mexc {
         $currencyId = $this->safe_string_n($data, array( 'a', 'currency', 'vcoinName' ));
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['total'] = $this->safe_string_n($data, array( 'f', 'availableBalance', 'balanceAmount' ));
+        $balanceAmount = $this->safe_string($data, 'balanceAmount');
+        if ($balanceAmount !== null) {
+            $account['free'] = $balanceAmount;
+        }
+        $account['total'] = $this->safe_string_n($data, array( 'f', 'availableBalance' ));
         $account['used'] = $this->safe_string_n($data, array( 'l', 'frozenBalance', 'frozenAmount' ));
         $this->balance[$type][$code] = $account;
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);

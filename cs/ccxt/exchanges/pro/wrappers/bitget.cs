@@ -96,6 +96,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -113,6 +114,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
