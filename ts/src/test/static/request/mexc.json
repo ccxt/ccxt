@@ -750,6 +750,22 @@
         ],
         "withdraw": [
             {
+                "description": "internal transfer withdraw",
+                "method": "withdraw",
+                "url": "https://api.mexc.com/api/v3/capital/transfer/internal?asset=USDT&amount=0.1&toAccount=to_someone%40gmail.com&toAccountType=EMAIL&timestamp=1756409115448&recvWindow=5000&signature=4a16eb036f895b590d5a69ffa3e1d81015d9bf87a057f7361796f3e3853ec073",
+                "input": [
+                    "USDT",
+                    0.1,
+                    "to_someone@gmail.com",
+                    null,
+                    {
+                        "internal": true,
+                        "toAccountType": "EMAIL"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "withdraw",
                 "method": "withdraw",
                 "url": "https://api.mexc.com/api/v3/capital/withdraw?coin=USDT&address=THb2SXyLLBn81JWPNhTbGBEoXHtDX62eU7&amount=5&netWork=TRX&timestamp=1725196608420&recvWindow=5000&signature=090d7e388c8392ca12ca72c0041cc4b1ba44ee59053c74f55592dc48bc5c50a4",

@@ -609,6 +609,7 @@ class testMainClass {
             'USDT',
             'USDC',
             'USD',
+            'GUSD', // gemini gusd
             'EUR',
             'TUSD',
             'CNY',
