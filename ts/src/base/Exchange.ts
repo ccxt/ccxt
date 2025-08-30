@@ -6857,29 +6857,29 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesWithPrecisions (symbol, params, omit = true) {
+    handleTriggerPricesWithPrecisions (symbol, params, omitParams = true) {
         //
-        let triggerPrice = this.safeValue (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeValue (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
-        let stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         let stopLossPriceStr: Str = undefined;
-        let takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         let takeProfitPriceStr: Str = undefined;
         //
         if (triggerPrice !== undefined) {
-            if (omit) {
+            if (omitParams) {
                 params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             }
             triggerPriceStr = this.priceToPrecision (symbol, triggerPrice);
         }
         if (stopLossPrice !== undefined) {
-            if (omit) {
+            if (omitParams) {
                 params = this.omit (params, 'stopLossPrice');
             }
             stopLossPriceStr = this.priceToPrecision (symbol, stopLossPrice);
         }
         if (takeProfitPrice !== undefined) {
-            if (omit) {
+            if (omitParams) {
                 params = this.omit (params, 'takeProfitPrice');
             }
             takeProfitPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
