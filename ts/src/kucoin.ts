@@ -2251,9 +2251,9 @@ export default class kucoin extends Exchange {
         [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'createOrder', 'sync', false);
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (symbol, params, false);
+        const [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr ] = this.handleTriggerPrices (symbol, params, false);
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const isTriggerOrder = (triggerPriceStr || stopLossPriceStr || takeProfitPriceStr);
         const marginResult = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = this.safeString (marginResult, 0);
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
@@ -2471,19 +2471,19 @@ export default class kucoin extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (symbol, params);
-        const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
+        const [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr ] = this.handleTriggerPrices (symbol, params);
+        const isTriggerOrder = (triggerPriceStr || stopLossPriceStr || takeProfitPriceStr);
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         if (isTriggerOrder) {
-            if (triggerPrice) {
-                request['stopPrice'] = triggerPrice;
-            } else if (stopLossPrice || takeProfitPrice) {
-                if (stopLossPrice) {
+            if (triggerPriceStr) {
+                request['stopPrice'] = triggerPriceStr;
+            } else if (stopLossPriceStr || takeProfitPriceStr) {
+                if (stopLossPriceStr) {
                     request['stop'] = (side === 'buy') ? 'entry' : 'loss';
-                    request['stopPrice'] = stopLossPrice;
+                    request['stopPrice'] = stopLossPriceStr;
                 } else {
                     request['stop'] = (side === 'buy') ? 'loss' : 'entry';
-                    request['stopPrice'] = takeProfitPrice;
+                    request['stopPrice'] = takeProfitPriceStr;
                 }
             }
             if (marginMode === 'isolated') {

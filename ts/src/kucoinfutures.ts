@@ -1662,7 +1662,7 @@ export default class kucoinfutures extends kucoin {
             }
             request['size'] = parseInt (this.amountToPrecision (symbol, amount));
         }
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (symbol, params);
+        const [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr ] = this.handleTriggerPrices (symbol, params);
         const stopLoss = this.safeDict (params, 'stopLoss');
         const takeProfit = this.safeDict (params, 'takeProfit');
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
@@ -1674,9 +1674,9 @@ export default class kucoinfutures extends kucoin {
         const triggerPriceType = this.safeString (params, 'triggerPriceType', 'mark');
         const triggerPriceTypeValue = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
         params = this.omit (params, [ 'takeProfit', 'stopLoss' ]);
-        if (triggerPrice) {
+        if (triggerPriceStr) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
-            request['stopPrice'] = triggerPrice;
+            request['stopPrice'] = triggerPriceStr;
             request['stopPriceType'] = triggerPriceTypeValue;
         } else if (stopLoss !== undefined || takeProfit !== undefined) {
             let priceType = triggerPriceTypeValue;
@@ -1693,13 +1693,13 @@ export default class kucoinfutures extends kucoin {
                 priceType = this.safeString (triggerPriceTypes, priceType, priceType);
             }
             request['stopPriceType'] = priceType;
-        } else if (stopLossPrice || takeProfitPrice) {
-            if (stopLossPrice) {
+        } else if (stopLossPriceStr || takeProfitPriceStr) {
+            if (stopLossPriceStr) {
                 request['stop'] = (side === 'buy') ? 'up' : 'down';
-                request['stopPrice'] = stopLossPrice;
+                request['stopPrice'] = stopLossPriceStr;
             } else {
                 request['stop'] = (side === 'buy') ? 'down' : 'up';
-                request['stopPrice'] = takeProfitPrice;
+                request['stopPrice'] = takeProfitPriceStr;
             }
             request['reduceOnly'] = true;
             request['stopPriceType'] = triggerPriceTypeValue;
