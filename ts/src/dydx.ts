@@ -261,6 +261,17 @@ export default class dydx extends Exchange {
                     // 'USDT': 'TRC20',
                     // 'BTC': 'BTC',
                 },
+                'defaultFeeDenom': 'uusdc',
+                'defaultFeeMultiplier': '1.6',
+                'feeDenom': {
+                    'USDC_DENOM': 'ibc/8E27BA2D5493AF5636760E354E46004562C46AB7EC0CC4C1CA14E9E20E2545B5',
+                    'USDC_GAS_DENOM': 'uusdc',
+                    'USDC_DECIMALS': 6,
+                    'USDC_GAS_PRICE': '0.025',
+                    'CHAINTOKEN_DENOM': 'adv4tnt',
+                    'CHAINTOKEN_DECIMALS': 18,
+                    'CHAINTOKEN_GAS_PRICE': '25000000000',
+                },
             },
             'features': {
                 'default': {
@@ -1597,6 +1608,52 @@ export default class dydx extends Exchange {
         return response;
     }
 
+    async estimateTxFee (
+        messages,
+        memo,
+        sequence,
+        publicKey,
+    ): Promise<Object> {
+        const txBytes = await this.encodeDydxTxForSimulation (messages, memo, sequence, publicKey);
+        const request = {
+            'txBytes': txBytes,
+        };
+        const response = await this.nodeRestPostCosmosTxV1beta1Simulate (request);
+        //
+        // {
+        //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
+        //     result: {
+        //         ...
+        //     }
+        // }
+        //
+        const gasInfo = this.safeDict (response, 'gas_info');
+        if (gasInfo === undefined) {
+            throw new Error (this.id + ' failed to simulate transaction.');
+        }
+        const gasUsed = this.safeString (gasInfo, 'gas_used');
+        if (gasUsed === undefined) {
+            throw new Error (this.id + ' failed to simulate transaction.');
+        }
+        const defaultFeeDenom = this.safeString (this.options, 'defaultFeeDenom');
+        const defaultFeeMultiplier = this.safeString (this.options, 'defaultFeeMultiplier');
+        const feeDenom = this.safeDict (this.options, 'feeDenom');
+        let gasPrice = undefined;
+        let denom = undefined;
+        if (defaultFeeDenom === 'uusdc') {
+            gasPrice = feeDenom['USDC_GAS_PRICE'];
+            denom = feeDenom['USDC_DENOM'];
+        } else {
+            gasPrice = feeDenom['CHAINTOKEN_GAS_PRICE'];
+            denom = feeDenom['CHAINTOKEN_DENOM'];
+        }
+        const feeAmount = Precise.stringMul (Precise.stringMul (gasUsed, defaultFeeMultiplier), gasPrice);
+        return {
+            'amount': feeAmount,
+            'denom': denom,
+        };
+    }
+
     /**
      * @method
      * @name dydx#transfer
@@ -1672,7 +1729,8 @@ export default class dydx extends Exchange {
                 'value': payload,
             };
         }
-        const signedTx = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
+        const txFee = await this.estimateTxFee ([signingPayload], '', account.sequence, wallet.pubKey);
+        const signedTx = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };

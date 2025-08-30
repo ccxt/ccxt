@@ -170,8 +170,20 @@ import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import {default as LocalWallet} from '../static_dependencies/dydx-v4-client/clients/modules/local-wallet.js';
+import { generateRegistry } from '../static_dependencies/dydx-v4-client/clients/lib/registry.js';
 import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/lib/onboarding.js';
-import dydxProtos from '../static_dependencies/dydx-v4-client/clients/modules/proto-includes.js';
+import { Fee as CosmosFee, AuthInfo, Tx, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import {SignMode} from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
+import {
+//   EncodeObject,
+  encodePubkey,
+//   isOfflineDirectSigner,
+  makeAuthInfoBytes,
+//   makeSignDoc,
+//   OfflineSigner,
+} from '@cosmjs/proto-signing';
+import { fromBase64 } from '@cosmjs/encoding';
+import { Int53 } from '@cosmjs/math';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
@@ -1675,6 +1687,38 @@ export default class Exchange {
         return wallet;
     }
 
+    encodeDydxTxForSimulation (
+        messages,
+        memo,
+        sequence,
+        publicKey,
+    ): string {
+        if (!publicKey) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const registry = generateRegistry ();
+        const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
+        const pubkey = encodePubkey(publicKey);
+        const tx = Tx.fromPartial ({
+            body: TxBody.fromPartial ({
+                messages: encodedMessages,
+                memo,
+            }),
+            authInfo: AuthInfo.fromPartial ({
+                fee: CosmosFee.fromPartial ({}),
+                signerInfos: [
+                    {
+                        publicKey: pubkey,
+                        sequence: BigInt (sequence),
+                        modeInfo: { single: { mode: SignMode.SIGN_MODE_UNSPECIFIED } },
+                    },
+                ],
+            }),
+            signatures: [ new Uint8Array () ],
+        });
+        return this.binaryToBase64 (Tx.encode (tx).finish ());
+    }
+
     async signDydxTx(
         wallet: any,
         message: any,
@@ -1684,12 +1728,16 @@ export default class Exchange {
         memo?: string,
         account?: any,
         authenticators?: number[],
+        txFee = undefined
       ): Promise<string> {
         const messages = [ message ];
         const sequence = this.milliseconds ();
         const fee = {
             amount: [],
             gas: '1000000',
+        }
+        if (txFee !== undefined) {
+            fee.amount.push (txFee);
         }
         // zeroFee
         // ? {
