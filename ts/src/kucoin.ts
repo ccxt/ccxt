@@ -2198,18 +2198,6 @@ export default class kucoin extends Exchange {
         return orderbook;
     }
 
-    triggerPricesFromParams (params) {
-        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        if ((isStopLoss && isTakeProfit) || (triggerPrice && stopLossPrice) || (triggerPrice && isTakeProfit)) {
-            throw new ExchangeError (this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
-        }
-        return [ triggerPrice, stopLossPrice, takeProfitPrice ];
-    }
-
     /**
      * @method
      * @name kucoin#createOrder
@@ -2263,7 +2251,7 @@ export default class kucoin extends Exchange {
         [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'createOrder', 'sync', false);
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.triggerPricesFromParams (symbol, params, false);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (symbol, params, false);
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
         const marginResult = this.handleMarginModeAndParams ('createOrder', params);
@@ -2483,20 +2471,19 @@ export default class kucoin extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.triggerPricesFromParams (symbol, params, false);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (symbol, params);
         const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
-        params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice' ]);
         if (isTriggerOrder) {
             if (triggerPrice) {
-                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                request['stopPrice'] = triggerPrice;
             } else if (stopLossPrice || takeProfitPrice) {
                 if (stopLossPrice) {
                     request['stop'] = (side === 'buy') ? 'entry' : 'loss';
-                    request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['stopPrice'] = stopLossPrice;
                 } else {
                     request['stop'] = (side === 'buy') ? 'loss' : 'entry';
-                    request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['stopPrice'] = takeProfitPrice;
                 }
             }
             if (marginMode === 'isolated') {
