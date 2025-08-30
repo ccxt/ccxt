@@ -110,6 +110,8 @@ export default class toobit extends Exchange {
                         'api/v1/account/deposit/address': 1,
                         // contracts
                         'api/v1/subAccount': 1,
+                        'api/v1/accountLeverage': 1,
+                        'api/v1/futures/order': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -121,6 +123,7 @@ export default class toobit extends Exchange {
                         // contracts
                         'api/v1/futures/marginType': 1,
                         'api/v1/futures/leverage': 1,
+                        'api/v1/futures/batchOrders': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -1128,8 +1131,14 @@ export default class toobit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = {};
-        [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const order = await this.privatePostApiV1SpotOrder (this.extend (request, params));
+        let response = undefined;
+        if (market['spot']) {
+            [ request, params ] = this.createOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostApiV1SpotOrder (this.extend (request, params));
+        } else {
+            [ request, params ] = this.createContractOrderRequest (symbol, type, side, amount, price, params);
+            response = await this.privatePostApiV1FuturesOrder (this.extend (request, params));
+        }
         //
         //     {
         //         "accountId": "1783404067076253952",
@@ -1147,7 +1156,7 @@ export default class toobit extends Exchange {
         //         "side": "SELL"
         //     }
         //
-        return this.parseOrder (order, market);
+        return this.parseOrder (response, market);
     }
 
     /**
@@ -1487,39 +1496,52 @@ export default class toobit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request: Dict = {
             'orderId': id,
         };
-        const response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
-        //
-        //    {
-        //        "accountId": "1783404067076253952",
-        //        "exchangeId": "301",
-        //        "symbol": "ETHUSDT",
-        //        "symbolName": "ETHUSDT",
-        //        "clientOrderId": "17561402075722006",
-        //        "orderId": "2025045271033977089",
-        //        "price": "3000",
-        //        "origQty": "0.002",
-        //        "executedQty": "0",
-        //        "cummulativeQuoteQty": "0",
-        //        "cumulativeQuoteQty": "0",
-        //        "avgPrice": "0",
-        //        "status": "NEW",
-        //        "timeInForce": "GTC",
-        //        "type": "LIMIT",
-        //        "side": "BUY",
-        //        "stopPrice": "0.0",
-        //        "icebergQty": "0.0",
-        //        "time": "1756140208069",
-        //        "updateTime": "1756140208078",
-        //        "isWorking": true
-        //    }
-        //
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        const market = this.market (symbol);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
+            //
+            //    {
+            //        "time": "1756140208069",
+            //        "updateTime": "1756140208078",
+            //        "orderId": "2025045271033977089",
+            //        "clientOrderId": "17561402075722006",
+            //        "symbol": "ETHUSDT",
+            //        "price": "3000",
+            //        "origQty": "0.002",
+            //        "executedQty": "0",
+            //        "avgPrice": "0",
+            //        "type": "LIMIT",
+            //        "side": "BUY",
+            //        "timeInForce": "GTC",
+            //        "status": "NEW",
+            //        "accountId": "1783404067076253952",  // only in SPOT
+            //        "exchangeId": "301",                 // only in SPOT
+            //        "symbolName": "ETHUSDT",             // only in SPOT
+            //        "cummulativeQuoteQty": "0",          // only in SPOT
+            //        "cumulativeQuoteQty": "0",           // only in SPOT
+            //        "stopPrice": "0.0",                  // only in SPOT
+            //        "icebergQty": "0.0",                 // only in SPOT
+            //        "isWorking": true                    // only in SPOT
+            //        "leverage": "2",                     // only in CONTRACT
+            //        "marginLocked": "9.5",               // only in CONTRACT
+            //        "priceType": "INPUT"                 // only in CONTRACT
+            //    }
+            //
+        } else {
+            response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
+            //
+            //         "timeInForce": "GTC", // GTC、FOK、IOC、LIMIT_MAKER
+            //         "status": "NEW", //NEW、PARTIALLY_FILLED、FILLED、CANCELED、REJECTED
+            //     }
+            //
         }
         return this.parseOrder (response, market);
     }
