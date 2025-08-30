@@ -120,6 +120,7 @@ export default class toobit extends Exchange {
                         'api/v1/account/withdraw': 1,
                         // contracts
                         'api/v1/futures/marginType': 1,
+                        'api/v1/futures/leverage': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -2137,8 +2138,38 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
+        const response = await this.privatePostApiV1FuturesMarginType (this.extend (request, params));
+        //
         // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
-        return await this.privatePostApiV1FuturesMarginType (this.extend (request, params));
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name toobit#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'leverage': this.numberToString (leverage),
+        };
+        const response = await this.privatePostApiV1FuturesLeverage (this.extend (request, params));
+        //
+        // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
