@@ -2198,6 +2198,18 @@ export default class kucoin extends Exchange {
         return orderbook;
     }
 
+    triggerPricesFromParams (params) {
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        if ((isStopLoss && isTakeProfit) || (triggerPrice && stopLossPrice) || (triggerPrice && isTakeProfit)) {
+            throw new ExchangeError (this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
+        }
+        return [ triggerPrice, stopLossPrice, takeProfitPrice ];
+    }
+
     /**
      * @method
      * @name kucoin#createOrder
