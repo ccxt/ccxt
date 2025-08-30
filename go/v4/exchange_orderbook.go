@@ -248,34 +248,34 @@ func normalizeToFloat64SliceSlice(value interface{}) [][]float64 {
 }
 
 func getAsksBids(snapshot interface{}) ([][]float64, [][]float64) {
-	asks := normalizeToFloat64SliceSlice(SafeValue(snapshot.(map[string]interface{}), "asks", nil))
-	bids := normalizeToFloat64SliceSlice(SafeValue(snapshot.(map[string]interface{}), "bids", nil))
+	asks := normalizeToFloat64SliceSlice(SafeValue(snapshot, "asks", nil))
+	bids := normalizeToFloat64SliceSlice(SafeValue(snapshot, "bids", nil))
 	return asks, bids
 }
 
 func getIndexedAsksBids(snapshot interface{}) ([][]interface{}, [][]interface{}) {
-	asks := SafeValue(snapshot.(map[string]interface{}), "asks", nil).([]interface{})
-	bids := SafeValue(snapshot.(map[string]interface{}), "bids", nil).([]interface{})
+	asks := SafeValue(snapshot, "asks", nil)
+	bids := SafeValue(snapshot, "bids", nil)
 	// normalize the price and size and keep the id as is (3rd value in a bidask delta)
 	// so that it can be used as a key in IndexedOrderBookSide
 	if asks == nil || bids == nil {
 		return [][]interface{}{}, [][]interface{}{}
 	}
 	// Normalize the price and size
-	newAsks := make([][]interface{}, len(asks))
-	newBids := make([][]interface{}, len(bids))
-	for i := range asks {
+	newAsks := make([][]interface{}, len(asks.([]interface{})))
+	newBids := make([][]interface{}, len(bids.([]interface{})))
+	for i := range asks.([]interface{}) {
 		newAsks[i] = []interface{}{
-			normalizeNumber(asks[i].([]interface{})[0]),
-			normalizeNumber(asks[i].([]interface{})[1]),
-			asks[i].([]interface{})[2],
+			normalizeNumber(asks.([]interface{})[i].([]interface{})[0]),
+			normalizeNumber(asks.([]interface{})[i].([]interface{})[1]),
+			asks.([]interface{})[i].([]interface{})[2],
 		}
 	}
-	for i := range bids {
+	for i := range bids.([]interface{}) {
 		newBids[i] = []interface{}{
-			normalizeNumber(bids[i].([]interface{})[0]),
-			normalizeNumber(bids[i].([]interface{})[1]),
-			bids[i].([]interface{})[2],
+			normalizeNumber(bids.([]interface{})[i].([]interface{})[0]),
+			normalizeNumber(bids.([]interface{})[i].([]interface{})[1]),
+			bids.([]interface{})[i].([]interface{})[2],
 		}
 	}
 	return newAsks, newBids
