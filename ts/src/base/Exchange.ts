@@ -6857,6 +6857,40 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
+    handleTriggerParams (symbol, params, omit = true) {
+        //
+        let triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let stopLossPriceStr = this.safeString (params, 'stopLossPrice');
+        let takeProfitPriceStr = this.safeString (params, 'takeProfitPrice');
+        //
+        if (triggerPriceStr !== undefined) {
+            if (omit) {
+                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+            }
+            triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPriceStr));
+        }
+        if (stopLossPriceStr !== undefined) {
+            if (omit) {
+                params = this.omit (params, 'stopLossPrice');
+            }
+            stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPriceStr));
+        }
+        if (takeProfitPriceStr !== undefined) {
+            if (omit) {
+                params = this.omit (params, 'takeProfitPrice');
+            }
+            takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPriceStr));
+        }
+        //
+        const isTrigger = triggerPriceStr !== undefined;
+        const isStopLoss = stopLossPriceStr !== undefined;
+        const isTakeProfit = takeProfitPriceStr !== undefined;
+        if ((isStopLoss && isTakeProfit) || (isTrigger && stopLossPriceStr) || (isTrigger && isTakeProfit)) {
+            throw new ExchangeError (this.id + ' you should use either triggerPrice or stopLossPrice or takeProfitPrice');
+        }
+        return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
+    }
+
     handleTriggerDirectionAndParams (params, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false) {
         /**
          * @ignore

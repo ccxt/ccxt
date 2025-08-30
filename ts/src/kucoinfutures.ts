@@ -1662,7 +1662,7 @@ export default class kucoinfutures extends kucoin {
             }
             request['size'] = parseInt (this.amountToPrecision (symbol, amount));
         }
-        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
+        const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.triggerPricesFromParams (params);
         const stopLoss = this.safeDict (params, 'stopLoss');
         const takeProfit = this.safeDict (params, 'takeProfit');
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
