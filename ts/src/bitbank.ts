@@ -596,7 +596,7 @@ export default class bitbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (since === undefined) {
             if (limit === undefined) {
                 limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)

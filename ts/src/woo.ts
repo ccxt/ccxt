@@ -2126,7 +2126,7 @@ export default class woo extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

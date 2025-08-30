@@ -1635,7 +1635,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

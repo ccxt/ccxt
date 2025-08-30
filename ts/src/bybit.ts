@@ -2574,7 +2574,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
         }

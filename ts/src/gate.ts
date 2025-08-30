@@ -3249,7 +3249,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let paginate = false;
