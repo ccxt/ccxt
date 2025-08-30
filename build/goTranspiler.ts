@@ -2308,8 +2308,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
                 [/Precise\./gm, 'ccxt.Precise.'],
                 [/Spawn\(createOrderAfterDelay/g, 'Spawn(CreateOrderAfterDelay'],
-                [/<-exchange.WatchOrderBook\(symbol\)/g, '(ToOrderBook(<-exchange.WatchOrderBook(symbol)))'], // orderbook watch
-                [/<-exchange.WatchOrderBookForSymbols\((.*?)\)/g, '(ToOrderBook(<-exchange.WatchOrderBookForSymbols($1)))'],
+                [/(<-exchange.Watch\w+\(.+\))/g, 'UnWrapType($1)'],
+                // [/<-exchange.WatchOrderBook\(symbol\)/g, '(ToOrderBook(<-exchange.WatchOrderBook(symbol)))'], // orderbook watch
+                // [/<-exchange.WatchOrderBookForSymbols\((.*?)\)/g, '(ToOrderBook(<-exchange.WatchOrderBookForSymbols($1)))'],
                 [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''] // remove equals
 
 
