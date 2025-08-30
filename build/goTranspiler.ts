@@ -1,28 +1,28 @@
 import Transpiler from "ast-transpiler";
-import path from 'path'
-import errors from "../js/src/base/errors.js"
-import { basename, resolve } from 'path'
-import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
-import { platform } from 'process'
-import fs from 'fs'
-import log from 'ololog'
-import ansi from 'ansicolor'
+import path from 'path';
+import errors from "../js/src/base/errors.js";
+import { basename, resolve } from 'path';
+import { createFolderRecursively, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js';
+import { platform } from 'process';
+import fs from 'fs';
+import log from 'ololog';
+import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import { promisify } from 'util';
-import errorHierarchy from '../js/src/base/errorHierarchy.js'
+import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
 
-type dict = { [key: string]: string }
+type dict = { [key: string]: string };
 
-ansi.nice
+ansi.nice;
 const promisedWriteFile = promisify (fs.writeFile);
 
 // const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
-const exchangeIds = exchanges.ids
-const exchangeIdsWs = exchanges.ws
+const exchangeIds = exchanges.ids;
+const exchangeIdsWs = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -46,25 +46,25 @@ function capitalize(s: string) {
 // example: /C:Users/user/Desktop/
 if (platform === 'win32') {
     if (__dirname[0] === '/') {
-        __dirname = __dirname.substring(1)
+        __dirname = __dirname.substring(1);
     }
 }
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
-const EXCHANGE_WRAPPER_FOLDER = './go/v4/'
+const EXCHANGE_WRAPPER_FOLDER = './go/v4';
 const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
-const EXCHANGES_FOLDER = './go/v4/';
-const EXCHANGES_WS_FOLDER = './go/v4/pro/';
-const BASE_TESTS_FOLDER = './go/tests/base/';
+const EXCHANGES_FOLDER = './go/v4';
+const EXCHANGES_WS_FOLDER = './go/v4/pro';
+const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
-// const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base/';
-const GENERATED_TESTS_FOLDER = './go/tests/';
-// const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-// const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples/';
+// const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base';
+const GENERATED_TESTS_FOLDER = './go/tests';
+// const EXAMPLES_INPUT_FOLDER = './examples/ts';
+// const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples';
 const goComments: any = {};
 
 const goTypeOptions: any = {};
@@ -76,7 +76,7 @@ const goWsTests: string[] = [];
 
 const imports = [
     'import ccxt "github.com/ccxt/ccxt/go/v4"'
-]
+];
 
 const VIRTUAL_BASE_METHODS: any = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
@@ -219,7 +219,7 @@ const VIRTUAL_BASE_METHODS: any = {
 	'watchTickers': true,
 	'watchTrades': true,
 	'watchTradesForSymbols': true,
-}
+};
 
 const INTERFACE_METHODS = [
     'cancelAllOrders',
@@ -417,7 +417,7 @@ const INTERFACE_METHODS = [
 	'watchTickers',
 	'watchTrades',
 	'watchTradesForSymbols',
-]
+];
 
 class NewTranspiler {
 
@@ -431,7 +431,7 @@ class NewTranspiler {
 
     constructor(isWs: boolean = false) {
 
-        this.setupTranspiler()
+        this.setupTranspiler();
         // this.transpiler.goTranspiler.VAR_TOKEN = 'var'; // tmp fix
 
 
@@ -441,7 +441,7 @@ class NewTranspiler {
             'json.loads': 'json',
             'json.dumps': 'json',
             'sys': 'sys',
-        }
+        };
     }
 
     getWsRegexes() {
@@ -525,7 +525,7 @@ class NewTranspiler {
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
             [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
-        ]
+        ];
     }
 
     // Dynamic alias detection based on TypeScript inheritance analysis
@@ -586,7 +586,7 @@ class NewTranspiler {
     // ============================================================================
 
     iden(level = 1) {
-        return '    '.repeat(level)
+        return '    '.repeat(level);
     }
     // ============================================================================
 
@@ -612,7 +612,7 @@ class NewTranspiler {
     }
 
     createSee(link: string) {
-        return `/// See <see href="${link}"/>  <br/>`
+        return `/// See <see href="${link}"/>  <br/>`;
     }
 
     createParam(param: any) {
@@ -621,7 +621,7 @@ class NewTranspiler {
     /// <description>
     /// ${param.type} : ${param.description}
     /// </description>
-    /// </item>`
+    /// </item>`;
     }
 
     createGOCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
@@ -646,7 +646,7 @@ class NewTranspiler {
     ${params.map( p => this.createParam(p)).join("\n    ")}
     /// </list>
     /// </remarks>
-    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
+    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`;
     const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
     return commentWithoutEmptyLines;
     }
@@ -701,20 +701,20 @@ class NewTranspiler {
         // const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
         let exchangeData = goComments[exchangeName];
         if (!exchangeData) {
-            exchangeData = goComments[exchangeName] = {}
+            exchangeData = goComments[exchangeName] = {};
         }
         let exchangeMethods = goComments[exchangeName];
         if (!exchangeMethods) {
-            exchangeMethods = {}
+            exchangeMethods = {};
         }
         // const transformedComment = this.transformTSCommentIntoGo(methodName, description, sees,params, returnType, returnDescription);
         exchangeMethods[methodName] = comment;
-        goComments[exchangeName] = exchangeMethods
+        goComments[exchangeName] = exchangeMethods;
         return comment;
     }
 
     setupTranspiler(isWs: boolean = false) {
-        this.transpiler = new Transpiler (this.getTranspilerConfig())
+        this.transpiler = new Transpiler (this.getTranspilerConfig());
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
     }
@@ -724,7 +724,7 @@ class NewTranspiler {
             "// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:",
             "// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code",
             ""
-        ]
+        ];
     }
 
     getGoImports(file: any, ws = false) {
@@ -743,23 +743,23 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')));
     }
 
     isStringType(type: string) {
-        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
+        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"));
     }
 
     isNumberType(type: string) {
-        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
+        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType');
     }
 
     isIntegerType(type: string) {
-        return type !== undefined && (type.toLowerCase() === 'int') ;
+        return type !== undefined && (type.toLowerCase() === 'int');
     }
 
     isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
+        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool');
     }
 
     convertJavascriptTypeToGoType(name: string, type: string, isReturn = false): string | undefined {
@@ -774,7 +774,7 @@ class NewTranspiler {
         }
 
         if (name.startsWith('fetchDepositWithdrawFee')) { // tmp fix later with proper types
-            return `map[string]interface{}`
+            return `map[string]interface{}`;
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -793,7 +793,7 @@ class NewTranspiler {
         const goReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
-        }
+        };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
             return addTaskIfNeeded('interface{}'); // default if type is unknown;
@@ -832,7 +832,7 @@ class NewTranspiler {
             return addTaskIfNeeded('bool');
         }
         if (wrappedType === 'Strings') {
-            return addTaskIfNeeded('[]string')
+            return addTaskIfNeeded('[]string');
         }
         if (goReplacements[wrappedType] !== undefined) {
             return addTaskIfNeeded(goReplacements[wrappedType]);
@@ -854,7 +854,7 @@ class NewTranspiler {
     safeGoName(name: string): string {
         const goReservedWordsReplacement: dict = {
             'type': 'typeVar',
-        }
+        };
         return goReservedWordsReplacement[name] || name;
     }
 
@@ -891,7 +891,7 @@ class NewTranspiler {
         if (isNonNullableType) {
             if (isOptional) {
                 // if (param.initializer !== undefined && param.initializer !== 'undefined') {
-                return `${safeName} *${paramType}`
+                return `${safeName} *${paramType}`;
                 // } else {
                 //     if (paramType  === 'bool') {
                 //         return `${paramType}? ${safeName} = false`
@@ -913,12 +913,12 @@ class NewTranspiler {
                 //         }
                 //         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
                 // }
-                return `${safeName} *${paramType}`
+                return `${safeName} *${paramType}`;
             } else {
-                return `${safeName} ${paramType}`
+                return `${safeName} ${paramType}`;
             }
         }
-        return `${safeName} ${paramType}`
+        return `${safeName} ${paramType}`;
     }
 
     shouldCreateWrapper(methodName: string, isWs = false): boolean {
@@ -1021,7 +1021,7 @@ class NewTranspiler {
             const typeWithoutList = this.unwrapListIfNeeded(unwrappedType);
             returnStatement = `New${capitalize(typeWithoutList)}Array(res)`;
         } else {
-            returnStatement =  needsToInstantiate ? `New${capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;            ;
+            returnStatement =  needsToInstantiate ? `New${capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;
         }
         return returnStatement;
     }
@@ -1057,7 +1057,7 @@ class NewTranspiler {
     var ${this.safeGoName(param.name)} interface{} = nil
     if opts.${capName} != nil {
         ${this.safeGoName(param.name)} = *opts.${capName}
-    }`
+    }`;
                 res.push(decl);
                 }
             });
@@ -1074,10 +1074,10 @@ class NewTranspiler {
         const capName = capitalize(methodName);
         const optionalParams = params.filter(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}');
         if (optionalParams.length === 0) {
-            return
+            return;
         }
         if (capName in goTypeOptions) {
-            return
+            return;
         }
         if (params.length === 1 && params[0].name === 'params') {
             return;
@@ -1130,7 +1130,7 @@ class NewTranspiler {
         if (!methodInfo) {
             return '';
         }
-        const itf = methodInfo.interface
+        const itf = methodInfo.interface;
         // const params = methodInfo.params;
         const exCap = capitalize(exchangeName);
         const nameCap = capitalize(name);
@@ -1139,7 +1139,7 @@ class NewTranspiler {
         let args: string[] = [];
         for (const param of wrapper.parameters) {
             if (param.name === 'params' && wrapper.parameters.length === 1) {
-                args.push('params...')
+                args.push('params...');
                 break;
             }
             if (param.isOptional || param.name === 'params' || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}') {
@@ -1148,10 +1148,10 @@ class NewTranspiler {
                 // } else {
                 //     args.push(`options...`)
                 // }
-                args.push(`options...`)
+                args.push(`options...`);
                 break;
             } else {
-                args.push(this.safeGoName(param.name))
+                args.push(this.safeGoName(param.name));
             }
         }
 
@@ -1173,13 +1173,13 @@ class NewTranspiler {
         this.createOptionsStruct(methodName, methodWrapper.parameters);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         let params = methodWrapper.parameters.map((param: any) => {
-            let parsedParam = this.safeGoName(param.name)
+            let parsedParam = this.safeGoName(param.name);
 
             if (methodName === 'createOrders' && param.name === 'orders') {
-                parsedParam = 'ConvertOrderRequestListToArray(orders)' // quick fix, check this later
+                parsedParam = 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
             }
 
-            return parsedParam
+            return parsedParam;
         }).join(', ');
 
         const one = this.inden(0);
@@ -1192,17 +1192,17 @@ class NewTranspiler {
 
         let emtpyObject = `${unwrappedType}{}`;
         if (unwrappedType.startsWith('[]')) {
-            emtpyObject = 'nil'
+            emtpyObject = 'nil';
         } else if (unwrappedType.includes('int64')) {
-            emtpyObject = '-1'
+            emtpyObject = '-1';
         } else if (unwrappedType === 'string') {
-            emtpyObject = '""'
+            emtpyObject = '""';
         }
 
-        const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters)
+        const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
 
         if (stringArgs =='params ...interface{}') {
-            params = 'params...'
+            params = 'params...';
         }
 
         const accessor = isExchange ? 'this.Exchange.' : 'this.Core.';
@@ -1219,7 +1219,7 @@ class NewTranspiler {
             `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
             // `${two}}()`,
             // `${two}return ch`,
-        ]
+        ];
         const interfaceMethod = `${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error)`
         if (!WRAPPER_METHODS[exchangeName]) {
             WRAPPER_METHODS[exchangeName] = [];
@@ -1231,7 +1231,7 @@ class NewTranspiler {
             wrapper: methodWrapper,
             interface: interfaceMethod,
             params: stringArgs,
-        }
+        };
         // wrapperMethods[exchangeName].push([interfaceMethod, stringArgs, methodWrapper]);
         const funcContext = isExchange ? 'ExchangeTyped' : capitalize(exchangeName);
         const method = [
@@ -1243,7 +1243,7 @@ class NewTranspiler {
             `${one}}`
         ];
         // return methodDoc.concat(method).concat(withMethod).filter(e => !!e).join('\n')
-        return methodDoc.concat(method).filter(e => !!e).join('\n')
+        return methodDoc.concat(method).filter(e => !!e).join('\n');
     }
 
     createExchangesWrappers(): string[] {
@@ -1252,8 +1252,8 @@ class NewTranspiler {
         exchangeIds.forEach((exchange: string) => {
             const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
             const capitalName = capitalizedExchange.replace('.ts','');
-            const constructor = `public ${capitalName}(object args = null) : base(args) { }`
-            res.push(`public class  ${capitalName}: ${exchange.replace('.ts','')} { ${constructor} }`)
+            const constructor = `public ${capitalName}(object args = null) : base(args) { }`;
+            res.push(`public class  ${capitalName}: ${exchange.replace('.ts','')} { ${constructor} }`);
         });
         return res;
     }
@@ -1269,7 +1269,7 @@ class NewTranspiler {
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
-            missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`
+            missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`;
             missingMethodsWrappers += missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
         }
 
@@ -1346,30 +1346,30 @@ class NewTranspiler {
             '// missing typed methods from base',
             '//nolint',
             missingMethodsWrappers,
-        ].join('\n')
+        ].join('\n');
         if (ws) {
             file = this.addPackagePrefix(file, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
-        log.magenta ('→', (path as any).yellow)
+        log.magenta ('→', (path as any).yellow);
 
         overwriteFileAndFolder (path, file);
     }
 
     transpileErrorHierarchy () {
 
-        const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
-        const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+        const errorHierarchyFilename = './js/src/base/errorHierarchy.js';
+        const errorHierarchyPath = `${__dirname}/.${errorHierarchyFilename}`;
 
-        let js = fs.readFileSync (errorHierarchyPath, 'utf8')
+        let js = fs.readFileSync (errorHierarchyPath, 'utf8');
 
         js = this.regexAll (js, [
             // [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
             [ /\s*export default[^\n]+;\n/g, '' ],
             // [ /module\.exports = [^\;]+\;\n/s, '' ], // old commonjs
-        ]).trim ()
+        ]).trim ();
 
-        const message = 'Transpiling error hierachy →'
-        const root = errorHierarchy['BaseError']
+        const message = 'Transpiling error hierachy →';
+        const root = errorHierarchy['BaseError'];
 
         // a helper to generate a list of exception class declarations
         // properly derived from corresponding parent classes according
@@ -1378,11 +1378,11 @@ class NewTranspiler {
         function intellisense (map: any, parent: any, generate: any, classes: any) {
             function* generator(map: any, parent: any, generate: any, classes: any): any {
                 for (const key in map) {
-                    yield generate (key, parent, classes)
-                    yield* generator (map[key], key, generate, classes)
+                    yield generate (key, parent, classes);
+                    yield* generator (map[key], key, generate, classes);
                 }
             }
-            return Array.from (generator (map, parent, generate, classes))
+            return Array.from (generator (map, parent, generate, classes));
         }
 
         const errorNames: string[] = [];
@@ -1392,17 +1392,17 @@ class NewTranspiler {
 `func ${name}(v ...interface{}) error {
     return NewError("${name}", v...)
 }`;
-            return exception
+            return exception;
         }
 
-        const goErrors = intellisense (root as any, 'BaseError', GoMakeErrorFile, undefined)
+        const goErrors = intellisense (root as any, 'BaseError', GoMakeErrorFile, undefined);
 
 
         // createError function
         const caseStatements = errorNames.map(error => {
             return`    case "${error}":
         return ${error}(v...)`;
-        })
+        });
 
         const functionDecl = `func CreateError(err string, v ...interface{}) error {
     switch err {
@@ -1410,30 +1410,30 @@ ${caseStatements.join('\n')}
         default:
             return NewError(err, v...)
     }
-}`
+}`;
 
     const constStatements = errorNames.map(error => {
         return`   ${error}ErrType ErrorType = "${error}"`;
-    })
+    });
 
     const constDecl =` const (
 ${constStatements.join('\n')}
-)`
+)`;
 
         const goBodyIntellisense = '\npackage ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + goErrors.join ('\n') + '\n' + functionDecl + '\n' + constDecl + '\n';
         if (fs.existsSync (ERRORS_FILE)) {
-            log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-            overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense)
+            log.bright.cyan (message, (ERRORS_FILE as any).yellow);
+            overwriteFileAndFolder (ERRORS_FILE, goBodyIntellisense);
         }
 
-        log.bright.cyan (message, (ERRORS_FILE as any).yellow)
+        log.bright.cyan (message, (ERRORS_FILE as any).yellow);
 
     }
 
     transpileBaseMethods(baseExchangeFile: string, isWs = false) {
-        log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow)
+        log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow);
         const goExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP';
 
         // to go
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
@@ -1445,8 +1445,8 @@ ${constStatements.join('\n')}
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 
-        const syncMethods = allVirtual.filter(elem => !baseMethods[elem])
-        const asyncMethods = allVirtual.filter(elem => baseMethods[elem])
+        const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
+        const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
 
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         // console.log(syncRegex)
@@ -1464,7 +1464,7 @@ ${constStatements.join('\n')}
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
         // create wrappers with specific types
-        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [])
+        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || []);
 
         // const exchangeMethods = wrapperMethods['Exchange'];
         // const sortedList = exchangeMethods.sort((a, b) => a.localeCompare(b));
@@ -1510,10 +1510,10 @@ ${constStatements.join('\n')}
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
         ]);
 
-        const jsDelimiter = '// ' + delimiter
-        const parts = baseClass.split (jsDelimiter)
+        const jsDelimiter = '// ' + delimiter;
+        const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
-            const baseMethods = parts[1]
+            const baseMethods = parts[1];
             const fileHeader = this.getGoImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
@@ -1534,7 +1534,7 @@ ${constStatements.join('\n')}
         ${exchange}Itf := New${coreName}()
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
-        })
+        });
 
         const functionDecl = `
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${ws ? 'ccxt.' : ''}ICoreExchange, bool) {
@@ -1544,7 +1544,7 @@ ${caseStatements.join('\n')}
         return nil, false
     }
 }
-`
+`;
         const file = [
             `package ccxt${ws ? 'pro' : ''}`,
             ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
@@ -1569,7 +1569,7 @@ ${caseStatements.join('\n')}
             return`    case "${exchange}":
         itf := New${struct}(${args})
         return itf`;
-        })
+        });
 
         const functionDecl = `
 func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
@@ -1580,14 +1580,14 @@ ${caseStatements.join('\n')}
             return nil
     }
 }
-`
+`;
         const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
             const methodInfo = WRAPPER_METHODS['Exchange'][method];
             if (!INTERFACE_METHODS.includes(method)) {
                 return '';
             }
             return methodInfo.interface;
-        }).filter(e => !!e)
+        }).filter(e => !!e);
 
         const interfaceDecl = `
 type IExchange interface {
@@ -1627,23 +1627,23 @@ type IExchange interface {
             '    // Additionally always choose the typed version of the method instead of the generic one',
             '    // (e.g. CreateOrder (typed) instead of createOrder (generic)',
             ''
-        ].join('\n')
+        ].join('\n');
     }
 
     transpileExamples () {
         return;
         // currently disabled!, the generated code is too complex and illegible
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
+        const transpileFlagPhrase = '// AUTO-TRANSPILE //';
 
         // @ts-expect-error
         const allTsExamplesFiles = fs.readdirSync (EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
         for (const filenameWithExtenstion of allTsExamplesFiles) {
             // @ts-expect-error
-            const tsFile = path.join (EXAMPLES_INPUT_FOLDER, filenameWithExtenstion)
-            let tsContent = fs.readFileSync (tsFile).toString ()
+            const tsFile = path.join (EXAMPLES_INPUT_FOLDER, filenameWithExtenstion);
+            let tsContent = fs.readFileSync (tsFile).toString ();
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
-                const fileName = filenameWithExtenstion.replace ('.ts', '')
-                log.magenta ('[GO] Transpiling example from', (tsFile as any).yellow)
+                const fileName = filenameWithExtenstion.replace ('.ts', '');
+                log.magenta ('[GO] Transpiling example from', (tsFile as any).yellow);
                 const go = this.transpiler.transpileGo(tsContent);
 
                 const transpiledFixed = this.regexAll(
@@ -1652,9 +1652,9 @@ type IExchange interface {
                         [/object exchange/, 'Exchange exchange'],
                         [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
                         [/(^\s+)object\s(\w+)\s=/gm, '$1var $2 ='],
-                        [/^await.+$/gm, '']
+                        [/^await.+$/gm, ''],
                     ]
-                )
+                );
 
                 const finalFile = [
                     'using ccxt;',
@@ -1664,16 +1664,16 @@ type IExchange interface {
                     'partial class Examples',
                     '{',
                     transpiledFixed,
-                    '}'
+                    '}',
                 ].join('\n');
                 // @ts-expect-error
-                overwriteFileAndFolder (EXAMPLES_OUTPUT_FOLDER + fileName + '.go', finalFile);
+                overwriteFileAndFolder (`${EXAMPLES_OUTPUT_FOLDER}/${fileName}.go`, finalFile);
             }
         }
     }
 
     async transpileWS(force = false) {
-        const tsFolder = './ts/src/pro/';
+        const tsFolder = './ts/src/pro';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         if (inputExchanges === undefined) {
@@ -1690,32 +1690,30 @@ type IExchange interface {
 
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , goFolder = EXCHANGES_FOLDER
-            , tsFolder = './ts/src/'
+            , tsFolder = './ts/src';
 
         if (!child) {
-            createFolderRecursively (goFolder)
+            createFolderRecursively (goFolder);
         }
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
-        const options = { goFolder, exchanges }
+        const options = { goFolder, exchanges };
 
-        this.transpileBaseMethods (TS_BASE_FILE) // now we always need the baseMethods info
+        this.transpileBaseMethods (TS_BASE_FILE); // now we always need the baseMethods info
         if (!transpilingSingleExchange && !child) {
             this.createDynamicInstanceFile();
             this.createTypedInterfaceFile();
         }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length));
         }
-
 
         if (child) {
             return;
         }
-
 
         if (baseOnly) {
             return;
@@ -1725,12 +1723,11 @@ type IExchange interface {
             return;
         }
 
+        this.transpileTests();
 
-        this.transpileTests()
+        this.transpileErrorHierarchy ();
 
-        this.transpileErrorHierarchy ()
-
-        log.bright.green ('Transpiled successfully.')
+        log.bright.green ('Transpiled successfully.');
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
@@ -1803,7 +1800,7 @@ type IExchange interface {
 
         // exchanges = ['bitmart.ts']
         // transpile using webworker
-        const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
+        const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
         const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
@@ -1875,7 +1872,7 @@ type IExchange interface {
                 }
             }
         }
-        results.delete("Exception")
+        results.delete("Exception");
         return results;
     }
 
@@ -1931,7 +1928,7 @@ type IExchange interface {
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
-            ])
+            ]);
         } else {
             const inheritedClass = isAlias ? `${baseClass}` : `ccxt.${className}`;
             const wsRegexes = this.getWsRegexes();
@@ -1940,7 +1937,7 @@ type IExchange interface {
                 [ /(p \:\= &.*$)/gm, `$1\n\tbase := &${inheritedClass}{}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
                 ...wsRegexes,
             ]);
-            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt')
+            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
 
 
@@ -1955,14 +1952,14 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     this.Exchange = ${ws ? `ccxt.Exchange` : `Exchange`}{}
     this.Exchange.DerivedExchange = this
     this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
-}\n`
+}\n`;
         } else {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]interface{}) {
     this.${ws ? 'base' : `${capitalize(baseClass)}`}.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this
-}\n`
+}\n`;
         }
 
         content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
@@ -1971,20 +1968,20 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
     transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false) {
 
-        const tsPath = tsFolder + filename
+        const tsPath = `${tsFolder}/${filename}`;
 
-        let { goFolder } = options
+        let { goFolder } = options;
 
-        const extensionlessName = filename.replace ('.ts', '')
-        const goFilename = filename.replace ('.ts', '.go')
+        const extensionlessName = filename.replace ('.ts', '');
+        const goFilename = filename.replace ('.ts', '.go');
 
-        const tsMtime = fs.statSync (tsPath).mtime.getTime ()
+        const tsMtime = fs.statSync (tsPath).mtime.getTime ();
 
         const go  = this.createGoExchange (extensionlessName, goResult, ws);
 
         if (goFolder) {
-            overwriteFileAndFolder (goFolder + goFilename, go)
-            // fs.utimesSync (goFolder + goFilename, new Date (), new Date (tsMtime))
+            overwriteFileAndFolder (`${goFolder}/${goFilename}`, go);
+            // fs.utimesSync (`${goFolder}/${goFilename}`, new Date (), new Date (tsMtime))
         }
     }
 
@@ -1994,7 +1991,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const goFile = `${outDir}/cache/orderbook.go`;
 
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
+        log.magenta ('Transpiling from', (jsFile as any).yellow);
 
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
@@ -2005,7 +2002,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             [/var (\w+) interface{} = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
             [/var (\w+) interface{} = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
             [/assert/g, 'Assert'],
-        ]).trim ()
+        ]).trim ();
 
         const contentLines = content.split ('\n');
         const contentIdented = contentLines.map (line => line).join ('\n');
@@ -2015,9 +2012,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '',
             this.createGeneratedHeader().join('\n'),
             contentIdented,
-        ].join('\n')
+        ].join('\n');
 
-        log.magenta ('→', (goFile as any).yellow)
+        log.magenta ('→', (goFile as any).yellow);
 
         overwriteFileAndFolder (goFile, file);
     }
@@ -2028,7 +2025,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const goFile = `${outDir}/cache/cache.go`;
 
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
+        log.magenta ('Transpiling from', (jsFile as any).yellow);
 
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
@@ -2038,8 +2035,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         content = this.regexAll (content, [
             [/assert/g, 'Assert'],
             [/GetValue\(cacheSymbolSide4/g, 'GetValue(cacheSymbolSide4.ToArray()' ],
-            [/GetArrayLength\(cacheSymbolSide4\)/g  , 'GetArrayLength(cacheSymbolSide4.ToArray())']
-        ]).trim ()
+            [/GetArrayLength\(cacheSymbolSide4\)/g  , 'GetArrayLength(cacheSymbolSide4.ToArray())'],
+        ]).trim ();
 
         const contentLines = content.split ('\n');
         const contentIdented = contentLines.map (line =>  line).join ('\n');
@@ -2049,9 +2046,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '',
             this.createGeneratedHeader().join('\n'),
             contentIdented,
-        ].join('\n')
+        ].join('\n');
 
-        log.magenta ('→', (goFile as any).yellow)
+        log.magenta ('→', (goFile as any).yellow);
 
         overwriteFileAndFolder (goFile, file);
     }
@@ -2063,24 +2060,22 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const goFile = `${outDir}/test.cryptography.go`;
 
-        log.magenta ('[go] Transpiling from', (jsFile as any).yellow)
+        log.magenta ('[go] Transpiling from', (jsFile as any).yellow);
 
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
             [ /Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
-        ]).trim ()
-
-
+        ]).trim ();
 
         const file = [
             'package base',
             this.createGeneratedHeader().join('\n'),
-            content
-        ].join('\n')
+            content,
+        ].join('\n');
 
-        log.magenta ('→', (goFile as any).yellow)
+        log.magenta ('→', (goFile as any).yellow);
 
         overwriteFileAndFolder (goFile, file);
     }
@@ -2097,7 +2092,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             [/assert/g, 'Assert'],
             [/object exchange/g, 'Exchange exchange'],
             [/function test/g, finalName],
-        ]).trim ()
+        ]).trim ();
 
         const contentLines = content.split ('\n');
         const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
@@ -2113,24 +2108,24 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '{',
             contentIdented,
             '}',
-        ].join('\n')
+        ].join('\n');
         return [finalName, file];
     }
 
     // async transpileExchangeTestsToGo() {
-    //     const inputDir = './ts/src/test/exchange/';
+    //     const inputDir = './ts/src/test/exchange';
     //     const outDir = GENERATED_TESTS_FOLDER;
     //     const ignore = [
     //         // 'exportTests.ts',
     //         // 'test.fetchLedger.ts',
     //         'test.throttler.ts',
     //         // 'test.fetchOrderBooks.ts', // uses spread operator
-    //     ]
+    //     ];
 
     //     const inputFiles = fs.readdirSync('./ts/src/test/exchange');
     //     const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
-    //     const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-    //     await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.go', file[1])))
+    //     const transpiledFiles = files.map(file => this.transpileExchangeTest(file, `${inputDir}/${file}`));
+    //     await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (`${outDir}/${file[0]}.go`, file[1])));
     // }
 
     transpileBaseTestsToGo () {
@@ -2144,13 +2139,13 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileBaseTests (outDir: string) {
 
         const baseFolders = {
-            ts: './ts/src/test/base/',
+            ts: './ts/src/test/base',
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         for (const testName of baseFunctionTests) {
-            const tsFile = baseFolders.ts + testName + '.ts';
+            const tsFile = `${baseFolders.ts}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
                 continue;
@@ -2159,7 +2154,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             // const goFileName = capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
-            log.magenta ('Transpiling from', (tsFile as any).yellow)
+            log.magenta ('Transpiling from', (tsFile as any).yellow);
 
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
@@ -2173,7 +2168,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
 
-            ]).trim ()
+            ]).trim ();
 
             const file = [
                 'package base',
@@ -2181,9 +2176,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,
-            ].join('\n')
+            ].join('\n');
 
-            log.magenta ('→', (goFile as any).yellow)
+            log.magenta ('→', (goFile as any).yellow);
 
             goTests.push(capitalize(testName));
             overwriteFileAndFolder (goFile, file);
@@ -2191,17 +2186,16 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileMainTest(files: any) {
-        log.magenta ('[go] Transpiling from', files.tsFile.yellow)
+        log.magenta ('[go] Transpiling from', files.tsFile.yellow);
         let ts = fs.readFileSync (files.tsFile).toString ();
 
         ts = this.regexAll (ts, [
             [ /\'use strict\';?\s+/g, '' ],
-        ])
+        ]);
 
         const mainContent = ts;
         const go = this.transpiler.transpileGo(mainContent);
         let contentIndentend = go.content;
-
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
@@ -2213,7 +2207,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             [/assert\(/g, 'Assert('],
             [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
             [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
-        ])
+        ]);
 
         const file = [
             'package base',
@@ -2221,7 +2215,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
-        ].join('\n')
+        ].join('\n');
 
         overwriteFileAndFolder (files.goFile, file);
     }
@@ -2233,10 +2227,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             'goFile': BASE_TESTS_FILE,
         });
         const baseFolders = {
-            ts: './ts/src/test/Exchange/',
-            tsBase: './ts/src/test/Exchange/base/',
-            goBase: './go/tests/base/',
-            go: './go/tests/base/',
+            ts: './ts/src/test/Exchange',
+            tsBase: './ts/src/test/Exchange/base',
+            goBase: './go/tests/base',
+            go: './go/tests/base',
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2251,16 +2245,16 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             tests.push({
                 base: true,
                 name:baseTest,
-                tsFile: baseFolders.tsBase + baseTest + '.ts',
-                goFile: baseFolders.goBase + baseTest + '.go',
+                tsFile: `${baseFolders.tsBase}/${baseTest}.ts`,
+                goFile: `${baseFolders.goBase}/${baseTest}.go`,
             });
         });
         exchangeTests.forEach (test => {
             tests.push({
                 base: false,
                 name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                goFile: baseFolders.go + test + '.go',
+                tsFile: `${baseFolders.ts}/${test}.ts`,
+                goFile: `${baseFolders.go}/${test}.go`,
             });
         });
 
@@ -2272,8 +2266,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileWsExchangeTests(){
 
         const baseFolders = {
-            ts: './ts/src/pro/test/Exchange/',
-            go: GENERATED_TESTS_FOLDER + 'base/',
+            ts: `./ts/src/pro/test/Exchange`,
+            go: `${GENERATED_TESTS_FOLDER}/base`,
         };
 
         const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
@@ -2283,8 +2277,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         wsTests.forEach (test => {
             tests.push({
                 name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                goFile: baseFolders.go + test + '.go',
+                tsFile: `${baseFolders.ts}/${test}.ts`,
+                goFile: `${baseFolders.go}/${test}.go`,
             });
             goWsTests.push(test)
         });
@@ -2311,14 +2305,14 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(<-exchange.Watch\w+\(.+\))/g, 'UnWrapType($1)'],
                 // [/<-exchange.WatchOrderBook\(symbol\)/g, '(ToOrderBook(<-exchange.WatchOrderBook(symbol)))'], // orderbook watch
                 // [/<-exchange.WatchOrderBookForSymbols\((.*?)\)/g, '(ToOrderBook(<-exchange.WatchOrderBookForSymbols($1)))'],
-                [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''] // remove equals
+                [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
 
 
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
                 // [ /throw new Error/g, 'throw new Exception' ],
                 // [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
-                // [ /void function/g, 'void']
+                // [ /void function/g, 'void'],
             ];
 
             // if (isWs) {
@@ -2329,7 +2323,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             //     ]);
             // }
 
-            contentIndentend = this.regexAll (contentIndentend, regexes)
+            contentIndentend = this.regexAll (contentIndentend, regexes);
             const namespace = 'package base';
             let imports = 'import "github.com/ccxt/ccxt/go/v4"';
             const fmtImport = contentIndentend.indexOf('fmt.Println') > -1 ? 'import "fmt"' : '';
@@ -2340,7 +2334,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
-            ]
+            ];
             let go: string;
             const filename = tests[idx].name;
             if (filename === 'test.sharedMethods') {
@@ -2395,7 +2389,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             }
             const methodName = test.replace('Test.', '').replace('test.', '');
             normalizedFunctionNames.push(methodName);
-            test = 'Test' + capitalize(methodName)
+            test = 'Test' + capitalize(methodName);
             normalizedTestNames.push(test);
         }
 
@@ -2409,7 +2403,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             }
             const methodName = test.replace('Test.', '').replace('test.', '');
             normalizedWsFunctionNames.push(methodName);
-            test = 'Test' + capitalize(methodName)
+            test = 'Test' + capitalize(methodName);
             normalizedWsTestNames.push(test);
         }
 
@@ -2426,30 +2420,30 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             ...normalizedWsTestNames.map((test,i) => `    "${normalizedWsFunctionNames[i]}": ${test},`),
             '}',
         ].join('\n');
-        overwriteFileAndFolder (BASE_TESTS_FOLDER + '/test.functions.go', file);
+        overwriteFileAndFolder (`${BASE_TESTS_FOLDER}/test.functions.go`, file);
     }
 }
 
 if (isMainEntry(import.meta.url)) {
-    const ws = process.argv.includes ('--ws')
-    const baseOnly = process.argv.includes ('--baseTests')
-    const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
+    const ws = process.argv.includes ('--ws');
+    const baseOnly = process.argv.includes ('--baseTests');
+    const test = process.argv.includes ('--test') || process.argv.includes ('--tests');
     const examples = process.argv.includes ('--examples');
-    const force = process.argv.includes ('--force')
-    const child = process.argv.includes ('--child')
-    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
-    shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
+    const force = process.argv.includes ('--force');
+    const child = process.argv.includes ('--child');
+    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi');
+    shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     if (!child && !multiprocess) {
-        log.bright.green ({ force })
+        log.bright.green ({ force });
     }
     const transpiler = new NewTranspiler (ws);
     if (ws) {
-        await transpiler.transpileWS (force)
+        await transpiler.transpileWS (force);
     } else if (test) {
-        transpiler.transpileTests ()
+        transpiler.transpileTests ();
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        parallelizeTranspiling (exchangeIds);
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples)
+        await transpiler.transpileEverything (force, child, baseOnly, examples);
     }
 }
