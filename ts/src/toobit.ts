@@ -5,7 +5,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, DepositAddress, BorrowInterest, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, DepositAddress, BorrowInterest, Market, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -57,6 +57,7 @@ export default class toobit extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchWithdrawals': true,
+                'setMarginMode': true,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -107,6 +108,8 @@ export default class toobit extends Exchange {
                         'api/v1/account/depositOrders': 1,
                         'api/v1/account/withdrawOrders': 1,
                         'api/v1/account/deposit/address': 1,
+                        // contracts
+                        'api/v1/subAccount': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -115,6 +118,8 @@ export default class toobit extends Exchange {
                         'api/v1/spot/batchOrders': 1,
                         'api/v1/subAccount/transfer': 1,
                         'api/v1/account/withdraw': 1,
+                        // contracts
+                        'api/v1/futures/marginType': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -184,6 +189,41 @@ export default class toobit extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                },
+                'forDerivatives': {
+                    'createOrders': {
+                        'max': 10,
                     },
                 },
                 'swap': {
@@ -380,79 +420,84 @@ export default class toobit extends Exchange {
         const result = [];
         for (let i = 0; i < all.length; i++) {
             const market = all[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const baseParts = baseId.split ('-');
-            const baseIdClean = baseParts[0];
-            const base = this.safeCurrencyCode (baseIdClean);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settleId = this.safeString (market, 'marginToken');
-            const settle = this.safeCurrencyCode (settleId);
-            const status = this.safeString (market, 'status');
-            const active = (status === 'TRADING');
-            const filters = this.safeList (market, 'filters', []);
-            const filtersByType = this.indexBy (filters, 'filterType');
-            const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
-            const lotSizeFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
-            const minNotionalFilter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
-            let symbol = base + '/' + quote;
-            const isContract = ('contractMultiplier' in market);
-            const inverse = this.safeBool (market, 'isInverse');
-            if (isContract) {
-                symbol += ':' + settle;
-            }
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': undefined,
-                'spot': !isContract,
-                'margin': false,
-                'swap': isContract,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': isContract,
-                'linear': isContract ? !inverse : undefined,
-                'inverse': isContract ? inverse : undefined,
-                'contractSize': this.safeNumber (market, 'contractMultiplier'),
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (lotSizeFilter, 'stepSize'),
-                    'price': this.safeNumber (priceFilter, 'tickSize'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (lotSizeFilter, 'minQty'),
-                        'max': this.safeNumber (lotSizeFilter, 'maxQty'),
-                    },
-                    'price': {
-                        'min': this.safeNumber (priceFilter, 'minPrice'),
-                        'max': this.safeNumber (priceFilter, 'maxPrice'),
-                    },
-                    'cost': {
-                        'min': this.safeNumber (minNotionalFilter, 'minNotional'),
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+            const parsed = this.parseMarket (market);
+            result.push (parsed);
         }
         return result;
+    }
+
+    parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const baseParts = baseId.split ('-');
+        const baseIdClean = baseParts[0];
+        const base = this.safeCurrencyCode (baseIdClean);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settleId = this.safeString (market, 'marginToken');
+        const settle = this.safeCurrencyCode (settleId);
+        const status = this.safeString (market, 'status');
+        const active = (status === 'TRADING');
+        const filters = this.safeList (market, 'filters', []);
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
+        const lotSizeFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
+        const minNotionalFilter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
+        let symbol = base + '/' + quote;
+        const isContract = ('contractMultiplier' in market);
+        const inverse = this.safeBool (market, 'isInverse');
+        if (isContract) {
+            symbol += ':' + settle;
+        }
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': isContract ? 'swap' : 'spot',
+            'spot': !isContract,
+            'margin': false,
+            'swap': isContract,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': isContract,
+            'linear': isContract ? !inverse : undefined,
+            'inverse': isContract ? inverse : undefined,
+            'contractSize': this.safeNumber (market, 'contractMultiplier'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (lotSizeFilter, 'stepSize'),
+                'price': this.safeNumber (priceFilter, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (lotSizeFilter, 'minQty'),
+                    'max': this.safeNumber (lotSizeFilter, 'maxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'max': this.safeNumber (priceFilter, 'maxPrice'),
+                },
+                'cost': {
+                    'min': this.safeNumber (minNotionalFilter, 'minNotional'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
     }
 
     /**
@@ -1204,7 +1249,7 @@ export default class toobit extends Exchange {
             if (triggerPriceType !== undefined) {
                 request['slTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
             }
-            params = this.omit (params, 'stopLoss' );
+            params = this.omit (params, 'stopLoss');
         }
         if (takeProfit !== undefined) {
             request['takeProfit'] = this.safeValue (takeProfit, 'triggerPrice');
@@ -1217,7 +1262,7 @@ export default class toobit extends Exchange {
             if (triggerPriceType !== undefined) {
                 request['tpTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
             }
-            params = this.omit (params, 'takeProfit' );
+            params = this.omit (params, 'takeProfit');
         }
         return [ request, params ];
     }
@@ -2066,6 +2111,34 @@ export default class toobit extends Exchange {
         // }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    /**
+     * @method
+     * @name toobit#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        marginMode = marginMode.toUpperCase ();
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        };
+        // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
+        return await this.privatePostApiV1FuturesMarginType (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
