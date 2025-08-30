@@ -167,8 +167,8 @@ class nobitex extends Exchange {
         // dayClose => "38819999960",
         // dayChange => "0.05"
         // ),
+        $id = $this->safe_string($market, 'symbol');
         $symbol = $this->safe_string_upper($market, 'symbol');
-        $id = str_replace('-', '', $symbol);
         list($baseId, $quoteId) = explode('-', $symbol);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -267,23 +267,32 @@ class nobitex extends Exchange {
     }
 
     public function parse_ticker($ticker, ?array $market = null): array {
-        //
-        //     {
-        //      $symbol => "USDT-IRT",
-        //      $last => "61338.0",
-        //      best_ask => "61338.0",
-        //      best_bid => "61338.0",
-        //      open_24h => "61419",
-        //      high_24h => 61739,
-        //      low_24h => 60942,
-        //      vol_24h_pair => 11017655160,
-        //      vol_24h => 17968,
-        //      ts => 1715074621
-        //     }
-        //
+        //        {
+        // $symbol => "btc-rls",
+        // isClosed => false,
+        // bestSell => "112800000000",
+        // bestBuy => "112790000000",
+        // volumeSrc => "8.4585865026",
+        // volumeDst => "952507404308.593429632",
+        // latest => "112800000000",
+        // mark => "112770303030",
+        // dayLow => "111700000000",
+        // dayHigh => "114608341550",
+        // dayOpen => "112783203040",
+        // dayClose => "112800000000",
+        // dayChange => "0.01"
+        // }
         $marketType = 'spot';
-        $symbol = $this->safe_string_upper($ticker, 'symbol');
-        $marketId = str_replace('-', '', $symbol);
+        $rawSymbol = $this->safe_string_lower($ticker, 'symbol');
+        $parts = explode('-', $rawSymbol);
+        $baseId = $parts[0];
+        $quoteId = $parts[1];
+        if ($quoteId === 'rls') {
+            $quoteId = 'irt';
+        }
+        $base = $this->safe_currency_code(strtoupper($baseId));
+        $quote = $this->safe_currency_code(strtoupper($quoteId));
+        $marketId = $base . '/' . $quote;
         $marketinfo = $this->market($marketId);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $high = $this->safe_float($ticker, 'dayHigh');
@@ -296,8 +305,9 @@ class nobitex extends Exchange {
         $last = $this->safe_float($ticker, 'latest');
         $quoteVolume = $this->safe_float($ticker, 'volumeDst');
         $baseVolume = $this->safe_float($ticker, 'volumeSrc');
+        // adjust Nobitex IRT scaling
         if ($marketinfo['quote'] === 'IRT') {
-            $high = $high ? $high * 10 : 0;
+            $high = $high ? $high / 10 : 0;
             $low = $low ? $low / 10 : 0;
             $bid = $bid ? $bid / 10 : 0;
             $ask = $ask ? $ask / 10 : 0;
@@ -307,14 +317,14 @@ class nobitex extends Exchange {
             $quoteVolume = $quoteVolume ? $quoteVolume / 10 : 0;
         }
         return $this->safe_ticker(array(
-            'symbol' => str_replace('-', '/', $symbol),
+            'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
             'high' => $high,
             'low' => $low,
-            'bid' => $this->safe_float($bid, 0),
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => $this->safe_float($ask, 0),
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -345,7 +355,7 @@ class nobitex extends Exchange {
         $market = $this->market($symbol);
         $endTime = Date.now ();
         if ($market['quote'] === 'IRT') {
-            $market['id'] = str_replace('RLS', 'IRT', $market['id']);
+            $market['id'] = str_replace('/', '', $market['symbol']);
         }
         $request = array(
             'symbol' => $market['id'],
