@@ -6857,7 +6857,7 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesWithPrecisions (symbol, params, omitParams = true) {
+    handleTriggerPricesWithPrecision (symbol, params, omitParams = true) {
         //
         const triggerPrice = this.safeValue (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
