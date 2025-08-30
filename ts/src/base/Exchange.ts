@@ -191,11 +191,9 @@ export default class Exchange {
     options: {
         [key: string]: any;
     }
-    isSandboxModeEnabled: boolean = false
+    isSandboxModeEnabled: boolean = false;
 
-    throttleProp = undefined
-    sleep = sleep;
-    api = undefined
+    api: Dictionary<any> = undefined;
     certified: boolean = false;
     pro: boolean = false;
     countries: Str[] = undefined;
@@ -227,64 +225,64 @@ export default class Exchange {
     wsSocksProxy: string;
     ws_socks_proxy: string;
     //
-    userAgents: any = {
+    userAgents: Dictionary<string> = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     };
-    headers: any = {};
+    headers: Dictionary<string> = {};
     returnResponseHeaders: boolean = false;
-    origin = '*' // CORS origin
+    origin: string = '*';  // CORS origin
     MAX_VALUE: Num = Number.MAX_VALUE;
     //
-    agent = undefined; // maintained for backwards compatibility
+    agent: any = undefined;  // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
-    httpAgent = undefined;
-    httpsAgent = undefined;
+    httpAgent: any = undefined;
+    httpsAgent: any = undefined;
 
-    minFundingAddressLength: Int = 1 // used in checkAddress
-    substituteCommonCurrencyCodes: boolean = true  // reserved
-    quoteJsonNumbers: boolean = true // treat numbers in json as quoted precise strings
-    number: (numberString: string) => number = Number // or String (a pointer to a function)
-    handleContentTypeApplicationZip: boolean = false
+    minFundingAddressLength: Int = 1;  // used in checkAddress
+    substituteCommonCurrencyCodes: boolean = true;  // reserved
+    quoteJsonNumbers: boolean = true;  // treat numbers in json as quoted precise strings
+    number: (numberString: string) => number = Number;  // or String (a pointer to a function)
+    handleContentTypeApplicationZip: boolean = false;
 
     // whether fees should be summed by currency code
-    reduceFees: boolean = true
+    reduceFees: boolean = true;
 
     // do not delete this line, it is needed for users to be able to define their own fetchImplementation
-    fetchImplementation: any
-    AbortError: any
-    FetchError: any
+    fetchImplementation: any;
+    AbortError: any;
+    FetchError: any;
 
-    validateServerSsl: boolean = true
-    validateClientSsl: boolean = false
+    validateServerSsl: boolean = true;
+    validateClientSsl: boolean = false;
 
-    timeout: Int      = 10000 // milliseconds
-    verbose: boolean  = false
-    twofa             = undefined // two-factor authentication (2-FA)
+    timeout: Int = 10000;  // milliseconds
+    verbose: boolean = false;
+    twofa: string = undefined;  // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
     uid: string;
     accountId: string;
-    login:string;
+    login: string;
     password: string;
-    privateKey: string;// a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string; // a wallet address "0x"-prefixed hexstring
-    token: string; // reserved for HTTP auth in some cases
+    privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string;  // a wallet address "0x"-prefixed hexstring
+    token: string;  // reserved for HTTP auth in some cases
 
-    balance      = {}
-    liquidations: Dictionary<Liquidation> = {}
-    orderbooks: Dictionary<Ob>   = {}
-    tickers: Dictionary<Ticker>  = {}
-    fundingRates: Dictionary<FundingRate> = {}
-    bidsasks: Dictionary<Ticker>  = {}
-    orders: ArrayCache       = undefined
-    triggerOrders: ArrayCache = undefined
-    trades: Dictionary<ArrayCache>
-    transactions = {}
-    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>
-    myLiquidations: Dictionary<Liquidation> = {}
+    balance: any = {};
+    liquidations: Dictionary<Liquidation> = {};
+    orderbooks: Dictionary<Ob>   = {};
+    tickers: Dictionary<Ticker>  = {};
+    fundingRates: Dictionary<FundingRate> = {};
+    bidsasks: Dictionary<Ticker>  = {};
+    orders: ArrayCache = undefined;
+    triggerOrders: ArrayCache = undefined;
+    trades: Dictionary<ArrayCache>;
+    transactions: Dictionary<Transaction> = {};
+    ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
+    myLiquidations: Dictionary<Liquidation> = {};
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -298,31 +296,31 @@ export default class Exchange {
         referral?: string;
     };
 
-    requiresWeb3: boolean = false
-    requiresEddsa: boolean = false
+    requiresWeb3: boolean = false;
+    requiresEddsa: boolean = false;
     precision: {
         amount: Num,
         price: Num,
         cost?: Num,
         base?: Num,
         quote?: Num,
-    } = undefined
+    } = undefined;
 
-    enableLastJsonResponse: boolean = false
-    enableLastHttpResponse: boolean = true
-    enableLastResponseHeaders: boolean = true
-    last_http_response    = undefined
-    last_json_response    = undefined
-    last_response_headers = undefined
-    last_request_headers  = undefined
-    last_request_body     = undefined
-    last_request_url      = undefined
-    last_request_path     = undefined
+    enableLastJsonResponse: boolean = false;
+    enableLastHttpResponse: boolean = true;
+    enableLastResponseHeaders: boolean = true;
+    last_http_response: string = undefined;
+    last_json_response: any = undefined;
+    last_response_headers: Dictionary<string> = undefined;
+    last_request_headers: Dictionary<string> = undefined;
+    last_request_body: any = undefined;
+    last_request_url: string = undefined;
+    last_request_path: string = undefined;
 
     id: string = 'Exchange';
 
-    markets: Dictionary<any> = undefined
-    has: Dictionary<boolean | 'emulated'>;
+    markets: Dictionary<any> = undefined;
+    has: Dictionary<boolean | 'emulated' | undefined>;
     features: Dictionary<Dictionary<any>> = undefined;
     status: {
         status: Str,
@@ -344,11 +342,11 @@ export default class Exchange {
         token: Bool, // reserved for HTTP auth in some cases
     };
     rateLimit: Num = undefined; // milliseconds
-    tokenBucket = undefined
-    throttler = undefined
+    tokenBucket: Dictionary<number> = undefined;
+    throttler: any = undefined;
     enableRateLimit: boolean = undefined;
 
-    httpExceptions = undefined
+    httpExceptions: Dictionary<any> = undefined;
 
     limits: {
         amount?: MinMax,
@@ -376,46 +374,54 @@ export default class Exchange {
     ids: string[] = undefined;
     currencies: Currencies = {};
 
-    baseCurrencies = undefined
-    quoteCurrencies = undefined
-    currencies_by_id = undefined
-    codes = undefined
+    baseCurrencies: Dictionary<CurrencyInterface> = undefined;
+    quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
+    currencies_by_id: Dictionary<CurrencyInterface> = undefined;
+    codes: string[] = undefined;
 
-    reloadingMarkets: boolean = undefined
-    marketsLoading: Promise<Dictionary<any>> = undefined
+    reloadingMarkets: boolean = undefined;
+    marketsLoading: Promise<Dictionary<Market>> = undefined;
 
-    accounts = undefined
-    accountsById = undefined
+    accounts: Account[] = undefined;
+    accountsById: Dictionary<Account> = undefined;
 
-    commonCurrencies: Dictionary<string> = undefined
+    commonCurrencies: Dictionary<string> = undefined;
 
     hostname: Str = undefined;
 
     precisionMode: Num = undefined;
-    paddingMode: Num = undefined
+    paddingMode: Num = undefined;
 
-    exceptions: Dictionary<string> = {}
-    timeframes: Dictionary<number | string> = {}
+    exceptions: Dictionary<string> = {};
+    timeframes: Dictionary<number | string> = {};
 
     version: Str = undefined;
 
-    marketsByAltname: Dictionary<any> = undefined
+    marketsByAltname: Dictionary<Market> = undefined;
 
-    name:Str = undefined
+    name: Str = undefined;
 
-    lastRestRequestTimestamp:number;
+    lastRestRequestTimestamp: number;
 
-    targetAccount = undefined
+    targetAccount: string = undefined;
 
-    stablePairs = {}
+    stablePairs: Dictionary<boolean> = {};
 
-    // WS/PRO options
-    clients: Dictionary<WsClient> = {}
-    newUpdates: boolean = true
-    streaming = {}
-
+    httpProxyAgentModule: any = undefined;
+    httpsProxyAgentModule: any = undefined;
+    socksProxyAgentModule: any = undefined;
+    socksProxyAgentModuleChecked: boolean = false;
+    proxyDictionaries: Dictionary<any> = {};
+    proxiesModulesLoading: Promise<any> = undefined;
     alias: boolean = false;
 
+    // WS/PRO options
+    clients: Dictionary<WsClient> = {};
+    newUpdates: boolean = true;
+    streaming: Dictionary<any> = {};
+
+    // INTERNAL METHODS
+    sleep = sleep;
     deepExtend = deepExtend
     deepExtendSafe = deepExtend
     isNode = isNode
@@ -735,13 +741,6 @@ export default class Exchange {
         console.log (... args)
     }
 
-    httpProxyAgentModule:any = undefined;
-    httpsProxyAgentModule:any = undefined;
-    socksProxyAgentModule:any = undefined;
-    socksProxyAgentModuleChecked:boolean = false;
-    proxyDictionaries:any = {};
-    proxiesModulesLoading:Promise<any> = undefined
-
     async loadProxyModules () {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
@@ -863,8 +862,6 @@ export default class Exchange {
         }
         return data;
     }
-
-
 
     async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
 
