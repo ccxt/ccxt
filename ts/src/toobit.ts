@@ -87,6 +87,7 @@ export default class toobit extends Exchange {
                         'quote/v1/index/klines': 1,
                         'quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 1,
+                        'quote/v1/index': 1,
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/contract/ticker/24hr': 1, // todo: 1-40 depenidng noSymbol
                         'quote/v1/ticker/price': 1,
@@ -110,6 +111,7 @@ export default class toobit extends Exchange {
                     'post': {
                         'api/v1/spot/orderTest': 1,
                         'api/v1/spot/order': 1,
+                        'api/v1/futures/order': 1,
                         'api/v1/spot/batchOrders': 1,
                         'api/v1/subAccount/transfer': 1,
                         'api/v1/account/withdraw': 1,
@@ -1127,7 +1129,7 @@ export default class toobit extends Exchange {
         }
         const request = ordersRequests;
         const response = await this.privatePostApiV1SpotBatchOrders (request);
-        
+        //
         return this.parseOrders (results);
     }
 
@@ -1140,6 +1142,43 @@ export default class toobit extends Exchange {
             'quantity': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
+        let isPostOnly = undefined;
+        [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
+        if (isPostOnly) {
+            request['type'] = 'LIMIT_MAKER';
+        } else {
+            request['type'] = type.toUpperCase ();
+        }
+        return [ request, params ];
+    }
+
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        const id = market['id'];
+        const request: Dict = {
+            'symbol': id,
+            'quantity': this.amountToPrecision (symbol, amount),
+        };
+        request['price'] = this.priceToPrecision (symbol, price);
+        let reduceOnly = undefined;
+        [ reduceOnly, params ] = this.handleParamBool (params, 'createOrder', 'reduceOnly');
+        if (side === 'buy') {
+            side = reduceOnly ? 'SELL_CLOSE' : 'BUY';
+        } else if (side === 'sell') {
+            side = reduceOnly ? 'BUY_CLOSE' : 'SELL';
+        }
+        request['side'] = side;
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (this.inArray (type, [ 'limit', 'LIMIT' ])) {
+            request['type'] = type.toUpperCase ();
+        } else if (type === 'market') {
+            request['priceType'] = 'MARKET';
+        }
+        let triggerPrice = this.safeNumber (params, 'triggerPrice');
+        [ triggerPrice, params ] = this.handleParamString (params, 'createOrder', 'triggerPrice');
+
         let isPostOnly = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
         if (isPostOnly) {
