@@ -2195,6 +2195,9 @@ export default class Exchange {
     async unWatchPositions(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' unWatchPositions() is not supported yet');
     }
+    async unWatchTicker(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchTicker() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
