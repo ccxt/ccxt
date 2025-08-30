@@ -1152,7 +1152,7 @@ export default class toobit extends Exchange {
         return [ request, params ];
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const id = market['id'];
         const request: Dict = {
@@ -1176,15 +1176,48 @@ export default class toobit extends Exchange {
         } else if (type === 'market') {
             request['priceType'] = 'MARKET';
         }
-        let triggerPrice = this.safeNumber (params, 'triggerPrice');
-        [ triggerPrice, params ] = this.handleParamString (params, 'createOrder', 'triggerPrice');
-
         let isPostOnly = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
         if (isPostOnly) {
-            request['type'] = 'LIMIT_MAKER';
-        } else {
-            request['type'] = type.toUpperCase ();
+            request['timeInForce'] = 'LIMIT_MAKER';
+        }
+        const values = this.handleTriggerPricesWithPrecision (symbol, params);
+        const triggerPrice = values[0];
+        params = values[3];
+        if (triggerPrice !== undefined) {
+            request['stopPrice'] = triggerPrice;
+        }
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        const triggerPriceTypes = {
+            'mark': 'MARK_PRICE',
+            'last': 'CONTRACT_PRICE',
+        };
+        if (stopLoss !== undefined) {
+            request['stopLoss'] = this.safeValue (stopLoss, 'triggerPrice');
+            const limitPrice = this.safeValue (stopLoss, 'price');
+            if (limitPrice !== undefined) {
+                request['slOrderType'] = 'LIMIT';
+                request['slLimitPrice'] = this.priceToPrecision (symbol, limitPrice);
+            }
+            const triggerPriceType = this.safeString (stopLoss, 'triggerPriceType');
+            if (triggerPriceType !== undefined) {
+                request['slTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
+            }
+            params = this.omit (params, 'stopLoss' );
+        }
+        if (takeProfit !== undefined) {
+            request['takeProfit'] = this.safeValue (takeProfit, 'triggerPrice');
+            const limitPrice = this.safeValue (takeProfit, 'price');
+            if (limitPrice !== undefined) {
+                request['tpOrderType'] = 'LIMIT';
+                request['tpLimitPrice'] = this.priceToPrecision (symbol, limitPrice);
+            }
+            const triggerPriceType = this.safeString (takeProfit, 'triggerPriceType');
+            if (triggerPriceType !== undefined) {
+                request['tpTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
+            }
+            params = this.omit (params, 'takeProfit' );
         }
         return [ request, params ];
     }
