@@ -476,7 +476,7 @@ export default class probit extends probitRest {
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
-            const parsed = this.parseBidAsk (bidAsk, 'price', 'quantity');
+            const parsed = this.parseOrderBookBidAsk (bidAsk, 'price', 'quantity');
             bookSide.storeArray (parsed);
         }
     }
