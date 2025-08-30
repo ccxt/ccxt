@@ -6857,35 +6857,38 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPrices (symbol, params, omit = true) {
+    handleTriggerPricesWithPrecisions (symbol, params, omit = true) {
         //
-        let triggerPriceStr = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        let stopLossPriceStr = this.safeString (params, 'stopLossPrice');
-        let takeProfitPriceStr = this.safeString (params, 'takeProfitPrice');
+        let triggerPrice = this.safeValue (params, 'triggerPrice', 'stopPrice');
+        let triggerPriceStr: Str = undefined;
+        let stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        let stopLossPriceStr: Str = undefined;
+        let takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        let takeProfitPriceStr: Str = undefined;
         //
-        if (triggerPriceStr !== undefined) {
+        if (triggerPrice !== undefined) {
             if (omit) {
                 params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             }
-            triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPriceStr));
+            triggerPriceStr = this.priceToPrecision (symbol, triggerPrice);
         }
-        if (stopLossPriceStr !== undefined) {
+        if (stopLossPrice !== undefined) {
             if (omit) {
                 params = this.omit (params, 'stopLossPrice');
             }
-            stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPriceStr));
+            stopLossPriceStr = this.priceToPrecision (symbol, stopLossPrice);
         }
-        if (takeProfitPriceStr !== undefined) {
+        if (takeProfitPrice !== undefined) {
             if (omit) {
                 params = this.omit (params, 'takeProfitPrice');
             }
-            takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPriceStr));
+            takeProfitPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
         }
         //
         const isTrigger = triggerPriceStr !== undefined;
         const isStopLoss = stopLossPriceStr !== undefined;
         const isTakeProfit = takeProfitPriceStr !== undefined;
-        if ((isStopLoss && isTakeProfit) || (isTrigger && stopLossPriceStr) || (isTrigger && isTakeProfit)) {
+        if ((isStopLoss && isTakeProfit) || (isTrigger && isStopLoss) || (isTrigger && isTakeProfit)) {
             throw new ExchangeError (this.id + ' you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
