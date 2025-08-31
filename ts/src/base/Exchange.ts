@@ -3411,9 +3411,9 @@ export default class Exchange {
         return this.markets;
     }
 
-    setMarketsFromExchange (sourceExchange: Exchange) {
+    setMarketsFromExchange (sourceExchange) {
         // Validate that both exchanges are of the same type
-        if (this.id !== sourceExchange['id']) {
+        if (this.id !== sourceExchange.id) {
             throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
         }
         // Validate that source exchange has loaded markets
