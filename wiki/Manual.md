@@ -1269,8 +1269,8 @@ To optimize memory usage and reduce redundant API calls, you can share market da
     // Create second exchange instance
     let exchange2 = new ccxt.binance()
     
-    // Share markets from first instance to second using the new shareMarkets method
-    exchange2.shareMarkets(exchange1)
+    // Share markets from first instance to second using the setMarketsFromExchange method
+    exchange2.setMarketsFromExchange(exchange1)
     
     // Now exchange2 can use the shared markets without loading them
     console.log(exchange2.symbols) // Available immediately
@@ -1289,8 +1289,8 @@ exchange1.load_markets()
 # Create second exchange instance
 exchange2 = ccxt.binance()
 
-# Share markets from first instance to second using the new shareMarkets method
-exchange2.share_markets(exchange1)
+# Share markets from first instance to second using the setMarketsFromExchange method
+exchange2.set_markets_from_exchange(exchange1)
 
 # Now exchange2 can use the shared markets without loading them
 print(exchange2.symbols)  # Available immediately
@@ -1308,14 +1308,49 @@ $exchange1->load_markets();
 // Create second exchange instance
 $exchange2 = new \ccxt\binance();
 
-// Share markets from first instance to second using the new shareMarkets method
-$exchange2->share_markets($exchange1);
+// Share markets from first instance to second using the setMarketsFromExchange method
+$exchange2->set_markets_from_exchange($exchange1);
 
 // Now exchange2 can use the shared markets without loading them
 var_dump($exchange2->symbols); // Available immediately
 
 // When calling load_markets on exchange2, it will use cached markets
 $exchange2->load_markets(); // No API call, uses shared markets
+```
+
+#### **Go**
+```go
+// Create first exchange instance and load markets
+binance1 := ccxt.NewBinance(nil)
+markets, err := binance1.LoadMarkets()
+if err != nil {
+    // Handle error
+}
+
+// Create second exchange instance
+binance2 := ccxt.NewBinance(nil)
+
+// Share markets from first instance to second using the SetMarketsFromExchange method
+binance2.SetMarketsFromExchange(binance1)
+
+// Now binance2 can use the shared markets without loading them
+fmt.Printf("Symbols loaded: %d\n", len(binance2.GetSymbols()))
+```
+
+#### **C#**
+```csharp
+// Create first exchange instance and load markets
+var binance1 = new Binance();
+await binance1.LoadMarkets();
+
+// Create second exchange instance
+var binance2 = new Binance();
+
+// Share markets from first instance to second using the setMarketsFromExchange method
+binance2.setMarketsFromExchange(binance1);
+
+// Now binance2 can use the shared markets without loading them
+Console.WriteLine($"Symbols loaded: {binance2.symbols?.Count ?? 0}");
 ```
 
 <!-- tabs:end -->
@@ -1336,7 +1371,7 @@ exchange2.markets = exchange1.markets;
 exchange2.symbols = exchange1.symbols;  // Also copy symbols for full functionality
 ```
 
-However, using the `shareMarkets()` method is recommended as it:
+However, using the `setMarketsFromExchange()` method is recommended as it:
 - Validates that both exchanges are of the same type
 - Ensures all related market data is properly copied
 - Provides better error handling
@@ -1345,7 +1380,7 @@ However, using the `shareMarkets()` method is recommended as it:
 - Only share markets between instances of the same exchange type
 - Market sharing is most effective when both instances use the same API credentials and configuration
 - The shared market objects will persist in memory as long as at least one reference exists
-- Both the `shareMarkets()` method and direct assignment create shared references, not copies
+- Both the `setMarketsFromExchange()` method and direct assignment create shared references, not copies
 
 ## Symbols And Market Ids
 
