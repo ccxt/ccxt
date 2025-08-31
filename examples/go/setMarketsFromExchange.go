@@ -1,11 +1,10 @@
 package examples
 
 import (
+	"ccxt/go/ccxt"
 	"fmt"
 	"runtime"
 	"runtime/debug"
-
-	"ccxt/go/ccxt"
 )
 
 func getMemoryUsage() float64 {
@@ -28,8 +27,11 @@ func main() {
 	fmt.Printf("Memory usage after creating binance: %.2f MB\n", getMemoryUsage())
 
 	// Load markets for first exchange
-	marketsChan := binance.LoadMarkets()
-	markets := <-marketsChan
+	markets, err := binance.LoadMarkets()
+	if err != nil {
+		fmt.Printf("Failed to load markets for first exchange: %v\n", err)
+		return
+	}
 	if markets == nil {
 		fmt.Println("Failed to load markets for first exchange")
 		return
@@ -40,19 +42,7 @@ func main() {
 	binance2 := ccxt.NewBinance(nil)
 	fmt.Printf("Memory usage after creating binance2: %.2f MB\n", getMemoryUsage())
 
-	// Set markets from first exchange to second exchange
-	// Convert markets from sync.Map to regular map for SetMarkets
-	marketsMap := make(map[string]interface{})
-	if marketsSyncMap, ok := markets.(*ccxt.SyncMap); ok {
-		marketsSyncMap.Range(func(key, value interface{}) bool {
-			if symbol, ok := key.(string); ok {
-				marketsMap[symbol] = value
-			}
-			return true
-		})
-	}
-
-	binance2.SetMarkets(marketsMap)
+	binance2.SetMarketsFromExchange(binance)
 	fmt.Printf("Memory usage after setting markets from exchange: %.2f MB\n", getMemoryUsage())
 	fmt.Printf("binance2.symbols loaded: %d\n", len(binance2.GetSymbols()))
 

@@ -5,9 +5,9 @@ import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 import ccxt, { Exchange } from "../../../ccxt.js";
 
 async function testSetMarketsFromExchange (exchange: Exchange) {
-    const method = 'marketSharing';
+    const method = 'testSetMarketsFromExchange';
 
-    console.log (exchange.id, 'test', method);
+    console.log (exchange.id, method);
 
     // Test 1: Basic market sharing
     const exchange1 = new ccxt.binance ({});
@@ -47,12 +47,12 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
 
     // Test 2: loadMarkets on shared markets should not make API call and be very fast
     const startTime = Date.now ();
-    const sharedMarkets = await exchange2.loadMarkets ();
+    await exchange2.loadMarkets ();
     const endTime = Date.now ();
 
     // Should be very fast since no API call is made
     const timeTaken = endTime - startTime;
-    assert (timeTaken < 100, 'loadMarkets on shared markets should be fast');
+    assert (timeTaken < 10, 'loadMarkets on shared markets should be fast');
 }
 
 testSetMarketsFromExchange (new ccxt.binance ({}));

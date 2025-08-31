@@ -3411,25 +3411,25 @@ export default class Exchange {
         return this.markets;
     }
 
-    setMarketsFromExchange (sourceExchange): Dictionary<MarketInterface> {
+    setMarketsFromExchange (sourceExchange: Exchange) {
         // Validate that both exchanges are of the same type
         if (this.id !== sourceExchange['id']) {
             throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
         }
         // Validate that source exchange has loaded markets
-        if (!sourceExchange || this.isEmpty (sourceExchange['markets'])) {
+        if (!sourceExchange.markets) {
             throw new ExchangeError ('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
         }
         // Set all market-related data
-        this.markets = sourceExchange['markets'];
-        this.markets_by_id = sourceExchange['markets_by_id'];
-        this.symbols = sourceExchange['symbols'];
-        this.ids = sourceExchange['ids'];
-        this.currencies = sourceExchange['currencies'];
-        this.baseCurrencies = sourceExchange['baseCurrencies'];
-        this.quoteCurrencies = sourceExchange['quoteCurrencies'];
-        this.codes = sourceExchange['codes'];
-        return this.markets;
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this;
     }
 
     getDescribeForExtendedWsExchange (currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
