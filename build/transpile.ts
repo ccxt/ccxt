@@ -2047,15 +2047,6 @@ class Transpiler {
             "function rsa(...$arg) {",
             "    return Exchange::rsa(...$arg);",
             "}",
-            "function safe_string(...$arg) {",
-            "    return Exchange::safe_string(...$arg);",
-            "}",
-            "function safe_integer(...$arg) {",
-            "    return Exchange::safe_integer(...$arg);",
-            "}",
-            "function in_array(...$arg) {",
-            "    return Exchange::in_array(...$arg);",
-            "}",
         ].join ("\n")
 
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
