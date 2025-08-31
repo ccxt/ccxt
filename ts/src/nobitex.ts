@@ -1,4 +1,3 @@
-
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/nobitex.js';
@@ -171,8 +170,8 @@ export default class nobitex extends Exchange {
         // dayClose: "38819999960",
         // dayChange: "0.05"
         // },
+        const id = this.safeString (market, 'symbol');
         const symbol = this.safeStringUpper (market, 'symbol');
-        const id = symbol.replace ('-', '');
         let [ baseId, quoteId ] = symbol.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -275,25 +274,34 @@ export default class nobitex extends Exchange {
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
-        //
-        //     {
-        //      symbol: "USDT-IRT",
-        //      last: "61338.0",
-        //      best_ask: "61338.0",
-        //      best_bid: "61338.0",
-        //      open_24h: "61419",
-        //      high_24h: 61739,
-        //      low_24h: 60942,
-        //      vol_24h_pair: 11017655160,
-        //      vol_24h: 17968,
-        //      ts: 1715074621
-        //     }
-        //
+        //        {
+        // symbol: "btc-rls",
+        // isClosed: false,
+        // bestSell: "112800000000",
+        // bestBuy: "112790000000",
+        // volumeSrc: "8.4585865026",
+        // volumeDst: "952507404308.593429632",
+        // latest: "112800000000",
+        // mark: "112770303030",
+        // dayLow: "111700000000",
+        // dayHigh: "114608341550",
+        // dayOpen: "112783203040",
+        // dayClose: "112800000000",
+        // dayChange: "0.01"
+        // }
         const marketType = 'spot';
-        let symbol = this.safeStringUpper (ticker, 'symbol');
-        const marketId = symbol.replace ('-', '');
+        const rawSymbol = this.safeStringLower (ticker, 'symbol');
+        const parts = rawSymbol.split ('-');
+        const baseId = parts[0];
+        let quoteId = parts[1];
+        if (quoteId === 'rls') {
+            quoteId = 'irt';
+        }
+        const base = this.safeCurrencyCode (baseId.toUpperCase ());
+        const quote = this.safeCurrencyCode (quoteId.toUpperCase ());
+        const marketId = base + '/' + quote;
         const marketinfo = this.market (marketId);
-        symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let high = this.safeFloat (ticker, 'dayHigh');
         let low = this.safeFloat (ticker, 'dayLow');
         let bid = this.safeFloat (ticker, 'bestBuy');
@@ -304,8 +312,9 @@ export default class nobitex extends Exchange {
         let last = this.safeFloat (ticker, 'latest');
         let quoteVolume = this.safeFloat (ticker, 'volumeDst');
         const baseVolume = this.safeFloat (ticker, 'volumeSrc');
+        // adjust Nobitex IRT scaling
         if (marketinfo['quote'] === 'IRT') {
-            high = high ? high * 10 : 0;
+            high = high ? high / 10 : 0;
             low = low ? low / 10 : 0;
             bid = bid ? bid / 10 : 0;
             ask = ask ? ask / 10 : 0;
@@ -315,14 +324,14 @@ export default class nobitex extends Exchange {
             quoteVolume = quoteVolume ? quoteVolume / 10 : 0;
         }
         return this.safeTicker ({
-            'symbol': symbol.replace ('-', '/'),
+            'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
             'high': high,
             'low': low,
-            'bid': this.safeFloat (bid, 0),
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ask, 0),
+            'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -355,7 +364,7 @@ export default class nobitex extends Exchange {
         const market = this.market (symbol);
         const endTime = Date.now ();
         if (market['quote'] === 'IRT') {
-            market['id'] = market['id'].replace ('RLS', 'IRT');
+            market['id'] = market['symbol'].replace ('/', '');
         }
         const request = {
             'symbol': market['id'],
