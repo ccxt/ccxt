@@ -4970,7 +4970,7 @@ export default class Exchange {
         return await this.fetch2 (path, api, method, params, headers, body, config);
     }
 
-    async loadAccounts (reload = false, params = {}) {
+    async loadAccounts (reload: boolean = false, params = {}) {
         if (reload) {
             this.accounts = await this.fetchAccounts (params);
         } else {
@@ -5260,7 +5260,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }
 
-    async fetchPartialBalance (part, params = {}): Promise<Balance> {
+    async fetchPartialBalance (part: string, params = {}): Promise<Balance> {
         const balance = await this.fetchBalance (params);
         return balance[part];
     }
@@ -5599,7 +5599,7 @@ export default class Exchange {
         return order['status'];
     }
 
-    async fetchUnifiedOrder (order, params = {}): Promise<Order> {
+    async fetchUnifiedOrder (order: Order, params = {}): Promise<Order> {
         return await this.fetchOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
@@ -6095,7 +6095,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }
 
-    async cancelUnifiedOrder (order, params = {}): Promise<{}> {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
         return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
@@ -7359,7 +7359,7 @@ export default class Exchange {
         return [ maxEntriesPerRequest, params ];
     }
 
-    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
+    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated: boolean = true): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -7510,7 +7510,7 @@ export default class Exchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, cursorReceived: IndexType = undefined, cursorSent: IndexType = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -7585,7 +7585,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, pageKey: IndexType = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
