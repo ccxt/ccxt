@@ -181,7 +181,7 @@ class mexc(ccxt.async_support.mexc):
         self.handle_bid_ask(client, message)
         rawTicker = self.safe_dict_n(message, ['d', 'data', 'publicAggreBookTicker'])
         marketId = self.safe_string_2(message, 's', 'symbol')
-        timestamp = self.safe_integer_2(message, 't', 'sendtime')
+        timestamp = self.safe_integer_2(message, 't', 'sendTime')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         ticker = None
@@ -1477,7 +1477,7 @@ class mexc(ccxt.async_support.mexc):
         #         "ts": 1680059188190
         #     }
         #
-        c = self.safe_string_2(message, 'c', 'channel')
+        c = self.safe_string(message, 'c')  # do not add 'channel' here, self is especially for spot
         type = 'swap' if (c is None) else 'spot'
         messageHash = 'balance:' + type
         data = self.safe_dict_n(message, ['d', 'data', 'privateAccount'])
@@ -1491,7 +1491,10 @@ class mexc(ccxt.async_support.mexc):
         currencyId = self.safe_string_n(data, ['a', 'currency', 'vcoinName'])
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        account['total'] = self.safe_string_n(data, ['f', 'availableBalance', 'balanceAmount'])
+        balanceAmount = self.safe_string(data, 'balanceAmount')
+        if balanceAmount is not None:
+            account['free'] = balanceAmount
+        account['total'] = self.safe_string_n(data, ['f', 'availableBalance'])
         account['used'] = self.safe_string_n(data, ['l', 'frozenBalance', 'frozenAmount'])
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])

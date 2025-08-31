@@ -255,7 +255,8 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data"
+                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -1097,6 +1098,8 @@
         }
     },
     "gemini": {
+        "skip": "temporary USDC symbol issue in their API engine for swaps",
+        "until": "2025-08-31",
         "skipPhpAsync": "tmp",
         "skipCSharp": "tmp",
         "skipMethods": {

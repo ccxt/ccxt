@@ -88,12 +88,17 @@ function injectMissingUndefined (fn, args) {
         const paramsObj = args[args.length - 1];
         args.pop ();
         const newArgsArray = args;
+        const isPartialFunction = fn.toString ().indexOf ('(params = {}, context = {})');
         for (let j = 0; j < missingParams; j++) {
             newArgsArray.push (undefined);
         }
         newArgsArray.push (paramsObj);
+        if (isPartialFunction) {
+            newArgsArray.reverse ();
+        }
         args = newArgsArray;
     }
+    console.log(args)
     return args;
 }
 

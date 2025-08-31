@@ -1013,6 +1013,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " unWatchPositions() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTicker() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4246,6 +4252,15 @@ public partial class Exchange
             return market;
         }
         return result;
+    }
+
+    public virtual object marketOrNull(object symbol)
+    {
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return null;
+        }
+        return this.market(symbol);
     }
 
     public virtual object checkRequiredCredentials(object error = null)
