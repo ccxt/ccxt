@@ -1931,10 +1931,11 @@ type IExchange interface {
             ]);
         } else {
             const inheritedClass = isAlias ? `${baseClass}` : `ccxt.${className}`;
+            const inheritedInstatiation = isAlias ? `New${baseClass}()` : `&${inheritedClass}{}`;
             const wsRegexes = this.getWsRegexes();
             content = this.regexAll (content, [
                 [ /type (\w+) struct \{\s+(\w+)\s*\n\s*/g, `type $1 struct {\n\t*${inheritedClass}\n\tbase *${inheritedClass}\n` ],      // adds 'base exchangeName'
-                [ /(p \:\= &.*$)/gm, `$1\n\tbase := &${inheritedClass}{}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
+                [ /(p \:\= &.*$)/gm, `$1\n\tbase := ${inheritedInstatiation}\n\tp.base = base\n\tp.${baseClass} = base` ],  // could go in ast-transpiler if there is always a parameter named base
                 ...wsRegexes,
             ]);
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
