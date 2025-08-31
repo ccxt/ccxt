@@ -164,8 +164,8 @@ class nobitex(Exchange, ImplicitAPI):
         # dayClose: "38819999960",
         # dayChange: "0.05"
         # },
+        id = self.safe_string(market, 'symbol')
         symbol = self.safe_string_upper(market, 'symbol')
-        id = symbol.replace('-', '')
         baseId, quoteId = symbol.split('-')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -258,23 +258,31 @@ class nobitex(Exchange, ImplicitAPI):
         return ticker[symbol]
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
-        #
-        #     {
-        #      symbol: "USDT-IRT",
-        #      last: "61338.0",
-        #      best_ask: "61338.0",
-        #      best_bid: "61338.0",
-        #      open_24h: "61419",
-        #      high_24h: 61739,
-        #      low_24h: 60942,
-        #      vol_24h_pair: 11017655160,
-        #      vol_24h: 17968,
-        #      ts: 1715074621
-        #     }
-        #
+        #        {
+        # symbol: "btc-rls",
+        # isClosed: False,
+        # bestSell: "112800000000",
+        # bestBuy: "112790000000",
+        # volumeSrc: "8.4585865026",
+        # volumeDst: "952507404308.593429632",
+        # latest: "112800000000",
+        # mark: "112770303030",
+        # dayLow: "111700000000",
+        # dayHigh: "114608341550",
+        # dayOpen: "112783203040",
+        # dayClose: "112800000000",
+        # dayChange: "0.01"
+        # }
         marketType = 'spot'
-        symbol = self.safe_string_upper(ticker, 'symbol')
-        marketId = symbol.replace('-', '')
+        rawSymbol = self.safe_string_lower(ticker, 'symbol')
+        parts = rawSymbol.split('-')
+        baseId = parts[0]
+        quoteId = parts[1]
+        if quoteId == 'rls':
+            quoteId = 'irt'
+        base = self.safe_currency_code(baseId.upper())
+        quote = self.safe_currency_code(quoteId.upper())
+        marketId = base + '/' + quote
         marketinfo = self.market(marketId)
         symbol = self.safe_symbol(marketId, market, None, marketType)
         high = self.safe_float(ticker, 'dayHigh')
@@ -287,8 +295,9 @@ class nobitex(Exchange, ImplicitAPI):
         last = self.safe_float(ticker, 'latest')
         quoteVolume = self.safe_float(ticker, 'volumeDst')
         baseVolume = self.safe_float(ticker, 'volumeSrc')
+        # adjust Nobitex IRT scaling
         if marketinfo['quote'] == 'IRT':
-            high = high * 10 if high else 0
+            high = high / 10 if high else 0
             low = low / 10 if low else 0
             bid = bid / 10 if bid else 0
             ask = ask / 10 if ask else 0
@@ -297,14 +306,14 @@ class nobitex(Exchange, ImplicitAPI):
             last = last / 10 if last else 0
             quoteVolume = quoteVolume / 10 if quoteVolume else 0
         return self.safe_ticker({
-            'symbol': symbol.replace('-', '/'),
+            'symbol': symbol,
             'timestamp': None,
             'datetime': None,
             'high': high,
             'low': low,
-            'bid': self.safe_float(bid, 0),
+            'bid': bid,
             'bidVolume': None,
-            'ask': self.safe_float(ask, 0),
+            'ask': ask,
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -334,7 +343,7 @@ class nobitex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         endTime = Date.now()
         if market['quote'] == 'IRT':
-            market['id'] = market['id'].replace('RLS', 'IRT')
+            market['id'] = market['symbol'].replace('/', '')
         request = {
             'symbol': market['id'],
             'from': (endTime / 1000) - (24 * 60 * 60),
