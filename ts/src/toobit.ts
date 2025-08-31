@@ -127,8 +127,11 @@ export default class toobit extends Exchange {
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
+                        'api/v1/futures/order': 1,
                         'api/v1/spot/openOrders': 1,
+                        'api/v1/futures/batchOrders': 1,
                         'api/v1/spot/cancelOrderByIds': 1,
+                        'api/v1/futures/cancelOrderByIds': 1,
                     },
                 },
             },
@@ -1141,19 +1144,25 @@ export default class toobit extends Exchange {
         }
         //
         //     {
-        //         "accountId": "1783404067076253952",
         //         "symbol": "ETHUSDT",
-        //         "symbolName": "ETHUSDT",
-        //         "clientOrderId": "1756115478113679",
-        //         "orderId": "2024837825254460160",
-        //         "transactTime": "1756115478604",
         //         "price": "0",
         //         "origQty": "0.001",
+        //         "orderId": "2024837825254460160",
+        //         "clientOrderId": "1756115478113679",
         //         "executedQty": "0",
         //         "status": "PENDING_NEW",
         //         "timeInForce": "GTC",
         //         "type": "MARKET",
         //         "side": "SELL"
+        //         "accountId": "1783404067076253952",    // only in spot
+        //         "symbolName": "ETHUSDT",               // only in spot
+        //         "transactTime": "1756115478604",       // only in spot
+        //         "time": "1668418485058",               // only in contract
+        //         "updateTime": "1668418485058",         // only in contract
+        //         "leverage": "2",                       // only in contract
+        //         "avgPrice": "0",                       // only in contract
+        //         "marginLocked": "9.5",                 // only in contract
+        //         "priceType": "INPUT"                   // only in contract
         //     }
         //
         return this.parseOrder (response, market);
@@ -1279,48 +1288,58 @@ export default class toobit extends Exchange {
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // createOrder, cancelOrder (spot)
+        // createOrder, cancelOrder
         //
         //     {
-        //         "accountId": "1783404067076253952",
         //         "symbol": "ETHUSDT",
-        //         "symbolName": "ETHUSDT",
-        //         "clientOrderId": "1756115478113679",
-        //         "orderId": "2024837825254460160",
-        //         "transactTime": "1756115478604",
         //         "price": "0",
         //         "origQty": "0.001",
+        //         "orderId": "2024837825254460160",
+        //         "clientOrderId": "1756115478113679",
         //         "executedQty": "0",
         //         "status": "PENDING_NEW",
         //         "timeInForce": "GTC",
         //         "type": "MARKET",
         //         "side": "SELL"
+        //         "accountId": "1783404067076253952",    // only in spot
+        //         "symbolName": "ETHUSDT",               // only in spot
+        //         "transactTime": "1756115478604",       // only in spot
+        //         "time": "1668418485058",               // only in contract
+        //         "updateTime": "1668418485058",         // only in contract
+        //         "leverage": "2",                       // only in contract
+        //         "avgPrice": "0",                       // only in contract
+        //         "marginLocked": "9.5",                 // only in contract
+        //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        // fetchOrder, fetchOrders, fetchOpenOrders (spot)
+        //
+        // fetchOrder, fetchOrders, fetchOpenOrders
         //
         //    {
-        //        "accountId": "1783404067076253952",
-        //        "exchangeId": "301",
-        //        "symbol": "ETHUSDT",
-        //        "symbolName": "ETHUSDT",
-        //        "clientOrderId": "17561402075722006",
+        //        "time": "1756140208069",
+        //        "updateTime": "1756140208078",
         //        "orderId": "2025045271033977089",
+        //        "clientOrderId": "17561402075722006",
+        //        "symbol": "ETHUSDT",
         //        "price": "3000",
         //        "origQty": "0.002",
         //        "executedQty": "0",
-        //        "cummulativeQuoteQty": "0",
-        //        "cumulativeQuoteQty": "0",
         //        "avgPrice": "0",
-        //        "status": "NEW",
-        //        "timeInForce": "GTC",
         //        "type": "LIMIT",
         //        "side": "BUY",
-        //        "stopPrice": "0.0",
-        //        "icebergQty": "0.0",
-        //        "time": "1756140208069",
-        //        "updateTime": "1756140208078",
-        //        "isWorking": true
+        //        "timeInForce": "GTC",
+        //        "status": "NEW",
+        //        "accountId": "1783404067076253952",  // only in SPOT
+        //        "exchangeId": "301",                 // only in SPOT
+        //        "symbolName": "ETHUSDT",             // only in SPOT
+        //        "cummulativeQuoteQty": "0",          // only in SPOT
+        //        "cumulativeQuoteQty": "0",           // only in SPOT
+        //        "stopPrice": "0.0",                  // only in SPOT
+        //        "icebergQty": "0.0",                 // only in SPOT
+        //        "isWorking": true                    // only in SPOT
+        //        "leverage": "2",                     // only in CONTRACT
+        //        "marginLocked": "9.5",               // only in CONTRACT
+        //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
         const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
@@ -1418,17 +1437,20 @@ export default class toobit extends Exchange {
         if (id !== undefined) {
             request['orderId'] = id;
         }
-        const response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
-        //
-        //  {"accountId":"1783404067076253952","symbol":"ETHUSDT","clientOrderId":"17561355785732021","orderId":"2025006439999870720","transactTime":"1756135579048","price":"3000","origQty":"0.002","executedQty":"0","status":"NEW","timeInForce":"GTC","type":"LIMIT","side":"BUY"}
-        //
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteApiV1FuturesOrder (this.extend (request, params));
+        }
+        // response same as in `createOrder`
         const status = this.parseOrderStatus (this.safeString (response, 'status'));
         if (status !== 'open') {
             throw new OrderNotFound (this.id + ' order ' + id + ' can not be canceled, ' + this.json (response));
-        }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
         }
         return this.parseOrder (response, market);
     }
@@ -1445,14 +1467,25 @@ export default class toobit extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateDeleteApiV1SpotOpenOrders (params);
-        //
-        // {"success":true}  // always same response
-        //
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateDeleteApiV1SpotOpenOrders (params);
+            //
+            // {"success":true}  // always same response
+            //
+        } else {
+            response = await this.privateDeleteApiV1FuturesBatchOrders (params);
+            //
+            // { "code": 200, "message":"success", "timestamp":1541161088303 }
+            //
+        }
         return [
             this.safeOrder ({
                 'info': response,
@@ -1476,11 +1509,37 @@ export default class toobit extends Exchange {
         const request: Dict = {
             'ids': idsString,
         };
-        const response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
-        //
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds (params);
+            //
+            // {"success":true}  // always same response
+            //
+        } else {
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (params);
+            //
+            // {
+            //     "code":200,
+            //     "result":[
+            //         {
+            //             "orderId":"1327047813809448704",
+            //             "code":-2013
+            //         },
+            //         {
+            //             "orderId":"1327047814212101888",
+            //             "code":-2013
+            //         }
+            //     ]
+            // }
+            //
+            // or empty array if no orders were canceled
         }
         return this.parseOrders (response, market);
     }
@@ -1507,42 +1566,37 @@ export default class toobit extends Exchange {
         let response = undefined;
         if (market['spot']) {
             response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
-            //
-            //    {
-            //        "time": "1756140208069",
-            //        "updateTime": "1756140208078",
-            //        "orderId": "2025045271033977089",
-            //        "clientOrderId": "17561402075722006",
-            //        "symbol": "ETHUSDT",
-            //        "price": "3000",
-            //        "origQty": "0.002",
-            //        "executedQty": "0",
-            //        "avgPrice": "0",
-            //        "type": "LIMIT",
-            //        "side": "BUY",
-            //        "timeInForce": "GTC",
-            //        "status": "NEW",
-            //        "accountId": "1783404067076253952",  // only in SPOT
-            //        "exchangeId": "301",                 // only in SPOT
-            //        "symbolName": "ETHUSDT",             // only in SPOT
-            //        "cummulativeQuoteQty": "0",          // only in SPOT
-            //        "cumulativeQuoteQty": "0",           // only in SPOT
-            //        "stopPrice": "0.0",                  // only in SPOT
-            //        "icebergQty": "0.0",                 // only in SPOT
-            //        "isWorking": true                    // only in SPOT
-            //        "leverage": "2",                     // only in CONTRACT
-            //        "marginLocked": "9.5",               // only in CONTRACT
-            //        "priceType": "INPUT"                 // only in CONTRACT
-            //    }
-            //
         } else {
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
-            //
-            //         "timeInForce": "GTC", // GTC、FOK、IOC、LIMIT_MAKER
-            //         "status": "NEW", //NEW、PARTIALLY_FILLED、FILLED、CANCELED、REJECTED
-            //     }
-            //
         }
+        //
+        //    {
+        //        "time": "1756140208069",
+        //        "updateTime": "1756140208078",
+        //        "orderId": "2025045271033977089",
+        //        "clientOrderId": "17561402075722006",
+        //        "symbol": "ETHUSDT",
+        //        "price": "3000",
+        //        "origQty": "0.002",
+        //        "executedQty": "0",
+        //        "avgPrice": "0",
+        //        "type": "LIMIT",
+        //        "side": "BUY",
+        //        "timeInForce": "GTC",
+        //        "status": "NEW",
+        //        "accountId": "1783404067076253952",  // only in SPOT
+        //        "exchangeId": "301",                 // only in SPOT
+        //        "symbolName": "ETHUSDT",             // only in SPOT
+        //        "cummulativeQuoteQty": "0",          // only in SPOT
+        //        "cumulativeQuoteQty": "0",           // only in SPOT
+        //        "stopPrice": "0.0",                  // only in SPOT
+        //        "icebergQty": "0.0",                 // only in SPOT
+        //        "isWorking": true                    // only in SPOT
+        //        "leverage": "2",                     // only in CONTRACT
+        //        "marginLocked": "9.5",               // only in CONTRACT
+        //        "priceType": "INPUT"                 // only in CONTRACT
+        //    }
+        //
         return this.parseOrder (response, market);
     }
 
