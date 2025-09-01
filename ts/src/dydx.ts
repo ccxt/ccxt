@@ -1154,7 +1154,7 @@ export default class dydx extends Exchange {
         authenticators,
         fee = undefined,
     ): string {
-        const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, '', 'dydx-testnet-4', account, authenticators, fee);
+        const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
         return this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
     }
