@@ -2501,6 +2501,93 @@ export default class toobit extends Exchange {
         } as Leverage;
     }
 
+    /**
+     * @method
+     * @name bingx#fetchPositions
+     * @description fetch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+     * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.standard] whether to fetch standard contract positions
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            if (symbols.length > 1) {
+                throw new BadRequest (this.id + ' fetchPositions() only accepts an array with a single symbol or without symbols argument');
+            }
+            const firstSymbol = this.safeString (symbols, 0);
+            if (firstSymbol !== undefined) {
+                market = this.market (firstSymbol);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.privateGetApiV1FuturesPositions (params);
+        //
+        //    [
+        //        {
+        //            "symbol": "DOGE-SWAP-USDT",
+        //            "side": "LONG",
+        //            "avgPrice": "0.21191",
+        //            "position": "63",
+        //            "available": "63",
+        //            "leverage": "25",
+        //            "lastPrice": "0.20932",
+        //            "positionValue": "13.3503",
+        //            "flp": "0.05471",
+        //            "margin": "0.5262",
+        //            "marginRate": "",
+        //            "unrealizedPnL": "-0.1701",
+        //            "profitRate": "-0.3185",
+        //            "realizedPnL": "-0.008",
+        //            "minMargin": "0",
+        //            "maxNotionalValue": "10000000",
+        //            "markPrice": "0.20921"
+        //        }
+        //    ]
+        //
+        return this.parsePositions (response, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const side = this.safeStringLower (position, 'side');
+        const quantity = this.safeString (position, 'position');
+        const leverage = this.safeInteger (position, 'leverage');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'id'),
+            'symbol': market['symbol'],
+            'entryPrice': this.safeString (position, 'avgPrice'),
+            'markPrice': this.safeString (position, 'markPrice'),
+            'lastPrice': this.safeString (position, 'lastPrice'),
+            'notional': this.safeString (position, 'positionValue'),
+            'collateral': undefined,
+            'unrealizedPnl': this.safeString (position, 'unrealizedPnL'),
+            'side': side,
+            'contracts': this.parseNumber (quantity),
+            'contractSize': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'hedged': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeString (position, 'margin'),
+            'initialMarginPercentage': undefined,
+            'leverage': leverage,
+            'liquidationPrice': undefined,
+            'marginRatio': undefined,
+            'marginMode': undefined,
+            'percentage': undefined,
+        });
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const isPost = method === 'POST';
