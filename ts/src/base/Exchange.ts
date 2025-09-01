@@ -774,7 +774,7 @@ export default class Exchange {
         return await this.proxiesModulesLoading;
     }
 
-    setProxyAgents (httpProxy, httpsProxy, socksProxy) {
+    setProxyAgents (httpProxy: string, httpsProxy: string, socksProxy: string) {
         let chosenAgent = undefined;
         // in browser-side, proxy modules are not supported in 'fetch/ws' methods
         if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
@@ -818,7 +818,7 @@ export default class Exchange {
         return this.httpAgent;
     }
 
-    getHttpAgentIfNeeded (url) {
+    getHttpAgentIfNeeded (url: string) {
         if (isNode) {
             // only for non-ssl proxy
             if (url.substring (0, 5) === 'ws://') {
@@ -1442,18 +1442,18 @@ export default class Exchange {
         return future;
     }
 
-    onConnected (client, message = undefined) {
+    onConnected (client: Client, message: Dict = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
 
-    onError (client, error) {
+    onError (client: Client, error: Dict) {
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url];
         }
     }
 
-    onClose (client, error) {
+    onClose (client: Client, error: Dict) {
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {
@@ -1482,7 +1482,7 @@ export default class Exchange {
         return Promise.all (closedClients);
     }
 
-    async loadOrderBook (client: WsClient, messageHash: string, symbol: string, limit: Int = undefined, params = {}): Promise<any> {  // TODO: Promsie<Orderbook | undefined>
+    async loadOrderBook (client: Client, messageHash: string, symbol: string, limit: Int = undefined, params = {}): Promise<any> {  // TODO: Promsie<Orderbook | undefined>
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
@@ -2242,7 +2242,7 @@ export default class Exchange {
         return undefined;
     }
 
-    checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
+    checkProxyUrlSettings (url: Str = undefined, method: Str = undefined, headers: Dict = undefined, body: Dict = undefined) {
         const usedProxies = [];
         let proxyUrl = undefined;
         if (this.proxyUrl !== undefined) {
@@ -2285,7 +2285,7 @@ export default class Exchange {
         return finalUrl;
     }
 
-    checkProxySettings (url: Str = undefined, method: Str = undefined, headers = undefined, body = undefined) {
+    checkProxySettings (url: Str = undefined, method: Str = undefined, headers: Dict = undefined, body: Dict = undefined) {
         const usedProxies = [];
         let httpProxy = undefined;
         let httpsProxy = undefined;
@@ -2392,7 +2392,7 @@ export default class Exchange {
         return address;
     }
 
-    findMessageHashes (client, element: string): string[] {
+    findMessageHashes (client: Client, element: string): string[] {
         const result = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -4865,7 +4865,7 @@ export default class Exchange {
      * @param {boolean} isRequired - (optional) whether that param is required to be present
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode:Str = undefined, isRequired: boolean = false) {
+    handleRequestNetwork (params: Dict, request: Dict, exchangeSpecificKey: string, currencyCode: Str = undefined, isRequired: boolean = false) {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
