@@ -42,10 +42,10 @@ function testCryptography () {
 
     // ---------------------------------------------------------------------------------------------------------------------
 
-
-    const privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
-
     // Commented secp256k1 as python coincurve is non deterministic
+
+    // const privateKey = '1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a';
+
     // assert (equals (ecdsa ('1a', privateKey, secp256k1, sha256), {
     //     'r': '23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f',
     //     's': '317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667',
