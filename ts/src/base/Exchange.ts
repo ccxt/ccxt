@@ -174,18 +174,9 @@ import {TxExtension} from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/accou
 import {Any} from 'cosmjs-types/google/protobuf/any';
 import {generateRegistry} from '../static_dependencies/dydx-v4-client/clients/lib/registry.js';
 import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/lib/onboarding.js';
-import { Fee as CosmosFee, AuthInfo, Tx, TxBody, TxRaw, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import {SignMode} from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
-import {
-//   EncodeObject,
-  encodePubkey,
-//   isOfflineDirectSigner,
-  makeAuthInfoBytes,
-//   makeSignDoc,
-//   OfflineSigner,
-} from '@cosmjs/proto-signing';
-import { fromBase64 } from '@cosmjs/encoding';
-import { Int53 } from '@cosmjs/math';
+import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
+import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
@@ -1701,7 +1692,6 @@ export default class Exchange {
         }
         const registry = generateRegistry ();
         const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
-        const pubkey = encodePubkey(publicKey);
         const tx = Tx.fromPartial ({
             'body': TxBody.fromPartial ({
                 'messages': encodedMessages,
@@ -1711,7 +1701,10 @@ export default class Exchange {
                 'fee': {},
                 'signerInfos': [
                     {
-                        'publicKey': pubkey,
+                        'publicKey': Any.fromPartial ({
+                            'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                            'value': PubKey.encode (publicKey).finish ()
+                        }),
                         'sequence': BigInt (sequence),
                         'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
                     },
@@ -1728,10 +1721,9 @@ export default class Exchange {
         chainId,
         account,
         authenticators,
-        publicKey,
         fee = undefined,
     ): [ string, Dict ] {
-        if (!publicKey) {
+        if (!account.pub_key) {
             throw new Error('Public key cannot be undefined');
         }
         const messages = [ message ];
@@ -1753,7 +1745,6 @@ export default class Exchange {
                 'value': txExtension,
             }),
         ];
-        const pubkey = encodePubkey(publicKey);
         const txBodyBytes = TxBody.encode (TxBody.fromPartial ({
             'messages': encodedMessages,
             'memo': memo,
@@ -1764,7 +1755,10 @@ export default class Exchange {
             'fee': fee,
             'signerInfos': [
                 {
-                    'publicKey': pubkey,
+                    'publicKey': Any.fromPartial ({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': PubKey.encode (account.pub_key).finish ()
+                    }),
                     'sequence': BigInt (sequence),
                     'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
                 },

@@ -1146,6 +1146,19 @@ export default class dydx extends Exchange {
         return signature;
     }
 
+    signDydxTx (
+        message,
+        memo,
+        chainId,
+        account,
+        authenticators,
+        fee = undefined,
+    ): string {
+        const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, '', 'dydx-testnet-4', account, authenticators, fee);
+        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
+        return this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
+    }
+
     async recoverLocalWallet (): Promise<any> {
         let wallet = this.safeDict (this.options, 'dydxLocalWallet');
         if (wallet !== undefined) {
@@ -1174,7 +1187,7 @@ export default class dydx extends Exchange {
         //         "address": "string",
         //         "pub_key": {
         //             "type_url": "string",
-        //             "value": "string"
+        //             "key": "string"
         //         },
         //         "account_number": "string",
         //         "sequence": "string"
@@ -1183,6 +1196,9 @@ export default class dydx extends Exchange {
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
         const account = this.safeDict (response, 'info');
+        account.pub_key = {
+            'key': this.base64ToBinary (account.pub_key['key']),
+        };
         this.options['dydxAccount'] = account;
         return account;
     }
@@ -1358,9 +1374,7 @@ export default class dydx extends Exchange {
         const wallet = await this.recoverLocalWallet ();
         const account = await this.fetchDydxAccount ();
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const [ encodedTx, signDoc ] = await this.encodeDydxTxForSigning (orderRequest, '', 'dydx-testnet-4', account, undefined, wallet.pubKey);
-        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
-        const signedTx = this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
+        const signedTx = this.signDydxTx (orderRequest, '', 'dydx-testnet-4', account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1442,9 +1456,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const [ encodedTx, signDoc ] = await this.encodeDydxTxForSigning (signingPayload, '', 'dydx-testnet-4', account, undefined, wallet.pubKey);
-        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
-        const signedTx = this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
+        const signedTx = this.signDydxTx (signingPayload, '', 'dydx-testnet-4', account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1615,10 +1627,9 @@ export default class dydx extends Exchange {
     async estimateTxFee (
         messages,
         memo,
-        sequence,
-        publicKey,
+        account,
     ): Promise<Object> {
-        const txBytes = await this.encodeDydxTxForSimulation (messages, memo, sequence, publicKey);
+        const txBytes = await this.encodeDydxTxForSimulation (messages, memo, account.sequence, account.pub_key);
         const request = {
             'txBytes': txBytes,
         };
@@ -1737,10 +1748,8 @@ export default class dydx extends Exchange {
                 'value': payload,
             };
         }
-        const txFee = await this.estimateTxFee ([ signingPayload ], '', account.sequence, wallet.pubKey);
-        const [ encodedTx, signDoc ] = await this.encodeDydxTxForSigning (signingPayload, '', 'dydx-testnet-4', account, undefined, wallet.pubKey, txFee);
-        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
-        const signedTx = this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
+        const txFee = await this.estimateTxFee ([ signingPayload ], '', account);
+        const signedTx = this.signDydxTx (signingPayload, '', 'dydx-testnet-4', account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
