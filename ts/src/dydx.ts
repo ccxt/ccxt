@@ -116,7 +116,7 @@ export default class dydx extends Exchange {
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1MIN',
@@ -1662,8 +1662,8 @@ export default class dydx extends Exchange {
             gasPrice = feeDenom['CHAINTOKEN_GAS_PRICE'];
             denom = feeDenom['CHAINTOKEN_DENOM'];
         }
-        const gasLimit = Precise.stringMul (gasUsed, defaultFeeMultiplier);
-        const feeAmount = Precise.stringMul (gasLimit, gasPrice);
+        const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
+        const feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);
         return {
             'amount': [{
                 'amount': feeAmount,
@@ -1687,12 +1687,10 @@ export default class dydx extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         this.checkRequiredCredentials ();
-        await this.loadMarkets ();
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode');
-        const nonce = this.milliseconds ();
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' transfer() only support USDC');
         }
+        await this.loadMarkets ();
         const fromSubaccountId = this.safeInteger (params, 'fromSubaccountId');
         const toSubaccountId = this.safeInteger (params, 'toSubaccountId');
         if (fromAccount !== 'main') {
@@ -1892,6 +1890,70 @@ export default class dydx extends Exchange {
             'comment': undefined,
             'fee': undefined,
         } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name dydx#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        this.checkRequiredCredentials ();
+        if (code !== 'USDC') {
+            throw new NotSupported (this.id + ' withdraw() only support USDC');
+        }
+        await this.loadMarkets ();
+        this.checkAddress (address);        
+        const subaccountId = this.safeInteger (params, 'subaccountId');
+        if (subaccountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires subaccountId.');
+        }
+        params = this.omit (params, [ 'subaccountId' ]);
+        const currency = this.currency (code);
+        const wallet = await this.recoverLocalWallet ();
+        const account = await this.fetchDydxAccount ();
+        const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
+        const payload = {
+            'sender': {
+                'owner': this.walletAddress,
+                'number': subaccountId,
+            },
+            'recipient': address,
+            'assetId': 0,
+            'quantums': usd,
+        };
+        const signingPayload = {
+            'typeUrl': '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
+            'value': payload,
+        };
+        const txFee = await this.estimateTxFee ([ signingPayload ], tag, account);
+        const signedTx = this.signDydxTx (signingPayload, tag, 'dydx-testnet-4', account, undefined, txFee);
+        const request = {
+            'tx': signedTx,
+        };
+        // nodeRpcGetBroadcastTxAsync
+        const response = await this.nodeRpcGetBroadcastTxSync (request);
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'result', {});
+        return this.parseTransaction (data, currency);
     }
 
     /**

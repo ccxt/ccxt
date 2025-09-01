@@ -49,25 +49,25 @@ export function generateRegistry(): Registry {
     // clob
     [TYPE_URL_MSG_PLACE_ORDER, MsgPlaceOrder as GeneratedType],
     [TYPE_URL_MSG_CANCEL_ORDER, MsgCancelOrder as GeneratedType],
-    [TYPE_URL_BATCH_CANCEL, MsgBatchCancel as GeneratedType],
-    [TYPE_URL_MSG_CREATE_CLOB_PAIR, MsgCreateClobPair as GeneratedType],
-    [TYPE_URL_MSG_UPDATE_CLOB_PAIR, MsgUpdateClobPair as GeneratedType],
+    // [TYPE_URL_BATCH_CANCEL, MsgBatchCancel as GeneratedType],
+    // [TYPE_URL_MSG_CREATE_CLOB_PAIR, MsgCreateClobPair as GeneratedType],
+    // [TYPE_URL_MSG_UPDATE_CLOB_PAIR, MsgUpdateClobPair as GeneratedType],
 
     // delaymsg
-    [TYPE_URL_MSG_DELAY_MESSAGE, MsgDelayMessage as GeneratedType],
+    // [TYPE_URL_MSG_DELAY_MESSAGE, MsgDelayMessage as GeneratedType],
 
     // listing
-    [TYPE_URL_MSG_CREATE_MARKET_PERMISSIONLESS, MsgCreateMarketPermissionless as GeneratedType],
+    // [TYPE_URL_MSG_CREATE_MARKET_PERMISSIONLESS, MsgCreateMarketPermissionless as GeneratedType],
 
     // perpetuals
-    [TYPE_URL_MSG_CREATE_PERPETUAL, MsgCreatePerpetual as GeneratedType],
+    // [TYPE_URL_MSG_CREATE_PERPETUAL, MsgCreatePerpetual as GeneratedType],
 
     // prices
-    [TYPE_URL_MSG_CREATE_ORACLE_MARKET, MsgCreateOracleMarket as GeneratedType],
+    // [TYPE_URL_MSG_CREATE_ORACLE_MARKET, MsgCreateOracleMarket as GeneratedType],
 
     // vaults
-    [TYPE_URL_MSG_DEPOSIT_TO_MEGAVAULT, MsgDepositToMegavault as GeneratedType],
-    [TYPE_URL_MSG_WITHDRAW_FROM_MEGAVAULT, MsgWithdrawFromMegavault as GeneratedType],
+    // [TYPE_URL_MSG_DEPOSIT_TO_MEGAVAULT, MsgDepositToMegavault as GeneratedType],
+    // [TYPE_URL_MSG_WITHDRAW_FROM_MEGAVAULT, MsgWithdrawFromMegavault as GeneratedType],
 
     // sending
     [TYPE_URL_MSG_CREATE_TRANSFER, MsgCreateTransfer as GeneratedType],
@@ -75,12 +75,12 @@ export function generateRegistry(): Registry {
     [TYPE_URL_MSG_DEPOSIT_TO_SUBACCOUNT, MsgDepositToSubaccount as GeneratedType],
 
     // affiliates
-    [TYPE_URL_MSG_REGISTER_AFFILIATE, MsgRegisterAffiliate as GeneratedType],
+    // [TYPE_URL_MSG_REGISTER_AFFILIATE, MsgRegisterAffiliate as GeneratedType],
 
 
     // authentication
-    [TYPE_URL_MSG_ADD_AUTHENTICATOR, MsgAddAuthenticator as GeneratedType],
-    [TYPE_URL_MSG_REMOVE_AUTHENTICATOR, MsgRemoveAuthenticator as GeneratedType],
+    // [TYPE_URL_MSG_ADD_AUTHENTICATOR, MsgAddAuthenticator as GeneratedType],
+    // [TYPE_URL_MSG_REMOVE_AUTHENTICATOR, MsgRemoveAuthenticator as GeneratedType],
 
     // default types
     ...defaultRegistryTypes,
