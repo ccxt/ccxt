@@ -1685,6 +1685,7 @@ export default class Exchange {
 
     retrieveDydxAccount (entropy: string) {
         const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
+        this.options['dydxPrivateKey'] = this.binaryToBase16 (credentials.privateKey);
         const wallet = LocalWallet.fromPrivateKey (credentials.privateKey, 'dydx');
         return wallet;
     }
@@ -1702,21 +1703,21 @@ export default class Exchange {
         const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
         const pubkey = encodePubkey(publicKey);
         const tx = Tx.fromPartial ({
-            body: TxBody.fromPartial ({
-                messages: encodedMessages,
-                memo,
+            'body': TxBody.fromPartial ({
+                'messages': encodedMessages,
+                'memo': memo,
             }),
-            authInfo: AuthInfo.fromPartial ({
-                fee: CosmosFee.fromPartial ({}),
-                signerInfos: [
+            'authInfo': AuthInfo.fromPartial ({
+                'fee': {},
+                'signerInfos': [
                     {
-                        publicKey: pubkey,
-                        sequence: BigInt (sequence),
-                        modeInfo: { single: { mode: SignMode.SIGN_MODE_UNSPECIFIED } },
+                        'publicKey': pubkey,
+                        'sequence': BigInt (sequence),
+                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
                     },
                 ],
             }),
-            signatures: [ new Uint8Array () ],
+            'signatures': [ new Uint8Array () ],
         });
         return this.binaryToBase64 (Tx.encode (tx).finish ());
     }
@@ -1728,94 +1729,63 @@ export default class Exchange {
         account,
         authenticators,
         publicKey,
-        txFee,
-        transactionOptions,
-    ): string {
+        fee = undefined,
+    ): [ string, Dict ] {
         if (!publicKey) {
             throw new Error('Public key cannot be undefined');
         }
         const messages = [ message ];
         const sequence = this.milliseconds ();
-        const fee = {
-            amount: [],
-            gas: '1000000',
+        if (fee === undefined) {
+            fee = {
+                'amount': [],
+                'gasLimit': '1000000',
+            };
         }
-        if (txFee !== undefined) {
-            fee.amount.push (txFee);
-        }
-        const txOptions = {
-            sequence,
-            accountNumber: account.account_number,
-            chainId: chainId,
-            authenticators,
-        };
         const registry = generateRegistry ();
         const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
         const txExtension = TxExtension.encode({
-            selectedAuthenticators: transactionOptions.authenticators ?? [],
+            selectedAuthenticators: authenticators ?? [],
         }).finish();
         const nonCriticalExtensionOptions = [
             Any.fromPartial({
-                typeUrl: '/dydxprotocol.accountplus.TxExtension',
-                value: txExtension,
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': txExtension,
             }),
         ];
         const pubkey = encodePubkey(publicKey);
-        const tx = Tx.fromPartial ({
-            body: TxBody.fromPartial ({
-                messages: encodedMessages,
-                memo,
-                extensionOptions: [],
-                nonCriticalExtensionOptions,
-            }),
-            authInfo: AuthInfo.fromPartial ({
-                fee: CosmosFee.fromPartial ({}),
-                signerInfos: [
-                    {
-                        publicKey: pubkey,
-                        sequence: BigInt (sequence),
-                        modeInfo: { single: { mode: SignMode.SIGN_MODE_UNSPECIFIED } },
-                    },
-                ],
-            }),
-            signatures: [ new Uint8Array () ],
-        });
+        const txBodyBytes = TxBody.encode (TxBody.fromPartial ({
+            'messages': encodedMessages,
+            'memo': memo,
+            'extensionOptions': [],
+            'nonCriticalExtensionOptions': nonCriticalExtensionOptions,
+        })).finish ();
+        const authInfoBytes = AuthInfo.encode (AuthInfo.fromPartial ({
+            'fee': fee,
+            'signerInfos': [
+                {
+                    'publicKey': pubkey,
+                    'sequence': BigInt (sequence),
+                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
+                },
+            ],
+        })).finish ();
         const signDoc = SignDoc.fromPartial({
-            'accountNumber': accountNumber,
+            'accountNumber': account.account_number,
             'authInfoBytes': authInfoBytes,
-            'bodyBytes': bodyBytes,
+            'bodyBytes': txBodyBytes,
             'chainId': chainId,
         }) ;
-        return this.binaryToBase64 (SignDoc.encode (signDoc).finish ());
+        const signingHash = this.hash (SignDoc.encode (signDoc).finish (), sha256, 'hex');
+        return [ signingHash, signDoc ];
     }
 
-    async signDydxTx(
-        wallet: any,
-        message: any,
-        // zeroFee?: boolean,
-        chainId: string,
-        // gasPrice?: any,
-        memo?: string,
-        account?: any,
-        authenticators?: number[],
-        fee: Dict = undefined,
-      ): Promise<string> {
-        const messages = [ message ];
-        const sequence = this.milliseconds ();
-        if (fee === undefined) {
-            // zero fee
-            fee = {
-                'amount': [],
-                'gas': '1000000',
-            };
-        }
-        const txOptions = {
-            sequence,
-            accountNumber: account.account_number,
-            chainId: chainId,
-            authenticators,
-        };
-        return '0x' + this.binaryToBase16 (await wallet.signTransaction(messages, txOptions, fee, memo));
+    encodeDydxTxRaw (signDoc: Dict, signature: string): string {
+        return '0x' + this.binaryToBase16 (TxRaw.encode (TxRaw.fromPartial({
+            'bodyBytes': signDoc.bodyBytes,
+            'authInfoBytes': signDoc.authInfoBytes,
+            'signatures': [ this.base16ToBinary (signature) ],
+        })).finish ());
     }
 
     intToBase16(elem): string {

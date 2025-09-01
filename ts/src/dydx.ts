@@ -1358,9 +1358,11 @@ export default class dydx extends Exchange {
         const wallet = await this.recoverLocalWallet ();
         const account = await this.fetchDydxAccount ();
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const signedOrder = await this.signDydxTx (wallet, orderRequest, 'dydx-testnet-4', undefined, account);
+        const [ encodedTx, signDoc ] = await this.encodeDydxTxForSigning (orderRequest, '', 'dydx-testnet-4', account, undefined, wallet.pubKey);
+        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
+        const signedTx = this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
         const request = {
-            'tx': signedOrder,
+            'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
         const response = await this.nodeRpcGetBroadcastTxSync (request);
@@ -1440,9 +1442,11 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const signedCancel = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account);
+        const [ encodedTx, signDoc ] = await this.encodeDydxTxForSigning (signingPayload, '', 'dydx-testnet-4', account, undefined, wallet.pubKey);
+        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
+        const signedTx = this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
         const request = {
-            'tx': signedCancel,
+            'tx': signedTx,
         };
         // nodeRpcGetBroadcastTxAsync
         const response = await this.nodeRpcGetBroadcastTxSync (request);
@@ -1654,7 +1658,7 @@ export default class dydx extends Exchange {
                 'amount': feeAmount,
                 'denom': denom,
             }],
-            'gas': gasLimit,
+            'gasLimit': gasLimit,
         };
     }
 
@@ -1733,8 +1737,10 @@ export default class dydx extends Exchange {
                 'value': payload,
             };
         }
-        const txFee = await this.estimateTxFee ([signingPayload], '', account.sequence, wallet.pubKey);
-        const signedTx = await this.signDydxTx (wallet, signingPayload, 'dydx-testnet-4', undefined, account, undefined, txFee);
+        const txFee = await this.estimateTxFee ([ signingPayload ], '', account.sequence, wallet.pubKey);
+        const [ encodedTx, signDoc ] = await this.encodeDydxTxForSigning (signingPayload, '', 'dydx-testnet-4', account, undefined, wallet.pubKey, txFee);
+        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
+        const signedTx = this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
         const request = {
             'tx': signedTx,
         };
