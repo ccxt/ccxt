@@ -6884,10 +6884,6 @@ export default class Exchange {
             }
             takeProfitPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
         }
-        //
-        const isTrigger = triggerPriceStr !== undefined;
-        const isStopLoss = stopLossPriceStr !== undefined;
-        const isTakeProfit = takeProfitPriceStr !== undefined;
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
     }
 
