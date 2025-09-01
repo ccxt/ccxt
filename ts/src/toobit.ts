@@ -618,24 +618,27 @@ export default class toobit extends Exchange {
         //        {
         //            "id": "2024934575206059008",
         //            "symbol": "ETHUSDT",
-        //            "symbolName": "ETHUSDT",
         //            "orderId": "2024934575097029888",
+        //            "ticketId": "4864450547563401875",
         //            "price": "4641.21",
         //            "qty": "0.001",
         //            "time": "1756127012094",
-        //            "isBuyer": false,
         //            "isMaker": false,
-        //            "fee": {
+        //            "commission": "0.00464121",
+        //            "commissionAsset": "USDT",
+        //            "makerRebate": "0",
+        //            "symbolName": "ETHUSDT",                 // only in SPOT
+        //            "isBuyer": false,                        // only in SPOT
+        //            "feeAmount": "0.00464121",               // only in SPOT
+        //            "feeCoinId": "USDT",                     // only in SPOT
+        //            "fee": {                                 // only in SPOT
         //                "feeCoinId": "USDT",
         //                "feeCoinName": "USDT",
         //                "fee": "0.00464121"
         //            },
-        //            "feeCoinId": "USDT",
-        //            "commission": "0.00464121",
-        //            "commissionAsset": "USDT",
-        //            "feeAmount": "0.00464121",
-        //            "makerRebate": "0",
-        //            "ticketId": "4864450547563401875"
+        //            "type": "LIMIT",                         // only in CONTRACT
+        //            "side": "BUY_OPEN",                      // only in CONTRACT
+        //            "realizedPnl": "0",                      // only in CONTRACT
         //        },
         //
         const timestamp = this.safeInteger2 (trade, 't', 'time');
@@ -679,7 +682,7 @@ export default class toobit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': this.safeString (trade, 'id'),
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
             'amount': amountString,
@@ -1370,6 +1373,9 @@ export default class toobit extends Exchange {
         //        "leverage": "2",                     // only in CONTRACT
         //        "marginLocked": "9.5",               // only in CONTRACT
         //        "priceType": "INPUT"                 // only in CONTRACT
+        //        "triggerType": "0",                  // only in CONTRACT fetchClosedOrders
+        //        "fallType": "0",                     // only in CONTRACT fetchClosedOrders
+        //        "activeStatus": "0"                  // only in CONTRACT fetchClosedOrders
         //    }
         //
         const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
@@ -1505,7 +1511,7 @@ export default class toobit extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOpenOrders (params);
@@ -1548,7 +1554,7 @@ export default class toobit extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (params);
@@ -1712,48 +1718,113 @@ export default class toobit extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetApiV1SpotTradeOrders (request);
+            //
+            //    [
+            //        {
+            //            "accountId": "1783404067076253952",
+            //            "exchangeId": "301",
+            //            "symbol": "ETHUSDT",
+            //            "symbolName": "ETHUSDT",
+            //            "clientOrderId": "17561415157172008",
+            //            "orderId": "2025056244339984384",
+            //            "price": "3000",
+            //            "origQty": "0.002",
+            //            "executedQty": "0",
+            //            "cummulativeQuoteQty": "0",
+            //            "cumulativeQuoteQty": "0",
+            //            "avgPrice": "0",
+            //            "status": "NEW",
+            //            "timeInForce": "GTC",
+            //            "type": "LIMIT",
+            //            "side": "BUY",
+            //            "stopPrice": "0.0",
+            //            "icebergQty": "0.0",
+            //            "time": "1756141516189",
+            //            "updateTime": "1756141516198",
+            //            "isWorking": true
+            //        }, ...
+            //    ]
+            //
         } else {
-            response = await this.privateGetApiV1FuturesHistoryOrders (request);
+            throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
         }
-        //
-        //    [
-        //        {
-        //            "accountId": "1783404067076253952",
-        //            "exchangeId": "301",
-        //            "symbol": "ETHUSDT",
-        //            "symbolName": "ETHUSDT",
-        //            "clientOrderId": "17561415157172008",
-        //            "orderId": "2025056244339984384",
-        //            "price": "3000",
-        //            "origQty": "0.002",
-        //            "executedQty": "0",
-        //            "cummulativeQuoteQty": "0",
-        //            "cumulativeQuoteQty": "0",
-        //            "avgPrice": "0",
-        //            "status": "NEW",
-        //            "timeInForce": "GTC",
-        //            "type": "LIMIT",
-        //            "side": "BUY",
-        //            "stopPrice": "0.0",
-        //            "icebergQty": "0.0",
-        //            "time": "1756141516189",
-        //            "updateTime": "1756141516198",
-        //            "isWorking": true
-        //        }, ...
-        //    ]
-        //
         return this.parseOrders (response, market, since, limit);
     }
 
     /**
      * @method
-     * @name alptoobitaca#fetchMyTrades
+     * @name bitfinex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
+     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        // returns the most recent closed or canceled orders up to circa two weeks ago
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' fetchOrders() is not supported for ' + marketType + ' markets');
+        } else {
+            response = await this.privateGetApiV1FuturesHistoryOrders (request);
+            //
+            //    [
+            //        {
+            //            "time": "1756756879360",
+            //            "updateTime": "1756757165956",
+            //            "orderId": "2030218284767504128",
+            //            "clientOrderId": "1756756876002",
+            //            "symbol": "SOL-SWAP-USDT",
+            //            "price": "144",
+            //            "leverage": "50",
+            //            "origQty": "1",
+            //            "executedQty": "0",
+            //            "executeQty": "0",
+            //            "avgPrice": "0",
+            //            "marginLocked": "0",
+            //            "type": "LIMIT",
+            //            "side": "BUY_OPEN",
+            //            "timeInForce": "GTC",
+            //            "status": "CANCELED",
+            //            "priceType": "INPUT",
+            //            "triggerType": "0",
+            //            "fallType": "0",
+            //            "activeStatus": "0"
+            //        }
+            //    ]
+            //
+        }
+        const ordersList = [];
+        for (let i = 0; i < response.length; i++) {
+            ordersList.push ({ 'result': response[i] });
+        }
+        return this.parseOrders (ordersList, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1763,46 +1834,73 @@ export default class toobit extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
         let request: Dict = {};
-        const market = this.market (symbol);
-        request['symbol'] = market['id'];
         if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        [ request, params ] = this.handleUntilOption ('until', request, params);
-        const response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
-        //
-        //    [
-        //        {
-        //            "id": "2024934575206059008",
-        //            "symbol": "ETHUSDT",
-        //            "symbolName": "ETHUSDT",
-        //            "orderId": "2024934575097029888",
-        //            "price": "4641.21",
-        //            "qty": "0.001",
-        //            "commission": "0.00464121",
-        //            "commissionAsset": "USDT",
-        //            "time": "1756127012094",
-        //            "isBuyer": false,
-        //            "isMaker": false,
-        //            "fee": {
-        //                "feeCoinId": "USDT",
-        //                "feeCoinName": "USDT",
-        //                "fee": "0.00464121"
-        //            },
-        //            "feeCoinId": "USDT",
-        //            "feeAmount": "0.00464121",
-        //            "makerRebate": "0",
-        //            "ticketId": "4864450547563401875"
-        //        }, ...
-        //
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "id": "2024934575206059008",
+            //            "symbol": "ETHUSDT",
+            //            "symbolName": "ETHUSDT",
+            //            "orderId": "2024934575097029888",
+            //            "price": "4641.21",
+            //            "qty": "0.001",
+            //            "commission": "0.00464121",
+            //            "commissionAsset": "USDT",
+            //            "time": "1756127012094",
+            //            "isBuyer": false,
+            //            "isMaker": false,
+            //            "fee": {
+            //                "feeCoinId": "USDT",
+            //                "feeCoinName": "USDT",
+            //                "fee": "0.00464121"
+            //            },
+            //            "feeCoinId": "USDT",
+            //            "feeAmount": "0.00464121",
+            //            "makerRebate": "0",
+            //            "ticketId": "4864450547563401875"
+            //        }, ...
+            //
+        } else {
+            response = await this.privateGetApiV1FuturesUserTrades (request);
+            //
+            //    [
+            //        {
+            //            "time": "1756758426899",
+            //            "id": "2030231266499116032",
+            //            "orderId": "2030231266373265152",
+            //            "symbol": "DOGE-SWAP-USDT",
+            //            "price": "0.21191",
+            //            "qty": "63",
+            //            "commissionAsset": "USDT",
+            //            "commission": "0.00801019",
+            //            "makerRebate": "0",
+            //            "type": "LIMIT",
+            //            "side": "BUY_OPEN",
+            //            "realizedPnl": "0",
+            //            "ticketId": "4900760819871364854",
+            //            "isMaker": false
+            //        }
+            //    ]
+            //
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
