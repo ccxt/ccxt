@@ -2211,6 +2211,9 @@ class Exchange {
     async unWatchPositions(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchPositions() is not supported yet');
     }
+    async unWatchTicker(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTicker() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
