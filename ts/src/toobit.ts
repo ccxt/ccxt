@@ -2057,6 +2057,65 @@ export default class toobit extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    /**
+     * @method
+     * @name toobit#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {boolean} [params.margin] set to true for spot margin
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        await this.loadMarkets ();
+        let response = undefined;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' does not support ' + marketType + ' markets');
+        } else if (this.inArray (marketType, [ 'swap', 'future' ])) {
+            let symbol: Str = undefined;
+            [ symbol, params ] = this.handleParamString (params, 'symbol');
+            if (symbol === undefined) {
+                throw new BadRequest (this.id + ' fetchTradingFees requires a params["symbol"]');
+            }
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            response = await this.privateGetApiV1FuturesCommissionRate (this.extend (request, params));
+        }
+        //
+        // {
+        //     "openMakerFee": "0.000006", // The trade fee rate for opening pending orders
+        //     "openTakerFee": "0.0001", // The trade fee rate for open position taker
+        //     "closeMakerFee": "0.0002", // The trade fee rate for closing pending orders
+        //     "closeTakerFee": "0.0004" // The trade fee rate for closing a taker order
+        // }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result: Dict = {};
+        const entry = response;
+        const marketId = this.safeString (entry, 'symbol');
+        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+        const market = this.market (symbol);
+        const fee = this.parseTradingFee (entry, market);
+        result[symbol] = fee;
+        return result;
+    }
+
+    parseTradingFee (data, market: Market = undefined) {
+        const marketId = this.safeString (data, 'symbol');
+        return {
+            'info': data,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': this.safeNumber (data, 'closeMakerFee'),
+            'taker': this.safeNumber (data, 'closeTakerFee'),
+            'percentage': undefined,
+            'tierBased': undefined,
+        };
+    }
 
     /**
      * @method
