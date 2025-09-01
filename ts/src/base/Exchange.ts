@@ -170,13 +170,10 @@ import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import {default as LocalWallet} from '../static_dependencies/dydx-v4-client/clients/modules/local-wallet.js';
-import {TxExtension} from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/accountplus/tx';
-import {Any} from 'cosmjs-types/google/protobuf/any';
 import {generateRegistry} from '../static_dependencies/dydx-v4-client/clients/lib/registry.js';
 import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/lib/onboarding.js';
 import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
-import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
@@ -1701,9 +1698,9 @@ export default class Exchange {
                 'fee': {},
                 'signerInfos': [
                     {
-                        'publicKey': Any.fromPartial ({
+                        'publicKey': registry.encodeAsAny ({
                             'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
-                            'value': PubKey.encode (publicKey).finish ()
+                            'value': publicKey,
                         }),
                         'sequence': BigInt (sequence),
                         'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
@@ -1736,13 +1733,12 @@ export default class Exchange {
         }
         const registry = generateRegistry ();
         const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
-        const txExtension = TxExtension.encode({
-            selectedAuthenticators: authenticators ?? [],
-        }).finish();
         const nonCriticalExtensionOptions = [
-            Any.fromPartial({
+            registry.encodeAsAny ({
                 'typeUrl': '/dydxprotocol.accountplus.TxExtension',
-                'value': txExtension,
+                'value': {
+                    selectedAuthenticators: authenticators ?? [],
+                },
             }),
         ];
         const txBodyBytes = TxBody.encode (TxBody.fromPartial ({
@@ -1755,9 +1751,9 @@ export default class Exchange {
             'fee': fee,
             'signerInfos': [
                 {
-                    'publicKey': Any.fromPartial ({
+                    'publicKey': registry.encodeAsAny ({
                         'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
-                        'value': PubKey.encode (account.pub_key).finish ()
+                        'value': account.pub_key,
                     }),
                     'sequence': BigInt (sequence),
                     'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
