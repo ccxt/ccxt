@@ -169,8 +169,7 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
-import {default as LocalWallet} from '../static_dependencies/dydx-v4-client/clients/modules/local-wallet.js';
-import {generateRegistry} from '../static_dependencies/dydx-v4-client/clients/lib/registry.js';
+import {generateRegistry} from '../static_dependencies/dydx-v4-client/registry.js';
 import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/lib/onboarding.js';
 import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
@@ -1671,11 +1670,9 @@ export default class Exchange {
         return zkSign;
     }
 
-    retrieveDydxAccount (entropy: string) {
+    retrieveDydxCredentials (entropy: string) {
         const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
-        this.options['dydxPrivateKey'] = this.binaryToBase16 (credentials.privateKey);
-        const wallet = LocalWallet.fromPrivateKey (credentials.privateKey, 'dydx');
-        return wallet;
+        return credentials;
     }
 
     encodeDydxTxForSimulation (

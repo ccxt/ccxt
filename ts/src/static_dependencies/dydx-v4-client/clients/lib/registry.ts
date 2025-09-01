@@ -2,7 +2,6 @@
 import { GeneratedType, Registry } from '../../registry';
 import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
 import { TxExtension } from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/accountplus/tx';
-import { defaultRegistryTypes } from '@cosmjs/stargate';
 import {
   MsgPlaceOrder,
   MsgCancelOrder,
@@ -36,7 +35,5 @@ export function generateRegistry(): Registry {
     [ '/dydxprotocol.accountplus.TxExtension', TxExtension as GeneratedType ],
     [ '/cosmos.crypto.secp256k1.PubKey', PubKey as GeneratedType ],
 
-    // default types
-    // ...defaultRegistryTypes,
   ]);
 }

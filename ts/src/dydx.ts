@@ -1147,6 +1147,7 @@ export default class dydx extends Exchange {
     }
 
     signDydxTx (
+        privateKey,
         message,
         memo,
         chainId,
@@ -1155,22 +1156,22 @@ export default class dydx extends Exchange {
         fee = undefined,
     ): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
-        const signature = this.signHash (encodedTx, this.options['dydxPrivateKey']);
+        const signature = this.signHash (encodedTx, privateKey);
         return this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
     }
 
-    async recoverLocalWallet (): Promise<any> {
-        let wallet = this.safeDict (this.options, 'dydxLocalWallet');
-        if (wallet !== undefined) {
-            return wallet;
+    retrieveCredentials (): Promise<any> {
+        let credentials = this.safeDict (this.options, 'dydxCredentials');
+        if (credentials !== undefined) {
+            return credentials;
         }
-        // if (this.privateKey !== undefined) {} else if (this.options.mnemonic !== undefined) {}
-        // TODO: recover from mnemonic
         const signature = this.signOnboardingAction ();
         const entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
-        wallet = await this.retrieveDydxAccount (entropy);
-        this.options['dydxLocalWallet'] = wallet;
-        return wallet;
+        credentials = this.retrieveDydxCredentials (entropy);
+        credentials['privateKey'] = this.binaryToBase16 (credentials.privateKey);
+        credentials['publicKey'] = this.binaryToBase16 (credentials.publicKey);
+        this.options['dydxCredentials'] = credentials;
+        return credentials;
     }
 
     async fetchDydxAccount (params: Dict = undefined) {
@@ -1371,10 +1372,10 @@ export default class dydx extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
-        const wallet = await this.recoverLocalWallet ();
+        const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const signedTx = this.signDydxTx (orderRequest, '', 'dydx-testnet-4', account, undefined);
+        const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', 'dydx-testnet-4', account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1437,7 +1438,7 @@ export default class dydx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' goodTillBlock is required for short term order.');
             }
         }
-        const wallet = await this.recoverLocalWallet ();
+        const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const cancelPayload = {
             'orderId': {
@@ -1456,7 +1457,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const signedTx = this.signDydxTx (signingPayload, '', 'dydx-testnet-4', account, undefined);
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1706,7 +1707,7 @@ export default class dydx extends Exchange {
             }
         }
         params = this.omit (params, [ 'fromSubaccountId', 'toSubaccountId' ]);
-        const wallet = await this.recoverLocalWallet ();
+        const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         let payload = undefined;
@@ -1750,7 +1751,7 @@ export default class dydx extends Exchange {
             };
         }
         const txFee = await this.estimateTxFee ([ signingPayload ], '', account);
-        const signedTx = this.signDydxTx (signingPayload, '', 'dydx-testnet-4', account, undefined, txFee);
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -1919,7 +1920,7 @@ export default class dydx extends Exchange {
         }
         params = this.omit (params, [ 'subaccountId' ]);
         const currency = this.currency (code);
-        const wallet = await this.recoverLocalWallet ();
+        const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         const payload = {
@@ -1936,7 +1937,7 @@ export default class dydx extends Exchange {
             'value': payload,
         };
         const txFee = await this.estimateTxFee ([ signingPayload ], tag, account);
-        const signedTx = this.signDydxTx (signingPayload, tag, 'dydx-testnet-4', account, undefined, txFee);
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, 'dydx-testnet-4', account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };

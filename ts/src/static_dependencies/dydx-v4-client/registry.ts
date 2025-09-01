@@ -228,3 +228,34 @@ export class Registry {
     };
   }
 }
+
+// TODO: import pb files directly
+import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
+import { TxExtension } from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/accountplus/tx';
+import {
+  MsgPlaceOrder,
+  MsgCancelOrder,
+} from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/clob/tx';
+import {
+  MsgWithdrawFromSubaccount,
+  MsgDepositToSubaccount,
+} from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/sending/transfer';
+import { MsgCreateTransfer } from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/sending/tx';
+
+export const registry: ReadonlyArray<[string, GeneratedType]> = [];
+export function generateRegistry(): Registry {
+  return new Registry([
+    // clob
+    [ '/dydxprotocol.clob.MsgPlaceOrder', MsgPlaceOrder as GeneratedType ],
+    [ '/dydxprotocol.clob.MsgCancelOrder', MsgCancelOrder as GeneratedType ],
+
+    // sending
+    [ '/dydxprotocol.sending.MsgCreateTransfer', MsgCreateTransfer as GeneratedType ],
+    [ '/dydxprotocol.sending.MsgWithdrawFromSubaccount', MsgWithdrawFromSubaccount as GeneratedType ],
+    [ '/dydxprotocol.sending.MsgDepositToSubaccount', MsgDepositToSubaccount as GeneratedType ],
+
+    [ '/dydxprotocol.accountplus.TxExtension', TxExtension as GeneratedType ],
+    [ '/cosmos.crypto.secp256k1.PubKey', PubKey as GeneratedType ],
+
+  ]);
+}
