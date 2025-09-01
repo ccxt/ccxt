@@ -1379,9 +1379,9 @@ class Exchange {
         return $msgHash;
     }
 
-    public function starknet_sign($hash, $pri) {
+    public function starknet_sign($msg_hash, $pri) {
         # // TODO: unify to ecdsa
-        $signature = Curve::sign ('0x' . $pri, $hash);
+        $signature = Curve::sign ('0x' . $pri, $msg_hash);
         return $this->json($signature);
     }
 
