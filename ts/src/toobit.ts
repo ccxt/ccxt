@@ -102,7 +102,9 @@ export default class toobit extends Exchange {
                         'api/v1/account': 1,
                         'api/v1/spot/order': 1,
                         'api/v1/spot/openOrders': 1,
+                        'api/v1/futures/openOrders': 1,
                         'api/v1/spot/tradeOrders': 1,
+                        'api/v1/futures/historyOrders': 1,
                         'api/v1/account/trades': 1,
                         'api/v1/account/balanceFlow': 1,
                         'api/v1/account/depositOrders': 1,
@@ -110,8 +112,14 @@ export default class toobit extends Exchange {
                         'api/v1/account/deposit/address': 1,
                         // contracts
                         'api/v1/subAccount': 1,
-                        'api/v1/accountLeverage': 1,
+                        'api/v1/futures/accountLeverage': 1,
                         'api/v1/futures/order': 1,
+                        'api/v1/futures/positions': 1,
+                        'api/v1/futures/balance': 1,
+                        'api/v1/futures/userTrades': 1,
+                        'api/v1/futures/balanceFlow': 1,
+                        'api/v1/futures/commissionRate': 1,
+                        'api/v1/futures/todayPnl': 1,
                     },
                     'post': {
                         'api/v1/spot/orderTest': 1,
@@ -1074,27 +1082,47 @@ export default class toobit extends Exchange {
      * @name toobit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const response = await this.privateGetApiV1Account ();
-        //
-        //    {
-        //        "userId": "912902020",
-        //        "balances": [
-        //            {
-        //                "asset": "ETH",
-        //                "assetId": "ETH",
-        //                "assetName": "ETH",
-        //                "total": "0.025",
-        //                "free": "0.025",
-        //                "locked": "0"
-        //            }
-        //        ]
-        //    }
-        //
+        let response = undefined;
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        if (this.inArray (marketType, [ 'swap', 'futures' ])) {
+            response = await this.privateGetApiV1FuturesBalance ();
+            //
+            //     [
+            //         {
+            //             "asset": "USDT", // asset
+            //             "balance": "999999999999.982", // total
+            //             "availableBalance": "1899999999978.4995", // available balance Include unrealized pnl
+            //             "positionMargin": "11.9825", //position Margin
+            //             "orderMargin": "9.5", //order Margin
+            //             "crossUnRealizedPnl": "10.01" //The unrealized profit and loss of cross position
+            //         }
+            //     ]
+            //
+        } else {
+            response = await this.privateGetApiV1SpotAccount ();
+            //
+            //    {
+            //        "userId": "912902020",
+            //        "balances": [
+            //            {
+            //                "asset": "ETH",
+            //                "assetId": "ETH",
+            //                "assetName": "ETH",
+            //                "total": "0.025",
+            //                "free": "0.025",
+            //                "locked": "0"
+            //            }
+            //        ]
+            //    }
+            //
+        }
         return this.parseBalance (response);
     }
 
@@ -1104,13 +1132,13 @@ export default class toobit extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', response);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'free');
-            account['total'] = this.safeString (balance, 'total');
+            account['free'] = this.safeString2 (balance, 'free', 'availableBalance');
+            account['total'] = this.safeString2 (balance, 'total', 'balance');
             account['used'] = this.safeString (balance, 'locked');
             result[code] = account;
         }
@@ -1122,6 +1150,7 @@ export default class toobit extends Exchange {
      * @name toobit#createOrder
      * @description create a trade order
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1173,6 +1202,7 @@ export default class toobit extends Exchange {
      * @name toobit#createOrders
      * @description create a list of trade orders
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#place-multiple-orders-trade
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#place-multiple-orders-trade
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1427,6 +1457,7 @@ export default class toobit extends Exchange {
      * @name arkm#cancelOrder
      * @description cancels an open order
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1460,6 +1491,7 @@ export default class toobit extends Exchange {
      * @name toobit#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
      * @param {string} symbol unified symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1498,6 +1530,7 @@ export default class toobit extends Exchange {
      * @name toobit#cancelOrders
      * @description cancel multiple orders
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1549,6 +1582,7 @@ export default class toobit extends Exchange {
      * @name toobit#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1605,6 +1639,7 @@ export default class toobit extends Exchange {
      * @name toobit#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1668,15 +1703,22 @@ export default class toobit extends Exchange {
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request = {};
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetApiV1SpotTradeOrders (request);
+        } else {
+            response = await this.privateGetApiV1FuturesHistoryOrders (request);
         }
-        const response = await this.privateGetApiV1SpotTradeOrders (request);
         //
         //    [
         //        {
@@ -1766,7 +1808,7 @@ export default class toobit extends Exchange {
 
     /**
      * @method
-     * @name bigone#transfer
+     * @name toobit#transfer
      * @description transfer currency internally between wallets on the same account
      * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
      * @param {string} code unified currency code
@@ -2225,7 +2267,7 @@ export default class toobit extends Exchange {
      * @method
      * @name toobit#setLeverage
      * @description set the level of leverage for a market
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2246,6 +2288,49 @@ export default class toobit extends Exchange {
         // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name toobit#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetApiV1FuturersAccountLeverage (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "symbol":"BTC-SWAP-USDT", //symbol
+        //         "leverage":"20",  // leverage
+        //         "marginType":"CROSS" // CROSS;ISOLATED
+        //     }
+        // ]
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marketId = this.safeString (leverage, 'symbol');
+        const leverageValue = this.safeInteger (leverage, 'leverage');
+        const marginType = this.safeString (leverage, 'marginType');
+        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': marginMode,
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
