@@ -5,7 +5,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, DepositAddress, BorrowInterest, Market, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, DepositAddress, BorrowInterest, Market, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -132,6 +132,8 @@ export default class toobit extends Exchange {
                         'api/v1/futures/marginType': 1,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/batchOrders': 1,
+                        'api/v1/futures/position/trading-stop': 1,
+                        'api/v1/futures/positionMargin': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -1960,10 +1962,9 @@ export default class toobit extends Exchange {
 
     /**
      * @method
-     * @name bitget#fetchLedger
+     * @name toobit#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
-     * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @see 
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -1989,7 +1990,16 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateSpotGetV1AccountBalanceFlow (this.extend (request, params));
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetV1AccountBalanceFlow (this.extend (request, params));
+        } else {
+            response = await this.privateGetV1FuturesBalanceFlow (this.extend (request, params));
+        }
+        //
+        // both answers are same format
         //
         // [
         //     {
@@ -2046,6 +2056,7 @@ export default class toobit extends Exchange {
         };
         return this.safeString (types, type, type);
     }
+
 
     /**
      * @method
