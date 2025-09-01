@@ -170,9 +170,11 @@ import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import {default as LocalWallet} from '../static_dependencies/dydx-v4-client/clients/modules/local-wallet.js';
-import { generateRegistry } from '../static_dependencies/dydx-v4-client/clients/lib/registry.js';
+import {TxExtension} from '@dydxprotocol/v4-proto/src/codegen/dydxprotocol/accountplus/tx';
+import {Any} from 'cosmjs-types/google/protobuf/any';
+import {generateRegistry} from '../static_dependencies/dydx-v4-client/clients/lib/registry.js';
 import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/lib/onboarding.js';
-import { Fee as CosmosFee, AuthInfo, Tx, TxBody, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { Fee as CosmosFee, AuthInfo, Tx, TxBody, TxRaw, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import {SignMode} from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
 import {
 //   EncodeObject,
@@ -1719,17 +1721,19 @@ export default class Exchange {
         return this.binaryToBase64 (Tx.encode (tx).finish ());
     }
 
-    async signDydxTx(
-        wallet: any,
-        message: any,
-        // zeroFee?: boolean,
-        chainId: string,
-        // gasPrice?: any,
-        memo?: string,
-        account?: any,
-        authenticators?: number[],
-        txFee = undefined
-      ): Promise<string> {
+    encodeDydxTxForSigning (
+        message,
+        memo,
+        chainId,
+        account,
+        authenticators,
+        publicKey,
+        txFee,
+        transactionOptions,
+    ): string {
+        if (!publicKey) {
+            throw new Error('Public key cannot be undefined');
+        }
         const messages = [ message ];
         const sequence = this.milliseconds ();
         const fee = {
@@ -1739,20 +1743,72 @@ export default class Exchange {
         if (txFee !== undefined) {
             fee.amount.push (txFee);
         }
-        // zeroFee
-        // ? {
-        //     amount: [],
-        //     gas: '1000000',
-        // }
-        // : await this.simulateTransaction(
-        //     wallet.pubKey!,
-        //     sequence,
-        //     messages,
-        //     gasPrice,
-        //     memo,
-        //     gasAdjustment,
-        // );
-    
+        const txOptions = {
+            sequence,
+            accountNumber: account.account_number,
+            chainId: chainId,
+            authenticators,
+        };
+        const registry = generateRegistry ();
+        const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
+        const txExtension = TxExtension.encode({
+            selectedAuthenticators: transactionOptions.authenticators ?? [],
+        }).finish();
+        const nonCriticalExtensionOptions = [
+            Any.fromPartial({
+                typeUrl: '/dydxprotocol.accountplus.TxExtension',
+                value: txExtension,
+            }),
+        ];
+        const pubkey = encodePubkey(publicKey);
+        const tx = Tx.fromPartial ({
+            body: TxBody.fromPartial ({
+                messages: encodedMessages,
+                memo,
+                extensionOptions: [],
+                nonCriticalExtensionOptions,
+            }),
+            authInfo: AuthInfo.fromPartial ({
+                fee: CosmosFee.fromPartial ({}),
+                signerInfos: [
+                    {
+                        publicKey: pubkey,
+                        sequence: BigInt (sequence),
+                        modeInfo: { single: { mode: SignMode.SIGN_MODE_UNSPECIFIED } },
+                    },
+                ],
+            }),
+            signatures: [ new Uint8Array () ],
+        });
+        const signDoc = SignDoc.fromPartial({
+            'accountNumber': accountNumber,
+            'authInfoBytes': authInfoBytes,
+            'bodyBytes': bodyBytes,
+            'chainId': chainId,
+        }) ;
+        return this.binaryToBase64 (SignDoc.encode (signDoc).finish ());
+    }
+
+    async signDydxTx(
+        wallet: any,
+        message: any,
+        // zeroFee?: boolean,
+        chainId: string,
+        // gasPrice?: any,
+        memo?: string,
+        account?: any,
+        authenticators?: number[],
+        fee: Dict = undefined,
+      ): Promise<string> {
+        const messages = [ message ];
+        const sequence = this.milliseconds ();
+        if (fee === undefined) {
+            // zero fee
+            fee = {
+                'amount': [],
+                'gas': '1000000',
+            };
+        }
         const txOptions = {
             sequence,
             accountNumber: account.account_number,

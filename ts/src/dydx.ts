@@ -267,7 +267,7 @@ export default class dydx extends Exchange {
                     'USDC_DENOM': 'ibc/8E27BA2D5493AF5636760E354E46004562C46AB7EC0CC4C1CA14E9E20E2545B5',
                     'USDC_GAS_DENOM': 'uusdc',
                     'USDC_DECIMALS': 6,
-                    'USDC_GAS_PRICE': '0.025',
+                    'USDC_GAS_PRICE': '25',
                     'CHAINTOKEN_DENOM': 'adv4tnt',
                     'CHAINTOKEN_DECIMALS': 18,
                     'CHAINTOKEN_GAS_PRICE': '25000000000',
@@ -1647,10 +1647,14 @@ export default class dydx extends Exchange {
             gasPrice = feeDenom['CHAINTOKEN_GAS_PRICE'];
             denom = feeDenom['CHAINTOKEN_DENOM'];
         }
-        const feeAmount = Precise.stringMul (Precise.stringMul (gasUsed, defaultFeeMultiplier), gasPrice);
+        const gasLimit = Precise.stringMul (gasUsed, defaultFeeMultiplier);
+        const feeAmount = Precise.stringMul (gasLimit, gasPrice);
         return {
-            'amount': feeAmount,
-            'denom': denom,
+            'amount': [{
+                'amount': feeAmount,
+                'denom': denom,
+            }],
+            'gas': gasLimit,
         };
     }
 
