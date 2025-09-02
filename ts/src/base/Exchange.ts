@@ -2892,9 +2892,9 @@ export default class Exchange {
     parseToNumeric (number) {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
@@ -6857,32 +6857,32 @@ export default class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesWithPrecision (symbol, params, omitParams = true) {
+    handleTriggerPricesAndParams (symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeValue (params, 'triggerPrice', 'stopPrice');
+        let triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        let stopLossPrice = this.safeString (params, 'stopLossPrice');
         let stopLossPriceStr: Str = undefined;
-        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         let takeProfitPriceStr: Str = undefined;
         //
         if (triggerPrice !== undefined) {
             if (omitParams) {
                 params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
             }
-            triggerPriceStr = this.priceToPrecision (symbol, triggerPrice);
+            triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPrice));
         }
         if (stopLossPrice !== undefined) {
             if (omitParams) {
                 params = this.omit (params, 'stopLossPrice');
             }
-            stopLossPriceStr = this.priceToPrecision (symbol, stopLossPrice);
+            stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPrice));
         }
         if (takeProfitPrice !== undefined) {
             if (omitParams) {
                 params = this.omit (params, 'takeProfitPrice');
             }
-            takeProfitPriceStr = this.priceToPrecision (symbol, takeProfitPrice);
+            takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPrice));
         }
         //
         const isTrigger = triggerPriceStr !== undefined;
