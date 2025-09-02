@@ -1,8 +1,6 @@
-import { HDKey } from '@scure/bip32';
-import { entropyToMnemonic, mnemonicToSeedSync } from '@scure/bip39';
-import { wordlist } from '@scure/bip39/wordlists/english';
-// import { keccak256 } from 'ethereum-cryptography/keccak';
-// import { stripHexPrefix } from './helpers';
+import { HDKey } from '../scure-bip32';
+import { entropyToMnemonic, mnemonicToSeedSync } from '../scure-bip39';
+import { wordlist } from '../scure-bip39/wordlists/english';
 
 /**
  * @description Get Mnemonic and priv/pub keys from privateKeyBytes and BIP44 HD path
@@ -33,31 +31,6 @@ export const exportMnemonicAndPrivateKey = (
     publicKey,
   };
 };
-
-/**
- * @description Get private information for onboarding using an Ethereum Signature.
- *
- * @returns Mnemonic and Public/Private HD keys
- */
-// export const deriveHDKeyFromEthereumSignature = (
-//   signature: string,
-// ): {
-//   mnemonic: string;
-//   privateKey: Uint8Array | null;
-//   publicKey: Uint8Array | null;
-// } => {
-//   const buffer = Buffer.from(stripHexPrefix(signature), 'hex');
-
-//   if (buffer.length !== 65) {
-//     throw new Error('Signature must be 65 bytes');
-//   }
-
-//   // Remove the 'v' value by taking only the first 64 bytes of the signature
-//   const rsValues = buffer.subarray(0, 64);
-//   // Hash the 'r' and 's' values down to 32 bytes (256 bits) using Keccak-256
-//   const entropy = keccak256(rsValues);
-//   return exportMnemonicAndPrivateKey(entropy);
-// };
 
 /**
  * @description Derive priv/pub keys from mnemonic and BIP44 HD path
