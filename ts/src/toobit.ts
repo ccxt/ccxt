@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/toobit.js';
-import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspended, PermissionDenied, RateLimitExceeded, InvalidNonce, InvalidAddress, ArgumentsRequired, ExchangeError, InvalidOrder, InsufficientFunds, BadRequest, OrderNotFound, BadSymbol, NotSupported, NetworkError } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, DepositAddress, BorrowInterest, Market, MarketInterface, FundingRateHistory, FundingHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, OrderRequest, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1229,7 +1229,7 @@ export default class toobit extends Exchange {
         const request = ordersRequests;
         const response = await this.privatePostApiV1SpotBatchOrders (request);
         //
-        return this.parseOrders (results);
+        return this.parseOrders (response);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1260,7 +1260,7 @@ export default class toobit extends Exchange {
         };
         request['price'] = this.priceToPrecision (symbol, price);
         let reduceOnly = undefined;
-        [ reduceOnly, params ] = this.handleParamBool (params, 'createOrder', 'reduceOnly');
+        [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
             side = reduceOnly ? 'SELL_CLOSE' : 'BUY';
         } else if (side === 'sell') {
@@ -1280,7 +1280,7 @@ export default class toobit extends Exchange {
         if (isPostOnly) {
             request['timeInForce'] = 'LIMIT_MAKER';
         }
-        const values = this.handleTriggerPricesWithPrecision (symbol, params);
+        const values = this.handleTriggerPricesAndParams (symbol, params);
         const triggerPrice = values[0];
         params = values[3];
         if (triggerPrice !== undefined) {
@@ -1385,25 +1385,6 @@ export default class toobit extends Exchange {
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
         const rawSide = this.safeString (order, 'side');
-        let fee = undefined;
-        // const feeCurrency = this.safeString2 (order, 'tokenFeeCurrency', 'feeCcy');
-        // let feeCost: Str = undefined;
-        // let feeCurrencyCode: Str = undefined;
-        // const rate = this.safeString (order, 'fee');
-        // if (feeCurrency === undefined) {
-        //     feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
-        // } else {
-        //     // poloniex accepts a 30% discount to pay fees in TRX
-        //     feeCurrencyCode = this.safeCurrencyCode (feeCurrency);
-        //     feeCost = this.safeString2 (order, 'tokenFee', 'feeAmt');
-        // }
-        // if (feeCost !== undefined) {
-        //     fee = {
-        //         'rate': rate,
-        //         'cost': feeCost,
-        //         'currency': feeCurrencyCode,
-        //     };
-        // }
         let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
@@ -1430,7 +1411,7 @@ export default class toobit extends Exchange {
             'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
             'trades': undefined,
-            'fee': fee,
+            'fee': undefined,
             'marginMode': undefined,
             'reduceOnly': undefined,
             'leverage': undefined,
@@ -1964,15 +1945,13 @@ export default class toobit extends Exchange {
      * @method
      * @name toobit#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see 
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @param {string} [params.symbol] *contract only* unified market symbol
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -1991,7 +1970,7 @@ export default class toobit extends Exchange {
             request['limit'] = limit;
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateGetV1AccountBalanceFlow (this.extend (request, params));
@@ -2071,6 +2050,7 @@ export default class toobit extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         let marketType = undefined;
+        let market = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' does not support ' + marketType + ' markets');
@@ -2080,7 +2060,7 @@ export default class toobit extends Exchange {
             if (symbol === undefined) {
                 throw new BadRequest (this.id + ' fetchTradingFees requires a params["symbol"]');
             }
-            const market = this.market (symbol);
+            market = this.market (symbol);
             const request = {
                 'symbol': market['id'],
             };
@@ -2094,14 +2074,12 @@ export default class toobit extends Exchange {
         //     "closeTakerFee": "0.0004" // The trade fee rate for closing a taker order
         // }
         //
-        const data = this.safeValue (response, 'data', []);
         const result: Dict = {};
         const entry = response;
         const marketId = this.safeString (entry, 'symbol');
-        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
-        const market = this.market (symbol);
+        market = this.safeMarket (marketId, market);
         const fee = this.parseTradingFee (entry, market);
-        result[symbol] = fee;
+        result[market['symbol']] = fee;
         return result;
     }
 
