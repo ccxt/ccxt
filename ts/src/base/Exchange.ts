@@ -6884,13 +6884,6 @@ export default class Exchange {
             }
             takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPrice));
         }
-        //
-        const isTrigger = triggerPriceStr !== undefined;
-        const isStopLoss = stopLossPriceStr !== undefined;
-        const isTakeProfit = takeProfitPriceStr !== undefined;
-        if ((isStopLoss && isTakeProfit) || (isTrigger && isStopLoss) || (isTrigger && isTakeProfit)) {
-            throw new ExchangeError (this.id + ' you should use either triggerPrice or stopLossPrice or takeProfitPrice');
-        }
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
     }
 
