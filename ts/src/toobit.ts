@@ -893,7 +893,6 @@ export default class toobit extends Exchange {
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
@@ -1443,7 +1442,7 @@ export default class toobit extends Exchange {
 
     /**
      * @method
-     * @name arkm#cancelOrder
+     * @name toobit#cancelOrder
      * @description cancels an open order
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
@@ -1686,7 +1685,6 @@ export default class toobit extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1740,16 +1738,13 @@ export default class toobit extends Exchange {
 
     /**
      * @method
-     * @name bitfinex#fetchClosedOrders
+     * @name toobit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
-     * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-symbol
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1813,7 +1808,6 @@ export default class toobit extends Exchange {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @param {string} [params.page_token] page_token - used for paging
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1894,8 +1888,8 @@ export default class toobit extends Exchange {
      * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
-     * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {string} fromAccount 'spot', 'swap'
+     * @param {string} toAccount 'spot', 'swap'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
@@ -2042,8 +2036,6 @@ export default class toobit extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-     * @param {boolean} [params.margin] set to true for spot margin
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
@@ -2481,14 +2473,11 @@ export default class toobit extends Exchange {
 
     /**
      * @method
-     * @name bingx#fetchPositions
+     * @name toobit#fetchPositions
      * @description fetch all open positions
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
-     * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
-     * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
