@@ -234,7 +234,7 @@ public partial class tabdeal : Exchange
             symbols = this.marketSymbols(symbols);
         }
         object response = await this.publicGetPlotsMarketInformation(parameters);
-        object result = new List<object>() {};
+        object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = this.parseTicker(getValue(response, i));

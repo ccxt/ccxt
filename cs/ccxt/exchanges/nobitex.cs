@@ -168,8 +168,8 @@ public partial class nobitex : Exchange
         // dayClose: "38819999960",
         // dayChange: "0.05"
         // },
+        object id = this.safeString(market, "symbol");
         object symbol = this.safeStringUpper(market, "symbol");
-        object id = ((string)symbol).Replace((string)"-", (string)"");
         var baseIdquoteIdVariable = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
         var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
@@ -248,7 +248,7 @@ public partial class nobitex : Exchange
         object response = await this.publicGetMarketStats();
         object markets = this.safeDict(response, "stats");
         object marketKeys = new List<object>(((IDictionary<string,object>)markets).Keys);
-        object result = new List<object>() {};
+        object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
         {
             object symbol = getValue(marketKeys, i);
@@ -282,25 +282,35 @@ public partial class nobitex : Exchange
 
     public override object parseTicker(object ticker, object market = null)
     {
-        //
-        //     {
-        //      symbol: "USDT-IRT",
-        //      last: "61338.0",
-        //      best_ask: "61338.0",
-        //      best_bid: "61338.0",
-        //      open_24h: "61419",
-        //      high_24h: 61739,
-        //      low_24h: 60942,
-        //      vol_24h_pair: 11017655160,
-        //      vol_24h: 17968,
-        //      ts: 1715074621
-        //     }
-        //
+        //        {
+        // symbol: "btc-rls",
+        // isClosed: false,
+        // bestSell: "112800000000",
+        // bestBuy: "112790000000",
+        // volumeSrc: "8.4585865026",
+        // volumeDst: "952507404308.593429632",
+        // latest: "112800000000",
+        // mark: "112770303030",
+        // dayLow: "111700000000",
+        // dayHigh: "114608341550",
+        // dayOpen: "112783203040",
+        // dayClose: "112800000000",
+        // dayChange: "0.01"
+        // }
         object marketType = "spot";
-        object symbol = this.safeStringUpper(ticker, "symbol");
-        object marketId = ((string)symbol).Replace((string)"-", (string)"");
+        object rawSymbol = this.safeStringLower(ticker, "symbol");
+        object parts = ((string)rawSymbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        object baseId = getValue(parts, 0);
+        object quoteId = getValue(parts, 1);
+        if (isTrue(isEqual(quoteId, "rls")))
+        {
+            quoteId = "irt";
+        }
+        object bs = this.safeCurrencyCode(((string)baseId).ToUpper());
+        object quote = this.safeCurrencyCode(((string)quoteId).ToUpper());
+        object marketId = add(add(bs, "/"), quote);
         object marketinfo = this.market(marketId);
-        symbol = this.safeSymbol(marketId, market, null, marketType);
+        object symbol = this.safeSymbol(marketId, market, null, marketType);
         object high = this.safeFloat(ticker, "dayHigh");
         object low = this.safeFloat(ticker, "dayLow");
         object bid = this.safeFloat(ticker, "bestBuy");
@@ -311,9 +321,10 @@ public partial class nobitex : Exchange
         object last = this.safeFloat(ticker, "latest");
         object quoteVolume = this.safeFloat(ticker, "volumeDst");
         object baseVolume = this.safeFloat(ticker, "volumeSrc");
+        // adjust Nobitex IRT scaling
         if (isTrue(isEqual(getValue(marketinfo, "quote"), "IRT")))
         {
-            high = ((bool) isTrue(high)) ? multiply(high, 10) : 0;
+            high = ((bool) isTrue(high)) ? divide(high, 10) : 0;
             low = ((bool) isTrue(low)) ? divide(low, 10) : 0;
             bid = ((bool) isTrue(bid)) ? divide(bid, 10) : 0;
             ask = ((bool) isTrue(ask)) ? divide(ask, 10) : 0;
@@ -323,14 +334,14 @@ public partial class nobitex : Exchange
             quoteVolume = ((bool) isTrue(quoteVolume)) ? divide(quoteVolume, 10) : 0;
         }
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", ((string)symbol).Replace((string)"-", (string)"/") },
+            { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
             { "high", high },
             { "low", low },
-            { "bid", this.safeFloat(bid, 0) },
+            { "bid", bid },
             { "bidVolume", null },
-            { "ask", this.safeFloat(ask, 0) },
+            { "ask", ask },
             { "askVolume", null },
             { "vwap", null },
             { "open", open },
@@ -367,7 +378,7 @@ public partial class nobitex : Exchange
         object endTime = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
         if (isTrue(isEqual(getValue(market, "quote"), "IRT")))
         {
-            ((IDictionary<string,object>)market)["id"] = ((string)getValue(market, "id")).Replace((string)"RLS", (string)"IRT");
+            ((IDictionary<string,object>)market)["id"] = ((string)getValue(market, "symbol")).Replace((string)"/", (string)"");
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
