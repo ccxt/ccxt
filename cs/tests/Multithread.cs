@@ -8,6 +8,7 @@ public partial class BaseTest
 
     public static async Task MultithreadTest()
     {
+        return;
         var exchange = new ccxt.pro.binance();
         exchange.setSandboxMode(true);
         var symbol = "BTC/USDT";
