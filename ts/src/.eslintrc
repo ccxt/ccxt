@@ -102,7 +102,12 @@
     "jsdoc/check-tag-names": ["error", {
       "definedTags": ["method", "remarks"]
     }],
-    "jsdoc/require-param-description": "off"
+    "jsdoc/require-param-description": "off",
+    "import/no-extraneous-dependencies": ["error", {
+      "devDependencies": ["**/base/Exchange.ts"],
+      "optionalDependencies": false,
+      "peerDependencies": false
+    }]
   },
   "settings": {
     "import/resolver": {
