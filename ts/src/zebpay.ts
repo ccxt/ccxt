@@ -189,7 +189,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-status
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#system-status
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -231,7 +232,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpayfutures#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-server-time
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/system.md#get-system-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
      */
@@ -267,7 +269,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchMarkets
      * @description retrieves data on all markets for zebpay
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
      * @param {object} [params] extra parameters specific to the exchange api endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -296,7 +299,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-coin-settings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -423,7 +426,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-symbol
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.side] side to fetch trading fee
@@ -479,7 +483,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay(futures)#fetchTradingFees
      * @description the latest known information on the availability of the exchange API
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -520,7 +524,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-order-book
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -563,7 +568,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-ticker
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#get-24hr-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -606,7 +612,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-all-tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -645,7 +651,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-klinescandlesticks
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#-get-k-lines-ohlcv-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -717,7 +724,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-recent-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -764,7 +771,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpatspot#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -859,7 +866,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance 
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -899,7 +907,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#createOrder
      * @description Create an order on the exchange
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--create-order
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#place-new-order
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--create-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -1013,7 +1022,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#cancelOrder
      * @description cancels an open order
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-order
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-cancel-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1053,7 +1063,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#cancelOrders
      * @description cancels all open orders
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
@@ -1082,7 +1092,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchOpenOrders
      * @description fetches information on multiple open orders made by the user
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-open-orders
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-orders
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1148,7 +1159,8 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-details
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-order-details
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1260,7 +1272,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#closePosition
      * @description closes open positions for a market
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoinfutures closePositions
      * @param {object} [params] extra parameters specific to the okx api endpoint
@@ -1282,7 +1294,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchLeverages
      * @description fetch the set leverage for all contract and margin markets
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-get-all-user-leverages
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -1310,7 +1322,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-symbol
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#get-user-leverage-single-symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -1335,7 +1347,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#setLeverage
      * @description set the level of leverage for a market
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-leverage
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-update-user-leverage
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1361,7 +1373,7 @@ export default class zebpay extends Exchange {
     /**
      * @method
      * @name zebpay#fetchPositions
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-positions
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#--get-positions
      * @description Fetches current contract trading positions
      * @param {string[]} symbols List of unified symbols
      * @param {object} [params] Not used by krakenfutures
@@ -1392,7 +1404,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpayfutures#addMargin
      * @description add margin
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-add-margin-to-position
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
@@ -1437,7 +1449,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpayfutures#reduceMargin
      * @description add margin
-     * @see https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
+     * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-reduce-margin-from-position
      * @param {string} symbol unified market symbol.
      * @param {float} amount amount of margin to add.
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
