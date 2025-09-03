@@ -1,0 +1,25 @@
+{
+  "exchange": "bydfi",
+  "skipKeys": [],
+  "methods": {
+      "fetchMarkets": [
+          {
+              "description": "Fetch markets",
+              "method": "fetchMarkets",
+              "input": [],
+              "httpResponse": {
+                  "code": 0,
+                  "msg": "success",
+                  "data": [
+                      {
+                          "symbol": "BTCUSDT",
+                          "baseAsset": "BTC",
+                          "quoteAsset": "USDT",
+                          "status": "TRADING"
+                      }
+                  ]
+              }
+          }
+      ]
+  }
+}

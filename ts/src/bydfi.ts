@@ -44,10 +44,10 @@ export default class bydfi extends Exchange {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrders': false,
-                'createStopOrder': true,
-                'createTriggerOrder': true,
+                'createStopOrder': false,
+                'createTriggerOrder': false,
                 'editOrder': true,
-                'fetchAccounts': true,
+                'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
@@ -60,10 +60,10 @@ export default class bydfi extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchIndexOHLCV': false,
@@ -94,17 +94,15 @@ export default class bydfi extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': true,
-                'fetchTime': true,
+                'fetchTickers': false,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransfer': true,
+                'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
-                'privateAPI': true,
-                'publicAPI': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -130,19 +128,18 @@ export default class bydfi extends Exchange {
             },
             'hostname': 'api.bydfi.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00',
+                'logo': 'https://www.bydfi.com/static/images/header/media/app-logo.svg',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'private': 'https://{hostname}/api',
                 },
                 'test': {
-                    'public': 'https://testnet.omni.bydfi.exchange/api',
-                    'private': 'https://testnet.omni.bydfi.exchange/api',
+                    'public': 'https://api.bydtms.com/api',
+                    'private': 'https://api.bydtms.com/api',
                 },
-                'www': 'https://bydfi.exchange/',
-                'doc': 'https://api-docs.pro.bydfi.exchange',
-                'fees': 'https://bydfi-pro.gitbook.io/bydfi-pro/bydfi-omni-live-now/trading-perpetual-contracts/trading-fees',
-                'referral': 'https://omni.bydfi.exchange/trade',
+                'www': 'https://bydfi.com/',
+                'doc': 'https://developers.bydfi.com/',
+                'referral': 'https://www.bydfi.com/zh/swap/btc-usdt',
             },
             'api': {
                 'public': {
@@ -354,36 +351,28 @@ export default class bydfi extends Exchange {
 
     /**
      * @method
-     * @name bydfi#fetchSwapTicker
+     * @name bydfi#fetchTicker
      * @description Please note that without the symbol parameter, it will return data for all trading pairs, which not only has a large volume of data but also carries a very high weight.
      * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchSwapTicker (symbol: string, params = {}) {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const request: Dict = {};
-        if (symbol) {
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
+        if (!symbol) {
+            throw new BadRequest (this.id + ' fetchTicker symbol is required');
         }
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
         const response = await this.publicGetV1SwapMarketTicker24hr (this.extend (request, params));
-        if (symbol) {
-            const tickers = this.safeList (response, 'data', []);
-            if (tickers.length === 0) {
-                return null;
-            }
-            const rawTicker = this.safeDict (tickers, 0, {});
-            return this.parseSwapTicker (rawTicker);
-        } else {
-            const tickers = this.safeList (response, 'data', []);
-            const result = [];
-            for (let i = 0; i < tickers.length; i++) {
-                result.push (this.parseSwapTicker (tickers[i]));
-            }
-            return result;
+        const tickers = this.safeList (response, 'data', []);
+        if (tickers.length === 0) {
+            return null;
         }
+        const rawTicker = this.safeDict (tickers, 0, {});
+        return this.parseSwapTicker (rawTicker);
     }
 
     parseSwapTicker (ticker: Dict): Ticker {
