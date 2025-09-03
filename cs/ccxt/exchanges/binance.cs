@@ -6836,21 +6836,14 @@ public partial class binance : Exchange
         }
         if (isTrue(quantityIsRequired))
         {
-            // portfolio margin has a different amount precision
-            if (isTrue(isPortfolioMargin))
+            object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+            object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+            if (isTrue(isPrecisionAvailable))
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount);
+                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
-                object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
-                if (isTrue(isPrecisionAvailable))
-                {
-                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-                } else
-                {
-                    ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
-                }
+                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
             }
         }
         if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
