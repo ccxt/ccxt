@@ -54,6 +54,7 @@ public partial class bitget : ccxt.bitget
                 { "OHLCVLimit", 1000 },
                 { "timeframes", new Dictionary<string, object>() {
                     { "1m", "1m" },
+                    { "3m", "3m" },
                     { "5m", "5m" },
                     { "15m", "15m" },
                     { "30m", "30m" },
@@ -528,11 +529,13 @@ public partial class bitget : ccxt.bitget
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -544,16 +547,31 @@ public partial class bitget : ccxt.bitget
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes");
         object interval = this.safeString(timeframes, timeframe);
-        object messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        object messageHash = null;
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, false, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", add("candle", interval) },
-            { "instId", getValue(market, "id") },
         };
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["topic"] = "kline";
+            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["interval"] = interval;
+            ((IDictionary<string,object>)parameters)["uta"] = true;
+            messageHash = add("kline:", symbol);
+        } else
+        {
+            ((IDictionary<string,object>)args)["channel"] = add("candle", interval);
+            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        }
         object ohlcv = await this.watchPublic(messageHash, args, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -568,9 +586,11 @@ public partial class bitget : ccxt.bitget
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
      * @param {string} [timeframe] the period for the ratio, default is 1 minute
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
@@ -580,8 +600,41 @@ public partial class bitget : ccxt.bitget
         await this.loadMarkets();
         object timeframes = this.safeDict(this.options, "timeframes");
         object interval = this.safeString(timeframes, timeframe);
-        object channel = add("candle", interval);
-        return await this.unWatchChannel(symbol, channel, add("candles:", timeframe), parameters);
+        object channel = null;
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object instType = null;
+        object messageHash = null;
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
+        instType = ((IList<object>)instTypeparametersVariable)[0];
+        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        object args = new Dictionary<string, object>() {
+            { "instType", instType },
+        };
+        if (isTrue(uta))
+        {
+            channel = "kline";
+            ((IDictionary<string,object>)args)["topic"] = channel;
+            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["interval"] = interval;
+            ((IDictionary<string,object>)parameters)["uta"] = true;
+            ((IDictionary<string,object>)parameters)["interval"] = interval;
+            messageHash = add(channel, symbol);
+        } else
+        {
+            channel = add("candle", interval);
+            ((IDictionary<string,object>)args)["channel"] = channel;
+            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            messageHash = add("candles:", interval);
+        }
+        return await this.unWatchChannel(symbol, channel, messageHash, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -619,15 +672,48 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701901610417
         //     }
         //
+        // uta
+        //
+        //     {
+        //         "action": "snapshot",
+        //         "arg": {
+        //             "instType": "usdt-futures",
+        //             "topic": "kline",
+        //             "symbol": "BTCUSDT",
+        //             "interval": "1m"
+        //         },
+        //         "data": [
+        //             {
+        //                 "start": "1755564480000",
+        //                 "open": "116286",
+        //                 "close": "116256.2",
+        //                 "high": "116310.2",
+        //                 "low": "116232.8",
+        //                 "volume": "39.7062",
+        //                 "turnover": "4616746.46654"
+        //             },
+        //         ],
+        //         "ts": 1755594421877
+        //     }
+        //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(arg, "instId");
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object marketId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
-        object interval = ((string)channel).Replace((string)"candle", (string)"");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object interval = this.safeString(arg, "interval");
+        object isUta = null;
+        if (isTrue(isEqual(interval, null)))
+        {
+            isUta = false;
+            interval = ((string)channel).Replace((string)"candle", (string)"");
+        } else
+        {
+            isUta = true;
+        }
         object timeframes = this.safeValue(this.options, "timeframes");
         object timeframe = this.findTimeframe(interval, timeframes);
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -643,7 +729,14 @@ public partial class bitget : ccxt.bitget
             object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        object messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        object messageHash = null;
+        if (isTrue(isUta))
+        {
+            messageHash = add("kline:", symbol);
+        } else
+        {
+            messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -661,8 +754,20 @@ public partial class bitget : ccxt.bitget
         //         "437404.105512" // USDT volume
         //     ]
         //
+        // uta
+        //
+        //     {
+        //         "start": "1755564480000",
+        //         "open": "116286",
+        //         "close": "116256.2",
+        //         "high": "116310.2",
+        //         "low": "116232.8",
+        //         "volume": "39.7062",
+        //         "turnover": "4616746.46654"
+        //     }
+        //
         object volumeIndex = ((bool) isTrue((getValue(market, "inverse")))) ? 6 : 5;
-        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
+        return new List<object> {this.safeInteger2(ohlcv, "start", 0), this.safeNumber2(ohlcv, "open", 1), this.safeNumber2(ohlcv, "high", 2), this.safeNumber2(ohlcv, "low", 3), this.safeNumber2(ohlcv, "close", 4), this.safeNumber2(ohlcv, "volume", volumeIndex)};
     }
 
     /**
@@ -714,14 +819,28 @@ public partial class bitget : ccxt.bitget
         object market = this.market(symbol);
         object messageHash = add(add(add("unsubscribe:", messageHashTopic), ":"), getValue(market, "symbol"));
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, false, parameters);
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchChannel", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        var instTypeparametersVariable = this.getInstType(market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", channel },
-            { "instId", getValue(market, "id") },
         };
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)args)["topic"] = channel;
+            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["interval"] = this.safeString(parameters, "interval", "1m");
+            ((IDictionary<string,object>)parameters)["uta"] = true;
+            parameters = this.omit(parameters, "interval");
+        } else
+        {
+            ((IDictionary<string,object>)args)["channel"] = channel;
+            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+        }
         return await this.unWatchPublic(messageHash, args, parameters);
     }
 
@@ -2358,6 +2477,18 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1753230479687
         //     }
         //
+        // unsubscribe
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "instType": "spot",
+        //             "topic": "kline",
+        //             "symbol": "BTCUSDT",
+        //             "interval": "1m"
+        //         }
+        //     }
+        //
         if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
         {
             return;
@@ -2402,6 +2533,7 @@ public partial class bitget : ccxt.bitget
             { "positions", this.handlePositions },
             { "account-isolated", this.handleBalance },
             { "account-crossed", this.handleBalance },
+            { "kline", this.handleOHLCV },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object topic = this.safeValue2(arg, "channel", "topic", "");
@@ -2537,18 +2669,40 @@ public partial class bitget : ccxt.bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
         //
+        // UTA
+        //
+        //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
+        //
         object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object instType = this.safeStringLower(arg, "instType");
         object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
-        object instId = this.safeString(arg, "instId");
-        object channel = this.safeString(arg, "channel");
-        object interval = ((string)channel).Replace((string)"candle", (string)"");
+        object instId = this.safeString2(arg, "instId", "symbol");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object interval = this.safeString(arg, "interval");
+        object isUta = null;
+        if (isTrue(isEqual(interval, null)))
+        {
+            isUta = false;
+            interval = ((string)channel).Replace((string)"candle", (string)"");
+        } else
+        {
+            isUta = true;
+        }
         object timeframes = this.safeValue(this.options, "timeframes");
         object timeframe = this.findTimeframe(interval, timeframes);
         object market = this.safeMarket(instId, null, null, type);
         object symbol = getValue(market, "symbol");
-        object messageHash = add(add(add("unsubscribe:candles:", timeframe), ":"), getValue(market, "symbol"));
-        object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        object messageHash = null;
+        object subMessageHash = null;
+        if (isTrue(isUta))
+        {
+            messageHash = add("unsubscribe:kline:", symbol);
+            subMessageHash = add("kline:", symbol);
+        } else
+        {
+            messageHash = add(add(add("unsubscribe:candles:", timeframe), ":"), symbol);
+            subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        }
         if (isTrue(inOp(this.ohlcvs, symbol)))
         {
             if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
@@ -2600,6 +2754,9 @@ public partial class bitget : ccxt.bitget
             {
                 this.handleTickerUnSubscription(client as WebSocketClient, message);
             } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
+            {
+                this.handleOHLCVUnSubscription(client as WebSocketClient, message);
+            } else if (isTrue(((string)channel).StartsWith(((string)"kline"))))
             {
                 this.handleOHLCVUnSubscription(client as WebSocketClient, message);
             }

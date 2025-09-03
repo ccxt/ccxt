@@ -468,7 +468,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -551,7 +551,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //    }
         //
         const result = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString(market, 'symbol');
@@ -768,7 +768,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -832,7 +832,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.parseToInt(this.safeInteger(data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
@@ -1162,7 +1162,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const dataList = this.safeValue(data, 'dataList', []);
+        const dataList = this.safeList(data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -2123,7 +2123,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const responseData = this.safeValue(response, 'data', {});
+        const responseData = this.safeDict(response, 'data', {});
         const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3051,7 +3051,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -3140,7 +3140,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRateHistories(data, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {

@@ -215,7 +215,7 @@ class bitmart(ccxt.async_support.bitmart):
         #                    "fz_bal":"0.100000000000000000000000000000"
         #                 }
         #              ],
-        #              "event_time":"1701632345415",
+        #              "event_time":"1701632345416",
         #              "event_type":"TRANSACTION_COMPLETED"
         #           }
         #        ],

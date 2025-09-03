@@ -2395,6 +2395,7 @@ class okx(Exchange, ImplicitAPI):
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -2403,6 +2404,7 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param str [params.type]: "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -2416,6 +2418,7 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
+        limitIsUndefined = (limit is None)
         if limit is None:
             limit = 100  # default 100, max 100
         else:
@@ -2437,7 +2440,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-                limit = min(limit, 100)  # max 100 for historical endpoint
+                maxLimit = 100 if (price is not None) else 300
+                limit = min(limit, maxLimit)  # max 300 for historical endpoint
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
@@ -2463,6 +2467,9 @@ class okx(Exchange, ImplicitAPI):
                 response = await self.publicGetMarketIndexCandles(self.extend(request, params))
         else:
             if isHistoryCandles:
+                if limitIsUndefined and (limit == 100):
+                    limit = 300
+                    request['limit'] = 300  # reassign to 300, but self whole logic needs to be simplified...
                 response = await self.publicGetMarketHistoryCandles(self.extend(request, params))
             else:
                 response = await self.publicGetMarketCandles(self.extend(request, params))
@@ -2790,10 +2797,10 @@ class okx(Exchange, ImplicitAPI):
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
+        create a market buy order by providing the symbol and cost
 
         https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
 
-        create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2811,10 +2818,10 @@ class okx(Exchange, ImplicitAPI):
 
     async def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
+        create a market buy order by providing the symbol and cost
 
         https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
 
-        create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2875,6 +2882,8 @@ class okx(Exchange, ImplicitAPI):
         takeProfitDefined = (takeProfit is not None)
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
+        isTrailingPriceOrder = trailingPrice is not None
         trigger = (triggerPrice is not None) or (type == 'trigger')
         isReduceOnly = self.safe_value(params, 'reduceOnly', False)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
@@ -2962,6 +2971,9 @@ class okx(Exchange, ImplicitAPI):
         if isTrailingPercentOrder:
             convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
             request['callbackRatio'] = convertedTrailingPercent
+            request['ordType'] = 'move_order_stop'
+        elif isTrailingPriceOrder:
+            request['callbackSpread'] = trailingPrice
             request['ordType'] = 'move_order_stop'
         elif stopLossDefined or takeProfitDefined:
             if stopLossDefined:

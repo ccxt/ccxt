@@ -464,6 +464,24 @@
                   }
                 ],
                 "output": "[{\"instId\":\"ETH-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"market\",\"sz\":\"1\",\"posSide\":\"long\",\"tdMode\":\"cross\",\"clOrdId\":\"e847383590ce4dBCdb03fa5964dabfc8\",\"tag\":\"e847382590ce4dBC\"}]"
+            },
+            {
+                "description": "create a trailinPrice order to close a long position",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "trailingPrice": "100",
+                        "reduceOnly": true,
+                        "posSide": "long"
+                    }
+                ],
+                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"sell\",\"ordType\":\"move_order_stop\",\"sz\":\"1\",\"tdMode\":\"cross\",\"callbackSpread\":\"100\",\"clOrdId\":\"6b9ad766b55dBCDE7633f9e8e410983c\",\"tag\":\"6b9ad766b55dBCDE\",\"trailingPrice\":\"100\",\"reduceOnly\":true,\"posSide\":\"long\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1241,9 +1259,24 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "market history should use limit=300",
+                "method": "fetchOHLCV",
+                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT-SWAP&bar=1H&limit=300",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "type": "HistoryCandles"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "historical endpoint instead of recent",
                 "method": "fetchOHLCV",
-                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1700291781033",
+                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1701011781033",
                 "input": [
                     "BTC/USDT",
                     "1h",
