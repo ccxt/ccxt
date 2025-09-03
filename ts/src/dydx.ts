@@ -1689,7 +1689,7 @@ export default class dydx extends Exchange {
     }
 
     async estimateTxFee (message: any, memo: string, account: any): Promise<Object> {
-        const txBytes = await this.encodeDydxTxForSimulation ([ message ], memo, account.sequence, account.pub_key);
+        const txBytes = await this.encodeDydxTxForSimulation (message, memo, account.sequence, account.pub_key);
         const request = {
             'txBytes': txBytes,
         };

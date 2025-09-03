@@ -169,7 +169,7 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
-import { generateRegistry } from '../static_dependencies/dydx-v4-client/registry.js';
+import { generateRegistry } from '../static_dependencies/dydx-v4-client/registry';
 import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from '../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx';
 import { SignMode } from '../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing';
@@ -1676,7 +1676,7 @@ export default class Exchange {
     }
 
     encodeDydxTxForSimulation (
-        messages,
+        message,
         memo,
         sequence,
         publicKey,
@@ -1685,6 +1685,7 @@ export default class Exchange {
             throw new Error('Public key cannot be undefined');
         }
         const registry = generateRegistry ();
+        const messages = [ message ];
         const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
         const tx = Tx.fromPartial ({
             'body': TxBody.fromPartial ({
