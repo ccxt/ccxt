@@ -182,7 +182,7 @@
                         "networks": {
                             "BITCOIN": {
                                 "id": "BITCOIN",
-                                "network": "BITCOIN",
+                                "network": "BTC",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.00001,
@@ -451,7 +451,7 @@
                             },
                             "ArbitrumOne": {
                                 "id": "ArbitrumOne",
-                                "network": "ArbitrumOne",
+                                "network": "ARB",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.1,
@@ -521,7 +521,7 @@
                             },
                             "Polygon": {
                                 "id": "Polygon",
-                                "network": "Polygon",
+                                "network": "MATIC",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.01,
