@@ -179,7 +179,7 @@ public partial class mexc : ccxt.mexc
         this.handleBidAsk(client as WebSocketClient, message);
         object rawTicker = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"});
         object marketId = this.safeString2(message, "s", "symbol");
-        object timestamp = this.safeInteger2(message, "t", "sendtime");
+        object timestamp = this.safeInteger2(message, "t", "sendTime");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object ticker = null;
@@ -1636,7 +1636,7 @@ public partial class mexc : ccxt.mexc
         //         "ts": 1680059188190
         //     }
         //
-        object c = this.safeString2(message, "c", "channel");
+        object c = this.safeString(message, "c"); // do not add 'channel' here, this is especially for spot
         object type = ((bool) isTrue((isEqual(c, null)))) ? "swap" : "spot";
         object messageHash = add("balance:", type);
         object data = this.safeDictN(message, new List<object>() {"d", "data", "privateAccount"});
@@ -1652,7 +1652,12 @@ public partial class mexc : ccxt.mexc
         object currencyId = this.safeStringN(data, new List<object>() {"a", "currency", "vcoinName"});
         object code = this.safeCurrencyCode(currencyId);
         object account = this.account();
-        ((IDictionary<string,object>)account)["total"] = this.safeStringN(data, new List<object>() {"f", "availableBalance", "balanceAmount"});
+        object balanceAmount = this.safeString(data, "balanceAmount");
+        if (isTrue(!isEqual(balanceAmount, null)))
+        {
+            ((IDictionary<string,object>)account)["free"] = balanceAmount;
+        }
+        ((IDictionary<string,object>)account)["total"] = this.safeStringN(data, new List<object>() {"f", "availableBalance"});
         ((IDictionary<string,object>)account)["used"] = this.safeStringN(data, new List<object>() {"l", "frozenBalance", "frozenAmount"});
         ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
@@ -1667,7 +1672,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
