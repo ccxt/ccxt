@@ -158,7 +158,8 @@ export default class bitfinex extends bitfinexRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
-        const channelId = this.safeString (client.subscriptions, 'ohlcv');
+        const subId = 'unsubscribe:trade:' + interval + ':' + market['id']; // trade here because we use the key
+        const channelId = this.safeString (client.subscriptions, subId);
         const request: Dict = {
             'event': 'unsubscribe',
             'chanId': channelId,
@@ -971,6 +972,13 @@ export default class bitfinex extends bitfinexRest {
         //         "pair": "BTCUSD"
         //     }
         //
+        //   {
+        //       event: 'subscribed',
+        //       channel: 'candles',
+        //       chanId: 128306,
+        //       key: 'trade:1m:tBTCUST'
+        //  }
+        //
         const channelId = this.safeString (message, 'chanId');
         client.subscriptions[channelId] = message;
         // store the opposite direction too for unWatch
@@ -981,11 +989,18 @@ export default class bitfinex extends bitfinexRest {
             'trades': 'trades',
         };
         const unifiedChannel = this.safeString (mappings, this.safeString (message, 'channel'));
-        const marketId = this.safeString (message, 'symbol');
-        const symbol = this.safeSymbol (marketId);
-        if (unifiedChannel !== undefined) {
-            const subId = 'unsubscribe:' + unifiedChannel + ':' + symbol;
-            client.subscriptions[subId] = channelId;
+        if ('key' in message) {
+            // handle ohlcv differently because the message is different
+            const key = this.safeString (message, 'key');
+            const subKeyId = 'unsubscribe:' + key;
+            client.subscriptions[subKeyId] = channelId;
+        } else {
+            const marketId = this.safeString (message, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            if (unifiedChannel !== undefined) {
+                const subId = 'unsubscribe:' + unifiedChannel + ':' + symbol;
+                client.subscriptions[subId] = channelId;
+            }
         }
         return message;
     }
