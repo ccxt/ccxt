@@ -81,7 +81,8 @@ export default class bitfinex extends bitfinexRest {
         const client = this.client (url);
         const subMessageHash = channel + ':' + marketId;
         const messageHash = 'unsubscribe:' + channel + ':' + marketId;
-        const channelId = this.safeString (client.subscriptions, topic);
+        const unSubTopic = 'unsubscribe' + ':' + topic + ':' + symbol;
+        const channelId = this.safeString (client.subscriptions, unSubTopic);
         const request: Dict = {
             'event': 'unsubscribe',
             'chanId': channelId,
@@ -980,8 +981,11 @@ export default class bitfinex extends bitfinexRest {
             'trades': 'trades',
         };
         const unifiedChannel = this.safeString (mappings, this.safeString (message, 'channel'));
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
         if (unifiedChannel !== undefined) {
-            client.subscriptions[unifiedChannel] = channelId;
+            const subId = 'unsubscribe:' + unifiedChannel + ':' + symbol;
+            client.subscriptions[subId] = channelId;
         }
         return message;
     }
