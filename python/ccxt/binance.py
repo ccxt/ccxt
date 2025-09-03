@@ -6295,12 +6295,16 @@ class binance(Exchange, ImplicitAPI):
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
-            marketAmountPrecision = self.safe_string(market['precision'], 'amount')
-            isPrecisionAvailable = (marketAmountPrecision is not None)
-            if isPrecisionAvailable:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
+            # portfolio margin has a different amount precision
+            if isPortfolioMargin:
+                request['quantity'] = self.parse_to_numeric(amount)
             else:
-                request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
+                marketAmountPrecision = self.safe_string(market['precision'], 'amount')
+                isPrecisionAvailable = (marketAmountPrecision is not None)
+                if isPrecisionAvailable:
+                    request['quantity'] = self.amount_to_precision(symbol, amount)
+                else:
+                    request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
         if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
@@ -7355,6 +7359,7 @@ class binance(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: alternative to ids, array of client order ids
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7369,8 +7374,14 @@ class binance(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
         request: dict = {
             'symbol': market['id'],
-            'orderidlist': ids,
+            # 'orderidlist': ids,
         }
+        origClientOrderIdList = self.safe_list_2(params, 'origClientOrderIdList', 'clientOrderIds')
+        if origClientOrderIdList is not None:
+            params = self.omit(params, ['clientOrderIds'])
+            request['origClientOrderIdList'] = origClientOrderIdList
+        else:
+            request['orderidlist'] = ids
         response = None
         if market['linear']:
             response = self.fapiPrivateDeleteBatchOrders(self.extend(request, params))
@@ -11242,15 +11253,19 @@ class binance(Exchange, ImplicitAPI):
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0) or (path.find('simple-earn') >= 0):
                 if (method == 'DELETE') and (path == 'batchOrders'):
                     orderidlist = self.safe_list(extendedParams, 'orderidlist', [])
-                    origclientorderidlist = self.safe_list(extendedParams, 'origclientorderidlist', [])
-                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
+                    origclientorderidlist = self.safe_list_2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', [])
+                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)
                     if orderidlistLength > 0:
                         query = query + '&' + 'orderidlist=%5B' + '%2C'.join(orderidlist) + '%5D'
                     if origclientorderidlistLength > 0:
-                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(origclientorderidlist) + '%5D'
+                        # wrap clientOrderids around ""
+                        newClientOrderIds = []
+                        for i in range(0, origclientorderidlistLength):
+                            newClientOrderIds.append('%22' + origclientorderidlist[i] + '%22')
+                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(newClientOrderIds) + '%5D'
                 else:
                     query = self.rawencode(extendedParams)
             else:

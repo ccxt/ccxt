@@ -6505,12 +6505,17 @@ class binance extends Exchange {
             }
         }
         if ($quantityIsRequired) {
-            $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
-            $isPrecisionAvailable = ($marketAmountPrecision !== null);
-            if ($isPrecisionAvailable) {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            // portfolio margin has a different $amount $precision
+            if ($isPortfolioMargin) {
+                $request['quantity'] = $this->parse_to_numeric($amount);
             } else {
-                $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
+                $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+                $isPrecisionAvailable = ($marketAmountPrecision !== null);
+                if ($isPrecisionAvailable) {
+                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
+                }
             }
         }
         if ($priceIsRequired && !$isPriceMatch) {
@@ -7661,6 +7666,7 @@ class binance extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] alternative to $ids, array of client order $ids
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string[]} [$params->origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7677,8 +7683,15 @@ class binance extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'orderidlist' => $ids,
+            // 'orderidlist' => $ids,
         );
+        $origClientOrderIdList = $this->safe_list_2($params, 'origClientOrderIdList', 'clientOrderIds');
+        if ($origClientOrderIdList !== null) {
+            $params = $this->omit($params, array( 'clientOrderIds' ));
+            $request['origClientOrderIdList'] = $origClientOrderIdList;
+        } else {
+            $request['orderidlist'] = $ids;
+        }
         $response = null;
         if ($market['linear']) {
             $response = $this->fapiPrivateDeleteBatchOrders ($this->extend($request, $params));
@@ -11851,8 +11864,8 @@ class binance extends Exchange {
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false) || (mb_strpos($path, 'simple-earn') !== false)) {
                 if (($method === 'DELETE') && ($path === 'batchOrders')) {
                     $orderidlist = $this->safe_list($extendedParams, 'orderidlist', array());
-                    $origclientorderidlist = $this->safe_list($extendedParams, 'origclientorderidlist', array());
-                    $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist' ));
+                    $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
+                    $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($origclientorderidlist);
@@ -11860,7 +11873,12 @@ class binance extends Exchange {
                         $query = $query . '&' . 'orderidlist=%5B' . implode('%2C', $orderidlist) . '%5D';
                     }
                     if ($origclientorderidlistLength > 0) {
-                        $query = $query . '&' . 'origclientorderidlist=%5B' . implode('%2C', $origclientorderidlist) . '%5D';
+                        // wrap clientOrderids around ""
+                        $newClientOrderIds = array();
+                        for ($i = 0; $i < $origclientorderidlistLength; $i++) {
+                            $newClientOrderIds[] = '%22' . $origclientorderidlist[$i] . '%22';
+                        }
+                        $query = $query . '&' . 'origclientorderidlist=%5B' . implode('%2C', $newClientOrderIds) . '%5D';
                     }
                 } else {
                     $query = $this->rawencode($extendedParams);
