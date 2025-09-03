@@ -4,6 +4,7 @@ import { TxExtension } from './dydxprotocol/accountplus/tx';
 import {
   MsgPlaceOrder,
   MsgCancelOrder,
+  MsgBatchCancel,
 } from './dydxprotocol/clob/tx';
 import {
   MsgWithdrawFromSubaccount,
@@ -17,6 +18,7 @@ export function generateRegistry(): Registry {
     // clob
     [ '/dydxprotocol.clob.MsgPlaceOrder', MsgPlaceOrder as GeneratedType ],
     [ '/dydxprotocol.clob.MsgCancelOrder', MsgCancelOrder as GeneratedType ],
+    [ '/dydxprotocol.clob.MsgBatchCancel', MsgBatchCancel as GeneratedType ],
 
     // sending
     [ '/dydxprotocol.sending.MsgCreateTransfer', MsgCreateTransfer as GeneratedType ],

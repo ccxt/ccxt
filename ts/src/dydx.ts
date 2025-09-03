@@ -37,6 +37,7 @@ export default class dydx extends Exchange {
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': false,
+                'cancelOrders': true,
                 'cancelWithdraw': false,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -1387,7 +1388,10 @@ export default class dydx extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result');
-        return result;
+        return this.safeOrder ({
+            'info': result,
+            'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
+        });
     }
 
     /**
@@ -1469,7 +1473,74 @@ export default class dydx extends Exchange {
         // }
         //
         const result = this.safeDict (response, 'result');
-        return result;
+        return this.safeOrder ({
+            'info': result
+        });
+    }
+
+    /**
+     * @method
+     * @name dydx#cancelOrders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market: Market = this.market (symbol);
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
+        if (!clientOrderIds) {
+            throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
+        }
+        const subaccountId = this.safeInteger (params, 'subaccountId', 0);
+        const goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        if (goodTillBlock === undefined) {
+            throw new ArgumentsRequired (this.id + ' goodTillBlock is required.');
+        }
+        params = this.omit (params, [ 'clientOrderIds', 'goodTillBlock', 'subaccountId' ]);
+        const credentials = this.retrieveCredentials ();
+        const account = await this.fetchDydxAccount ();
+        const cancelPayload = {
+            'subaccountId': {
+                'owner': this.walletAddress,
+                'number': subaccountId,
+            },
+            'shortTermCancels': [{
+                'clientIds': clientOrderIds,
+                'clobPairId': market['info']['clobPairId'],
+            }],
+            'goodTilBlock': goodTillBlock,
+        };
+        const signingPayload = {
+            'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
+            'value': cancelPayload,
+        };
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined);
+        const request = {
+            'tx': signedTx,
+        };
+        // nodeRpcGetBroadcastTxAsync
+        const response = await this.nodeRpcGetBroadcastTxSync (request);
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "code": 0,
+        //         "data": "",
+        //         "log": "[]",
+        //         "codespace": "",
+        //         "hash": "CBEDB0603E57E5CE21FA6954770A9403D2A81BED02E608C860356152D0AA1A81"
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result');
+        return [ this.safeOrder ({
+            'info': result,
+        }) ];
     }
 
     /**
