@@ -66,6 +66,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         bingxItf := &bingx{}
         bingxItf.Init(exchangeArgs)
         return bingxItf, true
+    case "bit24":
+        bit24Itf := &bit24{}
+        bit24Itf.Init(exchangeArgs)
+        return bit24Itf, true
     case "bit2c":
         bit2cItf := &bit2c{}
         bit2cItf.Init(exchangeArgs)

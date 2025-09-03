@@ -230,7 +230,7 @@ public partial class afratether : Exchange
         };
         object response = await this.publicGetApiV10Price(request);
         object markets = this.safeList(response, "Items");
-        object result = new List<object>() {};
+        object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(markets, i));

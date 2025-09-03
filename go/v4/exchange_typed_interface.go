@@ -183,6 +183,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
     case "bingx":
         itf := NewBingx(options)
         return itf
+    case "bit24":
+        itf := NewBit24(options)
+        return itf
     case "bit2c":
         itf := NewBit2c(options)
         return itf

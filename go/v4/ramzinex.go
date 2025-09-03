@@ -294,7 +294,7 @@ func  (this *ramzinex) FetchTickers(optionalArgs ...interface{}) <- chan interfa
             response:= (<-this.PublicGetExchangeApiV10ExchangePairs())
             PanicOnError(response)
             var markets interface{} = this.SafeList(response, "data")
-            var result interface{} = []interface{}{}
+            var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
                 var market interface{} = GetValue(markets, i)
                 if IsTrue(IsTrue(!IsTrue(market) || !IsTrue(GetValue(market, "financial"))) || IsTrue(IsEqual(GetArrayLength(ObjectKeys(GetValue(market, "financial"))), 0))) {
@@ -580,8 +580,9 @@ func  (this *ramzinex) Sign(path interface{}, optionalArgs ...interface{}) inter
     _ = body
     var query interface{} = this.Omit(params, this.ExtractParams(path))
     var url interface{} = Add(Add(GetValue(GetValue(this.Urls, "api"), "public"), "/"), path)
-    if IsTrue(!IsEqual(GetValue(params, "pair_id"), nil)) {
-        url = Add(Add(url, "/"), GetValue(params, "pair_id"))
+    var pair_id interface{} = this.SafeString(params, "pair_id")
+    if IsTrue(!IsEqual(pair_id, nil)) {
+        url = Add(Add(url, "/"), pair_id)
     }
     if IsTrue(IsEqual(path, "exchange/api/v1.0/exchange/chart/tv/history")) {
         url = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "public"), "/"), path), "?"), this.Urlencode(query))

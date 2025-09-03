@@ -26,6 +26,7 @@ var binancecoinm = require('./src/binancecoinm.js');
 var binanceus = require('./src/binanceus.js');
 var binanceusdm = require('./src/binanceusdm.js');
 var bingx = require('./src/bingx.js');
+var bit24 = require('./src/bit24.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
 var bitbns = require('./src/bitbns.js');
@@ -220,7 +221,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.2';
+const version = '4.6.0';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'abantether': abantether["default"],
@@ -237,6 +238,7 @@ const exchanges = {
     'binanceus': binanceus["default"],
     'binanceusdm': binanceusdm["default"],
     'bingx': bingx["default"],
+    'bit24': bit24["default"],
     'bit2c': bit2c["default"],
     'bitbank': bitbank["default"],
     'bitbns': bitbns["default"],
@@ -496,6 +498,7 @@ exports.binancecoinm = binancecoinm["default"];
 exports.binanceus = binanceus["default"];
 exports.binanceusdm = binanceusdm["default"];
 exports.bingx = bingx["default"];
+exports.bit24 = bit24["default"];
 exports.bit2c = bit2c["default"];
 exports.bitbank = bitbank["default"];
 exports.bitbns = bitbns["default"];

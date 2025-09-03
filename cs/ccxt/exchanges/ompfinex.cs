@@ -273,7 +273,7 @@ public partial class ompfinex : Exchange
         }
         object response = await this.publicGetV1Market();
         object markets = this.safeList(response, "data");
-        object result = new List<object>() {};
+        object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(markets, i));
@@ -376,7 +376,11 @@ public partial class ompfinex : Exchange
             last = ((bool) isTrue(last)) ? divide(last, 10) : 0;
             quoteVolume = ((bool) isTrue(quoteVolume)) ? divide(quoteVolume, 10) : 0;
         }
-        object baseVolume = divide(quoteVolume, last);
+        object baseVolume = 0;
+        if (isTrue(last))
+        {
+            baseVolume = divide(quoteVolume, last);
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -510,9 +514,11 @@ public partial class ompfinex : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(getValue(getValue(this.urls, "api"), "public"), "/"), path);
-        if (isTrue(!isEqual(getValue(parameters, "id"), null)))
+        // safer check
+        object pair_id = this.safeString(parameters, "id");
+        if (isTrue(!isEqual(pair_id, null)))
         {
-            url = add(add(url, "/"), getValue(parameters, "id"));
+            url = add(add(url, "/"), pair_id);
         }
         if (isTrue(isEqual(path, "v2/udf/real/history")))
         {

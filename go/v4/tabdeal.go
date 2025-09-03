@@ -257,7 +257,7 @@ func  (this *tabdeal) FetchTickers(optionalArgs ...interface{}) <- chan interfac
         
             response:= (<-this.PublicGetPlotsMarketInformation(params))
             PanicOnError(response)
-            var result interface{} = []interface{}{}
+            var result interface{} = map[string]interface{} {}
             for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
                 var market interface{} = this.ParseTicker(GetValue(response, i))
                 var symbol interface{} = GetValue(market, "symbol")

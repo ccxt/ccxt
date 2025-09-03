@@ -271,7 +271,7 @@ public partial class ramzinex : Exchange
         }
         object response = await this.publicGetExchangeApiV10ExchangePairs();
         object markets = this.safeList(response, "data");
-        object result = new List<object>() {};
+        object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
@@ -515,9 +515,10 @@ public partial class ramzinex : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(getValue(getValue(this.urls, "api"), "public"), "/"), path);
-        if (isTrue(!isEqual(getValue(parameters, "pair_id"), null)))
+        object pair_id = this.safeString(parameters, "pair_id");
+        if (isTrue(!isEqual(pair_id, null)))
         {
-            url = add(add(url, "/"), getValue(parameters, "pair_id"));
+            url = add(add(url, "/"), pair_id);
         }
         if (isTrue(isEqual(path, "exchange/api/v1.0/exchange/chart/tv/history")))
         {
