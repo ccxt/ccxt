@@ -6611,19 +6611,13 @@ class binance extends binance$1["default"] {
             }
         }
         if (quantityIsRequired) {
-            // portfolio margin has a different amount precision
-            if (isPortfolioMargin) {
-                request['quantity'] = this.parseToNumeric(amount);
+            const marketAmountPrecision = this.safeString(market['precision'], 'amount');
+            const isPrecisionAvailable = (marketAmountPrecision !== undefined);
+            if (isPrecisionAvailable) {
+                request['quantity'] = this.amountToPrecision(symbol, amount);
             }
             else {
-                const marketAmountPrecision = this.safeString(market['precision'], 'amount');
-                const isPrecisionAvailable = (marketAmountPrecision !== undefined);
-                if (isPrecisionAvailable) {
-                    request['quantity'] = this.amountToPrecision(symbol, amount);
-                }
-                else {
-                    request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
-                }
+                request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
             }
         }
         if (priceIsRequired && !isPriceMatch) {
