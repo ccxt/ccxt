@@ -1146,21 +1146,13 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (
-        privateKey,
-        message,
-        memo,
-        chainId,
-        account,
-        authenticators,
-        fee = undefined,
-    ): string {
+    signDydxTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         return this.encodeDydxTxRaw (signDoc, signature.r + signature.s);
     }
 
-    retrieveCredentials (): Promise<any> {
+    retrieveCredentials (): any {
         let credentials = this.safeDict (this.options, 'dydxCredentials');
         if (credentials !== undefined) {
             return credentials;
@@ -1625,12 +1617,8 @@ export default class dydx extends Exchange {
         return response;
     }
 
-    async estimateTxFee (
-        messages,
-        memo,
-        account,
-    ): Promise<Object> {
-        const txBytes = await this.encodeDydxTxForSimulation (messages, memo, account.sequence, account.pub_key);
+    async estimateTxFee (message: any, memo: string, account: any): Promise<Object> {
+        const txBytes = await this.encodeDydxTxForSimulation ([ message ], memo, account.sequence, account.pub_key);
         const request = {
             'txBytes': txBytes,
         };
@@ -1750,7 +1738,7 @@ export default class dydx extends Exchange {
                 'value': payload,
             };
         }
-        const txFee = await this.estimateTxFee ([ signingPayload ], '', account);
+        const txFee = await this.estimateTxFee (signingPayload, '', account);
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined, txFee);
         const request = {
             'tx': signedTx,
@@ -1936,7 +1924,7 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.sending.MsgWithdrawFromSubaccount',
             'value': payload,
         };
-        const txFee = await this.estimateTxFee ([ signingPayload ], tag, account);
+        const txFee = await this.estimateTxFee (signingPayload, tag, account);
         const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, 'dydx-testnet-4', account, undefined, txFee);
         const request = {
             'tx': signedTx,
