@@ -169,10 +169,10 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
-import {generateRegistry} from '../static_dependencies/dydx-v4-client/registry.js';
-import {exportMnemonicAndPrivateKey} from '../static_dependencies/dydx-v4-client/onboarding.js';
-import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
-import { SignMode } from 'cosmjs-types/cosmos/tx/signing/v1beta1/signing';
+import { generateRegistry } from '../static_dependencies/dydx-v4-client/registry.js';
+import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
+import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from '../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx';
+import { SignMode } from '../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'

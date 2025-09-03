@@ -1474,7 +1474,7 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         return this.safeOrder ({
-            'info': result
+            'info': result,
         });
     }
 
@@ -1508,10 +1508,10 @@ export default class dydx extends Exchange {
                 'owner': this.walletAddress,
                 'number': subaccountId,
             },
-            'shortTermCancels': [{
+            'shortTermCancels': [ {
                 'clientIds': clientOrderIds,
                 'clobPairId': market['info']['clobPairId'],
-            }],
+            } ],
             'goodTilBlock': goodTillBlock,
         };
         const signingPayload = {
@@ -1673,7 +1673,7 @@ export default class dydx extends Exchange {
             'tx': {
                 'auth_info': {
                     'fee': {},
-                    'signer_infos': {}
+                    'signer_infos': {},
                 },
                 'body': {
                     'messages': [],
@@ -1728,10 +1728,10 @@ export default class dydx extends Exchange {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }
         return {
-            'amount': [{
+            'amount': [ {
                 'amount': feeAmount,
                 'denom': denom,
-            }],
+            } ],
             'gasLimit': gasLimit,
         };
     }
@@ -1802,7 +1802,7 @@ export default class dydx extends Exchange {
                     },
                     'assetId': 0,
                     'amount': usd,
-                }
+                },
             };
             signingPayload = {
                 'typeUrl': '/dydxprotocol.sending.MsgCreateTransfer',
@@ -1972,7 +1972,7 @@ export default class dydx extends Exchange {
             throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
         await this.loadMarkets ();
-        this.checkAddress (address);        
+        this.checkAddress (address);
         const subaccountId = this.safeInteger (params, 'subaccountId');
         if (subaccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw requires subaccountId.');
