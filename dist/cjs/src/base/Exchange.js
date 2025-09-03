@@ -1200,6 +1200,7 @@ class Exchange {
             }
             client.reject(new errors.ExchangeError(this.id + ' nonce is behind the cache after ' + maxRetries.toString() + ' tries.'), messageHash);
             delete this.clients[client.url];
+            this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }
         catch (e) {
             client.reject(e, messageHash);
