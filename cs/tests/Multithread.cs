@@ -11,7 +11,7 @@ public partial class BaseTest
         var exchange = new ccxt.pro.binance();
         exchange.setSandboxMode(true);
         var symbol = "BTC/USDT";
-        var parallelCount = 10;
+        var parallelCount = 5;
 
         // Console.WriteLine("Prefetch...");
         var prefetchInfo = await exchange.loadMarkets();
