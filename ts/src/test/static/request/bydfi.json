@@ -17,7 +17,7 @@
               "description": "Fetch ticker",
               "method": "fetchTicker",
               "url": "https://api.bydfi.com/api/v1/swap/market/ticker/24hr?symbol=BTCUSDT",
-              "input": ["BTC/USDT:USDT"],
+              "input": ["BTCUSDT"],
               "output": null
           }
       ]

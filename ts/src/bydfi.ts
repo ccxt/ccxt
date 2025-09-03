@@ -376,7 +376,6 @@ export default class bydfi extends Exchange {
     }
 
     parseSwapTicker (ticker: Dict): Ticker {
-        const timestamp = this.milliseconds ();
         const symbol = this.safeString (ticker, 'symbol');
         const market = this.market (symbol);
         const baseVolume = this.safeString (ticker, 'vol');
@@ -391,8 +390,6 @@ export default class bydfi extends Exchange {
         const indexPrice = this.safeString (ticker, 'indexPrice');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
             'bid': bid,
