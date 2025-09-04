@@ -1,11 +1,10 @@
 import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
-import errors from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
-
+import { NetworkError } from '../../../base/errors.js';
 /*  ------------------------------------------------------------------------ */
 
-export default async (exchange: Exchange, skippedProperties: object, symbol: string) => {
+async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     // log (symbol.green, 'watching trades...')
 
@@ -37,7 +36,7 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
 
             now = Date.now ();
 
-            assert (response instanceof Array);
+            assert (Array.isArray (response));
 
             console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
 
@@ -48,7 +47,7 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
             }
         } catch (e) {
 
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof NetworkError)) {
                 throw e;
             }
 
@@ -57,4 +56,5 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
     }
 
     return response;
-};
+}
+export default testWatchLiquidations;
