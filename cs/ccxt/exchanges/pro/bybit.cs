@@ -474,15 +474,15 @@ public partial class bybit : ccxt.bybit
      * @description unWatches a price ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbols, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.unWatchTickers(new List<object>() {symbols}, parameters);
+        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)

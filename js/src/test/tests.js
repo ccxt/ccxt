@@ -572,6 +572,7 @@ class testMainClass {
             'USDT',
             'USDC',
             'USD',
+            'GUSD',
             'EUR',
             'TUSD',
             'CNY',

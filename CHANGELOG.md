@@ -1,3 +1,42 @@
+<a id="v4.5.3"></a>
+# [v4.5.3](https://github.com/ccxt/ccxt/releases/tag/v4.5.3) - 2025-09-03
+
+## What's Changed
+* fix(okx): default limit for history market candles by [@carlosmiei](https://github.com/carlosmiei) in [#26723](https://github.com/ccxt/ccxt/pull/26723)
+* chore: skip changelog workflow run by [@carlosmiei](https://github.com/carlosmiei) in [#26722](https://github.com/ccxt/ccxt/pull/26722)
+* feat(okx): createOrder, add trailingPrice support by [@Dan-krm](https://github.com/Dan-krm) in [#26721](https://github.com/ccxt/ccxt/pull/26721)
+* fix(mexc): update timestamp for spot ticker by [@sc0Vu](https://github.com/sc0Vu) in [#26726](https://github.com/ccxt/ccxt/pull/26726)
+* export-exchanges.js error indicator by [@caoilainnl](https://github.com/caoilainnl) in [#26730](https://github.com/ccxt/ccxt/pull/26730)
+* fix(mexc): watch balance by [@ttodua](https://github.com/ttodua) in [#26734](https://github.com/ccxt/ccxt/pull/26734)
+* feat(exchange): ws close put sleep to allow other futures to run by [@pcriadoperez](https://github.com/pcriadoperez) in [#26733](https://github.com/ccxt/ccxt/pull/26733)
+* fix(binance): ws cancelAllOrdersWs by [@pcriadoperez](https://github.com/pcriadoperez) in [#26735](https://github.com/ccxt/ccxt/pull/26735)
+* chore(bitget): inactive currencies pctn by [@ttodua](https://github.com/ttodua) in [#26743](https://github.com/ccxt/ccxt/pull/26743)
+* feat(bitget): watchTrades, add uta support by [@Dan-krm](https://github.com/Dan-krm) in [#26745](https://github.com/ccxt/ccxt/pull/26745)
+* chore(gemini): tmp symbol issues by [@ttodua](https://github.com/ttodua) in [#26744](https://github.com/ccxt/ccxt/pull/26744)
+* feat(mexc): internal withdraw by [@ttodua](https://github.com/ttodua) in [#26741](https://github.com/ccxt/ccxt/pull/26741)
+* feat(base): marketOrNull by [@ttodua](https://github.com/ttodua) in [#26742](https://github.com/ccxt/ccxt/pull/26742)
+* fix(cli): reverse args if it's partial function by [@sc0Vu](https://github.com/sc0Vu) in [#26739](https://github.com/ccxt/ccxt/pull/26739)
+* feat(base): add unWatch ticker by [@carlosmiei](https://github.com/carlosmiei) in [#26738](https://github.com/ccxt/ccxt/pull/26738)
+* chore(deps): bump next from 15.2.4 to 15.4.7 in /examples/ts/nextjs-page-router by [@dependabot](https://github.com/dependabot)[bot] in [#26746](https://github.com/ccxt/ccxt/pull/26746)
+* exchange ohlcv timeframe types by [@caoilainnl](https://github.com/caoilainnl) in [#26748](https://github.com/ccxt/ccxt/pull/26748)
+* fix(kucoinfutures): fetchFundingRateHistory empty res and rm some saf… by [@carlosmiei](https://github.com/carlosmiei) in [#26758](https://github.com/ccxt/ccxt/pull/26758)
+* feat(kucoin): add unWatchTicker and unWatchOHLCV by [@carlosmiei](https://github.com/carlosmiei) in [#26761](https://github.com/ccxt/ccxt/pull/26761)
+* Clear orderbook if `loadOrderBook` was not successful ([#26753](https://github.com/ccxt/ccxt/issues/26753) ) by [@yzh-pelle](https://github.com/yzh-pelle) in [#26754](https://github.com/ccxt/ccxt/pull/26754)
+* feat(bitfinex): add unWatch  by [@carlosmiei](https://github.com/carlosmiei) in [#26762](https://github.com/ccxt/ccxt/pull/26762)
+* fix(gate): sandbox loading by [@carlosmiei](https://github.com/carlosmiei) in [#26764](https://github.com/ccxt/ccxt/pull/26764)
+* fix(coincatch): fetchCurrencies parsing by [@carlosmiei](https://github.com/carlosmiei) in [#26765](https://github.com/ccxt/ccxt/pull/26765)
+* htx rate limits by [@ndubel](https://github.com/ndubel) in [#26740](https://github.com/ccxt/ccxt/pull/26740)
+* fix(binance): Use string for Binance PM quantity precision in order creation by [@JakkuSakura](https://github.com/JakkuSakura) in [#26737](https://github.com/ccxt/ccxt/pull/26737)
+* chore: tmp disable multi thread test in c# by [@carlosmiei](https://github.com/carlosmiei) in [#26767](https://github.com/ccxt/ccxt/pull/26767)
+
+## New Contributors
+* [@JakkuSakura](https://github.com/JakkuSakura) made their first contribution in [#26737](https://github.com/ccxt/ccxt/pull/26737)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.2...v4.5.3
+
+[Changes][v4.5.3]
+
+
 <a id="v4.5.2"></a>
 # [v4.5.2](https://github.com/ccxt/ccxt/releases/tag/v4.5.2) - 2025-08-25
 
@@ -10280,6 +10319,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.3]: https://github.com/ccxt/ccxt/compare/v4.5.2...v4.5.3
 [v4.5.2]: https://github.com/ccxt/ccxt/compare/v4.5.1...v4.5.2
 [v4.5.1]: https://github.com/ccxt/ccxt/compare/v4.5.0...v4.5.1
 [v4.5.0]: https://github.com/ccxt/ccxt/compare/v4.4.100...v4.5.0

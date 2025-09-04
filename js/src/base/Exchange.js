@@ -1184,6 +1184,7 @@ export default class Exchange {
             }
             client.reject(new ExchangeError(this.id + ' nonce is behind the cache after ' + maxRetries.toString() + ' tries.'), messageHash);
             delete this.clients[client.url];
+            this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }
         catch (e) {
             client.reject(e, messageHash);
@@ -2194,6 +2195,9 @@ export default class Exchange {
     }
     async unWatchPositions(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' unWatchPositions() is not supported yet');
+    }
+    async unWatchTicker(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchTicker() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
@@ -4683,6 +4687,12 @@ export default class Exchange {
             return market;
         }
         return result;
+    }
+    marketOrNull(symbol) {
+        if (symbol === undefined) {
+            return undefined;
+        }
+        return this.market(symbol);
     }
     checkRequiredCredentials(error = true) {
         /**

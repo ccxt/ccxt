@@ -653,11 +653,14 @@ export default class mexc extends Exchange {
      * @name mexc#withdraw
      * @description make a withdrawal
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.internal] false by default, set to true for an "internal transfer"
+     * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
