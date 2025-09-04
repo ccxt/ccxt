@@ -1117,11 +1117,11 @@ export default class dydx extends Exchange {
 
     signHash (hash, privateKey) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'].length < 64 ? '0' + signature['r'] : signature['r'];
-        const s = signature['s'].length < 64 ? '0' + signature['s'] : signature['s'];
+        const r = signature['r'];
+        const s = signature['s'];
         return {
-            'r': r,
-            's': s,
+            'r': r.padStart (64, '0'),
+            's': s.padStart (64, '0'),
             'v': this.sum (27, signature['v']),
         };
     }
@@ -1131,7 +1131,7 @@ export default class dydx extends Exchange {
     }
 
     signOnboardingAction (): object {
-        const message = { 'action': this.encode ('dYdX Chain Onboarding') };
+        const message = { 'action': 'dYdX Chain Onboarding' };
         const chainId = 11155111; // TODO: chainid for production
         const domain: Dict = {
             'chainId': chainId,
@@ -1212,11 +1212,7 @@ export default class dydx extends Exchange {
         const TWO_PWR_32_DBL = '4294967296'; // 2 ** 32
         const TWO_PWR_63_DBL = '9223372036854776000'; // 2 ** 63
         const ZERO = '0';
-        if (
-            Precise.stringLt (numStr, ZERO)
-            || Precise.stringGe (Precise.stringAdd (numStr, '1'), TWO_PWR_63_DBL)
-            || Precise.stringLt (numStr, '-' + TWO_PWR_63_DBL)
-        ) {
+        if (Precise.stringLt (numStr, ZERO) || Precise.stringGe (Precise.stringAdd (numStr, '1'), TWO_PWR_63_DBL) || Precise.stringLt (numStr, '-' + TWO_PWR_63_DBL)) {
             throw new BadRequest (this.id + ' number is out of bound');
         }
         return {
@@ -1688,7 +1684,7 @@ export default class dydx extends Exchange {
         return response;
     }
 
-    async estimateTxFee (message: any, memo: string, account: any): Promise<Object> {
+    async estimateTxFee (message: any, memo: string, account: any): Promise<any> {
         const txBytes = await this.encodeDydxTxForSimulation (message, memo, account.sequence, account.pub_key);
         const request = {
             'txBytes': txBytes,
