@@ -957,7 +957,7 @@ class exmo(Exchange, ImplicitAPI):
             request['from'] = to - (limit * duration) - 1
             request['to'] = to
         else:
-            request['from'] = self.parse_to_int(since / 1000) - 1
+            request['from'] = self.parse_to_int(since / 1000)
             if untilIsDefined:
                 request['to'] = min(until, now)
             else:
@@ -2186,7 +2186,7 @@ class exmo(Exchange, ImplicitAPI):
             return self.markets[symbols[0]]
         return None
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

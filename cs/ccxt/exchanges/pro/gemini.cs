@@ -530,14 +530,20 @@ public partial class gemini : ccxt.gemini
         ((IDictionary<string,object>)currentBidAsk)["timestamp"] = timestamp;
         ((IDictionary<string,object>)currentBidAsk)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)currentBidAsk)["info"] = rawBidAskChanges;
+        object bidsAsksDict = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)bidsAsksDict)[(string)symbol] = currentBidAsk;
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = currentBidAsk;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {currentBidAsk, messageHash});
+        callDynamically(client as WebSocketClient, "resolve", new object[] {bidsAsksDict, messageHash});
     }
 
-    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols, object parameters = null)
+    public async virtual Task<object> helperForWatchMultipleConstruct(object itemHashName, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " watchMultiple requires at least one symbol")) ;
+        }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object firstMarket = this.market(getValue(symbols, 0));
         if (isTrue(!isTrue(getValue(firstMarket, "spot")) && !isTrue(getValue(firstMarket, "linear"))))

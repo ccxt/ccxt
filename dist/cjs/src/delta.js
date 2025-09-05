@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var delta$1 = require('./abstract/delta.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class delta
  * @augments Exchange
  */
-class delta extends delta$1 {
+class delta extends delta$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'delta',
@@ -3650,4 +3652,4 @@ class delta extends delta$1 {
     }
 }
 
-module.exports = delta;
+exports["default"] = delta;

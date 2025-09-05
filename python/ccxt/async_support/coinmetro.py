@@ -221,7 +221,6 @@ class coinmetro(Exchange, ImplicitAPI):
             'options': {
                 'currenciesByIdForParseMarket': None,
                 'currencyIdsListForParseMarket': ['QRDO'],
-                'skippedMarkets': ['VXVUSDT'],  # broken markets which do not have enough info in API
             },
             'features': {
                 'spot': {
@@ -462,11 +461,11 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        skippedMarkets = self.safe_list(self.options, 'skippedMarkets', [])
         result = []
         for i in range(0, len(response)):
             market = self.parse_market(response[i])
-            if self.in_array(market['id'], skippedMarkets):
+            # there are several broken(unavailable info) markets
+            if market['base'] is None or market['quote'] is None:
                 continue
             result.append(market)
         return result

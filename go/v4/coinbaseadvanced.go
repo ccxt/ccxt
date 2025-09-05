@@ -4,27 +4,25 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 type coinbaseadvanced struct {
-    coinbase
-
+	coinbase
 }
 
-func NewCoinbaseadvancedCore() coinbaseadvanced {
-   p := coinbaseadvanced{}
-   setDefaults(&p)
-   return p
+func NewCoinbaseadvancedCore() *coinbaseadvanced {
+	p := &coinbaseadvanced{}
+	setDefaults(p)
+	return p
 }
 
-func  (this *coinbaseadvanced) Describe() interface{}  {
-    return this.DeepExtend(this.coinbase.Describe(), map[string]interface{} {
-        "id": "coinbaseadvanced",
-        "name": "Coinbase Advanced",
-        "alias": true,
-    })
+func (this *coinbaseadvanced) Describe() interface{} {
+	return this.DeepExtend(this.coinbase.Describe(), map[string]interface{}{
+		"id":    "coinbaseadvanced",
+		"name":  "Coinbase Advanced",
+		"alias": true,
+	})
 }
-
 
 func (this *coinbaseadvanced) Init(userConfig map[string]interface{}) {
-    this.coinbase.Init(this.DeepExtend(this.Describe(), userConfig))
-    this.Itf = this
-    this.Exchange.DerivedExchange = this
+	this.coinbase.Init(this.DeepExtend(this.Describe(), userConfig))
+	this.Itf = this
+	this.Exchange.DerivedExchange = this
 }

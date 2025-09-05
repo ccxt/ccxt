@@ -1635,7 +1635,7 @@ export default class derive extends Exchange {
         if (isByClientOrder) {
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
-        return this.extend (this.parseOrder (order, market), extendParams);
+        return this.extend (this.parseOrder (order, market), extendParams) as Order;
     }
 
     /**
@@ -1680,7 +1680,7 @@ export default class derive extends Exchange {
         //     "result": "ok"
         // }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**

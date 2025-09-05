@@ -42,7 +42,8 @@ export default class gate extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchContractMarkets(params?: {}): Promise<any[]>;
+    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchFutureMarkets(params?: {}): Promise<any[]>;
     parseContractMarket(market: any, settleId: any): {
         id: string;
         symbol: string;
@@ -422,7 +423,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: Str): string;
     parseTransactionType(type: any): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
@@ -652,7 +653,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     parsePosition(position: Dict, market?: Market): Position;
     /**
      * @method

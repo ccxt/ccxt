@@ -251,6 +251,7 @@ class kraken(Exchange, ImplicitAPI):
                 'UST': 'USTC',
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
+                'FEE': 'KFEE',
             },
             'options': {
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -714,14 +715,6 @@ class kraken(Exchange, ImplicitAPI):
             })
         self.options['marketsByAltname'] = self.index_by(result, 'altname')
         return result
-
-    def safe_currency(self, currencyId, currency: Currency = None):
-        if currencyId is not None:
-            if len(currencyId) > 3:
-                if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
-                    if not (currencyId.find('.') > 0) and (currencyId != 'ZEUS'):
-                        currencyId = currencyId[1:]
-        return super(kraken, self).safe_currency(currencyId, currency)
 
     def fetch_status(self, params={}):
         """
@@ -3037,7 +3030,7 @@ class kraken(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

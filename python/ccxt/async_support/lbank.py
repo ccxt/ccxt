@@ -968,7 +968,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         if market['swap']:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -2235,7 +2235,7 @@ class lbank(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

@@ -679,7 +679,7 @@ class htx(Exchange, ImplicitAPI):
                             'api/v1/contract_batchorder': 1,
                             'api/v1/contract_cancel': 1,
                             'api/v1/contract_cancelall': 1,
-                            'api/v1/contract_switch_lever_rate': 1,
+                            'api/v1/contract_switch_lever_rate': 30,
                             'api/v1/lightning_close_position': 1,
                             'api/v1/contract_order_info': 1,
                             'api/v1/contract_order_detail': 1,
@@ -738,7 +738,7 @@ class htx(Exchange, ImplicitAPI):
                             'swap-api/v1/swap_cancel': 1,
                             'swap-api/v1/swap_cancelall': 1,
                             'swap-api/v1/swap_lightning_close_position': 1,
-                            'swap-api/v1/swap_switch_lever_rate': 1,
+                            'swap-api/v1/swap_switch_lever_rate': 30,
                             'swap-api/v1/swap_order_info': 1,
                             'swap-api/v1/swap_order_detail': 1,
                             'swap-api/v1/swap_openorders': 1,
@@ -812,8 +812,8 @@ class htx(Exchange, ImplicitAPI):
                             'linear-swap-api/v1/swap_cross_cancel': 1,
                             'linear-swap-api/v1/swap_cancelall': 1,
                             'linear-swap-api/v1/swap_cross_cancelall': 1,
-                            'linear-swap-api/v1/swap_switch_lever_rate': 1,
-                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 1,
+                            'linear-swap-api/v1/swap_switch_lever_rate': 30,
+                            'linear-swap-api/v1/swap_cross_switch_lever_rate': 30,
                             'linear-swap-api/v1/swap_lightning_close_position': 1,
                             'linear-swap-api/v1/swap_cross_lightning_close_position': 1,
                             'linear-swap-api/v1/swap_order_info': 1,
@@ -5016,7 +5016,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -6308,7 +6308,7 @@ class htx(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -7133,7 +7133,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_incomes(data, market, since, limit)
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -8852,6 +8852,7 @@ class htx(Exchange, ImplicitAPI):
             'contracts': self.safe_number(liquidation, 'volume'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),
+            'side': self.safe_string_lower(liquidation, 'direction'),
             'baseValue': self.safe_number(liquidation, 'amount'),
             'quoteValue': self.safe_number(liquidation, 'trade_turnover'),
             'timestamp': timestamp,

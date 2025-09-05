@@ -6,7 +6,7 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
-export type OrderSide = 'buy' | 'sell' | string;
+export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -44,7 +44,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 
-export type Fee = FeeInterface | undefined
+export type Fee = FeeInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: boolean;
@@ -451,6 +451,7 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    side?: OrderSide;
 }
 
 export interface OrderRequest {

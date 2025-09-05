@@ -2632,7 +2632,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3542,12 +3542,15 @@ class bitfinex(Exchange, ImplicitAPI):
         contractSize = self.safe_string(market, 'contractSize')
         baseValue = Precise.string_mul(contracts, contractSize)
         price = self.safe_string(entry, 11)
+        sideFlag = self.safe_integer(entry, 8)
+        side = 'buy' if (sideFlag == 1) else 'sell'
         return self.safe_liquidation({
             'info': entry,
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'contracts': self.parse_number(contracts),
             'contractSize': self.parse_number(contractSize),
             'price': self.parse_number(price),
+            'side': side,
             'baseValue': self.parse_number(baseValue),
             'quoteValue': self.parse_number(Precise.string_mul(baseValue, price)),
             'timestamp': timestamp,

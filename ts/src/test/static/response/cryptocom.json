@@ -2,6 +2,54 @@
     "exchange": "cryptocom",
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "disabledGO": true,
+                "disabledCS": true,
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "httpResponse": {
+                    "id": -1,
+                    "method": "public/get-valuations",
+                    "code": 0,
+                    "result": {
+                        "data": [
+                            {
+                                "v": "0.000043997",
+                                "t": 1753436579000
+                            }
+                        ],
+                        "instrument_name": "BTCUSD-PERP"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "v": "0.000043997",
+                        "t": 1753436579000
+                    },
+                    "symbol": "BTC/USD:USD",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1753436579000,
+                    "datetime": "2025-07-25T09:42:59.000Z",
+                    "fundingRate": 0.000043997,
+                    "fundingTimestamp": 1753437600000,
+                    "fundingDatetime": "2025-07-25T10:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "1h"
+                }
+            }
+        ],
         "editOrder": [
             {
                 "description": "Edit spot order",

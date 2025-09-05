@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -86,6 +86,7 @@ class kraken(ccxt.async_support.kraken):
                     'broad': {
                         'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Currency pair not supported': BadSymbol,
                         'Malformed request': BadRequest,
                         'Pair field must be an array': BadRequest,
                         'Pair field unsupported for self subscription type': BadRequest,
@@ -745,15 +746,13 @@ class kraken(ccxt.async_support.kraken):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        request: dict = {}
+        requiredParams: dict = {}
         if limit is not None:
             if self.in_array(limit, [10, 25, 100, 500, 1000]):
-                request['params'] = {
-                    'depth': limit,  # default 10, valid options 10, 25, 100, 500, 1000
-                }
+                requiredParams['depth'] = limit  # default 10, valid options 10, 25, 100, 500, 1000
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
-        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(request, params))
+        orderbook = await self.watch_multi_helper('orderbook', 'book', symbols, {'limit': limit}, self.extend(requiredParams, params))
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
@@ -1592,7 +1591,7 @@ class kraken(ccxt.async_support.kraken):
         #     del client.futures[requestId]
         # }
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1614,17 +1613,17 @@ class kraken(ccxt.async_support.kraken):
         #
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
-            requestId = self.safe_value_2(message, 'reqid', 'req_id')
+            requestId = self.safe_string_2(message, 'reqid', 'req_id')
+            broad = self.exceptions['ws']['broad']
+            broadKey = self.find_broadly_matched_key(broad, errorMessage)
+            exception = None
+            if broadKey is None:
+                exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
+            else:
+                exception = broad[broadKey](errorMessage)
             if requestId is not None:
-                broad = self.exceptions['ws']['broad']
-                broadKey = self.find_broadly_matched_key(broad, errorMessage)
-                exception = None
-                if broadKey is None:
-                    exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
-                else:
-                    exception = broad[broadKey](errorMessage)
                 client.reject(exception, requestId)
-                return False
+            return False
         return True
 
     def handle_message(self, client: Client, message):

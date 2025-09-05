@@ -623,8 +623,8 @@ class coincatch(Exchange, ImplicitAPI):
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chain')
-                networkCode = self.network_code_to_id(networkId)
-                parsedNetworks[networkId] = {
+                networkCode = self.network_id_to_code(networkId)
+                parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {
@@ -2085,7 +2085,7 @@ class coincatch(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4447,7 +4447,7 @@ class coincatch(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

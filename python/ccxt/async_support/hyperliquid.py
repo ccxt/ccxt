@@ -174,6 +174,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                                 'orderStatus': 2,
                                 'spotClearinghouseState': 2,
                                 'exchangeStatus': 2,
+                                'candleSnapshot': 4,
                             },
                         },
                     },
@@ -1675,6 +1676,43 @@ class hyperliquid(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         await self.load_markets()
+        request = self.cancel_orders_request(ids, symbol, params)
+        response = await self.privatePostExchange(request)
+        #
+        #     {
+        #         "status":"ok",
+        #         "response":{
+        #             "type":"cancel",
+        #             "data":{
+        #                 "statuses":[
+        #                     "success"
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        innerResponse = self.safe_dict(response, 'response')
+        data = self.safe_dict(innerResponse, 'data')
+        statuses = self.safe_list(data, 'statuses')
+        orders = []
+        for i in range(0, len(statuses)):
+            status = statuses[i]
+            orders.append(self.safe_order({
+                'info': status,
+                'status': status,
+            }))
+        return orders
+
+    def cancel_orders_request(self, ids: List[str], symbol: Str = None, params={}) -> dict:
+        """
+        build the request payload for cancelling multiple orders
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict [params]:
+        :returns dict: the raw request object to be sent to the exchange
+        """
         market = self.market(symbol)
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
@@ -1715,31 +1753,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(request)
-        #
-        #     {
-        #         "status":"ok",
-        #         "response":{
-        #             "type":"cancel",
-        #             "data":{
-        #                 "statuses":[
-        #                     "success"
-        #                 ]
-        #             }
-        #         }
-        #     }
-        #
-        innerResponse = self.safe_dict(response, 'response')
-        data = self.safe_dict(innerResponse, 'data')
-        statuses = self.safe_list(data, 'statuses')
-        orders = []
-        for i in range(0, len(statuses)):
-            status = statuses[i]
-            orders.append(self.safe_order({
-                'info': status,
-                'status': status,
-            }))
-        return orders
+        return request
 
     async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """
@@ -1810,7 +1824,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -2270,6 +2284,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2278,12 +2293,18 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAddress, params = self.handle_public_address('fetchOrder', params)
         await self.load_markets()
         market = self.safe_market(symbol)
-        isClientOrderId = len(id) >= 34
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         request: dict = {
             'type': 'orderStatus',
-            'oid': id if isClientOrderId else self.parse_to_numeric(id),
+            # 'oid': id if isClientOrderId else self.parse_to_numeric(id),
             'user': userAddress,
         }
+        if clientOrderId is not None:
+            params = self.omit(params, 'clientOrderId')
+            request['oid'] = clientOrderId
+        else:
+            isClientOrderId = len(id) >= 34
+            request['oid'] = id if isClientOrderId else self.parse_to_numeric(id)
         response = await self.publicPostInfo(self.extend(request, params))
         #
         #     {
@@ -2468,6 +2489,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
+        if status is None:
+            return None
         statuses: dict = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2476,6 +2499,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         }
+        if status.endswith('Rejected'):
+            return 'rejected'
+        if status.endswith('Canceled'):
+            return 'canceled'
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
@@ -2805,7 +2832,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -2964,10 +2991,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             if not self.in_array(toAccount, ['spot', 'swap', 'perp']):
                 raise NotSupported(self.id + ' transfer() only support spot <> swap transfer')
             strAmount = self.number_to_string(amount)
-            vaultAddress = None
-            vaultAddress, params = self.handle_option_and_params(params, 'transfer', 'vaultAddress')
-            vaultAddress = self.format_vault_address(vaultAddress)
+            vaultAddress = self.safe_string_2(params, 'vaultAddress', 'subAccountAddress')
             if vaultAddress is not None:
+                vaultAddress = self.format_vault_address(vaultAddress)
                 strAmount = strAmount + ' subaccount:' + vaultAddress
             toPerp = (toAccount == 'perp') or (toAccount == 'swap')
             transferPayload: dict = {
@@ -2994,10 +3020,6 @@ class hyperliquid(Exchange, ImplicitAPI):
             transferResponse = await self.privatePostExchange(transferRequest)
             return transferResponse
         # transfer between main account and subaccount
-        if code is not None:
-            code = code.upper()
-            if code != 'USDC':
-                raise NotSupported(self.id + ' transfer() only support USDC')
         isDeposit = False
         subAccountAddress = None
         if fromAccount == 'main':
@@ -3008,24 +3030,44 @@ class hyperliquid(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' transfer() only support main <> subaccount transfer')
         self.check_address(subAccountAddress)
-        usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
-        action = {
-            'type': 'subAccountTransfer',
-            'subAccountUser': subAccountAddress,
-            'isDeposit': isDeposit,
-            'usd': usd,
-        }
-        sig = self.sign_l1_action(action, nonce)
-        request: dict = {
-            'action': action,
-            'nonce': nonce,
-            'signature': sig,
-        }
-        response = await self.privatePostExchange(request)
-        #
-        # {'response': {'type': 'default'}, 'status': 'ok'}
-        #
-        return self.parse_transfer(response)
+        if code is None or code.upper() == 'USDC':
+            # Transfer USDC with subAccountTransfer
+            usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
+            action = {
+                'type': 'subAccountTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'usd': usd,
+            }
+            sig = self.sign_l1_action(action, nonce)
+            request: dict = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            }
+            response = await self.privatePostExchange(request)
+            #
+            # {'response': {'type': 'default'}, 'status': 'ok'}
+            #
+            return self.parse_transfer(response)
+        else:
+            # Transfer non-USDC with subAccountSpotTransfer
+            symbol = self.symbol(code)
+            action = {
+                'type': 'subAccountSpotTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'token': symbol,
+                'amount': self.number_to_string(amount),
+            }
+            sig = self.sign_l1_action(action, nonce)
+            request: dict = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            }
+            response = await self.privatePostExchange(request)
+            return self.parse_transfer(response)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -3043,7 +3085,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'status': 'ok',
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal(only support USDC)
 
@@ -3571,6 +3613,27 @@ class hyperliquid(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
+    async def reserve_request_weight(self, weight: Num, params={}) -> dict:
+        """
+        Instead of trading to increase the address based rate limits, self action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+        :param number weight: the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        nonce = self.milliseconds()
+        request: dict = {
+            'nonce': nonce,
+        }
+        action: dict = {
+            'type': 'reserveRequestWeight',
+            'weight': weight,
+        }
+        signature = self.sign_l1_action(action, nonce)
+        request['action'] = action
+        request['signature'] = signature
+        response = await self.privatePostExchange(self.extend(request, params))
+        return response
+
     def extract_type_from_delta(self, data=[]):
         records = []
         for i in range(0, len(data)):
@@ -3600,7 +3663,7 @@ class hyperliquid(Exchange, ImplicitAPI):
     def coin_to_market_id(self, coin: Str):
         if coin.find('/') > -1 or coin.find('@') > -1:
             return coin  # spot
-        return coin + '/USDC:USDC'
+        return self.safe_currency_code(coin) + '/USDC:USDC'
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:
@@ -3613,19 +3676,25 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #
+        # {"status":"unknownOid"}
+        #
         status = self.safe_string(response, 'status', '')
         error = self.safe_string(response, 'error')
         message = None
         if status == 'err':
             message = self.safe_string(response, 'response')
+        elif status == 'unknownOid':
+            raise OrderNotFound(self.id + ' ' + body)  # {"status":"unknownOid"}
         elif error is not None:
             message = error
         else:
             responsePayload = self.safe_dict(response, 'response', {})
             data = self.safe_dict(responsePayload, 'data', {})
             statuses = self.safe_list(data, 'statuses', [])
-            firstStatus = self.safe_dict(statuses, 0)
-            message = self.safe_string(firstStatus, 'error')
+            for i in range(0, len(statuses)):
+                message = self.safe_string(statuses[i], 'error')
+                if message is not None:
+                    break
         feedback = self.id + ' ' + body
         nonEmptyMessage = ((message is not None) and (message != ''))
         if nonEmptyMessage:

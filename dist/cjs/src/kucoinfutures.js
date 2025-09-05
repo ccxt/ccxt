@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var kucoinfutures$1 = require('./abstract/kucoinfutures.js');
  * @class kucoinfutures
  * @augments Exchange
  */
-class kucoinfutures extends kucoinfutures$1 {
+class kucoinfutures extends kucoinfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'kucoinfutures',
@@ -466,7 +468,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -549,7 +551,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //    }
         //
         const result = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString(market, 'symbol');
@@ -766,7 +768,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -830,7 +832,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.parseToInt(this.safeInteger(data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
@@ -1160,7 +1162,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const dataList = this.safeValue(data, 'dataList', []);
+        const dataList = this.safeList(data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -1768,7 +1770,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //       },
         //   }
         //
-        return this.safeValue(response, 'data');
+        return this.safeOrder({ 'info': response });
     }
     /**
      * @method
@@ -1867,7 +1869,8 @@ class kucoinfutures extends kucoinfutures$1 {
         //       },
         //   }
         //
-        return this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
+        return [this.safeOrder({ 'info': data })];
     }
     /**
      * @method
@@ -2120,7 +2123,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //         }
         //     }
         //
-        const responseData = this.safeValue(response, 'data', {});
+        const responseData = this.safeDict(response, 'data', {});
         const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2490,6 +2493,7 @@ class kucoinfutures extends kucoinfutures$1 {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -3047,7 +3051,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -3136,7 +3140,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRateHistories(data, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
@@ -3375,4 +3379,4 @@ class kucoinfutures extends kucoinfutures$1 {
     }
 }
 
-module.exports = kucoinfutures;
+exports["default"] = kucoinfutures;

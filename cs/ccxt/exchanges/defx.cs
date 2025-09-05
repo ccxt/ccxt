@@ -1564,7 +1564,9 @@ public partial class defx : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
