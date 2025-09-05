@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var Precise = require('./base/Precise.js');
 var apex$1 = require('./abstract/apex.js');
 var number = require('./base/functions/number.js');
@@ -14,7 +12,7 @@ var errors = require('./base/errors.js');
  * @class apex
  * @augments Exchange
  */
-class apex extends apex$1["default"] {
+class apex extends apex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'apex',
@@ -1539,7 +1537,7 @@ class apex extends apex$1["default"] {
         }
         const response = await this.privatePostV3DeleteOpenOrders(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        return [this.parseOrder(data, market)];
+        return data;
     }
     /**
      * @method
@@ -1565,7 +1563,7 @@ class apex extends apex$1["default"] {
             response = await this.privatePostV3DeleteOrder(this.extend(request, params));
         }
         const data = this.safeDict(response, 'data', {});
-        return this.safeOrder(data);
+        return data;
     }
     /**
      * @method
@@ -1939,4 +1937,4 @@ class apex extends apex$1["default"] {
     }
 }
 
-exports["default"] = apex;
+module.exports = apex;

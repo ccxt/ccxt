@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var phemex$1 = require('../phemex.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
@@ -10,7 +8,7 @@ var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class phemex extends phemex$1["default"] {
+class phemex extends phemex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1567,4 +1565,4 @@ class phemex extends phemex$1["default"] {
     }
 }
 
-exports["default"] = phemex;
+module.exports = phemex;

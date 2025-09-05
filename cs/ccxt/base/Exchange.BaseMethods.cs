@@ -238,17 +238,6 @@ public partial class Exchange
                 { "watchLiquidations", null },
                 { "watchLiquidationsForSymbols", null },
                 { "watchMyLiquidations", null },
-                { "unWatchOrders", null },
-                { "unWatchTrades", null },
-                { "unWatchTradesForSymbols", null },
-                { "unWatchOHLCVForSymbols", null },
-                { "unWatchOrderBookForSymbols", null },
-                { "unWatchPositions", null },
-                { "unWatchOrderBook", null },
-                { "unWatchTickers", null },
-                { "unWatchMyTrades", null },
-                { "unWatchTicker", null },
-                { "unWatchOHLCV", null },
                 { "watchMyLiquidationsForSymbols", null },
                 { "withdraw", null },
                 { "ws", null },
@@ -505,16 +494,6 @@ public partial class Exchange
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
-    }
-
-    public virtual object arraysConcat(object arraysOfArrays)
-    {
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(arraysOfArrays)); postFixIncrement(ref i))
-        {
-            result = this.arrayConcat(result, getValue(arraysOfArrays, i));
-        }
-        return result;
     }
 
     public virtual object findTimeframe(object timeframe, object timeframes = null)
@@ -1007,18 +986,6 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " unWatchOrderBookForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchPositions(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " unWatchPositions() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " unWatchTicker() is not supported yet")) ;
-    }
-
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1410,7 +1377,7 @@ public partial class Exchange
         // keep this in mind:
         // in JS: 1 == 1.0 is true;  1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
         if (isTrue(isGreaterThanOrEqual(getIndexOf(stringVersion, "."), 0)))
         {
             return parseFloat(stringVersion);
@@ -2455,8 +2422,20 @@ public partial class Exchange
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
-    public virtual object calculateFeeWithRate(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object feeRate = null, object parameters = null)
+    public virtual object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
     {
+        /**
+        * @method
+        * @description calculates the presumptive fee that would be charged for an order
+        * @param {string} symbol unified market symbol
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+        * @param {float} price the price for the order to be filled at, in units of the quote currency
+        * @param {string} takerOrMaker 'taker' or 'maker'
+        * @param {object} params
+        * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+        */
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(takerOrMaker, "maker"))))
@@ -2500,7 +2479,7 @@ public partial class Exchange
         {
             takerOrMaker = "taker";
         }
-        object rate = ((bool) isTrue((!isEqual(feeRate, null)))) ? this.numberToString(feeRate) : this.safeString(market, takerOrMaker);
+        object rate = this.safeString(market, takerOrMaker);
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
@@ -2508,25 +2487,6 @@ public partial class Exchange
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
-    }
-
-    public virtual object calculateFee(object symbol, object type, object side, object amount, object price, object takerOrMaker = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @description calculates the presumptive fee that would be charged for an order
-        * @param {string} symbol unified market symbol
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-        * @param {float} price the price for the order to be filled at, in units of the quote currency
-        * @param {string} takerOrMaker 'taker' or 'maker'
-        * @param {object} params
-        * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
-        */
-        takerOrMaker ??= "taker";
-        parameters ??= new Dictionary<string, object>();
-        return this.calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker, null, parameters);
     }
 
     public virtual object safeLiquidation(object liquidation, object market = null)
@@ -2582,33 +2542,6 @@ public partial class Exchange
         ((IDictionary<string,object>)trade)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)trade)["cost"] = this.parseNumber(cost);
         return trade;
-    }
-
-    public virtual object createCcxtTradeId(object timestamp = null, object side = null, object amount = null, object price = null, object takerOrMaker = null)
-    {
-        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        object id = null;
-        if (isTrue(!isEqual(timestamp, null)))
-        {
-            id = this.numberToString(timestamp);
-            if (isTrue(!isEqual(side, null)))
-            {
-                id = add(id, add("-", side));
-            }
-            if (isTrue(!isEqual(amount, null)))
-            {
-                id = add(id, add("-", this.numberToString(amount)));
-            }
-            if (isTrue(!isEqual(price, null)))
-            {
-                id = add(id, add("-", this.numberToString(price)));
-            }
-            if (isTrue(!isEqual(takerOrMaker, null)))
-            {
-                id = add(id, add("-", takerOrMaker));
-            }
-        }
-        return id;
     }
 
     public virtual object parsedFeeAndFees(object container)
@@ -2754,7 +2687,7 @@ public partial class Exchange
         {
             object fee = getValue(fees, i);
             object code = this.safeString(fee, "currency");
-            object feeCurrencyCode = ((bool) isTrue((!isEqual(code, null)))) ? code : ((object)i).ToString();
+            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");
@@ -4254,15 +4187,6 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object marketOrNull(object symbol)
-    {
-        if (isTrue(isEqual(symbol, null)))
-        {
-            return null;
-        }
-        return this.market(symbol);
-    }
-
     public virtual object checkRequiredCredentials(object error = null)
     {
         /**
@@ -5533,13 +5457,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchDeposits(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDeposits() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchWithdrawals(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchWithdrawals() is not supported yet")) ;
@@ -7035,7 +6959,7 @@ public partial class Exchange
         object calls = 0;
         object result = new List<object>() {};
         object errors = 0;
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "untill", "till"}); // do not omit it from params here
+        object until = this.safeInteger2(parameters, "untill", "till"); // do not omit it from params here
         var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
@@ -7891,19 +7815,6 @@ public partial class Exchange
             } else if (isTrue(isTrue(isEqual(topic, "orders")) && isTrue((!isEqual(this.orders, null)))))
             {
                 this.orders = null;
-            } else if (isTrue(isTrue(isEqual(topic, "positions")) && isTrue((!isEqual(this.positions, null)))))
-            {
-                this.positions = null;
-                object clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
-                for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
-                {
-                    object client = getValue(clients, i);
-                    object futures = this.safeDict(client, "futures");
-                    if (isTrue(isTrue((!isEqual(futures, null))) && isTrue((inOp(futures, "fetchPositionsSnapshot")))))
-                    {
-                        ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
-                    }
-                }
             } else if (isTrue(isTrue(isEqual(topic, "ticker")) && isTrue((!isEqual(this.tickers, null)))))
             {
                 object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);

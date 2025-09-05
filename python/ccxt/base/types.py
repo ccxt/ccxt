@@ -190,7 +190,6 @@ class Liquidation(TypedDict):
     price: Num
     baseValue: Num
     quoteValue: Num
-    side: OrderSide
 
 
 class FundingHistory(TypedDict):

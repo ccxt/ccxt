@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var okcoin$1 = require('./abstract/okcoin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class okcoin
  * @augments Exchange
  */
-class okcoin extends okcoin$1["default"] {
+class okcoin extends okcoin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okcoin',
@@ -1724,7 +1722,7 @@ class okcoin extends okcoin$1["default"] {
         const advanced = this.safeValue(params, 'advanced');
         if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeDict(orderInner, 0);
+            return this.safeValue(orderInner, 0);
         }
         const market = this.market(symbol);
         const request = {
@@ -3209,4 +3207,4 @@ class okcoin extends okcoin$1["default"] {
     }
 }
 
-exports["default"] = okcoin;
+module.exports = okcoin;

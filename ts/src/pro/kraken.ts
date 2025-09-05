@@ -5,7 +5,7 @@ import krakenRest from '../kraken.js';
 import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances, Bool } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -69,7 +69,6 @@ export default class kraken extends krakenRest {
                     'broad': {
                         'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
-                        'Currency pair not supported': BadSymbol,
                         'Malformed request': BadRequest,
                         'Pair field must be an array': BadRequest,
                         'Pair field unsupported for this subscription type': BadRequest,
@@ -785,15 +784,17 @@ export default class kraken extends krakenRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        const requiredParams: Dict = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             if (this.inArray (limit, [ 10, 25, 100, 500, 1000 ])) {
-                requiredParams['depth'] = limit; // default 10, valid options 10, 25, 100, 500, 1000
+                request['params'] = {
+                    'depth': limit, // default 10, valid options 10, 25, 100, 500, 1000
+                };
             } else {
                 throw new NotSupported (this.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only');
             }
         }
-        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (requiredParams, params));
+        const orderbook = await this.watchMultiHelper ('orderbook', 'book', symbols, { 'limit': limit }, this.extend (request, params));
         return orderbook.limit ();
     }
 
@@ -1709,7 +1710,7 @@ export default class kraken extends krakenRest {
         // }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message) {
         //
         //     {
         //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1731,19 +1732,19 @@ export default class kraken extends krakenRest {
         //
         const errorMessage = this.safeString2 (message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
-            const requestId = this.safeString2 (message, 'reqid', 'req_id');
-            const broad = this.exceptions['ws']['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
-            let exception = undefined;
-            if (broadKey === undefined) {
-                exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
-            } else {
-                exception = new broad[broadKey] (errorMessage);
-            }
+            const requestId = this.safeValue2 (message, 'reqid', 'req_id');
             if (requestId !== undefined) {
+                const broad = this.exceptions['ws']['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
+                let exception = undefined;
+                if (broadKey === undefined) {
+                    exception = new ExchangeError ((errorMessage as string)); // c# requirement to convert the errorMessage to string
+                } else {
+                    exception = new broad[broadKey] (errorMessage);
+                }
                 client.reject (exception, requestId);
+                return false;
             }
-            return false;
         }
         return true;
     }

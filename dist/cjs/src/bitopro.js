@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitopro$1 = require('./abstract/bitopro.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class bitopro
  * @augments Exchange
  */
-class bitopro extends bitopro$1["default"] {
+class bitopro extends bitopro$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitopro',
@@ -1890,4 +1888,4 @@ class bitopro extends bitopro$1["default"] {
     }
 }
 
-exports["default"] = bitopro;
+module.exports = bitopro;

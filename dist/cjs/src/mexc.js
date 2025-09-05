@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var mexc$1 = require('./abstract/mexc.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class mexc
  * @augments Exchange
  */
-class mexc extends mexc$1["default"] {
+class mexc extends mexc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'mexc',
@@ -436,7 +434,6 @@ class mexc extends mexc$1["default"] {
                         },
                     },
                 },
-                'useCcxtTradeId': true,
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -475,12 +472,6 @@ class mexc extends mexc$1["default"] {
                     'ZKSYNC': 'ZKSYNCERA',
                     'TRC20': 'TRX',
                     'TON': 'TONCOIN',
-                    'ARBITRUM': 'ARB',
-                    'STX': 'STACKS',
-                    'LUNC': 'LUNA',
-                    'STARK': 'STARKNET',
-                    'APT': 'APTOS',
-                    'PEAQ': 'PEAQEVM',
                     'AVAXC': 'AVAX_CCHAIN',
                     'ERC20': 'ETH',
                     'ACA': 'ACALA',
@@ -510,7 +501,6 @@ class mexc extends mexc$1["default"] {
                     // 'DNX': 'Dynex(DNX)',
                     // 'DOGE': 'Dogecoin(DOGE)',
                     // 'DOT': 'Polkadot(DOT)',
-                    'DOT': 'DOTASSETHUB',
                     // 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
                     'HRC20': 'HECO',
@@ -668,7 +658,6 @@ class mexc extends mexc$1["default"] {
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
-                    'Ethereum(ERC20)': 'ERC20',
                     // TODO: uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -1725,8 +1714,8 @@ class mexc extends mexc$1["default"] {
                 }
             }
         }
-        if (id === undefined && this.safeBool(this.options, 'useCcxtTradeId', true)) {
-            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
+        if (id === undefined) {
+            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
         }
         return this.safeTrade({
             'id': id,
@@ -1743,6 +1732,29 @@ class mexc extends mexc$1["default"] {
             'fee': fee,
             'info': trade,
         }, market);
+    }
+    syntheticTradeId(market = undefined, timestamp = undefined, side = undefined, amount = undefined, price = undefined, orderType = undefined, takerOrMaker = undefined) {
+        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+        let id = '';
+        if (timestamp !== undefined) {
+            id = this.numberToString(timestamp) + '-' + this.safeString(market, 'id', '_');
+            if (side !== undefined) {
+                id += '-' + side;
+            }
+            if (amount !== undefined) {
+                id += '-' + this.numberToString(amount);
+            }
+            if (price !== undefined) {
+                id += '-' + this.numberToString(price);
+            }
+            if (takerOrMaker !== undefined) {
+                id += '-' + takerOrMaker;
+            }
+            if (orderType !== undefined) {
+                id += '-' + orderType;
+            }
+        }
+        return id;
     }
     /**
      * @method
@@ -4875,14 +4887,11 @@ class mexc extends mexc$1["default"] {
         //         "network": "TRX",
         //         "status": "5",
         //         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //         "insertTime": "1664805021000",
         //         "unlockConfirm": "200",
         //         "confirmTimes": "203",
-        //         "memo": "xxyy1122",
-        //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //         "updateTime": "1664805621000",
-        //         "netWork: "TRX"
+        //         "memo": "xxyy1122"
         //     }
         // ]
         //
@@ -4927,7 +4936,7 @@ class mexc extends mexc$1["default"] {
         // [
         //     {
         //       "id": "adcd1c8322154de691b815eedcd10c42",
-        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "coin": "USDC-MATIC",
         //       "network": "MATIC",
         //       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4938,11 +4947,7 @@ class mexc extends mexc$1["default"] {
         //       "confirmNo": null,
         //       "applyTime": "1664882739000",
         //       "remark": '',
-        //       "memo": null,
-        //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //       "updateTime": "1664882799000",
-        //       "netWork: "MATIC"
+        //       "memo": null
         //     }
         // ]
         //
@@ -4958,21 +4963,18 @@ class mexc extends mexc$1["default"] {
         //     "network": "TRX",
         //     "status": "5",
         //     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "insertTime": "1664805021000",
         //     "unlockConfirm": "200",
         //     "confirmTimes": "203",
-        //     "memo": "xxyy1122",
-        //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "memo": "xxyy1122"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id": "adcd1c8322154de691b815eedcd10c42",
-        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "coin": "USDC-MATIC",
         //     "network": "MATIC",
         //     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4982,12 +4984,8 @@ class mexc extends mexc$1["default"] {
         //     "transactionFee": "1",
         //     "confirmNo": null,
         //     "applyTime": "1664882739000",
-        //     "remark": "",
-        //     "memo": null,
-        //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "remark": '',
+        //     "memo": null
         //   }
         //
         // withdraw
@@ -4996,16 +4994,9 @@ class mexc extends mexc$1["default"] {
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        // internal withdraw (aka internal-transfer)
-        //
-        //     {
-        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
-        //     }
-        //
-        const id = this.safeString2(transaction, 'id', 'tranId');
+        const id = this.safeString(transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
-        const updated = this.safeInteger(transaction, 'updateTime');
         let currencyId = undefined;
         const currencyWithNetwork = this.safeString(transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
@@ -5020,7 +5011,7 @@ class mexc extends mexc$1["default"] {
         const status = this.parseTransactionStatusByType(this.safeString(transaction, 'status'), type);
         let amountString = this.safeString(transaction, 'amount');
         const address = this.safeString(transaction, 'address');
-        const txid = this.safeString2(transaction, 'transHash', 'txId');
+        const txid = this.safeString(transaction, 'txId');
         let fee = undefined;
         const feeCostString = this.safeString(transaction, 'transactionFee');
         if (feeCostString !== undefined) {
@@ -5050,8 +5041,8 @@ class mexc extends mexc$1["default"] {
             'amount': this.parseNumber(amountString),
             'currency': code,
             'status': status,
-            'updated': updated,
-            'comment': this.safeString(transaction, 'remark'),
+            'updated': undefined,
+            'comment': undefined,
             'internal': undefined,
             'fee': fee,
         };
@@ -5207,7 +5198,7 @@ class mexc extends mexc$1["default"] {
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, 'symbol'), market, undefined, 'swap');
+        market = this.safeMarket(this.safeString(position, 'symbol'), market);
         const symbol = market['symbol'];
         const contracts = this.safeString(position, 'holdVol');
         const entryPrice = this.safeNumber(position, 'openAvgPrice');
@@ -5515,40 +5506,17 @@ class mexc extends mexc$1["default"] {
      * @name mexc#withdraw
      * @description make a withdrawal
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.internal] false by default, set to true for an "internal transfer"
-     * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        const internal = this.safeBool(params, 'internal', false);
-        if (internal) {
-            params = this.omit(params, 'internal');
-            const requestForInternal = {
-                'asset': currency['id'],
-                'amount': amount,
-                'toAccount': address,
-            };
-            const toAccountType = this.safeString(params, 'toAccountType');
-            if (toAccountType === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE');
-            }
-            const responseForInternal = await this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, params));
-            //
-            //     {
-            //       "id":"7213fea8e94b4a5593d507237e5a555b"
-            //     }
-            //
-            return this.parseTransaction(responseForInternal, currency);
-        }
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
@@ -6014,7 +5982,7 @@ class mexc extends mexc$1["default"] {
         //
         // { success: true, code: '0' }
         //
-        return this.parseLeverage(response, market); // tmp revert type
+        return this.parseLeverage(response, market);
     }
     nonce() {
         return this.milliseconds() - this.safeInteger(this.options, 'timeDifference', 0);
@@ -6128,4 +6096,4 @@ class mexc extends mexc$1["default"] {
     }
 }
 
-exports["default"] = mexc;
+module.exports = mexc;

@@ -19,7 +19,6 @@ function test_watch_balance($exchange, $skipped_properties, $code) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
-            $success = true;
             try {
                 $response = Async\await($exchange->watch_balance());
             } catch(\Throwable $e) {
@@ -27,10 +26,6 @@ function test_watch_balance($exchange, $skipped_properties, $code) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                // continue;
-                $success = false;
-            }
-            if ($success === false) {
                 continue;
             }
             test_balance($exchange, $skipped_properties, $method, $response);

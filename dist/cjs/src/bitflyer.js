@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitflyer$1 = require('./abstract/bitflyer.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -14,7 +12,7 @@ var Precise = require('./base/Precise.js');
  * @class bitflyer
  * @augments Exchange
  */
-class bitflyer extends bitflyer$1["default"] {
+class bitflyer extends bitflyer$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitflyer',
@@ -1207,4 +1205,4 @@ class bitflyer extends bitflyer$1["default"] {
     }
 }
 
-exports["default"] = bitflyer;
+module.exports = bitflyer;

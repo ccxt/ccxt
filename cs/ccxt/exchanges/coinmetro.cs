@@ -201,6 +201,7 @@ public partial class coinmetro : Exchange
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
                 { "currencyIdsListForParseMarket", new List<object>() {"QRDO"} },
+                { "skippedMarkets", new List<object>() {"VXVUSDT"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -459,12 +460,12 @@ public partial class coinmetro : Exchange
         //         ...
         //     ]
         //
+        object skippedMarkets = this.safeList(this.options, "skippedMarkets", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = this.parseMarket(getValue(response, i));
-            // there are several broken (unavailable info) markets
-            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
+            if (isTrue(this.inArray(getValue(market, "id"), skippedMarkets)))
             {
                 continue;
             }

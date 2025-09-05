@@ -224,9 +224,6 @@
             "ccxt\\async\\": "php/async/",
             "ccxt\\pro\\" : "php/pro/"
         },
-        "classmap": [
-            "php/protobuf/mexc/"
-        ],
         "files": [ "ccxt.php", "php/pro/base/functions.php" ]
     },
     "require": {

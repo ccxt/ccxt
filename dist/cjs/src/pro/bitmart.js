@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitmart$1 = require('../bitmart.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -10,7 +8,7 @@ var OrderBookSide = require('../base/ws/OrderBookSide.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitmart extends bitmart$1["default"] {
+class bitmart extends bitmart$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -219,7 +217,7 @@ class bitmart extends bitmart$1["default"] {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ],
-        //              "event_time":"1701632345416",
+        //              "event_time":"1701632345415",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ],
@@ -1684,4 +1682,4 @@ class bitmart extends bitmart$1["default"] {
     }
 }
 
-exports["default"] = bitmart;
+module.exports = bitmart;

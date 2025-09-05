@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinone$1 = require('./abstract/coinone.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class coinone
  * @augments Exchange
  */
-class coinone extends coinone$1["default"] {
+class coinone extends coinone$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinone',
@@ -31,28 +29,18 @@ class coinone extends coinone$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowCrossMargin': false,
-                'borrowIsolatedMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createMarketOrder': false,
                 'createOrder': true,
-                'createOrderWithTakeProfitAndStopLoss': false,
-                'createOrderWithTakeProfitAndStopLossWs': false,
-                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -61,38 +49,20 @@ class coinone extends coinone$1["default"] {
                 'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
-                'fetchFundingInterval': false,
-                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
-                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
-                'fetchLiquidations': false,
-                'fetchLongShortRatio': false,
-                'fetchLongShortRatioHistory': false,
-                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMarkPrices': false,
-                'fetchMyLiquidations': false,
-                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
-                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
-                'fetchOption': false,
-                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -103,17 +73,11 @@ class coinone extends coinone$1["default"] {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
-                'repayCrossMargin': false,
-                'repayIsolatedMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
-                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'ws': true,
@@ -1276,4 +1240,4 @@ class coinone extends coinone$1["default"] {
     }
 }
 
-exports["default"] = coinone;
+module.exports = coinone;

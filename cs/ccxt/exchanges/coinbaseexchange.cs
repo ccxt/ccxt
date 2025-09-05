@@ -1570,10 +1570,7 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
     }
 
     /**
@@ -1596,10 +1593,7 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        object response = await this.privateDeleteOrders(this.extend(request, parameters));
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return await this.privateDeleteOrders(this.extend(request, parameters));
     }
 
     public async override Task<object> fetchPaymentMethods(object parameters = null)

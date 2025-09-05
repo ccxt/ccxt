@@ -1298,7 +1298,7 @@ class coincatch(ccxt.async_support.coincatch):
             'info': position,
         })
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message):
         #
         #    {event: "error", code: 30001, msg: "Channel does not exist"}
         #

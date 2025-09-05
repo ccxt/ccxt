@@ -899,7 +899,7 @@ class apex extends \ccxt\async\apex {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //   {
         //       "success" => false,

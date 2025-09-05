@@ -619,8 +619,8 @@ class coincatch extends Exchange {
                 for ($j = 0; $j < count($networks); $j++) {
                     $network = $networks[$j];
                     $networkId = $this->safe_string($network, 'chain');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $parsedNetworks[$networkCode] = array(
+                    $networkCode = $this->network_code_to_id($networkId);
+                    $parsedNetworks[$networkId] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
                         'limits' => array(
@@ -2192,7 +2192,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4788,7 +4788,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

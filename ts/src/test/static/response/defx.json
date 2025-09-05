@@ -948,7 +948,6 @@
         "cancelAllOrders": [
             {
                 "description": "cancelAllOrders",
-                "disabled": true,
                 "method": "cancelAllOrders",
                 "input": [
                     "SOL/USDC:USDC"

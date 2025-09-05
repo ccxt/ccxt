@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinex$1 = require('../coinex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinex extends coinex$1["default"] {
+class coinex extends coinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1307,7 +1305,7 @@ class coinex extends coinex$1["default"] {
         const method = this.safeString(message, 'method');
         const error = this.safeString(message, 'message');
         if (error !== undefined) {
-            this.handleErrors(1, '', client.url, method, {}, this.json(error), message, {}, {});
+            this.handleErrors(undefined, undefined, client.url, method, undefined, this.json(error), message, undefined, undefined);
         }
         const handlers = {
             'state.update': this.handleTicker,
@@ -1424,4 +1422,4 @@ class coinex extends coinex$1["default"] {
     }
 }
 
-exports["default"] = coinex;
+module.exports = coinex;

@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var calldata = require('../../types/calldata.js');
 require('../../types/lib/index.js');
 var assert = require('../assert.js');
@@ -13,26 +11,26 @@ var cairo = require('./cairo.js');
 
 // ----------------------------------------------------------------------------
 const validateFelt = (parameter, input) => {
-    assert["default"](shortString.isString(parameter) || num.isNumber(parameter) || num.isBigInt(parameter), `Validate: arg ${input.name} should be a felt typed as (String, Number or BigInt)`);
+    assert(shortString.isString(parameter) || num.isNumber(parameter) || num.isBigInt(parameter), `Validate: arg ${input.name} should be a felt typed as (String, Number or BigInt)`);
     if (shortString.isString(parameter) && !num.isHex(parameter))
         return; // shortstring
     const param = BigInt(parameter.toString(10));
-    assert["default"](
+    assert(
     // from : https://github.com/starkware-libs/starknet-specs/blob/29bab650be6b1847c92d4461d4c33008b5e50b1a/api/starknet_api_openrpc.json#L1266
     param >= 0n && param <= 2n ** 252n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^252-1]`);
 };
 const validateBytes31 = (parameter, input) => {
-    assert["default"](shortString.isString(parameter), `Validate: arg ${input.name} should be a string.`);
-    assert["default"](parameter.length < 32, `Validate: arg ${input.name} cairo typed ${input.type} should be a string of less than 32 characters.`);
+    assert(shortString.isString(parameter), `Validate: arg ${input.name} should be a string.`);
+    assert(parameter.length < 32, `Validate: arg ${input.name} cairo typed ${input.type} should be a string of less than 32 characters.`);
 };
 const validateByteArray = (parameter, input) => {
-    assert["default"](shortString.isString(parameter), `Validate: arg ${input.name} should be a string.`);
+    assert(shortString.isString(parameter), `Validate: arg ${input.name} should be a string.`);
 };
 const validateUint = (parameter, input) => {
     if (num.isNumber(parameter)) {
-        assert["default"](parameter <= Number.MAX_SAFE_INTEGER, `Validation: Parameter is to large to be typed as Number use (BigInt or String)`);
+        assert(parameter <= Number.MAX_SAFE_INTEGER, `Validation: Parameter is to large to be typed as Number use (BigInt or String)`);
     }
-    assert["default"](shortString.isString(parameter) ||
+    assert(shortString.isString(parameter) ||
         num.isNumber(parameter) ||
         num.isBigInt(parameter) ||
         (typeof parameter === 'object' && 'low' in parameter && 'high' in parameter) ||
@@ -51,44 +49,44 @@ const validateUint = (parameter, input) => {
     }
     switch (input.type) {
         case calldata.Uint.u8:
-            assert["default"](param >= 0n && param <= 255n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0 - 255]`);
+            assert(param >= 0n && param <= 255n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0 - 255]`);
             break;
         case calldata.Uint.u16:
-            assert["default"](param >= 0n && param <= 65535n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 65535]`);
+            assert(param >= 0n && param <= 65535n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 65535]`);
             break;
         case calldata.Uint.u32:
-            assert["default"](param >= 0n && param <= 4294967295n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 4294967295]`);
+            assert(param >= 0n && param <= 4294967295n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 4294967295]`);
             break;
         case calldata.Uint.u64:
-            assert["default"](param >= 0n && param <= 2n ** 64n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^64-1]`);
+            assert(param >= 0n && param <= 2n ** 64n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^64-1]`);
             break;
         case calldata.Uint.u128:
-            assert["default"](param >= 0n && param <= 2n ** 128n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^128-1]`);
+            assert(param >= 0n && param <= 2n ** 128n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^128-1]`);
             break;
         case calldata.Uint.u256:
-            assert["default"](param >= 0n && param <= 2n ** 256n - 1n, `Validate: arg ${input.name} is ${input.type} 0 - 2^256-1`);
+            assert(param >= 0n && param <= 2n ** 256n - 1n, `Validate: arg ${input.name} is ${input.type} 0 - 2^256-1`);
             break;
         case calldata.Uint.u512:
-            assert["default"](uint512.CairoUint512.is(param), `Validate: arg ${input.name} is ${input.type} 0 - 2^512-1`);
+            assert(uint512.CairoUint512.is(param), `Validate: arg ${input.name} is ${input.type} 0 - 2^512-1`);
             break;
         case calldata.Literal.ClassHash:
-            assert["default"](
+            assert(
             // from : https://github.com/starkware-libs/starknet-specs/blob/29bab650be6b1847c92d4461d4c33008b5e50b1a/api/starknet_api_openrpc.json#L1670
             param >= 0n && param <= 2n ** 252n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^252-1]`);
             break;
         case calldata.Literal.ContractAddress:
-            assert["default"](
+            assert(
             // from : https://github.com/starkware-libs/starknet-specs/blob/29bab650be6b1847c92d4461d4c33008b5e50b1a/api/starknet_api_openrpc.json#L1245
             param >= 0n && param <= 2n ** 252n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^252-1]`);
             break;
         case calldata.Literal.Secp256k1Point: {
-            assert["default"](param >= 0n && param <= 2n ** 512n - 1n, `Validate: arg ${input.name} must be ${input.type} : a 512 bits number.`);
+            assert(param >= 0n && param <= 2n ** 512n - 1n, `Validate: arg ${input.name} must be ${input.type} : a 512 bits number.`);
             break;
         }
     }
 };
 const validateBool = (parameter, input) => {
-    assert["default"](num.isBoolean(parameter), `Validate: arg ${input.name} of cairo type ${input.type} should be type (Boolean)`);
+    assert(num.isBoolean(parameter), `Validate: arg ${input.name} of cairo type ${input.type} should be type (Boolean)`);
 };
 const validateStruct = (parameter, input, structs) => {
     // c1v2 uint256 or u512 in struct
@@ -97,21 +95,21 @@ const validateStruct = (parameter, input, structs) => {
         return;
     }
     if (input.type === 'core::starknet::eth_address::EthAddress') {
-        assert["default"](typeof parameter !== 'object', `EthAddress type is waiting a BigNumberish. Got ${parameter}`);
+        assert(typeof parameter !== 'object', `EthAddress type is waiting a BigNumberish. Got ${parameter}`);
         const param = BigInt(parameter.toString(10));
-        assert["default"](
+        assert(
         // from : https://github.com/starkware-libs/starknet-specs/blob/29bab650be6b1847c92d4461d4c33008b5e50b1a/api/starknet_api_openrpc.json#L1259
         param >= 0n && param <= 2n ** 160n - 1n, `Validate: arg ${input.name} cairo typed ${input.type} should be in range [0, 2^160-1]`);
         return;
     }
-    assert["default"](typeof parameter === 'object' && !Array.isArray(parameter), `Validate: arg ${input.name} is cairo type struct (${input.type}), and should be defined as js object (not array)`);
+    assert(typeof parameter === 'object' && !Array.isArray(parameter), `Validate: arg ${input.name} is cairo type struct (${input.type}), and should be defined as js object (not array)`);
     // shallow struct validation, only first depth level
     structs[input.type].members.forEach(({ name }) => {
-        assert["default"](Object.keys(parameter).includes(name), `Validate: arg ${input.name} should have a property ${name}`);
+        assert(Object.keys(parameter).includes(name), `Validate: arg ${input.name} should have a property ${name}`);
     });
 };
 const validateEnum = (parameter, input) => {
-    assert["default"](typeof parameter === 'object' && !Array.isArray(parameter), `Validate: arg ${input.name} is cairo type Enum (${input.type}), and should be defined as js object (not array)`);
+    assert(typeof parameter === 'object' && !Array.isArray(parameter), `Validate: arg ${input.name} is cairo type Enum (${input.type}), and should be defined as js object (not array)`);
     const methodsKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(parameter));
     const keys = [...Object.getOwnPropertyNames(parameter), ...methodsKeys];
     if (cairo.isTypeOption(input.type) && keys.includes('isSome') && keys.includes('isNone')) {
@@ -126,7 +124,7 @@ const validateEnum = (parameter, input) => {
     throw new Error(`Validate Enum: argument ${input.name}, type ${input.type}, value received ${parameter}, is not an Enum.`);
 };
 const validateTuple = (parameter, input) => {
-    assert["default"](typeof parameter === 'object' && !Array.isArray(parameter), `Validate: arg ${input.name} should be a tuple (defined as object)`);
+    assert(typeof parameter === 'object' && !Array.isArray(parameter), `Validate: arg ${input.name} should be a tuple (defined as object)`);
     // todo: skip tuple structural validation for now
 };
 const validateArray = (parameter, input, structs, enums) => {
@@ -135,7 +133,7 @@ const validateArray = (parameter, input, structs, enums) => {
     if (cairo.isTypeFelt(baseType) && shortString.isLongText(parameter)) {
         return;
     }
-    assert["default"](Array.isArray(parameter), `Validate: arg ${input.name} should be an Array`);
+    assert(Array.isArray(parameter), `Validate: arg ${input.name} should be an Array`);
     switch (true) {
         case cairo.isTypeFelt(baseType):
             parameter.forEach((param) => validateFelt(param, input));
@@ -202,4 +200,4 @@ function validateFields(abiMethod, args, structs, enums) {
     }, 0);
 }
 
-exports["default"] = validateFields;
+module.exports = validateFields;

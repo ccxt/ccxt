@@ -1,8 +1,6 @@
 import asyncio
 
-# Test by running:
-# - python python/ccxt/pro/test/base/test_close.py
-# - python python/ccxt/pro/test/base/test_future.py
+
 class Future(asyncio.Future):
 
     def resolve(self, result=None):
@@ -32,8 +30,6 @@ class Future(asyncio.Future):
                     if err:
                         exceptions.append(err)
             # if any exceptions return with first exception
-            if future.cancelled():
-                return
             if len(exceptions) > 0:
                 future.set_exception(exceptions[0])
             # else return first result

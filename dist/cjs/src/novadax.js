@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var novadax$1 = require('./abstract/novadax.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -15,7 +13,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class novadax
  * @augments Exchange
  */
-class novadax extends novadax$1["default"] {
+class novadax extends novadax$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'novadax',
@@ -34,9 +32,6 @@ class novadax extends novadax$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowCrossMargin': false,
-                'borrowIsolatedMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -49,14 +44,9 @@ class novadax extends novadax$1["default"] {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchAccounts': true,
-                'fetchAllGreeks': false,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -66,40 +56,20 @@ class novadax extends novadax$1["default"] {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingInterval': false,
-                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
-                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
-                'fetchLiquidations': false,
-                'fetchLongShortRatio': false,
-                'fetchLongShortRatioHistory': false,
-                'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
-                'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMarkPrice': false,
-                'fetchMarkPrices': false,
-                'fetchMyLiquidations': false,
-                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
-                'fetchOption': false,
-                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -112,7 +82,6 @@ class novadax extends novadax$1["default"] {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -120,14 +89,9 @@ class novadax extends novadax$1["default"] {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': 'emulated',
-                'fetchUnderlyingAssets': false,
-                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayCrossMargin': false,
-                'repayIsolatedMargin': false,
                 'setLeverage': false,
-                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -1674,4 +1638,4 @@ class novadax extends novadax$1["default"] {
     }
 }
 
-exports["default"] = novadax;
+module.exports = novadax;

@@ -1,12 +1,10 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var gate = require('./gate.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class gateio extends gate["default"] {
+class gateio extends gate {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gateio',
@@ -15,4 +13,4 @@ class gateio extends gate["default"] {
     }
 }
 
-exports["default"] = gateio;
+module.exports = gateio;

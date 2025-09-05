@@ -18,9 +18,7 @@ class binanceusdm extends \ccxt\pro\binance {
                 'doc' => 'https://developers.binance.com/en',
             ),
             'options' => array(
-                'fetchMarkets' => array(
-                    'types' => array( 'linear' ),
-                ),
+                'fetchMarkets' => array( 'linear' ),
                 'defaultSubType' => 'linear',
             ),
             // https://binance-docs.github.io/apidocs/futures/en/#error-codes

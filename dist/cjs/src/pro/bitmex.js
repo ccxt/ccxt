@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitmex$1 = require('../bitmex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitmex extends bitmex$1["default"] {
+class bitmex extends bitmex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -382,7 +380,7 @@ class bitmex extends bitmex$1["default"] {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHashes = [];
@@ -1756,4 +1754,4 @@ class bitmex extends bitmex$1["default"] {
     }
 }
 
-exports["default"] = bitmex;
+module.exports = bitmex;

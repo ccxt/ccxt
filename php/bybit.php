@@ -1019,9 +1019,7 @@ class bybit extends Exchange {
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
                 'enableDemoTrading' => false,
-                'fetchMarkets' => array(
-                    'types' => array( 'spot', 'linear', 'inverse', 'option' ),
-                ),
+                'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
@@ -1715,17 +1713,9 @@ class bybit extends Exchange {
             $this->load_time_difference();
         }
         $promisesUnresolved = array();
-        $types = null;
-        $defaultTypes = array( 'spot', 'linear', 'inverse', 'option' );
-        $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
-        if ($fetchMarketsOptions !== null) {
-            $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultTypes);
-        } else {
-            // for backward-compatibility
-            $types = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
-        }
-        for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+        $fetchMarkets = $this->safe_list($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
+        for ($i = 0; $i < count($fetchMarkets); $i++) {
+            $marketType = $fetchMarkets[$i];
             if ($marketType === 'spot') {
                 $promisesUnresolved[] = $this->fetch_spot_markets($params);
             } elseif ($marketType === 'linear') {
@@ -1737,7 +1727,7 @@ class bybit extends Exchange {
                 $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'ETH' ));
                 $promisesUnresolved[] = $this->fetch_option_markets(array( 'baseCoin' => 'SOL' ));
             } else {
-                throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $marketType . '" is not a supported market type');
+                throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
             }
         }
         $promises = $promisesUnresolved;
@@ -4809,7 +4799,7 @@ class bybit extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $orders = $this->safe_list($result, 'list');
         if (gettype($orders) !== 'array' || array_keys($orders) !== array_keys(array_keys($orders))) {
-            return array( $this->safe_order(array( 'info' => $response )) );
+            return $response;
         }
         return $this->parse_orders($orders, $market);
     }
@@ -6146,7 +6136,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -6161,12 +6151,7 @@ class bybit extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $accountType = null;
-        $accounts = $this->is_unified_enabled();
-        $isUta = $accounts[1];
         list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType', 'SPOT');
-        if ($isUta) {
-            $accountType = 'UTA';
-        }
         $this->load_markets();
         $this->check_address($address);
         $currency = $this->currency($code);
@@ -6752,7 +6737,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -8369,7 +8354,7 @@ class bybit extends Exchange {
             }
             $symbol = $market['symbol'];
         }
-        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 50 ), $params));
+        $data = $this->get_leverage_tiers_paginated($symbol, $this->extend(array( 'paginate' => true, 'paginationCalls' => 40 ), $params));
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
@@ -8540,7 +8525,7 @@ class bybit extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($income, 'execId'),
-            'amount' => $this->safe_number($income, 'execFee'),
+            'amount' => $this->safe_number($income, 'execQty'),
             'rate' => $this->safe_number($income, 'feeRate'),
         );
     }

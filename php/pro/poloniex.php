@@ -1286,7 +1286,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //    {
         //        $message => 'Invalid channel value ["ordersss"]',

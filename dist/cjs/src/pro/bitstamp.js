@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitstamp$1 = require('../bitstamp.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitstamp extends bitstamp$1["default"] {
+class bitstamp extends bitstamp$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -500,7 +498,7 @@ class bitstamp extends bitstamp$1["default"] {
             const code = this.safeNumber(data, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
         }
-        return true;
+        return message;
     }
     handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {
@@ -585,4 +583,4 @@ class bitstamp extends bitstamp$1["default"] {
     }
 }
 
-exports["default"] = bitstamp;
+module.exports = bitstamp;

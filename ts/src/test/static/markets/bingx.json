@@ -68,8 +68,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "BTC-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -144,8 +143,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "LTC-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -220,8 +218,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "ADA-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -296,8 +293,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "XRP-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -372,8 +368,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "SOL-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -448,8 +443,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "TRX-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -533,8 +527,7 @@
             "brokerState": false,
             "launchTime": "1622476800000",
             "maintainTime": "0",
-            "offTime": "0",
-            "displayName": "LTC-USDT"
+            "offTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -618,8 +611,7 @@
             "brokerState": false,
             "launchTime": "1586275200000",
             "maintainTime": "0",
-            "offTime": "0",
-            "displayName": "BTC-USDT"
+            "offTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -703,8 +695,7 @@
             "brokerState": false,
             "launchTime": "1622476800000",
             "maintainTime": "0",
-            "offTime": "0",
-            "displayName": "ADA-USDT"
+            "offTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -784,12 +775,11 @@
             "apiStateOpen": "true",
             "apiStateClose": "true",
             "ensureTrigger": true,
-            "triggerFeeRate": "0.00050000",
+            "triggerFeeRate": "0.00035000",
             "brokerState": false,
             "launchTime": "1586275200000",
             "maintainTime": "0",
-            "offTime": "0",
-            "displayName": "ETH-USDT"
+            "offTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -864,8 +854,7 @@
             "apiStateBuy": true,
             "timeOnline": "0",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "ETH-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -944,13 +933,12 @@
             "status": "1",
             "apiStateOpen": "true",
             "apiStateClose": "true",
-            "ensureTrigger": true,
+            "ensureTrigger": false,
             "triggerFeeRate": "0.00050000",
             "brokerState": false,
             "launchTime": "1635955200000",
             "maintainTime": "0",
-            "offTime": "0",
-            "displayName": "SOL-USDT"
+            "offTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -1034,8 +1022,7 @@
             "brokerState": false,
             "launchTime": "1636387200000",
             "maintainTime": "0",
-            "offTime": "0",
-            "displayName": "DOGE-USDT"
+            "offTime": "0"
         },
         "tierBased": null,
         "percentage": null,
@@ -1104,8 +1091,7 @@
             "minTradeValue": "100",
             "minQty": "1.00000000",
             "status": "1",
-            "timeOnline": "1710738000000",
-            "displayName": "BTC-USD"
+            "timeOnline": "1710738000000"
         },
         "tierBased": null,
         "percentage": null,
@@ -1174,8 +1160,7 @@
             "minTradeValue": "10",
             "minQty": "1.00000000",
             "status": "1",
-            "timeOnline": "1713250800000",
-            "displayName": "SOL-USD"
+            "timeOnline": "1713250800000"
         },
         "tierBased": null,
         "percentage": null,
@@ -1250,8 +1235,7 @@
             "apiStateBuy": true,
             "timeOnline": "1737175800000",
             "offTime": "0",
-            "maintainTime": "0",
-            "displayName": "TRUMPSOL-USDT"
+            "maintainTime": "0"
         },
         "tierBased": null,
         "percentage": null,

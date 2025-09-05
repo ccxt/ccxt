@@ -19,7 +19,6 @@ function test_watch_trades($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
-            $success = true;
             try {
                 $response = Async\await($exchange->watch_trades($symbol));
             } catch(\Throwable $e) {
@@ -27,18 +26,15 @@ function test_watch_trades($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                // continue;
-                $success = false;
+                continue;
             }
-            if ($success === true) {
-                assert_non_emtpy_array($exchange, $skipped_properties, $method, $response);
-                $now = $exchange->milliseconds();
-                for ($i = 0; $i < count($response); $i++) {
-                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
-                }
-                if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
-                    assert_timestamp_order($exchange, $method, $symbol, $response);
-                }
+            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response);
+            $now = $exchange->milliseconds();
+            for ($i = 0; $i < count($response); $i++) {
+                test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+            }
+            if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+                assert_timestamp_order($exchange, $method, $symbol, $response);
             }
         }
     }) ();

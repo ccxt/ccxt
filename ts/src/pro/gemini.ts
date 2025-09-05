@@ -500,17 +500,12 @@ export default class gemini extends geminiRest {
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601 (timestamp);
         currentBidAsk['info'] = rawBidAskChanges;
-        const bidsAsksDict = {};
-        bidsAsksDict[symbol] = currentBidAsk;
         this.bidsasks[symbol] = currentBidAsk;
-        client.resolve (bidsAsksDict, messageHash);
+        client.resolve (currentBidAsk, messageHash);
     }
 
-    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[] = undefined, params = {}) {
+    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
         await this.loadMarkets ();
-        if (symbols === undefined) {
-            throw new NotSupported (this.id + ' watchMultiple requires at least one symbol');
-        }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {

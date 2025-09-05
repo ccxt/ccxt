@@ -442,7 +442,6 @@ class mexc extends Exchange {
                         ),
                     ),
                 ),
-                'useCcxtTradeId' => true,
                 'timeframes' => array(
                     'spot' => array(
                         '1m' => '1m',
@@ -481,12 +480,6 @@ class mexc extends Exchange {
                     'ZKSYNC' => 'ZKSYNCERA',
                     'TRC20' => 'TRX',
                     'TON' => 'TONCOIN',
-                    'ARBITRUM' => 'ARB',
-                    'STX' => 'STACKS',
-                    'LUNC' => 'LUNA',
-                    'STARK' => 'STARKNET',
-                    'APT' => 'APTOS',
-                    'PEAQ' => 'PEAQEVM',
                     'AVAXC' => 'AVAX_CCHAIN',
                     'ERC20' => 'ETH',
                     'ACA' => 'ACALA',
@@ -516,7 +509,6 @@ class mexc extends Exchange {
                     // 'DNX' => 'Dynex(DNX)',
                     // 'DOGE' => 'Dogecoin(DOGE)',
                     // 'DOT' => 'Polkadot(DOT)',
-                    'DOT' => 'DOTASSETHUB',
                     // 'DYM' => 'Dymension(DYM)',
                     'ETHF' => 'ETF',
                     'HRC20' => 'HECO',
@@ -674,7 +666,6 @@ class mexc extends Exchange {
                     'BNB Smart Chain(BEP20-RACAV1)' => 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
-                    'Ethereum(ERC20)' => 'ERC20',
                     // TODO => uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -1748,8 +1739,8 @@ class mexc extends Exchange {
                 }
             }
         }
-        if ($id === null && $this->safe_bool($this->options, 'useCcxtTradeId', true)) {
-            $id = $this->create_ccxt_trade_id($timestamp, $side, $amountString, $priceString, $takerOrMaker);
+        if ($id === null) {
+            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amountString, $priceString, $type, $takerOrMaker);
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1766,6 +1757,30 @@ class mexc extends Exchange {
             'fee' => $fee,
             'info' => $trade,
         ), $market);
+    }
+
+    public function synthetic_trade_id($market = null, $timestamp = null, $side = null, $amount = null, $price = null, $orderType = null, $takerOrMaker = null) {
+        // TODO => can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+        $id = '';
+        if ($timestamp !== null) {
+            $id = $this->number_to_string($timestamp) . '-' . $this->safe_string($market, 'id', '_');
+            if ($side !== null) {
+                $id .= '-' . $side;
+            }
+            if ($amount !== null) {
+                $id .= '-' . $this->number_to_string($amount);
+            }
+            if ($price !== null) {
+                $id .= '-' . $this->number_to_string($price);
+            }
+            if ($takerOrMaker !== null) {
+                $id .= '-' . $takerOrMaker;
+            }
+            if ($orderType !== null) {
+                $id .= '-' . $orderType;
+            }
+        }
+        return $id;
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -4330,7 +4345,7 @@ class mexc extends Exchange {
         }) ();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -4966,14 +4981,11 @@ class mexc extends Exchange {
             //         "network" => "TRX",
             //         "status" => "5",
             //         "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+            //         "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
             //         "insertTime" => "1664805021000",
             //         "unlockConfirm" => "200",
             //         "confirmTimes" => "203",
-            //         "memo" => "xxyy1122",
-            //         "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-            //         "updateTime" => "1664805621000",
-            //         "netWork => "TRX"
+            //         "memo" => "xxyy1122"
             //     }
             // )
             //
@@ -5021,7 +5033,7 @@ class mexc extends Exchange {
             // array(
             //     {
             //       "id" => "adcd1c8322154de691b815eedcd10c42",
-            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+            //       "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
             //       "coin" => "USDC-MATIC",
             //       "network" => "MATIC",
             //       "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -5032,11 +5044,7 @@ class mexc extends Exchange {
             //       "confirmNo" => null,
             //       "applyTime" => "1664882739000",
             //       "remark" => '',
-            //       "memo" => null,
-            //       "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-            //       "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-            //       "updateTime" => "1664882799000",
-            //       "netWork => "MATIC"
+            //       "memo" => null
             //     }
             // )
             //
@@ -5054,21 +5062,18 @@ class mexc extends Exchange {
         //     "network" => "TRX",
         //     "status" => "5",
         //     "address" => "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //     "txId" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "insertTime" => "1664805021000",
         //     "unlockConfirm" => "200",
         //     "confirmTimes" => "203",
-        //     "memo" => "xxyy1122",
-        //     "transHash" => "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //     "updateTime" => "1664805621000",
-        //     "netWork => "TRX"
+        //     "memo" => "xxyy1122"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id" => "adcd1c8322154de691b815eedcd10c42",
-        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //     "txId" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "coin" => "USDC-MATIC",
         //     "network" => "MATIC",
         //     "address" => "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -5078,12 +5083,8 @@ class mexc extends Exchange {
         //     "transactionFee" => "1",
         //     "confirmNo" => null,
         //     "applyTime" => "1664882739000",
-        //     "remark" => "",
-        //     "memo" => null,
-        //     "explorerUrl" => "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "transHash" => "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "updateTime" => "1664882799000",
-        //     "netWork => "MATIC"
+        //     "remark" => '',
+        //     "memo" => null
         //   }
         //
         // withdraw
@@ -5092,16 +5093,9 @@ class mexc extends Exchange {
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        // internal withdraw (aka internal-transfer)
-        //
-        //     {
-        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
-        //     }
-        //
-        $id = $this->safe_string_2($transaction, 'id', 'tranId');
+        $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
-        $updated = $this->safe_integer($transaction, 'updateTime');
         $currencyId = null;
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
         if ($currencyWithNetwork !== null) {
@@ -5116,7 +5110,7 @@ class mexc extends Exchange {
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $txid = $this->safe_string_2($transaction, 'transHash', 'txId');
+        $txid = $this->safe_string($transaction, 'txId');
         $fee = null;
         $feeCostString = $this->safe_string($transaction, 'transactionFee');
         if ($feeCostString !== null) {
@@ -5146,8 +5140,8 @@ class mexc extends Exchange {
             'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
-            'updated' => $updated,
-            'comment' => $this->safe_string($transaction, 'remark'),
+            'updated' => null,
+            'comment' => null,
             'internal' => null,
             'fee' => $fee,
         );
@@ -5311,7 +5305,7 @@ class mexc extends Exchange {
         //        positionShowStatus => 'CLOSED'
         //    }
         //
-        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market, null, 'swap');
+        $market = $this->safe_market($this->safe_string($position, 'symbol'), $market);
         $symbol = $market['symbol'];
         $contracts = $this->safe_string($position, 'holdVol');
         $entryPrice = $this->safe_number($position, 'openAvgPrice');
@@ -5624,46 +5618,23 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
              *
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
-             * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#$internal-transfer
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->internal] false by default, set to true for an "internal transfer"
-             * @param {array} [$params->toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            $internal = $this->safe_bool($params, 'internal', false);
-            if ($internal) {
-                $params = $this->omit($params, 'internal');
-                $requestForInternal = array(
-                    'asset' => $currency['id'],
-                    'amount' => $amount,
-                    'toAccount' => $address,
-                );
-                $toAccountType = $this->safe_string($params, 'toAccountType');
-                if ($toAccountType === null) {
-                    throw new ArgumentsRequired($this->id . ' withdraw() requires a $toAccountType parameter for $internal transfer to be of => EMAIL | UID | MOBILE');
-                }
-                $responseForInternal = Async\await($this->spotPrivatePostCapitalTransferInternal ($this->extend($requestForInternal, $params)));
-                //
-                //     {
-                //       "id":"7213fea8e94b4a5593d507237e5a555b"
-                //     }
-                //
-                return $this->parse_transaction($responseForInternal, $currency);
-            }
             $networks = $this->safe_dict($this->options, 'networks', array());
             $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
@@ -6153,7 +6124,7 @@ class mexc extends Exchange {
             //
             // array( success => true, code => '0' )
             //
-            return $this->parse_leverage($response, $market); // tmp revert type
+            return $this->parse_leverage($response, $market);
         }) ();
     }
 

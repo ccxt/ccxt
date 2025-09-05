@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class independentreserve extends independentreserve$1["default"] {
+class independentreserve extends independentreserve$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -285,4 +283,4 @@ class independentreserve extends independentreserve$1["default"] {
     }
 }
 
-exports["default"] = independentreserve;
+module.exports = independentreserve;

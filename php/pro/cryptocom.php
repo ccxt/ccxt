@@ -1340,7 +1340,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //    {
         //        "id" => 0,

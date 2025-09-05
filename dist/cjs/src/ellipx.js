@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var ellipx$1 = require('./abstract/ellipx.js');
 var errors = require('./base/errors.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
@@ -16,7 +14,7 @@ var number = require('./base/functions/number.js');
  * @class ellipx
  * @augments Exchange
  */
-class ellipx extends ellipx$1["default"] {
+class ellipx extends ellipx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ellipx',
@@ -34,15 +32,11 @@ class ellipx extends ellipx$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowCrossMargin': false,
-                'borrowIsolatedMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
-                'closeAllPositions': false,
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
@@ -52,8 +46,6 @@ class ellipx extends ellipx$1["default"] {
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
-                'createOrderWithTakeProfitAndStopLossWs': false,
-                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopLossOrder': false,
@@ -65,12 +57,6 @@ class ellipx extends ellipx$1["default"] {
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
-                'fetchBorrowRateHistories': false,
-                'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -79,48 +65,27 @@ class ellipx extends ellipx$1["default"] {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
-                'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
-                'fetchFundingInterval': false,
-                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
-                'fetchIsolatedBorrowRate': false,
-                'fetchIsolatedBorrowRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
-                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
-                'fetchLiquidations': false,
-                'fetchLongShortRatio': false,
-                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMarkPrices': false,
-                'fetchMyLiquidations': false,
-                'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
-                'fetchOption': false,
-                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -131,9 +96,7 @@ class ellipx extends ellipx$1["default"] {
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
                 'fetchPositionsHistory': false,
-                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
@@ -143,16 +106,11 @@ class ellipx extends ellipx$1["default"] {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
-                'repayCrossMargin': false,
-                'repayIsolatedMargin': false,
-                'repayMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
                 'setMargin': false,
-                'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
@@ -2069,4 +2027,4 @@ class ellipx extends ellipx$1["default"] {
     }
 }
 
-exports["default"] = ellipx;
+module.exports = ellipx;

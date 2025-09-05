@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var cryptocom$1 = require('../cryptocom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class cryptocom extends cryptocom$1["default"] {
+class cryptocom extends cryptocom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1412,4 +1410,4 @@ class cryptocom extends cryptocom$1["default"] {
     }
 }
 
-exports["default"] = cryptocom;
+module.exports = cryptocom;

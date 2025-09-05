@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bittrade$1 = require('../bittrade.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class bittrade extends bittrade$1["default"] {
+class bittrade extends bittrade$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -604,4 +602,4 @@ class bittrade extends bittrade$1["default"] {
     }
 }
 
-exports["default"] = bittrade;
+module.exports = bittrade;

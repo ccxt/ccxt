@@ -1244,8 +1244,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors(1, '', client.url, '', {}, data, message, {}, {});
-        return true;
+        this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
     handleSubscriptionStatus(client, message) {
         //

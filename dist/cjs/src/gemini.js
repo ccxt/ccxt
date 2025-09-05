@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class gemini
  * @augments Exchange
  */
-class gemini extends gemini$1["default"] {
+class gemini extends gemini$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gemini',
@@ -263,7 +261,7 @@ class gemini extends gemini$1["default"] {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -693,8 +691,8 @@ class gemini extends gemini$1["default"] {
         //
         //     [
         //         'BTCUSD',   // symbol
-        //         2,          // tick precision (priceTickDecimalPlaces)
-        //         8,          // amount precision (quantityTickDecimalPlaces)
+        //         2,          // priceTickDecimalPlaces
+        //         8,          // quantityTickDecimalPlaces
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -713,7 +711,7 @@ class gemini extends gemini$1["default"] {
         //         "wrap_enabled": false
         //         "product_type": "swap", // only in perps
         //         "contract_type": "linear", // only in perps
-        //         "contract_price_currency": "GUSD"
+        //         "contract_price_currency": "GUSD" // only in perps
         //     }
         //
         let marketId = undefined;
@@ -2004,4 +2002,4 @@ class gemini extends gemini$1["default"] {
     }
 }
 
-exports["default"] = gemini;
+module.exports = gemini;

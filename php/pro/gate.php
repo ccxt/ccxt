@@ -394,13 +394,6 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-$channel
-             * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
-             * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
-             * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
-             * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
-             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -417,7 +410,7 @@ class gate extends \ccxt\async\gate {
             $url = $this->get_url_by_market($market);
             $payload = array( $marketId, $interval );
             if ($limit === null) {
-                $limit = 100; // max 100 atm
+                $limit = 100;
             }
             if ($market['contract']) {
                 $stringLimit = (string) $limit;
@@ -1493,7 +1486,7 @@ class gate extends \ccxt\async\gate {
         return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
-    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the private liquidations of a trading pair
@@ -1658,7 +1651,7 @@ class gate extends \ccxt\async\gate {
         ));
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //    {
         //        "time" => 1647274664,

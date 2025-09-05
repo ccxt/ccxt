@@ -50,7 +50,6 @@ class Client(object):
     connecting = False
     asyncio_loop: BaseEventLoop = None
     ping_looper = None
-    decompressBinary = True  # decompress binary messages by default
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
@@ -219,8 +218,7 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
-            if self.decompressBinary:
-                data = data.decode()
+            data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):

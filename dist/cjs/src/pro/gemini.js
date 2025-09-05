@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
@@ -10,7 +8,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gemini extends gemini$1["default"] {
+class gemini extends gemini$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -490,16 +488,11 @@ class gemini extends gemini$1["default"] {
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601(timestamp);
         currentBidAsk['info'] = rawBidAskChanges;
-        const bidsAsksDict = {};
-        bidsAsksDict[symbol] = currentBidAsk;
         this.bidsasks[symbol] = currentBidAsk;
-        client.resolve(bidsAsksDict, messageHash);
+        client.resolve(currentBidAsk, messageHash);
     }
-    async helperForWatchMultipleConstruct(itemHashName, symbols = undefined, params = {}) {
+    async helperForWatchMultipleConstruct(itemHashName, symbols, params = {}) {
         await this.loadMarkets();
-        if (symbols === undefined) {
-            throw new errors.NotSupported(this.id + ' watchMultiple requires at least one symbol');
-        }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {
@@ -935,4 +928,4 @@ class gemini extends gemini$1["default"] {
     }
 }
 
-exports["default"] = gemini;
+module.exports = gemini;

@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var WebSocket = require('ws');
 var Client = require('./Client.js');
 var platform = require('../functions/platform.js');
@@ -18,7 +16,7 @@ var WebSocket__default = /*#__PURE__*/_interopDefaultLegacy(WebSocket);
 // ----------------------------------------------------------------------------
 // eslint-disable-next-line no-restricted-globals
 const WebSocketPlatform = platform.isNode || !misc.selfIsDefined() ? WebSocket__default["default"] : self.WebSocket;
-class WsClient extends Client["default"] {
+class WsClient extends Client {
     constructor() {
         super(...arguments);
         this.startedConnecting = false;
@@ -75,4 +73,4 @@ class WsClient extends Client["default"] {
     }
 }
 
-exports["default"] = WsClient;
+module.exports = WsClient;

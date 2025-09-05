@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var blofin$1 = require('./abstract/blofin.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class blofin
  * @augments Exchange
  */
-class blofin extends blofin$1["default"] {
+class blofin extends blofin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'blofin',
@@ -905,7 +903,6 @@ class blofin extends blofin$1["default"] {
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -916,7 +913,7 @@ class blofin extends blofin$1["default"] {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100);
+            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params);
         }
         const market = this.market(symbol);
         const request = {
@@ -927,11 +924,6 @@ class blofin extends blofin$1["default"] {
         }
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const until = this.safeInteger(params, 'until');
-        if (until !== undefined) {
-            request['after'] = until;
-            params = this.omit(params, 'until');
         }
         const response = await this.publicGetMarketFundingRateHistory(this.extend(request, params));
         const rates = [];
@@ -2574,4 +2566,4 @@ class blofin extends blofin$1["default"] {
     }
 }
 
-exports["default"] = blofin;
+module.exports = blofin;

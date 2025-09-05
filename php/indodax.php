@@ -26,9 +26,6 @@ class indodax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowCrossMargin' => false,
-                'borrowIsolatedMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -40,14 +37,9 @@ class indodax extends Exchange {
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
-                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
-                'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -58,52 +50,30 @@ class indodax extends Exchange {
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingInterval' => false,
-                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
-                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
-                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
-                'fetchLiquidations' => false,
-                'fetchLongShortRatio' => false,
-                'fetchLongShortRatioHistory' => false,
-                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
-                'fetchMarginModes' => false,
-                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMarkPrice' => false,
-                'fetchMarkPrices' => false,
-                'fetchMyLiquidations' => false,
-                'fetchMySettlementHistory' => false,
-                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
-                'fetchOption' => false,
-                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
-                'fetchPositionForSymbolWs' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
-                'fetchPositionsForSymbolWs' => false,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
@@ -114,13 +84,9 @@ class indodax extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
-                'fetchUnderlyingAssets' => false,
-                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
-                'repayCrossMargin' => false,
-                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -192,16 +158,6 @@ class indodax extends Exchange {
                     'Minimum order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
-            'timeframes' => array(
-                '1m' => '1',
-                '15m' => '15',
-                '30m' => '30',
-                '1h' => '60',
-                '4h' => '240',
-                '1d' => '1D',
-                '3d' => '3D',
-                '1w' => '1W',
-            ),
             // exchange-specific options
             'options' => array(
                 'recvWindow' => 5 * 1000, // default 5 sec
@@ -224,6 +180,16 @@ class indodax extends Exchange {
                     // 'ZRC2' => 'zrc2'
                     // 'ETH' => 'eth'
                     // 'BASE' => 'base'
+                ),
+                'timeframes' => array(
+                    '1m' => '1',
+                    '15m' => '15',
+                    '30m' => '30',
+                    '1h' => '60',
+                    '4h' => '240',
+                    '1d' => '1D',
+                    '3d' => '3D',
+                    '1w' => '1W',
                 ),
             ),
             'features' => array(
@@ -693,7 +659,8 @@ class indodax extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $selectedTimeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $timeframes = $this->options['timeframes'];
+        $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $now = $this->seconds();
         $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
@@ -1183,7 +1150,7 @@ class indodax extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

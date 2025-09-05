@@ -2641,8 +2641,7 @@ export default class oxfun extends Exchange {
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        const response = await this.privateDeleteV3OrdersCancelAll(this.extend(request, params));
-        return [this.safeOrder({ 'info': response })];
+        return await this.privateDeleteV3OrdersCancelAll(this.extend(request, params));
     }
     /**
      * @method

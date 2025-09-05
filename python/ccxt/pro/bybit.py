@@ -7,7 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -49,17 +49,6 @@ class bybit(ccxt.async_support.bybit):
                 'watchTrades': True,
                 'watchPositions': True,
                 'watchTradesForSymbols': True,
-                'unWatchTicker': True,
-                'unWatchTickers': True,
-                'unWatchOHLCV': True,
-                'unWatchOHLCVForSymbols': True,
-                'unWatchOrderBook': True,
-                'unWatchOrderBookForSymbols': True,
-                'unWatchTrades': True,
-                'unWatchTradesForSymbols': True,
-                'unWatchMyTrades': True,
-                'unWatchOrders': True,
-                'unWatchPositions': True,
             },
             'urls': {
                 'api': {
@@ -434,19 +423,19 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
         return await self.un_watch_topics(url, 'ticker', symbols, messageHashes, subMessageHashes, topics, params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    async def un_watch_ticker(self, symbols: str, params={}) -> Any:
         """
         unWatches a price ticker
 
         https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
 
-        :param str[] symbol: unified symbol of the market to fetch the ticker for
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        return await self.un_watch_tickers([symbol], params)
+        return await self.un_watch_tickers([symbols], params)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -848,14 +837,16 @@ class bybit(ccxt.async_support.bybit):
             if market['option']:
                 limit = 100
         else:
-            limits = {
-                'spot': [1, 50, 200, 1000],
-                'option': [25, 100],
-                'default': [1, 50, 200, 500, 1000],
-            }
-            selectedLimits = self.safe_list_2(limits, market['type'], 'default')
-            if not self.in_array(limit, selectedLimits):
-                raise BadRequest(self.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + self.json(selectedLimits))
+            if not market['spot']:
+                if market['option']:
+                    if (limit != 25) and (limit != 100):
+                        raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
+                elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
+                    # bybit only support limit 1, 50, 200, 500 for contract
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.')
+            else:
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.')
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -868,7 +859,7 @@ class bybit(ccxt.async_support.bybit):
         orderbook = await self.watch_topics(url, messageHashes, topics, params)
         return orderbook.limit()
 
-    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+    async def un_watch_order_book_for_symbols(self, symbols: Strings, params={}) -> Any:
         """
         unsubscribe from the orderbook channel
 
@@ -1042,7 +1033,7 @@ class bybit(ccxt.async_support.bybit):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+    async def un_watch_trades_for_symbols(self, symbols: Strings, params={}) -> Any:
         """
         unsubscribe from the trades channel
 
@@ -1493,27 +1484,6 @@ class bybit(ccxt.async_support.bybit):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    async def un_watch_positions(self, symbols: Strings = None, params={}) -> Any:
-        """
-        unWatches all open positions
-
-        https://bybit-exchange.github.io/docs/v5/websocket/private/position
-
-        :param str[] [symbols]: list of unified market symbols
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: status of the unwatch request
-        """
-        await self.load_markets()
-        method = 'watchPositions'
-        messageHash = 'unsubscribe:positions'
-        subHash = 'positions'
-        if not self.is_empty(symbols):
-            raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
-        url = await self.get_url_by_market_type(None, True, method, params)
-        await self.authenticate(url)
-        topics = ['position']
-        return await self.un_watch_topics(url, 'positions', symbols, [messageHash], [subHash], topics, params)
-
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
@@ -1629,7 +1599,6 @@ class bybit(ccxt.async_support.bybit):
             'contracts': self.safe_number_2(liquidation, 'size', 'v'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number_2(liquidation, 'price', 'p'),
-            'side': self.safe_string_lower(liquidation, 'side', 'S'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -2114,7 +2083,7 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
+    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
         reqId = self.request_id()
         request: dict = {
             'op': 'unsubscribe',
@@ -2153,7 +2122,7 @@ class bybit(ccxt.async_support.bybit):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message):
         #
         #   {
         #       "success": False,

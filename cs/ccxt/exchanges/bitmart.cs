@@ -3218,9 +3218,7 @@ public partial class bitmart : Exchange
         //
         if (isTrue(getValue(market, "swap")))
         {
-            return this.safeOrder(new Dictionary<string, object>() {
-                { "info", response },
-            });
+            return response;
         }
         object data = this.safeValue(response, "data");
         if (isTrue(isEqual(data, true)))
@@ -3385,9 +3383,7 @@ public partial class bitmart : Exchange
         //         "trace": "7f9c94e10f9d4513bc08a7bfc2a5559a.70.16954131323145323"
         //     }
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return response;
     }
 
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)

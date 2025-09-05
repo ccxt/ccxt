@@ -1,4 +1,4 @@
-import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
+import ccxt from '../ts/ccxt.js';
 import { promisify } from 'util';
 import fs from 'fs';
 import log from 'ololog'
@@ -13,14 +13,14 @@ const GO_PATH = './go/v4/'
 const IDEN = '    ';
 
 
-let storedCamelCaseMethods: Dict = {};
-let storedUnderscoreMethods: Dict = {};
-let storedTypeScriptMethods: Dict = {};
-let storedCSharpMethods: Dict = {};
-let storedContext: Dict = {};
-let storedPhpMethods: Dict = {};
-let storedPyMethods: Dict = {};
-let storedGoMethods: Dict = {};
+let storedCamelCaseMethods = {};
+let storedUnderscoreMethods = {};
+let storedTypeScriptMethods = {};
+let storedCSharpMethods = {};
+let storedContext = {};
+let storedPhpMethods = {};
+let storedPyMethods = {};
+let storedGoMethods = {};
 
 
 const [,, ...args] = process.argv
@@ -37,18 +37,18 @@ const langKeys = {
 const promisedWriteFile = promisify (fs.writeFile);
 const promisedUnlinkFile = promisify (fs.unlink)
 
-function isHttpMethod(method: string): boolean {
+function isHttpMethod(method){
     return ['get', 'post', 'put', 'delete', 'patch'].includes (method);
 }
 //-------------------------------------------------------------------------
 
-const capitalize = (s: string): string => {
+const capitalize = (s) => {
     return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
 };
 
 //-------------------------------------------------------------------------
 
-function lowercaseFirstLetter(string: string): string {
+function lowercaseFirstLetter(string) {
     return string.charAt(0).toLowerCase() + string.slice(1);
 }
 
@@ -68,7 +68,7 @@ function getPreamble () {
 
 //-------------------------------------------------------------------------
 
-function generateImplicitMethodNames(id: string, api: string, paths: string[] = []){
+function generateImplicitMethodNames(id, api, paths = []){
     const keys = Object.keys(api);
     for (const key of keys){
         let value = api[key];
@@ -96,7 +96,7 @@ function generateImplicitMethodNames(id: string, api: string, paths: string[] = 
                 storedCamelCaseMethods[id].push (camelCasePath)
                 let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
                 storedUnderscoreMethods[id].push (underscorePath)
-                let config: {} | undefined = undefined
+                let config: {} = undefined
                 if (Array.isArray (value)) {
                     config = {}
                 } else {
@@ -216,29 +216,22 @@ function createImplicitMethodsGo(){
         const exchange = exchanges[index];
         const methodNames = storedCamelCaseMethods[exchange];
 
-        // const reusableMethod = [
-        //     `func (this *${exchange}) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {`,
-        //     `   parameters := GetArg(args, 0, nil)`,
-        //     `   ch := make(chan interface{})`,
-        //     `   go func() {`,
-        //     `       defer close(ch)`,
-        //     `       defer func() {`,
-        //     `           if r := recover(); r != nil {`,
-        //     `               ch <- "panic:" + ToString(r)`,
-        //     `           }`,
-        //     `       }()`,
-        //     `       ch <- (<-this.callEndpoint (endpointName, parameters))`,
-        //     `       PanicOnError(ch)`,
-        //     `   }()`,
-        //     `   return ch`,
-        //     `}`,
-        //     ``
-        // ].join('\n');
-
         const methods = methodNames.map(method=> {
             return [
                 `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-                `   return this.callEndpointAsync("${method}", args...)`,
+                `   parameters := GetArg(args, 0, nil)`,
+                `   ch := make(chan interface{})`,
+                `   go func() {`,
+                `       defer close(ch)`,
+                `       defer func() {`,
+                `           if r := recover(); r != nil {`,
+                `               ch <- "panic:" + ToString(r)`,
+                `           }`,
+                `       }()`,
+                `       ch <- (<-this.callEndpoint ("${method}", parameters))`,
+                `       PanicOnError(ch)`,
+                `   }()`,
+                `   return ch`,
                 `}`,
                 ``,
             ].join('\n')
@@ -250,22 +243,21 @@ function createImplicitMethodsGo(){
             //     ``,
             // ].join('\n')
         });
-        // methods.unshift (reusableMethod);
-        storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
+       storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
 
 
 //-------------------------------------------------------------------------
 
-async function editFiles (path: string, methods: Dict, extension: string) {
+async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
     await unlinkFiles (path, extension)
 }
 
-async function unlinkFiles (path: string, extension: string) {
+async function unlinkFiles (path, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
@@ -290,7 +282,7 @@ async function editAPIFilesGo(){
 
 //-------------------------------------------------------------------------
 
-function createTypescriptHeader(instance: Exchange, parent: string){
+function createTypescriptHeader(instance, parent){
     const exchange = instance.id;
     const importType = 'import { implicitReturnType } from \'../base/types.js\';'
     const importParent = (parent === 'Exchange') ?
@@ -303,7 +295,7 @@ function createTypescriptHeader(instance: Exchange, parent: string){
 
 //-------------------------------------------------------------------------
 
-function createPhpHeader(instance: Exchange, parent: string){
+function createPhpHeader(instance, parent){
     const exchange = instance.id;
     const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent;
     const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
@@ -319,7 +311,7 @@ namespace ccxt\\abstract;
 
 //-------------------------------------------------------------------------
 
-function createPyHeader(instance: Exchange, parent: string){
+function createPyHeader(instance, parent){
     const exchange = instance.id;
     const pyImports = 'from ccxt.base.types import Entry'
     const pyHeader = 'class ImplicitAPI:'
@@ -327,7 +319,7 @@ function createPyHeader(instance: Exchange, parent: string){
 }
 // -------------------------------------------------------------------------
 
-function createCSharpHeader(exchange: Exchange, parent: string){
+function createCSharpHeader(exchange, parent){
     const namespace = 'namespace ccxt;'
     const header = `public partial class ${exchange.id} : ${parent}\n{\n    public ${exchange.id} (object args = null): base(args) {}\n`;
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
@@ -335,7 +327,7 @@ function createCSharpHeader(exchange: Exchange, parent: string){
 
 // -------------------------------------------------------------------------
 
-function createGoHeader(exchange: Exchange, parent: string){
+function createGoHeader(exchange, parent){
     const namespace = 'package ccxt'
     storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
 }

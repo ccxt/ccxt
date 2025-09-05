@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinex$1 = require('./abstract/coinex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -15,7 +13,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class coinex
  * @augments Exchange
  */
-class coinex extends coinex$1["default"] {
+class coinex extends coinex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinex',
@@ -74,7 +72,7 @@ class coinex extends coinex$1["default"] {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingInterval': true,
                 'fetchFundingIntervals': false,
@@ -728,7 +726,6 @@ class coinex extends coinex$1["default"] {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'chain');
-                const networkCode = this.networkIdToCode(networkId, code);
                 if (networkId === undefined) {
                     continue;
                 }
@@ -740,7 +737,7 @@ class coinex extends coinex$1["default"] {
                 const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
                 const network = {
                     'id': networkId,
-                    'network': networkCode,
+                    'network': networkId,
                     'name': undefined,
                     'active': canDepositChain && canWithdrawChain,
                     'deposit': canDepositChain,
@@ -763,7 +760,7 @@ class coinex extends coinex$1["default"] {
                     },
                     'info': chain,
                 };
-                networks[networkCode] = network;
+                networks[networkId] = network;
             }
             result[code] = this.safeCurrencyStructure({
                 'id': currencyId,
@@ -4805,7 +4802,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} [tag] memo
+     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -5621,69 +5618,6 @@ class coinex extends coinex$1["default"] {
         const data = this.safeDict(response, 'data', {});
         return this.parseDepositWithdrawFee(data, currency);
     }
-    /**
-     * @method
-     * @name coinex#fetchDepositWithdrawFees
-     * @description fetch the fees for deposits and withdrawals
-     * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
-     * @param codes
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-     */
-    async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
-        const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig(params);
-        //
-        //     {
-        //         "code": 0,
-        //         "data": [
-        //             {
-        //                 "asset": {
-        //                     "ccy": "CET",
-        //                     "deposit_enabled": true,
-        //                     "withdraw_enabled": true,
-        //                     "inter_transfer_enabled": true,
-        //                     "is_st": false
-        //                 },
-        //                 "chains": [
-        //                     {
-        //                         "chain": "CSC",
-        //                         "min_deposit_amount": "0.8",
-        //                         "min_withdraw_amount": "8",
-        //                         "deposit_enabled": true,
-        //                         "withdraw_enabled": true,
-        //                         "deposit_delay_minutes": 0,
-        //                         "safe_confirmations": 10,
-        //                         "irreversible_confirmations": 20,
-        //                         "deflation_rate": "0",
-        //                         "withdrawal_fee": "0.026",
-        //                         "withdrawal_precision": 8,
-        //                         "memo": "",
-        //                         "is_memo_required_for_deposit": false,
-        //                         "explorer_asset_url": ""
-        //                     },
-        //                 ]
-        //             }
-        //         ],
-        //         "message": "OK"
-        //     }
-        //
-        const data = this.safeList(response, 'data', []);
-        const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const asset = this.safeDict(item, 'asset', {});
-            const currencyId = this.safeString(asset, 'ccy');
-            if (currencyId === undefined) {
-                continue;
-            }
-            const code = this.safeCurrencyCode(currencyId);
-            if (codes === undefined || this.inArray(code, codes)) {
-                result[code] = this.parseDepositWithdrawFee(item);
-            }
-        }
-        return result;
-    }
     parseDepositWithdrawFee(fee, currency = undefined) {
         //
         //     {
@@ -6164,4 +6098,4 @@ class coinex extends coinex$1["default"] {
     }
 }
 
-exports["default"] = coinex;
+module.exports = coinex;

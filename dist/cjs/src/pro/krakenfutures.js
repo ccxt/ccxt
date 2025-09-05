@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var krakenfutures$1 = require('../krakenfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -11,7 +9,7 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class krakenfutures extends krakenfutures$1["default"] {
+class krakenfutures extends krakenfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -225,7 +223,7 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+    async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
@@ -1515,7 +1513,6 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         catch (error) {
             client.reject(error);
-            return false;
         }
     }
     handleMessage(client, message) {
@@ -1590,4 +1587,4 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
 }
 
-exports["default"] = krakenfutures;
+module.exports = krakenfutures;

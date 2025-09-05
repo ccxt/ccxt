@@ -15,11 +15,11 @@ export default async (exchange, skippedProperties, symbol) => {
     const skippedExchanges = [];
     if (skippedExchanges.includes(exchange.id)) {
         console.log(exchange.id, method + '() test skipped');
-        return false;
+        return;
     }
     if (!exchange.has[method]) {
         console.log(exchange.id, 'does not support', method + '() method');
-        return false;
+        return;
     }
     let response = undefined;
     let now = Date.now();

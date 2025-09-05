@@ -27,8 +27,7 @@ try {
         // local ccxt project
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
     } catch (ee) {
-        log.error (ee);
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
+        log.error ('Neither a local nor a global ccxt installation was detected, please do `npm i` first');
         process.exit (1);
     }
 }
@@ -88,17 +87,12 @@ function injectMissingUndefined (fn, args) {
         const paramsObj = args[args.length - 1];
         args.pop ();
         const newArgsArray = args;
-        const isPartialFunction = fn.toString ().indexOf ('(params = {}, context = {})');
         for (let j = 0; j < missingParams; j++) {
             newArgsArray.push (undefined);
         }
         newArgsArray.push (paramsObj);
-        if (isPartialFunction) {
-            newArgsArray.reverse ();
-        }
         args = newArgsArray;
     }
-    console.log(args)
     return args;
 }
 
@@ -462,12 +456,11 @@ async function loadSettingsAndCreateExchange (
 
     if (fs.existsSync (keysGlobal)) {
         allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
-    }
-    if (fs.existsSync (keysLocal)) {
-        const localSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
-        allSettings = { ...allSettings, ...localSettings };
-    }
+    } else if (fs.existsSync (keysLocal)) {
+        allSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
+    } else {
     // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
+    }
 
     const exchangeSettings = getExchangeSettings (exchangeId);
 

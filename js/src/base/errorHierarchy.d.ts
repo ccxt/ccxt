@@ -17,7 +17,6 @@ declare const errorHierarchy: {
                 };
                 MarketClosed: {};
                 ManualInteractionNeeded: {};
-                RestrictedLocation: {};
             };
             InsufficientFunds: {};
             InvalidAddress: {

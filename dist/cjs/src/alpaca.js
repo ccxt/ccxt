@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var alpaca$1 = require('./abstract/alpaca.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
@@ -13,7 +11,7 @@ var number = require('./base/functions/number.js');
  * @class alpaca
  * @augments Exchange
  */
-class alpaca extends alpaca$1["default"] {
+class alpaca extends alpaca$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'alpaca',
@@ -1906,4 +1904,4 @@ class alpaca extends alpaca$1["default"] {
     }
 }
 
-exports["default"] = alpaca;
+module.exports = alpaca;

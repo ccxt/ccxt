@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var kucoinfutures$1 = require('../kucoinfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class kucoinfutures extends kucoinfutures$1["default"] {
+class kucoinfutures extends kucoinfutures$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1243,8 +1241,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors(1, '', client.url, '', {}, data, message, {}, {});
-        return true;
+        this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -1293,4 +1290,4 @@ class kucoinfutures extends kucoinfutures$1["default"] {
     }
 }
 
-exports["default"] = kucoinfutures;
+module.exports = kucoinfutures;

@@ -27,15 +27,11 @@ class hashkey extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'borrowCrossMargin' => false,
-                'borrowIsolatedMargin' => false,
-                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'cancelWithdraw' => false,
-                'closeAllPositions' => false,
                 'closePosition' => false,
                 'createConvertTrade' => false,
                 'createDepositAddress' => false,
@@ -55,14 +51,7 @@ class hashkey extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => true,
-                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
-                'fetchBorrowInterest' => false,
-                'fetchBorrowRate' => false,
-                'fetchBorrowRateHistories' => false,
-                'fetchBorrowRateHistory' => false,
-                'fetchBorrowRates' => false,
-                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => true,
@@ -71,8 +60,6 @@ class hashkey extends Exchange {
                 'fetchConvertQuote' => false,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => false,
-                'fetchCrossBorrowRate' => false,
-                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -80,42 +67,23 @@ class hashkey extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
-                'fetchFundingInterval' => false,
-                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
-                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchIsolatedBorrowRate' => false,
-                'fetchIsolatedBorrowRates' => false,
-                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
-                'fetchLeverages' => false,
                 'fetchLeverageTiers' => true,
-                'fetchLiquidations' => false,
-                'fetchLongShortRatio' => false,
-                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
-                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMarkPrice' => false,
-                'fetchMarkPrices' => false,
-                'fetchMyLiquidations' => false,
-                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenInterests' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
-                'fetchOption' => false,
-                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -126,9 +94,7 @@ class hashkey extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsForSymbol' => true,
                 'fetchPositionsHistory' => false,
-                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchSettlementHistory' => false,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -138,16 +104,11 @@ class hashkey extends Exchange {
                 'fetchTradingFees' => true, // for spot markets only
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
-                'fetchUnderlyingAssets' => false,
-                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
-                'repayCrossMargin' => false,
-                'repayIsolatedMargin' => false,
                 'sandbox' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -2037,7 +1998,7 @@ class hashkey extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4045,7 +4006,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

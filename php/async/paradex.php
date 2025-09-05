@@ -1312,7 +1312,7 @@ class paradex extends Exchange {
         $cancelReason = $this->safe_string($order, 'cancel_reason');
         $status = $this->safe_string($order, 'status');
         if ($cancelReason !== null) {
-            if ($cancelReason === 'NOT_ENOUGH_MARGIN' || $cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
+            if ($cancelReason === 'NOT_ENOUGH_MARGIN') {
                 $status = 'rejected';
             } else {
                 $status = 'canceled';
@@ -1619,7 +1619,7 @@ class paradex extends Exchange {
             //
             // if success, no $response->..
             //
-            return array( $this->safe_order(array( 'info' => $response )) );
+            return $response;
         }) ();
     }
 
@@ -2106,7 +2106,6 @@ class paradex extends Exchange {
             'contracts' => null,
             'contractSize' => null,
             'price' => null,
-            'side' => null,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2435,7 +2434,7 @@ class paradex extends Exchange {
         return $this->safe_string($modes, $mode, $mode);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

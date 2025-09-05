@@ -548,7 +548,7 @@ public partial class bitstamp : ccxt.bitstamp
             object code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }
-        return true;
+        return message;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

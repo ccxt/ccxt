@@ -628,7 +628,7 @@ class alpaca extends \ccxt\async\alpaca {
         }) ();
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //    {
         //        "T" => "error",

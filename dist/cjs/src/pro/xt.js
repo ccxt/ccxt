@@ -1,13 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var xt$1 = require('../xt.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class xt extends xt$1["default"] {
+class xt extends xt$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1228,4 +1226,4 @@ class xt extends xt$1["default"] {
     }
 }
 
-exports["default"] = xt;
+module.exports = xt;

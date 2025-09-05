@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var vertex$1 = require('../vertex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class vertex extends vertex$1["default"] {
+class vertex extends vertex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -997,4 +995,4 @@ class vertex extends vertex$1["default"] {
     }
 }
 
-exports["default"] = vertex;
+module.exports = vertex;

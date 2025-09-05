@@ -23,7 +23,6 @@ async function testWatchOHLCV(exchange, skippedProperties, symbol) {
     const since = exchange.milliseconds() - duration * limit * 1000 - 1000;
     while (now < ends) {
         let response = undefined;
-        let success = true;
         try {
             response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
         }
@@ -32,17 +31,13 @@ async function testWatchOHLCV(exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds();
-            // continue;
-            success = false;
+            continue;
         }
-        if (success === true) {
-            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-            now = exchange.milliseconds();
-            for (let i = 0; i < response.length; i++) {
-                testOHLCV(exchange, skippedProperties, method, response[i], symbol, now);
-            }
+        testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
+        now = exchange.milliseconds();
+        for (let i = 0; i < response.length; i++) {
+            testOHLCV(exchange, skippedProperties, method, response[i], symbol, now);
         }
     }
-    return true;
 }
 export default testWatchOHLCV;

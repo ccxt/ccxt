@@ -1455,7 +1455,7 @@ class defx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return [self.safe_order({'info': response})]
+        return response
 
     async def fetch_position(self, symbol: str, params={}):
         """
@@ -1894,7 +1894,7 @@ class defx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
 
@@ -1955,7 +1955,7 @@ class defx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

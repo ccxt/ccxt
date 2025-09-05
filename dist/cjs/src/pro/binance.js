@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var binance$1 = require('../binance.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
@@ -13,7 +11,7 @@ var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class binance extends binance$1["default"] {
+class binance extends binance$1 {
     describe() {
         const superDescribe = super.describe();
         return this.deepExtend(superDescribe, this.describeData());
@@ -228,7 +226,7 @@ class binance extends binance$1["default"] {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const subscriptionHashes = [];
         const messageHashes = [];
@@ -416,7 +414,6 @@ class binance extends binance$1["default"] {
             'contracts': this.safeNumber(liquidation, 'l'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'ap'),
-            'side': this.safeStringLower(liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -3240,8 +3237,8 @@ class binance extends binance$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('cancelAllOrdersWs', market, params);
-        if (type !== 'spot') {
-            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs only supports spot markets');
+        if (type !== 'spot' && type !== 'future') {
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId(url);
@@ -3254,7 +3251,7 @@ class binance extends binance$1["default"] {
         };
         const message = {
             'id': messageHash,
-            'method': 'openOrders.cancelAll',
+            'method': 'order.cancel',
             'params': this.signParams(this.extend(payload, params)),
         };
         const subscription = {
@@ -4007,8 +4004,11 @@ class binance extends binance$1["default"] {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.BadRequest(this.id + ' fetchTradesWs () requires a symbol argument');
+        }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchTradesWs', market, params);
         if (type !== 'spot' && type !== 'future') {
@@ -4267,7 +4267,7 @@ class binance extends binance$1["default"] {
         const code = this.safeInteger(error, 'code');
         const msg = this.safeString(error, 'msg');
         try {
-            this.handleErrors(code, msg, client.url, '', {}, this.json(error), error, {}, {});
+            this.handleErrors(code, msg, client.url, undefined, undefined, this.json(error), error, undefined, undefined);
         }
         catch (e) {
             rejected = true;
@@ -4368,4 +4368,4 @@ class binance extends binance$1["default"] {
     }
 }
 
-exports["default"] = binance;
+module.exports = binance;

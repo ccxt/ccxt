@@ -41,17 +41,6 @@ export default class bybit extends bybitRest {
                 'watchTrades': true,
                 'watchPositions': true,
                 'watchTradesForSymbols': true,
-                'unWatchTicker': true,
-                'unWatchTickers': true,
-                'unWatchOHLCV': true,
-                'unWatchOHLCVForSymbols': true,
-                'unWatchOrderBook': true,
-                'unWatchOrderBookForSymbols': true,
-                'unWatchTrades': true,
-                'unWatchTradesForSymbols': true,
-                'unWatchMyTrades': true,
-                'unWatchOrders': true,
-                'unWatchPositions': true,
             },
             'urls': {
                 'api': {
@@ -446,13 +435,13 @@ export default class bybit extends bybitRest {
      * @description unWatches a price ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-     * @param {string[]} symbol unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
+    async unWatchTicker(symbols, params = {}) {
         await this.loadMarkets();
-        return await this.unWatchTickers([symbol], params);
+        return await this.unWatchTickers([symbols], params);
     }
     handleTicker(client, message) {
         //
@@ -867,14 +856,21 @@ export default class bybit extends bybitRest {
             }
         }
         else {
-            const limits = {
-                'spot': [1, 50, 200, 1000],
-                'option': [25, 100],
-                'default': [1, 50, 200, 500, 1000],
-            };
-            const selectedLimits = this.safeList2(limits, market['type'], 'default');
-            if (!this.inArray(limit, selectedLimits)) {
-                throw new BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json(selectedLimits));
+            if (!market['spot']) {
+                if (market['option']) {
+                    if ((limit !== 25) && (limit !== 100)) {
+                        throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
+                    }
+                }
+                else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
+                    // bybit only support limit 1, 50, 200, 500 for contract
+                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
+                }
+            }
+            else {
+                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
+                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
+                }
             }
         }
         const topics = [];
@@ -1562,28 +1558,6 @@ export default class bybit extends bybitRest {
     }
     /**
      * @method
-     * @name bybit#unWatchPositions
-     * @description unWatches all open positions
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} status of the unwatch request
-     */
-    async unWatchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        const method = 'watchPositions';
-        const messageHash = 'unsubscribe:positions';
-        const subHash = 'positions';
-        if (!this.isEmpty(symbols)) {
-            throw new NotSupported(this.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
-        }
-        const url = await this.getUrlByMarketType(undefined, true, method, params);
-        await this.authenticate(url);
-        const topics = ['position'];
-        return await this.unWatchTopics(url, 'positions', symbols, [messageHash], [subHash], topics, params);
-    }
-    /**
-     * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
@@ -1703,7 +1677,6 @@ export default class bybit extends bybitRest {
             'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber2(liquidation, 'price', 'p'),
-            'side': this.safeStringLower(liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

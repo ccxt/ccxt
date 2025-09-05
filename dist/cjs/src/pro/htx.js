@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var htx$1 = require('../htx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class htx extends htx$1["default"] {
+class htx extends htx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1997,7 +1995,7 @@ class htx extends htx$1["default"] {
                 }
             }
         }
-        return true;
+        return message;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {
@@ -2413,4 +2411,4 @@ class htx extends htx$1["default"] {
     }
 }
 
-exports["default"] = htx;
+module.exports = htx;

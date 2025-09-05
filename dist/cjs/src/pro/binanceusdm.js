@@ -1,13 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var binance = require('./binance.js');
 var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceusdm extends binance["default"] {
+class binanceusdm extends binance {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binanceusdm',
@@ -17,9 +15,7 @@ class binanceusdm extends binance["default"] {
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': {
-                    'types': ['linear'],
-                },
+                'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
             },
             // https://binance-docs.github.io/apidocs/futures/en/#error-codes
@@ -35,4 +31,4 @@ class binanceusdm extends binance["default"] {
     }
 }
 
-exports["default"] = binanceusdm;
+module.exports = binanceusdm;

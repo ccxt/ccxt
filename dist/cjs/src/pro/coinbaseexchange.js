@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinbaseexchange$1 = require('../coinbaseexchange.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coinbaseexchange extends coinbaseexchange$1["default"] {
+class coinbaseexchange extends coinbaseexchange$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -226,7 +224,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+    async watchMyTradesForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false);
         await this.loadMarkets();
         const name = 'user';
@@ -250,7 +248,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+    async watchOrdersForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';
@@ -967,4 +965,4 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     }
 }
 
-exports["default"] = coinbaseexchange;
+module.exports = coinbaseexchange;

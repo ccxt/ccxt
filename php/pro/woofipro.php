@@ -1283,7 +1283,7 @@ class woofipro extends \ccxt\async\woofipro {
         $client->resolve ($this->balance, 'balance');
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //

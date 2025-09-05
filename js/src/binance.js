@@ -485,7 +485,6 @@ export default class binance extends Exchange {
                         'portfolio/balance': 2,
                         'portfolio/negative-balance-exchange-record': 2,
                         'portfolio/pmloan-history': 5,
-                        'portfolio/earn-asset-balance': 150,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -644,7 +643,6 @@ export default class binance extends Exchange {
                         'portfolio/repay-futures-negative-balance': 150,
                         'portfolio/mint': 20,
                         'portfolio/redeem': 20,
-                        'portfolio/earn-asset-transfer': 150,
                         'lending/auto-invest/plan/add': 0.1,
                         'lending/auto-invest/plan/edit': 0.1,
                         'lending/auto-invest/plan/edit-status': 0.1,
@@ -833,7 +831,6 @@ export default class binance extends Exchange {
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
                         'convert/exchangeInfo': 4,
-                        'insuranceBalance': 1,
                     },
                 },
                 'fapiData': {
@@ -1271,14 +1268,12 @@ export default class binance extends Exchange {
             'options': {
                 'sandboxMode': false,
                 'fetchMargins': true,
-                'fetchMarkets': {
-                    'types': [
-                        'spot',
-                        'linear',
-                        'inverse', // allows CORS in browsers
-                        // 'option', // does not allow CORS, enable outside of the browser only
-                    ],
-                },
+                'fetchMarkets': [
+                    'spot',
+                    'linear',
+                    'inverse', // allows CORS in browsers
+                    // 'option', // does not allow CORS, enable outside of the browser only
+                ],
                 'loadAllOptions': false,
                 'fetchCurrencies': true,
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
@@ -1288,7 +1283,6 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined,
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
@@ -2729,14 +2723,12 @@ export default class binance extends Exchange {
                 return markets[0];
             }
             else if ((symbol.indexOf('/') > -1) && (symbol.indexOf(':') < 0)) {
-                if ((defaultType !== undefined) && (defaultType !== 'spot')) {
-                    // support legacy symbols
-                    const [base, quote] = symbol.split('/');
-                    const settle = (quote === 'USD') ? base : quote;
-                    const futuresSymbol = symbol + ':' + settle;
-                    if (futuresSymbol in this.markets) {
-                        return this.markets[futuresSymbol];
-                    }
+                // support legacy symbols
+                const [base, quote] = symbol.split('/');
+                const settle = (quote === 'USD') ? base : quote;
+                const futuresSymbol = symbol + ':' + settle;
+                if (futuresSymbol in this.markets) {
+                    return this.markets[futuresSymbol];
                 }
             }
             else if ((symbol.indexOf('-C') > -1) || (symbol.indexOf('-P') > -1)) { // both exchange-id and unified symbols are supported this way regardless of the defaultType
@@ -2755,6 +2747,15 @@ export default class binance extends Exchange {
     }
     costToPrecision(symbol, cost) {
         return this.decimalToPrecision(cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
+    }
+    currencyToPrecision(code, fee, networkCode = undefined) {
+        // info is available in currencies only if the user has configured his api keys
+        if (this.safeValue(this.currencies[code], 'precision') !== undefined) {
+            return this.decimalToPrecision(fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
+        }
+        else {
+            return this.numberToString(fee);
+        }
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
@@ -3039,16 +3040,7 @@ export default class binance extends Exchange {
      */
     async fetchMarkets(params = {}) {
         const promisesRaw = [];
-        let rawFetchMarkets = undefined;
-        const defaultTypes = ['spot', 'linear', 'inverse'];
-        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
-        if (fetchMarketsOptions !== undefined) {
-            rawFetchMarkets = this.safeList(fetchMarketsOptions, 'types', defaultTypes);
-        }
-        else {
-            // for backward-compatibility
-            rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', defaultTypes);
-        }
+        const rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
         // handle loadAllOptions option
         const loadAllOptions = this.safeBool(this.options, 'loadAllOptions', false);
         if (loadAllOptions) {
@@ -4018,52 +4010,29 @@ export default class binance extends Exchange {
         //         "time": 1597370495002
         //     }
         //
-        // spot - ticker
-        //
-        //    {
-        //        "symbol": "BTCUSDT",
-        //        "priceChange": "-188.18000000",
-        //        "priceChangePercent": "-0.159",
-        //        "weightedAvgPrice": "118356.64734074",
-        //        "lastPrice": "118449.03000000",
-        //        "prevClosePrice": "118637.22000000",    // field absent in rolling ticker
-        //        "lastQty": "0.00731000",                // field absent in rolling ticker
-        //        "bidPrice": "118449.02000000",          // field absent in rolling ticker
-        //        "bidQty": "7.15931000",                 // field absent in rolling ticker
-        //        "askPrice": "118449.03000000",          // field absent in rolling ticker
-        //        "askQty": "0.09592000",                 // field absent in rolling ticker
-        //        "openPrice": "118637.21000000",
-        //        "highPrice": "119273.36000000",
-        //        "lowPrice": "117427.50000000",
-        //        "volume": "14741.41491000",
-        //        "quoteVolume": "1744744445.80640740",
-        //        "openTime": "1753701474013",
-        //        "closeTime": "1753787874013",
-        //        "firstId": "5116031635",
-        //        "lastId": "5117964946",
-        //        "count": "1933312"
-        //    }
-        //
-        // usdm tickers
-        //
-        //    {
-        //        "symbol": "SUSDT",
-        //        "priceChange": "-0.0229000",
-        //        "priceChangePercent": "-6.777",
-        //        "weightedAvgPrice": "0.3210035",
-        //        "lastPrice": "0.3150000",
-        //        "lastQty": "16",
-        //        "openPrice": "0.3379000",
-        //        "highPrice": "0.3411000",
-        //        "lowPrice": "0.3071000",
-        //        "volume": "120588225",
-        //        "quoteVolume": "38709237.2289000",
-        //        "openTime": "1753701720000",
-        //        "closeTime": "1753788172414",
-        //        "firstId": "72234973",
-        //        "lastId": "72423677",
-        //        "count": "188700"
-        //    }
+        //     {
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
+        //     }
         //
         // coinm
         //
@@ -4436,24 +4405,11 @@ export default class binance extends Exchange {
             response = await this.dapiPublicGetTicker24hr(params);
         }
         else if (type === 'spot') {
-            const rolling = this.safeBool(params, 'rolling', false);
-            params = this.omit(params, 'rolling');
-            if (rolling) {
-                symbols = this.marketSymbols(symbols);
-                const request = {
-                    'symbols': this.json(this.marketIds(symbols)),
-                };
-                response = await this.publicGetTicker(this.extend(request, params));
-                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling(response, symbols);
+            const request = {};
+            if (symbols !== undefined) {
+                request['symbols'] = this.json(this.marketIds(symbols));
             }
-            else {
-                const request = {};
-                if (symbols !== undefined) {
-                    request['symbols'] = this.json(this.marketIds(symbols));
-                }
-                response = await this.publicGetTicker24hr(this.extend(request, params));
-            }
+            response = await this.publicGetTicker24hr(this.extend(request, params));
         }
         else if (type === 'option') {
             response = await this.eapiPublicGetTicker(params);
@@ -4462,17 +4418,6 @@ export default class binance extends Exchange {
             throw new NotSupported(this.id + ' fetchTickers() does not support ' + type + ' markets yet');
         }
         return this.parseTickers(response, symbols);
-    }
-    parseTickersForRolling(response, symbols) {
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString(response[i], 'symbol');
-            const tickerMarket = this.safeMarket(marketId, undefined, undefined, 'spot');
-            const parsedTicker = this.parseTicker(response[i]);
-            parsedTicker['symbol'] = tickerMarket['symbol'];
-            results.push(parsedTicker);
-        }
-        return this.filterByArray(results, 'symbol', symbols);
     }
     /**
      * @method
@@ -6612,13 +6557,19 @@ export default class binance extends Exchange {
             }
         }
         if (quantityIsRequired) {
-            const marketAmountPrecision = this.safeString(market['precision'], 'amount');
-            const isPrecisionAvailable = (marketAmountPrecision !== undefined);
-            if (isPrecisionAvailable) {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
+            // portfolio margin has a different amount precision
+            if (isPortfolioMargin) {
+                request['quantity'] = this.parseToNumeric(amount);
             }
             else {
-                request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
+                const marketAmountPrecision = this.safeString(market['precision'], 'amount');
+                const isPrecisionAvailable = (marketAmountPrecision !== undefined);
+                if (isPrecisionAvailable) {
+                    request['quantity'] = this.amountToPrecision(symbol, amount);
+                }
+                else {
+                    request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
+                }
             }
         }
         if (priceIsRequired && !isPriceMatch) {
@@ -7816,7 +7767,6 @@ export default class binance extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7834,16 +7784,8 @@ export default class binance extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            // 'orderidlist': ids,
+            'orderidlist': ids,
         };
-        const origClientOrderIdList = this.safeList2(params, 'origClientOrderIdList', 'clientOrderIds');
-        if (origClientOrderIdList !== undefined) {
-            params = this.omit(params, ['clientOrderIds']);
-            request['origClientOrderIdList'] = origClientOrderIdList;
-        }
-        else {
-            request['orderidlist'] = ids;
-        }
         let response = undefined;
         if (market['linear']) {
             response = await this.fapiPrivateDeleteBatchOrders(this.extend(request, params));
@@ -9429,6 +9371,7 @@ export default class binance extends Exchange {
         const request = {
             'coin': currency['id'],
             'address': address,
+            'amount': this.currencyToPrecision(code, amount),
             // issue sapiGetCapitalConfigGetall () to get networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network': 'ETH', // 'BTC', 'TRX', etc, optional
         };
@@ -9442,7 +9385,6 @@ export default class binance extends Exchange {
             request['network'] = network;
             params = this.omit(params, 'network');
         }
-        request['amount'] = this.currencyToPrecision(code, amount, network);
         const response = await this.sapiPostCapitalWithdrawApply(this.extend(request, params));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction(response, currency);
@@ -12059,8 +12001,8 @@ export default class binance extends Exchange {
             else if ((path === 'batchOrders') || (path.indexOf('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf('staking') >= 0) || (path.indexOf('simple-earn') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
                     const orderidlist = this.safeList(extendedParams, 'orderidlist', []);
-                    const origclientorderidlist = this.safeList2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', []);
-                    extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList']);
+                    const origclientorderidlist = this.safeList(extendedParams, 'origclientorderidlist', []);
+                    extendedParams = this.omit(extendedParams, ['orderidlist', 'origclientorderidlist']);
                     query = this.rawencode(extendedParams);
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = origclientorderidlist.length;
@@ -12068,12 +12010,7 @@ export default class binance extends Exchange {
                         query = query + '&' + 'orderidlist=%5B' + orderidlist.join('%2C') + '%5D';
                     }
                     if (origclientorderidlistLength > 0) {
-                        // wrap clientOrderids around ""
-                        const newClientOrderIds = [];
-                        for (let i = 0; i < origclientorderidlistLength; i++) {
-                            newClientOrderIds.push('%22' + origclientorderidlist[i] + '%22');
-                        }
-                        query = query + '&' + 'origclientorderidlist=%5B' + newClientOrderIds.join('%2C') + '%5D';
+                        query = query + '&' + 'origclientorderidlist=%5B' + origclientorderidlist.join('%2C') + '%5D';
                     }
                 }
                 else {
@@ -13359,7 +13296,6 @@ export default class binance extends Exchange {
             'contracts': this.safeNumber(liquidation, 'executedQty'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'avgPrice'),
-            'side': this.safeStringLower(liquidation, 'side'),
             'baseValue': this.safeNumber(liquidation, 'cumBase'),
             'quoteValue': this.safeNumber(liquidation, 'cumQuote'),
             'timestamp': timestamp,

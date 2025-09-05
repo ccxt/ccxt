@@ -510,7 +510,7 @@ class probit extends \ccxt\async\probit {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         "errorCode" => "INVALID_ARGUMENT",

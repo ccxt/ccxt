@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var deribit$1 = require('../deribit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class deribit extends deribit$1["default"] {
+class deribit extends deribit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1062,4 +1060,4 @@ class deribit extends deribit$1["default"] {
     }
 }
 
-exports["default"] = deribit;
+module.exports = deribit;

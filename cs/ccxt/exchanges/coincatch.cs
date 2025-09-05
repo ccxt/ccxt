@@ -617,8 +617,8 @@ public partial class coincatch : Exchange
             {
                 object network = getValue(networks, j);
                 object networkId = this.safeString(network, "chain");
-                object networkCode = this.networkIdToCode(networkId);
-                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                object networkCode = this.networkCodeToId(networkId);
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkId] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {

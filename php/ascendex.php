@@ -1622,7 +1622,7 @@ class ascendex extends Exchange {
         //         "code" => "0",
         //         "data" => {
         //           "domain" => "spot",
-        //           "userUID" => "U1479576457",
+        //           "userUID" => "U1479576458",
         //           "vipLevel" => "0",
         //           "fees" => array(
         //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => "0.001" ) ),
@@ -2521,9 +2521,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return array( $this->safe_order(array(
+        return $this->safe_order(array(
             'info' => $response,
-        )) );
+        ));
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -3071,7 +3071,7 @@ class ascendex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

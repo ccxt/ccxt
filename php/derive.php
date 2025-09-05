@@ -1672,7 +1672,7 @@ class derive extends Exchange {
         //     "result" => "ok"
         // }
         //
-        return array( $this->safe_order(array( 'info' => $response )) );
+        return $response;
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

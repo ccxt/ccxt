@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var p2b$1 = require('../p2b.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class p2b extends p2b$1["default"] {
+class p2b extends p2b$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -504,4 +502,4 @@ class p2b extends p2b$1["default"] {
     }
 }
 
-exports["default"] = p2b;
+module.exports = p2b;

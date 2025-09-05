@@ -795,7 +795,7 @@ export default class kucoin extends Exchange {
                     'TLOS': 'tlos',
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OPTIMISM': 'optimism',
+                    'OP': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -915,7 +915,6 @@ export default class kucoin extends Exchange {
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
-                    'TARA': 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',
@@ -2725,7 +2724,7 @@ export default class kucoin extends Exchange {
         else {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return [this.safeOrder({ 'info': response })];
+        return response;
     }
     /**
      * @method

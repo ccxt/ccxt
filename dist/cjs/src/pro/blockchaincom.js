@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var blockchaincom$1 = require('../blockchaincom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class blockchaincom extends blockchaincom$1["default"] {
+class blockchaincom extends blockchaincom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -775,4 +773,4 @@ class blockchaincom extends blockchaincom$1["default"] {
     }
 }
 
-exports["default"] = blockchaincom;
+module.exports = blockchaincom;

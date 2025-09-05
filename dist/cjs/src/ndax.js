@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var ndax$1 = require('./abstract/ndax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -15,7 +13,7 @@ var totp = require('./base/functions/totp.js');
  * @class ndax
  * @augments Exchange
  */
-class ndax extends ndax$1["default"] {
+class ndax extends ndax$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ndax',
@@ -31,9 +29,6 @@ class ndax extends ndax$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowCrossMargin': false,
-                'borrowIsolatedMargin': false,
-                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
@@ -46,7 +41,6 @@ class ndax extends ndax$1["default"] {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
-                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -77,15 +71,12 @@ class ndax extends ndax$1["default"] {
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
-                'fetchLongShortRatio': false,
-                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMarkPrice': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
@@ -93,7 +84,6 @@ class ndax extends ndax$1["default"] {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -2596,4 +2586,4 @@ class ndax extends ndax$1["default"] {
     }
 }
 
-exports["default"] = ndax;
+module.exports = ndax;

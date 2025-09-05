@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitmex$1 = require('./abstract/bitmex.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -15,7 +13,7 @@ var totp = require('./base/functions/totp.js');
  * @class bitmex
  * @augments Exchange
  */
-class bitmex extends bitmex$1["default"] {
+class bitmex extends bitmex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitmex',
@@ -3016,7 +3014,6 @@ class bitmex extends bitmex$1["default"] {
             'contracts': undefined,
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
-            'side': this.safeStringLower(liquidation, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': undefined,
@@ -3086,4 +3083,4 @@ class bitmex extends bitmex$1["default"] {
     }
 }
 
-exports["default"] = bitmex;
+module.exports = bitmex;

@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var Precise = require('./base/Precise.js');
 var paradex$1 = require('./abstract/paradex.js');
 var errors = require('./base/errors.js');
@@ -18,7 +16,7 @@ var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
  * or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
  * @augments Exchange
  */
-class paradex extends paradex$1["default"] {
+class paradex extends paradex$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'paradex',
@@ -1263,7 +1261,7 @@ class paradex extends paradex$1["default"] {
         const cancelReason = this.safeString(order, 'cancel_reason');
         let status = this.safeString(order, 'status');
         if (cancelReason !== undefined) {
-            if (cancelReason === 'NOT_ENOUGH_MARGIN' || cancelReason === 'ORDER_EXCEEDS_POSITION_LIMIT') {
+            if (cancelReason === 'NOT_ENOUGH_MARGIN') {
                 status = 'rejected';
             }
             else {
@@ -1566,7 +1564,7 @@ class paradex extends paradex$1["default"] {
         //
         // if success, no response...
         //
-        return [this.safeOrder({ 'info': response })];
+        return response;
     }
     /**
      * @method
@@ -2027,7 +2025,6 @@ class paradex extends paradex$1["default"] {
             'contracts': undefined,
             'contractSize': undefined,
             'price': undefined,
-            'side': undefined,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2605,4 +2602,4 @@ class paradex extends paradex$1["default"] {
     }
 }
 
-exports["default"] = paradex;
+module.exports = paradex;

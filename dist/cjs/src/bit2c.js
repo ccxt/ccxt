@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bit2c$1 = require('./abstract/bit2c.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class bit2c
  * @augments Exchange
  */
-class bit2c extends bit2c$1["default"] {
+class bit2c extends bit2c$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bit2c',
@@ -1027,4 +1025,4 @@ class bit2c extends bit2c$1["default"] {
     }
 }
 
-exports["default"] = bit2c;
+module.exports = bit2c;

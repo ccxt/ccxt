@@ -62,7 +62,6 @@ public partial class kraken : ccxt.kraken
                     { "broad", new Dictionary<string, object>() {
                         { "Already subscribed", typeof(BadRequest) },
                         { "Currency pair not in ISO 4217-A3 format", typeof(BadSymbol) },
-                        { "Currency pair not supported", typeof(BadSymbol) },
                         { "Malformed request", typeof(BadRequest) },
                         { "Pair field must be an array", typeof(BadRequest) },
                         { "Pair field unsupported for this subscription type", typeof(BadRequest) },
@@ -861,12 +860,14 @@ public partial class kraken : ccxt.kraken
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object requiredParams = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
             if (isTrue(this.inArray(limit, new List<object>() {10, 25, 100, 500, 1000})))
             {
-                ((IDictionary<string,object>)requiredParams)["depth"] = limit; // default 10, valid options 10, 25, 100, 500, 1000
+                ((IDictionary<string,object>)request)["params"] = new Dictionary<string, object>() {
+                    { "depth", limit },
+                };
             } else
             {
                 throw new NotSupported ((string)add(this.id, " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
@@ -874,7 +875,7 @@ public partial class kraken : ccxt.kraken
         }
         object orderbook = await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
             { "limit", limit },
-        }, this.extend(requiredParams, parameters));
+        }, this.extend(request, parameters));
         return (orderbook as IOrderBook).limit();
     }
 
@@ -1899,22 +1900,22 @@ public partial class kraken : ccxt.kraken
         object errorMessage = this.safeString2(message, "errorMessage", "error");
         if (isTrue(!isEqual(errorMessage, null)))
         {
-            object requestId = this.safeString2(message, "reqid", "req_id");
-            object broad = getValue(getValue(this.exceptions, "ws"), "broad");
-            object broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
-            object exception = null;
-            if (isTrue(isEqual(broadKey, null)))
-            {
-                exception = new ExchangeError(                ((string)errorMessage)); // c# requirement to convert the errorMessage to string
-            } else
-            {
-                exception = this.newException(getValue(broad, broadKey), errorMessage);
-            }
+            object requestId = this.safeValue2(message, "reqid", "req_id");
             if (isTrue(!isEqual(requestId, null)))
             {
+                object broad = getValue(getValue(this.exceptions, "ws"), "broad");
+                object broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
+                object exception = null;
+                if (isTrue(isEqual(broadKey, null)))
+                {
+                    exception = new ExchangeError(                    ((string)errorMessage)); // c# requirement to convert the errorMessage to string
+                } else
+                {
+                    exception = this.newException(getValue(broad, broadKey), errorMessage);
+                }
                 ((WebSocketClient)client).reject(exception, requestId);
+                return false;
             }
-            return false;
         }
         return true;
     }

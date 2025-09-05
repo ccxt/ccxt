@@ -35,9 +35,6 @@ class ndax(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'borrowCrossMargin': False,
-                'borrowIsolatedMargin': False,
-                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closeAllPositions': False,
@@ -50,7 +47,6 @@ class ndax(Exchange, ImplicitAPI):
                 'createStopOrder': True,
                 'editOrder': True,
                 'fetchAccounts': True,
-                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
@@ -81,15 +77,12 @@ class ndax(Exchange, ImplicitAPI):
                 'fetchLeverages': False,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
-                'fetchLongShortRatio': False,
-                'fetchLongShortRatioHistory': False,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarginModes': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMarkPrice': False,
                 'fetchMarkPrices': False,
                 'fetchMyLiquidations': False,
                 'fetchMySettlementHistory': False,
@@ -97,7 +90,6 @@ class ndax(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -2357,7 +2349,7 @@ class ndax(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

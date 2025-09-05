@@ -1,13 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var binance = require('./binance.js');
 var errors = require('./base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class binanceusdm extends binance["default"] {
+class binanceusdm extends binance {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binanceusdm',
@@ -30,9 +28,7 @@ class binanceusdm extends binance["default"] {
                 'createStopMarketOrder': true,
             },
             'options': {
-                'fetchMarkets': {
-                    'types': ['linear'],
-                },
+                'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
                 // tier amount, maintenance margin, initial margin,
@@ -61,4 +57,4 @@ class binanceusdm extends binance["default"] {
     }
 }
 
-exports["default"] = binanceusdm;
+module.exports = binanceusdm;

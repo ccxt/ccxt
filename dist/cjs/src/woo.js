@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var woo$1 = require('./abstract/woo.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class woo
  * @augments Exchange
  */
-class woo extends woo$1["default"] {
+class woo extends woo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'woo',
@@ -104,7 +102,7 @@ class woo extends woo$1["default"] {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': true,
+                'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': true,
@@ -240,56 +238,19 @@ class woo extends woo$1["default"] {
                 'v3': {
                     'public': {
                         'get': {
-                            'systemInfo': 1,
-                            'instruments': 1,
-                            'token': 1,
-                            'tokenNetwork': 1,
-                            'tokenInfo': 1,
-                            'marketTrades': 1,
-                            'marketTradesHistory': 1,
-                            'orderbook': 1,
-                            'kline': 1,
-                            'klineHistory': 1,
-                            'futures': 1,
-                            'fundingRate': 1,
-                            'fundingRateHistory': 1,
-                            'insuranceFund': 1, // 10/1s
+                            'insuranceFund': 3,
                         },
                     },
                     'private': {
                         'get': {
-                            'trade/order': 2,
-                            'trade/orders': 1,
-                            'trade/algoOrder': 1,
-                            'trade/algoOrders': 1,
-                            'trade/transaction': 1,
-                            'trade/transactionHistory': 5,
-                            'trade/tradingFee': 5,
-                            'account/info': 60,
-                            'account/tokenConfig': 1,
-                            'account/symbolConfig': 1,
-                            'account/subAccounts/all': 60,
-                            'account/referral/summary': 60,
-                            'account/referral/rewardHistory': 60,
-                            'account/credentials': 60,
-                            'asset/balances': 1,
-                            'asset/token/history': 60,
-                            'asset/transfer/history': 30,
-                            'asset/wallet/history': 60,
-                            'asset/wallet/deposit': 60,
-                            'asset/staking/yieldHistory': 60,
-                            'futures/positions': 3.33,
-                            'futures/leverage': 60,
-                            'futures/defaultMarginMode': 60,
-                            'futures/fundingFee/history': 30,
-                            'spotMargin/interestRate': 60,
-                            'spotMargin/interestHistory': 60,
-                            'spotMargin/maxMargin': 60,
                             'algo/order/{oid}': 1,
                             'algo/orders': 1,
                             'balances': 1,
+                            'accountinfo': 60,
                             'positions': 3.33,
                             'buypower': 1,
+                            'referrals': 60,
+                            'referral_rewards': 60,
                             'convert/exchangeInfo': 1,
                             'convert/assetInfo': 1,
                             'convert/rfq': 60,
@@ -297,34 +258,16 @@ class woo extends woo$1["default"] {
                             'convert/trades': 1,
                         },
                         'post': {
-                            'trade/order': 2,
-                            'trade/algoOrder': 5,
-                            'trade/cancelAllAfter': 1,
-                            'account/tradingMode': 120,
-                            'account/listenKey': 20,
-                            'asset/transfer': 30,
-                            'asset/wallet/withdraw': 60,
-                            'spotMargin/leverage': 120,
-                            'spotMargin/interestRepay': 60,
                             'algo/order': 5,
                             'convert/rft': 60,
                         },
                         'put': {
-                            'trade/order': 2,
-                            'trade/algoOrder': 2,
-                            'futures/leverage': 60,
-                            'futures/positionMode': 120,
                             'order/{oid}': 2,
                             'order/client/{client_order_id}': 2,
                             'algo/order/{oid}': 2,
                             'algo/order/client/{client_order_id}': 2,
                         },
                         'delete': {
-                            'trade/order': 1,
-                            'trade/orders': 1,
-                            'trade/algoOrder': 1,
-                            'trade/algoOrders': 1,
-                            'trade/allOrders': 1,
                             'algo/order/{order_id}': 1,
                             'algo/orders/pending': 1,
                             'algo/orders/pending/{symbol}': 1,
@@ -503,21 +446,20 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
+     * @see https://docs.woox.io/#get-system-maintenance-status-public
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
-        const response = await this.v3PublicGetSystemInfo(params);
+        const response = await this.v1PublicGetSystemInfo(params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "status": 0,
-        //             "msg": "System is functioning properly.",
-        //             "estimatedEndTime": 1749963600362
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
         //         },
-        //         "timestamp": 1751442989564
+        //         "timestamp": "1709274106602"
         //     }
         //
         const data = this.safeDict(response, 'data', {});
@@ -543,21 +485,20 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
+     * @see https://docs.woox.io/#get-system-maintenance-status-public
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime(params = {}) {
-        const response = await this.v3PublicGetSystemInfo(params);
+        const response = await this.v1PublicGetSystemInfo(params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "status": 0,
-        //             "msg": "System is functioning properly.",
-        //             "estimatedEndTime": 1749963600362
+        //             "status": "0",
+        //             "msg": "System is functioning properly."
         //         },
-        //         "timestamp": 1751442989564
+        //         "timestamp": "1709274106602"
         //     }
         //
         return this.safeInteger(response, 'timestamp');
@@ -566,7 +507,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchMarkets
      * @description retrieves data on all markets for woo
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/instruments
+     * @see https://docs.woox.io/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -574,42 +515,30 @@ class woo extends woo$1["default"] {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const response = await this.v3PublicGetInstruments(params);
+        const response = await this.v1PublicGetInfo(params);
         //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "symbol": "SPOT_AAVE_USDT",
-        //                     "status": "TRADING",
-        //                     "baseAsset": "AAVE",
-        //                     "baseAssetMultiplier": 1,
-        //                     "quoteAsset": "USDT",
-        //                     "quoteMin": "0",
-        //                     "quoteMax": "100000",
-        //                     "quoteTick": "0.01",
-        //                     "baseMin": "0.005",
-        //                     "baseMax": "5000",
-        //                     "baseTick": "0.0001",
-        //                     "minNotional": "1",
-        //                     "bidCapRatio": "1.1",
-        //                     "bidFloorRatio": null,
-        //                     "askCapRatio": null,
-        //                     "askFloorRatio": "0.9",
-        //                     "orderMode": "NORMAL",
-        //                     "impactNotional": null,
-        //                     "isAllowedRpi": false,
-        //                     "tickGranularity": null
-        //                 }
-        //             ]
+        // {
+        //     "rows": [
+        //         {
+        //             "symbol": "SPOT_AAVE_USDT",
+        //             "quote_min": 0,
+        //             "quote_max": 100000,
+        //             "quote_tick": 0.01,
+        //             "base_min": 0.01,
+        //             "base_max": 7284,
+        //             "base_tick": 0.0001,
+        //             "min_notional": 10,
+        //             "price_range": 0.1,
+        //             "created_time": "0",
+        //             "updated_time": "1639107647.988",
+        //             "is_stable": 0
         //         },
-        //         "timestamp": 1751512951338
-        //     }
+        //         ...
+        //     "success": true
+        // }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
-        return this.parseMarkets(rows);
+        const data = this.safeList(response, 'rows', []);
+        return this.parseMarkets(data);
     }
     parseMarket(market) {
         const marketId = this.safeString(market, 'symbol');
@@ -647,7 +576,7 @@ class woo extends woo$1["default"] {
             linear = true;
             inverse = false;
         }
-        const active = this.safeString(market, 'status') === 'TRADING';
+        const active = this.safeString(market, 'is_trading') === '1';
         return {
             'id': marketId,
             'symbol': symbol,
@@ -673,8 +602,8 @@ class woo extends woo$1["default"] {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber(market, 'baseTick'),
-                'price': this.safeNumber(market, 'quoteTick'),
+                'amount': this.safeNumber(market, 'base_tick'),
+                'price': this.safeNumber(market, 'quote_tick'),
             },
             'limits': {
                 'leverage': {
@@ -682,19 +611,19 @@ class woo extends woo$1["default"] {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber(market, 'baseMin'),
-                    'max': this.safeNumber(market, 'baseMax'),
+                    'min': this.safeNumber(market, 'base_min'),
+                    'max': this.safeNumber(market, 'base_max'),
                 },
                 'price': {
-                    'min': this.safeNumber(market, 'quoteMin'),
-                    'max': this.safeNumber(market, 'quoteMax'),
+                    'min': this.safeNumber(market, 'quote_min'),
+                    'max': this.safeNumber(market, 'quote_max'),
                 },
                 'cost': {
-                    'min': this.safeNumber(market, 'minNotional'),
+                    'min': this.safeNumber(market, 'min_notional'),
                     'max': undefined,
                 },
             },
-            'created': undefined,
+            'created': this.safeTimestamp(market, 'created_time'),
             'info': market,
         };
     }
@@ -702,7 +631,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.woox.io/#market-trades-public
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -718,28 +647,38 @@ class woo extends woo$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v3PublicGetMarketTrades(this.extend(request, params));
+        const response = await this.v1PublicGetMarketTrades(this.extend(request, params));
         //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "symbol": "SPOT_BTC_USDT",
-        //                     "side": "SELL",
-        //                     "source": 0,
-        //                     "executedPrice": "108741.01",
-        //                     "executedQuantity": "0.02477",
-        //                     "executedTimestamp": 1751513940144
-        //                 }
-        //             ]
+        // {
+        //     "success": true,
+        //     "rows": [
+        //         {
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "side": "SELL",
+        //             "executed_price": 46222.35,
+        //             "executed_quantity": 0.0012,
+        //             "executed_timestamp": "1641241162.329"
         //         },
-        //         "timestamp": 1751513988543
-        //     }
+        //         {
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "side": "SELL",
+        //             "executed_price": 46222.35,
+        //             "executed_quantity": 0.0012,
+        //             "executed_timestamp": "1641241162.329"
+        //         },
+        //         {
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "side": "BUY",
+        //             "executed_price": 46224.32,
+        //             "executed_quantity": 0.00039,
+        //             "executed_timestamp": "1641241162.287"
+        //         },
+        //         ...
+        //      ]
+        // }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
-        return this.parseTrades(rows, market, since, limit);
+        const resultResponse = this.safeList(response, 'rows', []);
+        return this.parseTrades(resultResponse, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -748,47 +687,36 @@ class woo extends woo$1["default"] {
         //     {
         //         "symbol": "SPOT_BTC_USDT",
         //         "side": "SELL",
-        //         "source": 0,
-        //         "executedPrice": "108741.01",
-        //         "executedQuantity": "0.02477",
-        //         "executedTimestamp": 1751513940144
+        //         "executed_price": 46222.35,
+        //         "executed_quantity": 0.0012,
+        //         "executed_timestamp": "1641241162.329"
         //     }
         //
         // fetchOrderTrades, fetchOrder
         //
         //     {
-        //         "id": 1734947821,
-        //         "symbol": "SPOT_LTC_USDT",
-        //         "orderId": 60780383217,
-        //         "executedPrice": 87.86,
-        //         "executedQuantity": 0.1,
-        //         "fee": 0.0001,
-        //         "realizedPnl": null,
-        //         "feeAsset": "LTC",
-        //         "orderTag": "default",
+        //         "id": "99119876",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
         //         "side": "BUY",
-        //         "executedTimestamp": "1752055173.630",
-        //         "isMaker": 0
+        //         "executed_timestamp": "1641481113.084",
+        //         "order_id": "87001234",
+        //         "order_tag": "default", <-- this param only in "fetchOrderTrades"
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
         //     }
         //
         const isFromFetchOrder = ('id' in trade);
-        const timestampString = this.safeString2(trade, 'executed_timestamp', 'executedTimestamp');
-        let timestamp = undefined;
-        if (timestampString !== undefined) {
-            if (timestampString.indexOf('.') > -1) {
-                timestamp = this.safeTimestamp2(trade, 'executed_timestamp', 'executedTimestamp');
-            }
-            else {
-                timestamp = this.safeInteger(trade, 'executedTimestamp');
-            }
-        }
+        const timestamp = this.safeTimestamp(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString2(trade, 'executed_price', 'executedPrice');
-        const amount = this.safeString2(trade, 'executed_quantity', 'executedQuantity');
-        const order_id = this.safeString2(trade, 'order_id', 'orderId');
-        const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
+        const price = this.safeString(trade, 'executed_price');
+        const amount = this.safeString(trade, 'executed_quantity');
+        const order_id = this.safeString(trade, 'order_id');
+        const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const feeCost = this.safeString(fee, 'cost');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
@@ -798,7 +726,7 @@ class woo extends woo$1["default"] {
         const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
-            const isMaker = this.safeString2(trade, 'is_maker', 'isMaker') === '1';
+            const isMaker = this.safeString(trade, 'is_maker') === '1';
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         return this.safeTrade({
@@ -817,11 +745,11 @@ class woo extends woo$1["default"] {
             'info': trade,
         }, market);
     }
-    parseTokenAndFeeTemp(item, feeTokenKeys, feeAmountKeys) {
-        const feeCost = this.safeStringN(item, feeAmountKeys);
+    parseTokenAndFeeTemp(item, feeTokenKey, feeAmountKey) {
+        const feeCost = this.safeString(item, feeAmountKey);
         let fee = undefined;
         if (feeCost !== undefined) {
-            const feeCurrencyId = this.safeStringN(item, feeTokenKeys);
+            const feeCurrencyId = this.safeString(item, feeTokenKey);
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = {
                 'cost': feeCost,
@@ -830,90 +758,43 @@ class woo extends woo$1["default"] {
         }
         return fee;
     }
-    parseTradingFee(fee, market = undefined) {
-        const marketId = this.safeString(fee, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
-        return {
-            'info': fee,
-            'symbol': symbol,
-            'maker': this.parseNumber(Precise["default"].stringDiv(this.safeString(fee, 'makerFee'), '100')),
-            'taker': this.parseNumber(Precise["default"].stringDiv(this.safeString(fee, 'takerFee'), '100')),
-            'percentage': undefined,
-            'tierBased': undefined,
-        };
-    }
-    /**
-     * @method
-     * @name woo#fetchTradingFee
-     * @description fetch the trading fees for a market
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee
-     * @param {string} symbol unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
-     * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-     */
-    async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v3PrivateGetTradeTradingFee(this.extend(request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "symbol": "SPOT_BTC_USDT",
-        //             "takerFee": "10",
-        //             "makerFee": "8"
-        //         },
-        //         "timestamp": 1751858977368
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        return this.parseTradingFee(data, market);
-    }
     /**
      * @method
      * @name woo#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+     * @see https://docs.woox.io/#get-account-information-new
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
         await this.loadMarkets();
-        const response = await this.v3PrivateGetAccountInfo(params);
+        const response = await this.v3PrivateGetAccountinfo(params);
         //
         //     {
         //         "success": true,
         //         "data": {
-        //             "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
-        //             "account": "carlos_jose_lima@yahoo.com",
-        //             "alias": "carlos_jose_lima@yahoo.com",
+        //             "applicationId": "dsa",
+        //             "account": "dsa",
+        //             "alias": "haha",
+        //             "accountMode": "MARGIN",
+        //             "leverage": 1,
+        //             "takerFeeRate": 1,
+        //             "makerFeeRate": 1,
+        //             "interestRate": 1,
+        //             "futuresTakerFeeRate": 1,
+        //             "futuresMakerFeeRate": 1,
         //             "otpauth": true,
-        //             "accountMode": "FUTURES",
-        //             "positionMode": "ONE_WAY",
-        //             "leverage": 0,
-        //             "makerFeeRate": 0,
-        //             "takerFeeRate": 0,
-        //             "marginRatio": "10",
-        //             "openMarginRatio": "10",
-        //             "initialMarginRatio": "10",
-        //             "maintenanceMarginRatio": "0.03",
-        //             "totalCollateral": "165.55629469",
-        //             "freeCollateral": "165.55629469",
-        //             "totalAccountValue": "167.32418611",
-        //             "totalTradingValue": "167.32418611",
-        //             "totalVaultValue": "0",
-        //             "totalStakingValue": "0",
-        //             "totalLaunchpadValue": "0",
-        //             "totalEarnValue": "0",
-        //             "referrerID": null,
-        //             "accountType": "Main"
+        //             "marginRatio": 1,
+        //             "openMarginRatio": 1,
+        //             "initialMarginRatio": 1,
+        //             "maintenanceMarginRatio": 1,
+        //             "totalCollateral": 1,
+        //             "freeCollateral": 1,
+        //             "totalAccountValue": 1,
+        //             "totalVaultValue": 1,
+        //             "totalStakingValue": 1
         //         },
-        //         "timestamp": 1752062807915
+        //         "timestamp": 1673323685109
         //     }
         //
         const data = this.safeDict(response, 'data', {});
@@ -1177,8 +1058,8 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#createOrder
      * @description create a trade order
-     * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
-     * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
+     * @see https://docs.woox.io/#send-order
+     * @see https://docs.woox.io/#send-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1213,7 +1094,7 @@ class woo extends woo$1["default"] {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
         if (marginMode !== undefined) {
-            request['marginMode'] = this.encodeMarginMode(marginMode);
+            request['margin_mode'] = this.encodeMarginMode(marginMode);
         }
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
@@ -1229,29 +1110,33 @@ class woo extends woo$1["default"] {
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
-        const clientOrderIdKey = isConditional ? 'clientAlgoOrderId' : 'clientOrderId';
-        request['type'] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
+        const reduceOnlyKey = isConditional ? 'reduceOnly' : 'reduce_only';
+        const clientOrderIdKey = isConditional ? 'clientOrderId' : 'client_order_id';
+        const orderQtyKey = isConditional ? 'quantity' : 'order_quantity';
+        const priceKey = isConditional ? 'price' : 'order_price';
+        const typeKey = isConditional ? 'type' : 'order_type';
+        request[typeKey] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional) {
             if (postOnly) {
-                request['type'] = 'POST_ONLY';
+                request['order_type'] = 'POST_ONLY';
             }
             else if (timeInForce === 'fok') {
-                request['type'] = 'FOK';
+                request['order_type'] = 'FOK';
             }
             else if (timeInForce === 'ioc') {
-                request['type'] = 'IOC';
+                request['order_type'] = 'IOC';
             }
         }
         if (reduceOnly) {
-            request['reduceOnly'] = reduceOnly;
+            request[reduceOnlyKey] = reduceOnly;
         }
         if (!isMarket && price !== undefined) {
-            request['price'] = this.priceToPrecision(symbol, price);
+            request[priceKey] = this.priceToPrecision(symbol, price);
         }
         if (isMarket && !isConditional) {
             // for market buy it requires the amount of quote currency to spend
-            const cost = this.safeStringN(params, ['cost', 'order_amount', 'orderAmount']);
-            params = this.omit(params, ['cost', 'order_amount', 'orderAmount']);
+            const cost = this.safeString2(params, 'cost', 'order_amount');
+            params = this.omit(params, ['cost', 'order_amount']);
             const isPriceProvided = price !== undefined;
             if (market['spot'] && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount = undefined;
@@ -1264,14 +1149,14 @@ class woo extends woo$1["default"] {
                     const costRequest = Precise["default"].stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
-                request['amount'] = quoteAmount;
+                request['order_amount'] = quoteAmount;
             }
             else {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
+                request['order_quantity'] = this.amountToPrecision(symbol, amount);
             }
         }
         else if (algoType !== 'POSITIONAL_TP_SL') {
-            request['quantity'] = this.amountToPrecision(symbol, amount);
+            request[orderQtyKey] = this.amountToPrecision(symbol, amount);
         }
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         if (clientOrderId !== undefined) {
@@ -1334,46 +1219,44 @@ class woo extends woo$1["default"] {
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice']);
         let response = undefined;
         if (isConditional) {
-            response = await this.v3PrivatePostTradeAlgoOrder(this.extend(request, params));
-            //
-            // {
-            //     "success": true,
-            //     "data": {
-            //       "rows": [
-            //         {
-            //           "orderId": "1578938",
-            //           "clientOrderId": "0",
-            //           "algoType": "STOP_LOSS",
-            //           "quantity": "0.1"
-            //         }
-            //       ]
-            //     },
-            //     "timestamp": "1686149372216"
-            // }
-            //
+            response = await this.v3PrivatePostAlgoOrder(this.extend(request, params));
         }
         else {
-            response = await this.v3PrivatePostTradeOrder(this.extend(request, params));
-            //
-            //     {
-            //         "success": true,
-            //         "data": {
-            //             "orderId": 60667653330,
-            //             "clientOrderId": 0,
-            //             "type": "LIMIT",
-            //             "price": 60,
-            //             "quantity": 0.1,
-            //             "amount": null,
-            //             "bidAskLevel": null
-            //         },
-            //         "timestamp": 1751871779855
-            //     }
-            //
+            response = await this.v1PrivatePostOrder(this.extend(request, params));
         }
-        let data = this.safeDict(response, 'data', {});
-        data = this.safeDict(this.safeList(data, 'rows'), 0, data);
-        data['timestamp'] = this.safeString(response, 'timestamp');
-        return this.parseOrder(data, market);
+        // {
+        //     "success": true,
+        //     "timestamp": "1641383206.489",
+        //     "order_id": "86980774",
+        //     "order_type": "LIMIT",
+        //     "order_price": "1", // null for "MARKET" order
+        //     "order_quantity": "12", // null for "MARKET" order
+        //     "order_amount": null, // NOT-null for "MARKET" order
+        //     "client_order_id": "0"
+        // }
+        // stop orders
+        // {
+        //     "success": true,
+        //     "data": {
+        //       "rows": [
+        //         {
+        //           "orderId": "1578938",
+        //           "clientOrderId": "0",
+        //           "algoType": "STOP_LOSS",
+        //           "quantity": "0.1"
+        //         }
+        //       ]
+        //     },
+        //     "timestamp": "1686149372216"
+        // }
+        const data = this.safeDict(response, 'data');
+        if (data !== undefined) {
+            const rows = this.safeList(data, 'rows', []);
+            return this.parseOrder(rows[0], market);
+        }
+        const order = this.parseOrder(response, market);
+        order['type'] = type;
+        return order;
     }
     encodeMarginMode(mode) {
         const modes = {
@@ -1482,8 +1365,9 @@ class woo extends woo$1["default"] {
     /**
      * @method
      * @name woo#cancelOrder
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_order
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order
+     * @see https://docs.woox.io/#cancel-algo-order
+     * @see https://docs.woox.io/#cancel-order
+     * @see https://docs.woox.io/#cancel-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1505,52 +1389,42 @@ class woo extends woo$1["default"] {
         const request = {};
         const clientOrderIdUnified = this.safeString2(params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString(params, 'client_order_id', clientOrderIdUnified);
-        params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         let response = undefined;
         if (isTrigger) {
-            if (isByClientOrder) {
-                request['clientAlgoOrderId'] = clientOrderIdExchangeSpecific;
-            }
-            else {
-                request['algoOrderId'] = id;
-            }
-            response = await this.v3PrivateDeleteTradeAlgoOrder(this.extend(request, params));
+            request['order_id'] = id;
+            response = await this.v3PrivateDeleteAlgoOrderOrderId(this.extend(request, params));
         }
         else {
             request['symbol'] = market['id'];
             if (isByClientOrder) {
-                request['clientOrderId'] = clientOrderIdExchangeSpecific;
+                request['client_order_id'] = clientOrderIdExchangeSpecific;
+                params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+                response = await this.v1PrivateDeleteClientOrder(this.extend(request, params));
             }
             else {
-                request['orderId'] = id;
+                request['order_id'] = id;
+                response = await this.v1PrivateDeleteOrder(this.extend(request, params));
             }
-            response = await this.v3PrivateDeleteTradeOrder(this.extend(request, params));
         }
         //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "status": "CANCEL_SENT"
-        //         },
-        //         "timestamp": 1751940315838
-        //     }
+        // { success: true, status: "CANCEL_SENT" }
         //
-        const data = this.safeDict(response, 'data', {});
-        data['timestamp'] = this.safeString(response, 'timestamp');
+        const extendParams = { 'symbol': symbol };
         if (isByClientOrder) {
-            data['clientOrderId'] = clientOrderIdExchangeSpecific;
+            extendParams['client_order_id'] = clientOrderIdExchangeSpecific;
         }
         else {
-            data['orderId'] = id;
+            extendParams['id'] = id;
         }
-        return this.parseOrder(data, market);
+        return this.extend(this.parseOrder(response), extendParams);
     }
     /**
      * @method
      * @name woo#cancelAllOrders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
+     * @see https://docs.woox.io/#cancel-all-pending-orders
+     * @see https://docs.woox.io/#cancel-orders
+     * @see https://docs.woox.io/#cancel-all-pending-algo-orders
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1561,35 +1435,32 @@ class woo extends woo$1["default"] {
         await this.loadMarkets();
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
-        const request = {};
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['symbol'] = market['id'];
-        }
-        let response = undefined;
         if (trigger) {
-            response = await this.v3PrivateDeleteTradeAlgoOrders(params);
+            return await this.v3PrivateDeleteAlgoOrdersPending(params);
         }
-        else {
-            response = await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PrivateDeleteOrders(this.extend(request, params));
         //
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "status": "CANCEL_ALL_SENT"
-        //         },
-        //         "timestamp": 1751941988134
+        //         "success":true,
+        //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        return [this.safeOrder({ 'info': data })];
+        return [
+            this.safeOrder(response),
+        ];
     }
     /**
      * @method
      * @name woo#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
-     * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after
+     * @see https://docs.woox.io/#cancel-all-after
      * @param {number} timeout time in milliseconds, 0 represents cancel the timer
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
@@ -1597,25 +1468,27 @@ class woo extends woo$1["default"] {
     async cancelAllOrdersAfter(timeout, params = {}) {
         await this.loadMarkets();
         const request = {
-            'triggerAfter': (timeout > 0) ? Math.min(timeout, 900000) : 0,
+            'trigger_after': (timeout > 0) ? timeout : 0,
         };
-        const response = await this.v3PrivatePostTradeCancelAllAfter(this.extend(request, params));
+        const response = await this.v1PrivatePostOrderCancelAllAfter(this.extend(request, params));
         //
-        // {
-        //     "success": true,
-        //     "timestamp": 123,
-        //     "data": {
-        //         "expectedTriggerTime": 123
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "expected_trigger_time": 1711534302938
+        //         },
+        //         "timestamp": 1711534302943
         //     }
-        // }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
     /**
      * @method
      * @name woo#fetchOrder
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_order
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_order
+     * @see https://docs.woox.io/#get-algo-order
+     * @see https://docs.woox.io/#get-order
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -1625,109 +1498,68 @@ class woo extends woo$1["default"] {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const request = {};
         const clientOrderId = this.safeString2(params, 'clOrdID', 'clientOrderId');
         let response = undefined;
         if (trigger) {
-            if (clientOrderId !== undefined) {
-                request['clientAlgoOrderId'] = id;
-            }
-            else {
-                request['algoOrderId'] = id;
-            }
-            response = await this.v3PrivateGetTradeAlgoOrder(this.extend(request, params));
-            //
-            //     {
-            //         "success": true,
-            //         "data": {
-            //             "algoOrderId": 10399260,
-            //             "clientAlgoOrderId": 0,
-            //             "rootAlgoOrderId": 10399260,
-            //             "parentAlgoOrderId": 0,
-            //             "symbol": "SPOT_LTC_USDT",
-            //             "algoOrderTag": "default",
-            //             "algoType": "TAKE_PROFIT",
-            //             "side": "BUY",
-            //             "quantity": 0.1,
-            //             "isTriggered": false,
-            //             "triggerPrice": 65,
-            //             "triggerStatus": "USELESS",
-            //             "type": "LIMIT",
-            //             "rootAlgoStatus": "NEW",
-            //             "algoStatus": "NEW",
-            //             "triggerPriceType": "MARKET_PRICE",
-            //             "price": 60,
-            //             "triggerTime": "0",
-            //             "totalExecutedQuantity": 0,
-            //             "visibleQuantity": 0.1,
-            //             "averageExecutedPrice": 0,
-            //             "totalFee": 0,
-            //             "feeAsset": "",
-            //             "totalRebate": 0,
-            //             "rebateAsset": "",
-            //             "reduceOnly": false,
-            //             "createdTime": "1752049747.732",
-            //             "updatedTime": "1752049747.732",
-            //             "positionSide": "BOTH"
-            //         },
-            //         "timestamp": 1752049767550
-            //     }
-            //
+            request['oid'] = id;
+            response = await this.v3PrivateGetAlgoOrderOid(this.extend(request, params));
+        }
+        else if (clientOrderId) {
+            request['client_order_id'] = clientOrderId;
+            response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
         }
         else {
-            if (clientOrderId !== undefined) {
-                request['clientOrderId'] = clientOrderId;
-            }
-            else {
-                request['orderId'] = id;
-            }
-            response = await this.v3PrivateGetTradeOrder(this.extend(request, params));
-            //
-            //     {
-            //         "success": true,
-            //         "data": {
-            //             "orderId": 60780315704,
-            //             "clientOrderId": 0,
-            //             "symbol": "SPOT_LTC_USDT",
-            //             "orderTag": "default",
-            //             "side": "BUY",
-            //             "quantity": 0.1,
-            //             "amount": null,
-            //             "type": "LIMIT",
-            //             "status": "NEW",
-            //             "price": 60,
-            //             "executed": 0,
-            //             "visible": 0.1,
-            //             "averageExecutedPrice": 0,
-            //             "totalFee": 0,
-            //             "feeAsset": "LTC",
-            //             "totalRebate": 0,
-            //             "rebateAsset": "USDT",
-            //             "reduceOnly": false,
-            //             "createdTime": "1752049062.496",
-            //             "realizedPnl": null,
-            //             "positionSide": "BOTH",
-            //             "bidAskLevel": null
-            //         },
-            //         "timestamp": 1752049393466
-            //     }
-            //
+            request['oid'] = id;
+            response = await this.v1PrivateGetOrderOid(this.extend(request, params));
         }
-        const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        //
+        // {
+        //     "success": true,
+        //     "symbol": "SPOT_WOO_USDT",
+        //     "status": "FILLED", // FILLED, NEW
+        //     "side": "BUY",
+        //     "created_time": "1641480933.000",
+        //     "order_id": "87541111",
+        //     "order_tag": "default",
+        //     "price": "1",
+        //     "type": "LIMIT",
+        //     "quantity": "12",
+        //     "amount": null,
+        //     "visible": "12",
+        //     "executed": "12", // or any partial amount
+        //     "total_fee": "0.0024",
+        //     "fee_asset": "WOO",
+        //     "client_order_id": null,
+        //     "average_executed_price": "1",
+        //     "Transactions": [
+        //       {
+        //         "id": "99111647",
+        //         "symbol": "SPOT_WOO_USDT",
+        //         "fee": "0.0024",
+        //         "side": "BUY",
+        //         "executed_timestamp": "1641482113.084",
+        //         "order_id": "87541111",
+        //         "executed_price": "1",
+        //         "executed_quantity": "12",
+        //         "fee_asset": "WOO",
+        //         "is_maker": "1"
+        //       }
+        //     ]
+        // }
+        //
+        const orders = this.safeDict(response, 'data', response);
+        return this.parseOrder(orders, market);
     }
     /**
      * @method
      * @name woo#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+     * @see https://docs.woox.io/#get-orders
+     * @see https://docs.woox.io/#get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1735,6 +1567,7 @@ class woo extends woo$1["default"] {
      * @param {boolean} [params.trigger] whether the order is a trigger/algo order
      * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
      * @param {string} [params.side] 'buy' or 'sell'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1748,124 +1581,80 @@ class woo extends woo$1["default"] {
         const request = {};
         let market = undefined;
         const trigger = this.safeBool2(params, 'stop', 'trigger');
-        params = this.omit(params, ['stop', 'trigger']);
+        const trailing = this.safeBool(params, 'trailing', false);
+        params = this.omit(params, ['stop', 'trailing', 'trigger']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const until = this.safeInteger(params, 'until'); // unified in milliseconds
-        params = this.omit(params, ['until']);
-        if (until !== undefined) {
-            request['endTime'] = until;
+            if (trigger || trailing) {
+                request['createdTimeStart'] = since;
+            }
+            else {
+                request['start_t'] = since;
+            }
         }
         if (limit !== undefined) {
-            request['size'] = Math.min(limit, 500);
-        }
-        let response = undefined;
-        if (trigger) {
-            response = await this.v3PrivateGetTradeAlgoOrders(this.extend(request, params));
-            //
-            //     {
-            //         "success": true,
-            //         "data": {
-            //             "rows": [
-            //                 {
-            //                     "algoOrderId": 10399260,
-            //                     "clientAlgoOrderId": 0,
-            //                     "rootAlgoOrderId": 10399260,
-            //                     "parentAlgoOrderId": 0,
-            //                     "symbol": "SPOT_LTC_USDT",
-            //                     "algoOrderTag": "default",
-            //                     "algoType": "TAKE_PROFIT",
-            //                     "side": "BUY",
-            //                     "quantity": 0.1,
-            //                     "isTriggered": false,
-            //                     "triggerPrice": 65,
-            //                     "triggerStatus": "USELESS",
-            //                     "type": "LIMIT",
-            //                     "rootAlgoStatus": "NEW",
-            //                     "algoStatus": "NEW",
-            //                     "triggerPriceType": "MARKET_PRICE",
-            //                     "price": 60,
-            //                     "triggerTime": "0",
-            //                     "totalExecutedQuantity": 0,
-            //                     "visibleQuantity": 0.1,
-            //                     "averageExecutedPrice": 0,
-            //                     "totalFee": 0,
-            //                     "feeAsset": "",
-            //                     "totalRebate": 0,
-            //                     "rebateAsset": "",
-            //                     "reduceOnly": false,
-            //                     "createdTime": "1752049747.730",
-            //                     "updatedTime": "1752049747.730",
-            //                     "positionSide": "BOTH"
-            //                 }
-            //             ],
-            //             "meta": {
-            //                 "total": 7,
-            //                 "recordsPerPage": 1,
-            //                 "currentPage": 1
-            //             }
-            //         },
-            //         "timestamp": 1752053127448
-            //     }
-            //
+            request['size'] = limit;
         }
         else {
-            response = await this.v3PrivateGetTradeOrders(this.extend(request, params));
-            //
-            //     {
-            //         "success": true,
-            //         "data": {
-            //             "rows": [
-            //                 {
-            //                     "orderId": 60780315704,
-            //                     "clientOrderId": 0,
-            //                     "symbol": "SPOT_LTC_USDT",
-            //                     "orderTag": "default",
-            //                     "side": "BUY",
-            //                     "quantity": 0.1,
-            //                     "amount": null,
-            //                     "type": "LIMIT",
-            //                     "status": "NEW",
-            //                     "price": 60,
-            //                     "executed": 0,
-            //                     "visible": 0.1,
-            //                     "averageExecutedPrice": 0,
-            //                     "totalFee": 0,
-            //                     "feeAsset": "LTC",
-            //                     "totalRebate": 0,
-            //                     "rebateAsset": "USDT",
-            //                     "reduceOnly": false,
-            //                     "createdTime": "1752049062.496",
-            //                     "realizedPnl": null,
-            //                     "positionSide": "BOTH",
-            //                     "bidAskLevel": null
-            //                 }
-            //             ],
-            //             "meta": {
-            //                 "total": 11,
-            //                 "recordsPerPage": 1,
-            //                 "currentPage": 1
-            //             }
-            //         },
-            //         "timestamp": 1752053061236
-            //     }
-            //
+            request['size'] = trailing ? 50 : 500;
         }
-        const data = this.safeValue(response, 'data', {});
-        const orders = this.safeList(data, 'rows', []);
+        if (trigger) {
+            request['algoType'] = 'stop';
+        }
+        else if (trailing) {
+            request['algoType'] = 'TRAILING_STOP';
+        }
+        let response = undefined;
+        if (trigger || trailing) {
+            response = await this.v3PrivateGetAlgoOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.v1PrivateGetOrders(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "success":true,
+        //         "meta":{
+        //             "total":1,
+        //             "records_per_page":100,
+        //             "current_page":1
+        //         },
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "status":"FILLED",
+        //                 "side":"SELL",
+        //                 "created_time":"1611617776.000",
+        //                 "updated_time":"1611617776.000",
+        //                 "order_id":52121167,
+        //                 "order_tag":"default",
+        //                 "price":null,
+        //                 "type":"MARKET",
+        //                 "quantity":0.002,
+        //                 "amount":null,
+        //                 "visible":0,
+        //                 "executed":0.002,
+        //                 "total_fee":0.01732885,
+        //                 "fee_asset":"USDT",
+        //                 "client_order_id":null,
+        //                 "average_executed_price":28881.41
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue(response, 'data', response);
+        const orders = this.safeList(data, 'rows');
         return this.parseOrders(orders, market, since, limit);
     }
     /**
      * @method
      * @name woo#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+     * @see https://docs.woox.io/#get-orders
+     * @see https://docs.woox.io/#get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1886,8 +1675,8 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
+     * @see https://docs.woox.io/#get-orders
+     * @see https://docs.woox.io/#get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1914,108 +1703,83 @@ class woo extends woo$1["default"] {
     }
     parseOrder(order, market = undefined) {
         //
-        // createOrder
-        //     {
-        //         "orderId": 60667653330,
-        //         "clientOrderId": 0,
-        //         "type": "LIMIT",
-        //         "price": 60,
-        //         "quantity": 0.1,
-        //         "amount": null,
-        //         "bidAskLevel": null,
-        //         "timestamp": 1751871779855
-        //     }
+        // Possible input functions:
+        // * createOrder
+        // * cancelOrder
+        // * fetchOrder
+        // * fetchOrders
+        // const isFromFetchOrder = ('order_tag' in order); TO_DO
         //
-        // createOrder - algo
-        //     {
-        //         "orderId": "1578938",
-        //         "clientOrderId": "0",
-        //         "algoType": "STOP_LOSS",
-        //         "quantity": "0.1",
-        //         "timestamp": "1686149372216"
-        //     }
+        // stop order after creating it:
+        //   {
+        //     "orderId": "1578938",
+        //     "clientOrderId": "0",
+        //     "algoType": "STOP_LOSS",
+        //     "quantity": "0.1"
+        //   }
+        // stop order after fetching it:
+        //   {
+        //       "algoOrderId": "1578958",
+        //       "clientOrderId": "0",
+        //       "rootAlgoOrderId": "1578958",
+        //       "parentAlgoOrderId": "0",
+        //       "symbol": "SPOT_LTC_USDT",
+        //       "orderTag": "default",
+        //       "algoType": "STOP_LOSS",
+        //       "side": "BUY",
+        //       "quantity": "0.1",
+        //       "isTriggered": false,
+        //       "triggerPrice": "100",
+        //       "triggerStatus": "USELESS",
+        //       "type": "LIMIT",
+        //       "rootAlgoStatus": "CANCELLED",
+        //       "algoStatus": "CANCELLED",
+        //       "triggerPriceType": "MARKET_PRICE",
+        //       "price": "75",
+        //       "triggerTime": "0",
+        //       "totalExecutedQuantity": "0",
+        //       "averageExecutedPrice": "0",
+        //       "totalFee": "0",
+        //       "feeAsset": '',
+        //       "reduceOnly": false,
+        //       "createdTime": "1686149609.744",
+        //       "updatedTime": "1686149903.362"
+        //   }
         //
-        // fetchOrder
-        //     {
-        //         "orderId": 60780315704,
-        //         "clientOrderId": 0,
-        //         "symbol": "SPOT_LTC_USDT",
-        //         "orderTag": "default",
-        //         "side": "BUY",
-        //         "quantity": 0.1,
-        //         "amount": null,
-        //         "type": "LIMIT",
-        //         "status": "NEW",
-        //         "price": 60,
-        //         "executed": 0,
-        //         "visible": 0.1,
-        //         "averageExecutedPrice": 0,
-        //         "totalFee": 0,
-        //         "feeAsset": "LTC",
-        //         "totalRebate": 0,
-        //         "rebateAsset": "USDT",
-        //         "reduceOnly": false,
-        //         "createdTime": "1752049062.496",
-        //         "realizedPnl": null,
-        //         "positionSide": "BOTH",
-        //         "bidAskLevel": null
-        //     }
-        //
-        // fetchOrder - algo
-        //     {
-        //         "algoOrderId": 10399260,
-        //         "clientAlgoOrderId": 0,
-        //         "rootAlgoOrderId": 10399260,
-        //         "parentAlgoOrderId": 0,
-        //         "symbol": "SPOT_LTC_USDT",
-        //         "algoOrderTag": "default",
-        //         "algoType": "TAKE_PROFIT",
-        //         "side": "BUY",
-        //         "quantity": 0.1,
-        //         "isTriggered": false,
-        //         "triggerPrice": 65,
-        //         "triggerStatus": "USELESS",
-        //         "type": "LIMIT",
-        //         "rootAlgoStatus": "NEW",
-        //         "algoStatus": "NEW",
-        //         "triggerPriceType": "MARKET_PRICE",
-        //         "price": 60,
-        //         "triggerTime": "0",
-        //         "totalExecutedQuantity": 0,
-        //         "visibleQuantity": 0.1,
-        //         "averageExecutedPrice": 0,
-        //         "totalFee": 0,
-        //         "feeAsset": "",
-        //         "totalRebate": 0,
-        //         "rebateAsset": "",
-        //         "reduceOnly": false,
-        //         "createdTime": "1752049747.732",
-        //         "updatedTime": "1752049747.732",
-        //         "positionSide": "BOTH"
-        //     }
-        //
-        let timestamp = this.safeTimestamp(order, 'createdTime');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger(order, 'timestamp');
-        }
-        const orderId = this.safeString2(order, 'orderId', 'algoOrderId');
-        const clientOrderId = this.omitZero(this.safeString2(order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
+        const timestamp = this.safeTimestampN(order, ['timestamp', 'created_time', 'createdTime']);
+        const orderId = this.safeStringN(order, ['order_id', 'orderId', 'algoOrderId']);
+        const clientOrderId = this.omitZero(this.safeString2(order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         const marketId = this.safeString(order, 'symbol');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString(order, 'price');
-        const amount = this.safeString(order, 'quantity'); // This is base amount
-        const cost = this.safeString(order, 'amount'); // This is quote amount
-        const orderType = this.safeStringLower(order, 'type');
+        const price = this.safeString2(order, 'order_price', 'price');
+        const amount = this.safeString2(order, 'order_quantity', 'quantity'); // This is base amount
+        const cost = this.safeString2(order, 'order_amount', 'amount'); // This is quote amount
+        const orderType = this.safeStringLower2(order, 'order_type', 'type');
         const status = this.safeValue2(order, 'status', 'algoStatus');
         const side = this.safeStringLower(order, 'side');
         const filled = this.omitZero(this.safeValue2(order, 'executed', 'totalExecutedQuantity'));
-        const average = this.omitZero(this.safeString(order, 'averageExecutedPrice'));
+        const average = this.omitZero(this.safeString2(order, 'average_executed_price', 'averageExecutedPrice'));
         // const remaining = Precise.stringSub (cost, filled);
-        const fee = this.safeNumber(order, 'totalFee');
-        const feeCurrency = this.safeString(order, 'feeAsset');
+        const fee = this.safeNumber2(order, 'total_fee', 'totalFee');
+        const feeCurrency = this.safeString2(order, 'fee_asset', 'feeAsset');
+        const transactions = this.safeValue(order, 'Transactions');
         const triggerPrice = this.safeNumber(order, 'triggerPrice');
-        const lastUpdateTimestamp = this.safeTimestamp(order, 'updatedTime');
+        let takeProfitPrice = undefined;
+        let stopLossPrice = undefined;
+        const childOrders = this.safeValue(order, 'childOrders');
+        if (childOrders !== undefined) {
+            const first = this.safeValue(childOrders, 0);
+            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const innerChildOrdersLength = innerChildOrders.length;
+            if (innerChildOrdersLength > 0) {
+                const takeProfitOrder = this.safeValue(innerChildOrders, 0);
+                const stopLossOrder = this.safeValue(innerChildOrders, 1);
+                takeProfitPrice = this.safeNumber(takeProfitOrder, 'triggerPrice');
+                stopLossPrice = this.safeNumber(stopLossOrder, 'triggerPrice');
+            }
+        }
+        const lastUpdateTimestamp = this.safeTimestamp2(order, 'updatedTime', 'updated_time');
         return this.safeOrder({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -2028,18 +1792,18 @@ class woo extends woo$1["default"] {
             'type': orderType,
             'timeInForce': this.parseTimeInForce(orderType),
             'postOnly': undefined,
-            'reduceOnly': this.safeBool(order, 'reduceOnly'),
+            'reduceOnly': this.safeBool(order, 'reduce_only'),
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
-            'takeProfitPrice': undefined,
-            'stopLossPrice': undefined,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
             'cost': cost,
-            'trades': undefined,
+            'trades': transactions,
             'fee': {
                 'cost': fee,
                 'currency': feeCurrency,
@@ -2068,7 +1832,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/orderbook
+     * @see https://docs.woox.io/#orderbook-snapshot-public
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2081,45 +1845,40 @@ class woo extends woo$1["default"] {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['maxLevel'] = limit;
+            limit = Math.min(limit, 1000);
+            request['max_level'] = limit;
         }
-        const response = await this.v3PublicGetOrderbook(this.extend(request, params));
+        const response = await this.v1PublicGetOrderbookSymbol(this.extend(request, params));
         //
+        // {
+        //   "success": true,
+        //   "timestamp": "1641562961192",
+        //   "asks": [
+        //     { price: '0.921', quantity: "76.01" },
+        //     { price: '0.933', quantity: "477.10" },
+        //     ...
+        //   ],
+        //   "bids": [
+        //     { price: '0.940', quantity: "13502.47" },
+        //     { price: '0.932', quantity: "43.91" },
+        //     ...
+        //   ]
         // }
-        //     {
-        //         "success": true,
-        //         "timestamp": 1751620923344,
-        //         "data": {
-        //             "asks": [
-        //                 {
-        //                     "price": "108924.86",
-        //                     "quantity": "0.032126"
-        //                 }
-        //             ],
-        //             "bids": [
-        //                 {
-        //                     "price": "108924.85",
-        //                     "quantity": "1.714147"
-        //                 }
-        //             ]
-        //         }
-        //     }
         //
-        const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(response, 'timestamp');
-        return this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+        return this.parseOrderBook(response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
     /**
      * @method
      * @name woo#fetchOHLCV
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
+     * @see https://docs.woox.io/#kline-public
+     * @see https://docs.woox.io/#kline-historical-data-public
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -2129,47 +1888,75 @@ class woo extends woo$1["default"] {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (limit !== undefined) {
+        let useHistEndpoint = since !== undefined;
+        if ((limit !== undefined) && (since !== undefined)) {
+            const oneThousandCandles = this.parseTimeframe(timeframe) * 1000 * 999; // 999 because there will be delay between this and the request, causing the latest candle to be excluded sometimes
+            const startWithLimit = this.milliseconds() - oneThousandCandles;
+            useHistEndpoint = since < startWithLimit;
+        }
+        if (useHistEndpoint) {
+            request['start_time'] = since;
+        }
+        else if (limit !== undefined) { // the hist endpoint does not accept limit
             request['limit'] = Math.min(limit, 1000);
         }
-        if (since !== undefined) {
-            request['after'] = since;
+        let response = undefined;
+        if (!useHistEndpoint) {
+            response = await this.v1PublicGetKline(this.extend(request, params));
+            //
+            //    {
+            //        "success": true,
+            //        "rows": [
+            //            {
+            //                "open": "0.94238",
+            //                "close": "0.94271",
+            //                "low": "0.94238",
+            //                "high": "0.94296",
+            //                "volume": "73.55",
+            //                "amount": "69.32040520",
+            //                "symbol": "SPOT_WOO_USDT",
+            //                "type": "1m",
+            //                "start_timestamp": "1641584700000",
+            //                "end_timestamp": "1641584760000"
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
         }
-        const until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
-        if (until !== undefined) {
-            request['before'] = until;
+        else {
+            response = await this.v1PubGetHistKline(this.extend(request, params));
+            response = this.safeDict(response, 'data');
+            //
+            //    {
+            //        "success": true,
+            //        "data": {
+            //            "rows": [
+            //                {
+            //                    "symbol": "SPOT_BTC_USDT",
+            //                    "open": 44181.40000000,
+            //                    "close": 44174.29000000,
+            //                    "high": 44193.44000000,
+            //                    "low": 44148.34000000,
+            //                    "volume": 110.11930100,
+            //                    "amount": 4863796.24318878,
+            //                    "type": "1m",
+            //                    "start_timestamp": 1704153600000,
+            //                    "end_timestamp": 1704153660000
+            //                },
+            //                ...
+            //            ]
+            //        }
+            //    }
+            //
         }
-        const response = await this.v3PublicGetKlineHistory(this.extend(request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "symbol": "SPOT_BTC_USDT",
-        //                     "open": "108994.16",
-        //                     "close": "108994.16",
-        //                     "high": "108994.16",
-        //                     "low": "108994.16",
-        //                     "volume": "0",
-        //                     "amount": "0",
-        //                     "type": "1m",
-        //                     "startTimestamp": 1751622120000,
-        //                     "endTimestamp": 1751622180000
-        //                 }
-        //             ]
-        //         },
-        //         "timestamp": 1751622205410
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
+        const rows = this.safeList(response, 'rows', []);
         return this.parseOHLCVs(rows, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
+        // example response in fetchOHLCV
         return [
-            this.safeInteger(ohlcv, 'startTimestamp'),
+            this.safeInteger(ohlcv, 'start_timestamp'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
@@ -2224,7 +2011,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://developer.woox.io/api-reference/endpoint/trading/get_transactions
+     * @see https://docs.woox.io/#get-trade-history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2239,159 +2026,93 @@ class woo extends woo$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchMyTrades', symbol, since, limit, params, 'page', 500);
         }
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start_t'] = since;
         }
-        const until = this.safeInteger(params, 'until'); // unified in milliseconds
-        params = this.omit(params, ['until']);
-        if (until !== undefined) {
-            request['endTime'] = until;
-        }
+        [request, params] = this.handleUntilOption('end_t', request, params);
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['size'] = limit;
         }
-        const response = await this.v3PrivateGetTradeTransactionHistory(this.extend(request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "id": 1734947821,
-        //                     "symbol": "SPOT_LTC_USDT",
-        //                     "orderId": 60780383217,
-        //                     "executedPrice": 87.86,
-        //                     "executedQuantity": 0.1,
-        //                     "fee": 0.0001,
-        //                     "realizedPnl": null,
-        //                     "feeAsset": "LTC",
-        //                     "orderTag": "default",
-        //                     "side": "BUY",
-        //                     "executedTimestamp": "1752055173.630",
-        //                     "isMaker": 0
-        //                 }
-        //             ],
-        //             "meta": {
-        //                 "total": 1,
-        //                 "recordsPerPage": 100,
-        //                 "currentPage": 1
-        //             }
+        else {
+            request['size'] = 500;
+        }
+        const response = await this.v1PrivateGetClientTrades(this.extend(request, params));
+        // {
+        //     "success": true,
+        //     "meta": {
+        //         "records_per_page": 25,
+        //         "current_page": 1
+        //     },
+        //     "rows": [
+        //         {
+        //             "id": 5,
+        //             "symbol": "SPOT_BTC_USDT",
+        //             "order_id": 211,
+        //             "order_tag": "default",
+        //             "executed_price": 10892.84,
+        //             "executed_quantity": 0.002,
+        //             "is_maker": 0,
+        //             "side": "SELL",
+        //             "fee": 0,
+        //             "fee_asset": "USDT",
+        //             "executed_timestamp": "1566264290.250"
         //         },
-        //         "timestamp": 1752055545121
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        const trades = this.safeList(data, 'rows', []);
+        //         ...
+        //     ]
+        // }
+        const trades = this.safeList(response, 'rows', []);
         return this.parseTrades(trades, market, since, limit, params);
     }
     /**
      * @method
      * @name woo#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
-     * @see https://developer.woox.io/api-reference/endpoint/account/sub_accounts
+     * @see https://docs.woox.io/#get-assets-of-subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        const mainAccountPromise = this.v3PrivateGetAccountInfo(params);
+        const response = await this.v1PrivateGetSubAccountAssets(params);
         //
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
-        //             "account": "carlos_jose_lima@yahoo.com",
-        //             "alias": "carlos_jose_lima@yahoo.com",
-        //             "otpauth": true,
-        //             "accountMode": "FUTURES",
-        //             "positionMode": "ONE_WAY",
-        //             "leverage": 0,
-        //             "marginRatio": "10",
-        //             "openMarginRatio": "10",
-        //             "initialMarginRatio": "10",
-        //             "maintenanceMarginRatio": "0.03",
-        //             "totalCollateral": "165.55629469",
-        //             "freeCollateral": "165.55629469",
-        //             "totalAccountValue": "167.32418611",
-        //             "totalTradingValue": "167.32418611",
-        //             "totalVaultValue": "0",
-        //             "totalStakingValue": "0",
-        //             "totalLaunchpadValue": "0",
-        //             "totalEarnValue": "0",
-        //             "referrerID": null,
-        //             "accountType": "Main"
-        //         },
-        //         "timestamp": 1752062807915
+        //         "rows": [{
+        //                 "application_id": "13e4fc34-e2ff-4cb7-b1e4-4c22fee7d365",
+        //                 "account": "Main",
+        //                 "usdt_balance": "4.0"
+        //             },
+        //             {
+        //                 "application_id": "432952aa-a401-4e26-aff6-972920aebba3",
+        //                 "account": "subaccount",
+        //                 "usdt_balance": "1.0"
+        //             }
+        //         ],
+        //         "success": true
         //     }
         //
-        const subAccountPromise = this.v3PrivateGetAccountSubAccountsAll(params);
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "applicationId": "6b43de5c-0955-4887-9862-d84e4689f9fe",
-        //                     "name": "sub_account_2",
-        //                     "createdTime": "1606897264.994"
-        //                 },
-        //             ]
-        //         },
-        //         "timestamp": 1721295317627
-        //     }
-        //
-        const [mainAccountResponse, subAccountResponse] = await Promise.all([mainAccountPromise, subAccountPromise]);
-        const mainData = this.safeDict(mainAccountResponse, 'data', {});
-        const mainRows = [mainData];
-        const subData = this.safeDict(subAccountResponse, 'data', {});
-        const subRows = this.safeList(subData, 'rows', []);
-        const rows = this.arrayConcat(mainRows, subRows);
+        const rows = this.safeList(response, 'rows', []);
         return this.parseAccounts(rows, params);
     }
     parseAccount(account) {
         //
         //     {
-        //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
-        //         "account": "carlos_jose_lima@yahoo.com",
-        //         "alias": "carlos_jose_lima@yahoo.com",
-        //         "otpauth": true,
-        //         "accountMode": "FUTURES",
-        //         "positionMode": "ONE_WAY",
-        //         "leverage": 0,
-        //         "marginRatio": "10",
-        //         "openMarginRatio": "10",
-        //         "initialMarginRatio": "10",
-        //         "maintenanceMarginRatio": "0.03",
-        //         "totalCollateral": "165.55629469",
-        //         "freeCollateral": "165.55629469",
-        //         "totalAccountValue": "167.32418611",
-        //         "totalTradingValue": "167.32418611",
-        //         "totalVaultValue": "0",
-        //         "totalStakingValue": "0",
-        //         "totalLaunchpadValue": "0",
-        //         "totalEarnValue": "0",
-        //         "referrerID": null,
-        //         "accountType": "Main"
+        //         "application_id": "336952aa-a401-4e26-aff6-972920aebba3",
+        //         "account": "subaccount",
+        //         "usdt_balance": "1.0",
         //     }
         //
-        //     {
-        //         "applicationId": "6b43de5c-0955-4887-9862-d84e4689f9fe",
-        //         "name": "sub_account_2",
-        //         "createdTime": "1606897264.994"
-        //     }
-        //
+        const accountId = this.safeString(account, 'account');
         return {
             'info': account,
-            'id': this.safeString(account, 'applicationId'),
-            'name': this.safeStringN(account, ['name', 'account', 'alias']),
+            'id': this.safeString(account, 'application_id'),
+            'name': accountId,
             'code': undefined,
-            'type': this.safeStringLower(account, 'accountType', 'subaccount'),
+            'type': accountId === 'Main' ? 'main' : 'subaccount',
         };
     }
     /**
@@ -2450,7 +2171,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
+     * @see https://docs.woox.io/#get-token-deposit-address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2459,25 +2180,18 @@ class woo extends woo$1["default"] {
         // this method is TODO because of networks unification
         await this.loadMarkets();
         const currency = this.currency(code);
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let specialNetworkId = undefined;
+        [specialNetworkId, params] = this.getDedicatedNetworkId(currency, params);
         const request = {
-            'token': currency['id'],
-            'network': this.networkCodeToId(networkCode),
+            'token': specialNetworkId,
         };
-        const response = await this.v3PrivateGetAssetWalletDeposit(this.extend(request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "address": "0x31d64B3230f8baDD91dE1710A65DF536aF8f7cDa",
-        //             "extra": ""
-        //         },
-        //         "timestamp": 1721300689532
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        return this.parseDepositAddress(data, currency);
+        const response = await this.v1PrivateGetAssetDeposit(this.extend(request, params));
+        // {
+        //     "success": true,
+        //     "address": "3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP",
+        //     "extra": ''
+        // }
+        return this.parseDepositAddress(response, currency);
     }
     getDedicatedNetworkId(currency, params) {
         let networkCode = undefined;
@@ -2508,68 +2222,61 @@ class woo extends woo$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['token'] = currency['id'];
-        }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        if (networkCode !== undefined) {
-            request['network'] = this.networkCodeToId(networkCode);
+            request['balance_token'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start_t'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = Math.min(limit, 1000);
+            request['pageSize'] = limit;
         }
         const transactionType = this.safeString(params, 'type');
         params = this.omit(params, 'type');
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await this.v3PrivateGetAssetWalletHistory(this.extend(request, params));
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "createdTime": "1734964440.523",
-        //                     "updatedTime": "1734964614.081",
-        //                     "id": "24122314340000585",
-        //                     "externalId": "241223143600621",
-        //                     "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
-        //                     "token": "ARB_USDCNATIVE",
-        //                     "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
-        //                     "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
-        //                     "extra": "",
-        //                     "type": "BALANCE",
-        //                     "tokenSide": "WITHDRAW",
-        //                     "amount": "10.00000000",
-        //                     "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
-        //                     "feeToken": "USDC",
-        //                     "feeAmount": "2",
-        //                     "status": "COMPLETED",
-        //                     "confirmingThreshold": null,
-        //                     "confirmedNumber": null
-        //                 }
-        //             ],
-        //             "meta": {
-        //                 "total": 1,
-        //                 "records_per_page": 25,
-        //                 "current_page": 1
-        //             }
-        //         },
-        //         "timestamp": 1752485344719
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        return [currency, this.safeList(data, 'rows', [])];
+        const response = await this.v1PrivateGetAssetHistory(this.extend(request, params));
+        // {
+        //     "rows": [
+        //       {
+        //         "id": "22010508193900165",
+        //         "token": "TRON_USDT",
+        //         "extra": '',
+        //         "amount": "13.75848500",
+        //         "status": "COMPLETED",
+        //         "account": null,
+        //         "description": null,
+        //         "user_id": "42222",
+        //         "application_id": "6ad2b303-f354-45c0-8105-9f5f19d0e335",
+        //         "external_id": "220105081900134",
+        //         "target_address": "TXnyFSnAYad3YCaqtwMw9jvXKkeU39NLnK",
+        //         "source_address": "TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6",
+        //         "type": "BALANCE",
+        //         "token_side": "DEPOSIT",
+        //         "tx_id": "35b0004022f6b3ad07f39a0b7af199f6b258c2c3e2c7cdc93c67efa74fd625ee",
+        //         "fee_token": '',
+        //         "fee_amount": "0.00000000",
+        //         "created_time": "1641370779.442",
+        //         "updated_time": "1641370779.465",
+        //         "is_new_target_address": null,
+        //         "confirmed_number": "29",
+        //         "confirming_threshold": "27",
+        //         "audit_tag": "1",
+        //         "audit_result": "0",
+        //         "balance_token": null, // TODO -write to support, that this seems broken. here should be the token id
+        //         "network_name": null // TODO -write to support, that this seems broken. here should be the network id
+        //       }
+        //     ],
+        //     "meta": { total: '1', records_per_page: "25", current_page: "1" },
+        //     "success": true
+        // }
+        return [currency, this.safeList(response, 'rows', [])];
     }
     /**
      * @method
      * @name woo#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2583,43 +2290,22 @@ class woo extends woo$1["default"] {
         return this.parseLedger(rows, currency, since, limit, params);
     }
     parseLedgerEntry(item, currency = undefined) {
-        //
-        //     {
-        //         "createdTime": "1734964440.523",
-        //         "updatedTime": "1734964614.081",
-        //         "id": "24122314340000585",
-        //         "externalId": "241223143600621",
-        //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
-        //         "token": "ARB_USDCNATIVE",
-        //         "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
-        //         "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
-        //         "extra": "",
-        //         "type": "BALANCE",
-        //         "tokenSide": "WITHDRAW",
-        //         "amount": "10.00000000",
-        //         "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
-        //         "feeToken": "USDC",
-        //         "feeAmount": "2",
-        //         "status": "COMPLETED",
-        //         "confirmingThreshold": null,
-        //         "confirmedNumber": null
-        //     }
-        //
         const networkizedCode = this.safeString(item, 'token');
-        const code = this.safeCurrencyCode(networkizedCode, currency);
+        const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
+        const code = currencyDefined['code'];
         currency = this.safeCurrency(code, currency);
         const amount = this.safeNumber(item, 'amount');
-        const side = this.safeString(item, 'tokenSide');
+        const side = this.safeString(item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
-        const timestamp = this.safeTimestamp(item, 'createdTime');
-        const fee = this.parseTokenAndFeeTemp(item, ['feeToken'], ['feeAmount']);
+        const timestamp = this.safeTimestamp(item, 'created_time');
+        const fee = this.parseTokenAndFeeTemp(item, 'fee_token', 'fee_amount');
         return this.safeLedgerEntry({
             'info': item,
             'id': this.safeString(item, 'id'),
             'currency': code,
             'account': this.safeString(item, 'account'),
             'referenceAccount': undefined,
-            'referenceId': this.safeString(item, 'txId'),
+            'referenceId': this.safeString(item, 'tx_id'),
             'status': this.parseTransactionStatus(this.safeString(item, 'status')),
             'amount': amount,
             'before': undefined,
@@ -2658,7 +2344,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2667,7 +2353,7 @@ class woo extends woo$1["default"] {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'tokenSide': 'DEPOSIT',
+            'token_side': 'DEPOSIT',
         };
         return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, params));
     }
@@ -2675,7 +2361,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2684,7 +2370,7 @@ class woo extends woo$1["default"] {
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
-            'tokenSide': 'WITHDRAW',
+            'token_side': 'WITHDRAW',
         };
         return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, params));
     }
@@ -2692,7 +2378,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
+     * @see https://docs.woox.io/#get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -2706,46 +2392,36 @@ class woo extends woo$1["default"] {
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, this.extend(request, params));
         const currency = this.safeValue(currencyRows, 0);
         const rows = this.safeList(currencyRows, 1);
+        //
+        //     {
+        //         "rows":[],
+        //         "meta":{
+        //             "total":0,
+        //             "records_per_page":25,
+        //             "current_page":1
+        //         },
+        //         "success":true
+        //     }
+        //
         return this.parseTransactions(rows, currency, since, limit, params);
     }
     parseTransaction(transaction, currency = undefined) {
-        //
-        //     {
-        //         "createdTime": "1734964440.523",
-        //         "updatedTime": "1734964614.081",
-        //         "id": "24122314340000585",
-        //         "externalId": "241223143600621",
-        //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
-        //         "token": "ARB_USDCNATIVE",
-        //         "targetAddress": "0x4d6802d2736daa85e6242ef0dc0f00aa0e68f635",
-        //         "sourceAddress": "0x63DFE4e34A3bFC00eB0220786238a7C6cEF8Ffc4",
-        //         "extra": "",
-        //         "type": "BALANCE",
-        //         "tokenSide": "WITHDRAW",
-        //         "amount": "10.00000000",
-        //         "txId": "0x891ade0a47fd55466bb9d06702bea4edcb75ed9367d9afbc47b93a84f496d2e6",
-        //         "feeToken": "USDC",
-        //         "feeAmount": "2",
-        //         "status": "COMPLETED",
-        //         "confirmingThreshold": null,
-        //         "confirmedNumber": null
-        //     }
-        //
+        // example in fetchLedger
         const networkizedCode = this.safeString(transaction, 'token');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         const code = currencyDefined['code'];
-        let movementDirection = this.safeStringLower2(transaction, 'token_side', 'tokenSide');
+        let movementDirection = this.safeStringLower(transaction, 'token_side');
         if (movementDirection === 'withdraw') {
             movementDirection = 'withdrawal';
         }
-        const fee = this.parseTokenAndFeeTemp(transaction, ['fee_token', 'feeToken'], ['fee_amount', 'feeAmount']);
-        const addressTo = this.safeString2(transaction, 'target_address', 'targetAddress');
-        const addressFrom = this.safeString2(transaction, 'source_address', 'sourceAddress');
-        const timestamp = this.safeTimestamp2(transaction, 'created_time', 'createdTime');
+        const fee = this.parseTokenAndFeeTemp(transaction, 'fee_token', 'fee_amount');
+        const addressTo = this.safeString(transaction, 'target_address');
+        const addressFrom = this.safeString(transaction, 'source_address');
+        const timestamp = this.safeTimestamp(transaction, 'created_time');
         return {
             'info': transaction,
-            'id': this.safeStringN(transaction, ['id', 'withdraw_id', 'withdrawId']),
-            'txid': this.safeString2(transaction, 'tx_id', 'txId'),
+            'id': this.safeString2(transaction, 'id', 'withdraw_id'),
+            'txid': this.safeString(transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'address': undefined,
@@ -2758,7 +2434,7 @@ class woo extends woo$1["default"] {
             'amount': this.safeNumber(transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
-            'updated': this.safeTimestamp2(transaction, 'updated_time', 'updatedTime'),
+            'updated': this.safeTimestamp(transaction, 'updated_time'),
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
@@ -2817,7 +2493,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history
+     * @see https://docs.woox.io/#get-transfer-history
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -2827,56 +2503,44 @@ class woo extends woo$1["default"] {
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency(code);
-        }
         if (limit !== undefined) {
             request['size'] = limit;
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start_t'] = since;
         }
         const until = this.safeInteger(params, 'until'); // unified in milliseconds
         params = this.omit(params, ['until']);
         if (until !== undefined) {
-            request['endTime'] = until;
+            request['end_t'] = until;
         }
-        const response = await this.v3PrivateGetAssetTransferHistory(this.extend(request, params));
+        const response = await this.v1PrivateGetAssetMainSubTransferHistory(this.extend(request, params));
         //
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "id": 225,
-        //                     "token": "USDT",
-        //                     "amount": "1000000",
-        //                     "status": "COMPLETED",
-        //                     "from": {
-        //                         "applicationId": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
-        //                         "accountName": "Main"
-        //                     },
-        //                     "to": {
-        //                         "applicationId": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
-        //                         "accountName": "sub001"
-        //                     },
-        //                     "createdTime": "1642660941.534",
-        //                     "updatedTime": "1642660941.950"
-        //                 }
-        //             ],
-        //             "meta": {
-        //                 "total": 46,
-        //                 "recordsPerPage": 1,
-        //                 "currentPage": 1
+        //         "rows": [
+        //             {
+        //                 "id": 46704,
+        //                 "token": "USDT",
+        //                 "amount": 30000.00000000,
+        //                 "status": "COMPLETED",
+        //                 "from_application_id": "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
+        //                 "to_application_id": "c01e6940-a735-4022-9b6c-9d3971cdfdfa",
+        //                 "from_user": "LeverageLow",
+        //                 "to_user": "dev",
+        //                 "created_time": "1709022325.427",
+        //                 "updated_time": "1709022325.542"
         //             }
+        //         ],
+        //         "meta": {
+        //             "total": 50,
+        //             "records_per_page": 25,
+        //             "current_page": 1
         //         },
-        //         "timestamp": 1721295317627
+        //         "success": true
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
-        return this.parseTransfers(rows, currency, since, limit, params);
+        const data = this.safeList(response, 'rows', []);
+        return this.parseTransfers(data, undefined, since, limit, params);
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -2893,22 +2557,6 @@ class woo extends woo$1["default"] {
         //         "created_time": "1709022325.427",
         //         "updated_time": "1709022325.542"
         //     }
-        //     {
-        //         "id": 225,
-        //         "token": "USDT",
-        //         "amount": "1000000",
-        //         "status": "COMPLETED",
-        //         "from": {
-        //             "applicationId": "046b5c5c-5b44-4d27-9593-ddc32c0a08ae",
-        //             "accountName": "Main"
-        //         },
-        //         "to": {
-        //             "applicationId": "082ae5ae-e26a-4fb1-be5b-03e5b4867663",
-        //             "accountName": "sub001"
-        //         },
-        //         "createdTime": "1642660941.534",
-        //         "updatedTime": "1642660941.950"
-        //     }
         //
         //    transfer
         //        {
@@ -2916,23 +2564,23 @@ class woo extends woo$1["default"] {
         //            "id": 200
         //        }
         //
-        const code = this.safeCurrencyCode(this.safeString(transfer, 'token'), currency);
-        const timestamp = this.safeTimestamp(transfer, 'createdTime');
+        const networkizedCode = this.safeString(transfer, 'token');
+        const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
+        const code = currencyDefined['code'];
+        const timestamp = this.safeTimestamp(transfer, 'created_time');
         const success = this.safeBool(transfer, 'success');
         let status = undefined;
         if (success !== undefined) {
             status = success ? 'ok' : 'failed';
         }
-        const fromAccount = this.safeDict(transfer, 'from', {});
-        const toAccount = this.safeDict(transfer, 'to', {});
         return {
             'id': this.safeString(transfer, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': code,
             'amount': this.safeNumber(transfer, 'amount'),
-            'fromAccount': this.safeString(fromAccount, 'applicationId'),
-            'toAccount': this.safeString(toAccount, 'applicationId'),
+            'fromAccount': this.safeString(transfer, 'from_application_id'),
+            'toAccount': this.safeString(transfer, 'to_application_id'),
             'status': this.parseTransferStatus(this.safeString(transfer, 'status', status)),
             'info': transfer,
         };
@@ -3059,7 +2707,7 @@ class woo extends woo$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
-            if (method === 'POST' && (path === 'trade/algoOrder' || path === 'trade/order')) {
+            if (method === 'POST' && (path === 'algo/order' || path === 'order')) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
                 if (!isSandboxMode) {
                     const applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
@@ -3083,10 +2731,9 @@ class woo extends woo$1["default"] {
             };
             if (version === 'v3') {
                 auth = ts + method + '/' + version + '/' + pathWithParams;
-                if (method === 'POST' || method === 'PUT') {
+                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                     body = this.json(params);
                     auth += body;
-                    headers['content-type'] = 'application/json';
                 }
                 else {
                     if (Object.keys(params).length) {
@@ -3095,6 +2742,7 @@ class woo extends woo$1["default"] {
                         auth += '?' + query;
                     }
                 }
+                headers['content-type'] = 'application/json';
             }
             else {
                 auth = this.urlencode(params);
@@ -3133,26 +2781,25 @@ class woo extends woo$1["default"] {
     parseIncome(income, market = undefined) {
         //
         //     {
-        //         "id": 1286360,
-        //         "symbol": "PERP_BTC_USDT",
-        //         "fundingRate": -0.00001445,
-        //         "markPrice": "26930.60000000",
-        //         "fundingFee": "9.56021744",
-        //         "fundingIntervalHours": 8,
-        //         "paymentType": "Pay",
-        //         "status": "COMPLETED",
-        //         "createdTime": 1696060873259,
-        //         "updatedTime": 1696060873286
+        //         "id":666666,
+        //         "symbol":"PERP_BTC_USDT",
+        //         "funding_rate":0.00001198,
+        //         "mark_price":28941.04000000,
+        //         "funding_fee":0.00069343,
+        //         "payment_type":"Pay",
+        //         "status":"COMPLETED",
+        //         "created_time":"1653616000.666",
+        //         "updated_time":"1653616000.605"
         //     }
         //
         const marketId = this.safeString(income, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        let amount = this.safeString(income, 'fundingFee');
+        let amount = this.safeString(income, 'funding_fee');
         const code = this.safeCurrencyCode('USD');
         const id = this.safeString(income, 'id');
-        const timestamp = this.safeInteger(income, 'updatedTime');
-        const rate = this.safeNumber(income, 'fundingRate');
-        const paymentType = this.safeString(income, 'paymentType');
+        const timestamp = this.safeTimestamp(income, 'updated_time');
+        const rate = this.safeNumber(income, 'funding_rate');
+        const paymentType = this.safeString(income, 'payment_type');
         amount = (paymentType === 'Pay') ? Precise["default"].stringNeg(amount) : amount;
         return {
             'info': income,
@@ -3169,7 +2816,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history
+     * @see https://docs.woox.io/#get-funding-fee-history
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -3182,7 +2829,7 @@ class woo extends woo$1["default"] {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 500);
+            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'page', 'page', 1, 500);
         }
         const request = {};
         let market = undefined;
@@ -3191,67 +2838,70 @@ class woo extends woo$1["default"] {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const until = this.safeInteger(params, 'until'); // unified in milliseconds
-        params = this.omit(params, ['until']);
-        if (until !== undefined) {
-            request['endTime'] = until;
+            request['start_t'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = Math.min(limit, 500);
+            request['size'] = limit;
         }
-        const response = await this.v3PrivateGetFuturesFundingFeeHistory(this.extend(request, params));
+        else {
+            request['size'] = 5000;
+        }
+        const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, params));
         //
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "meta": {
-        //                 "total": 670,
-        //                 "recordsPerPage": 25,
-        //                 "currentPage": 1
-        //             },
-        //             "rows": [
-        //                 {
-        //                     "id": 1286360,
-        //                     "symbol": "PERP_BTC_USDT",
-        //                     "fundingRate": -0.00001445,
-        //                     "markPrice": "26930.60000000",
-        //                     "fundingFee": "9.56021744",
-        //                     "fundingIntervalHours": 8,
-        //                     "paymentType": "Pay",
-        //                     "status": "COMPLETED",
-        //                     "createdTime": 1696060873259,
-        //                     "updatedTime": 1696060873286
-        //                 }
-        //             ]
+        //         "rows":[
+        //             {
+        //                 "id":666666,
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "funding_rate":0.00001198,
+        //                 "mark_price":28941.04000000,
+        //                 "funding_fee":0.00069343,
+        //                 "payment_type":"Pay",
+        //                 "status":"COMPLETED",
+        //                 "created_time":"1653616000.666",
+        //                 "updated_time":"1653616000.605"
+        //             }
+        //         ],
+        //         "meta":{
+        //             "total":235,
+        //             "records_per_page":25,
+        //             "current_page":1
         //         },
-        //         "timestamp": 1721351502594
+        //         "success":true
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
-        return this.parseIncomes(rows, market, since, limit);
+        const meta = this.safeDict(response, 'meta', {});
+        const cursor = this.safeInteger(meta, 'current_page');
+        const result = this.safeList(response, 'rows', []);
+        const resultLength = result.length;
+        if (resultLength > 0) {
+            const lastItem = result[resultLength - 1];
+            lastItem['page'] = cursor;
+            result[resultLength - 1] = lastItem;
+        }
+        return this.parseIncomes(result, market, since, limit);
     }
     parseFundingRate(fundingRate, market = undefined) {
         //
         //     {
+        //         "success": true,
+        //         "timestamp": 1727427915529,
         //         "symbol": "PERP_BTC_USDT",
-        //         "estFundingRate": "-0.00000441",
-        //         "estFundingRateTimestamp": 1751623979022,
-        //         "lastFundingRate": "-0.00004953",
-        //         "lastFundingRateTimestamp": 1751616000000,
-        //         "nextFundingTime": 1751644800000,
-        //         "lastFundingIntervalHours": 8,
-        //         "estFundingIntervalHours": 8
+        //         "est_funding_rate": -0.00092719,
+        //         "est_funding_rate_timestamp": 1727427899060,
+        //         "last_funding_rate": -0.00092610,
+        //         "last_funding_rate_timestamp": 1727424000000,
+        //         "next_funding_time": 1727452800000,
+        //         "last_funding_rate_interval": 8,
+        //         "est_funding_rate_interval": 8
         //     }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
         market = this.market(symbol);
-        const nextFundingTimestamp = this.safeInteger(fundingRate, 'nextFundingTime');
-        const estFundingRateTimestamp = this.safeInteger(fundingRate, 'estFundingRateTimestamp');
-        const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'lastFundingRateTimestamp');
-        const intervalString = this.safeString(fundingRate, 'estFundingIntervalHours');
+        const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
+        const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
+        const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
+        const intervalString = this.safeString(fundingRate, 'est_funding_rate_interval');
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -3261,13 +2911,13 @@ class woo extends woo$1["default"] {
             'estimatedSettlePrice': undefined,
             'timestamp': estFundingRateTimestamp,
             'datetime': this.iso8601(estFundingRateTimestamp),
-            'fundingRate': this.safeNumber(fundingRate, 'estFundingRate'),
+            'fundingRate': this.safeNumber(fundingRate, 'est_funding_rate'),
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601(nextFundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber(fundingRate, 'lastFundingRate'),
+            'previousFundingRate': this.safeNumber(fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601(lastFundingRateTimestamp),
             'interval': intervalString + 'h',
@@ -3277,7 +2927,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3289,7 +2939,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -3300,37 +2950,28 @@ class woo extends woo$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v3PublicGetFundingRate(this.extend(request, params));
+        const response = await this.v1PublicGetFundingRateSymbol(this.extend(request, params));
         //
         //     {
         //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "symbol": "PERP_BTC_USDT",
-        //                     "estFundingRate": "-0.00000441",
-        //                     "estFundingRateTimestamp": 1751623979022,
-        //                     "lastFundingRate": "-0.00004953",
-        //                     "lastFundingRateTimestamp": 1751616000000,
-        //                     "nextFundingTime": 1751644800000,
-        //                     "lastFundingIntervalHours": 8,
-        //                     "estFundingIntervalHours": 8
-        //                 }
-        //             ]
-        //         },
-        //         "timestamp": 1751624037798
+        //         "timestamp": 1727428037877,
+        //         "symbol": "PERP_BTC_USDT",
+        //         "est_funding_rate": -0.00092674,
+        //         "est_funding_rate_timestamp": 1727428019064,
+        //         "last_funding_rate": -0.00092610,
+        //         "last_funding_rate_timestamp": 1727424000000,
+        //         "next_funding_time": 1727452800000,
+        //         "last_funding_rate_interval": 8,
+        //         "est_funding_rate_interval": 8
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
-        const first = this.safeDict(rows, 0, {});
-        return this.parseFundingRate(first, market);
+        return this.parseFundingRate(response, market);
     }
     /**
      * @method
      * @name woo#fetchFundingRates
      * @description fetch the funding rate for multiple markets
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
+     * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
@@ -3338,36 +2979,31 @@ class woo extends woo$1["default"] {
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.v3PublicGetFundingRate(params);
+        const response = await this.v1PublicGetFundingRates(params);
         //
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "symbol": "PERP_BTC_USDT",
-        //                     "estFundingRate": "-0.00000441",
-        //                     "estFundingRateTimestamp": 1751623979022,
-        //                     "lastFundingRate": "-0.00004953",
-        //                     "lastFundingRateTimestamp": 1751616000000,
-        //                     "nextFundingTime": 1751644800000,
-        //                     "lastFundingIntervalHours": 8,
-        //                     "estFundingIntervalHours": 8
-        //                 }
-        //             ]
-        //         },
-        //         "timestamp": 1751624037798
+        //         "success":true,
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_AAVE_USDT",
+        //                 "est_funding_rate":-0.00003447,
+        //                 "est_funding_rate_timestamp":1653633959001,
+        //                 "last_funding_rate":-0.00002094,
+        //                 "last_funding_rate_timestamp":1653631200000,
+        //                 "next_funding_time":1653634800000
+        //             }
+        //         ],
+        //         "timestamp":1653633985646
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
+        const rows = this.safeList(response, 'rows', []);
         return this.parseFundingRates(rows, symbols);
     }
     /**
      * @method
      * @name woo#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
+     * @see https://docs.woox.io/#get-funding-rate-history-for-one-market-public
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -3383,52 +3019,46 @@ class woo extends woo$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchFundingRateHistory', symbol, since, limit, params, 'page', 25);
         }
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        let request = {};
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            request['symbol'] = market['id'];
         }
-        const market = this.market(symbol);
-        symbol = market['symbol'];
-        let request = {
-            'symbol': market['id'],
-        };
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start_t'] = this.parseToInt(since / 1000);
         }
-        [request, params] = this.handleUntilOption('endTime', request, params);
-        const response = await this.v3PublicGetFundingRateHistory(this.extend(request, params));
+        [request, params] = this.handleUntilOption('end_t', request, params, 0.001);
+        const response = await this.v1PublicGetFundingRateHistory(this.extend(request, params));
         //
         //     {
-        //         "success": true,
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "symbol": "PERP_BTC_USDT",
-        //                     "fundingRate": "-0.00004953",
-        //                     "fundingRateTimestamp": 1751616000000,
-        //                     "nextFundingTime": 1751644800000,
-        //                     "markPrice": "108708"
-        //                 }
-        //             ],
-        //             "meta": {
-        //                 "total": 11690,
-        //                 "recordsPerPage": 25,
-        //                 "currentPage": 1
-        //             }
+        //         "success":true,
+        //         "meta":{
+        //             "total":2464,
+        //             "records_per_page":25,
+        //             "current_page":1
         //         },
-        //         "timestamp": 1751632390031
+        //         "rows":[
+        //             {
+        //                 "symbol":"PERP_BTC_USDT",
+        //                 "funding_rate":0.00000629,
+        //                 "funding_rate_timestamp":1653638400000,
+        //                 "next_funding_time":1653642000000
+        //             }
+        //         ],
+        //         "timestamp":1653640814885
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const rows = this.safeList(data, 'rows', []);
+        const result = this.safeList(response, 'rows');
         const rates = [];
-        for (let i = 0; i < rows.length; i++) {
-            const entry = rows[i];
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
             const marketId = this.safeString(entry, 'symbol');
-            const timestamp = this.safeInteger(entry, 'fundingRateTimestamp');
+            const timestamp = this.safeInteger(entry, 'funding_rate_timestamp');
             rates.push({
                 'info': entry,
                 'symbol': this.safeSymbol(marketId),
-                'fundingRate': this.safeNumber(entry, 'fundingRate'),
+                'fundingRate': this.safeNumber(entry, 'funding_rate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
             });
@@ -3440,7 +3070,7 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://developer.woox.io/api-reference/endpoint/futures/position_mode
+     * @see https://docs.woox.io/#update-position-mode
      * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
      * @param {string} symbol not used by woo setPositionMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3455,13 +3085,14 @@ class woo extends woo$1["default"] {
             hedgeMode = 'ONE_WAY';
         }
         const request = {
-            'positionMode': hedgeMode,
+            'position_mode': hedgeMode,
         };
-        const response = await this.v3PrivatePutFuturesPositionMode(this.extend(request, params));
+        const response = await this.v1PrivatePostClientPositionMode(this.extend(request, params));
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1752550492845
+        //         "data": {},
+        //         "timestamp": "1709195608551"
         //     }
         //
         return response;
@@ -3470,12 +3101,11 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
-     * @see https://developer.woox.io/api-reference/endpoint/futures/get_leverage
+     * @see https://docs.woox.io/#get-account-information-new
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
-     * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+     * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
@@ -3483,7 +3113,7 @@ class woo extends woo$1["default"] {
         const market = this.market(symbol);
         let response = undefined;
         if (market['spot']) {
-            response = await this.v3PrivateGetAccountInfo(params);
+            response = await this.v3PrivateGetAccountinfo(params);
             //
             //     {
             //         "success": true,
@@ -3491,26 +3121,25 @@ class woo extends woo$1["default"] {
             //             "applicationId": "dsa",
             //             "account": "dsa",
             //             "alias": "haha",
+            //             "accountMode": "MARGIN",
+            //             "leverage": 1,
+            //             "takerFeeRate": 1,
+            //             "makerFeeRate": 1,
+            //             "interestRate": 1,
+            //             "futuresTakerFeeRate": 1,
+            //             "futuresMakerFeeRate": 1,
             //             "otpauth": true,
-            //             "accountMode": "FUTURES",
-            //             "positionMode": "ONE_WAY",
-            //             "leverage": 0,
-            //             "marginRatio": "10",
-            //             "openMarginRatio": "10",
-            //             "initialMarginRatio": "10",
-            //             "maintenanceMarginRatio": "0.03",
-            //             "totalCollateral": "165.6115334",
-            //             "freeCollateral": "165.6115334",
-            //             "totalAccountValue": "167.52723093",
-            //             "totalTradingValue": "167.52723093",
-            //             "totalVaultValue": "0",
-            //             "totalStakingValue": "0",
-            //             "totalLaunchpadValue": "0",
-            //             "totalEarnValue": "0",
-            //             "referrerID": null,
-            //             "accountType": "Main"
+            //             "marginRatio": 1,
+            //             "openMarginRatio": 1,
+            //             "initialMarginRatio": 1,
+            //             "maintenanceMarginRatio": 1,
+            //             "totalCollateral": 1,
+            //             "freeCollateral": 1,
+            //             "totalAccountValue": 1,
+            //             "totalVaultValue": 1,
+            //             "totalStakingValue": 1
             //         },
-            //         "timestamp": 1752645129054
+            //         "timestamp": 1673323685109
             //     }
             //
         }
@@ -3520,8 +3149,8 @@ class woo extends woo$1["default"] {
             };
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
-            request['marginMode'] = this.encodeMarginMode(marginMode);
-            response = await this.v3PrivateGetFuturesLeverage(this.extend(request, params));
+            request['margin_mode'] = this.encodeMarginMode(marginMode);
+            response = await this.v1PrivateGetClientFuturesLeverage(this.extend(request, params));
             //
             // HEDGE_MODE
             //     {
@@ -3529,15 +3158,15 @@ class woo extends woo$1["default"] {
             //         "data":
             //             {
             //                 "symbol": "PERP_ETH_USDT",
-            //                 "marginMode": "CROSS",
-            //                 "positionMode": "HEDGE_MODE",
+            //                 "default_margin_mode": "CROSS",
+            //                 "position_mode": "HEDGE_MODE",
             //                 "details":  [
             //                     {
-            //                         "positionSide": "LONG",
+            //                         "position_side": "LONG",
             //                         "leverage": 10
             //                     },
             //                     {
-            //                         "positionSide": "SHORT",
+            //                         "position_side": "SHORT",
             //                         "leverage": 10
             //                     }
             //                 ]
@@ -3550,11 +3179,11 @@ class woo extends woo$1["default"] {
             //         "success": true,
             //         "data": {
             //             "symbol": "PERP_ETH_USDT",
-            //             "marginMode": "ISOLATED",
-            //             "positionMode": "ONE_WAY",
+            //             "default_margin_mode": "ISOLATED",
+            //             "position_mode": "ONE_WAY",
             //             "details": [
             //                 {
-            //                     "positionSide": "BOTH",
+            //                     "position_side": "BOTH",
             //                     "leverage": 10
             //                 }
             //             ]
@@ -3572,18 +3201,15 @@ class woo extends woo$1["default"] {
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');
         market = this.safeMarket(marketId, market);
-        const marginMode = this.safeStringLower(leverage, 'marginMode');
-        let spotLeverage = this.safeInteger(leverage, 'leverage');
-        if (spotLeverage === 0) {
-            spotLeverage = null;
-        }
+        const marginMode = this.safeStringLower(leverage, 'default_margin_mode');
+        const spotLeverage = this.safeInteger(leverage, 'leverage');
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
         const details = this.safeList(leverage, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const position = this.safeDict(details, i, {});
             const positionLeverage = this.safeInteger(position, 'leverage');
-            const side = this.safeString(position, 'positionSide');
+            const side = this.safeString(position, 'position_side');
             if (side === 'BOTH') {
                 longLeverage = positionLeverage;
                 shortLeverage = positionLeverage;
@@ -3607,13 +3233,13 @@ class woo extends woo$1["default"] {
      * @method
      * @name woo#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage
-     * @see https://developer.woox.io/api-reference/endpoint/futures/set_leverage
+     * @see https://docs.woox.io/#update-leverage-setting
+     * @see https://docs.woox.io/#update-futures-leverage-setting
      * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
      * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
-     * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+     * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -3626,14 +3252,14 @@ class woo extends woo$1["default"] {
             market = this.market(symbol);
         }
         if ((symbol === undefined) || market['spot']) {
-            return await this.v3PrivatePostSpotMarginLeverage(this.extend(request, params));
+            return await this.v1PrivatePostClientLeverage(this.extend(request, params));
         }
         else if (market['swap']) {
             request['symbol'] = market['id'];
             let marginMode = undefined;
             [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params, 'cross');
-            request['marginMode'] = this.encodeMarginMode(marginMode);
-            return await this.v3PrivatePutFuturesLeverage(this.extend(request, params));
+            request['margin_mode'] = this.encodeMarginMode(marginMode);
+            return await this.v1PrivatePostClientFuturesLeverage(this.extend(request, params));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
@@ -3678,99 +3304,93 @@ class woo extends woo$1["default"] {
         };
         return await this.v1PrivatePostClientIsolatedMargin(this.extend(request, params));
     }
-    /**
-     * @method
-     * @name woo#fetchPosition
-     * @description fetch data on an open position
-     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string} symbol unified market symbol of the market the position is held in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-     */
     async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v3PrivateGetFuturesPositions(this.extend(request, params));
+        const response = await this.v1PrivateGetPositionSymbol(this.extend(request, params));
         //
         //     {
+        //         "symbol": "PERP_ETH_USDT",
+        //         "position_side": "BOTH",
+        //         "leverage": 10,
+        //         "margin_mode": "CROSS",
+        //         "average_open_price": 3139.9,
+        //         "isolated_margin_amount": 0.0,
+        //         "isolated_margin_token": "",
+        //         "opening_time": "1720627963.094",
+        //         "mark_price": 3155.19169891,
+        //         "pending_short_qty": 0.0,
+        //         "pending_long_qty": 0.0,
+        //         "holding": -0.7,
+        //         "pnl_24_h": 0.0,
+        //         "est_liq_price": 9107.40055552,
+        //         "settle_price": 3151.0319904,
         //         "success": true,
-        //         "data": {
-        //             "positions": [
-        //                 {
-        //                     "symbol": "PERP_LTC_USDT",
-        //                     "holding": "0.1",
-        //                     "pendingLongQty": "0",
-        //                     "pendingShortQty": "0",
-        //                     "settlePrice": "96.87",
-        //                     "averageOpenPrice": "96.87",
-        //                     "pnl24H": "0",
-        //                     "fee24H": "0.0048435",
-        //                     "markPrice": "96.83793449",
-        //                     "estLiqPrice": "0",
-        //                     "timestamp": 1752500555823,
-        //                     "adlQuantile": 2,
-        //                     "positionSide": "BOTH",
-        //                     "marginMode": "CROSS",
-        //                     "isolatedMarginToken": "",
-        //                     "isolatedMarginAmount": "0",
-        //                     "isolatedFrozenLong": "0",
-        //                     "isolatedFrozenShort": "0",
-        //                     "leverage": 10
-        //                 }
-        //             ]
-        //         },
-        //         "timestamp": 1752500579848
+        //         "fee_24_h": 0.0,
+        //         "isolated_frozen_long": 0.0,
+        //         "isolated_frozen_short": 0.0,
+        //         "timestamp": "1720867502.544"
         //     }
         //
-        const result = this.safeDict(response, 'data', {});
-        const positions = this.safeList(result, 'positions', []);
-        const first = this.safeDict(positions, 0, {});
-        return this.parsePosition(first, market);
+        return this.parsePosition(response, market);
     }
-    /**
-     * @method
-     * @name woo#fetchPositions
-     * @description fetch all open positions
-     * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
-     * @param {string[]} [symbols] list of unified market symbols
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-     */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const response = await this.v3PrivateGetFuturesPositions(params);
+        const response = await this.v3PrivateGetPositions(params);
         //
         //     {
         //         "success": true,
-        //         "data": {
+        //         "data":
+        //         {
         //             "positions": [
         //                 {
-        //                     "symbol": "PERP_LTC_USDT",
-        //                     "holding": "0.1",
-        //                     "pendingLongQty": "0",
-        //                     "pendingShortQty": "0",
-        //                     "settlePrice": "96.87",
-        //                     "averageOpenPrice": "96.87",
-        //                     "pnl24H": "0",
-        //                     "fee24H": "0.0048435",
-        //                     "markPrice": "96.83793449",
-        //                     "estLiqPrice": "0",
-        //                     "timestamp": 1752500555823,
-        //                     "adlQuantile": 2,
+        //                     "symbol": "PERP_ETH_USDT",
+        //                     "holding": -1.0,
+        //                     "pendingLongQty": 0.0,
+        //                     "pendingShortQty": 0.0,
+        //                     "settlePrice": 3143.2,
+        //                     "averageOpenPrice": 3143.2,
+        //                     "pnl24H": 0.0,
+        //                     "fee24H": 1.5716,
+        //                     "markPrice": 3134.97984158,
+        //                     "estLiqPrice": 3436.176349,
+        //                     "timestamp": 1720628031.463,
+        //                     "adlQuantile": 5,
+        //                     "positionSide": "BOTH",
+        //                     "marginMode": "ISOLATED",
+        //                     "isolatedMarginToken": "USDT",
+        //                     "isolatedMarginAmount": 314.62426,
+        //                     "isolatedFrozenLong": 0.0,
+        //                     "isolatedFrozenShort": 0.0,
+        //                     "leverage": 10
+        //                 },
+        //                 {
+        //                     "symbol": "PERP_SOL_USDT",
+        //                     "holding": -1.0,
+        //                     "pendingLongQty": 0.0,
+        //                     "pendingShortQty": 0.0,
+        //                     "settlePrice": 141.89933923,
+        //                     "averageOpenPrice": 171.38,
+        //                     "pnl24H": 0.0,
+        //                     "fee24H": 0.0,
+        //                     "markPrice": 141.65155427,
+        //                     "estLiqPrice": 4242.73548551,
+        //                     "timestamp": 1720616702.68,
+        //                     "adlQuantile": 5,
         //                     "positionSide": "BOTH",
         //                     "marginMode": "CROSS",
         //                     "isolatedMarginToken": "",
-        //                     "isolatedMarginAmount": "0",
-        //                     "isolatedFrozenLong": "0",
-        //                     "isolatedFrozenShort": "0",
+        //                     "isolatedMarginAmount": 0.0,
+        //                     "isolatedFrozenLong": 0.0,
+        //                     "isolatedFrozenShort": 0.0,
         //                     "leverage": 10
         //                 }
         //             ]
         //         },
-        //         "timestamp": 1752500579848
+        //         "timestamp": 1720628675078
         //     }
         //
         const result = this.safeDict(response, 'data', {});
@@ -3805,24 +3425,24 @@ class woo extends woo$1["default"] {
         //
         // v3PrivateGetPositions
         //     {
-        //         "symbol": "PERP_LTC_USDT",
-        //         "holding": "0.1",
-        //         "pendingLongQty": "0",
-        //         "pendingShortQty": "0",
-        //         "settlePrice": "96.87",
-        //         "averageOpenPrice": "96.87",
-        //         "pnl24H": "0",
-        //         "fee24H": "0.0048435",
-        //         "markPrice": "96.83793449",
-        //         "estLiqPrice": "0",
-        //         "timestamp": 1752500555823,
-        //         "adlQuantile": 2,
+        //         "symbol": "PERP_ETH_USDT",
+        //         "holding": -1.0,
+        //         "pendingLongQty": 0.0, // todo: check
+        //         "pendingShortQty": 0.0, // todo: check
+        //         "settlePrice": 3143.2,
+        //         "averageOpenPrice": 3143.2,
+        //         "pnl24H": 0.0, // todo: check
+        //         "fee24H": 1.5716, // todo: check
+        //         "markPrice": 3134.97984158,
+        //         "estLiqPrice": 3436.176349,
+        //         "timestamp": 1720628031.463,
+        //         "adlQuantile": 5,
         //         "positionSide": "BOTH",
-        //         "marginMode": "CROSS",
-        //         "isolatedMarginToken": "",
-        //         "isolatedMarginAmount": "0",
-        //         "isolatedFrozenLong": "0",
-        //         "isolatedFrozenShort": "0",
+        //         "marginMode": "ISOLATED",
+        //         "isolatedMarginToken": "USDT", // todo: check
+        //         "isolatedMarginAmount": 314.62426, // todo: check
+        //         "isolatedFrozenLong": 0.0, // todo: check
+        //         "isolatedFrozenShort": 0.0, // todo: check
         //         "leverage": 10
         //     }
         //
@@ -3838,16 +3458,7 @@ class woo extends woo$1["default"] {
         }
         const contractSize = this.safeString(market, 'contractSize');
         const markPrice = this.safeString2(position, 'markPrice', 'mark_price');
-        const timestampString = this.safeString(position, 'timestamp');
-        let timestamp = undefined;
-        if (timestampString !== undefined) {
-            if (timestampString.indexOf('.') > -1) {
-                timestamp = this.safeTimestamp(position, 'timestamp');
-            }
-            else {
-                timestamp = this.safeInteger(position, 'timestamp');
-            }
-        }
+        const timestamp = this.safeTimestamp(position, 'timestamp');
         const entryPrice = this.safeString2(position, 'averageOpenPrice', 'average_open_price');
         const priceDifference = Precise["default"].stringSub(markPrice, entryPrice);
         const unrealisedPnl = Precise["default"].stringMul(priceDifference, size);
@@ -4181,4 +3792,4 @@ class woo extends woo$1["default"] {
     }
 }
 
-exports["default"] = woo;
+module.exports = woo;

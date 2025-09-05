@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.3';
+$version = '4.4.94';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.3';
+    const VERSION = '4.4.94';
 
     public $browser;
     public $marketsLoading = null;
@@ -220,9 +220,6 @@ class Exchange extends \ccxt\Exchange {
                 if ($this->enableLastJsonResponse) {
                     $this->last_json_response = $json_response;
                 }
-                if ($this->returnResponseHeaders) {
-                    $json_response['responseHeaders'] = $response_headers;
-                }
             }
 
             $response_body = $response_body ? $response_body : '';
@@ -318,29 +315,6 @@ class Exchange extends \ccxt\Exchange {
         Loop::addTimer($timeout / 1000, function () use ($method, $args) {
             $this->spawn($method, ...$args);
         });
-    }
-
-    function is_binary_message($data): bool {
-        if (!is_string($data)) {
-            return false;
-        }
-        $res = preg_match('~[^\x20-\x7E\t\r\n]~', $data) > 0;
-        return $res;
-    }
-
-    function decode_proto_msg($msg) {
-        if (!class_exists(\Google\Protobuf\Internal\Message::class)) {
-            throw new NotSupported(
-                $this->id . " requires Google Protobuf PHP runtime to decode message.\n" .
-                "Install it via Composer: composer require google/protobuf\n" .
-                "Alternatively, you can add it with: pecl install protobuf\n"
-            );
-        }
-        $wrapper = new \PushDataV3ApiWrapper();
-        $wrapper->mergeFromString($msg);
-        $str = $wrapper->serializeToJsonString();
-        $dict = json_decode($str, true);
-        return $dict;
     }
 
     // ########################################################################
@@ -613,17 +587,6 @@ class Exchange extends \ccxt\Exchange {
                 'watchLiquidations' => null,
                 'watchLiquidationsForSymbols' => null,
                 'watchMyLiquidations' => null,
-                'unWatchOrders' => null,
-                'unWatchTrades' => null,
-                'unWatchTradesForSymbols' => null,
-                'unWatchOHLCVForSymbols' => null,
-                'unWatchOrderBookForSymbols' => null,
-                'unWatchPositions' => null,
-                'unWatchOrderBook' => null,
-                'unWatchTickers' => null,
-                'unWatchMyTrades' => null,
-                'unWatchTicker' => null,
-                'unWatchOHLCV' => null,
                 'watchMyLiquidationsForSymbols' => null,
                 'withdraw' => null,
                 'ws' => null,
@@ -835,14 +798,6 @@ class Exchange extends \ccxt\Exchange {
     public function get_cache_index($orderbook, $deltas) {
         // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
         return -1;
-    }
-
-    public function arrays_concat(array $arraysOfArrays) {
-        $result = array();
-        for ($i = 0; $i < count($arraysOfArrays); $i++) {
-            $result = $this->array_concat($result, $arraysOfArrays[$i]);
-        }
-        return $result;
     }
 
     public function find_timeframe($timeframe, $timeframes = null) {
@@ -1221,14 +1176,6 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' unWatchOrderBookForSymbols() is not supported yet');
     }
 
-    public function un_watch_positions(?array $symbols = null, $params = array ()) {
-        throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
-    }
-
-    public function un_watch_ticker(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' unWatchTicker() is not supported yet');
-    }
-
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
@@ -1422,7 +1369,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' transfer() is not supported yet');
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         throw new NotSupported($this->id . ' withdraw() is not supported yet');
     }
 
@@ -1430,7 +1377,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createDepositAddress() is not supported yet');
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' setLeverage() is not supported yet');
     }
 
@@ -1494,7 +1441,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositAddressesByNetwork() is not supported yet');
     }
 
-    public function fetch_open_interest_history(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOpenInterestHistory() is not supported yet');
     }
 
@@ -1527,7 +1474,7 @@ class Exchange extends \ccxt\Exchange {
         // keep this in mind:
         // in JS => 1 == 1.0 is true;  1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
@@ -2407,7 +2354,18 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
     }
 
-    public function calculate_fee_with_rate(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', ?float $feeRate = null, $params = array ()) {
+    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
+        /**
+         * calculates the presumptive fee that would be charged for an order
+         * @param {string} $symbol unified $market $symbol
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
+         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
+         * @param {string} $takerOrMaker 'taker' or 'maker'
+         * @param {array} $params
+         * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote currency, for the order
+         */
         if ($type === 'market' && $takerOrMaker === 'maker') {
             throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
         }
@@ -2441,7 +2399,7 @@ class Exchange extends \ccxt\Exchange {
         if ($type === 'market') {
             $takerOrMaker = 'taker';
         }
-        $rate = ($feeRate !== null) ? $this->number_to_string($feeRate) : $this->safe_string($market, $takerOrMaker);
+        $rate = $this->safe_string($market, $takerOrMaker);
         $cost = Precise::string_mul($cost, $rate);
         return array(
             'type' => $takerOrMaker,
@@ -2449,21 +2407,6 @@ class Exchange extends \ccxt\Exchange {
             'rate' => $this->parse_number($rate),
             'cost' => $this->parse_number($cost),
         );
-    }
-
-    public function calculate_fee(string $symbol, string $type, string $side, float $amount, float $price, $takerOrMaker = 'taker', $params = array ()) {
-        /**
-         * calculates the presumptive fee that would be charged for an order
-         * @param {string} $symbol unified market $symbol
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much you want to trade, in units of the base currency on most exchanges, or number of contracts
-         * @param {float} $price the $price for the order to be filled at, in units of the quote currency
-         * @param {string} $takerOrMaker 'taker' or 'maker'
-         * @param {array} $params
-         * @return {array} contains the rate, the percentage multiplied to the order $amount to obtain the fee $amount, and cost, the total value of the fee in units of the quote currency, for the order
-         */
-        return $this->calculate_fee_with_rate($symbol, $type, $side, $amount, $price, $takerOrMaker, null, $params);
     }
 
     public function safe_liquidation(array $liquidation, ?array $market = null) {
@@ -2510,27 +2453,6 @@ class Exchange extends \ccxt\Exchange {
         $trade['price'] = $this->parse_number($price);
         $trade['cost'] = $this->parse_number($cost);
         return $trade;
-    }
-
-    public function create_ccxt_trade_id($timestamp = null, $side = null, $amount = null, $price = null, $takerOrMaker = null) {
-        // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        $id = null;
-        if ($timestamp !== null) {
-            $id = $this->number_to_string($timestamp);
-            if ($side !== null) {
-                $id .= '-' . $side;
-            }
-            if ($amount !== null) {
-                $id .= '-' . $this->number_to_string($amount);
-            }
-            if ($price !== null) {
-                $id .= '-' . $this->number_to_string($price);
-            }
-            if ($takerOrMaker !== null) {
-                $id .= '-' . $takerOrMaker;
-            }
-        }
-        return $id;
     }
 
     public function parsed_fee_and_fees(mixed $container) {
@@ -2657,7 +2579,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             $code = $this->safe_string($fee, 'currency');
-            $feeCurrencyCode = ($code !== null) ? $code : (string) $i;
+            $feeCurrencyCode = $code !== null ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_string($fee, 'cost');
@@ -2813,7 +2735,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         $message = '';
         if ($this->has['fetchTrades']) {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
@@ -2821,7 +2743,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
     }
 
-    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         $message = '';
         if ($this->has['fetchTradesWs']) {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
@@ -2829,7 +2751,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' . $message);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
@@ -3856,13 +3778,6 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function market_or_null(string $symbol) {
-        if ($symbol === null) {
-            return null;
-        }
-        return $this->market($symbol);
-    }
-
     public function check_required_credentials($error = true) {
         /**
          * @ignore
@@ -4293,7 +4208,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchPositionMode() is not supported yet');
     }
 
-    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
@@ -4321,7 +4236,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trailing_amount_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_amount_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingAmount = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
@@ -4349,7 +4264,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_percent_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -4377,7 +4292,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function create_trailing_percent_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array ()) {
+    public function create_trailing_percent_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $trailingPercent = null, $trailingTriggerPrice = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
             /**
              * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
@@ -4884,11 +4799,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchDepositsWithdrawals() is not supported yet');
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_deposits(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDeposits() is not supported yet');
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_withdrawals(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchWithdrawals() is not supported yet');
     }
 
@@ -5773,7 +5688,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_mark_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_mark_ohlcv($symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
@@ -5795,7 +5710,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_index_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_index_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical index price candlestick data containing the open, high, low, and close price of a market
@@ -5817,7 +5732,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function fetch_premium_index_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_premium_index_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
@@ -6091,7 +6006,7 @@ class Exchange extends \ccxt\Exchange {
             $calls = 0;
             $result = array();
             $errors = 0;
-            $until = $this->safe_integer_n($params, array( 'until', 'untill', 'till' )); // do not omit it from $params here
+            $until = $this->safe_integer_2($params, 'untill', 'till'); // do not omit it from $params here
             list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
             if (($paginationDirection === 'forward')) {
                 if ($since === null) {
@@ -6789,16 +6704,6 @@ class Exchange extends \ccxt\Exchange {
                 $this->myTrades = null;
             } elseif ($topic === 'orders' && ($this->orders !== null)) {
                 $this->orders = null;
-            } elseif ($topic === 'positions' && ($this->positions !== null)) {
-                $this->positions = null;
-                $clients = is_array($this->clients) ? array_values($this->clients) : array();
-                for ($i = 0; $i < count($clients); $i++) {
-                    $client = $clients[$i];
-                    $futures = $this->safe_dict($client, 'futures');
-                    if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
-                        unset($futures['fetchPositionsSnapshot']);
-                    }
-                }
             } elseif ($topic === 'ticker' && ($this->tickers !== null)) {
                 $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
                 for ($i = 0; $i < count($tickerSymbols); $i++) {

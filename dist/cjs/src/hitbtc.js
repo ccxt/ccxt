@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var hitbtc$1 = require('./abstract/hitbtc.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +11,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class hitbtc
  * @augments Exchange
  */
-class hitbtc extends hitbtc$1["default"] {
+class hitbtc extends hitbtc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'hitbtc',
@@ -3846,4 +3844,4 @@ class hitbtc extends hitbtc$1["default"] {
     }
 }
 
-exports["default"] = hitbtc;
+module.exports = hitbtc;

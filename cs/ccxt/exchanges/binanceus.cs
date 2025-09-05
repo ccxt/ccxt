@@ -39,9 +39,7 @@ public partial class binanceus : binance
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarkets", new Dictionary<string, object>() {
-                    { "types", new List<object>() {"spot"} },
-                } },
+                { "fetchMarkets", new List<object>() {"spot"} },
                 { "defaultType", "spot" },
                 { "fetchMargins", false },
                 { "quoteOrderQty", false },

@@ -52,9 +52,7 @@ public partial class Exchange
 
         public bool error = false;
 
-        public bool decompressBinary = true;
-
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -65,7 +63,6 @@ public partial class Exchange
             this.onClose = onClose;
             this.onError = onError;
             this.keepAlive = keepA;
-            this.decompressBinary = decompressBinary;
 
             if (proxy != null)
             {
@@ -321,7 +318,7 @@ public partial class Exchange
         //    }
         // }
 
-        private void TryHandleMessage(string message)
+        private void TryHandleMessage (string message)
         {
             object deserializedMessages = message;
             try
@@ -333,13 +330,7 @@ public partial class Exchange
             }
             this.handleMessage(this, deserializedMessages);
         }
-
-        // private void TryHandleBinaryMessage(string message)
-        // {
-
-        //     this.handleMessage(this, deserializedMessages);
-        // }
-
+    
         private async Task Receiving(ClientWebSocket webSocket)
         {
             var buffer = new byte[10485760]; // 10MB, check best size later
@@ -374,18 +365,6 @@ public partial class Exchange
                         // Handle binary message
                         // assume gunzip for now
 
-                        if (this.verbose)
-                        {
-                            Console.WriteLine($"On binary message: {result}");
-                        }
-
-                        if (!this.decompressBinary)
-                        {
-                            var msgBinary = buffer.Take(result.Count).ToArray();
-                            this.handleMessage(this, msgBinary);
-                            continue;
-                        }
-
                         using (MemoryStream compressedStream = new MemoryStream(buffer, 0, result.Count))
                         using (GZipStream decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
                         using (MemoryStream decompressedStream = new MemoryStream())
@@ -397,7 +376,7 @@ public partial class Exchange
 
                             if (this.verbose)
                             {
-                                Console.WriteLine($"On binary message decompressed {decompressedString}");
+                                Console.WriteLine($"On binary message {decompressedString}");
                             }
                             this.TryHandleMessage(decompressedString);
                         }
