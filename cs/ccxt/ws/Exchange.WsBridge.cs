@@ -1,7 +1,8 @@
 namespace ccxt;
 
-using System.Net.WebSockets;
 using System.Collections.Concurrent;
+using System.Net.Sockets;
+using System.Net.WebSockets;
 
 public partial class Exchange
 {
@@ -45,6 +46,7 @@ public partial class Exchange
     {
         // var client = (WebSocketClient)client2;
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
+        rejectFutures(urlClient, urlClient.error);
         if (urlClient != null && urlClient.error)
         {
             // this.clients.Remove(client.url);
@@ -52,6 +54,17 @@ public partial class Exchange
         }
     }
 
+    void rejectFutures (WebSocketClient urlClient, object error)
+    {
+        foreach (var KeyValue in urlClient.subscriptions) {
+            urlClient.subscriptions.Remove(KeyValue.Key);
+            Future existingFuture = null;
+            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
+            {
+                existingFuture.reject(error);
+            }
+        }
+    }
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -161,17 +174,35 @@ public partial class Exchange
         var messageHash = messageHash2.ToString();
         var subscribeHash = subscribeHash2?.ToString();
         var client = this.client(url);
+        var backoffDelay = 0;
 
-        var future = (client.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => client.future(messageHash));
-        if (subscribeHash == null)
+        Future existingFuture = null;
+        var exists = (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture);
+        if (subscribeHash == null && exists)
         {
-            return await future;
+            return await existingFuture;
         }
-        var connected = client.connect(0);
-
-        if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
+        var future = client.future(messageHash);
+        object clientSubscription = null;
+        bool clientSubscriptionExists = (client.subscriptions as ConcurrentDictionary<string, object>).TryGetValue(subscribeHash, out clientSubscription);
+        if (!clientSubscriptionExists)
         {
-            await connected;
+            (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
+        }
+        var connected = client.connect(backoffDelay);
+        if (!clientSubscriptionExists)
+        {
+            try
+            {
+                await connected;
+            }
+            catch (Exception ex)
+            {
+                client.subscriptions.Remove(subscribeHash);
+                future.reject(ex);
+                return await future;
+            }
+
             if (message != null)
             {
                 try
@@ -219,7 +250,20 @@ public partial class Exchange
 
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
-            await connected;
+            try
+            {
+                await connected;
+            }
+            catch (Exception ex)
+            {
+                foreach (var subscribeHash in missingSubscriptions)
+                {
+                    client.subscriptions.Remove(subscribeHash);
+                }
+                future.reject(ex);
+                return await future;
+            }
+
             if (message != null)
             {
                 try
