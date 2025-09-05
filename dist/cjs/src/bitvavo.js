@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitvavo$1 = require('./abstract/bitvavo.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitvavo
  * @augments Exchange
  */
-class bitvavo extends bitvavo$1["default"] {
+class bitvavo extends bitvavo$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitvavo',
@@ -2202,4 +2200,4 @@ class bitvavo extends bitvavo$1["default"] {
     }
 }
 
-exports["default"] = bitvavo;
+module.exports = bitvavo;

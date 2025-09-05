@@ -458,7 +458,6 @@ public partial class binance : Exchange
                         { "portfolio/balance", 2 },
                         { "portfolio/negative-balance-exchange-record", 2 },
                         { "portfolio/pmloan-history", 5 },
-                        { "portfolio/earn-asset-balance", 150 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -603,7 +602,6 @@ public partial class binance : Exchange
                         { "portfolio/repay-futures-negative-balance", 150 },
                         { "portfolio/mint", 20 },
                         { "portfolio/redeem", 20 },
-                        { "portfolio/earn-asset-transfer", 150 },
                         { "lending/auto-invest/plan/add", 0.1 },
                         { "lending/auto-invest/plan/edit", 0.1 },
                         { "lending/auto-invest/plan/edit-status", 0.1 },
@@ -860,7 +858,6 @@ public partial class binance : Exchange
                         } },
                         { "lvtKlines", 1 },
                         { "convert/exchangeInfo", 4 },
-                        { "insuranceBalance", 1 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -1300,9 +1297,7 @@ public partial class binance : Exchange
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
                 { "fetchMargins", true },
-                { "fetchMarkets", new Dictionary<string, object>() {
-                    { "types", new List<object>() {"spot", "linear", "inverse"} },
-                } },
+                { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
                 { "loadAllOptions", false },
                 { "fetchCurrencies", true },
                 { "defaultTimeInForce", "GTC" },
@@ -1310,7 +1305,6 @@ public partial class binance : Exchange
                 { "defaultSubType", null },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
                 { "warnOnFetchOpenOrdersWithoutSymbol", true },
-                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "throwMarginModeAlreadySet", false },
                 { "fetchPositions", "positionRisk" },
                 { "recvWindow", multiply(10, 1000) },
@@ -2658,18 +2652,15 @@ public partial class binance : Exchange
                 return getValue(markets, 0);
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "/"), -1))) && isTrue((isLessThan(getIndexOf(symbol, ":"), 0)))))
             {
-                if (isTrue(isTrue((!isEqual(defaultType, null))) && isTrue((!isEqual(defaultType, "spot")))))
+                // support legacy symbols
+                var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                var bs = ((IList<object>) bsquoteVariable)[0];
+                var quote = ((IList<object>) bsquoteVariable)[1];
+                object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
+                object futuresSymbol = add(add(symbol, ":"), settle);
+                if (isTrue(inOp(this.markets, futuresSymbol)))
                 {
-                    // support legacy symbols
-                    var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-                    var bs = ((IList<object>) bsquoteVariable)[0];
-                    var quote = ((IList<object>) bsquoteVariable)[1];
-                    object settle = ((bool) isTrue((isEqual(quote, "USD")))) ? bs : quote;
-                    object futuresSymbol = add(add(symbol, ":"), settle);
-                    if (isTrue(inOp(this.markets, futuresSymbol)))
-                    {
-                        return getValue(this.markets, futuresSymbol);
-                    }
+                    return getValue(this.markets, futuresSymbol);
                 }
             } else if (isTrue(isTrue((isGreaterThan(getIndexOf(symbol, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(symbol, "-P"), -1)))))
             {
@@ -2693,6 +2684,18 @@ public partial class binance : Exchange
     public override object costToPrecision(object symbol, object cost)
     {
         return this.decimalToPrecision(cost, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "quote"), this.precisionMode, this.paddingMode);
+    }
+
+    public override object currencyToPrecision(object code, object fee, object networkCode = null)
+    {
+        // info is available in currencies only if the user has configured his api keys
+        if (isTrue(!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null)))
+        {
+            return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.currencies, code), "precision"), this.precisionMode, this.paddingMode);
+        } else
+        {
+            return this.numberToString(fee);
+        }
     }
 
     public override object nonce()
@@ -3002,17 +3005,7 @@ public partial class binance : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
-        object rawFetchMarkets = null;
-        object defaultTypes = new List<object>() {"spot", "linear", "inverse"};
-        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-        if (isTrue(!isEqual(fetchMarketsOptions, null)))
-        {
-            rawFetchMarkets = this.safeList(fetchMarketsOptions, "types", defaultTypes);
-        } else
-        {
-            // for backward-compatibility
-            rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
-        }
+        object rawFetchMarkets = this.safeList(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
         // handle loadAllOptions option
         object loadAllOptions = this.safeBool(this.options, "loadAllOptions", false);
         if (isTrue(loadAllOptions))
@@ -4048,52 +4041,29 @@ public partial class binance : Exchange
         //         "time": 1597370495002
         //     }
         //
-        // spot - ticker
-        //
-        //    {
-        //        "symbol": "BTCUSDT",
-        //        "priceChange": "-188.18000000",
-        //        "priceChangePercent": "-0.159",
-        //        "weightedAvgPrice": "118356.64734074",
-        //        "lastPrice": "118449.03000000",
-        //        "prevClosePrice": "118637.22000000",    // field absent in rolling ticker
-        //        "lastQty": "0.00731000",                // field absent in rolling ticker
-        //        "bidPrice": "118449.02000000",          // field absent in rolling ticker
-        //        "bidQty": "7.15931000",                 // field absent in rolling ticker
-        //        "askPrice": "118449.03000000",          // field absent in rolling ticker
-        //        "askQty": "0.09592000",                 // field absent in rolling ticker
-        //        "openPrice": "118637.21000000",
-        //        "highPrice": "119273.36000000",
-        //        "lowPrice": "117427.50000000",
-        //        "volume": "14741.41491000",
-        //        "quoteVolume": "1744744445.80640740",
-        //        "openTime": "1753701474013",
-        //        "closeTime": "1753787874013",
-        //        "firstId": "5116031635",
-        //        "lastId": "5117964946",
-        //        "count": "1933312"
-        //    }
-        //
-        // usdm tickers
-        //
-        //    {
-        //        "symbol": "SUSDT",
-        //        "priceChange": "-0.0229000",
-        //        "priceChangePercent": "-6.777",
-        //        "weightedAvgPrice": "0.3210035",
-        //        "lastPrice": "0.3150000",
-        //        "lastQty": "16",
-        //        "openPrice": "0.3379000",
-        //        "highPrice": "0.3411000",
-        //        "lowPrice": "0.3071000",
-        //        "volume": "120588225",
-        //        "quoteVolume": "38709237.2289000",
-        //        "openTime": "1753701720000",
-        //        "closeTime": "1753788172414",
-        //        "firstId": "72234973",
-        //        "lastId": "72423677",
-        //        "count": "188700"
-        //    }
+        //     {
+        //         "symbol": "ETHBTC",
+        //         "priceChange": "0.00068700",
+        //         "priceChangePercent": "2.075",
+        //         "weightedAvgPrice": "0.03342681",
+        //         "prevClosePrice": "0.03310300",
+        //         "lastPrice": "0.03378900",
+        //         "lastQty": "0.07700000",
+        //         "bidPrice": "0.03378900",
+        //         "bidQty": "7.16800000",
+        //         "askPrice": "0.03379000",
+        //         "askQty": "24.00000000",
+        //         "openPrice": "0.03310200",
+        //         "highPrice": "0.03388900",
+        //         "lowPrice": "0.03306900",
+        //         "volume": "205478.41000000",
+        //         "quoteVolume": "6868.48826294",
+        //         "openTime": 1601469986932,
+        //         "closeTime": 1601556386932,
+        //         "firstId": 196098772,
+        //         "lastId": 196186315,
+        //         "count": 87544
+        //     }
         //
         // coinm
         //
@@ -4479,26 +4449,12 @@ public partial class binance : Exchange
             response = await this.dapiPublicGetTicker24hr(parameters);
         } else if (isTrue(isEqual(type, "spot")))
         {
-            object rolling = this.safeBool(parameters, "rolling", false);
-            parameters = this.omit(parameters, "rolling");
-            if (isTrue(rolling))
+            object request = new Dictionary<string, object>() {};
+            if (isTrue(!isEqual(symbols, null)))
             {
-                symbols = this.marketSymbols(symbols);
-                object request = new Dictionary<string, object>() {
-                    { "symbols", this.json(this.marketIds(symbols)) },
-                };
-                response = await this.publicGetTicker(this.extend(request, parameters));
-                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                return this.parseTickersForRolling(response, symbols);
-            } else
-            {
-                object request = new Dictionary<string, object>() {};
-                if (isTrue(!isEqual(symbols, null)))
-                {
-                    ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
-                }
-                response = await this.publicGetTicker24hr(this.extend(request, parameters));
+                ((IDictionary<string,object>)request)["symbols"] = this.json(this.marketIds(symbols));
             }
+            response = await this.publicGetTicker24hr(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "option")))
         {
             response = await this.eapiPublicGetTicker(parameters);
@@ -4507,20 +4463,6 @@ public partial class binance : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fetchTickers() does not support "), type), " markets yet")) ;
         }
         return this.parseTickers(response, symbols);
-    }
-
-    public virtual object parseTickersForRolling(object response, object symbols)
-    {
-        object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object marketId = this.safeString(getValue(response, i), "symbol");
-            object tickerMarket = this.safeMarket(marketId, null, null, "spot");
-            object parsedTicker = this.parseTicker(getValue(response, i));
-            ((IDictionary<string,object>)parsedTicker)["symbol"] = getValue(tickerMarket, "symbol");
-            ((IList<object>)results).Add(parsedTicker);
-        }
-        return this.filterByArray(results, "symbol", symbols);
     }
 
     /**
@@ -6836,14 +6778,21 @@ public partial class binance : Exchange
         }
         if (isTrue(quantityIsRequired))
         {
-            object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
-            object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
-            if (isTrue(isPrecisionAvailable))
+            // portfolio margin has a different amount precision
+            if (isTrue(isPortfolioMargin))
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount);
             } else
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
+                object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+                object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+                if (isTrue(isPrecisionAvailable))
+                {
+                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                } else
+                {
+                    ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
+                }
             }
         }
         if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
@@ -8100,7 +8049,6 @@ public partial class binance : Exchange
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -8122,16 +8070,8 @@ public partial class binance : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
+            { "orderidlist", ids },
         };
-        object origClientOrderIdList = this.safeList2(parameters, "origClientOrderIdList", "clientOrderIds");
-        if (isTrue(!isEqual(origClientOrderIdList, null)))
-        {
-            parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
-            ((IDictionary<string,object>)request)["origClientOrderIdList"] = origClientOrderIdList;
-        } else
-        {
-            ((IDictionary<string,object>)request)["orderidlist"] = ids;
-        }
         object response = null;
         if (isTrue(getValue(market, "linear")))
         {
@@ -9680,6 +9620,7 @@ public partial class binance : Exchange
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
         if (isTrue(!isEqual(tag, null)))
         {
@@ -9693,7 +9634,6 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["network"] = network;
             parameters = this.omit(parameters, "network");
         }
-        ((IDictionary<string,object>)request)["amount"] = this.currencyToPrecision(code, amount, network);
         object response = await this.sapiPostCapitalWithdrawApply(this.extend(request, parameters));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction(response, currency);
@@ -12555,8 +12495,8 @@ public partial class binance : Exchange
                 if (isTrue(isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(path, "batchOrders")))))
                 {
                     object orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
-                    object origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
-                    extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
+                    object origclientorderidlist = this.safeList(extendedParams, "origclientorderidlist", new List<object>() {});
+                    extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist"});
                     query = this.rawencode(extendedParams);
                     object orderidlistLength = getArrayLength(orderidlist);
                     object origclientorderidlistLength = getArrayLength(origclientorderidlist);
@@ -12566,13 +12506,7 @@ public partial class binance : Exchange
                     }
                     if (isTrue(isGreaterThan(origclientorderidlistLength, 0)))
                     {
-                        // wrap clientOrderids around ""
-                        object newClientOrderIds = new List<object>() {};
-                        for (object i = 0; isLessThan(i, origclientorderidlistLength); postFixIncrement(ref i))
-                        {
-                            ((IList<object>)newClientOrderIds).Add(add(add("%22", getValue(origclientorderidlist, i)), "%22"));
-                        }
-                        query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)newClientOrderIds).ToArray())), "%5D");
+                        query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)origclientorderidlist).ToArray())), "%5D");
                     }
                 } else
                 {
@@ -14008,7 +13942,6 @@ public partial class binance : Exchange
             { "contracts", this.safeNumber(liquidation, "executedQty") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "avgPrice") },
-            { "side", this.safeStringLower(liquidation, "side") },
             { "baseValue", this.safeNumber(liquidation, "cumBase") },
             { "quoteValue", this.safeNumber(liquidation, "cumQuote") },
             { "timestamp", timestamp },

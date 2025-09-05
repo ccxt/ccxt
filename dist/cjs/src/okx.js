@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var okx$1 = require('./abstract/okx.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class okx
  * @augments Exchange
  */
-class okx extends okx$1["default"] {
+class okx extends okx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'okx',
@@ -213,7 +211,6 @@ class okx extends okx$1["default"] {
                         'market/open-oracle': 50,
                         'market/exchange-rate': 20,
                         'market/index-components': 1,
-                        'public/market-data-history': 4,
                         'public/economic-calendar': 50,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
@@ -365,7 +362,7 @@ class okx extends okx$1["default"] {
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
-                        'account/spot-manual-borrow-repay': 30,
+                        'account/spot-manual-borrow-repay': 10,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
                         'account/move-positions-history': 10,
@@ -739,7 +736,6 @@ class okx extends okx$1["default"] {
                     '51137': errors.InvalidOrder,
                     '51138': errors.InvalidOrder,
                     '51139': errors.InvalidOrder,
-                    '51155': errors.RestrictedLocation,
                     '51156': errors.BadRequest,
                     '51159': errors.BadRequest,
                     '51162': errors.InvalidOrder,
@@ -1151,9 +1147,7 @@ class okx extends okx$1["default"] {
                 },
                 'createOrder': 'privatePostTradeBatchOrders',
                 'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': {
-                    'types': ['spot', 'future', 'swap', 'option'], // spot, future, swap, option
-                },
+                'fetchMarkets': ['spot', 'future', 'swap', 'option'],
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'defaultType': 'spot',
@@ -1220,7 +1214,7 @@ class okx extends okx$1["default"] {
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
-                'brokerId': '6b9ad766b55dBCDE',
+                'brokerId': 'e847386590ce4dBC',
             },
             'features': {
                 'default': {
@@ -1550,14 +1544,7 @@ class okx extends okx$1["default"] {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        let types = ['spot', 'future', 'swap', 'option'];
-        const fetchMarketsOption = this.safeDict(this.options, 'fetchMarkets');
-        if (fetchMarketsOption !== undefined) {
-            types = this.safeList(fetchMarketsOption, 'types', types);
-        }
-        else {
-            types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
-        }
+        const types = this.safeList(this.options, 'fetchMarkets', []);
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
@@ -2420,7 +2407,6 @@ class okx extends okx$1["default"] {
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2428,7 +2414,6 @@ class okx extends okx$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -2444,7 +2429,6 @@ class okx extends okx$1["default"] {
         params = this.omit(params, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
-        const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
             limit = 100; // default 100, max 100
         }
@@ -2469,8 +2453,7 @@ class okx extends okx$1["default"] {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = (price !== undefined) ? 100 : 300;
-                limit = Math.min(limit, maxLimit); // max 300 for historical endpoint
+                limit = Math.min(limit, 100); // max 100 for historical endpoint
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
@@ -2505,10 +2488,6 @@ class okx extends okx$1["default"] {
         }
         else {
             if (isHistoryCandles) {
-                if (limitIsUndefined && (limit === 100)) {
-                    limit = 300;
-                    request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
-                }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, params));
             }
             else {
@@ -2856,8 +2835,8 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#createMarketBuyOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+     * @description create a market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2878,8 +2857,8 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#createMarketSellOrderWithCost
-     * @description create a market buy order by providing the symbol and cost
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+     * @description create a market buy order by providing the symbol and cost
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2942,8 +2921,6 @@ class okx extends okx$1["default"] {
         const takeProfitDefined = (takeProfit !== undefined);
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callbackRatio');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
-        const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
@@ -3058,10 +3035,6 @@ class okx extends okx$1["default"] {
         if (isTrailingPercentOrder) {
             const convertedTrailingPercent = Precise["default"].stringDiv(trailingPercent, '100');
             request['callbackRatio'] = convertedTrailingPercent;
-            request['ordType'] = 'move_order_stop';
-        }
-        else if (isTrailingPriceOrder) {
-            request['callbackSpread'] = trailingPrice;
             request['ordType'] = 'move_order_stop';
         }
         else if (stopLossDefined || takeProfitDefined) {
@@ -3504,7 +3477,7 @@ class okx extends okx$1["default"] {
         const trailing = this.safeBool(params, 'trailing', false);
         if (trigger || trailing) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeDict(orderInner, 0);
+            return this.safeValue(orderInner, 0);
         }
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -6330,7 +6303,7 @@ class okx extends okx$1["default"] {
             this.checkRequiredCredentials();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
-                const brokerId = this.safeString(this.options, 'brokerId', '6b9ad766b55dBCDE');
+                const brokerId = this.safeString(this.options, 'brokerId', 'e847386590ce4dBC');
                 if (Array.isArray(params)) {
                     for (let i = 0; i < params.length; i++) {
                         const entry = params[i];
@@ -9022,4 +8995,4 @@ class okx extends okx$1["default"] {
     }
 }
 
-exports["default"] = okx;
+module.exports = okx;

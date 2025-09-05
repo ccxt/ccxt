@@ -115,7 +115,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'www': 'https://futures.kraken.com/',
                 'doc': [
-                    'https://docs.kraken.com/api/docs/futures-api/trading/market-data/',
+                    'https://docs.futures.kraken.com/#introduction',
                 ],
                 'fees': 'https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures',
                 'referral': None,
@@ -246,7 +246,6 @@ class krakenfutures(Exchange, ImplicitAPI):
                             'executions': 'private',
                             'triggers': 'private',
                             'accountlogcsv': 'private',
-                            'account-log': 'private',
                         },
                     },
                 },
@@ -378,7 +377,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
 
         :param dict [params]: exchange specific params
         :returns: An array of market structures
@@ -545,7 +544,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
 
         Fetches a list of open orders in a market
         :param str symbol: Unified market symbol
@@ -596,7 +595,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
 
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -712,7 +711,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/charts/candles
+        https://docs.futures.kraken.com/#http-api-charts-candles
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -791,8 +790,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-history
-        https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+        https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
 
         Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
@@ -1205,7 +1204,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
 
         Edit an open order on the exchange
         :param str id: order id
@@ -1235,7 +1234,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/cancel-order
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
 
         Cancel an open order on the exchange
         :param str id: Order id
@@ -1256,7 +1255,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
@@ -1315,7 +1314,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
 
         Cancels all orders on the exchange, including trigger orders
         :param str symbol: Unified market symbol
@@ -1370,7 +1369,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         dead man's switch, cancel all orders after the given timeout
 
-        https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
 
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1396,7 +1395,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
 
         Gets all open orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
@@ -1452,7 +1451,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/history/get-order-events
+        https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
 
         Gets all canceled orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
@@ -1905,7 +1904,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-fills
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
 
         :param str symbol: unified market symbol
         :param int [since]: *not used by the  api* the earliest time in ms to fetch trades for
@@ -1945,7 +1944,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
 
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
         :param dict [params]: Exchange specific parameters
@@ -2160,7 +2159,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetch the current funding rates for multiple markets
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
 
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2243,7 +2242,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -2291,7 +2290,7 @@ class krakenfutures(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
 
         Fetches current contract trading positions
         :param str[] symbols: List of unified symbols
@@ -2386,7 +2385,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2565,8 +2564,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
 
-        https://docs.kraken.com/api/docs/futures-api/trading/transfer
-        https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
 
         transfers currencies between sub-accounts
         :param str code: Unified currency code
@@ -2607,11 +2606,11 @@ class krakenfutures(Exchange, ImplicitAPI):
             'toAccount': toAccount,
         })
 
-    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
-        https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
@@ -2634,7 +2633,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetch the set leverage for all contract and margin markets
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
 
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2661,7 +2660,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint

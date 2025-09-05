@@ -686,7 +686,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         // {
         //     id => '690c6276-0fc6-4121-aafa-f28bf5adedcb',

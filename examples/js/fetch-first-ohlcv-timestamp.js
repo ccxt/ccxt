@@ -48,10 +48,10 @@ async function fetchFirstBarTimestamp(exchange, symbol, useMinuteTimeframe = fal
     }
     // if minute resolution needed
     if (useMinuteTimeframe) {
-        const maxIteration = Math.ceil(minutesPerDay / limit) * 2;
+        const maxIteration = Math.ceil(minutesPerDay / limit);
         const allPromises = [];
         for (let i = 0; i < maxIteration; i++) {
-            currentSince = foundStartTime - millisecondsPerDay + i * limit * 60 * 1000; // shift one-duration back for more accuracy for different kind of exchanges, like OKX, where first daily bar is offset by one day, but minute bars present
+            currentSince = foundStartTime + i * limit * 60 * 1000;
             allPromises.push(exchange.fetchOHLCV(symbol, '1m', currentSince, limit, fetchParams));
         }
         const allResponses = await Promise.all(allPromises);
@@ -60,7 +60,6 @@ async function fetchFirstBarTimestamp(exchange, symbol, useMinuteTimeframe = fal
             const response = allResponses[i];
             if (response.length > 0) {
                 foundStartTime = response[0][0];
-                break;
             }
         }
     }

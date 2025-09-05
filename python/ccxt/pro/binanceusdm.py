@@ -19,9 +19,7 @@ class binanceusdm(binance):
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': {
-                    'types': ['linear'],
-                },
+                'fetchMarkets': ['linear'],
                 'defaultSubType': 'linear',
             },
             # https://binance-docs.github.io/apidocs/futures/en/#error-codes

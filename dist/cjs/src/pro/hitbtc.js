@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var hitbtc$1 = require('../hitbtc.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
@@ -9,7 +7,7 @@ var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class hitbtc extends hitbtc$1["default"] {
+class hitbtc extends hitbtc$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1398,4 +1396,4 @@ class hitbtc extends hitbtc$1["default"] {
     }
 }
 
-exports["default"] = hitbtc;
+module.exports = hitbtc;

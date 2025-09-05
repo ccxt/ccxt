@@ -16,7 +16,7 @@ import (
 // =====================================  Hyperliquid Structs ===================================== //
 // OrderMessage Struct
 // {
-// "builder": "0xxxxxx",
+// "brokerCode": 1,
 // "grouping": "na",
 // "orders": [
 //
@@ -54,10 +54,10 @@ type OrderHyperliquid struct {
 }
 
 type OrderMessage struct {
-	Type     string                 `mapstructure:"type" msgpack:"type"`
-	Orders   []OrderHyperliquid     `mapstructure:"orders" msgpack:"orders"`
-	Grouping string                 `mapstructure:"grouping" msgpack:"grouping"`
-	Builder  map[string]interface{} `mapstructure:"builder" msgpack:"builder,omitempty"`
+	Type       string             `mapstructure:"type" msgpack:"type"`
+	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
+	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
+	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
 }
 
 // cancel
@@ -262,7 +262,7 @@ func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated i
 				outObj = make(map[string]interface{})
 			}
 			dictX := x.(map[string]interface{})
-			for k := range dictX {
+			for k, _ := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
@@ -345,8 +345,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 
 	typeA := this.SafeString(converted, "type", "").(string)
 
-	switch typeA {
-	case "order":
+	if typeA == "order" {
 		var orderMsg OrderMessage
 
 		err := mapstructure.Decode(converted, &orderMsg)
@@ -360,7 +359,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	case "cancel":
+	} else if typeA == "cancel" {
 		var cancelMsg CancelMessage
 
 		err := mapstructure.Decode(converted, &cancelMsg)
@@ -374,7 +373,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	case "withdraw3":
+	} else if typeA == "withdraw3" {
 		var withdrawMsg WithdrawMessage
 
 		err := mapstructure.Decode(converted, &withdrawMsg)
@@ -387,7 +386,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	case "batchModify":
+	} else if typeA == "batchModify" {
 		var editMsg EditOrderMessage
 
 		err := mapstructure.Decode(converted, &editMsg)

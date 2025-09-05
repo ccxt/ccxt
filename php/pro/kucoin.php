@@ -35,11 +35,6 @@ class kucoin extends \ccxt\async\kucoin {
                 'watchOrderBookForSymbols' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
-                'unWatchTicker' => true,
-                'unWatchOHLCV' => true,
-                'unWatchOrderBook' => true,
-                'unWatchTrades' => true,
-                'unWatchhTradesForSymbols' => true,
             ),
             'options' => array(
                 'tradesLimit' => 1000,
@@ -156,12 +151,6 @@ class kucoin extends \ccxt\async\kucoin {
         }) ();
     }
 
-    public function un_subscribe($url, $messageHash, $topic, $subscriptionHash, $params = array (), ?array $subscription = null) {
-        return Async\async(function () use ($url, $messageHash, $topic, $subscriptionHash, $params, $subscription) {
-            return Async\await($this->un_subscribe_multiple($url, array( $messageHash ), $topic, array( $subscriptionHash ), $params, $subscription));
-        }) ();
-    }
-
     public function subscribe_multiple($url, $messageHashes, $topic, $subscriptionHashes, $params = array (), $subscription = null) {
         return Async\async(function () use ($url, $messageHashes, $topic, $subscriptionHashes, $params, $subscription) {
             $requestId = (string) $this->request_id();
@@ -226,37 +215,6 @@ class kucoin extends \ccxt\async\kucoin {
             $topic = $method . ':' . $market['id'];
             $messageHash = 'ticker:' . $symbol;
             return Async\await($this->subscribe($url, $messageHash, $topic, $query));
-        }) ();
-    }
-
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
-             */
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $url = Async\await($this->negotiate(false));
-            $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'watchTicker', 'method', '/market/snapshot');
-            $topic = $method . ':' . $market['id'];
-            $messageHash = 'unsubscribe:ticker:' . $symbol;
-            $subMessageHash = 'ticker:' . $symbol;
-            $subscription = array(
-                'messageHashes' => array( $messageHash ),
-                'subMessageHashes' => array( $subMessageHash ),
-                'topic' => 'trades',
-                'unsubscribe' => true,
-                'symbols' => array( $symbol ),
-            );
-            return Async\await($this->un_subscribe($url, $messageHash, $topic, $subMessageHash, $params, $subscription));
         }) ();
     }
 
@@ -510,37 +468,6 @@ class kucoin extends \ccxt\async\kucoin {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
-    }
-
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            $url = Async\await($this->negotiate(false));
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $topic = '/market/candles:' . $market['id'] . '_' . $period;
-            $messageHash = 'unsubscribe:candles:' . $symbol . ':' . $timeframe;
-            $subMessageHash = 'candles:' . $symbol . ':' . $timeframe;
-            $subscription = array(
-                'messageHashes' => array( $messageHash ),
-                'subMessageHashes' => array( $subMessageHash ),
-                'topic' => 'ohlcv',
-                'unsubscribe' => true,
-                'symbols' => array( $symbol ),
-            );
-            return Async\await($this->un_subscribe($url, $messageHash, $topic, $messageHash, $params, $subscription));
         }) ();
     }
 
@@ -1546,7 +1473,7 @@ class kucoin extends \ccxt\async\kucoin {
         // https://docs.kucoin.com/#ping
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //    {
         //        "id" => "1",
@@ -1563,8 +1490,7 @@ class kucoin extends \ccxt\async\kucoin {
             }
             $this->options['urls'][$type] = null;
         }
-        $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), array());
-        return false;
+        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
     }
 
     public function handle_message(Client $client, $message) {

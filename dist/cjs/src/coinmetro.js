@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinmetro$1 = require('./abstract/coinmetro.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -13,7 +11,7 @@ var Precise = require('./base/Precise.js');
  * @class coinmetro
  * @augments Exchange
  */
-class coinmetro extends coinmetro$1["default"] {
+class coinmetro extends coinmetro$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinmetro',
@@ -212,6 +210,7 @@ class coinmetro extends coinmetro$1["default"] {
             'options': {
                 'currenciesByIdForParseMarket': undefined,
                 'currencyIdsListForParseMarket': ['QRDO'],
+                'skippedMarkets': ['VXVUSDT'], // broken markets which do not have enough info in API
             },
             'features': {
                 'spot': {
@@ -459,11 +458,11 @@ class coinmetro extends coinmetro$1["default"] {
         //         ...
         //     ]
         //
+        const skippedMarkets = this.safeList(this.options, 'skippedMarkets', []);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket(response[i]);
-            // there are several broken (unavailable info) markets
-            if (market['base'] === undefined || market['quote'] === undefined) {
+            if (this.inArray(market['id'], skippedMarkets)) {
                 continue;
             }
             result.push(market);
@@ -2022,4 +2021,4 @@ class coinmetro extends coinmetro$1["default"] {
     }
 }
 
-exports["default"] = coinmetro;
+module.exports = coinmetro;

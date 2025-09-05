@@ -1,13 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var tradeogre$1 = require('../tradeogre.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class tradeogre extends tradeogre$1["default"] {
+class tradeogre extends tradeogre$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -282,4 +280,4 @@ class tradeogre extends tradeogre$1["default"] {
     }
 }
 
-exports["default"] = tradeogre;
+module.exports = tradeogre;

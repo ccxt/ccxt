@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinbaseexchange$1 = require('./abstract/coinbaseexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class coinbaseexchange
  * @augments Exchange
  */
-class coinbaseexchange extends coinbaseexchange$1["default"] {
+class coinbaseexchange extends coinbaseexchange$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbaseexchange',
@@ -1587,8 +1585,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             market = this.market(symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        const response = await this[method](this.extend(request, params));
-        return this.safeOrder({ 'info': response });
+        return await this[method](this.extend(request, params));
     }
     /**
      * @method
@@ -1607,8 +1604,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             market = this.market(symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        const response = await this.privateDeleteOrders(this.extend(request, params));
-        return [this.safeOrder({ 'info': response })];
+        return await this.privateDeleteOrders(this.extend(request, params));
     }
     async fetchPaymentMethods(params = {}) {
         return await this.privateGetPaymentMethods(params);
@@ -2125,4 +2121,4 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     }
 }
 
-exports["default"] = coinbaseexchange;
+module.exports = coinbaseexchange;

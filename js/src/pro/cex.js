@@ -1451,7 +1451,6 @@ export default class cex extends cexRest {
             const future = this.safeValue(client['futures'], messageHash);
             if (future !== undefined) {
                 client.reject(error, messageHash);
-                return true;
             }
             else {
                 throw error;

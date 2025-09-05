@@ -361,11 +361,6 @@ export default class gate extends gateRest {
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
-     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
-     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
-     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
-     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -383,7 +378,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket(market);
         const payload = [marketId, interval];
         if (limit === undefined) {
-            limit = 100; // max 100 atm
+            limit = 100;
         }
         if (market['contract']) {
             const stringLimit = limit.toString();
@@ -1436,7 +1431,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);

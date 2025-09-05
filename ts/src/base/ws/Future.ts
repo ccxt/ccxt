@@ -17,14 +17,14 @@ export function Future (): FutureInterface {
 
     p.resolve = function _resolve () {
         // eslint-disable-next-line prefer-rest-params
-        queueMicrotask (() => {
+        setTimeout (() => {
             resolve.apply (this, arguments)
         })
     }
 
     p.reject = function _reject () {
         // eslint-disable-next-line prefer-rest-params
-        queueMicrotask (() => {
+        setTimeout (() => {
             reject.apply (this, arguments)
         })
     }

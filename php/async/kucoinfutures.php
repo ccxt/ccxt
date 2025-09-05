@@ -473,7 +473,7 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-            $data = $this->safe_dict($response, 'data', array());
+            $data = $this->safe_value($response, 'data', array());
             $status = $this->safe_string($data, 'status');
             return array(
                 'status' => ($status === 'open') ? 'ok' : 'maintenance',
@@ -559,7 +559,7 @@ class kucoinfutures extends kucoin {
             //    }
             //
             $result = array();
-            $data = $this->safe_list($response, 'data', array());
+            $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $market = $data[$i];
                 $id = $this->safe_string($market, 'symbol');
@@ -784,7 +784,7 @@ class kucoinfutures extends kucoin {
             //        }
             //    }
             //
-            $data = $this->safe_dict($response, 'data', array());
+            $data = $this->safe_value($response, 'data', array());
             $address = $this->safe_string($data, 'address');
             if ($currencyId !== 'NIM') {
                 // contains spaces
@@ -849,7 +849,7 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-            $data = $this->safe_dict($response, 'data', array());
+            $data = $this->safe_value($response, 'data', array());
             $timestamp = $this->parse_to_int($this->safe_integer($data, 'ts') / 1000000);
             $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
             $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
@@ -1192,7 +1192,7 @@ class kucoinfutures extends kucoin {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            $dataList = $this->safe_list($data, 'dataList', array());
+            $dataList = $this->safe_value($data, 'dataList', array());
             $fees = array();
             for ($i = 0; $i < count($dataList); $i++) {
                 $listItem = $dataList[$i];
@@ -1809,7 +1809,7 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_order(array( 'info' => $response ));
+            return $this->safe_value($response, 'data');
         }) ();
     }
 
@@ -1913,8 +1913,7 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            $data = $this->safe_dict($response, 'data');
-            return array( $this->safe_order(array( 'info' => $data )) );
+            return $this->safe_value($response, 'data');
         }) ();
     }
 
@@ -2171,7 +2170,7 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-            $responseData = $this->safe_dict($response, 'data', array());
+            $responseData = $this->safe_value($response, 'data', array());
             $orders = $this->safe_list($responseData, 'items', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
@@ -2562,7 +2561,6 @@ class kucoinfutures extends kucoin {
              * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->code] the unified $currency $code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3134,7 +3132,7 @@ class kucoinfutures extends kucoin {
             //        )
             //    }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = $this->safe_value($response, 'data');
             return $this->parse_market_leverage_tiers($data, $market);
         }) ();
     }
@@ -3225,7 +3223,7 @@ class kucoinfutures extends kucoin {
             //         )
             //     }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = $this->safe_value($response, 'data');
             return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }) ();
     }
@@ -3437,7 +3435,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

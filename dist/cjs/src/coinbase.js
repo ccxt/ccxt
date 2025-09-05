@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var coinbase$1 = require('./abstract/coinbase.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -15,7 +13,7 @@ var rsa = require('./base/functions/rsa.js');
  * @class coinbase
  * @augments Exchange
  */
-class coinbase extends coinbase$1["default"] {
+class coinbase extends coinbase$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbase',
@@ -42,9 +40,6 @@ class coinbase extends coinbase$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowCrossMargin': false,
-                'borrowIsolatedMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -59,8 +54,6 @@ class coinbase extends coinbase$1["default"] {
                 'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrderWithTakeProfitAndStopLoss': false,
-                'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -71,12 +64,8 @@ class coinbase extends coinbase$1["default"] {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
-                'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
@@ -94,69 +83,42 @@ class coinbase extends coinbase$1["default"] {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingInterval': false,
-                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
-                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
-                'fetchLiquidations': false,
-                'fetchLongShortRatio': false,
-                'fetchLongShortRatioHistory': false,
-                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMarkPrices': false,
                 'fetchMyBuys': true,
-                'fetchMyLiquidations': false,
                 'fetchMySells': true,
-                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
-                'fetchOption': false,
-                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
-                'fetchPositionsForSymbol': false,
-                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
                 'fetchTradingFees': true,
-                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
-                'repayCrossMargin': false,
-                'repayIsolatedMargin': false,
-                'repayMargin': false,
                 'setLeverage': false,
-                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
@@ -2248,44 +2210,34 @@ class coinbase extends coinbase$1["default"] {
         // fetchTickersV3
         //
         //     [
-        //        {
-        //            "product_id": "ETH-USD",
-        //            "price": "4471.59",
-        //            "price_percentage_change_24h": "0.14243387238731",
-        //            "volume_24h": "87329.92990204",
-        //            "volume_percentage_change_24h": "-60.7789801794578",
-        //            "base_increment": "0.00000001",
-        //            "quote_increment": "0.01",
-        //            "quote_min_size": "1",
-        //            "quote_max_size": "150000000",
-        //            "base_min_size": "0.00000001",
-        //            "base_max_size": "42000",
-        //            "base_name": "Ethereum",
-        //            "quote_name": "US Dollar",
-        //            "watched": false,
-        //            "is_disabled": false,
-        //            "new": false,
-        //            "status": "online",
-        //            "cancel_only": false,
-        //            "limit_only": false,
-        //            "post_only": false,
-        //            "trading_disabled": false,
-        //            "auction_mode": false,
-        //            "product_type": "SPOT",
-        //            "quote_currency_id": "USD",
-        //            "base_currency_id": "ETH",
-        //            "fcm_trading_session_details": null,
-        //            "mid_market_price": "",
-        //            "alias": "",
-        //            "alias_to": [ "ETH-USDC" ],
-        //            "base_display_symbol": "ETH",
-        //            "quote_display_symbol": "USD",
-        //            "view_only": false,
-        //            "price_increment": "0.01",
-        //            "display_name": "ETH-USD",
-        //            "product_venue": "CBE",
-        //            "approximate_quote_24h_volume": "390503641.25",
-        //            "new_at": "2023-01-01T00:00:00Z"
+        //         {
+        //             "product_id": "TONE-USD",
+        //             "price": "0.01523",
+        //             "price_percentage_change_24h": "1.94109772423025",
+        //             "volume_24h": "19773129",
+        //             "volume_percentage_change_24h": "437.0170530929949",
+        //             "base_increment": "1",
+        //             "quote_increment": "0.00001",
+        //             "quote_min_size": "1",
+        //             "quote_max_size": "10000000",
+        //             "base_min_size": "26.7187147229469674",
+        //             "base_max_size": "267187147.2294696735908216",
+        //             "base_name": "TE-FOOD",
+        //             "quote_name": "US Dollar",
+        //             "watched": false,
+        //             "is_disabled": false,
+        //             "new": false,
+        //             "status": "online",
+        //             "cancel_only": false,
+        //             "limit_only": false,
+        //             "post_only": false,
+        //             "trading_disabled": false,
+        //             "auction_mode": false,
+        //             "product_type": "SPOT",
+        //             "quote_currency_id": "USD",
+        //             "base_currency_id": "TONE",
+        //             "fcm_trading_session_details": null,
+        //             "mid_market_price": ""
         //         },
         //         ...
         //     ]
@@ -2316,12 +2268,10 @@ class coinbase extends coinbase$1["default"] {
         if (('bids' in ticker)) {
             const bids = this.safeList(ticker, 'bids', []);
             const asks = this.safeList(ticker, 'asks', []);
-            const firstBid = this.safeDict(bids, 0, {});
-            const firstAsk = this.safeDict(asks, 0, {});
-            bid = this.safeNumber(firstBid, 'price');
-            bidVolume = this.safeNumber(firstBid, 'size');
-            ask = this.safeNumber(firstAsk, 'price');
-            askVolume = this.safeNumber(firstAsk, 'size');
+            bid = this.safeNumber(bids[0], 'price');
+            bidVolume = this.safeNumber(bids[0], 'size');
+            ask = this.safeNumber(asks[0], 'price');
+            askVolume = this.safeNumber(asks[0], 'size');
         }
         const marketId = this.safeString(ticker, 'product_id');
         market = this.safeMarket(marketId, market);
@@ -2345,8 +2295,8 @@ class coinbase extends coinbase$1["default"] {
             'change': undefined,
             'percentage': this.safeNumber(ticker, 'price_percentage_change_24h'),
             'average': undefined,
-            'baseVolume': this.safeNumber(ticker, 'volume_24h'),
-            'quoteVolume': this.safeNumber(ticker, 'approximate_quote_24h_volume'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }
@@ -5218,4 +5168,4 @@ class coinbase extends coinbase$1["default"] {
     }
 }
 
-exports["default"] = coinbase;
+module.exports = coinbase;

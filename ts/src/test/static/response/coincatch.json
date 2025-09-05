@@ -180,9 +180,9 @@
                         "fee": 0.00008,
                         "fees": {},
                         "networks": {
-                            "BTC": {
+                            "BITCOIN": {
                                 "id": "BITCOIN",
-                                "network": "BTC",
+                                "network": "BITCOIN",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.00001,
@@ -449,9 +449,9 @@
                                     "withdrawable": "true"
                                 }
                             },
-                            "ARB": {
+                            "ArbitrumOne": {
                                 "id": "ArbitrumOne",
-                                "network": "ARB",
+                                "network": "ArbitrumOne",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.1,
@@ -519,9 +519,9 @@
                                     "withdrawable": "true"
                                 }
                             },
-                            "MATIC": {
+                            "Polygon": {
                                 "id": "Polygon",
-                                "network": "MATIC",
+                                "network": "Polygon",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.01,

@@ -1336,7 +1336,7 @@ public partial class paradex : Exchange
         object status = this.safeString(order, "status");
         if (isTrue(!isEqual(cancelReason, null)))
         {
-            if (isTrue(isTrue(isEqual(cancelReason, "NOT_ENOUGH_MARGIN")) || isTrue(isEqual(cancelReason, "ORDER_EXCEEDS_POSITION_LIMIT"))))
+            if (isTrue(isEqual(cancelReason, "NOT_ENOUGH_MARGIN")))
             {
                 status = "rejected";
             } else
@@ -1682,9 +1682,7 @@ public partial class paradex : Exchange
         //
         // if success, no response...
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return response;
     }
 
     /**
@@ -2202,7 +2200,6 @@ public partial class paradex : Exchange
             { "contracts", null },
             { "contractSize", null },
             { "price", null },
-            { "side", null },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },

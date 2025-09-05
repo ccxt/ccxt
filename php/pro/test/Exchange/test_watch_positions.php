@@ -19,7 +19,6 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
-            $success = true;
             try {
                 $response = Async\await($exchange->watch_positions([$symbol]));
             } catch(\Throwable $e) {
@@ -27,22 +26,18 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                // continue;
-                $success = false;
+                continue;
             }
-            if ($success === true) {
-                assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
-                $now = $exchange->milliseconds();
-                for ($i = 0; $i < count($response); $i++) {
-                    test_position($exchange, $skipped_properties, $method, $response[$i], null, $now);
-                }
-                assert_timestamp_order($exchange, $method, $symbol, $response);
+            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
+            $now = $exchange->milliseconds();
+            for ($i = 0; $i < count($response); $i++) {
+                test_position($exchange, $skipped_properties, $method, $response[$i], null, $now);
             }
+            assert_timestamp_order($exchange, $method, $symbol, $response);
             //
             // Test with specific symbol
             //
             $positions_for_symbols = null;
-            $success2 = true;
             try {
                 $positions_for_symbols = Async\await($exchange->watch_positions([$symbol]));
             } catch(\Throwable $e) {
@@ -50,20 +45,16 @@ function test_watch_positions($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                // continue;
-                $success2 = false;
+                continue;
             }
-            if ($success2 === true) {
-                assert(gettype($positions_for_symbols) === 'array' && array_is_list($positions_for_symbols), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions_for_symbols));
-                // max theoretical 4 positions: two for one-way-mode and two for two-way mode
-                assert(count($positions_for_symbols) <= 4, $exchange->id . ' ' . $method . ' positions length for particular symbol should be less than 4, returned ' . $exchange->json($positions_for_symbols));
-                $now = $exchange->milliseconds();
-                for ($i = 0; $i < count($positions_for_symbols); $i++) {
-                    test_position($exchange, $skipped_properties, $method, $positions_for_symbols[$i], $symbol, $now);
-                }
-                assert_timestamp_order($exchange, $method, $symbol, $positions_for_symbols);
+            assert(gettype($positions_for_symbols) === 'array' && array_is_list($positions_for_symbols), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions_for_symbols));
+            // max theoretical 4 positions: two for one-way-mode and two for two-way mode
+            assert(count($positions_for_symbols) <= 4, $exchange->id . ' ' . $method . ' positions length for particular symbol should be less than 4, returned ' . $exchange->json($positions_for_symbols));
+            $now = $exchange->milliseconds();
+            for ($i = 0; $i < count($positions_for_symbols); $i++) {
+                test_position($exchange, $skipped_properties, $method, $positions_for_symbols[$i], $symbol, $now);
             }
+            assert_timestamp_order($exchange, $method, $symbol, $positions_for_symbols);
         }
-        return true;
     }) ();
 }

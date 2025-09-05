@@ -34,7 +34,6 @@ from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa
 from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
-from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
 
 def base_tests_init():
     test_language_specific()
@@ -57,4 +56,3 @@ def base_tests_init():
     test_handle_methods()
     test_remove_repeated_elements_from_array()
     test_parse_precision()
-    test_arrays_concat()

@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var defx$1 = require('../defx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class defx extends defx$1["default"] {
+class defx extends defx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -863,4 +861,4 @@ class defx extends defx$1["default"] {
     }
 }
 
-exports["default"] = defx;
+module.exports = defx;

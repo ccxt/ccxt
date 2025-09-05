@@ -428,7 +428,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -994,7 +994,6 @@ public partial class okx : ccxt.okx
             { "contracts", this.safeNumber(liquidationDetails, "sz") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidationDetails, "bkPx") },
-            { "side", this.safeString(liquidationDetails, "side") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },
@@ -2306,7 +2305,7 @@ public partial class okx : ccxt.okx
         {
             object method = this.safeString(message, "op");
             object stringMsg = this.json(message);
-            this.handleErrors(1, "", client.url, method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(null, null, client.url, method, null, stringMsg, message, null, null);
         }
         object orders = this.parseOrders(args, null, null, null);
         object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2586,7 +2585,7 @@ public partial class okx : ccxt.okx
             ((WebSocketClient)client).reject(e);
             return false;
         }
-        return true;
+        return message;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

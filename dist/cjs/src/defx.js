@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var defx$1 = require('./abstract/defx.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -14,7 +12,7 @@ var errors = require('./base/errors.js');
  * @class defx
  * @augments Exchange
  */
-class defx extends defx$1["default"] {
+class defx extends defx$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'defx',
@@ -1491,7 +1489,7 @@ class defx extends defx$1["default"] {
         //     }
         // }
         //
-        return [this.safeOrder({ 'info': response })];
+        return response;
     }
     /**
      * @method
@@ -2137,4 +2135,4 @@ class defx extends defx$1["default"] {
     }
 }
 
-exports["default"] = defx;
+module.exports = defx;

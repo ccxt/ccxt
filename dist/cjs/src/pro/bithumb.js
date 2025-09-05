@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bithumb$1 = require('../bithumb.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bithumb extends bithumb$1["default"] {
+class bithumb extends bithumb$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -393,4 +391,4 @@ class bithumb extends bithumb$1["default"] {
     }
 }
 
-exports["default"] = bithumb;
+module.exports = bithumb;

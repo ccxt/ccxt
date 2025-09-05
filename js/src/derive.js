@@ -1663,7 +1663,7 @@ export default class derive extends Exchange {
         //     "result": "ok"
         // }
         //
-        return [this.safeOrder({ 'info': response })];
+        return response;
     }
     /**
      * @method

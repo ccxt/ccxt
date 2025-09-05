@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var btcturk$1 = require('./abstract/btcturk.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class btcturk
  * @augments Exchange
  */
-class btcturk extends btcturk$1["default"] {
+class btcturk extends btcturk$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcturk',
@@ -1056,4 +1054,4 @@ class btcturk extends btcturk$1["default"] {
     }
 }
 
-exports["default"] = btcturk;
+module.exports = btcturk;

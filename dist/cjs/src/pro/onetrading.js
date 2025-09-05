@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var onetrading$1 = require('../onetrading.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class onetrading extends onetrading$1["default"] {
+class onetrading extends onetrading$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1341,4 +1339,4 @@ class onetrading extends onetrading$1["default"] {
     }
 }
 
-exports["default"] = onetrading;
+module.exports = onetrading;

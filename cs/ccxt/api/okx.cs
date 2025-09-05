@@ -106,11 +106,6 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetMarketIndexComponents",parameters);
     }
 
-    public async Task<object> publicGetPublicMarketDataHistory (object parameters = null)
-    {
-        return await this.callAsync ("publicGetPublicMarketDataHistory",parameters);
-    }
-
     public async Task<object> publicGetPublicEconomicCalendar (object parameters = null)
     {
         return await this.callAsync ("publicGetPublicEconomicCalendar",parameters);

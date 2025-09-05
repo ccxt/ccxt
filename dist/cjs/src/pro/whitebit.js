@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var whitebit$1 = require('../whitebit.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
@@ -9,7 +7,7 @@ var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class whitebit extends whitebit$1["default"] {
+class whitebit extends whitebit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -969,4 +967,4 @@ class whitebit extends whitebit$1["default"] {
     }
 }
 
-exports["default"] = whitebit;
+module.exports = whitebit;
