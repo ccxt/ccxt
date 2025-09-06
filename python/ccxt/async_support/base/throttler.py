@@ -20,6 +20,7 @@ class Throttler:
 
     async def looper(self):
         last_timestamp = time() * 1000
+        throttle_alert_sent = False
         while self.running:
             future, cost = self.queue[0]
             cost = self.config['cost'] if cost is None else cost
@@ -32,7 +33,11 @@ class Throttler:
                 await asyncio.sleep(0)
                 if len(self.queue) == 0:
                     self.running = False
+                throttle_alert_sent = False
             else:
+                if not throttle_alert_sent:
+                    print(f"{int(time() * 1000)} ccxt rate limit exceeded, throttling requests.")
+                    throttle_alert_sent = True
                 await asyncio.sleep(self.config['delay'])
                 now = time() * 1000
                 elapsed = now - last_timestamp
