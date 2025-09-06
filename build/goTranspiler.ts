@@ -1264,6 +1264,9 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
         baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
         baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
+        
+        // Fix setMarketsFromExchange parameter type
+        baseClass = baseClass.replaceAll(/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
