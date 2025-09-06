@@ -193,7 +193,6 @@ public partial class Exchange
         if (!clientSubscriptionExists)
         {
             await connected;
-
             if (message != null)
             {
                 try
@@ -242,7 +241,6 @@ public partial class Exchange
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
             await connected;
-
             if (message != null)
             {
                 try
