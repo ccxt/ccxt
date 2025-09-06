@@ -1,8 +1,7 @@
 namespace ccxt;
 
-using System.Collections.Concurrent;
-using System.Net.Sockets;
 using System.Net.WebSockets;
+using System.Collections.Concurrent;
 
 public partial class Exchange
 {
@@ -250,19 +249,7 @@ public partial class Exchange
 
         if (subscribeHashes == null || missingSubscriptions.Count > 0)
         {
-            try
-            {
-                await connected;
-            }
-            catch (Exception ex)
-            {
-                foreach (var subscribeHash in missingSubscriptions)
-                {
-                    client.subscriptions.Remove(subscribeHash);
-                }
-                future.reject(ex);
-                return await future;
-            }
+            await connected;
 
             if (message != null)
             {
