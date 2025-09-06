@@ -258,7 +258,7 @@ export default class sarmayex extends Exchange {
         let response = await this.publicGetApiV1PublicCurrencies(params);
         response = this.safeDict(response, 'data');
         const markets = this.safeList(response, 'currencies');
-        const result = [];
+        const result = {};
         const quotes = ['IRT', 'USDT'];
         for (let i = 0; i < markets.length; i++) {
             const base = this.safeString(markets[i], 'symbol');
