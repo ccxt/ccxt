@@ -177,8 +177,7 @@ public partial class Exchange
         var backoffDelay = 0;
 
         Future existingFuture = null;
-        var exists = (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture);
-        if (subscribeHash == null && exists)
+        if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
         {
             return await existingFuture;
         }
