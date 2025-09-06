@@ -249,7 +249,6 @@ export default class kucoinfutures extends kucoin {
                     '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
                     '300009': InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
                     '330008': InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
-
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
