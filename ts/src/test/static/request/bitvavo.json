@@ -216,7 +216,7 @@
             {
                 "description": "Cancel all orders",
                 "method": "cancelAllOrders",
-                "url": "https://api.bitvavo.com/v2/orders",
+                "url": "https://api.bitvavo.com/v2/orders?operatorId=123456",
                 "input": []
             }
         ],
