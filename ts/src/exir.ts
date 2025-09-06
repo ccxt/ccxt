@@ -137,6 +137,10 @@ export default class exir extends Exchange {
         for (let i = 0; i < marketKeys.length; i++) {
             const symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
+            const lastPrice = this.safeFloat (response[symbol], 'last');
+            if (lastPrice === 0) {
+                continue;
+            }
             const market = this.parseMarket (response[symbol]);
             result.push (market);
         }
@@ -233,7 +237,7 @@ export default class exir extends Exchange {
         }
         const response = await this.publicGetV2Tickers ();
         const marketKeys = Object.keys (response);
-        const result = [];
+        const result = {};
         for (let i = 0; i < marketKeys.length; i++) {
             let symbol = marketKeys[i];
             response[symbol]['symbol'] = symbol;
@@ -283,22 +287,24 @@ export default class exir extends Exchange {
         symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
-        const bid = this.safeFloat (ticker, 'last');
-        const ask = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open');
-        const close = this.safeFloat (ticker, 'close');
-        const last = this.safeFloat (ticker, 'last');
-        const quoteVolume = this.safeFloat (ticker, 'volume');
+        const open = this.safeFloat (ticker, 'open', 0);
+        const close = this.safeFloat (ticker, 'close', 0);
+        const last = this.safeFloat (ticker, 'last', 0);
+        const baseVolume = this.safeFloat (ticker, 'volume', 0);
         const datetime = this.safeString (ticker, 'time');
+        let quoteVolume = undefined;
+        if (last !== 0) {
+            quoteVolume = baseVolume * last;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': this.safeFloat (bid, 0),
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ask, 0),
+            'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -308,7 +314,7 @@ export default class exir extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);

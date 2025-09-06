@@ -133,6 +133,10 @@ class exir extends Exchange {
         for ($i = 0; $i < count($marketKeys); $i++) {
             $symbol = $marketKeys[$i];
             $response[$symbol]['symbol'] = $symbol;
+            $lastPrice = $this->safe_float($response[$symbol], 'last');
+            if ($lastPrice === 0) {
+                continue;
+            }
             $market = $this->parse_market($response[$symbol]);
             $result[] = $market;
         }
@@ -275,22 +279,24 @@ class exir extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $high = $this->safe_float($ticker, 'high');
         $low = $this->safe_float($ticker, 'low');
-        $bid = $this->safe_float($ticker, 'last');
-        $ask = $this->safe_float($ticker, 'last');
-        $open = $this->safe_float($ticker, 'open');
-        $close = $this->safe_float($ticker, 'close');
-        $last = $this->safe_float($ticker, 'last');
-        $quoteVolume = $this->safe_float($ticker, 'volume');
+        $open = $this->safe_float($ticker, 'open', 0);
+        $close = $this->safe_float($ticker, 'close', 0);
+        $last = $this->safe_float($ticker, 'last', 0);
+        $baseVolume = $this->safe_float($ticker, 'volume', 0);
         $datetime = $this->safe_string($ticker, 'time');
+        $quoteVolume = null;
+        if ($last !== 0) {
+            $quoteVolume = $baseVolume * $last;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'high' => $high,
             'low' => $low,
-            'bid' => $this->safe_float($bid, 0),
+            'bid' => null,
             'bidVolume' => null,
-            'ask' => $this->safe_float($ask, 0),
+            'ask' => null,
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -300,7 +306,7 @@ class exir extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         ), $market);
