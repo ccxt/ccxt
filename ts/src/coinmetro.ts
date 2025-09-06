@@ -892,7 +892,7 @@ export default class coinmetro extends Exchange {
         return orderbook;
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const prices = Object.keys (bidasks);
         const result = [];
         for (let i = 0; i < prices.length; i++) {
