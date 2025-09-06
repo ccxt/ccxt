@@ -81,6 +81,7 @@ public partial class Exchange
             if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
                 future.reject(rejection);
+                this.rejections.Remove(messageHash);
             }
             return future;
         }
