@@ -1379,9 +1379,9 @@ class Exchange(object):
         return msgHash
 
     @staticmethod
-    def starknet_sign (hash, pri):
+    def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
-        r, s = message_signature(hash, pri)
+        r, s = message_signature(msg_hash, pri)
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
