@@ -33,7 +33,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, Order, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
 
 # -----------------------------------------------------------------------------
 
@@ -1379,9 +1379,9 @@ class Exchange(object):
         return msgHash
 
     @staticmethod
-    def starknet_sign (hash, pri):
+    def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
-        r, s = message_signature(hash, pri)
+        r, s = message_signature(msg_hash, pri)
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod

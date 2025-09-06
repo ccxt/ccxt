@@ -218,7 +218,7 @@ export default class upbit extends upbitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
      */
-    async watchOHLCV (symbol: string, timeframe = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1s', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (timeframe !== '1s') {
             throw new NotSupported (this.id + ' watchOHLCV does not support' + timeframe + ' candle.');
         }
