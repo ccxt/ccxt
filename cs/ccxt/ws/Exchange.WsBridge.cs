@@ -64,6 +64,7 @@ public partial class Exchange
             }
         }
     }
+
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -191,16 +192,7 @@ public partial class Exchange
         var connected = client.connect(backoffDelay);
         if (!clientSubscriptionExists)
         {
-            try
-            {
-                await connected;
-            }
-            catch (Exception ex)
-            {
-                client.subscriptions.Remove(subscribeHash);
-                future.reject(ex);
-                return await future;
-            }
+            await connected;
 
             if (message != null)
             {
