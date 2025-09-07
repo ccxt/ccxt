@@ -105,6 +105,7 @@ export default class toobit extends toobitRest {
         const methods: Dict = {
             'trade': this.handleTrades,
             'kline': this.handleOHLCV,
+            'realtimes': this.handleTickers,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -165,9 +166,6 @@ export default class toobit extends toobitRest {
             'symbol': marketIds.join (','),
             'topic': 'trade',
             'event': 'sub',
-            'params': {
-                'binary': false, // Whether data returned is in binary format
-            },
         };
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
@@ -277,9 +275,6 @@ export default class toobit extends toobitRest {
             'symbol': marketIds.join (','),
             'topic': 'kline_' + selectedTimeframe,
             'event': 'sub',
-            'params': {
-                'binary': false, // Whether data returned is in binary format
-            },
         };
         const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
         if (this.newUpdates) {
@@ -355,5 +350,117 @@ export default class toobit extends toobitRest {
         //
         const parsed = this.parseOHLCV (ohlcv, market);
         return parsed;
+    }
+
+    /**
+     * @method
+     * @name toobit#watchTicker
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const tickers = await this.watchTickers ([ symbol ], params);
+        return tickers[symbol];
+    }
+
+    /**
+     * @method
+     * @name toobit#watchTickers
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols);
+        // const streamHash = 'multipleTrades' + '::' + symbols.join (',');
+        // const firstMarket = this.market (symbols[0]);
+        const messageHashes = [];
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            messageHashes.push ('ticker::' + symbol);
+            const rawHash = market['id'];
+            subParams.push (rawHash);
+        }
+        const marketIds = this.marketIds (symbols);
+        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const request: Dict = {
+            'symbol': marketIds.join (','),
+            'topic': 'realtimes',
+            'event': 'sub',
+        };
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    handleTickers (client: Client, message) {
+        //
+        //    {
+        //        "symbol": "DOGEUSDT",
+        //        "symbolName": "DOGEUSDT",
+        //        "topic": "realtimes",
+        //        "params": {
+        //            "realtimeInterval": "24h"
+        //        },
+        //        "data": [
+        //            {
+        //                "t": 1757257643683,
+        //                "s": "DOGEUSDT",
+        //                "o": "0.21462",
+        //                "h": "0.22518",
+        //                "l": "0.21229",
+        //                "c": "0.2232",
+        //                "v": "283337017",
+        //                "qv": "62063771.42702",
+        //                "sn": "DOGEUSDT",
+        //                "m": "0.04",
+        //                "e": 301,
+        //                "c24h": "0.2232",
+        //                "h24h": "0.22518",
+        //                "l24h": "0.21229",
+        //                "o24h": "0.21462",
+        //                "v24h": "283337017",
+        //                "qv24h": "62063771.42702",
+        //                "m24h": "0.04"
+        //            }
+        //        ],
+        //        "f": false,
+        //        "sendTime": 1757257643751,
+        //        "shared": false
+        //    }
+        //
+        const data = this.safeList (message, 'data');
+        const newTickers = {};
+        for (let i = 0; i < data.length; i++) {
+            const ticker = data[i];
+            const parsed = this.parseWsTicker (ticker);
+            const symbol = parsed['symbol'];
+            this.tickers[symbol] = parsed;
+            newTickers[symbol] = parsed;
+            const messageHash = 'ticker::' + symbol;
+            client.resolve (parsed, messageHash);
+        }
+        client.resolve (newTickers, 'tickers');
+    }
+
+    parseWsTicker (ticker, market = undefined) {
+        return this.parseTicker (ticker, market);
     }
 }
