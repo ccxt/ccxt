@@ -457,6 +457,7 @@ class Exchange {
         'tetherland',
         'timex',
         'tokocrypto',
+        'toobit',
         'tradeogre',
         'twox',
         'ubitex',

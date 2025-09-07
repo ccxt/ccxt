@@ -1,0 +1,126 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var toobit$1 = require('./abstract/toobit.js');
+
+// ----------------------------------------------------------------------------
+// import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+//  ---------------------------------------------------------------------------
+/**
+ * @class toobit
+ * @augments Exchange
+ * @description Set rateLimit to 1000 if fully verified
+ */
+class toobit extends toobit$1["default"] {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'toobit',
+            'name': 'Toobit',
+            'countries': ['KY'],
+            'rateLimit': 1000,
+            'version': '1',
+            'certified': false,
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelAllOrders': false,
+                'cancelOrder': false,
+                'cancelOrders': false,
+                'createDepositAddress': false,
+                'createOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'editOrder': false,
+                'fetchBalance': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchL2OrderBook': false,
+                'fetchLedger': false,
+                'fetchLedgerEntry': false,
+                'fetchLeverageTiers': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMyTrades': false,
+                'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': 'emulated',
+                'fetchPositions': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': false,
+                'fetchTrades': false,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchWithdrawals': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'transfer': false,
+                'withdraw': false,
+            },
+            'comment': 'This comment is optional',
+            'urls': {
+                'logo': 'https://toobit-docs.github.io/apidocs/spot/v1/en/images/logo.svg',
+                'api': {
+                    'public': 'https://api.toobit.com',
+                },
+                'www': 'https://www.toobit.com/',
+                'doc': [
+                    'https://toobit-docs.github.io/apidocs/spot/v1/en/#change-log',
+                ],
+            },
+            'timeframes': {
+                '15m': '15',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '1w': '1W',
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'quote/v1/ticker/24hr': 1,
+                        '/quote/v1/ticker/24hr': 1,
+                        '/quote/v1/ticker/depth': 1,
+                    },
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': this.parseNumber('0.001'),
+                    'taker': this.parseNumber('0.001'),
+                },
+            },
+        });
+    }
+}
+
+exports["default"] = toobit;
