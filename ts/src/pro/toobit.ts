@@ -32,6 +32,24 @@ export default class toobit extends toobitRest {
                 },
             },
             'options': {
+                'ws': {
+                    'timeframes': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '2h': '2h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '8h': '8h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
+                        '1M': '1M',
+                    },
+                },
             },
             'streaming': {
                 'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
@@ -86,6 +104,7 @@ export default class toobit extends toobitRest {
         // }
         const methods: Dict = {
             'trade': this.handleTrades,
+            'kline': this.handleOHLCV,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -201,5 +220,140 @@ export default class toobit extends toobitRest {
 
     parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         return this.parseTrade (trade, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        params['callerMethodName'] = 'watchOHLCV';
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    /**
+     * @method
+     * @name toobit#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const messageHashes = [];
+        const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
+        const marketIds = [];
+        let selectedTimeframe: Str = undefined;
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            const symbolStr = this.safeString (data, 0);
+            const market = this.market (symbolStr);
+            const marketId = market['id'];
+            const unfiedTimeframe = this.safeString (data, 1, '1m');
+            const rawTimeframe = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
+            if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
+                throw new Error (this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
+            } else {
+                selectedTimeframe = rawTimeframe;
+            }
+            marketIds.push (marketId);
+            messageHashes.push ('ohlcv::' + symbolStr + '::' + unfiedTimeframe);
+        }
+        const request: Dict = {
+            'symbol': marketIds.join (','),
+            'topic': 'kline_' + selectedTimeframe,
+            'event': 'sub',
+            'params': {
+                'binary': false, // Whether data returned is in binary format
+            },
+        };
+        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            limit = stored.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         symbol: 'DOGEUSDT',
+        //         symbolName: 'DOGEUSDT',
+        //         klineType: '1m',
+        //         topic: 'kline',
+        //         params: { realtimeInterval: '24h', klineType: '1m', binary: 'false' },
+        //         data: [
+        //             {
+        //                 t: 1757251200000,
+        //                 s: 'DOGEUSDT',
+        //                 sn: 'DOGEUSDT',
+        //                 c: '0.21889',
+        //                 h: '0.21898',
+        //                 l: '0.21889',
+        //                 o: '0.21897',
+        //                 v: '5247',
+        //                 st: 0
+        //             }
+        //         ],
+        //         f: true,
+        //         sendTime: 1757251217643,
+        //         shared: false
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.market (marketId);
+        const symbol = market['symbol'];
+        const params = this.safeDict (message, 'params', {});
+        const timeframeId = this.safeString (params, 'klineType');
+        const timeframe = this.findTimeframe (timeframeId);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.safeInteger (this.options['ws'], 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const parsed = this.parseWsOHLCV (data[i], market);
+            stored.append (parsed);
+        }
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        const resolveData = [ symbol, timeframe, stored ];
+        client.resolve (resolveData, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+        //
+        //             {
+        //                 t: 1757251200000,
+        //                 o: '0.21897',
+        //                 h: '0.21898',
+        //                 l: '0.21889',
+        //                 c: '0.21889',
+        //                 v: '5247',
+        //                 s: 'DOGEUSDT',
+        //                 sn: 'DOGEUSDT',
+        //                 st: 0
+        //             }
+        //
+        const parsed = this.parseOHLCV (ohlcv, market);
+        return parsed;
     }
 }
