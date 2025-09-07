@@ -265,7 +265,6 @@ export default class exir extends Exchange {
         };
         const response = await this.publicGetV2Ticker (request);
         response['symbol'] = market['id'];
-        response['time'] = response['timestamp'];
         const ticker = this.parseTicker (response);
         return ticker;
     }

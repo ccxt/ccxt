@@ -1,5 +1,6 @@
 LICENSE.txt
 MANIFEST.in
+README.md
 README.rst
 package.json
 setup.cfg
@@ -19,6 +20,7 @@ ccxt/binancecoinm.py
 ccxt/binanceus.py
 ccxt/binanceusdm.py
 ccxt/bingx.py
+ccxt/bit24.py
 ccxt/bit2c.py
 ccxt/bitbank.py
 ccxt/bitbns.py
@@ -152,6 +154,7 @@ ccxt/abstract/binancecoinm.py
 ccxt/abstract/binanceus.py
 ccxt/abstract/binanceusdm.py
 ccxt/abstract/bingx.py
+ccxt/abstract/bit24.py
 ccxt/abstract/bit2c.py
 ccxt/abstract/bitbank.py
 ccxt/abstract/bitbns.py
@@ -285,6 +288,7 @@ ccxt/async_support/binancecoinm.py
 ccxt/async_support/binanceus.py
 ccxt/async_support/binanceusdm.py
 ccxt/async_support/bingx.py
+ccxt/async_support/bit24.py
 ccxt/async_support/bit2c.py
 ccxt/async_support/bitbank.py
 ccxt/async_support/bitbns.py
