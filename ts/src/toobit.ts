@@ -614,6 +614,9 @@ export default class toobit extends Exchange {
         //            "q": "0.001508",
         //            "ibm": true
         //        },
+        //        // watchTrades have also an additional fields:
+        //             "v": "4864732022868004630",   // trade id
+        //             "m": true,                    // is the buyer taker
         //
         // fetchMyTrades
         //
@@ -648,7 +651,13 @@ export default class toobit extends Exchange {
         const amountString = this.safeString2 (trade, 'q', 'qty');
         const isBuyer = this.safeBool (trade, 'isBuyer');
         let side = undefined;
-        const isBuyerMaker = this.safeBool (trade, 'ibm');
+        let isBuyerMaker = this.safeBool (trade, 'ibm');
+        if (isBuyerMaker === undefined) {
+            const isBuyerTaker = this.safeBool (trade, 'm');
+            if (isBuyerTaker !== undefined) {
+                isBuyerMaker = !isBuyerTaker;
+            }
+        }
         if (isBuyerMaker !== undefined) {
             if (isBuyerMaker) {
                 side = 'sell';
@@ -683,7 +692,7 @@ export default class toobit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString2 (trade, 'id', 'v'),
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
