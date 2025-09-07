@@ -56,7 +56,7 @@ type Exchange struct {
 	MAX_VALUE              float64
 	RateLimit              float64
 	TokenBucket            map[string]interface{}
-	Throttler              Throttler
+	Throttler              *Throttler
 	NewUpdates             bool
 	Alias                  bool
 	Verbose                bool
@@ -89,7 +89,7 @@ type Exchange struct {
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
 	Last_request_url         interface{}
-	LastRequestUrl           interface{}
+	LastRequestUrl           string
 	Headers                  interface{}
 	ReturnResponseHeaders    bool
 
@@ -147,7 +147,7 @@ type Exchange struct {
 
 	SubstituteCommonCurrencyCodes bool
 
-	Twofa interface{}
+	Twofa string
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp
@@ -158,7 +158,7 @@ type Exchange struct {
 	Orderbooks     *sync.Map
 	Liquidations   *sync.Map
 	FundingRates   interface{}
-	Bidsasks       interface{}
+	Bidsasks       *sync.Map
 	TriggerOrders  interface{} // *ArrayCache
 	Transactions   *sync.Map
 	MyLiquidations *sync.Map
@@ -242,6 +242,12 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
+	this.Currencies = &sync.Map{}
+	this.FundingRates = make(map[string]interface{})
+	this.Bidsasks = &sync.Map{}
+	this.ProxyDictionaries = make(map[string]interface{})
+	this.AccountsById = make(map[string]interface{})
+	this.Accounts = make([]interface{}, 0)
 	this.AfterConstruct()
 
 	this.transformApiNew(this.Api)
@@ -251,8 +257,11 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-
-	if IsTrue(IsTrue(this.SafeBool(userConfig, "sandbox")) || IsTrue(this.SafeBool(userConfig, "testnet"))) {
+	userOptions := this.SafeDict(userConfig, "options")
+	if userOptions == nil {
+		userOptions = map[string]interface{}{}
+	}
+	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
 		this.SetSandboxMode(true)
 	}
 
@@ -1829,7 +1838,16 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan inte
 }
 
 func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
-	time.AfterFunc(time.Duration(timeout.(int))*time.Millisecond, func() {
+	var timeoutMs int64
+	switch v := timeout.(type) {
+	case int:
+		timeoutMs = int64(v)
+	case int64:
+		timeoutMs = v
+	default:
+		panic(fmt.Sprintf("timeout must be int or int64, got %T", timeout))
+	}
+	time.AfterFunc(time.Duration(timeoutMs)*time.Millisecond, func() {
 		this.Spawn(method, args...)
 	})
 }

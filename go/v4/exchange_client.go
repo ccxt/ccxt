@@ -32,6 +32,11 @@ type ClientInterface interface {
 	SetError(err error)
 	GetUrl() string
 	GetSubscriptions() map[string]interface{}
+	GetLastPong() interface{}
+	SetLastPong(lastPong interface{})
+	GetKeepAlive() interface{}
+	SetKeepAlive(keepAlive interface{})
+	GetFutures() map[string]interface{}
 }
 
 // Client is a thin wrapper around a single ws:// or wss:// connection.
@@ -587,6 +592,21 @@ func (this *Client) GetSubscriptions() map[string]interface{} {
 	return this.Subscriptions
 }
 
+func (this *Client) GetLastPong() interface{} {
+	return this.LastPong
+}
+func (this *Client) SetLastPong(lastPong interface{}) {
+	this.LastPong = lastPong
+}
+func (this *Client) SetKeepAlive(keepAlive interface{}) {
+	this.KeepAlive = keepAlive
+}
+func (this *Client) GetKeepAlive() interface{} {
+	return this.KeepAlive
+}
+func (this *Client) GetFutures() map[string]interface{} {
+	return this.Futures
+}
 type wsMessageHandler interface {
 	HandleMessage(client *Client, msg interface{})
 }

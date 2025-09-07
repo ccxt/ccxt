@@ -214,3 +214,18 @@ func (this *WSClient) GetUrl() string {
 func (this *WSClient) GetSubscriptions() map[string]interface{} {
 	return this.Client.GetSubscriptions()
 }
+func (this *WSClient) GetLastPong() interface{} {
+	return this.Client.GetLastPong()
+}
+func (this *WSClient) SetLastPong(lastPong interface{}) {
+	this.Client.SetLastPong(lastPong)
+}
+func (this *WSClient) GetKeepAlive() interface{} {
+	return this.Client.GetKeepAlive()
+}
+func (this *WSClient) SetKeepAlive(keepAlive interface{}) {
+	this.Client.SetKeepAlive(keepAlive)
+}
+func (this *WSClient) GetFutures() map[string]interface{} {
+	return this.Client.GetFutures()
+}

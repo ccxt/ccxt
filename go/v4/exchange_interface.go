@@ -3,7 +3,7 @@ package ccxt
 import "sync"
 
 type IBaseExchange interface {
-	SetRateLimit(rateLimit bool)
+	SetEnableRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
 	SetWssProxy(wssProxy interface{})
@@ -57,7 +57,7 @@ type IBaseExchange interface {
 // Exchange interface based on the methods from binance.go
 type ICoreExchange interface {
 	Spawn(method interface{}, args ...interface{}) <-chan interface{}
-	SetRateLimit(rateLimit bool)
+	SetEnableRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
 	SetWssProxy(wssProxy interface{})
