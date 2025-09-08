@@ -3347,16 +3347,30 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_trades_helper(bool $isWs, array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->extend($this->parse_trade($trades[$i], $market), $params);
+            $parsed = null;
+            if ($isWs) {
+                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            } else {
+                $parsed = $this->parse_trade($trades[$i], $market);
+            }
+            $trade = $this->extend($parsed, $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->parse_trades_helper(false, $trades, $market, $since, $limit, $params);
+    }
+
+    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->parse_trades_helper(true, $trades, $market, $since, $limit, $params);
     }
 
     public function parse_transactions(array $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
