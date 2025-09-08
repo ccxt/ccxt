@@ -261,7 +261,6 @@ class exir extends exir$1["default"] {
         };
         const response = await this.publicGetV2Ticker(request);
         response['symbol'] = market['id'];
-        response['time'] = response['timestamp'];
         const ticker = this.parseTicker(response);
         return ticker;
     }

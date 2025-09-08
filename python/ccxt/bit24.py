@@ -367,8 +367,6 @@ class bit24(Exchange, ImplicitAPI):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
-        if query > 0:
-            queryString = self.urlencode(query)
-            url += '?' + queryString
+        url = url + '?' + self.urlencode(query)
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
