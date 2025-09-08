@@ -510,7 +510,7 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 		}
 
 		hexKey := hex.EncodeToString(key.D.Bytes())
-		secretStr = hexKey
+		secretStr = strings.ToLower(hexKey)
 	}
 
 	secretKeyBytes, ok := hexToBytes(secretStr)
