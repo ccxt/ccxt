@@ -1,7 +1,6 @@
 using System.Globalization;
 
 namespace Tests;
-
 using ccxt;
 
 using dict = System.Collections.Generic.Dictionary<string, object>;
@@ -190,6 +189,6 @@ public partial class BaseTest
 {
     public void testLanguageSpecific()
     {
-        MultithreadTest().Wait();
+
     }
 }

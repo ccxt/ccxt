@@ -87,7 +87,6 @@ type Exchange struct {
 	Last_request_url         interface{}
 	LastRequestUrl           interface{}
 	Headers                  interface{}
-	ReturnResponseHeaders    bool
 
 	// type check this
 	Number interface{}
@@ -139,12 +138,10 @@ type Exchange struct {
 	Twofa interface{}
 
 	// WS
-	Clients    interface{}
 	Ohlcvs     interface{}
 	Trades     interface{}
 	Tickers    interface{}
 	Orders     interface{}
-	Positions  interface{}
 	MyTrades   interface{}
 	Orderbooks interface{}
 
@@ -230,7 +227,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 	// to do
 }
 
-func NewExchange() ICoreExchange {
+func NewExchange() IExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
@@ -353,6 +350,15 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		markets := <-this.DerivedExchange.FetchMarkets(params)
 		PanicOnError(markets)
 
+		// if marketsMap.(*sync.Map); ok {
+		//
+		// }
+		// marketsMap := markets.(*sync.Map)
+		// marketsMap.Range(func(key, value interface{}) bool {
+		// 	this.Markets.Store(key, value)
+		// 	return true
+		// })
+
 		// this.cachedCurrenciesMutex.Lock()
 		// delete(this.Options, "cachedCurrencies")
 		// this.Options.Del
@@ -451,7 +457,7 @@ func Unique(obj interface{}) []string {
 
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
-	fmt.Println(args...)
+	fmt.Println(args)
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
@@ -1055,7 +1061,6 @@ func (this *Exchange) GetMarketsList() []MarketInterface {
 	this.Markets.Range(func(key, value interface{}) bool {
 		markets = append(markets, NewMarketInterface(value))
 		return true
-
 	})
 	return markets
 }
@@ -1297,20 +1302,4 @@ func (this *Exchange) UpdateProxySettings() {
 
 		this.httpClient.Transport = proxyTransport
 	}
-}
-
-func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {
-	parameters := GetArg(args, 0, nil)
-	ch := make(chan interface{})
-	go func() {
-		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- "panic:" + ToString(r)
-			}
-		}()
-		ch <- (<-this.callEndpoint(endpointName, parameters))
-		PanicOnError(ch)
-	}()
-	return ch
 }

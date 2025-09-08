@@ -1241,7 +1241,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //     {
         //         "error" => "MALFORMED_JSON",

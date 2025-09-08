@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var blockchaincom$1 = require('./abstract/blockchaincom.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +11,7 @@ var number = require('./base/functions/number.js');
  * @class blockchaincom
  * @augments Exchange
  */
-class blockchaincom extends blockchaincom$1["default"] {
+class blockchaincom extends blockchaincom$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'blockchaincom',
@@ -1257,4 +1255,4 @@ class blockchaincom extends blockchaincom$1["default"] {
     }
 }
 
-exports["default"] = blockchaincom;
+module.exports = blockchaincom;

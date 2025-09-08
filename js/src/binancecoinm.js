@@ -30,11 +30,7 @@ export default class binancecoinm extends binance {
                 'createStopMarketOrder': true,
             },
             'options': {
-                'fetchMarkets': {
-                    'types': [
-                        'inverse',
-                    ],
-                },
+                'fetchMarkets': ['inverse'],
                 'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },

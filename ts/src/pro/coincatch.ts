@@ -1391,7 +1391,7 @@ export default class coincatch extends coincatchRest {
         });
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message) {
         //
         //    { event: "error", code: 30001, msg: "Channel does not exist" }
         //

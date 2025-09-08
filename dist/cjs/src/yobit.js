@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var yobit$1 = require('./abstract/yobit.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class yobit
  * @augments Exchange
  */
-class yobit extends yobit$1["default"] {
+class yobit extends yobit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'yobit',
@@ -1451,4 +1449,4 @@ class yobit extends yobit$1["default"] {
     }
 }
 
-exports["default"] = yobit;
+module.exports = yobit;

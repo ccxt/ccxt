@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchOHLCV(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task testWatchOHLCV(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "watchOHLCV";
         object now = exchange.milliseconds();
@@ -27,7 +27,6 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
-            object success = true;
             try
             {
                 response = await exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit);
@@ -38,20 +37,15 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                // continue;
-                success = false;
+                continue;
             }
-            if (isTrue(isEqual(success, true)))
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
+            now = exchange.milliseconds();
+            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
-                testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-                {
-                    testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
-                }
+                testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
             }
         }
-        return true;
     }
 
 }

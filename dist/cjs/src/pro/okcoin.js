@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var okcoin$1 = require('../okcoin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +7,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class okcoin extends okcoin$1["default"] {
+class okcoin extends okcoin$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -761,4 +759,4 @@ class okcoin extends okcoin$1["default"] {
     }
 }
 
-exports["default"] = okcoin;
+module.exports = okcoin;

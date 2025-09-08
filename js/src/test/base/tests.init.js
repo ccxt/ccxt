@@ -25,7 +25,6 @@ import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
-import testArraysConcat from './test.arraysConcat.js';
 function baseTestsInit() {
     testLanguageSpecific();
     testAfterConstructor();
@@ -47,6 +46,5 @@ function baseTestsInit() {
     testHandleMethods();
     testRemoveRepeatedElementsFromArray();
     testParsePrecision();
-    testArraysConcat();
 }
 export default baseTestsInit;

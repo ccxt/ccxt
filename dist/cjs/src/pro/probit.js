@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var probit$1 = require('../probit.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class probit extends probit$1["default"] {
+class probit extends probit$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -591,4 +589,4 @@ class probit extends probit$1["default"] {
     }
 }
 
-exports["default"] = probit;
+module.exports = probit;

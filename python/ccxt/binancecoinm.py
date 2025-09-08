@@ -32,11 +32,7 @@ class binancecoinm(binance, ImplicitAPI):
                 'createStopMarketOrder': True,
             },
             'options': {
-                'fetchMarkets': {
-                    'types': [
-                        'inverse',
-                    ],
-                },
+                'fetchMarkets': ['inverse'],
                 'defaultSubType': 'inverse',
                 'leverageBrackets': None,
             },

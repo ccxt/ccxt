@@ -10,7 +10,7 @@ func spotPerpMarkets() {
 	exchange.ApiKey = ""
 	exchange.Secret = ""
 
-	exchange.LoadMarkets()
+	<-exchange.LoadMarkets(true)
 
 	allMarkets := exchange.GetMarketsList()
 

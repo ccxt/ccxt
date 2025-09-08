@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var bitrue$1 = require('./abstract/bitrue.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -14,7 +12,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitrue
  * @augments Exchange
  */
-class bitrue extends bitrue$1["default"] {
+class bitrue extends bitrue$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitrue',
@@ -376,9 +374,11 @@ class bitrue extends bitrue$1["default"] {
             // exchange-specific options
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
-                'fetchMarkets': {
-                    'types': ['spot', 'linear', 'inverse'],
-                },
+                'fetchMarkets': [
+                    'spot',
+                    'linear',
+                    'inverse',
+                ],
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -828,18 +828,9 @@ class bitrue extends bitrue$1["default"] {
      */
     async fetchMarkets(params = {}) {
         const promisesRaw = [];
-        let types = undefined;
-        const defaultTypes = ['spot', 'linear', 'inverse'];
-        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
-        if (fetchMarketsOptions !== undefined) {
-            types = this.safeList(fetchMarketsOptions, 'types', defaultTypes);
-        }
-        else {
-            // for backward-compatibility
-            types = this.safeList(this.options, 'fetchMarkets', defaultTypes);
-        }
-        for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+        const fetchMarkets = this.safeValue(this.options, 'fetchMarkets', ['spot', 'linear', 'inverse']);
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push(this.spotV1PublicGetExchangeInfo(params));
             }
@@ -3380,4 +3371,4 @@ class bitrue extends bitrue$1["default"] {
     }
 }
 
-exports["default"] = bitrue;
+module.exports = bitrue;

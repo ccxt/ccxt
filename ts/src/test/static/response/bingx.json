@@ -51,10 +51,10 @@
         ],
         "fetchTransfers": [
             {
-                "description": "fetch USDT transfers from spot to swap",
+                "description": "fetch transfers from spot to swap",
                 "method": "fetchTransfers",
                 "input": [
-                    "USDT",
+                    null,
                     null,
                     null,
                     {
@@ -63,25 +63,15 @@
                     }
                 ],
                 "httpResponse": {
-                    "total": "2",
+                    "total": 1,
                     "rows": [
-                        {
-                            "asset": "LTC",
-                            "amount": "0.05000000000000000000",
-                            "status": "CONFIRMED",
-                            "transferId": "1051461075661819338791",
-                            "timestamp": "1752202092000",
-                            "fromAccount": "spot",
-                            "toAccount": "USDTMPerp"
-                        },
                         {
                             "asset": "USDT",
                             "amount": "10.00000000000000000000",
+                            "type": "SPOT_PFUTURES",
                             "status": "CONFIRMED",
-                            "transferId": "1051461077440303243364",
-                            "timestamp": "1752202546000",
-                            "fromAccount": "spot",
-                            "toAccount": "USDTMPerp"
+                            "tranId": 907272517,
+                            "timestamp": 1749731424000
                         }
                     ]
                 },
@@ -90,19 +80,18 @@
                         "info": {
                             "asset": "USDT",
                             "amount": "10.00000000000000000000",
+                            "type": "SPOT_PFUTURES",
                             "status": "CONFIRMED",
-                            "transferId": "1051461077440303243364",
-                            "timestamp": "1752202546000",
-                            "fromAccount": "spot",
-                            "toAccount": "USDTMPerp"
+                            "tranId": "907272517",
+                            "timestamp": "1749731424000"
                         },
-                        "id": "1051461077440303243364",
-                        "timestamp": 1752202546000,
-                        "datetime": "2025-07-11T02:55:46.000Z",
-                        "currency": "USDT",
+                        "id": "907272517",
+                        "timestamp": 1749731424000,
+                        "datetime": "2025-06-12T12:30:24.000Z",
+                        "currency": null,
                         "amount": 10,
                         "fromAccount": "spot",
-                        "toAccount": "linear",
+                        "toAccount": "swap",
                         "status": "ok"
                     }
                 ]
@@ -110,77 +99,30 @@
         ],
         "transfer": [
             {
-                "description": "transfer LTC from inverse swap to spot using the subType parameter",
-                "method": "transfer",
-                "input": [
-                    "LTC",
-                    0.05,
-                    "swap",
-                    "spot",
-                    {
-                        "subType": "inverse"
-                    }
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "timestamp": "1752202170686",
-                    "data": {
-                        "tranId": "1943502883135819776",
-                        "transferId": "1051461075875997081703"
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "code": "0",
-                        "timestamp": "1752202170686",
-                        "data": {
-                            "tranId": "1943502883135819776",
-                            "transferId": "1051461075875997081703"
-                        }
-                    },
-                    "id": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "currency": "LTC",
-                    "amount": 0.05,
-                    "fromAccount": "swap",
-                    "toAccount": "spot",
-                    "status": null
-                }
-            },
-            {
-                "description": "transfer USDT from spot to linear swap",
+                "description": "transfer from funding to spot",
                 "method": "transfer",
                 "input": [
                     "USDT",
                     10,
-                    "spot",
-                    "swap"
+                    "funding",
+                    "spot"
                 ],
                 "httpResponse": {
-                    "code": "0",
-                    "timestamp": "1752202545982",
-                    "data": {
-                        "tranId": "1943504457329414144",
-                        "transferId": "1051461077440303243364"
-                    }
+                    "tranId": 1933134535059443712,
+                    "transferId": "1051450707684874297365"
                 },
                 "parsedResponse": {
                     "info": {
-                        "code": "0",
-                        "timestamp": "1752202545982",
-                        "data": {
-                            "tranId": "1943504457329414144",
-                            "transferId": "1051461077440303243364"
-                        }
+                        "tranId": "1933134535059443712",
+                        "transferId": "1051450707684874297365"
                     },
-                    "id": null,
+                    "id": "1933134535059443712",
                     "timestamp": null,
                     "datetime": null,
                     "currency": "USDT",
                     "amount": 10,
-                    "fromAccount": "spot",
-                    "toAccount": "swap",
+                    "fromAccount": "funding",
+                    "toAccount": "spot",
                     "status": null
                 }
             }
@@ -797,7 +739,7 @@
                                     }
                                 }
                             },
-                            "ARBITRUM": {
+                            "ARB": {
                                 "info": {
                                     "name": "USDT",
                                     "network": "ARBITRUM",
@@ -815,7 +757,7 @@
                                     "needTagOrMemo": "false"
                                 },
                                 "id": "ARBITRUM",
-                                "network": "ARBITRUM",
+                                "network": "ARB",
                                 "fee": 0.5,
                                 "active": true,
                                 "deposit": true,
@@ -2022,57 +1964,6 @@
         ],
         "fetchBalance": [
             {
-                "description": "fetch funding balance",
-                "method": "fetchBalance",
-                "input": [
-                    {
-                        "type": "funding"
-                    }
-                ],
-                "httpResponse": {
-                    "code": "0",
-                    "timestamp": "1754906233308",
-                    "data": {
-                        "assets": [
-                            {
-                                "asset": "USDT",
-                                "free": "44.37692200000000237300",
-                                "locked": "0.00000000000000000000"
-                            }
-                        ]
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "code": "0",
-                        "timestamp": "1754906233308",
-                        "data": {
-                            "assets": [
-                                {
-                                    "asset": "USDT",
-                                    "free": "44.37692200000000237300",
-                                    "locked": "0.00000000000000000000"
-                                }
-                            ]
-                        }
-                    },
-                    "USDT": {
-                        "free": 44.376922,
-                        "used": 0,
-                        "total": 44.376922
-                    },
-                    "free": {
-                        "USDT": 44.376922
-                    },
-                    "used": {
-                        "USDT": 0
-                    },
-                    "total": {
-                        "USDT": 44.376922
-                    }
-                }
-            },
-            {
                 "description": "spot fetchBalance",
                 "method": "fetchBalance",
                 "input": [],
@@ -2689,7 +2580,7 @@
                     "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   },
-                  "ARBITRUM": {
+                  "ARB": {
                     "info": {
                       "coinId": "1367",
                       "coin": "USDT",
@@ -2698,7 +2589,7 @@
                       "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
                     },
                     "currency": "USDT",
-                    "network": "ARBITRUM",
+                    "network": "ARB",
                     "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   },
@@ -2728,7 +2619,7 @@
                     "address": "UQDwSAybmEW6LJ5Qb1adskpasas1casdHb_Zx_G3JF1r7MV57-md5gI",
                     "tag": null
                   },
-                  "AVAXC": {
+                  "AVAX-C": {
                     "info": {
                       "coinId": "2050",
                       "coin": "USDT",
@@ -2737,7 +2628,7 @@
                       "addressWithPrefix": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745"
                     },
                     "currency": "USDT",
-                    "network": "AVAXC",
+                    "network": "AVAX-C",
                     "address": "0x6d5a760ce95c2f8fc028661f1645f89ea1s62745",
                     "tag": null
                   }

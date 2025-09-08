@@ -1,14 +1,12 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var derive$1 = require('../derive.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class derive extends derive$1["default"] {
+class derive extends derive$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -751,4 +749,4 @@ class derive extends derive$1["default"] {
     }
 }
 
-exports["default"] = derive;
+module.exports = derive;

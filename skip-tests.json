@@ -35,8 +35,7 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
                 "type": "todo",
                 "withdraw": "not provided for empty chains",
-                "deposit": "not provided for empty chains",
-                "maxInactiveCurrenciesPercentage": 60
+                "deposit": "not provided for empty chains"
             },
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:214"
@@ -255,8 +254,7 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
-                "maxInactiveCurrenciesPercentage": 60
+                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -290,8 +288,7 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "precision":"not provided",
-                "maxInactiveCurrenciesPercentage": 70
+                "precision":"not provided"
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -303,9 +300,6 @@
             },
             "watchOrderBook": {
                 "spread": "bid>ask issue, https://github.com/ccxt/ccxt/actions/runs/14356838751/job/40248419588?pr=25638#step:9:437"
-            },
-            "watchOrderBookForSymbols": {
-                "spread": "same"
             }
         }
     },
@@ -869,9 +863,6 @@
                 "price": "sometimes is not set",
                 "cost": "same",
                 "amount": "sometimes not present, only cost present sometimes"
-            },
-            "fetchTickers" : {
-                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1098,10 +1089,7 @@
         }
     },
     "gemini": {
-        "skip": "temporary USDC symbol issue in their API engine for swaps",
-        "until": "2025-08-31",
-        "skipPhpAsync": "tmp",
-        "skipCSharp": "tmp",
+        "skipWs": "fixes needed",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -1136,29 +1124,6 @@
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
-            }
-        }
-    },
-    "hibachi": {
-        "skipMethods": {
-            "loadMarkets": {
-                "currencyIdAndCode": "only have USDT"
-            },
-            "fetchCurrencies": {
-                "amountOfCurrencies": "exchange has only 1 currency"
-            },
-            "fetchLedger": {
-                "before": "not provided",
-                "after": "not provided",
-                "fee": "not provided for transaction"
-            },
-            "fetchDeposits": {
-                "fee": "not provided for deposit",
-                "updated": "not provided"
-            },
-            "fetchWithdrawals": {
-                "fee": "not provided for withdrawal",
-                "updated":"not provided"
             }
         }
     },
@@ -1697,8 +1662,7 @@
                 "bid": "equal to ask https://github.com/ccxt/ccxt/actions/runs/15595034293/job/43923530003?pr=26177#step:9:504"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo",
-                "average": "sometimes zero"
+                "checkActiveSymbols": "todo"
             }
 	    }
     },
@@ -1726,8 +1690,7 @@
                 "deposit": "undefined",
                 "networks": "networks key is missing",
                 "precision": "not provided",
-                "type": "todo",
-                "maxInactiveCurrenciesPercentage": 70
+                "type": "todo"
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
@@ -1773,7 +1736,6 @@
     },
     "tradeogre": {
         "skip": "flaky",
-        "skipWs": "down",
         "skipMethods": {
             "watchOrderBook": {
                 "timestamp": "not provided"

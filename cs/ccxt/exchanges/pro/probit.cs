@@ -543,7 +543,7 @@ public partial class probit : ccxt.probit
         this.handleBidAsks(storedAsks, asks);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual void handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {

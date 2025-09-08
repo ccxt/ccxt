@@ -31,7 +31,7 @@ async function testWsClose () {
     // --------------------------------------------
 
     console.log ('Testing exchange.close(): No future awaiting, should close with no errors');
-    await exchange.watchTicker ('BTC/USDT');
+    await exchange.watchTicker ('BTC/USD');
     console.log ('ticker received');
     await exchange.close ();
     console.log ('PASSED - exchange closed with no errors');

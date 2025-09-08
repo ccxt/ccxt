@@ -794,7 +794,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve ($fundingRate, $channel . '::' . $fundingRate['symbol']);
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message) {
         //
         //    {
         //        $message => 'Failed to subscribe',

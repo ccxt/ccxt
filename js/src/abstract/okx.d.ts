@@ -20,7 +20,6 @@ interface Exchange {
     publicGetMarketOpenOracle(params?: {}): Promise<implicitReturnType>;
     publicGetMarketExchangeRate(params?: {}): Promise<implicitReturnType>;
     publicGetMarketIndexComponents(params?: {}): Promise<implicitReturnType>;
-    publicGetPublicMarketDataHistory(params?: {}): Promise<implicitReturnType>;
     publicGetPublicEconomicCalendar(params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTickers(params?: {}): Promise<implicitReturnType>;
     publicGetMarketBlockTicker(params?: {}): Promise<implicitReturnType>;

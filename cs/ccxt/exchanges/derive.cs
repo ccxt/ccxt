@@ -1609,9 +1609,7 @@ public partial class derive : Exchange
         //     "result": "ok"
         // }
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return response;
     }
 
     /**

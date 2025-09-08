@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var luno$1 = require('./abstract/luno.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +11,7 @@ var number = require('./base/functions/number.js');
  * @class luno
  * @augments Exchange
  */
-class luno extends luno$1["default"] {
+class luno extends luno$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'luno',
@@ -31,9 +29,6 @@ class luno extends luno$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'borrowCrossMargin': false,
-                'borrowIsolatedMargin': false,
-                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -41,81 +36,48 @@ class luno extends luno$1["default"] {
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchAccounts': true,
-                'fetchAllGreeks': false,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
-                'fetchBorrowRate': false,
-                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchBorrowRates': false,
-                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchFundingHistory': false,
-                'fetchFundingInterval': false,
-                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
-                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
-                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
-                'fetchLiquidations': false,
-                'fetchLongShortRatio': false,
-                'fetchLongShortRatioHistory': false,
-                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMarkPrice': false,
-                'fetchMarkPrices': false,
-                'fetchMyLiquidations': false,
-                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
-                'fetchOption': false,
-                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
-                'fetchPositionForSymbolWs': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsForSymbol': false,
-                'fetchPositionsForSymbolWs': false,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchUnderlyingAssets': false,
-                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
-                'repayCrossMargin': false,
-                'repayIsolatedMargin': false,
                 'setLeverage': false,
-                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
             },
@@ -1477,4 +1439,4 @@ class luno extends luno$1["default"] {
     }
 }
 
-exports["default"] = luno;
+module.exports = luno;

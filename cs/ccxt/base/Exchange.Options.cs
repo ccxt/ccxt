@@ -130,7 +130,6 @@ public partial class Exchange
     public object name { get; set; }
 
     public object headers { get; set; } = new dict();
-    public bool returnResponseHeaders { get; set; } = false;
 
     public dict httpExceptions { get; set; } = new dict();
 
@@ -283,12 +282,7 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
-        var paddingModeOp = SafeInteger(extendedProperties, "paddingMode", this.paddingMode);
-        if (paddingModeOp != null)
-        {
-            this.paddingMode = ((int)paddingModeOp);
-
-        }
+        this.paddingMode = ((int)SafeInteger(extendedProperties, "paddingMode", this.paddingMode));
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;
@@ -298,7 +292,5 @@ public partial class Exchange
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
-
-        this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
     }
 }

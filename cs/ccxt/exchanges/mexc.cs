@@ -423,7 +423,6 @@ public partial class mexc : Exchange
                         } },
                     } },
                 } },
-                { "useCcxtTradeId", true },
                 { "timeframes", new Dictionary<string, object>() {
                     { "spot", new Dictionary<string, object>() {
                         { "1m", "1m" },
@@ -462,12 +461,6 @@ public partial class mexc : Exchange
                     { "ZKSYNC", "ZKSYNCERA" },
                     { "TRC20", "TRX" },
                     { "TON", "TONCOIN" },
-                    { "ARBITRUM", "ARB" },
-                    { "STX", "STACKS" },
-                    { "LUNC", "LUNA" },
-                    { "STARK", "STARKNET" },
-                    { "APT", "APTOS" },
-                    { "PEAQ", "PEAQEVM" },
                     { "AVAXC", "AVAX_CCHAIN" },
                     { "ERC20", "ETH" },
                     { "ACA", "ACALA" },
@@ -476,7 +469,6 @@ public partial class mexc : Exchange
                     { "ASTR", "ASTAR" },
                     { "BTM", "BTM2" },
                     { "CRC20", "CRONOS" },
-                    { "DOT", "DOTASSETHUB" },
                     { "ETHF", "ETF" },
                     { "HRC20", "HECO" },
                     { "OASIS", "ROSE" },
@@ -487,7 +479,6 @@ public partial class mexc : Exchange
                     { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
                     { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
                     { "BNB Smart Chain(BEP20)", "BSC" },
-                    { "Ethereum(ERC20)", "ERC20" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
@@ -1562,9 +1553,9 @@ public partial class mexc : Exchange
                 }
             }
         }
-        if (isTrue(isTrue(isEqual(id, null)) && isTrue(this.safeBool(this.options, "useCcxtTradeId", true))))
+        if (isTrue(isEqual(id, null)))
         {
-            id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
+            id = this.syntheticTradeId(market, timestamp, side, amountString, priceString, type, takerOrMaker);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1581,6 +1572,37 @@ public partial class mexc : Exchange
             { "fee", fee },
             { "info", trade },
         }, market);
+    }
+
+    public virtual object syntheticTradeId(object market = null, object timestamp = null, object side = null, object amount = null, object price = null, object orderType = null, object takerOrMaker = null)
+    {
+        // TODO: can be unified method? this approach is being used by multiple exchanges (mexc, woo-coinsbit, dydx, ...)
+        object id = "";
+        if (isTrue(!isEqual(timestamp, null)))
+        {
+            id = add(add(this.numberToString(timestamp), "-"), this.safeString(market, "id", "_"));
+            if (isTrue(!isEqual(side, null)))
+            {
+                id = add(id, add("-", side));
+            }
+            if (isTrue(!isEqual(amount, null)))
+            {
+                id = add(id, add("-", this.numberToString(amount)));
+            }
+            if (isTrue(!isEqual(price, null)))
+            {
+                id = add(id, add("-", this.numberToString(price)));
+            }
+            if (isTrue(!isEqual(takerOrMaker, null)))
+            {
+                id = add(id, add("-", takerOrMaker));
+            }
+            if (isTrue(!isEqual(orderType, null)))
+            {
+                id = add(id, add("-", orderType));
+            }
+        }
+        return id;
     }
 
     /**
@@ -4805,14 +4827,11 @@ public partial class mexc : Exchange
         //         "network": "TRX",
         //         "status": "5",
         //         "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //         "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //         "insertTime": "1664805021000",
         //         "unlockConfirm": "200",
         //         "confirmTimes": "203",
-        //         "memo": "xxyy1122",
-        //         "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //         "updateTime": "1664805621000",
-        //         "netWork: "TRX"
+        //         "memo": "xxyy1122"
         //     }
         // ]
         //
@@ -4858,7 +4877,7 @@ public partial class mexc : Exchange
         // [
         //     {
         //       "id": "adcd1c8322154de691b815eedcd10c42",
-        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //       "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //       "coin": "USDC-MATIC",
         //       "network": "MATIC",
         //       "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4869,11 +4888,7 @@ public partial class mexc : Exchange
         //       "confirmNo": null,
         //       "applyTime": "1664882739000",
         //       "remark": '',
-        //       "memo": null,
-        //       "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //       "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //       "updateTime": "1664882799000",
-        //       "netWork: "MATIC"
+        //       "memo": null
         //     }
         // ]
         //
@@ -4891,21 +4906,18 @@ public partial class mexc : Exchange
         //     "network": "TRX",
         //     "status": "5",
         //     "address": "TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh",
-        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b:0",
+        //     "txId": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
         //     "insertTime": "1664805021000",
         //     "unlockConfirm": "200",
         //     "confirmTimes": "203",
-        //     "memo": "xxyy1122",
-        //     "transHash": "51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b",
-        //     "updateTime": "1664805621000",
-        //     "netWork: "TRX"
+        //     "memo": "xxyy1122"
         // }
         //
         // fetchWithdrawals
         //
         // {
         //     "id": "adcd1c8322154de691b815eedcd10c42",
-        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0:0",
+        //     "txId": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
         //     "coin": "USDC-MATIC",
         //     "network": "MATIC",
         //     "address": "0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62",
@@ -4915,12 +4927,8 @@ public partial class mexc : Exchange
         //     "transactionFee": "1",
         //     "confirmNo": null,
         //     "applyTime": "1664882739000",
-        //     "remark": "",
-        //     "memo": null,
-        //     "explorerUrl": "https://etherscan.io/tx/0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "transHash": "0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0",
-        //     "updateTime": "1664882799000",
-        //     "netWork: "MATIC"
+        //     "remark": '',
+        //     "memo": null
         //   }
         //
         // withdraw
@@ -4929,16 +4937,9 @@ public partial class mexc : Exchange
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        // internal withdraw (aka internal-transfer)
-        //
-        //     {
-        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
-        //     }
-        //
-        object id = this.safeString2(transaction, "id", "tranId");
+        object id = this.safeString(transaction, "id");
         object type = ((bool) isTrue((isEqual(id, null)))) ? "deposit" : "withdrawal";
         object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        object updated = this.safeInteger(transaction, "updateTime");
         object currencyId = null;
         object currencyWithNetwork = this.safeString(transaction, "coin");
         if (isTrue(!isEqual(currencyWithNetwork, null)))
@@ -4955,7 +4956,7 @@ public partial class mexc : Exchange
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         object amountString = this.safeString(transaction, "amount");
         object address = this.safeString(transaction, "address");
-        object txid = this.safeString2(transaction, "transHash", "txId");
+        object txid = this.safeString(transaction, "txId");
         object fee = null;
         object feeCostString = this.safeString(transaction, "transactionFee");
         if (isTrue(!isEqual(feeCostString, null)))
@@ -4987,8 +4988,8 @@ public partial class mexc : Exchange
             { "amount", this.parseNumber(amountString) },
             { "currency", code },
             { "status", status },
-            { "updated", updated },
-            { "comment", this.safeString(transaction, "remark") },
+            { "updated", null },
+            { "comment", null },
             { "internal", null },
             { "fee", fee },
         };
@@ -5154,7 +5155,7 @@ public partial class mexc : Exchange
         //        positionShowStatus: 'CLOSED'
         //    }
         //
-        market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
+        market = this.safeMarket(this.safeString(position, "symbol"), market);
         object symbol = getValue(market, "symbol");
         object contracts = this.safeString(position, "holdVol");
         object entryPrice = this.safeNumber(position, "openAvgPrice");
@@ -5470,14 +5471,11 @@ public partial class mexc : Exchange
      * @name mexc#withdraw
      * @description make a withdrawal
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
-     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.internal] false by default, set to true for an "internal transfer"
-     * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -5488,28 +5486,6 @@ public partial class mexc : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        object intern = this.safeBool(parameters, "internal", false);
-        if (isTrue(intern))
-        {
-            parameters = this.omit(parameters, "internal");
-            object requestForInternal = new Dictionary<string, object>() {
-                { "asset", getValue(currency, "id") },
-                { "amount", amount },
-                { "toAccount", address },
-            };
-            object toAccountType = this.safeString(parameters, "toAccountType");
-            if (isTrue(isEqual(toAccountType, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
-            }
-            object responseForInternal = await this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, parameters));
-            //
-            //     {
-            //       "id":"7213fea8e94b4a5593d507237e5a555b"
-            //     }
-            //
-            return this.parseTransaction(responseForInternal, currency);
-        }
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
@@ -6026,7 +6002,7 @@ public partial class mexc : Exchange
         //
         // { success: true, code: '0' }
         //
-        return ((object)this.parseLeverage(response, market));  // tmp revert type
+        return this.parseLeverage(response, market);
     }
 
     public override object nonce()

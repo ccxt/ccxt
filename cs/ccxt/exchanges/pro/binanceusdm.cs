@@ -17,9 +17,7 @@ public partial class binanceusdm : binance
                 { "doc", "https://developers.binance.com/en" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarkets", new Dictionary<string, object>() {
-                    { "types", new List<object>() {"linear"} },
-                } },
+                { "fetchMarkets", new List<object>() {"linear"} },
                 { "defaultSubType", "linear" },
             } },
             { "exceptions", new Dictionary<string, object>() {

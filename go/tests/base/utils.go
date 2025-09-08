@@ -50,7 +50,7 @@ func InvalidProxySettings(v ...interface{}) error {
 	return ccxt.InvalidProxySettings(v)
 }
 
-func SetFetchResponse(exchange ccxt.ICoreExchange, response interface{}) ccxt.ICoreExchange {
+func SetFetchResponse(exchange ccxt.IExchange, response interface{}) ccxt.IExchange {
 	exchange.SetFetchResponse(response)
 	return exchange
 }
@@ -357,7 +357,7 @@ func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}
 				}
 			}
 		}()
-		exchangeType := exchange.(ccxt.ICoreExchange)
+		exchangeType := exchange.(ccxt.IExchange)
 		exchangeType.WarmUpCache()
 		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
 		PanicOnError(res)
@@ -405,7 +405,7 @@ func ExitScript(code interface{}) {
 
 // getExchangeProp function to retrieve a property from exchange
 func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...interface{}) interface{} {
-	exchange := exchange2.(ccxt.ICoreExchange)
+	exchange := exchange2.(ccxt.IExchange)
 	res := exchange.GetProperty(exchange, prop2)
 	if res != nil {
 		return res
@@ -418,7 +418,7 @@ func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...i
 
 // setExchangeProp function to set a property on exchange
 func SetExchangeProp(exchange2 interface{}, prop2 interface{}, value interface{}) {
-	exchange := exchange2.(ccxt.ICoreExchange)
+	exchange := exchange2.(ccxt.IExchange)
 	exchange.SetProperty(exchange, value, value)
 }
 
@@ -428,7 +428,7 @@ func UnCamelCase(str string) string {
 }
 
 // initExchange function to initialize an exchange (stub)
-func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.ICoreExchange {
+func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.IExchange {
 	var exchangeOptions interface{} = nil
 	if len(options) > 0 {
 		exchangeOptions = options[0]

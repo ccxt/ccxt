@@ -24,9 +24,7 @@ public partial class binancecoinm : binance
                 { "createStopMarketOrder", true },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarkets", new Dictionary<string, object>() {
-                    { "types", new List<object>() {"inverse"} },
-                } },
+                { "fetchMarkets", new List<object>() {"inverse"} },
                 { "defaultSubType", "inverse" },
                 { "leverageBrackets", null },
             } },

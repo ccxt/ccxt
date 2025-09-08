@@ -506,14 +506,6 @@
                 ]
             }
         ],
-        "fetchFundingHistory": [
-            {
-                "description": "fetchFundingHistory",
-                "method": "fetchFundingHistory",
-                "url": "https://api-evm.orderly.org/v1/funding_fee/history",
-                "input": []
-            }
-        ],
         "fetchOpenOrders": [
             {
                 "description": "open orders",

@@ -611,8 +611,8 @@ export default class coincatch extends Exchange {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString(network, 'chain');
-                const networkCode = this.networkIdToCode(networkId);
-                parsedNetworks[networkCode] = {
+                const networkCode = this.networkCodeToId(networkId);
+                parsedNetworks[networkId] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {

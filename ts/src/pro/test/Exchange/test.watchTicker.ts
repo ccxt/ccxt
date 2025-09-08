@@ -10,7 +10,6 @@ async function testWatchTicker (exchange: Exchange, skippedProperties: object, s
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
-        let success = true;
         try {
             response = await exchange.watchTicker (symbol);
         } catch (e) {
@@ -18,16 +17,12 @@ async function testWatchTicker (exchange: Exchange, skippedProperties: object, s
                 throw e;
             }
             now = exchange.milliseconds ();
-            // continue;
-            success = false;
+            continue;
         }
-        if (success === true) {
-            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
-            now = exchange.milliseconds ();
-            testTicker (exchange, skippedProperties, method, response, symbol);
-        }
+        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+        now = exchange.milliseconds ();
+        testTicker (exchange, skippedProperties, method, response, symbol);
     }
-    return true;
 }
 
 export default testWatchTicker;

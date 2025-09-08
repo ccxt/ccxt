@@ -1,7 +1,5 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var lbank$1 = require('./abstract/lbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -16,7 +14,7 @@ var rsa = require('./base/functions/rsa.js');
  * @class lbank
  * @augments Exchange
  */
-class lbank extends lbank$1["default"] {
+class lbank extends lbank$1 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'lbank',
@@ -974,7 +972,7 @@ class lbank extends lbank$1["default"] {
         if (market['swap']) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
+        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -3144,4 +3142,4 @@ class lbank extends lbank$1["default"] {
     }
 }
 
-exports["default"] = lbank;
+module.exports = lbank;

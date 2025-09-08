@@ -144,7 +144,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             // debug
             var index_price = (this.side) ? -price : price;
             var index = bisectLeft(this._index, index_price);
-            if (amount != 0)
+            if (amount != null && amount != 0)
             { // check this out does not make sense right now we have to consider null amounts?
                 if (index < this._index.Count && this._index[index] == index_price)
                 {
@@ -443,19 +443,14 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 }
                 // insert new price Level
                 this.hasmap[stringId] = index_price;
-                var indexPriceValue = new decimal(-1);
-                if (index_price != null)
-                {
-                    indexPriceValue = index_price.Value;
-                }
-                var index = bisectLeft(this._index, indexPriceValue);
+                var index = bisectLeft(this._index, index_price.Value);
                 // var index2Val = ((IList<object>)this[index])[2];
                 // index might be a stringified number like '1' or an id like '11AABB'
                 while (index < this._index.Count && (this._index[index] == index_price) && this.isOrderIsBigger(order_id, index))
                 {
                     index++;
                 }
-                this._index.Insert(index, indexPriceValue);
+                this._index.Insert(index, index_price.Value);
                 this.Insert(index, delta);
             }
             else if (this.hasmap.ContainsKey(order_id.ToString()))
