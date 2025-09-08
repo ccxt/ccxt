@@ -4243,16 +4243,29 @@ class Exchange {
         }
         return result;
     }
-    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTradesHelper(isWs, trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         trades = this.toArray(trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend(this.parseTrade(trades[i], market), params);
+            let parsed = undefined;
+            if (isWs) {
+                parsed = this.parseWsTrade(trades[i], market);
+            }
+            else {
+                parsed = this.parseTrade(trades[i], market);
+            }
+            const trade = this.extend(parsed, params);
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.parseTradesHelper(false, trades, market, since, limit, params);
+    }
+    parseWsTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.parseTradesHelper(true, trades, market, since, limit, params);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transactions = this.toArray(transactions);
