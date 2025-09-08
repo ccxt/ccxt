@@ -389,7 +389,7 @@ export default class gemini extends Exchange {
     async fetchCurrenciesFromWeb (params = {}) {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         //    {
