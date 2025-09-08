@@ -4375,15 +4375,26 @@ class Exchange(object):
             result.append(account)
         return result
 
-    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_trades_helper(self, isWs: bool, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
-            trade = self.extend(self.parse_trade(trades[i], market), params)
+            parsed = None
+            if isWs:
+                parsed = self.parse_ws_trade(trades[i], market)
+            else:
+                parsed = self.parse_trade(trades[i], market)
+            trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+
+    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+        return self.parse_trades_helper(False, trades, market, since, limit, params)
+
+    def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+        return self.parse_trades_helper(True, trades, market, since, limit, params)
 
     def parse_transactions(self, transactions: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         transactions = self.to_array(transactions)
