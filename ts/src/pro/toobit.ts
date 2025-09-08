@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -95,7 +95,7 @@ export default class toobit extends toobitRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
-        const isSnapshot = this.safeBool (message, 'f');
+        // const isSnapshot = this.safeBool (message, 'f');
         // if (this.handleErrorMessage (client, message)) {
         //     return;
         // }
@@ -106,12 +106,13 @@ export default class toobit extends toobitRest {
             'trade': this.handleTrades,
             'kline': this.handleOHLCV,
             'realtimes': this.handleTickers,
+            'depth': this.handlePartialOrderBook,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
-            if (isSnapshot) {
-                return; // todo
-            }
+            // if (isSnapshot) {
+            //     return; // todo
+            // }
             method.call (this, client, message);
         }
     }
@@ -462,5 +463,101 @@ export default class toobit extends toobitRest {
 
     parseWsTicker (ticker, market = undefined) {
         return this.parseTicker (ticker, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    /**
+     * @method
+     * @name apex#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols);
+        let channel: Str = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'depth');
+        const messageHashes = [];
+        const subParams = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            messageHashes.push ('orderBook::' + symbol + '::' + channel);
+            const rawHash = market['id'];
+            subParams.push (rawHash);
+        }
+        const marketIds = this.marketIds (symbols);
+        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const request: Dict = {
+            'symbol': marketIds.join (','),
+            'topic': channel,
+            'event': 'sub',
+        };
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return orderbook.limit ();
+    }
+
+    handlePartialOrderBook (client: Client, message) {
+        //
+        //     {
+        //         symbol: 'DOGEUSDT',
+        //         symbolName: 'DOGEUSDT',
+        //         topic: 'depth',
+        //         params: { realtimeInterval: '24h' },
+        //         data: [
+        //             {
+        //             e: 301,
+        //             s: 'DOGEUSDT',
+        //             t: 1757304842860,
+        //             v: '9814355_1E-18',
+        //             b: [Array],
+        //             a: [Array],
+        //             o: 0
+        //             }
+        //         ],
+        //         f: false,
+        //         sendTime: 1757304843047,
+        //         shared: false
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        if (data.length === 0) {
+            return;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 's');
+            const symbol = this.safeSymbol (marketId);
+            const messageHash = 'orderBook::' + symbol + '::depth';
+            if (!(symbol in this.orderbooks)) {
+                const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            const timestamp = this.safeInteger (entry, 't');
+            const snapshot = this.parseOrderBook (entry, symbol, timestamp, 'b', 'a');
+            orderbook.reset (snapshot);
+            client.resolve (orderbook, messageHash);
+        }
     }
 }
