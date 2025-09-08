@@ -3623,19 +3623,39 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseTradesHelper(object isWs, object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         trades = this.toArray(trades);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
-            object trade = this.extend(this.parseTrade(getValue(trades, i), market), parameters);
+            object parsed = null;
+            if (isTrue(isWs))
+            {
+                parsed = this.parseWsTrade(getValue(trades, i), market);
+            } else
+            {
+                parsed = this.parseTrade(getValue(trades, i), market);
+            }
+            object trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
         object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+
+    public virtual object parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return this.parseTradesHelper(false, trades, market, since, limit, parameters);
+    }
+
+    public virtual object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }
 
     public virtual object parseTransactions(object transactions, object currency = null, object since = null, object limit = null, object parameters = null)
