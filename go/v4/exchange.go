@@ -213,7 +213,12 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	}
 
 	userOptions := this.SafeDict(userConfig, "options")
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
+	if IsTrue(
+		IsTrue(this.SafeBool(userOptions, "sandbox")) || 
+		IsTrue(this.SafeBool(userOptions, "testnet")) ||
+		IsTrue(this.SafeBool(userConfig, "sandbox")) || 
+		IsTrue(this.SafeBool(userConfig, "testnet")),
+	) {
 		this.SetSandboxMode(true)
 	}
 
