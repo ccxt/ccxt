@@ -217,7 +217,7 @@ public partial class kucoinfutures : kucoin
                     { "429", typeof(RateLimitExceeded) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "503", typeof(ExchangeNotAvailable) },
-                    { "100001", typeof(InvalidOrder) },
+                    { "100001", typeof(OrderNotFound) },
                     { "100004", typeof(BadRequest) },
                     { "101030", typeof(PermissionDenied) },
                     { "200004", typeof(InsufficientFunds) },
@@ -237,6 +237,7 @@ public partial class kucoinfutures : kucoin
                     { "411100", typeof(AccountSuspended) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "300009", typeof(InvalidOrder) },
+                    { "330008", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Position does not exist", typeof(OrderNotFound) },
