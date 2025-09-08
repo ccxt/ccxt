@@ -157,6 +157,8 @@ export default class binance extends binanceRest {
                 'ws': {
                     'cost': 5,
                 },
+                // tracks User Data Stream websocket-api subscriptions per market scope
+                'userDataStream': this.createSafeDictionary (),
                 'tickerChannelsMap': {
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
@@ -2360,6 +2362,48 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
 
+    async ensureUserDataStreamWsSubscription (scope: string = 'spot'): Promise<number> {
+        // Establish a User Data Stream subscription on the WebSocket API using signature
+        // Scope can be 'spot' for spot/margin accounts (portfolio margin uses separate papi streams and remains listenKey-based)
+        const userDataStream = this.safeDict (this.options, 'userDataStream');
+        const scopeState = this.safeDict (userDataStream, scope);
+        const existingSubscriptionId = this.safeInteger (scopeState, 'subscriptionId');
+        if (existingSubscriptionId !== undefined) {
+            return existingSubscriptionId;
+        }
+        const url = this.urls['api']['ws']['ws-api'][scope];
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe.signature',
+            'params': this.signParams ({}),
+        };
+        const subscription: Dict = {
+            'method': this.handleUserDataStreamSubscribe,
+            'scope': scope,
+        };
+        await this.watch (url, messageHash, message, messageHash, subscription);
+        const updatedUserDataStream = this.safeDict (this.options, 'userDataStream');
+        const updatedScopeState = this.safeDict (updatedUserDataStream, scope);
+        return this.safeInteger (updatedScopeState, 'subscriptionId');
+    }
+
+    handleUserDataStreamSubscribe (client: Client, message, subscription) {
+        // { id, status: 200, result: { subscriptionId: 0 } }
+        const id = this.safeString (message, 'id');
+        const result = this.safeDict (message, 'result', {});
+        const subscriptionId = this.safeInteger (result, 'subscriptionId');
+        const scope = this.safeString (subscription, 'scope', 'spot');
+        const userDataStream = this.safeDict (this.options, 'userDataStream');
+        userDataStream[scope] = this.extend (this.safeDict (userDataStream, scope), {
+            'subscriptionId': subscriptionId,
+            'lastSubscribedTime': this.milliseconds (),
+        });
+        this.options['userDataStream'] = userDataStream;
+        client.resolve (message, id);
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         let type = undefined;
@@ -2372,6 +2416,11 @@ export default class binance extends binanceRest {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
+        }
+        // For spot/margin (non-portfolio margin), migrate to WebSocket API signature subscription
+        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+            await this.ensureUserDataStreamWsSubscription ('spot');
+            return;
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
@@ -2424,6 +2473,10 @@ export default class binance extends binanceRest {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
+        }
+        // userDataStream over ws-api does not require listen key keepalive
+        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+            return;
         }
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
@@ -2760,11 +2813,18 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let url: string;
         let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+            // route to WebSocket API connection where the user data stream is subscribed
+            urlType = 'ws-api';
+            url = this.urls['api']['ws']['ws-api']['spot'];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -3490,10 +3550,16 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url: string;
+        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+            // route orders to ws-api user data stream
+            url = this.urls['api']['ws']['ws-api']['spot'];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -4167,10 +4233,15 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url: string;
+        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+            url = this.urls['api']['ws']['ws-api']['spot'];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -4372,8 +4443,12 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            // websocket API specific wrapper event
+            'eventStreamTerminated': undefined,
         };
-        let event = this.safeString (message, 'e');
+        // unwrap WebSocket API event wrapper if present
+        const eventWrapper = this.safeDict (message, 'event');
+        let event = (eventWrapper !== undefined) ? this.safeString (eventWrapper, 'e') : this.safeString (message, 'e');
         if (Array.isArray (message)) {
             const data = message[0];
             event = this.safeString (data, 'e') + '@arr';
