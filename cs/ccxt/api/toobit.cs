@@ -16,14 +16,9 @@ public partial class toobit : Exchange
         return await this.callAsync ("publicGetQuoteV1Ticker24hr",parameters);
     }
 
-    public async Task<object> publicGetQuoteV1Ticker24hr (object parameters = null)
+    public async Task<object> publicGetQuoteV1Klines (object parameters = null)
     {
-        return await this.callAsync ("publicGetQuoteV1Ticker24hr",parameters);
-    }
-
-    public async Task<object> publicGetQuoteV1TickerDepth (object parameters = null)
-    {
-        return await this.callAsync ("publicGetQuoteV1TickerDepth",parameters);
+        return await this.callAsync ("publicGetQuoteV1Klines",parameters);
     }
 
 }

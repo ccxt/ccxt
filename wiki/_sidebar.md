@@ -120,6 +120,7 @@
 	- [tetherland()](exchanges/tetherland().md)
 	- [timex](exchanges/timex.md)
 	- [tokocrypto](exchanges/tokocrypto.md)
+	- [toobit()](exchanges/toobit().md)
 	- [tradeogre](exchanges/tradeogre.md)
 	- [twox()](exchanges/twox().md)
 	- [ubitex()](exchanges/ubitex().md)

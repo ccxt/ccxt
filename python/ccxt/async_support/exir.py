@@ -133,6 +133,9 @@ class exir(Exchange, ImplicitAPI):
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
             response[symbol]['symbol'] = symbol
+            lastPrice = self.safe_float(response[symbol], 'last')
+            if lastPrice == 0:
+                continue
             market = self.parse_market(response[symbol])
             result.append(market)
         return result
@@ -223,7 +226,7 @@ class exir(Exchange, ImplicitAPI):
             symbols = self.market_symbols(symbols)
         response = await self.publicGetV2Tickers()
         marketKeys = list(response.keys())
-        result = []
+        result = {}
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
             response[symbol]['symbol'] = symbol
@@ -268,22 +271,23 @@ class exir(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, None, marketType)
         high = self.safe_float(ticker, 'high')
         low = self.safe_float(ticker, 'low')
-        bid = self.safe_float(ticker, 'last')
-        ask = self.safe_float(ticker, 'last')
-        open = self.safe_float(ticker, 'open')
-        close = self.safe_float(ticker, 'close')
-        last = self.safe_float(ticker, 'last')
-        quoteVolume = self.safe_float(ticker, 'volume')
+        open = self.safe_float(ticker, 'open', 0)
+        close = self.safe_float(ticker, 'close', 0)
+        last = self.safe_float(ticker, 'last', 0)
+        baseVolume = self.safe_float(ticker, 'volume', 0)
         datetime = self.safe_string(ticker, 'time')
+        quoteVolume = None
+        if last != 0:
+            quoteVolume = baseVolume * last
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'high': high,
             'low': low,
-            'bid': self.safe_float(bid, 0),
+            'bid': None,
             'bidVolume': None,
-            'ask': self.safe_float(ask, 0),
+            'ask': None,
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -293,7 +297,7 @@ class exir(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
+            'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market)

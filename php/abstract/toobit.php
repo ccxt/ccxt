@@ -10,19 +10,13 @@ abstract class toobit extends \ccxt\Exchange {
     public function public_get_quote_v1_ticker_24hr($params = array()) {
         return $this->request('quote/v1/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_quote_v1_ticker_24hr($params = array()) {
-        return $this->request('/quote/v1/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function public_get_quote_v1_ticker_depth($params = array()) {
-        return $this->request('/quote/v1/ticker/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_quote_v1_klines($params = array()) {
+        return $this->request('quote/v1/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetQuoteV1Ticker24hr($params = array()) {
         return $this->request('quote/v1/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetQuoteV1Ticker24hr($params = array()) {
-        return $this->request('/quote/v1/ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicGetQuoteV1TickerDepth($params = array()) {
-        return $this->request('/quote/v1/ticker/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetQuoteV1Klines($params = array()) {
+        return $this->request('quote/v1/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
 }

@@ -248,7 +248,7 @@ class sarmayex(Exchange, ImplicitAPI):
         response = await self.publicGetApiV1PublicCurrencies(params)
         response = self.safe_dict(response, 'data')
         markets = self.safe_list(response, 'currencies')
-        result = []
+        result = {}
         quotes = ['IRT', 'USDT']
         for i in range(0, len(markets)):
             base = self.safe_string(markets[i], 'symbol')

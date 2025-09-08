@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.toobit import ImplicitAPI
-from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, Strings, Ticker, Tickers
 from typing import List
 
 
@@ -94,18 +94,25 @@ class toobit(Exchange, ImplicitAPI):
                 ],
             },
             'timeframes': {
-                '15m': '15',
-                '1h': '60',
-                '4h': '240',
-                '1d': '1D',
-                '1w': '1W',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'api': {
                 'public': {
                     'get': {
                         'quote/v1/ticker/24hr': 1,
-                        '/quote/v1/ticker/24hr': 1,
-                        '/quote/v1/ticker/depth': 1,
+                        'quote/v1/klines': 1,
                     },
                 },
             },
@@ -120,277 +127,238 @@ class toobit(Exchange, ImplicitAPI):
         })
 
     def fetch_markets(self, params={}) -> List[Market]:
-    #     """
-    #
-    #
-    #     retrieves data on all markets for toobit
-    #     https://apidocs.toobit.io/#tickers
-    #     :param dict [params]: extra parameters specific to the exchange API endpoint
-    #     :returns dict[]: an array of objects representing market data
-    #     """
-    #     response = self.publicGetV2Tickers()
-    #     marketKeys = list(response.keys())
-    #     result = []
-    #     for i in range(0, len(marketKeys)):
-    #         symbol = marketKeys[i]
-    #         response[symbol]['symbol'] = symbol
-    #         market = self.parse_market(response[symbol])
-    #         result.append(market)
-    #     }
-    #     return result
+        """
+        retrieves data on all markets for toobit
+        https://apidocs.toobit.io/#tickers
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
+        response = self.publicGetQuoteV1Ticker24hr()
+        result = []
+        for i in range(0, len(response)):
+            volume = self.safe_float(response[i], 'v')
+            if volume == 0:
+                continue
+            market = self.parse_market(response[i])
+            result.append(market)
+        return result
 
     def parse_market(self, market) -> Market:
-    #     #        {
-    #     # symbol: btc-usdt
-    #     # isClosed: False,
-    #     # bestSell: "39659550020",
-    #     # bestBuy: "39650000000",
-    #     # volumeSrc: "11.6924501388",
-    #     # volumeDst: "464510376461.05263193275",
-    #     # latest: "39659550020",
-    #     # mark: "39817678220",
-    #     # dayLow: "38539978000",
-    #     # dayHigh: "40809999990",
-    #     # dayOpen: "38553149810",
-    #     # dayClose: "39659550020",
-    #     # dayChange: "2.87"
-    #     # },
-    #     symbol = self.safe_value(market, 'symbol')
-    #     id = symbol
-    #     baseId, quoteId = symbol.split('-')
-    #     base = self.safe_currency_code(baseId)
-    #     quote = self.safe_currency_code(quoteId)
-    #     baseId = baseId.lower()
-    #     quoteId = quoteId.lower()
-    #     return {
-    #         'id': id,
-    #         'symbol': base + '/' + quote,
-    #         'base': base,
-    #         'quote': quote,
-    #         'settle': None,
-    #         'baseId': baseId,
-    #         'quoteId': quoteId,
-    #         'settleId': None,
-    #         'type': 'spot',
-    #         'spot': True,
-    #         'margin': False,
-    #         'swap': False,
-    #         'future': False,
-    #         'option': False,
-    #         'active': True,
-    #         'contract': False,
-    #         'linear': None,
-    #         'inverse': None,
-    #         'contractSize': None,
-    #         'expiry': None,
-    #         'expiryDatetime': None,
-    #         'strike': None,
-    #         'optionType': None,
-    #         'precision': {
-    #             'amount': None,
-    #             'price': None,
-    #         },
-    #         'limits': {
-    #             'leverage': {
-    #                 'min': None,
-    #                 'max': None,
-    #             },
-    #             'amount': {
-    #                 'min': None,
-    #                 'max': None,
-    #             },
-    #             'price': {
-    #                 'min': None,
-    #                 'max': None,
-    #             },
-    #             'cost': {
-    #                 'min': None,
-    #                 'max': None,
-    #             },
-    #         },
-    #         'created': None,
-    #         'info': market,
-    #     }
-        pass
+        #         {
+        # t: 1757164008834,
+        # s: "BTCUSDT",
+        # c: "110895.06",
+        # h: "113310.01",
+        # l: "110219.01",
+        # o: "112951.99",
+        # v: "3893.406649",
+        # qv: "433374169.27969515",
+        # pc: "-2056.93",
+        # pcp: "-0.0182"
+        # }
+        symbol = self.safe_value(market, 's')
+        baseId = symbol
+        quoteId = None
+        if symbol.endswith('USDT'):
+            baseId = symbol[0:-4]
+            quoteId = 'USDT'
+        elif symbol.endswith('USDC'):
+            baseId = symbol[0:-4]
+            quoteId = 'USDC'
+        id = symbol
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        baseId = baseId.lower()
+        quoteId = quoteId.lower()
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'spot',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-    #     """
-    #
-    #
-    #     fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    #     https://apidocs.toobit.io/#tickers
-    #     :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-    #     :param dict [params]: extra parameters specific to the exchange API endpoint
-    #     :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-    #     """
-    #     self.load_markets()
-    #     if symbols is not None:
-    #         symbols = self.market_symbols(symbols)
-    #     }
-    #     response = self.publicGetV2Tickers()
-    #     marketKeys = list(response.keys())
-    #     result = []
-    #     for i in range(0, len(marketKeys)):
-    #         symbol = marketKeys[i]
-    #         response[symbol]['symbol'] = symbol
-    #         ticker = self.parse_ticker(response[symbol])
-    #         symbol = ticker['symbol']
-    #         result[symbol] = ticker
-    #     }
-    #     return self.filter_by_array_tickers(result, 'symbol', symbols)
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        https://apidocs.toobit.io/#tickers
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+        response = self.publicGetQuoteV1Ticker24hr()
+        result = {}
+        for i in range(0, len(response)):
+            volume = self.safe_float(response[i], 'v')
+            if volume == 0:
+                continue
+            ticker = self.parse_ticker(response[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
-    #     """
-    #
-    #
-    #     fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    #     https://apidocs.toobit.io/#ticker
-    #     :param str symbol: unified symbol of the market to fetch the ticker for
-    #     :param dict [params]: extra parameters specific to the exchange API endpoint
-    #     :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
-    #     """
-    #     self.load_markets()
-    #     market = self.market(symbol)
-    #     request = {
-    #         'symbol': market['id'],
-    #     }
-    #     response = self.publicGetV2Ticker(request)
-    #     response['symbol'] = market['id']
-    #     response['time'] = response['timestamp']
-    #     ticker = self.parse_ticker(response)
-    #     return ticker
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        https://apidocs.toobit.io/#ticker
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetQuoteV1Ticker24hr(request)
+        ticker = self.parse_ticker(response)
+        return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
-    #     #  {
-    #     #     'time': '2024-05-26T08:40:02.305Z',
-    #     #     'open': 26125,
-    #     #     'close': 26298,
-    #     #     'high': 26939,
-    #     #     'low': 25791,
-    #     #     'last': 26298,
-    #     #     'volume': 32167,
-    #     #     'symbol': 'ada-irt',
-    #     # },
-    #     marketType = 'spot'
-    #     symbol = self.safe_value(ticker, 'symbol')
-    #     marketId = symbol
-    #     symbol = self.safe_symbol(marketId, market, None, marketType)
-    #     high = self.safe_float(ticker, 'high')
-    #     low = self.safe_float(ticker, 'low')
-    #     bid = self.safe_float(ticker, 'last')
-    #     ask = self.safe_float(ticker, 'last')
-    #     open = self.safe_float(ticker, 'open')
-    #     close = self.safe_float(ticker, 'close')
-    #     last = self.safe_float(ticker, 'last')
-    #     quoteVolume = self.safe_float(ticker, 'volume')
-    #     datetime = self.safe_string(ticker, 'time')
-    #     return self.safe_ticker({
-    #         'symbol': symbol,
-    #         'timestamp': self.parse8601(datetime),
-    #         'datetime': datetime,
-    #         'high': high,
-    #         'low': low,
-    #         'bid': self.safe_float(bid, 0),
-    #         'bidVolume': None,
-    #         'ask': self.safe_float(ask, 0),
-    #         'askVolume': None,
-    #         'vwap': None,
-    #         'open': open,
-    #         'close': close,
-    #         'last': last,
-    #         'previousClose': None,
-    #         'change': None,
-    #         'percentage': None,
-    #         'average': None,
-    #         'baseVolume': None,
-    #         'quoteVolume': quoteVolume,
-    #         'info': ticker,
-    #     }, market)
-        pass
+        #         {
+        # t: 1757164008834,
+        # s: "BTCUSDT",
+        # c: "110895.06",
+        # h: "113310.01",
+        # l: "110219.01",
+        # o: "112951.99",
+        # v: "3893.406649",
+        # qv: "433374169.27969515",
+        # pc: "-2056.93",
+        # pcp: "-0.0182"
+        # }
+        marketType = 'spot'
+        symbol = self.safe_value(ticker, 's')
+        marketId = symbol
+        symbol = self.safe_symbol(marketId, market, None, marketType)
+        high = self.safe_float(ticker, 'h')
+        low = self.safe_float(ticker, 'l')
+        open = self.safe_float(ticker, 'o')
+        close = self.safe_float(ticker, 'c')
+        last = self.safe_float(ticker, 'c')
+        change = self.safe_float(ticker, 'pcp')
+        priceChange = self.safe_float(ticker, 'pc')
+        baseVolume = self.safe_float(ticker, 'v')
+        quoteVolume = self.safe_float(ticker, 'qv')
+        datetime = self.safe_string(ticker, 't')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': datetime,
+            'datetime': self.parse8601(datetime),
+            'high': high,
+            'low': low,
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': open,
+            'close': close,
+            'last': last,
+            'previousClose': None,
+            'change': priceChange,
+            'percentage': change,
+            'average': None,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}) -> List[list]:
-    #     """
-    #
-    #
-    #     fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    #     https://apidocs.toobit.io/#chart
-    #     :param str symbol: unified symbol of the market to fetch OHLCV data for
-    #     :param str timeframe: the length of time each candle represents
-    #     :param int [since]: timestamp in ms of the earliest candle to fetch
-    #     :param int [limit]: the maximum amount of candles to fetch
-    #     :param dict [params]: extra parameters specific to the exchange API endpoint
-    #     :returns int[][]: A list of candles ordered, open, high, low, close, volume
-    #     """
-    #     self.load_markets()
-    #     market = self.market(symbol)
-    #     endTime = Date.now()
-    #     request = {
-    #         'symbol': market['id'],
-    #         'from': (endTime / 1000) - (24 * 60 * 60),
-    #         'to': endTime / 1000,
-    #         'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
-    #     }
-    #     if since is not None:
-    #         request['from'] = since / 1000
-    #     }
-    #     request['from'] = self.safe_integer(request, 'from')
-    #     request['to'] = self.safe_integer(request, 'to')
-    #     if timeframe is not None:
-    #         request['resolution'] = self.safe_string(self.timeframes, timeframe, timeframe)
-    #     }
-    #     response = self.publicGetV2Chart(request)
-    #     ohlcvs = []
-    #     for i in range(0, len(response)):
-    #         candle = response[i]
-    #         ts = self.safe_timestamp(candle, 'time')
-    #         open = self.safe_float(candle, 'open')
-    #         high = self.safe_float(candle, 'high')
-    #         low = self.safe_float(candle, 'low')
-    #         close = self.safe_float(candle, 'close')
-    #         volume = self.safe_float(candle, 'volume')
-    #         ohlcvs.append([
-    #             ts,
-    #             open,
-    #             high,
-    #             low,
-    #             close,
-    #             volume,
-    #         ])
-    #     }
-    #     return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
-
-    def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
-    #     """
-    #
-    #
-    #     fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
-    #     https://apidocs.toobit.io/#orderbook
-    #     :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
-    #     :param int [limit]: max number of entries per orderbook to return, default is None
-    #     :param dict [params]: extra parameters specific to the exchange API endpoint
-    #     :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
-    #     """
-    #     self.load_markets()
-    #     market = self.market(symbol)
-    #     request = {
-    #         'symbol': market['id'],
-    #     }
-    #     response = self.publicGetV2Orderbook(request)
-    #     timestamp = self.safe_timestamp(response[market['id']], 'timestamp') / 1000
-    #     return self.parse_order_book(response[market['id']], symbol, timestamp)
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        https://apidocs.toobit.io/#chart
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        endTime = Date.now()
+        request = {
+            'symbol': market['id'],
+            'from': (endTime - (24 * 60 * 60 * 1000)),
+            'to': endTime,
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+        }
+        if since is not None:
+            request['from'] = since
+        if timeframe is not None:
+            request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
+        response = self.publicGetQuoteV1Klines(request)
+        ohlcvs = self.safe_list(response, 'data')
+        for i in range(0, len(ohlcvs)):
+            candle = ohlcvs[i]
+            ts = self.safe_timestamp(candle, 't')
+            open = self.safe_float(candle, 'o')
+            high = self.safe_float(candle, 'h')
+            low = self.safe_float(candle, 'l')
+            close = self.safe_float(candle, 'c')
+            volume = self.safe_float(candle, 'v')
+            ohlcvs.append([
+                ts,
+                open,
+                high,
+                low,
+                close,
+                volume,
+            ])
+        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-    #     query = self.omit(params, self.extract_params(path))
-    #     url = self.urls['api']['public'] + '/' + path
-    #     if path == 'v2/ticker':
-    #         url = self.urls['api']['public'] + '/' + path + '?' + self.urlencode(query)
-    #     }
-    #     if path == 'v2/chart':
-    #         url = url + '?' + self.urlencode(query)
-    #     }
-    #     if path == 'v2/orderbook':
-    #         url = url + '?' + self.urlencode(query)
-    #     }
-    #     headers = {'Content-Type': 'application/json'}
-    #     return {'url': url, 'method': method, 'body': body, 'headers': headers}
-        pass
+        query = self.omit(params, self.extract_params(path))
+        url = self.urls['api']['public'] + '/' + path
+        if path == 'quote/v1/ticker/24hr':
+            url = url + '?' + self.urlencode(query)
+        if path == 'quote/v1/klines':
+            url = url + '?' + self.urlencode(query)
+        headers = {'Content-Type': 'application/json'}
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

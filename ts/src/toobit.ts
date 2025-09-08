@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/toobit.js';
-import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import { Int, Market, OHLCV, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -94,18 +94,25 @@ export default class toobit extends Exchange {
                 ],
             },
             'timeframes': {
-                '15m': '15',
-                '1h': '60',
-                '4h': '240',
-                '1d': '1D',
-                '1w': '1W',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'api': {
                 'public': {
                     'get': {
                         'quote/v1/ticker/24hr': 1,
-                        '/quote/v1/ticker/24hr': 1,
-                        '/quote/v1/ticker/depth': 1,
+                        'quote/v1/klines': 1,
                     },
                 },
             },
@@ -132,6 +139,10 @@ export default class toobit extends Exchange {
         const response = await this.publicGetQuoteV1Ticker24hr ();
         const result = [];
         for (let i = 0; i < response.length; i++) {
+            const volume = this.safeFloat (response[i], 'v');
+            if (volume === 0) {
+                continue;
+            }
             const market = this.parseMarket (response[i]);
             result.push (market);
         }
@@ -165,7 +176,7 @@ export default class toobit extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         baseId = baseId.toLowerCase ();
-        quoteId = quoteId ? quoteId.toLowerCase () : undefined;
+        quoteId = quoteId.toLowerCase ();
         return {
             'id': id,
             'symbol': base + '/' + quote,
@@ -234,6 +245,10 @@ export default class toobit extends Exchange {
         const response = await this.publicGetQuoteV1Ticker24hr ();
         const result = {};
         for (let i = 0; i < response.length; i++) {
+            const volume = this.safeFloat (response[i], 'v');
+            if (volume === 0) {
+                continue;
+            }
             const ticker = this.parseTicker (response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
@@ -256,9 +271,7 @@ export default class toobit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetV2Ticker (request);
-        response['symbol'] = market['id'];
-        response['time'] = response['timestamp'];
+        const response = await this.publicGetQuoteV1Ticker24hr (request);
         const ticker = this.parseTicker (response);
         return ticker;
     }
@@ -277,7 +290,7 @@ export default class toobit extends Exchange {
         // pcp: "-0.0182"
         // }
         const marketType = 'spot';
-        let symbol = this.safeValue (ticker, 'symbol');
+        let symbol = this.safeValue (ticker, 's');
         const marketId = symbol;
         symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const high = this.safeFloat (ticker, 'h');
@@ -314,86 +327,63 @@ export default class toobit extends Exchange {
         }, market);
     }
 
-    // async fetchOHLCV (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-    //     /**
-    //      * @method
-    //      * @name toobit#fetchOHLCV
-    //      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-    //      * @see https://apidocs.toobit.io/#chart
-    //      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-    //      * @param {string} timeframe the length of time each candle represents
-    //      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-    //      * @param {int} [limit] the maximum amount of candles to fetch
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-    //      */
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const endTime = Date.now ();
-    //     const request = {
-    //         'symbol': market['id'],
-    //         'from': (endTime / 1000) - (24 * 60 * 60),
-    //         'to': endTime / 1000,
-    //         'resolution': this.safeString (this.timeframes, timeframe, timeframe),
-    //     };
-    //     if (since !== undefined) {
-    //         request['from'] = since / 1000;
-    //     }
-    //     request['from'] = this.safeInteger (request, 'from');
-    //     request['to'] = this.safeInteger (request, 'to');
-    //     if (timeframe !== undefined) {
-    //         request['resolution'] = this.safeString (this.timeframes, timeframe, timeframe);
-    //     }
-    //     const response = await this.publicGetV2Chart (request);
-    //     const ohlcvs = [];
-    //     for (let i = 0; i < response.length; i++) {
-    //         const candle = response[i];
-    //         const ts = this.safeTimestamp (candle, 'time');
-    //         const open = this.safeFloat (candle, 'open');
-    //         const high = this.safeFloat (candle, 'high');
-    //         const low = this.safeFloat (candle, 'low');
-    //         const close = this.safeFloat (candle, 'close');
-    //         const volume = this.safeFloat (candle, 'volume');
-    //         ohlcvs.push ([
-    //             ts,
-    //             open,
-    //             high,
-    //             low,
-    //             close,
-    //             volume,
-    //         ]);
-    //     }
-    //     return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    // }
-
-    // async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-    //     /**
-    //      * @method
-    //      * @name toobit#fetchOrderBooks
-    //      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-    //      * @see https://apidocs.toobit.io/#orderbook
-    //      * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-    //      * @param {int} [limit] max number of entries per orderbook to return, default is undefined
-    //      * @param {object} [params] extra parameters specific to the exchange API endpoint
-    //      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
-    //      */
-    //     await this.loadMarkets ();
-    //     const market = this.market (symbol);
-    //     const request = {
-    //         'symbol': market['id'],
-    //     };
-    //     const response = await this.publicGetV2Orderbook (request);
-    //     const timestamp = this.safeTimestamp (response[market['id']], 'timestamp') / 1000;
-    //     return this.parseOrderBook (response[market['id']], symbol, timestamp);
-    // }
+    async fetchOHLCV (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name toobit#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://apidocs.toobit.io/#chart
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const endTime = Date.now ();
+        const request = {
+            'symbol': market['id'],
+            'from': (endTime - (24 * 60 * 60 * 1000)),
+            'to': endTime,
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (timeframe !== undefined) {
+            request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
+        }
+        const response = await this.publicGetQuoteV1Klines (request);
+        const ohlcvs = this.safeList (response, 'data');
+        for (let i = 0; i < ohlcvs.length; i++) {
+            const candle = ohlcvs[i];
+            const ts = this.safeTimestamp (candle, 't');
+            const open = this.safeFloat (candle, 'o');
+            const high = this.safeFloat (candle, 'h');
+            const low = this.safeFloat (candle, 'l');
+            const close = this.safeFloat (candle, 'c');
+            const volume = this.safeFloat (candle, 'v');
+            ohlcvs.push ([
+                ts,
+                open,
+                high,
+                low,
+                close,
+                volume,
+            ]);
+        }
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['public'] + '/' + path;
-        if (path === 'quote/v1/klines') {
+        if (path === 'quote/v1/ticker/24hr') {
             url = url + '?' + this.urlencode (query);
         }
-        if (path === 'quote/v1/depth') {
+        if (path === 'quote/v1/klines') {
             url = url + '?' + this.urlencode (query);
         }
         headers = { 'Content-Type': 'application/json' };

@@ -11,10 +11,6 @@ func (this *toobit) PublicGetQuoteV1Ticker24hr (args ...interface{}) <-chan inte
    return this.callEndpointAsync("publicGetQuoteV1Ticker24hr", args...)
 }
 
-func (this *toobit) PublicGetQuoteV1Ticker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetQuoteV1Ticker24hr", args...)
-}
-
-func (this *toobit) PublicGetQuoteV1TickerDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetQuoteV1TickerDepth", args...)
+func (this *toobit) PublicGetQuoteV1Klines (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetQuoteV1Klines", args...)
 }
