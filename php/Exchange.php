@@ -3519,9 +3519,9 @@ class Exchange {
     public function parse_to_numeric($number) {
         $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS => 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS =>     1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP =>    1 == 1.0 is true, but 1 === 1.0 is false.
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
@@ -7447,6 +7447,36 @@ class Exchange {
         $sorted = $this->sort_by($rates, 'timestamp');
         $symbol = ($market === null) ? null : $market['symbol'];
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function handle_trigger_prices_and_params($symbol, $params, $omitParams = true) {
+        //
+        $triggerPrice = $this->safe_string($params, 'triggerPrice', 'stopPrice');
+        $triggerPriceStr = null;
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $stopLossPriceStr = null;
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $takeProfitPriceStr = null;
+        //
+        if ($triggerPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+            }
+            $triggerPriceStr = $this->price_to_precision($symbol, floatval($triggerPrice));
+        }
+        if ($stopLossPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, 'stopLossPrice');
+            }
+            $stopLossPriceStr = $this->price_to_precision($symbol, floatval($stopLossPrice));
+        }
+        if ($takeProfitPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, 'takeProfitPrice');
+            }
+            $takeProfitPriceStr = $this->price_to_precision($symbol, floatval($takeProfitPrice));
+        }
+        return array( $triggerPriceStr, $stopLossPriceStr, $takeProfitPriceStr, $params );
     }
 
     public function handle_trigger_direction_and_params($params, ?string $exchangeSpecificKey = null, Bool $allowEmpty = false) {
