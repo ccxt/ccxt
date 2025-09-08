@@ -3033,8 +3033,8 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         type = self.get_market_type('cancelAllOrdersWs', market, params)
-        if type != 'spot' and type != 'future':
-            raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot or swap markets')
+        if type != 'spot':
+            raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
@@ -3046,7 +3046,7 @@ class binance(ccxt.async_support.binance):
         }
         message: dict = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {

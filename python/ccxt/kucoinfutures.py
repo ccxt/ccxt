@@ -479,7 +479,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         status = self.safe_string(data, 'status')
         return {
             'status': 'ok' if (status == 'open') else 'maintenance',
@@ -562,7 +562,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         result = []
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -768,7 +768,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         address = self.safe_string(data, 'address')
         if currencyId != 'NIM':
             # contains spaces
@@ -826,7 +826,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.parse_to_int(self.safe_integer(data, 'ts') / 1000000)
         orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
@@ -1149,7 +1149,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        dataList = self.safe_value(data, 'dataList', [])
+        dataList = self.safe_list(data, 'dataList', [])
         fees = []
         for i in range(0, len(dataList)):
             listItem = dataList[i]
@@ -2055,7 +2055,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = self.safe_value(response, 'data', {})
+        responseData = self.safe_dict(response, 'data', {})
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -2948,7 +2948,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_market_leverage_tiers(data, market)
 
     def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
@@ -3029,7 +3029,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
     def parse_funding_rate_history(self, info, market: Market = None):

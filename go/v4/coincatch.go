@@ -636,8 +636,8 @@ func (this *coincatch) FetchCurrencies(optionalArgs ...interface{}) <-chan inter
 			for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 				var network interface{} = GetValue(networks, j)
 				var networkId interface{} = this.SafeString(network, "chain")
-				var networkCode interface{} = this.NetworkCodeToId(networkId)
-				AddElementToObject(parsedNetworks, networkId, map[string]interface{}{
+				var networkCode interface{} = this.NetworkIdToCode(networkId)
+				AddElementToObject(parsedNetworks, networkCode, map[string]interface{}{
 					"id":      networkId,
 					"network": networkCode,
 					"limits": map[string]interface{}{

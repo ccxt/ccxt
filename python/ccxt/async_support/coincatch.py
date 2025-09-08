@@ -623,8 +623,8 @@ class coincatch(Exchange, ImplicitAPI):
             for j in range(0, len(networks)):
                 network = networks[j]
                 networkId = self.safe_string(network, 'chain')
-                networkCode = self.network_code_to_id(networkId)
-                parsedNetworks[networkId] = {
+                networkCode = self.network_id_to_code(networkId)
+                parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {

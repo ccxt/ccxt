@@ -5092,7 +5092,13 @@ class mexc extends Exchange {
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // internal withdraw (aka internal-transfer)
+        //
+        //     {
+        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'tranId');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
         $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
         $updated = $this->safe_integer($transaction, 'updateTime');
@@ -5624,17 +5630,40 @@ class mexc extends Exchange {
              * make a withdrawal
              *
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+             * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#$internal-transfer
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->internal] false by default, set to true for an "internal transfer"
+             * @param {array} [$params->toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $internal = $this->safe_bool($params, 'internal', false);
+            if ($internal) {
+                $params = $this->omit($params, 'internal');
+                $requestForInternal = array(
+                    'asset' => $currency['id'],
+                    'amount' => $amount,
+                    'toAccount' => $address,
+                );
+                $toAccountType = $this->safe_string($params, 'toAccountType');
+                if ($toAccountType === null) {
+                    throw new ArgumentsRequired($this->id . ' withdraw() requires a $toAccountType parameter for $internal transfer to be of => EMAIL | UID | MOBILE');
+                }
+                $responseForInternal = Async\await($this->spotPrivatePostCapitalTransferInternal ($this->extend($requestForInternal, $params)));
+                //
+                //     {
+                //       "id":"7213fea8e94b4a5593d507237e5a555b"
+                //     }
+                //
+                return $this->parse_transaction($responseForInternal, $currency);
+            }
             $networks = $this->safe_dict($this->options, 'networks', array());
             $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
