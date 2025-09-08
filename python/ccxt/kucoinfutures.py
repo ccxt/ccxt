@@ -239,7 +239,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     '429': RateLimitExceeded,  # Too Many Requests -- Access limit breached
                     '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,  # Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
-                    '100001': InvalidOrder,     # {"code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\""}
+                    '100001': OrderNotFound,     # {"msg":"error.getOrder.orderNotExist","code":"100001"}
                     '100004': BadRequest,       # {"code":"100004","msg":"Order is in not cancelable state"}
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
@@ -259,6 +259,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     '411100': AccountSuspended,  # User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '300009': InvalidOrder,  # {"msg":"No open positions to close.","code":"300009"}
+                    '330008': InsufficientFunds,  # {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound,  # {"code":"200000", "msg":"Position does not exist"}
