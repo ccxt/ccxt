@@ -228,7 +228,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                     '429': errors.RateLimitExceeded,
                     '500': errors.ExchangeNotAvailable,
                     '503': errors.ExchangeNotAvailable,
-                    '100001': errors.InvalidOrder,
+                    '100001': errors.OrderNotFound,
                     '100004': errors.BadRequest,
                     '101030': errors.PermissionDenied,
                     '200004': errors.InsufficientFunds,
@@ -247,7 +247,8 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                     '400100': errors.BadRequest,
                     '411100': errors.AccountSuspended,
                     '500000': errors.ExchangeNotAvailable,
-                    '300009': errors.InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
+                    '300009': errors.InvalidOrder,
+                    '330008': errors.InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': errors.OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
