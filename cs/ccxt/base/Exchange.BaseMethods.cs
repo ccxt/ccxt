@@ -1408,9 +1408,9 @@ public partial class Exchange
     {
         object stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (isTrue(isGreaterThanOrEqual(getIndexOf(stringVersion, "."), 0)))
         {
             return parseFloat(stringVersion);
@@ -6411,6 +6411,44 @@ public partial class Exchange
         object sorted = this.sortBy(rates, "timestamp");
         object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+
+    public virtual object handleTriggerPricesAndParams(object symbol, object parameters, object omitParams = null)
+    {
+        //
+        omitParams ??= true;
+        object triggerPrice = this.safeString(parameters, "triggerPrice", "stopPrice");
+        object triggerPriceStr = null;
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object stopLossPriceStr = null;
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object takeProfitPriceStr = null;
+        //
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            if (isTrue(omitParams))
+            {
+                parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
+            }
+            triggerPriceStr = this.priceToPrecision(symbol, parseFloat(triggerPrice));
+        }
+        if (isTrue(!isEqual(stopLossPrice, null)))
+        {
+            if (isTrue(omitParams))
+            {
+                parameters = this.omit(parameters, "stopLossPrice");
+            }
+            stopLossPriceStr = this.priceToPrecision(symbol, parseFloat(stopLossPrice));
+        }
+        if (isTrue(!isEqual(takeProfitPrice, null)))
+        {
+            if (isTrue(omitParams))
+            {
+                parameters = this.omit(parameters, "takeProfitPrice");
+            }
+            takeProfitPriceStr = this.priceToPrecision(symbol, parseFloat(takeProfitPrice));
+        }
+        return new List<object>() {triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, parameters};
     }
 
     public virtual object handleTriggerDirectionAndParams(object parameters, object exchangeSpecificKey = null, object allowEmpty = null)
