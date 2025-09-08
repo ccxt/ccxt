@@ -10,10 +10,7 @@ Welcome to the ccxt wiki!
 ## How To Install
 
 - [Install](https://github.com/ccxt/ccxt/wiki/Install)
-  - [Node.js](https://github.com/ccxt/ccxt/wiki/Install#nodejs)
   - [Python](https://github.com/ccxt/ccxt/wiki/Install#python)
-  - [PHP](https://github.com/ccxt/ccxt/wiki/Install#php)
-  - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
   - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
   - [CORS (Access-Control-Allow-Origin)](https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin)

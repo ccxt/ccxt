@@ -1,14 +1,5 @@
 # CCXT Statistics
 
-## JavaScript / npm
-
-![npm Weekly Downloads](https://img.shields.io/npm/dw/ccxt.svg)
-![npm Monthly Downloads](https://img.shields.io/npm/dm/ccxt.svg)
-![npm Yearly Downloads](https://img.shields.io/npm/dy/ccxt.svg)
-<!-- ![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/npm/ccxt.svg) -->
-<!-- ![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/npm/ccxt.svg) -->
-<!-- ![npm bundle size](https://img.shields.io/bundlephobia/min/ccxt.svg) -->
-<!-- ![npm bundle size](https://img.shields.io/bundlephobia/minzip/ccxt.svg) -->
 
 ## Python / PyPI
 
@@ -18,11 +9,6 @@
 <!-- ![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/pypi/ccxt.svg) -->
 <!-- ![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/pypi/ccxt.svg) -->
 
-## PHP / Packagist
-
-![Packagist Daily Downloads](https://img.shields.io/packagist/dd/ccxt/ccxt.svg)
-![Packagist Monthly Downloads](https://img.shields.io/packagist/dm/ccxt/ccxt.svg)
-![Packagist Total Downloads](https://img.shields.io/packagist/dt/ccxt/ccxt.svg)
 
 ## GitHub
 
