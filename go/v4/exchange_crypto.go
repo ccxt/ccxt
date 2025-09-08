@@ -207,7 +207,7 @@ func signKeccak(data interface{}) []byte {
 
 func Jwt(data interface{}, secret interface{}, hash func() string, optionalArgs ...interface{}) string {
 	isRsa := GetArg(optionalArgs, 0, false).(bool)
-	params := GetArg(optionalArgs, 2, map[string]interface{}{}).(map[string]interface{})
+	params := GetArg(optionalArgs, 1, map[string]interface{}{}).(map[string]interface{})
 	return JwtFull(data, secret, hash, isRsa, params)
 }
 
@@ -247,7 +247,11 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	if isRsa {
 		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
-		// Ecdsa signing logic here (omitted for simplicity)
+		ec := Ecdsa(token, secret, secp256k1, hash)
+		r := ec["r"].(string)
+		s := ec["s"].(string)
+		converted, _ := convertHexStringToByteArray(r + s)
+		signature = Base64urlencode(converted)
 	} else {
 		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
 	}
@@ -492,6 +496,23 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	if !ok {
 		return result
 	}
+
+	if strings.HasPrefix(secretStr, "-----BEGIN EC PRIVATE KEY-----") {
+		block, _ := pem.Decode([]byte(secretStr))
+		if block == nil || block.Type != "EC PRIVATE KEY" {
+			panic("failed to decode PEM block containing EC private key")
+		}
+
+		// Step 2: Parse EC private key
+		key, err := x509.ParseECPrivateKey(block.Bytes)
+		if err != nil {
+			panic(err)
+		}
+
+		hexKey := hex.EncodeToString(key.D.Bytes())
+		secretStr = hexKey
+	}
+
 	secretKeyBytes, ok := hexToBytes(secretStr)
 	if !ok {
 		return result
