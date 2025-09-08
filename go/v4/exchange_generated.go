@@ -1822,9 +1822,9 @@ func (this *Exchange) ParseToInt(number interface{}) interface{} {
 func (this *Exchange) ParseToNumeric(number interface{}) interface{} {
 	var stringVersion interface{} = this.NumberToString(number) // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
 	// keep this in mind:
-	// in JS: 1 == 1.0 is true;  1 === 1.0 is true
+	// in JS:     1 === 1.0 is true
 	// in Python: 1 == 1.0 is true
-	// in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+	// in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
 	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(stringVersion, "."), 0)) {
 		return ParseFloat(stringVersion)
 	}
@@ -8008,6 +8008,37 @@ func (this *Exchange) ParseLongShortRatioHistory(response interface{}, optionalA
 	var symbol interface{} = Ternary(IsTrue((IsEqual(market, nil))), nil, GetValue(market, "symbol"))
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
+func (this *Exchange) HandleTriggerPricesAndParams(symbol interface{}, params interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	omitParams := GetArg(optionalArgs, 0, true)
+	_ = omitParams
+	var triggerPrice interface{} = this.SafeString(params, "triggerPrice", "stopPrice")
+	var triggerPriceStr interface{} = nil
+	var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
+	var stopLossPriceStr interface{} = nil
+	var takeProfitPrice interface{} = this.SafeString(params, "takeProfitPrice")
+	var takeProfitPriceStr interface{} = nil
+	//
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		if IsTrue(omitParams) {
+			params = this.Omit(params, []interface{}{"triggerPrice", "stopPrice"})
+		}
+		triggerPriceStr = this.PriceToPrecision(symbol, ParseFloat(triggerPrice))
+	}
+	if IsTrue(!IsEqual(stopLossPrice, nil)) {
+		if IsTrue(omitParams) {
+			params = this.Omit(params, "stopLossPrice")
+		}
+		stopLossPriceStr = this.PriceToPrecision(symbol, ParseFloat(stopLossPrice))
+	}
+	if IsTrue(!IsEqual(takeProfitPrice, nil)) {
+		if IsTrue(omitParams) {
+			params = this.Omit(params, "takeProfitPrice")
+		}
+		takeProfitPriceStr = this.PriceToPrecision(symbol, ParseFloat(takeProfitPrice))
+	}
+	return []interface{}{triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params}
+}
 func (this *Exchange) HandleTriggerDirectionAndParams(params interface{}, optionalArgs ...interface{}) interface{} {
 	/**
 	 * @ignore
@@ -8226,8 +8257,8 @@ func (this *Exchange) FetchFundingRate(symbol interface{}, optionalArgs ...inter
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchFundingRates")) {
 
-			retRes702512 := (<-this.LoadMarkets())
-			PanicOnError(retRes702512)
+			retRes705512 := (<-this.LoadMarkets())
+			PanicOnError(retRes705512)
 
 			var market interface{} = this.DerivedExchange.Market(symbol)
 			PanicOnError(market)
@@ -8262,8 +8293,8 @@ func (this *Exchange) FetchFundingInterval(symbol interface{}, optionalArgs ...i
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchFundingIntervals")) {
 
-			retRes704512 := (<-this.LoadMarkets())
-			PanicOnError(retRes704512)
+			retRes707512 := (<-this.LoadMarkets())
+			PanicOnError(retRes707512)
 
 			var market interface{} = this.DerivedExchange.Market(symbol)
 			PanicOnError(market)
@@ -8318,9 +8349,9 @@ func (this *Exchange) FetchMarkOHLCV(symbol interface{}, optionalArgs ...interfa
 				"price": "mark",
 			}
 
-			retRes707919 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-			PanicOnError(retRes707919)
-			ch <- retRes707919
+			retRes710919 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+			PanicOnError(retRes710919)
+			ch <- retRes710919
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchMarkOHLCV () is not supported yet")))
@@ -8358,9 +8389,9 @@ func (this *Exchange) FetchIndexOHLCV(symbol interface{}, optionalArgs ...interf
 				"price": "index",
 			}
 
-			retRes710119 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-			PanicOnError(retRes710119)
-			ch <- retRes710119
+			retRes713119 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+			PanicOnError(retRes713119)
+			ch <- retRes713119
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchIndexOHLCV () is not supported yet")))
@@ -8398,9 +8429,9 @@ func (this *Exchange) FetchPremiumIndexOHLCV(symbol interface{}, optionalArgs ..
 				"price": "premiumIndex",
 			}
 
-			retRes712319 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-			PanicOnError(retRes712319)
-			ch <- retRes712319
+			retRes715319 := <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+			PanicOnError(retRes715319)
+			ch <- retRes715319
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchPremiumIndexOHLCV () is not supported yet")))
@@ -8650,9 +8681,9 @@ func (this *Exchange) FetchTransactions(optionalArgs ...interface{}) <-chan inte
 		_ = params
 		if IsTrue(GetValue(this.Has, "fetchDepositsWithdrawals")) {
 
-			retRes733319 := <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
-			PanicOnError(retRes733319)
-			ch <- retRes733319
+			retRes736319 := <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
+			PanicOnError(retRes736319)
+			ch <- retRes736319
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchTransactions () is not supported yet")))
@@ -8889,15 +8920,15 @@ func (this *Exchange) SafeDeterministicCall(method interface{}, optionalArgs ...
 					// try block:
 					if IsTrue(IsTrue(timeframe) && IsTrue(!IsEqual(method, "fetchFundingRateHistory"))) {
 
-						retRes746927 := (<-this.callDynamically(method, symbol, timeframe, since, limit, params))
-						PanicOnError(retRes746927)
-						ch <- retRes746927
+						retRes749927 := (<-this.callDynamically(method, symbol, timeframe, since, limit, params))
+						PanicOnError(retRes749927)
+						ch <- retRes749927
 						return nil
 					} else {
 
-						retRes747127 := (<-this.callDynamically(method, symbol, since, limit, params))
-						PanicOnError(retRes747127)
-						ch <- retRes747127
+						retRes750127 := (<-this.callDynamically(method, symbol, since, limit, params))
+						PanicOnError(retRes750127)
+						ch <- retRes750127
 						return nil
 					}
 
