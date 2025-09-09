@@ -1735,7 +1735,7 @@ class bitget(ccxt.async_support.bitget):
         uta = None
         uta, params = self.handle_option_and_params(params, 'watchMyTrades', 'uta', False)
         if market is None and type == 'spot':
-            instType = 'spot'
+            instType = 'SPOT'
         else:
             instType, params = self.get_inst_type(market, uta, params)
         if uta:
