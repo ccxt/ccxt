@@ -239,7 +239,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     '429': RateLimitExceeded,  # Too Many Requests -- Access limit breached
                     '500': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '503': ExchangeNotAvailable,  # Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
-                    '100001': InvalidOrder,     # {"code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\""}
+                    '100001': OrderNotFound,     # {"msg":"error.getOrder.orderNotExist","code":"100001"}
                     '100004': BadRequest,       # {"code":"100004","msg":"Order is in not cancelable state"}
                     '101030': PermissionDenied,  # {"code":"101030","msg":"You haven't yet enabled the margin trading"}
                     '200004': InsufficientFunds,
@@ -259,6 +259,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     '411100': AccountSuspended,  # User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
                     '300009': InvalidOrder,  # {"msg":"No open positions to close.","code":"300009"}
+                    '330008': InsufficientFunds,  # {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound,  # {"code":"200000", "msg":"Position does not exist"}
@@ -479,7 +480,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         status = self.safe_string(data, 'status')
         return {
             'status': 'ok' if (status == 'open') else 'maintenance',
@@ -562,7 +563,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         result = []
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             market = data[i]
             id = self.safe_string(market, 'symbol')
@@ -768,7 +769,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         address = self.safe_string(data, 'address')
         if currencyId != 'NIM':
             # contains spaces
@@ -826,7 +827,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.parse_to_int(self.safe_integer(data, 'ts') / 1000000)
         orderbook = self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1)
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
@@ -1149,7 +1150,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        dataList = self.safe_value(data, 'dataList', [])
+        dataList = self.safe_list(data, 'dataList', [])
         fees = []
         for i in range(0, len(dataList)):
             listItem = dataList[i]
@@ -2055,7 +2056,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = self.safe_value(response, 'data', {})
+        responseData = self.safe_dict(response, 'data', {})
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -2948,7 +2949,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_market_leverage_tiers(data, market)
 
     def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
@@ -3029,7 +3030,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
     def parse_funding_rate_history(self, info, market: Market = None):

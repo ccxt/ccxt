@@ -1391,6 +1391,12 @@ class bitvavo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'cancelAllOrders', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         response = self.privateDeleteOrders(self.extend(request, params))
         #
         #     [

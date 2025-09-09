@@ -1468,6 +1468,13 @@ class bitvavo extends Exchange {
                 $market = $this->market($symbol);
                 $request['market'] = $market['id'];
             }
+            $operatorId = null;
+            list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'operatorId');
+            if ($operatorId !== null) {
+                $request['operatorId'] = $this->parse_to_int($operatorId);
+            } else {
+                throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
+            }
             $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
             //
             //     array(

@@ -6836,21 +6836,14 @@ public partial class binance : Exchange
         }
         if (isTrue(quantityIsRequired))
         {
-            // portfolio margin has a different amount precision
-            if (isTrue(isPortfolioMargin))
+            object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+            object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+            if (isTrue(isPrecisionAvailable))
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount);
+                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
-                object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
-                if (isTrue(isPrecisionAvailable))
-                {
-                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-                } else
-                {
-                    ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
-                }
+                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
             }
         }
         if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
@@ -11797,11 +11790,17 @@ public partial class binance : Exchange
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object defaultType = this.safeString(this.options, "defaultType", "future");
-        object type = this.safeString(parameters, "type", defaultType);
-        parameters = this.omit(parameters, new List<object>() {"type"});
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("setPositionMode", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isPortfolioMargin = null;

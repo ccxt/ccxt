@@ -619,8 +619,8 @@ class coincatch extends Exchange {
                 for ($j = 0; $j < count($networks); $j++) {
                     $network = $networks[$j];
                     $networkId = $this->safe_string($network, 'chain');
-                    $networkCode = $this->network_code_to_id($networkId);
-                    $parsedNetworks[$networkId] = array(
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $parsedNetworks[$networkCode] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
                         'limits' => array(
