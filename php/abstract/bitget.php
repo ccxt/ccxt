@@ -1576,6 +1576,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_uta_get_v3_account_settings($params = array()) {
         return $this->request('v3/account/settings', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_uta_get_v3_account_deposit_records($params = array()) {
+        return $this->request('v3/account/deposit-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_uta_get_v3_account_financial_records($params = array()) {
         return $this->request('v3/account/financial-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1630,8 +1633,14 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_uta_get_v3_trade_unfilled_orders($params = array()) {
         return $this->request('v3/trade/unfilled-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_uta_get_v3_trade_unfilled_strategy_orders($params = array()) {
+        return $this->request('v3/trade/unfilled-strategy-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_uta_get_v3_trade_history_orders($params = array()) {
         return $this->request('v3/trade/history-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_uta_get_v3_trade_history_strategy_orders($params = array()) {
+        return $this->request('v3/trade/history-strategy-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_uta_get_v3_trade_fills($params = array()) {
         return $this->request('v3/trade/fills', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
@@ -1666,11 +1675,20 @@ abstract class bitget extends \ccxt\Exchange {
     public function private_uta_post_v3_trade_place_order($params = array()) {
         return $this->request('v3/trade/place-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_uta_post_v3_trade_place_strategy_order($params = array()) {
+        return $this->request('v3/trade/place-strategy-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_uta_post_v3_trade_modify_order($params = array()) {
         return $this->request('v3/trade/modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function private_uta_post_v3_trade_modify_strategy_order($params = array()) {
+        return $this->request('v3/trade/modify-strategy-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function private_uta_post_v3_trade_cancel_order($params = array()) {
         return $this->request('v3/trade/cancel-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function private_uta_post_v3_trade_cancel_strategy_order($params = array()) {
+        return $this->request('v3/trade/cancel-strategy-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function private_uta_post_v3_trade_place_batch($params = array()) {
         return $this->request('v3/trade/place-batch', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));
@@ -3271,6 +3289,9 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateUtaGetV3AccountSettings($params = array()) {
         return $this->request('v3/account/settings', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateUtaGetV3AccountDepositRecords($params = array()) {
+        return $this->request('v3/account/deposit-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateUtaGetV3AccountFinancialRecords($params = array()) {
         return $this->request('v3/account/financial-records', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -3325,8 +3346,14 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateUtaGetV3TradeUnfilledOrders($params = array()) {
         return $this->request('v3/trade/unfilled-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateUtaGetV3TradeUnfilledStrategyOrders($params = array()) {
+        return $this->request('v3/trade/unfilled-strategy-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateUtaGetV3TradeHistoryOrders($params = array()) {
         return $this->request('v3/trade/history-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateUtaGetV3TradeHistoryStrategyOrders($params = array()) {
+        return $this->request('v3/trade/history-strategy-orders', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateUtaGetV3TradeFills($params = array()) {
         return $this->request('v3/trade/fills', array('private', 'uta'), 'GET', $params, null, null, array("cost" => 1));
@@ -3361,11 +3388,20 @@ abstract class bitget extends \ccxt\Exchange {
     public function privateUtaPostV3TradePlaceOrder($params = array()) {
         return $this->request('v3/trade/place-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateUtaPostV3TradePlaceStrategyOrder($params = array()) {
+        return $this->request('v3/trade/place-strategy-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateUtaPostV3TradeModifyOrder($params = array()) {
         return $this->request('v3/trade/modify-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function privateUtaPostV3TradeModifyStrategyOrder($params = array()) {
+        return $this->request('v3/trade/modify-strategy-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function privateUtaPostV3TradeCancelOrder($params = array()) {
         return $this->request('v3/trade/cancel-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function privateUtaPostV3TradeCancelStrategyOrder($params = array()) {
+        return $this->request('v3/trade/cancel-strategy-order', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function privateUtaPostV3TradePlaceBatch($params = array()) {
         return $this->request('v3/trade/place-batch', array('private', 'uta'), 'POST', $params, null, null, array("cost" => 4));

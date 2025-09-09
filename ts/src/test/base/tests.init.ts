@@ -10,6 +10,7 @@ import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
+import testSafeTicker from './test.safeTicker.js';
 // import testJson from './test.json.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
@@ -20,6 +21,7 @@ import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
+import testArraysConcat from './test.arraysConcat.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -32,6 +34,7 @@ function baseTestsInit () {
     testNumberToString ();
     testPrecise ();
     testSafeMethods ();
+    testSafeTicker ();
     // testJson ();
     testSortBy ();
     testSum ();
@@ -41,6 +44,7 @@ function baseTestsInit () {
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
+    testArraysConcat ();
 }
 
 export default baseTestsInit;

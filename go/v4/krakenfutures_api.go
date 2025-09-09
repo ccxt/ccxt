@@ -7,610 +7,154 @@
 
 package ccxt
 
-func (this *krakenfutures) PublicGetFeeschedules (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFeeschedules", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PublicGetFeeschedules(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFeeschedules", args...)
 }
 
-func (this *krakenfutures) PublicGetInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetInstruments", args...)
 }
 
-func (this *krakenfutures) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *krakenfutures) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *krakenfutures) PublicGetHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PublicGetHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistory", args...)
 }
 
-func (this *krakenfutures) PublicGetHistoricalfundingrates (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHistoricalfundingrates", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PublicGetHistoricalfundingrates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHistoricalfundingrates", args...)
 }
 
-func (this *krakenfutures) PrivateGetFeeschedulesVolumes (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFeeschedulesVolumes", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetFeeschedulesVolumes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFeeschedulesVolumes", args...)
 }
 
-func (this *krakenfutures) PrivateGetOpenpositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenpositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetOpenpositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenpositions", args...)
 }
 
-func (this *krakenfutures) PrivateGetNotifications (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetNotifications", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetNotifications(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetNotifications", args...)
 }
 
-func (this *krakenfutures) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *krakenfutures) PrivateGetOpenorders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenorders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetOpenorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenorders", args...)
 }
 
-func (this *krakenfutures) PrivateGetRecentorders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetRecentorders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetRecentorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRecentorders", args...)
 }
 
-func (this *krakenfutures) PrivateGetFills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetFills(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *krakenfutures) PrivateGetTransfers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTransfers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *krakenfutures) PrivateGetLeveragepreferences (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetLeveragepreferences", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetLeveragepreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLeveragepreferences", args...)
 }
 
-func (this *krakenfutures) PrivateGetPnlpreferences (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPnlpreferences", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetPnlpreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPnlpreferences", args...)
 }
 
-func (this *krakenfutures) PrivateGetAssignmentprogramCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssignmentprogramCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetAssignmentprogramCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssignmentprogramCurrent", args...)
 }
 
-func (this *krakenfutures) PrivateGetAssignmentprogramHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssignmentprogramHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivateGetAssignmentprogramHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssignmentprogramHistory", args...)
 }
 
-func (this *krakenfutures) PrivatePostSendorder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostSendorder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostSendorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSendorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostEditorder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostEditorder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostEditorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostEditorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostCancelorder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelorder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostCancelorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *krakenfutures) PrivatePostBatchorder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostBatchorder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostBatchorder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBatchorder", args...)
 }
 
-func (this *krakenfutures) PrivatePostCancelallorders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelallorders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostCancelallorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelallorders", args...)
 }
 
-func (this *krakenfutures) PrivatePostCancelallordersafter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelallordersafter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostCancelallordersafter(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelallordersafter", args...)
 }
 
-func (this *krakenfutures) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *krakenfutures) PrivatePostAssignmentprogramAdd (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssignmentprogramAdd", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostAssignmentprogramAdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssignmentprogramAdd", args...)
 }
 
-func (this *krakenfutures) PrivatePostAssignmentprogramDelete (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssignmentprogramDelete", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePostAssignmentprogramDelete(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAssignmentprogramDelete", args...)
 }
 
-func (this *krakenfutures) PrivatePutLeveragepreferences (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutLeveragepreferences", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePutLeveragepreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutLeveragepreferences", args...)
 }
 
-func (this *krakenfutures) PrivatePutPnlpreferences (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutPnlpreferences", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) PrivatePutPnlpreferences(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutPnlpreferences", args...)
 }
 
-func (this *krakenfutures) ChartsGetPriceTypeSymbolInterval (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("chartsGetPriceTypeSymbolInterval", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) ChartsGetPriceTypeSymbolInterval(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("chartsGetPriceTypeSymbolInterval", args...)
 }
 
-func (this *krakenfutures) HistoryGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetOrders", args...)
 }
 
-func (this *krakenfutures) HistoryGetExecutions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetExecutions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetExecutions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetExecutions", args...)
 }
 
-func (this *krakenfutures) HistoryGetTriggers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetTriggers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetTriggers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetTriggers", args...)
 }
 
-func (this *krakenfutures) HistoryGetAccountlogcsv (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetAccountlogcsv", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetAccountlogcsv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetAccountlogcsv", args...)
 }
 
-func (this *krakenfutures) HistoryGetAccountLog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetAccountLog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetAccountLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetAccountLog", args...)
 }
 
-func (this *krakenfutures) HistoryGetMarketSymbolOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetMarketSymbolOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetMarketSymbolOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetMarketSymbolOrders", args...)
 }
 
-func (this *krakenfutures) HistoryGetMarketSymbolExecutions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("historyGetMarketSymbolExecutions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *krakenfutures) HistoryGetMarketSymbolExecutions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("historyGetMarketSymbolExecutions", args...)
 }

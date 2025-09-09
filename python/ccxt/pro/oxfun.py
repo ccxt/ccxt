@@ -912,7 +912,7 @@ class oxfun(ccxt.async_support.oxfun):
             method = self.safe_string(message, 'event')
             stringMsg = self.json(message)
             code = self.safe_integer(message, 'code')
-            self.handle_errors(code, None, client.url, method, None, stringMsg, message, None, None)
+            self.handle_errors(code, '', client.url, method, {}, stringMsg, message, {}, {})
         data = self.safe_value(message, 'data', {})
         order = self.parse_order(data)
         client.resolve(order, messageHash)

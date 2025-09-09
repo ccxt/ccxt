@@ -1,5 +1,5 @@
 import onetradingRest from '../onetrading.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class onetrading extends onetradingRest {
     describe(): any;
@@ -98,7 +98,7 @@ export default class onetrading extends onetradingRest {
     findTimeframe(timeframe: any, timeframes?: any): string;
     handleSubscriptions(client: Client, message: any): any;
     handleHeartbeat(client: Client, message: any): any;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handlePricePointUpdates(client: Client, message: any): any;
     handleAuthenticationMessage(client: Client, message: any): any;

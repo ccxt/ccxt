@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchPosition(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchPosition(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "watchPosition";
         object now = exchange.milliseconds();
@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = await exchange.watchPosition(symbol);
@@ -26,12 +27,17 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
-            now = exchange.milliseconds();
-            testPosition(exchange, skippedProperties, method, response, null, now);
+            if (isTrue(isEqual(success, true)))
+            {
+                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
+                now = exchange.milliseconds();
+                testPosition(exchange, skippedProperties, method, response, null, now);
+            }
         }
+        return true;
     }
 
 }

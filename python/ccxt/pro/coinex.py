@@ -1257,7 +1257,7 @@ class coinex(ccxt.async_support.coinex):
         method = self.safe_string(message, 'method')
         error = self.safe_string(message, 'message')
         if error is not None:
-            self.handle_errors(None, None, client.url, method, None, self.json(error), message, None, None)
+            self.handle_errors(1, '', client.url, method, {}, self.json(error), message, {}, {})
         handlers: dict = {
             'state.update': self.handle_ticker,
             'balance.update': self.handle_balance,

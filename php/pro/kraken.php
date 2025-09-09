@@ -75,6 +75,7 @@ class kraken extends \ccxt\async\kraken {
                     'broad' => array(
                         'Already subscribed' => '\\ccxt\\BadRequest',
                         'Currency pair not in ISO 4217-A3 format' => '\\ccxt\\BadSymbol',
+                        'Currency pair not supported' => '\\ccxt\\BadSymbol',
                         'Malformed request' => '\\ccxt\\BadRequest',
                         'Pair field must be an array' => '\\ccxt\\BadRequest',
                         'Pair field unsupported for this subscription type' => '\\ccxt\\BadRequest',
@@ -815,17 +816,15 @@ class kraken extends \ccxt\async\kraken {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
              */
-            $request = array();
+            $requiredParams = array();
             if ($limit !== null) {
                 if ($this->in_array($limit, array( 10, 25, 100, 500, 1000 ))) {
-                    $request['params'] = array(
-                        'depth' => $limit, // default 10, valid options 10, 25, 100, 500, 1000
-                    );
+                    $requiredParams['depth'] = $limit; // default 10, valid options 10, 25, 100, 500, 1000
                 } else {
                     throw new NotSupported($this->id . ' watchOrderBook accepts $limit values of 10, 25, 100, 500 and 1000 only');
                 }
             }
-            $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $this->extend($request, $params)));
+            $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $this->extend($requiredParams, $params)));
             return $orderbook->limit ();
         }) ();
     }
@@ -1760,7 +1759,7 @@ class kraken extends \ccxt\async\kraken {
         // }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "errorMessage" => "Currency pair not in ISO 4217-A3 format foobar",
@@ -1782,19 +1781,19 @@ class kraken extends \ccxt\async\kraken {
         //
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
         if ($errorMessage !== null) {
-            $requestId = $this->safe_value_2($message, 'reqid', 'req_id');
-            if ($requestId !== null) {
-                $broad = $this->exceptions['ws']['broad'];
-                $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
-                $exception = null;
-                if ($broadKey === null) {
-                    $exception = new ExchangeError ($errorMessage); // c# requirement to convert the $errorMessage to string
-                } else {
-                    $exception = new $broad[$broadKey] ($errorMessage);
-                }
-                $client->reject ($exception, $requestId);
-                return false;
+            $requestId = $this->safe_string_2($message, 'reqid', 'req_id');
+            $broad = $this->exceptions['ws']['broad'];
+            $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
+            $exception = null;
+            if ($broadKey === null) {
+                $exception = new ExchangeError ($errorMessage); // c# requirement to convert the $errorMessage to string
+            } else {
+                $exception = new $broad[$broadKey] ($errorMessage);
             }
+            if ($requestId !== null) {
+                $client->reject ($exception, $requestId);
+            }
+            return false;
         }
         return true;
     }

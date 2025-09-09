@@ -109,6 +109,7 @@ interface Exchange {
     privatePutSpotOrders (params?: {}): Promise<implicitReturnType>;
     privatePutOrdersReplace (params?: {}): Promise<implicitReturnType>;
     privatePutGOrdersReplace (params?: {}): Promise<implicitReturnType>;
+    privatePutGOrdersCreate (params?: {}): Promise<implicitReturnType>;
     privatePutPositionsLeverage (params?: {}): Promise<implicitReturnType>;
     privatePutGPositionsLeverage (params?: {}): Promise<implicitReturnType>;
     privatePutGPositionsSwitchPosModeSync (params?: {}): Promise<implicitReturnType>;

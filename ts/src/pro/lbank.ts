@@ -2,7 +2,7 @@
 import lbankRest from '../lbank.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker, Dict } from '../base/types.js';
+import type { Balances, Int, Str, Trade, OrderBook, Order, OHLCV, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ export default class lbank extends lbankRest {
                 'fetchOrderBookWs': true,
                 'fetchTickerWs': true,
                 'fetchTradesWs': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -686,6 +686,61 @@ export default class lbank extends lbankRest {
 
     /**
      * @method
+     * @name lbank#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const key = await this.authenticate (params);
+        const url = this.urls['api']['ws'];
+        const messageHash = 'balance';
+        const message: Dict = {
+            'action': 'subscribe',
+            'subscribe': 'assetUpdate',
+            'subscribeKey': key,
+        };
+        const request = this.deepExtend (message, params);
+        return await this.watch (url, messageHash, request, messageHash, request);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "asset": "114548.31881315",
+        //             "assetCode": "usdt",
+        //             "free": "97430.6739041",
+        //             "freeze": "17117.64490905",
+        //             "time": 1627300043270,
+        //             "type": "ORDER_CREATE"
+        //         },
+        //         "SERVER": "V2",
+        //         "type": "assetUpdate",
+        //         "TS": "2021-07-26T19:48:03.548"
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const timestamp = this.parse8601 (this.safeString (message, 'TS'));
+        const datetime = this.iso8601 (timestamp);
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = datetime;
+        const currencyId = this.safeString (data, 'assetCode');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'free');
+        account['used'] = this.safeString (data, 'freeze');
+        account['total'] = this.safeString (data, 'asset');
+        this.balance[code] = account;
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, 'balance');
+    }
+
+    /**
+     * @method
      * @name lbank#fetchOrderBookWs
      * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -864,6 +919,7 @@ export default class lbank extends lbankRest {
             'trade': this.handleTrades,
             'tick': this.handleTicker,
             'orderUpdate': this.handleOrders,
+            'assetUpdate': this.handleBalance,
         };
         const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {

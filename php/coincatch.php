@@ -607,8 +607,8 @@ class coincatch extends Exchange {
             for ($j = 0; $j < count($networks); $j++) {
                 $network = $networks[$j];
                 $networkId = $this->safe_string($network, 'chain');
-                $networkCode = $this->network_code_to_id($networkId);
-                $parsedNetworks[$networkId] = array(
+                $networkCode = $this->network_id_to_code($networkId);
+                $parsedNetworks[$networkCode] = array(
                     'id' => $networkId,
                     'network' => $networkCode,
                     'limits' => array(
@@ -2151,7 +2151,7 @@ class coincatch extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4695,7 +4695,7 @@ class coincatch extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

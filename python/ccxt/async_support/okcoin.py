@@ -1650,7 +1650,7 @@ class okcoin(Exchange, ImplicitAPI):
         advanced = self.safe_value(params, 'advanced')
         if trigger or advanced:
             orderInner = await self.cancel_orders([id], symbol, params)
-            return self.safe_value(orderInner, 0)
+            return self.safe_dict(orderInner, 0)
         market = self.market(symbol)
         request: dict = {
             'instId': market['id'],
@@ -2416,7 +2416,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal

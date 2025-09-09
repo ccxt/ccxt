@@ -106,19 +106,50 @@ func (this *Exchange) SortBy2(array interface{}, key1 interface{}, key2 interfac
 	return nil
 }
 
+// func (this *Exchange) FilterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
+// 	var targetA []interface{}
+// 	if aaArr, ok := aa.([]interface{}); ok {
+// 		targetA = aaArr
+// 	} else {
+// 		for _, v := range aa.(map[string]interface{}) {
+// 			targetA = append(targetA, v)
+// 		}
+// 	}
+// 	var outList []interface{}
+// 	for _, elem := range targetA {
+// 		if elem.(map[string]interface{})[key.(string)] == value {
+// 			outList = append(outList, elem)
+// 		}
+// 	}
+// 	return outList
+// }
+
 func (this *Exchange) FilterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
 	var targetA []interface{}
-	if aaArr, ok := aa.([]interface{}); ok {
-		targetA = aaArr
-	} else {
-		for _, v := range aa.(map[string]interface{}) {
-			targetA = append(targetA, v)
+
+	switch v := aa.(type) {
+	case []interface{}:
+		targetA = v
+	case map[string]interface{}:
+		for _, item := range v {
+			targetA = append(targetA, item)
 		}
+	case *sync.Map:
+		v.Range(func(_, val interface{}) bool {
+			targetA = append(targetA, val)
+			return true
+		})
+	default:
+		// unsupported type
+		return nil
 	}
+
 	var outList []interface{}
 	for _, elem := range targetA {
-		if elem.(map[string]interface{})[key.(string)] == value {
-			outList = append(outList, elem)
+		if m, ok := elem.(map[string]interface{}); ok {
+			if m[key.(string)] == value {
+				outList = append(outList, m)
+			}
 		}
 	}
 	return outList

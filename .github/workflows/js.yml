@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - name: Print vars
       run: |
@@ -48,6 +48,9 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+    - name: Debug Node version smart bump tmp remove
+      run: |
+        echo "Test smart version: $(./build/smart-bump.sh)"
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Debug files changes

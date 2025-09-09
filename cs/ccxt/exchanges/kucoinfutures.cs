@@ -217,7 +217,7 @@ public partial class kucoinfutures : kucoin
                     { "429", typeof(RateLimitExceeded) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "503", typeof(ExchangeNotAvailable) },
-                    { "100001", typeof(InvalidOrder) },
+                    { "100001", typeof(OrderNotFound) },
                     { "100004", typeof(BadRequest) },
                     { "101030", typeof(PermissionDenied) },
                     { "200004", typeof(InsufficientFunds) },
@@ -237,6 +237,7 @@ public partial class kucoinfutures : kucoin
                     { "411100", typeof(AccountSuspended) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "300009", typeof(InvalidOrder) },
+                    { "330008", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Position does not exist", typeof(OrderNotFound) },
@@ -427,7 +428,7 @@ public partial class kucoinfutures : kucoin
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object status = this.safeString(data, "status");
         return new Dictionary<string, object>() {
             { "status", ((bool) isTrue((isEqual(status, "open")))) ? "ok" : "maintenance" },
@@ -513,7 +514,7 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object result = new List<object>() {};
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
@@ -746,7 +747,7 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object address = this.safeString(data, "address");
         if (isTrue(!isEqual(currencyId, "NIM")))
         {
@@ -817,7 +818,7 @@ public partial class kucoinfutures : kucoin
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.parseToInt(divide(this.safeInteger(data, "ts"), 1000000));
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "sequence");
@@ -1170,7 +1171,7 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object data = this.safeValue(response, "data");
-        object dataList = this.safeValue(data, "dataList", new List<object>() {});
+        object dataList = this.safeList(data, "dataList", new List<object>() {});
         object fees = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(dataList)); postFixIncrement(ref i))
         {
@@ -1833,7 +1834,9 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -1944,7 +1947,10 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
     }
 
     /**
@@ -2214,7 +2220,7 @@ public partial class kucoinfutures : kucoin
         //         }
         //     }
         //
-        object responseData = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(responseData, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2620,6 +2626,7 @@ public partial class kucoinfutures : kucoin
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -3192,7 +3199,7 @@ public partial class kucoinfutures : kucoin
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseMarketLeverageTiers(data, market);
     }
 
@@ -3292,7 +3299,7 @@ public partial class kucoinfutures : kucoin
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRateHistories(data, market, since, limit);
     }
 
@@ -3467,7 +3474,7 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);
+        return ((object)this.parseMarginMode(data, market));
     }
 
     /**

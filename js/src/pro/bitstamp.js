@@ -501,7 +501,7 @@ export default class bitstamp extends bitstampRest {
             const code = this.safeNumber(data, 'code');
             this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {

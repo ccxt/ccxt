@@ -511,6 +511,11 @@ public partial class phemex : Exchange
         return await this.callAsync ("privatePutGOrdersReplace",parameters);
     }
 
+    public async Task<object> privatePutGOrdersCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePutGOrdersCreate",parameters);
+    }
+
     public async Task<object> privatePutPositionsLeverage (object parameters = null)
     {
         return await this.callAsync ("privatePutPositionsLeverage",parameters);

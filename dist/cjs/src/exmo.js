@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var exmo$1 = require('./abstract/exmo.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class exmo
  * @augments Exchange
  */
-class exmo extends exmo$1 {
+class exmo extends exmo$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'exmo',
@@ -973,7 +975,7 @@ class exmo extends exmo$1 {
             request['to'] = to;
         }
         else {
-            request['from'] = this.parseToInt(since / 1000) - 1;
+            request['from'] = this.parseToInt(since / 1000);
             if (untilIsDefined) {
                 request['to'] = Math.min(until, now);
             }
@@ -2821,4 +2823,4 @@ class exmo extends exmo$1 {
     }
 }
 
-module.exports = exmo;
+exports["default"] = exmo;
