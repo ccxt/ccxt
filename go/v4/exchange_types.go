@@ -2131,3 +2131,37 @@ func NewDepositWithdrawFeeNetwork(data interface{}) DepositWithdrawFeeNetwork {
 		percentage: SafeFloatTyped(data, "percentage"),
 	}
 }
+
+// Status represents the status information
+type Status struct {
+	Status  *string
+	Updated *float64
+	Eta     *float64
+	Url     *string
+	Info    interface{}
+}
+
+// RequiredCredentials represents the required credentials for an exchange
+type RequiredCredentials struct {
+	ApiKey        *bool
+	Secret        *bool
+	Uid           *bool
+	Login         *bool
+	Password      *bool
+	Twofa         *bool
+	PrivateKey    *bool
+	WalletAddress *bool
+	Token         *bool
+}
+
+// Urls represents the URL configuration for an exchange
+type Urls struct {
+	Logo          *string
+	Api           *string
+	Test          *string
+	Www           *string
+	Doc           []*string
+	ApiManagement *string
+	Fees          *string
+	Referral      *string
+}

@@ -2017,3 +2017,107 @@ public struct LongShortRatio
         longShortRatio = Exchange.SafeFloat(lsRatio, "longShortRatio");
     }
 }
+
+public struct MarketLimits
+{
+    public MinMax? amount;
+    public MinMax? cost;
+    public MinMax? leverage;
+    public MinMax? price;
+    public MinMax? market;
+
+    public MarketLimits(object marketLimits)
+    {
+        amount = Helper.GetMinMax(marketLimits, "amount");
+        cost = Helper.GetMinMax(marketLimits, "cost");
+        leverage = Helper.GetMinMax(marketLimits, "leverage");
+        price = Helper.GetMinMax(marketLimits, "price");
+        market = Helper.GetMinMax(marketLimits, "market");
+    }
+}
+
+public struct Status
+{
+    public string? status;
+    public double? updated;
+    public double? eta;
+    public string? url;
+    public object? info;
+
+    public Status(object statusVar)
+    {
+        status = Exchange.SafeString(statusVar, "status");
+        updated = Exchange.SafeFloat(statusVar, "updated");
+        eta = Exchange.SafeFloat(statusVar, "eta");
+        url = Exchange.SafeString(statusVar, "url");
+        info = Helper.GetInfo(statusVar);
+    }
+}
+
+public struct RequiredCredentials
+{
+    public bool? apiKey;
+    public bool? secret;
+    public bool? uid;
+    public bool? login;
+    public bool? password;
+    public bool? twofa;  // 2-factor authentication (one-time password key)
+    public bool? privateKey;  // a "0x"-prefixed hexstring private key for a wallet
+    public bool? walletAddress;  // the wallet address "0x"-prefixed hexstring
+    public bool? token;  // reserved for HTTP auth in some cases
+
+    public RequiredCredentials(object credentials)
+    {
+        apiKey = Exchange.SafeBool(credentials, "apiKey");
+        secret = Exchange.SafeBool(credentials, "secret");
+        uid = Exchange.SafeBool(credentials, "uid");
+        login = Exchange.SafeBool(credentials, "login");
+        password = Exchange.SafeBool(credentials, "password");
+        twofa = Exchange.SafeBool(credentials, "twofa");
+        privateKey = Exchange.SafeBool(credentials, "privateKey");
+        walletAddress = Exchange.SafeBool(credentials, "walletAddress");
+        token = Exchange.SafeBool(credentials, "token");
+    }
+}
+
+public struct Urls
+{
+    public string? logo;
+    public object? api;  // string | Dictionary<string>
+    public object? test;  // string | Dictionary<string>
+    public string? www;
+    public string[]? doc;
+    public string? api_management;
+    public string? fees;
+    public string? referral;
+
+    public Urls(object urls)
+    {
+        logo = Exchange.SafeString(urls, "logo");
+        api = Helper.GetValue(urls, "api");
+        test = Helper.GetValue(urls, "test");
+        www = Exchange.SafeString(urls, "www");
+        doc = Helper.GetStringArray(urls, "doc");
+        api_management = Exchange.SafeString(urls, "api_management");
+        fees = Exchange.SafeString(urls, "fees");
+        referral = Exchange.SafeString(urls, "referral");
+    }
+}
+
+public struct Precision
+{
+    public double? amount;
+    public double? price;
+    public double? cost;
+    public double? @base;
+    public double? quote;
+
+    public Precision(object precision)
+    {
+        amount = Exchange.SafeFloat(precision, "amount");
+        price = Exchange.SafeFloat(precision, "price");
+        cost = Exchange.SafeFloat(precision, "cost");
+        @base = Exchange.SafeFloat(precision, "base");
+        quote = Exchange.SafeFloat(precision, "quote");
+    }
+}

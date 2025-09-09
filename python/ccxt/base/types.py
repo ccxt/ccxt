@@ -608,3 +608,43 @@ class ConstructorArgs(TypedDict, total=False):
     urls: Dict[str, Any]
     headers: Dict[str, Any]
     session: Any
+
+
+class Status(TypedDict):
+    status: Str
+    updated: Num
+    eta: Num
+    url: Str
+    info: Any
+
+
+class RequiredCredentials(TypedDict):
+    apiKey: Bool
+    secret: Bool
+    uid: Bool
+    login: Bool
+    password: Bool
+    twofa: Bool  # 2-factor authentication (one-time password key)
+    privateKey: Bool  # a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: Bool  # the wallet address "0x"-prefixed hexstring
+    token: Bool  # reserved for HTTP auth in some cases
+
+
+class Urls(TypedDict):
+    logo: Str
+    api: Str
+    test: Str
+    www: Str
+    doc: List[Str]
+    api_management: Str
+    fees: Str
+    referral: Str
+
+
+class Precision(TypedDict):
+    amount: Num
+    price: Num
+    cost: Optional[Num]
+    base: Optional[Num]
+    quote: Optional[Num]
+

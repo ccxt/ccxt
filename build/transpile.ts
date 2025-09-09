@@ -822,6 +822,7 @@ class Transpiler {
             'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
             // 'MarketInterface': /-> MarketInterface:/,
+            'MarketLimits': /-> MarketLimits:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
@@ -834,6 +835,9 @@ class Transpiler {
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
             'Position': /-> (?:List\[)?Position/,
+            'Precision': /-> Precision:/,
+            'RequiredCredentials': /-> RequiredCredentials:/,
+            'Status': /-> Status:/,
             'Str': /: (?:List\[)?Str =/,
             'Strings': /: (?:List\[)?Strings =/,
             'SubType': /: SubType/,
@@ -850,6 +854,7 @@ class Transpiler {
             'Transaction': /-> (?:List\[)?Transaction/,
             'MarketInterface': /-> (?:List\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
+            'Urls': /-> Urls:/,
         }
         const matches: string[] = []
         let match
@@ -1633,7 +1638,7 @@ class Transpiler {
                     'Dictionary<any>': 'array',
                     'Dict': 'array',
                 }
-                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest)( \| undefined)?$|\w+\[\]/
+                const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|Position|BorrowInterest|MarketLimits|Status|RequiredCredentials|Urls|Precision)( \| undefined)?$|\w+\[\]/
 
                 phpArgs = argsArray.map (x => {
                     const parts = x.split (':')

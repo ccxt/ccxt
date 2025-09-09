@@ -238,7 +238,8 @@ export default class binance extends Exchange {
                 'doc': [
                     'https://developers.binance.com/en',
                 ],
-                'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
+                'api_management': 'https://www.binance.com/en/usercenter/settings/api-management', // ! deprecated use apiManagement
+                'apiManagement': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
