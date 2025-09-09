@@ -436,7 +436,8 @@ export default class toobit extends Exchange {
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
             const parsed = this.parseCurrency (coin);
-            result[coin.id] = parsed;
+            const code = parsed['code'];
+            result[code] = parsed;
         }
         return result;
     }
