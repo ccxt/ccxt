@@ -432,23 +432,23 @@ func enforceLowS(s *big.Int) *big.Int {
 // }
 
 // Helper function to sign with P256 (Go's native implementation)
-func signP256(message []byte, seckey []byte) ([]byte, int, bool) {
-	curve := elliptic.P256()
-	privKey := new(ecdsa.PrivateKey)
-	privKey.PublicKey.Curve = curve
-	privKey.D = new(big.Int).SetBytes(seckey)
+// func signP256(message []byte, seckey []byte) ([]byte, int, bool) {
+// 	curve := elliptic.P256()
+// 	privKey := new(ecdsa.PrivateKey)
+// 	privKey.PublicKey.Curve = curve
+// 	privKey.D = new(big.Int).SetBytes(seckey)
 
-	r, s, err := ecdsa.Sign(rand.Reader, privKey, message)
-	if err != nil {
-		return nil, 0, false
-	}
+// 	r, s, err := ecdsa.Sign(rand.Reader, privKey, message)
+// 	if err != nil {
+// 		return nil, 0, false
+// 	}
 
-	rBytes := r.Bytes()
-	sBytes := s.Bytes()
-	signature := append(rBytes, sBytes...)
+// 	rBytes := r.Bytes()
+// 	sBytes := s.Bytes()
+// 	signature := append(rBytes, sBytes...)
 
-	return signature, 0, true // P256 does not need a recovery ID
-}
+// 	return signature, 0, true // P256 does not need a recovery ID
+// }
 
 // Main Ecdsa function
 func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, hashFunc func() string) map[string]interface{} {
@@ -544,6 +544,43 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	result["v"] = recoveryId
 
 	return result
+}
+
+func signP256(message, seckey []byte) ([]byte, int, bool) {
+	curve := elliptic.P256()
+	N := curve.Params().N
+
+	// Build private scalar
+	d := new(big.Int).SetBytes(seckey)
+	if d.Sign() == 0 || d.Cmp(N) >= 0 {
+		return nil, 0, false // invalid secret key
+	}
+
+	// Construct full private key (D, X, Y)
+	priv := new(ecdsa.PrivateKey)
+	priv.PublicKey.Curve = curve
+	priv.D = d
+	priv.PublicKey.X, priv.PublicKey.Y = curve.ScalarBaseMult(seckey)
+
+	// NOTE: ecdsa.Sign expects a hash digest of the message (size <= hash output).
+	// Ensure `message` is already hashed (e.g., SHA-256) before calling this.
+	r, s, err := ecdsa.Sign(rand.Reader, priv, message)
+	if err != nil {
+		return nil, 0, false
+	}
+
+	// // Enforce low-S (canonical)
+	// halfN := new(big.Int).Rsh(new(big.Int).Set(N), 1)
+	// if s.Cmp(halfN) == 1 {
+	// 	s.Sub(N, s)
+	// }
+
+	// 32-byte big-endian r||s
+	rBytes := r.FillBytes(make([]byte, 32))
+	sBytes := s.FillBytes(make([]byte, 32))
+	sig := append(rBytes, sBytes...)
+
+	return sig, 0, true // no recovery ID for P-256
 }
 
 func Crc32(str string, signed2 ...bool) int64 {
