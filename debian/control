@@ -1,0 +1,12 @@
+Source: python3-ccxt
+Build-Depends: debhelper (>= 11), lsb-release, dh-python, python3, python3-requests, python3-aiodns, python3-yarl, python3-certifi, python3-setuptools, python3-cryptography, python3-aiohttp
+Standards-Version: 4.3.0
+Section: python
+Priority: optional
+Maintainer: Simon Brand <simon.brand@postadigitale.de>
+
+Package: python3-ccxt
+Depends: ${misc:Depends}, ${python3:Depends}
+Architecture: any
+X-Python3-Version: >= 3.X
+Description: CryptoCurrency eXchange Trading Library
