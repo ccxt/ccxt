@@ -280,8 +280,7 @@ func RSBytesFromECDSADER(sigDER []byte, curve elliptic.Curve) (rBytes, sBytes []
 	if !ok {
 		return nil, nil, false
 	}
-	size := (curve.Params().BitSize + 7) / 8
-	return r.FillBytes(make([]byte, size)), s.FillBytes(make([]byte, size)), true
+	return r.FillBytes(make([]byte, 32)), s.FillBytes(make([]byte, 32)), true
 }
 
 func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) string {
