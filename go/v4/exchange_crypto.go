@@ -12,7 +12,6 @@ import (
 	sha256Hash "crypto/sha256"
 	sha512Hash "crypto/sha512"
 	"crypto/x509"
-	"encoding/asn1"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
@@ -261,26 +260,6 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	signature = strings.Replace(signature, "/", "_", -1)
 	signature = strings.TrimRight(signature, "==")
 	return token + "." + signature
-}
-
-func RSFromECDSADER(sigDER []byte) (r, s *big.Int, ok bool) {
-	var sig struct {
-		R, S *big.Int
-	}
-	rest, err := asn1.Unmarshal(sigDER, &sig)
-	if err != nil || len(rest) != 0 || sig.R == nil || sig.S == nil {
-		return nil, nil, false
-	}
-	return sig.R, sig.S, true
-}
-
-// If you need fixed-width bytes (r||s), e.g., 64 bytes for P-256:
-func RSBytesFromECDSADER(sigDER []byte, curve elliptic.Curve) (rBytes, sBytes []byte, ok bool) {
-	r, s, ok := RSFromECDSADER(sigDER)
-	if !ok {
-		return nil, nil, false
-	}
-	return r.FillBytes(make([]byte, 32)), s.FillBytes(make([]byte, 32)), true
 }
 
 func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) string {
@@ -599,26 +578,14 @@ func signP256(message, seckey []byte) ([]byte, int, bool) {
 
 	priv := parseECPrivateKey(seckey)
 
-	// h := sha256Hash.Sum256(message)
-	// digest := h[:]
-
-	sig, err := ecdsa.SignASN1(rand.Reader, priv, message)
+	ri, si, err := ecdsa.Sign(rand.Reader, priv, message)
 	if err != nil {
 		return nil, 0, false
 	}
 
-	rb, sb, _ := RSBytesFromECDSADER(sig, elliptic.P256())
-	raw := append(rb, sb...) // 64 bytes on P-256
-	// signature = raw
-
-	// r := new(big.Int).SetBytes(sig[:32])
-	// s := new(big.Int).SetBytes(sig[32:64])
-	// s = enforceLowS(s)
-
-	// rBytes := r.FillBytes(make([]byte, 32))
-	// sBytes := s.FillBytes(make([]byte, 32))
-
-	// signature := append(rBytes, sBytes...)
+	r := ri.FillBytes(make([]byte, 32))
+	s := si.FillBytes(make([]byte, 32))
+	raw := append(r, s...)
 
 	return raw, 0, true
 }
