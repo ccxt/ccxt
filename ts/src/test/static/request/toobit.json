@@ -2,5 +2,41 @@
     "exchange": "toobit",
     "skipKeys": [],
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets no args",
+                "method": "fetchMarkets",
+                "url": "https://api.toobit.com/api/v1/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies no args",
+                "method": "fetchCurrencies",
+                "url": "https://api.toobit.com/api/v1/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime no args",
+                "method": "fetchTime",
+                "url": "https://api.toobit.com/api/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus no args",
+                "method": "fetchStatus",
+                "url": "https://api.toobit.com/api/v1/ping",
+                "input": [],
+                "output": null
+            }
+        ]
     }
 }
