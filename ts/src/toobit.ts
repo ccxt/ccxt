@@ -37,6 +37,7 @@ export default class toobit extends Exchange {
                 'cancelOrders': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchCurrencies': true,
                 'fetchDeposits': true,
                 'fetchDepositAddress': true,
                 'fetchFundingRateHistory': true,
@@ -294,6 +295,211 @@ export default class toobit extends Exchange {
 
     /**
      * @method
+     * @name toobit#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this.commonGetApiV1ExchangeInfo (params);
+        this.options['exchangeInfo'] = response; // we store it in options for later use in fetchMarkets
+        //
+        //    {
+        //        "timezone": "UTC",
+        //        "serverTime": "1755583099926",
+        //        "brokerFilters": [],
+        //        "symbols": [
+        //            {
+        //                "filters": [
+        //                    {
+        //                        "minPrice": "0.01",
+        //                        "maxPrice": "10000000.00000000",
+        //                        "tickSize": "0.01",
+        //                        "filterType": "PRICE_FILTER"
+        //                    },
+        //                    {
+        //                        "minQty": "0.0001",
+        //                        "maxQty": "4000",
+        //                        "stepSize": "0.0001",
+        //                        "filterType": "LOT_SIZE"
+        //                    },
+        //                    {
+        //                        "minNotional": "5",
+        //                        "filterType": "MIN_NOTIONAL"
+        //                    },
+        //                    {
+        //                        "minAmount": "5",
+        //                        "maxAmount": "6600000",
+        //                        "minBuyPrice": "0.01",
+        //                        "filterType": "TRADE_AMOUNT"
+        //                    },
+        //                    {
+        //                        "maxSellPrice": "99999999",
+        //                        "buyPriceUpRate": "0.1",
+        //                        "sellPriceDownRate": "0.1",
+        //                        "filterType": "LIMIT_TRADING"
+        //                    },
+        //                    {
+        //                        "buyPriceUpRate": "0.1",
+        //                        "sellPriceDownRate": "0.1",
+        //                        "filterType": "MARKET_TRADING"
+        //                    },
+        //                    {
+        //                        "noAllowMarketStartTime": "0",
+        //                        "noAllowMarketEndTime": "0",
+        //                        "limitOrderStartTime": "0",
+        //                        "limitOrderEndTime": "0",
+        //                        "limitMinPrice": "0",
+        //                        "limitMaxPrice": "0",
+        //                        "filterType": "OPEN_QUOTE"
+        //                    }
+        //                ],
+        //                "exchangeId": "301",
+        //                "symbol": "ETHUSDT",
+        //                "symbolName": "ETHUSDT",
+        //                "status": "TRADING",
+        //                "baseAsset": "ETH",
+        //                "baseAssetName": "ETH",
+        //                "baseAssetPrecision": "0.0001",
+        //                "quoteAsset": "USDT",
+        //                "quoteAssetName": "USDT",
+        //                "quotePrecision": "0.01",
+        //                "icebergAllowed": false,
+        //                "isAggregate": false,
+        //                "allowMargin": true,
+        //             }
+        //        ],
+        //        "options": [],
+        //        "contracts": [
+        //            {
+        //                 "filters": [ ... ],
+        //                 "exchangeId": "301",
+        //                 "symbol": "BTC-SWAP-USDT",
+        //                 "symbolName": "BTC-SWAP-USDTUSDT",
+        //                 "status": "TRADING",
+        //                 "baseAsset": "BTC-SWAP-USDT",
+        //                 "baseAssetPrecision": "0.001",
+        //                 "quoteAsset": "USDT",
+        //                 "quoteAssetPrecision": "0.1",
+        //                 "icebergAllowed": false,
+        //                 "inverse": false,
+        //                 "index": "BTC",
+        //                 "indexToken": "BTCUSDT",
+        //                 "marginToken": "USDT",
+        //                 "marginPrecision": "0.0001",
+        //                 "contractMultiplier": "0.001",
+        //                 "underlying": "BTC",
+        //                 "riskLimits": [
+        //                     {
+        //                         "riskLimitId": "200020911",
+        //                         "quantity": "42000.0",
+        //                         "initialMargin": "0.02",
+        //                         "maintMargin": "0.01",
+        //                         "isWhite": false
+        //                     },
+        //                     {
+        //                         "riskLimitId": "200020912",
+        //                         "quantity": "84000.0",
+        //                         "initialMargin": "0.04",
+        //                         "maintMargin": "0.02",
+        //                         "isWhite": false
+        //                     },
+        //                     ...
+        //                 ]
+        //            },
+        //        ],
+        //        "coins": [
+        //            {
+        //                "orgId": "9001",
+        //                "coinId": "TCOM",
+        //                "coinName": "TCOM",
+        //                "coinFullName": "TCOM",
+        //                "allowWithdraw": true,
+        //                "allowDeposit": true,
+        //                "chainTypes": [
+        //                    {
+        //                        "chainType": "BSC",
+        //                        "withdrawFee": "49.55478",
+        //                        "minWithdrawQuantity": "77",
+        //                        "maxWithdrawQuantity": "0",
+        //                        "minDepositQuantity": "48",
+        //                        "allowDeposit": true,
+        //                        "allowWithdraw": false
+        //                    }
+        //                ],
+        //                "isVirtual": false
+        //            },
+        //          ...
+        //
+        const coins = this.safeList (response, 'coins', []);
+        const result = {};
+        for (let i = 0; i < coins.length; i++) {
+            const coin = coins[i];
+            const parsed = this.parseCurrency (coin);
+            result[coin.id] = parsed;
+        }
+        return result;
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const id = this.safeString (rawCurrency, 'coinId');
+        const code = this.safeCurrencyCode (id);
+        const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
+        const networks: Dict = {};
+        const rawNetworks = this.safeList (rawCurrency, 'chainTypes');
+        for (let j = 0; j < rawNetworks.length; j++) {
+            const rawNetwork = rawNetworks[j];
+            const networkId = this.safeString (rawNetwork, 'chainType');
+            const networkCode = this.networkIdToCode (networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': undefined,
+                'deposit': this.safeString (rawNetwork, 'allowDeposit'),
+                'withdraw': this.safeString (rawNetwork, 'allowWithdraw'),
+                'active': undefined,
+                'fee': this.safeNumber (rawNetwork, 'withdrawFee'),
+                'precision': currencyPrecision,
+                'limits': {
+                    'deposit': {
+                        'min': this.safeNumber (rawNetwork, 'minDepositQuantity'),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (rawNetwork, 'minWithdrawQuantity'),
+                        'max': this.safeNumber (rawNetwork, 'maxWithdrawQuantity')
+                    },
+                },
+                'info': rawNetwork,
+            };
+        }
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'name': this.safeString (rawCurrency, 'coinFullName'),
+            'type': undefined,
+            'active': undefined,
+            'deposit': this.safeBool (rawCurrency, 'allowDeposit'),
+            'withdraw': this.safeBool (rawCurrency, 'allowWithdraw'),
+            'fee': undefined,
+            'precision': currencyPrecision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'info': rawCurrency,
+        });
+    }
+
+    /**
+     * @method
      * @name toobit#fetchMarkets
      * @description retrieves data on all markets for toobit
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
@@ -302,7 +508,12 @@ export default class toobit extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<MarketInterface[]> {
-        const response = await this.commonGetApiV1ExchangeInfo (params);
+        let response = this.safeDict (this.options, 'exchangeInfo');
+        if (response !== undefined) {
+            this.options['exchangeInfo'] = undefined; // reset it to avoid using old cached data
+        } else {
+            response = await this.commonGetApiV1ExchangeInfo (params);
+        }
         //
         //    {
         //        "timezone": "UTC",
