@@ -1869,7 +1869,7 @@ class bitget extends \ccxt\async\bitget {
             $uta = null;
             list($uta, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'uta', false);
             if ($market === null && $type === 'spot') {
-                $instType = 'spot';
+                $instType = 'SPOT';
             } else {
                 list($instType, $params) = $this->get_inst_type($market, $uta, $params);
             }
