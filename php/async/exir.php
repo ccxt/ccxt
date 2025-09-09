@@ -264,7 +264,6 @@ class exir extends Exchange {
             );
             $response = Async\await($this->publicGetV2Ticker ($request));
             $response['symbol'] = $market['id'];
-            $response['time'] = $response['timestamp'];
             $ticker = $this->parse_ticker($response);
             return $ticker;
         }) ();

@@ -381,10 +381,7 @@ export default class bit24 extends Exchange {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
         let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
-        if (Object.keys(query).length > 0) {
-            const queryString = this.urlencode(query);
-            url += '?' + queryString;
-        }
+        url = url + '?' + this.urlencode(query);
         headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

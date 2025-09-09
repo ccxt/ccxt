@@ -387,10 +387,7 @@ class bit24 extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
-        if ($query > 0) {
-            $queryString = $this->urlencode($query);
-            $url .= '?' . $queryString;
-        }
+        $url = $url . '?' . $this->urlencode($query);
         $headers = array( 'Content-Type' => 'application/json' );
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

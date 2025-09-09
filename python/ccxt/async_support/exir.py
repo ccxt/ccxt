@@ -250,7 +250,6 @@ class exir(Exchange, ImplicitAPI):
         }
         response = await self.publicGetV2Ticker(request)
         response['symbol'] = market['id']
-        response['time'] = response['timestamp']
         ticker = self.parse_ticker(response)
         return ticker
 
