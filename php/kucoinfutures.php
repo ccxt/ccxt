@@ -224,7 +224,7 @@ class kucoinfutures extends kucoin {
                     '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests -- Access limit breached
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
-                    '100001' => '\\ccxt\\InvalidOrder',     // array("code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\"")
+                    '100001' => '\\ccxt\\OrderNotFound',     // array("msg":"error.getOrder.orderNotExist","code":"100001")
                     '100004' => '\\ccxt\\BadRequest',       // array("code":"100004","msg":"Order is in not cancelable state")
                     '101030' => '\\ccxt\\PermissionDenied', // array("code":"101030","msg":"You haven't yet enabled the margin trading")
                     '200004' => '\\ccxt\\InsufficientFunds',
@@ -244,6 +244,7 @@ class kucoinfutures extends kucoin {
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '300009' => '\\ccxt\\InvalidOrder', // array("msg":"No open positions to close.","code":"300009")
+                    '330008' => '\\ccxt\\InsufficientFunds', // array("msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008")
                 ),
                 'broad' => array(
                     'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )

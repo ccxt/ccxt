@@ -10665,11 +10665,13 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: response from the exchange
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, ['type'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('setPositionMode', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('setPositionMode', None, params)
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
         dualSidePosition = None
