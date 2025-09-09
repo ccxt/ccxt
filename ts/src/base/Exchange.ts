@@ -4626,7 +4626,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
-    parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
+    parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols (symbols);
         const tiers = {};
@@ -4703,7 +4703,7 @@ export default class Exchange {
         return position as Position;
     }
 
-    parsePositions (positions: any[], symbols: string[] = undefined, params = {}): Position[] {
+    parsePositions (positions: any[], symbols: Strings = undefined, params = {}): Position[] {
         symbols = this.marketSymbols (symbols);
         positions = this.toArray (positions);
         const result = [];
@@ -5058,7 +5058,7 @@ export default class Exchange {
         return ohlcvs;
     }
 
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -6699,12 +6699,12 @@ export default class Exchange {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
-    filterBySymbolsSinceLimit (array, symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolsSinceLimit (array, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'symbol', symbols, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    parseLastPrices (pricesData, symbols: string[] = undefined, params = {}): LastPrices {
+    parseLastPrices (pricesData, symbols: Strings = undefined, params = {}): LastPrices {
         //
         // the value of tickers is either a dict or a list
         //
@@ -7827,7 +7827,7 @@ export default class Exchange {
         return optionStructures;
     }
 
-    parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
+    parseMarginModes (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
         const marginModeStructures = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
@@ -7847,7 +7847,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
     }
 
-    parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
+    parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
         const leverageStructures = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
