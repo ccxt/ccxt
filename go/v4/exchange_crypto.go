@@ -12,6 +12,7 @@ import (
 	sha256Hash "crypto/sha256"
 	sha512Hash "crypto/sha512"
 	"crypto/x509"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
@@ -260,6 +261,27 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	signature = strings.Replace(signature, "/", "_", -1)
 	signature = strings.TrimRight(signature, "==")
 	return token + "." + signature
+}
+
+func RSFromECDSADER(sigDER []byte) (r, s *big.Int, ok bool) {
+	var sig struct {
+		R, S *big.Int
+	}
+	rest, err := asn1.Unmarshal(sigDER, &sig)
+	if err != nil || len(rest) != 0 || sig.R == nil || sig.S == nil {
+		return nil, nil, false
+	}
+	return sig.R, sig.S, true
+}
+
+// If you need fixed-width bytes (r||s), e.g., 64 bytes for P-256:
+func RSBytesFromECDSADER(sigDER []byte, curve elliptic.Curve) (rBytes, sBytes []byte, ok bool) {
+	r, s, ok := RSFromECDSADER(sigDER)
+	if !ok {
+		return nil, nil, false
+	}
+	size := (curve.Params().BitSize + 7) / 8
+	return r.FillBytes(make([]byte, size)), s.FillBytes(make([]byte, size)), true
 }
 
 func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) string {
@@ -525,6 +547,7 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 		signature, recoveryId, success = signSecp256k1(messageHash, secretKeyBytes)
 	} else {
 		signature, recoveryId, success = signP256(messageHash, []byte(secretStr))
+
 	}
 	if !success {
 		return result
@@ -585,16 +608,20 @@ func signP256(message, seckey []byte) ([]byte, int, bool) {
 		return nil, 0, false
 	}
 
-	r := new(big.Int).SetBytes(sig[:32])
-	s := new(big.Int).SetBytes(sig[32:64])
-	s = enforceLowS(s)
+	rb, sb, _ := RSBytesFromECDSADER(sig, elliptic.P256())
+	raw := append(rb, sb...) // 64 bytes on P-256
+	// signature = raw
 
-	rBytes := r.FillBytes(make([]byte, 32))
-	sBytes := s.FillBytes(make([]byte, 32))
+	// r := new(big.Int).SetBytes(sig[:32])
+	// s := new(big.Int).SetBytes(sig[32:64])
+	// s = enforceLowS(s)
 
-	signature := append(rBytes, sBytes...)
+	// rBytes := r.FillBytes(make([]byte, 32))
+	// sBytes := s.FillBytes(make([]byte, 32))
 
-	return signature, 0, true
+	// signature := append(rBytes, sBytes...)
+
+	return raw, 0, true
 }
 
 func Crc32(str string, signed2 ...bool) int64 {
