@@ -137,7 +137,8 @@ class toobit(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(response)):
             volume = self.safe_float(response[i], 'v')
-            if volume == 0:
+            symbol = self.safe_value(response[i], 's')
+            if volume == 0 or symbol == 'TESTA1S3TESTX8Z9':
                 continue
             market = self.parse_market(response[i])
             result.append(market)
@@ -256,7 +257,7 @@ class toobit(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = self.publicGetQuoteV1Ticker24hr(request)
-        ticker = self.parse_ticker(response)
+        ticker = self.parse_ticker(response[0])
         return ticker
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -286,15 +287,17 @@ class toobit(Exchange, ImplicitAPI):
         baseVolume = self.safe_float(ticker, 'v')
         quoteVolume = self.safe_float(ticker, 'qv')
         datetime = self.safe_string(ticker, 't')
+        bid = self.safe_float(ticker, 'b', 0)
+        ask = self.safe_float(ticker, 'a', 0)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': datetime,
             'datetime': self.parse8601(datetime),
             'high': high,
             'low': low,
-            'bid': None,
+            'bid': bid,
             'bidVolume': None,
-            'ask': None,
+            'ask': ask,
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -334,15 +337,15 @@ class toobit(Exchange, ImplicitAPI):
         if timeframe is not None:
             request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         response = self.publicGetQuoteV1Klines(request)
-        ohlcvs = self.safe_list(response, 'data')
-        for i in range(0, len(ohlcvs)):
-            candle = ohlcvs[i]
-            ts = self.safe_timestamp(candle, 't')
-            open = self.safe_float(candle, 'o')
-            high = self.safe_float(candle, 'h')
-            low = self.safe_float(candle, 'l')
-            close = self.safe_float(candle, 'c')
-            volume = self.safe_float(candle, 'v')
+        ohlcvs = []
+        for i in range(0, len(response)):
+            candle = response[i]
+            ts = self.safe_timestamp(candle, 0)
+            open = self.safe_float(candle, 1)
+            high = self.safe_float(candle, 2)
+            low = self.safe_float(candle, 3)
+            close = self.safe_float(candle, 4)
+            volume = self.safe_float(candle, 5)
             ohlcvs.append([
                 ts,
                 open,

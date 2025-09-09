@@ -1,5 +1,6 @@
 LICENSE.txt
 MANIFEST.in
+README.md
 README.rst
 package.json
 setup.cfg
@@ -19,6 +20,7 @@ ccxt/binancecoinm.py
 ccxt/binanceus.py
 ccxt/binanceusdm.py
 ccxt/bingx.py
+ccxt/bit24.py
 ccxt/bit2c.py
 ccxt/bitbank.py
 ccxt/bitbns.py
@@ -123,6 +125,7 @@ ccxt/tabdeal.py
 ccxt/tetherland.py
 ccxt/timex.py
 ccxt/tokocrypto.py
+ccxt/toobit.py
 ccxt/tradeogre.py
 ccxt/twox.py
 ccxt/ubitex.py
@@ -152,6 +155,7 @@ ccxt/abstract/binancecoinm.py
 ccxt/abstract/binanceus.py
 ccxt/abstract/binanceusdm.py
 ccxt/abstract/bingx.py
+ccxt/abstract/bit24.py
 ccxt/abstract/bit2c.py
 ccxt/abstract/bitbank.py
 ccxt/abstract/bitbns.py
@@ -256,6 +260,7 @@ ccxt/abstract/tabdeal.py
 ccxt/abstract/tetherland.py
 ccxt/abstract/timex.py
 ccxt/abstract/tokocrypto.py
+ccxt/abstract/toobit.py
 ccxt/abstract/tradeogre.py
 ccxt/abstract/twox.py
 ccxt/abstract/ubitex.py
@@ -285,6 +290,7 @@ ccxt/async_support/binancecoinm.py
 ccxt/async_support/binanceus.py
 ccxt/async_support/binanceusdm.py
 ccxt/async_support/bingx.py
+ccxt/async_support/bit24.py
 ccxt/async_support/bit2c.py
 ccxt/async_support/bitbank.py
 ccxt/async_support/bitbns.py
@@ -389,6 +395,7 @@ ccxt/async_support/tabdeal.py
 ccxt/async_support/tetherland.py
 ccxt/async_support/timex.py
 ccxt/async_support/tokocrypto.py
+ccxt/async_support/toobit.py
 ccxt/async_support/tradeogre.py
 ccxt/async_support/twox.py
 ccxt/async_support/ubitex.py

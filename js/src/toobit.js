@@ -141,7 +141,8 @@ export default class toobit extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const volume = this.safeFloat(response[i], 'v');
-            if (volume === 0) {
+            const symbol = this.safeValue(response[i], 's');
+            if (volume === 0 || symbol === 'TESTA1S3TESTX8Z9') {
                 continue;
             }
             const market = this.parseMarket(response[i]);
@@ -271,7 +272,7 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetQuoteV1Ticker24hr(request);
-        const ticker = this.parseTicker(response);
+        const ticker = this.parseTicker(response[0]);
         return ticker;
     }
     parseTicker(ticker, market = undefined) {
@@ -301,15 +302,17 @@ export default class toobit extends Exchange {
         const baseVolume = this.safeFloat(ticker, 'v');
         const quoteVolume = this.safeFloat(ticker, 'qv');
         const datetime = this.safeString(ticker, 't');
+        const bid = this.safeFloat(ticker, 'b', 0);
+        const ask = this.safeFloat(ticker, 'a', 0);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': datetime,
             'datetime': this.parse8601(datetime),
             'high': high,
             'low': low,
-            'bid': undefined,
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
@@ -353,15 +356,15 @@ export default class toobit extends Exchange {
             request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
         }
         const response = await this.publicGetQuoteV1Klines(request);
-        const ohlcvs = this.safeList(response, 'data');
-        for (let i = 0; i < ohlcvs.length; i++) {
-            const candle = ohlcvs[i];
-            const ts = this.safeTimestamp(candle, 't');
-            const open = this.safeFloat(candle, 'o');
-            const high = this.safeFloat(candle, 'h');
-            const low = this.safeFloat(candle, 'l');
-            const close = this.safeFloat(candle, 'c');
-            const volume = this.safeFloat(candle, 'v');
+        const ohlcvs = [];
+        for (let i = 0; i < response.length; i++) {
+            const candle = response[i];
+            const ts = this.safeTimestamp(candle, 0);
+            const open = this.safeFloat(candle, 1);
+            const high = this.safeFloat(candle, 2);
+            const low = this.safeFloat(candle, 3);
+            const close = this.safeFloat(candle, 4);
+            const volume = this.safeFloat(candle, 5);
             ohlcvs.push([
                 ts,
                 open,

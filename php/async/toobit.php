@@ -140,7 +140,8 @@ class toobit extends Exchange {
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $volume = $this->safe_float($response[$i], 'v');
-                if ($volume === 0) {
+                $symbol = $this->safe_value($response[$i], 's');
+                if ($volume === 0 || $symbol === 'TESTA1S3TESTX8Z9') {
                     continue;
                 }
                 $market = $this->parse_market($response[$i]);
@@ -272,7 +273,7 @@ class toobit extends Exchange {
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetQuoteV1Ticker24hr ($request));
-            $ticker = $this->parse_ticker($response);
+            $ticker = $this->parse_ticker($response[0]);
             return $ticker;
         }) ();
     }
@@ -304,15 +305,17 @@ class toobit extends Exchange {
         $baseVolume = $this->safe_float($ticker, 'v');
         $quoteVolume = $this->safe_float($ticker, 'qv');
         $datetime = $this->safe_string($ticker, 't');
+        $bid = $this->safe_float($ticker, 'b', 0);
+        $ask = $this->safe_float($ticker, 'a', 0);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $datetime,
             'datetime' => $this->parse8601($datetime),
             'high' => $high,
             'low' => $low,
-            'bid' => null,
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
@@ -356,15 +359,15 @@ class toobit extends Exchange {
                 $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             }
             $response = Async\await($this->publicGetQuoteV1Klines ($request));
-            $ohlcvs = $this->safe_list($response, 'data');
-            for ($i = 0; $i < count($ohlcvs); $i++) {
-                $candle = $ohlcvs[$i];
-                $ts = $this->safe_timestamp($candle, 't');
-                $open = $this->safe_float($candle, 'o');
-                $high = $this->safe_float($candle, 'h');
-                $low = $this->safe_float($candle, 'l');
-                $close = $this->safe_float($candle, 'c');
-                $volume = $this->safe_float($candle, 'v');
+            $ohlcvs = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $candle = $response[$i];
+                $ts = $this->safe_timestamp($candle, 0);
+                $open = $this->safe_float($candle, 1);
+                $high = $this->safe_float($candle, 2);
+                $low = $this->safe_float($candle, 3);
+                $close = $this->safe_float($candle, 4);
+                $volume = $this->safe_float($candle, 5);
                 $ohlcvs[] = array(
                     $ts,
                     $open,
