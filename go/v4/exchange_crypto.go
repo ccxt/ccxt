@@ -247,7 +247,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	if isRsa {
 		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
-		ec := Ecdsa(token, secret, secp256k1, hash)
+		ec := Ecdsa(token, secret, P256, hash)
 		r := ec["r"].(string)
 		s := ec["s"].(string)
 		converted, _ := convertHexStringToByteArray(r + s)
@@ -497,35 +497,34 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 		return result
 	}
 
-	if strings.HasPrefix(secretStr, "-----BEGIN EC PRIVATE KEY-----") {
-		block, _ := pem.Decode([]byte(secretStr))
-		if block == nil || block.Type != "EC PRIVATE KEY" {
-			panic("failed to decode PEM block containing EC private key")
-		}
+	// if strings.HasPrefix(secretStr, "-----BEGIN EC PRIVATE KEY-----") {
+	// 	block, _ := pem.Decode([]byte(secretStr))
+	// 	if block == nil || block.Type != "EC PRIVATE KEY" {
+	// 		panic("failed to decode PEM block containing EC private key")
+	// 	}
 
-		// Step 2: Parse EC private key
-		key, err := x509.ParseECPrivateKey(block.Bytes)
-		if err != nil {
-			panic(err)
-		}
+	// 	// Step 2: Parse EC private key
+	// 	key, err := x509.ParseECPrivateKey(block.Bytes)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
 
-		hexKey := hex.EncodeToString(key.D.Bytes())
-		secretStr = strings.ToLower(hexKey)
-	}
-
-	secretKeyBytes, ok := hexToBytes(secretStr)
-	if !ok {
-		return result
-	}
+	// 	hexKey := hex.EncodeToString(key.D.Bytes())
+	// 	secretStr = strings.ToLower(hexKey)
+	// }
 
 	// Sign the message depending on the curve
 	var signature []byte
 	var recoveryId int
 	success := false
 	if curveName == "secp256k1" {
+		secretKeyBytes, ok := hexToBytes(secretStr)
+		if !ok {
+			return result
+		}
 		signature, recoveryId, success = signSecp256k1(messageHash, secretKeyBytes)
 	} else {
-		signature, recoveryId, success = signP256(messageHash, secretKeyBytes)
+		signature, recoveryId, success = signP256(messageHash, []byte(secretStr))
 	}
 	if !success {
 		return result
@@ -546,41 +545,56 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	return result
 }
 
-func signP256(message, seckey []byte) ([]byte, int, bool) {
-	curve := elliptic.P256()
-	N := curve.Params().N
-
-	// Build private scalar
-	d := new(big.Int).SetBytes(seckey)
-	if d.Sign() == 0 || d.Cmp(N) >= 0 {
-		return nil, 0, false // invalid secret key
+func parseECPrivateKey(pemPriv []byte) *ecdsa.PrivateKey {
+	block, _ := pem.Decode(pemPriv)
+	if block == nil {
+		return nil
 	}
+	switch block.Type {
+	case "EC PRIVATE KEY":
+		p, err := x509.ParseECPrivateKey(block.Bytes)
+		if err != nil {
+			return nil
+		}
+		return p
+	case "PRIVATE KEY": // PKCS#8
+		k, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil
+		}
+		pk, ok := k.(*ecdsa.PrivateKey)
+		if !ok {
+			return nil
+		}
+		return pk
+	default:
+		// (Encrypted keys like "ENCRYPTED PRIVATE KEY" aren’t handled here.)
+		return nil
+	}
+}
 
-	// Construct full private key (D, X, Y)
-	priv := new(ecdsa.PrivateKey)
-	priv.PublicKey.Curve = curve
-	priv.D = d
-	priv.PublicKey.X, priv.PublicKey.Y = curve.ScalarBaseMult(seckey)
+func signP256(message, seckey []byte) ([]byte, int, bool) {
 
-	// NOTE: ecdsa.Sign expects a hash digest of the message (size <= hash output).
-	// Ensure `message` is already hashed (e.g., SHA-256) before calling this.
-	r, s, err := ecdsa.Sign(rand.Reader, priv, message)
+	priv := parseECPrivateKey(seckey)
+
+	// h := sha256Hash.Sum256(message)
+	// digest := h[:]
+
+	sig, err := ecdsa.SignASN1(rand.Reader, priv, message)
 	if err != nil {
 		return nil, 0, false
 	}
 
-	// // Enforce low-S (canonical)
-	// halfN := new(big.Int).Rsh(new(big.Int).Set(N), 1)
-	// if s.Cmp(halfN) == 1 {
-	// 	s.Sub(N, s)
-	// }
+	r := new(big.Int).SetBytes(sig[:32])
+	s := new(big.Int).SetBytes(sig[32:64])
+	s = enforceLowS(s)
 
-	// 32-byte big-endian r||s
 	rBytes := r.FillBytes(make([]byte, 32))
 	sBytes := s.FillBytes(make([]byte, 32))
-	sig := append(rBytes, sBytes...)
 
-	return sig, 0, true // no recovery ID for P-256
+	signature := append(rBytes, sBytes...)
+
+	return signature, 0, true
 }
 
 func Crc32(str string, signed2 ...bool) int64 {
