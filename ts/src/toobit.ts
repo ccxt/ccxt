@@ -1077,16 +1077,21 @@ export default class toobit extends Exchange {
         symbols = this.marketSymbols (symbols);
         let type = undefined;
         let market = undefined;
+        const request: Dict = {};
         if (symbols !== undefined) {
             const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
+            const length = symbols.length;
+            if (length === 1) {
+                request['symbol'] = market['id'];
+            }
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let response = undefined;
         if (type === 'spot') {
-            response = await this.commonGetQuoteV1Ticker24hr (params);
+            response = await this.commonGetQuoteV1Ticker24hr (this.extend (request, params));
         } else {
-            response = await this.commonGetQuoteV1ContractTicker24hr (params);
+            response = await this.commonGetQuoteV1ContractTicker24hr (this.extend (request, params));
         }
         //
         //    [
@@ -1105,22 +1110,6 @@ export default class toobit extends Exchange {
         //        ...
         //
         return this.parseTickers (response, symbols, params);
-    }
-
-    /**
-     * @method
-     * @name toobit#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-     */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
-        const tickers = await this.fetchTickers ([ symbol ], params);
-        return this.safeDict (tickers, symbol) as Ticker;
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1165,7 +1154,15 @@ export default class toobit extends Exchange {
     async fetchLastPrices (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.commonGetQuoteV1TickerPrice (params);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.commonGetQuoteV1TickerPrice (this.extend (request, params));
         //
         //    [
         //        {
@@ -1205,7 +1202,11 @@ export default class toobit extends Exchange {
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (symbols !== undefined) {
-            request['product_ids'] = this.marketIds (symbols);
+            const length = symbols.length;
+            if (length === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
         }
         const response = await this.commonGetQuoteV1TickerBookTicker (this.extend (request, params));
         //
@@ -1257,7 +1258,15 @@ export default class toobit extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.commonGetApiV1FuturesFundingRate (params);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length === 1) {
+                const market = this.market (symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.commonGetApiV1FuturesFundingRate (this.extend (request, params));
         //
         //    [
         //        {
@@ -2312,7 +2321,7 @@ export default class toobit extends Exchange {
         let market = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTradingFees', undefined, params);
         if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' does not support ' + marketType + ' markets');
+            throw new NotSupported (this.id + ' fetchTradingFees(): does not support ' + marketType + ' markets');
         } else if (this.inArray (marketType, [ 'swap', 'future' ])) {
             let symbol: Str = undefined;
             [ symbol, params ] = this.handleParamString (params, 'symbol');
