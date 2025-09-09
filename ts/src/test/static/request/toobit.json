@@ -2,7 +2,38 @@
     "exchange": "toobit",
     "skipKeys": [],
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker symbol perp",
+                "method": "fetchTicker",
+                "url": "https://api.toobit.com/quote/v1/contract/ticker/24hr?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTicker symbol spot",
+                "method": "fetchTicker",
+                "url": "https://api.toobit.com/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchBidsAsks": [
+            {
+                "description": "fetchBidsAsks symbol perp",
+                "method": "fetchBidsAsks",
+                "url": "https://api.toobit.com/quote/v1/ticker/bookTicker?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
             {
                 "description": "fetchBidsAsks symbol spot",
                 "method": "fetchBidsAsks",
@@ -23,6 +54,17 @@
             }
         ],
         "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates perp symbol",
+                "method": "fetchFundingRates",
+                "url": "https://api.toobit.com/api/v1/futures/fundingRate?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
             {
                 "description": "fetchFundingRates no args",
                 "method": "fetchFundingRates",
@@ -73,31 +115,11 @@
                 "output": null
             }
         ],
-        "fetchTicker": [
-            {
-                "description": "fetchTicker symbol spot",
-                "method": "fetchTicker",
-                "url": "https://api.toobit.com/quote/v1/ticker/24hr",
-                "input": [
-                    "BTC/USDT"
-                ],
-                "output": null
-            },
-            {
-                "description": "fetchTicker symbol perp",
-                "method": "fetchTicker",
-                "url": "https://api.toobit.com/quote/v1/contract/ticker/24hr",
-                "input": [
-                    "BTC/USDT:USDT"
-                ],
-                "output": null
-            }
-        ],
         "fetchLastPrices": [
             {
-                "description": "fetchLastPrices spot symbol",
+                "description": "fetchLastPrices symbol spot",
                 "method": "fetchLastPrices",
-                "url": "https://api.toobit.com/quote/v1/ticker/price",
+                "url": "https://api.toobit.com/quote/v1/ticker/price?symbol=BTCUSDT",
                 "input": [
                     [
                         "BTC/USDT"
