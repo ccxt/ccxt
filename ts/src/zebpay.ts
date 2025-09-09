@@ -424,8 +424,8 @@ export default class zebpay extends Exchange {
 
     /**
      * @method
-     * @name zebpay#fetchStatus
-     * @description the latest known information on the availability of the exchange API
+     * @name zebpay#fetchTradingFee
+     * @description fetch the trading fees for a market
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-exchange-fee
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fee-single-symbol
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -482,7 +482,7 @@ export default class zebpay extends Exchange {
     /**
      * @method
      * @name zebpay(futures)#fetchTradingFees
-     * @description the latest known information on the availability of the exchange API
+     * @description fetch the trading fees for multiple markets
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/exchange.md#get-trade-fees-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
@@ -866,7 +866,7 @@ export default class zebpay extends Exchange {
      * @method
      * @name zebpay#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance 
+     * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-account-balance
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/wallet.md#get-wallet-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -915,7 +915,6 @@ export default class zebpay extends Exchange {
      * @param {float} amount the amount of currency to trade
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
-     * @param {number} [params.leverage] Leverage size of the order
      * @param {string} [params.formType] The price at which a trigger order is triggered at
      * @param {string} [params.marginAsset] The asset the order creates.
      * @param {boolean} [params.takeProfit] Takeprofit flag for the order.
@@ -927,7 +926,6 @@ export default class zebpay extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marginAsset = this.safeString (params, 'marginAsset', 'INR');
-        const leverage = this.safeString (params, 'leverage');
         const formType = this.safeString (params, 'formType', 'ORDER_FORM');
         const upperCaseFormType = formType.toUpperCase ();
         const upperCaseType = type.toUpperCase ();
@@ -935,7 +933,7 @@ export default class zebpay extends Exchange {
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const orderType = this.safeString (params, 'orderType');
         const positionId = this.safeString (params, 'positionId', undefined);
-        params = this.omit (params, [ 'marginAsset', 'leverage', 'formType', 'positionId', 'takeProfitPrice' ]);
+        params = this.omit (params, [ 'marginAsset', 'formType', 'positionId', 'takeProfitPrice' ]);
         let request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
@@ -946,13 +944,9 @@ export default class zebpay extends Exchange {
             response = await this.privateSpotPostV2ExOrders (this.extend (request, params));
         } else {
             params = this.omit (params, [ 'stopLossPrice' ]);
-            if (leverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a leverage parameter argument');
-            }
             request['formType'] = upperCaseFormType;
             request['amount'] = parseFloat (this.amountToPrecision (market['id'], amount));
             request['marginAsset'] = marginAsset;
-            request['leverage'] = leverage;
             const hasTP = takeProfitPrice !== undefined;
             const hasSL = stopLossPrice !== undefined;
             if (hasTP || hasSL) {
