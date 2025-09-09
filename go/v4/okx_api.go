@@ -83,6 +83,10 @@ func (this *okx) PublicGetMarketIndexComponents(args ...interface{}) <-chan inte
 	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
 }
 
+func (this *okx) PublicGetPublicMarketDataHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
+}
+
 func (this *okx) PublicGetPublicEconomicCalendar(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
 }

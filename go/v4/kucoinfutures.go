@@ -440,7 +440,7 @@ func (this *kucoinfutures) FetchStatus(optionalArgs ...interface{}) <-chan inter
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", map[string]interface{}{})
+		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 		var status interface{} = this.SafeString(data, "status")
 
 		ch <- map[string]interface{}{
@@ -537,7 +537,7 @@ func (this *kucoinfutures) FetchMarkets(optionalArgs ...interface{}) <-chan inte
 		//    }
 		//
 		var result interface{} = []interface{}{}
-		var data interface{} = this.SafeValue(response, "data", []interface{}{})
+		var data interface{} = this.SafeList(response, "data", []interface{}{})
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 			var market interface{} = GetValue(data, i)
 			var id interface{} = this.SafeString(market, "symbol")
@@ -805,7 +805,7 @@ func (this *kucoinfutures) FetchDepositAddress(code interface{}, optionalArgs ..
 		//        }
 		//    }
 		//
-		var data interface{} = this.SafeValue(response, "data", map[string]interface{}{})
+		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 		var address interface{} = this.SafeString(data, "address")
 		if IsTrue(!IsEqual(currencyId, "NIM")) {
 			// contains spaces
@@ -885,7 +885,7 @@ func (this *kucoinfutures) FetchOrderBook(symbol interface{}, optionalArgs ...in
 		//         }
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data", map[string]interface{}{})
+		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 		var timestamp interface{} = this.ParseToInt(Divide(this.SafeInteger(data, "ts"), 1000000))
 		var orderbook interface{} = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
 		AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "sequence"))
@@ -1308,7 +1308,7 @@ func (this *kucoinfutures) FetchFundingHistory(optionalArgs ...interface{}) <-ch
 		//    }
 		//
 		var data interface{} = this.SafeValue(response, "data")
-		var dataList interface{} = this.SafeValue(data, "dataList", []interface{}{})
+		var dataList interface{} = this.SafeList(data, "dataList", []interface{}{})
 		var fees interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(dataList)); i++ {
 			var listItem interface{} = GetValue(dataList, i)
@@ -2469,7 +2469,7 @@ func (this *kucoinfutures) FetchOrdersByStatus(status interface{}, optionalArgs 
 		//         }
 		//     }
 		//
-		var responseData interface{} = this.SafeValue(response, "data", map[string]interface{}{})
+		var responseData interface{} = this.SafeDict(response, "data", map[string]interface{}{})
 		var orders interface{} = this.SafeList(responseData, "items", []interface{}{})
 
 		ch <- this.ParseOrders(orders, market, since, limit)
@@ -3615,7 +3615,7 @@ func (this *kucoinfutures) FetchMarketLeverageTiers(symbol interface{}, optional
 		//        ]
 		//    }
 		//
-		var data interface{} = this.SafeValue(response, "data")
+		var data interface{} = this.SafeList(response, "data", []interface{}{})
 
 		ch <- this.ParseMarketLeverageTiers(data, market)
 		return nil
@@ -3728,7 +3728,7 @@ func (this *kucoinfutures) FetchFundingRateHistory(optionalArgs ...interface{}) 
 		//         ]
 		//     }
 		//
-		var data interface{} = this.SafeValue(response, "data")
+		var data interface{} = this.SafeList(response, "data", []interface{}{})
 
 		ch <- this.ParseFundingRateHistories(data, market, since, limit)
 		return nil

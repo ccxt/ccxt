@@ -610,8 +610,8 @@ class coincatch extends coincatch$1["default"] {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString(network, 'chain');
-                const networkCode = this.networkCodeToId(networkId);
-                parsedNetworks[networkId] = {
+                const networkCode = this.networkIdToCode(networkId);
+                parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {
