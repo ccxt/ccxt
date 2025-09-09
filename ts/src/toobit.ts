@@ -1107,6 +1107,22 @@ export default class toobit extends Exchange {
         return this.parseTickers (response, symbols, params);
     }
 
+    /**
+     * @method
+     * @name toobit#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const tickers = await this.fetchTickers ([ symbol ], params);
+        return this.safeDict (tickers, symbol) as Ticker;
+    }
+
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
