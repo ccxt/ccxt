@@ -1160,7 +1160,7 @@ export default class Exchange {
         }
     }
 
-    checkOrderArguments (market, type, side, amount, price, params) {
+    checkOrderArguments (market: string, type: string, side: string, amount: number, price: number, params: Dict) {
         if (price === undefined) {
             if (type === 'limit') {
                   throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
@@ -1179,7 +1179,7 @@ export default class Exchange {
         }
     }
 
-    remove0xPrefix (hexData) {
+    remove0xPrefix (hexData: string) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
         } else {
@@ -1478,7 +1478,7 @@ export default class Exchange {
         return Promise.all (closedClients);
     }
 
-    async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
+    async loadOrderBook (client: Client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
@@ -1521,7 +1521,7 @@ export default class Exchange {
         return value !== undefined && value !== null;
     }
 
-    arraySlice(array, first, second = undefined) {
+    arraySlice (array: any[], first: number, second: number = undefined) {
         if (second === undefined) {
             return array.slice(first);
         }
@@ -5319,7 +5319,7 @@ export default class Exchange {
         return this.safeValue (fees, code);
     }
 
-    getSupportedMapping (key, mapping = {}) {
+    getSupportedMapping (key: string, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
         } else {
