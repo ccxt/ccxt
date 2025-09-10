@@ -379,6 +379,62 @@
         ],
         "fetchLastPrices": [
             {
+                "description": "fetchLastPrices symbol swap",
+                "method": "fetchLastPrices",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "s": "BTC-SWAP-USDT",
+                        "p": "111399.3"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "price": null,
+                        "side": null,
+                        "info": {
+                            "s": "BTC-SWAP-USDT",
+                            "p": "111399.3"
+                        }
+                    }
+                }
+            },
+            {
+                "description": "fetchLastPrices symbol spot",
+                "method": "fetchLastPrices",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "s": "BTCUSDT",
+                        "p": "111455.45"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "price": null,
+                        "side": null,
+                        "info": {
+                            "s": "BTCUSDT",
+                            "p": "111455.45"
+                        }
+                    }
+                }
+            },
+            {
                 "description": "fetchLastPrices spot symbol",
                 "method": "fetchLastPrices",
                 "input": [

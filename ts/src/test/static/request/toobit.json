@@ -117,6 +117,17 @@
         ],
         "fetchLastPrices": [
             {
+                "description": "fetchLastPrices symbol swap",
+                "method": "fetchLastPrices",
+                "url": "https://api.toobit.com/quote/v1/ticker/price?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchLastPrices symbol spot",
                 "method": "fetchLastPrices",
                 "url": "https://api.toobit.com/quote/v1/ticker/price?symbol=BTCUSDT",
