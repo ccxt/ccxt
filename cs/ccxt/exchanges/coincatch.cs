@@ -2313,6 +2313,7 @@ public partial class coincatch : Exchange
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2561,6 +2562,7 @@ public partial class coincatch : Exchange
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2623,7 +2625,7 @@ public partial class coincatch : Exchange
         * @param {float} amount how much of you want to trade in units of the base currency
         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.hedged] default false
+        * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
         * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
         * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
         * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2671,39 +2673,52 @@ public partial class coincatch : Exchange
         if (isTrue((!isEqual(endpointType, "tpsl"))))
         {
             ((IDictionary<string,object>)request)["orderType"] = type;
+            object sideIsExchangeSpecific = false;
             object hedged = false;
-            var hedgedparametersVariable = this.handleOptionAndParams(parameters, methodName, "hedged", hedged);
-            hedged = ((IList<object>)hedgedparametersVariable)[0];
-            parameters = ((IList<object>)hedgedparametersVariable)[1];
-            // hedged and non-hedged orders have different side values and reduceOnly handling
-            object reduceOnly = false;
-            var reduceOnlyparametersVariable = this.handleParamBool(parameters, "reduceOnly", reduceOnly);
-            reduceOnly = ((IList<object>)reduceOnlyparametersVariable)[0];
-            parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
-            if (isTrue(hedged))
+            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(side, "buy_single"))) || isTrue((isEqual(side, "sell_single")))) || isTrue((isEqual(side, "open_long")))) || isTrue((isEqual(side, "open_short")))) || isTrue((isEqual(side, "close_long")))) || isTrue((isEqual(side, "close_short")))))
             {
-                if (isTrue(reduceOnly))
+                sideIsExchangeSpecific = true;
+                if (isTrue(isTrue((!isEqual(side, "buy_single"))) && isTrue((!isEqual(side, "sell_single")))))
                 {
-                    if (isTrue(isEqual(side, "buy")))
+                    hedged = true;
+                }
+            }
+            if (!isTrue(sideIsExchangeSpecific))
+            {
+                var hedgedparametersVariable = this.handleOptionAndParams(parameters, methodName, "hedged", hedged);
+                hedged = ((IList<object>)hedgedparametersVariable)[0];
+                parameters = ((IList<object>)hedgedparametersVariable)[1];
+                // hedged and non-hedged orders have different side values and reduceOnly handling
+                object reduceOnly = this.safeBool(parameters, "reduceOnly");
+                if (isTrue(hedged))
+                {
+                    if (isTrue(isTrue((!isEqual(reduceOnly, null))) && isTrue(reduceOnly)))
                     {
-                        side = "close_short";
-                    } else if (isTrue(isEqual(side, "sell")))
+                        if (isTrue(isEqual(side, "buy")))
+                        {
+                            side = "close_short";
+                        } else if (isTrue(isEqual(side, "sell")))
+                        {
+                            side = "close_long";
+                        }
+                    } else
                     {
-                        side = "close_long";
+                        if (isTrue(isEqual(side, "buy")))
+                        {
+                            side = "open_long";
+                        } else if (isTrue(isEqual(side, "sell")))
+                        {
+                            side = "open_short";
+                        }
                     }
                 } else
                 {
-                    if (isTrue(isEqual(side, "buy")))
-                    {
-                        side = "open_long";
-                    } else if (isTrue(isEqual(side, "sell")))
-                    {
-                        side = "open_short";
-                    }
+                    side = add(((string)side).ToLower(), "_single");
                 }
-            } else
+            }
+            if (isTrue(hedged))
             {
-                side = add(((string)side).ToLower(), "_single");
+                parameters = this.omit(parameters, "reduceOnly");
             }
             ((IDictionary<string,object>)request)["side"] = side;
         }
