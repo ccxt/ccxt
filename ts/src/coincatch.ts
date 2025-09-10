@@ -2316,10 +2316,11 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
-     * @param {string} side 'buy' or 'sell'
+     * @param {string} side 'buy' or 'sell' (also 'open_long', 'open_short', 'close_long', 'close_short', 'buy_single' or 'sell_single' for swap)
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2516,10 +2517,11 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#place-stop-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
+     * @param {string} side 'buy', 'sell', 'open_long', 'open_short', 'close_long', 'close_short', 'buy_single' or 'sell_single'
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2572,11 +2574,11 @@ export default class coincatch extends Exchange {
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
+         * @param {string} side 'buy', 'sell', 'open_long', 'open_short', 'close_long', 'close_short', 'buy_single' or 'sell_single'
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.hedged] default false
+         * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
          * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
          * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2615,27 +2617,38 @@ export default class coincatch extends Exchange {
         }
         if ((endpointType !== 'tpsl')) {
             request['orderType'] = type;
-            let hedged: Bool = false;
-            [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
-            // hedged and non-hedged orders have different side values and reduceOnly handling
-            let reduceOnly: Bool = false;
-            [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
-            if (hedged) {
-                if (reduceOnly) {
-                    if (side === 'buy') {
-                        side = 'close_short';
-                    } else if (side === 'sell') {
-                        side = 'close_long';
+            let sideIsExchangeSpecific = false;
+            let hedged = false;
+            if ((side === 'buy_single') || (side === 'sell_single') || (side === 'open_long') || (side === 'open_short') || (side === 'close_long') || (side === 'close_short')) {
+                sideIsExchangeSpecific = true;
+                if ((side !== 'buy_single') && (side !== 'sell_single')) {
+                    hedged = true;
+                }
+            }
+            if (!sideIsExchangeSpecific) {
+                [ hedged, params ] = this.handleOptionAndParams (params, methodName, 'hedged', hedged);
+                // hedged and non-hedged orders have different side values and reduceOnly handling
+                const reduceOnly = this.safeBool (params, 'reduceOnly');
+                if (hedged) {
+                    if ((reduceOnly !== undefined) && reduceOnly) {
+                        if (side === 'buy') {
+                            side = 'close_short';
+                        } else if (side === 'sell') {
+                            side = 'close_long';
+                        }
+                    } else {
+                        if (side === 'buy') {
+                            side = 'open_long';
+                        } else if (side === 'sell') {
+                            side = 'open_short';
+                        }
                     }
                 } else {
-                    if (side === 'buy') {
-                        side = 'open_long';
-                    } else if (side === 'sell') {
-                        side = 'open_short';
-                    }
+                    side = side.toLowerCase () + '_single';
                 }
-            } else {
-                side = side.toLowerCase () + '_single';
+            }
+            if (hedged) {
+                params = this.omit (params, 'reduceOnly');
             }
             request['side'] = side;
         }
