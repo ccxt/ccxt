@@ -23,10 +23,10 @@
 # Imports
 from typing import Any, Dict, Type
 
-from bip_utils.addr import IAddrEncoder
-from bip_utils.bip.bip32 import Bip32KeyNetVersions
-from bip_utils.bip.conf.common.bip_coin_conf import Bip32Base, BipCoinConf
-from bip_utils.utils.conf import CoinNames
+from ..addr import IAddrEncoder
+from ..bip32 import Bip32KeyNetVersions
+from .bip_coin_conf import Bip32Base, BipCoinConf
+from ..utils.conf import CoinNames
 
 
 class BipBitcoinCashConf(BipCoinConf):

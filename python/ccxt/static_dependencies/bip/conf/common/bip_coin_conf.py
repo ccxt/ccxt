@@ -23,9 +23,9 @@
 # Imports
 from typing import Any, Dict, Optional, Tuple, Type
 
-from bip_utils.addr import IAddrEncoder
-from bip_utils.bip.bip32 import Bip32Base, Bip32KeyNetVersions, Bip32PublicKey
-from bip_utils.utils.conf import CoinNames as UtilsCoinNames
+from ...addr.iaddr_encoder import IAddrEncoder
+from ...bip32 import Bip32Base, Bip32KeyNetVersions, Bip32PublicKey
+from ...utils.conf import CoinNames as UtilsCoinNames
 
 
 class BipCoinFctCallsConf:
@@ -71,7 +71,7 @@ class BipCoinConf:  # pylint: disable=too-many-instance-attributes
     m_wif_net_ver: Optional[bytes]
     m_bip32_cls: Type[Bip32Base]
     m_addr_params: Dict[str, Any]
-    m_addr_cls: Type[IAddrEncoder]
+    # m_addr_cls: Type[IAddrEncoder]
     m_any_addr_params_fct_call: bool
 
     def __init__(self,  # pylint: disable=too-many-arguments
@@ -82,7 +82,7 @@ class BipCoinConf:  # pylint: disable=too-many-instance-attributes
                  key_net_ver: Bip32KeyNetVersions,
                  wif_net_ver: Optional[bytes],
                  bip32_cls: Type[Bip32Base],
-                 addr_cls: Type[IAddrEncoder],
+                #  addr_cls: Type[IAddrEncoder],
                  addr_params: Dict[str, Any]) -> None:
         """
         Construct class.
@@ -109,7 +109,7 @@ class BipCoinConf:  # pylint: disable=too-many-instance-attributes
         self.m_any_addr_params_fct_call = any(
             (isinstance(param_val, BipCoinFctCallsConf) for param_val in addr_params.values())
         )
-        self.m_addr_cls = addr_cls
+        # self.m_addr_cls = addr_cls
 
     def CoinNames(self) -> UtilsCoinNames:
         """
@@ -207,11 +207,11 @@ class BipCoinConf:  # pylint: disable=too-many-instance-attributes
             for param_name, param_val in addr_params.items()
         }
 
-    def AddrClass(self) -> Type[IAddrEncoder]:
-        """
-        Get the address class.
+    # def AddrClass(self) -> Type[IAddrEncoder]:
+    #     """
+    #     Get the address class.
 
-        Returns:
-            IAddrEncoder class: Address class
-        """
-        return self.m_addr_cls
+    #     Returns:
+    #         IAddrEncoder class: Address class
+    #     """
+    #     return self.m_addr_cls

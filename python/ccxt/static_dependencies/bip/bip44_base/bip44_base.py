@@ -33,7 +33,7 @@ from ..bip32 import Bip32Base, Bip32KeyData, Bip32KeyIndex
 from ..bip44_base.bip44_base_ex import Bip44DepthError
 from ..bip44_base.bip44_keys import Bip44PrivateKey, Bip44PublicKey
 from ..conf.common import BipCoinConf, BipCoins
-# from bip_utils.ecc import IPrivateKey, IPublicKey
+from ..ecc import IPrivateKey, IPublicKey
 
 
 @unique

@@ -1,1 +1,1 @@
-from ..utils.conf.coin_names import CoinNames
+from .coin_names import CoinNames

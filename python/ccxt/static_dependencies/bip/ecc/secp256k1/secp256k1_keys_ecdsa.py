@@ -143,7 +143,7 @@ class Secp256k1PublicKeyEcdsa(IPublicKey):
         Returns:
             DataBytes object: DataBytes object
         """
-        return DataBytes(self.m_ver_key.to_string("compressed"))
+        return DataBytes(self.m_ver_key.to_string('compressed'))
 
     def RawUncompressed(self) -> DataBytes:
         """
@@ -152,7 +152,7 @@ class Secp256k1PublicKeyEcdsa(IPublicKey):
         Returns:
             DataBytes object: DataBytes object
         """
-        return DataBytes(self.m_ver_key.to_string("uncompressed"))
+        return DataBytes(self.m_ver_key.to_string())
 
     def Point(self) -> IPoint:
         """

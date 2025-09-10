@@ -29,13 +29,13 @@ References:
 # Imports
 from typing import Tuple, Union
 
-from .base import IBip32KeyDerivator
-from .bip32_ex import Bip32KeyError
-from .bip32_key_data import Bip32KeyIndex
-from .bip32_keys import Bip32PrivateKey, Bip32PublicKey
-from bip_utils.ecc import IPoint
-from ..utils.crypto import HmacSha512
-from ..utils.misc import BytesUtils, IntegerUtils
+from ..base import IBip32KeyDerivator
+from ..bip32_ex import Bip32KeyError
+from ..bip32_key_data import Bip32KeyIndex
+from ..bip32_keys import Bip32PrivateKey, Bip32PublicKey
+from ...ecc import IPoint
+from ...utils.crypto import HmacSha512
+from ...utils.misc import BytesUtils, IntegerUtils
 
 
 class Bip32Slip10DerivatorConst:

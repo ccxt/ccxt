@@ -21,7 +21,7 @@
 """Module for BIP44 coins configuration."""
 
 # Imports
-from bip_utils.addr import (
+from ..addr import (
     AdaByronIcarusAddrEncoder, AlgoAddrEncoder, AptosAddrEncoder, AtomAddrEncoder, AvaxPChainAddrEncoder,
     AvaxXChainAddrEncoder, BchP2PKHAddrEncoder, EgldAddrEncoder, EosAddrEncoder, ErgoNetworkTypes, ErgoP2PKHAddrEncoder,
     EthAddrEncoder, FilSecp256k1AddrEncoder, IcxAddrEncoder, InjAddrEncoder, NanoAddrEncoder, NearAddrEncoder,
@@ -29,17 +29,17 @@ from bip_utils.addr import (
     SolAddrEncoder, SubstrateEd25519AddrEncoder, SuiAddrEncoder, TrxAddrEncoder, XlmAddrEncoder, XlmAddrTypes,
     XmrAddrEncoder, XrpAddrEncoder, XtzAddrEncoder, XtzAddrPrefixes, ZilAddrEncoder
 )
-from bip_utils.bip.bip32 import (
+from ..bip32 import (
     Bip32Const, Bip32KeyNetVersions, Bip32KholawEd25519, Bip32Slip10Ed25519, Bip32Slip10Ed25519Blake2b,
     Bip32Slip10Nist256p1, Bip32Slip10Secp256k1
 )
-from bip_utils.bip.conf.common import (
-    DER_PATH_HARDENED_FULL, DER_PATH_HARDENED_MID, DER_PATH_HARDENED_SHORT, DER_PATH_NON_HARDENED_FULL,
-    BipBitcoinCashConf, BipCoinConf, BipCoinFctCallsConf, BipLitecoinConf
-)
-from bip_utils.cardano.bip32.cardano_icarus_bip32 import CardanoIcarusBip32
-from bip_utils.coin_conf import CoinsConf
-from bip_utils.slip.slip44 import Slip44
+# from  import (
+#     DER_PATH_HARDENED_FULL, DER_PATH_HARDENED_MID, DER_PATH_HARDENED_SHORT, DER_PATH_NON_HARDENED_FULL,
+#     BipBitcoinCashConf, BipCoinConf, BipCoinFctCallsConf, BipLitecoinConf
+# )
+# from bip_utils.cardano.bip32.cardano_icarus_bip32 import CardanoIcarusBip32
+from ..coin_conf import CoinsConf
+from ..slip.slip44 import Slip44
 
 
 # Bitcoin key net version for main net (same as BIP32)

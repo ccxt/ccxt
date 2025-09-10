@@ -466,6 +466,7 @@ class Bip32Base(ABC):
         """
         assert self.m_priv_key is not None
 
+
         priv_key_bytes, chain_code_bytes = self._KeyDerivator().CkdPriv(self.m_priv_key,
                                                                         self.m_pub_key,
                                                                         index)

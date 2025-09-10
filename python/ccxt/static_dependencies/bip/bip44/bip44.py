@@ -26,10 +26,17 @@ Reference: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 # Imports
 from typing import Union
 
-from ..bip32 import Bip32KeyData, Bip32KeyIndex
+from ..bip32 import Bip32KeyData, Bip32KeyIndex, Bip32KeyNetVersions, Bip32Const, Bip32Slip10Secp256k1
 from ..bip44_base import Bip44Base, Bip44Changes, Bip44Levels
-from ..conf.bip44 import Bip44ConfGetter
-from ..conf.common import BipCoins
+
+_BIP44_BTC_KEY_NET_VER_MAIN: Bip32KeyNetVersions = Bip32Const.MAIN_NET_KEY_NET_VERSIONS
+
+# from ..conf.bip44 import Bip44ConfGetter
+# from ..conf.bip44 import BipCoinConf
+from ..conf.common import BipCoins, BipCoinConf
+from ..coin_conf import CoinsConf
+from ..slip.slip44 import Slip44
+from ..conf.common import DER_PATH_NON_HARDENED_FULL
 # from bip_utils.ecc import IPrivateKey, IPublicKey
 
 
@@ -54,8 +61,7 @@ class Bip44(Bip44Base):
 
     @classmethod
     def FromSeed(cls,
-                 seed_bytes: bytes,
-                 coin_type: BipCoins) -> Bip44Base:
+                 seed_bytes: bytes) -> Bip44Base:
         """
         Create a Bip44Base object from the specified seed (e.g. BIP39 seed).
 
@@ -81,7 +87,7 @@ class Bip44(Bip44Base):
             key_net_ver=_BIP44_BTC_KEY_NET_VER_MAIN,
             wif_net_ver=None,
             bip32_cls=Bip32Slip10Secp256k1,
-            addr_cls=AtomAddrEncoder,
+            # addr_cls=AtomAddrEncoder,
             addr_params={
                 "hrp": CoinsConf.Cosmos.ParamByKey("addr_hrp"),
             },
@@ -110,7 +116,7 @@ class Bip44(Bip44Base):
         # Bip44ConfGetter already checks the enum type
         return cls._FromExtendedKey(ex_key_str, Bip44ConfGetter.GetConfig(coin_type))
 
-    @classmethod
+    # @classmethod
     # def FromPrivateKey(cls,
     #                    priv_key: Union[bytes, IPrivateKey],
     #                    coin_type: BipCoins,
@@ -138,7 +144,7 @@ class Bip44(Bip44Base):
     #                                Bip44ConfGetter.GetConfig(coin_type),
     #                                key_data)
 
-    @classmethod
+    # @classmethod
     # def FromPublicKey(cls,
     #                   pub_key: Union[bytes, IPublicKey],
     #                   coin_type: BipCoins,

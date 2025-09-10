@@ -26,9 +26,9 @@ Reference: https://github.com/satoshilabs/slips/blob/master/slip-0010.md
 # Imports
 from typing import Tuple
 
-from .base import IBip32MstKeyGenerator
-from bip_utils.ecc import EllipticCurveGetter, EllipticCurveTypes
-from ..utils.crypto import HmacSha512
+from ..base import IBip32MstKeyGenerator
+from ...ecc import EllipticCurveGetter, EllipticCurveTypes
+from ...utils.crypto import HmacSha512
 
 
 class Bip32Slip10MstKeyGeneratorConst:

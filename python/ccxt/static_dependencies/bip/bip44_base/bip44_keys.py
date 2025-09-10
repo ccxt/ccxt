@@ -27,7 +27,7 @@ from functools import lru_cache
 from ..bip32 import Bip32ChainCode, Bip32PrivateKey, Bip32PublicKey
 from ..conf.common import BipCoinConf
 from ..utils.misc import DataBytes
-# from ..wif import WifEncoder, WifPubKeyModes
+from ..wif import WifEncoder, WifPubKeyModes
 
 
 class Bip44PublicKey:
@@ -206,20 +206,20 @@ class Bip44PrivateKey:
         return Bip44PublicKey(self.m_priv_key.PublicKey(),
                               self.m_coin_conf)
 
-    # @lru_cache()
-    # def ToWif(self,
-    #           pub_key_mode: WifPubKeyModes = WifPubKeyModes.COMPRESSED) -> str:
-    #     """
-    #     Return key in WIF format.
+    @lru_cache()
+    def ToWif(self,
+              pub_key_mode: WifPubKeyModes = WifPubKeyModes.COMPRESSED) -> str:
+        """
+        Return key in WIF format.
 
-    #     Args:
-    #         pub_key_mode (WifPubKeyModes): Specify if the private key corresponds to a compressed public key
+        Args:
+            pub_key_mode (WifPubKeyModes): Specify if the private key corresponds to a compressed public key
 
-    #     Returns:
-    #         str: Key in WIF format
-    #     """
-    #     wif_net_ver = self.m_coin_conf.WifNetVersion()
+        Returns:
+            str: Key in WIF format
+        """
+        wif_net_ver = self.m_coin_conf.WifNetVersion()
 
-    #     return (WifEncoder.Encode(self.m_priv_key.Raw().ToBytes(), wif_net_ver, pub_key_mode)
-    #             if wif_net_ver is not None
-    #             else "")
+        return (WifEncoder.Encode(self.m_priv_key.Raw().ToBytes(), wif_net_ver, pub_key_mode)
+                if wif_net_ver is not None
+                else "")

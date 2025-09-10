@@ -23,12 +23,12 @@
 # Imports
 from typing import Type
 
-from .base import Bip32Base, IBip32KeyDerivator, IBip32MstKeyGenerator
-from .bip32_const import Bip32Const
-from .bip32_key_net_ver import Bip32KeyNetVersions
-from .slip10.bip32_slip10_key_derivator import Bip32Slip10EcdsaDerivator
-from .slip10.bip32_slip10_mst_key_generator import Bip32Slip10Secp256k1MstKeyGenerator
-from bip_utils.ecc import EllipticCurveTypes
+from ..base import Bip32Base, IBip32KeyDerivator, IBip32MstKeyGenerator
+from ..bip32_const import Bip32Const
+from ..bip32_key_net_ver import Bip32KeyNetVersions
+from .bip32_slip10_key_derivator import Bip32Slip10EcdsaDerivator
+from .bip32_slip10_mst_key_generator import Bip32Slip10Secp256k1MstKeyGenerator
+from ...ecc import EllipticCurveTypes
 
 
 class Bip32Slip10Secp256k1(Bip32Base):
