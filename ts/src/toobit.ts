@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, OrderRequest, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, OrderRequest, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -498,7 +498,7 @@ export default class toobit extends Exchange {
                     },
                     'withdraw': {
                         'min': this.safeNumber (rawNetwork, 'minWithdrawQuantity'),
-                        'max': this.safeNumber (rawNetwork, 'maxWithdrawQuantity')
+                        'max': this.safeNumber (rawNetwork, 'maxWithdrawQuantity'),
                     },
                 },
                 'info': rawNetwork,
