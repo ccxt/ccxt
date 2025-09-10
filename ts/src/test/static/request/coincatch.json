@@ -244,8 +244,7 @@
                     0.0001,
                     null,
                     {
-                        "hedged": true,
-                        "methodName": "createOrder"
+                        "hedged": true
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"orderType\":\"market\",\"side\":\"open_long\"}"
@@ -261,8 +260,7 @@
                     0.0001,
                     null,
                     {
-                        "reduceOnly": true,
-                        "methodName": "createOrder"
+                        "reduceOnly": true
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"orderType\":\"market\",\"side\":\"sell_single\",\"reduceOnly\":true}"
@@ -279,8 +277,7 @@
                     140000,
                     {
                         "postOnly": true,
-                        "reduceOnly": true,
-                        "methodName": "createOrder"
+                        "reduceOnly": true
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"timeInForceValue\":\"post_only\",\"price\":\"140000\",\"orderType\":\"limit\",\"side\":\"sell_single\",\"reduceOnly\":true}"
@@ -308,8 +305,7 @@
                     0.0001,
                     50000,
                     {
-                        "postOnly": true,
-                        "methodName": "createOrder"
+                        "postOnly": true
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"timeInForceValue\":\"post_only\",\"price\":\"50000\",\"orderType\":\"limit\",\"side\":\"buy_single\"}"
@@ -338,8 +334,7 @@
                     0.0002,
                     25000,
                     {
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":25000,\"quantity\":\"0.0002\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
@@ -355,8 +350,7 @@
                     0.001,
                     25000,
                     {
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"price\":\"25000\",\"orderType\":\"limit\",\"side\":\"buy_single\",\"marginMode\":\"cross\"}"
@@ -373,8 +367,7 @@
                     25000,
                     {
                         "marginMode": "cross",
-                        "triggerPrice": 26000,
-                        "methodName": "createOrder"
+                        "triggerPrice": 26000
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"orderType\":\"limit\",\"side\":\"buy_single\",\"triggerType\":\"fill_price\",\"executePrice\":\"25000\",\"triggerPrice\":\"26000\",\"marginMode\":\"cross\"}"
@@ -416,8 +409,7 @@
                     null,
                     {
                         "createMarketBuyOrderRequiresPrice": false,
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"10\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
@@ -433,8 +425,7 @@
                     6,
                     1,
                     {
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"6\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
@@ -450,8 +441,7 @@
                     0.001,
                     25000,
                     {
-                        "postOnly": true,
-                        "methodName": "createOrder"
+                        "postOnly": true
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"25000\",\"orderType\":\"limit\",\"side\":\"buy_single\"}"
