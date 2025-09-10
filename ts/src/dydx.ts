@@ -1161,8 +1161,8 @@ export default class dydx extends Exchange {
         const signature = this.signOnboardingAction ();
         const entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
         credentials = this.retrieveDydxCredentials (entropy);
-        credentials['privateKey'] = this.binaryToBase16 (credentials.privateKey);
-        credentials['publicKey'] = this.binaryToBase16 (credentials.publicKey);
+        credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
+        credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
         return credentials;
     }
