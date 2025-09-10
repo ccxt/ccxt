@@ -2,10 +2,11 @@ import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
 import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
 import { urlencodeBase64, base16ToBinary, base64ToBinary } from './encode.js';
-import { hmac } from './crypto.js';
+import { eddsa, hmac } from './crypto.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 import { ecdsa } from '../../base/functions/crypto.js';
 import { Dictionary } from "../types.js";
+import { ed25519 } from "../../static_dependencies/noble-curves/ed25519.js";
 
 function rsa (request: string, secret: string, hash: CHash) {
     const RSA = new JSEncrypt ()
@@ -39,8 +40,19 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
         const r = signedHash.r.padStart (64, '0');
         const s = signedHash.s.padStart (64, '0');
         signature = urlencodeBase64 (base16ToBinary (r + s));
+    } else if (algoType === 'ED') {
+        signature = urlencodeBase64(eddsa(toHex(token), secret, ed25519));
     }
     return [ token, signature ].join ('.');
 }
+
+  function toHex(str) {
+    var result = '';
+    for (var i=0; i<str.length; i++) {
+      result += str.charCodeAt(i).toString(16);
+    }
+    return result;
+  }
+
 
 export { rsa, jwt }
