@@ -31,7 +31,6 @@ export default class toobit extends Exchange {
                 'future': false,
                 'option': false,
                 'createOrder': true,
-                'createOrders': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
                 'cancelOrders': true,
@@ -232,9 +231,7 @@ export default class toobit extends Exchange {
                         'selfTradePrevention': false,
                         'iceberg': false,
                     },
-                    'createOrders': {
-                        'max': 20,
-                    },
+                    'createOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -270,9 +267,7 @@ export default class toobit extends Exchange {
                     'fetchClosedOrders': undefined,
                 },
                 'forDerivatives': {
-                    'createOrders': {
-                        'max': 10,
-                    },
+                    'createOrders': undefined,
                 },
                 'swap': {
                     'linear': undefined,
@@ -1475,36 +1470,6 @@ export default class toobit extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
-    }
-
-    /**
-     * @method
-     * @name toobit#createOrders
-     * @description create a list of trade orders
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#place-multiple-orders-trade
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#place-multiple-orders-trade
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     */
-    async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
-        const ordersRequests = [];
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
-            const symbol = this.safeString (rawOrder, 'symbol');
-            const type = this.safeString (rawOrder, 'type');
-            const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeNumber (rawOrder, 'amount');
-            const price = this.safeNumber (rawOrder, 'price');
-            const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
-            ordersRequests.push (orderRequest[0]);
-        }
-        const request = ordersRequests;
-        const response = await this.privatePostApiV1SpotBatchOrders (request);
-        //
-        return this.parseOrders (response);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
