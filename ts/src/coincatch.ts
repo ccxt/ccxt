@@ -2316,7 +2316,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
-     * @param {string} side 'buy' or 'sell' (also 'open_long', 'open_short', 'close_long', 'close_short', 'buy_single' or 'sell_single' for swap)
+     * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2517,7 +2517,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#place-stop-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy', 'sell', 'open_long', 'open_short', 'close_long', 'close_short', 'buy_single' or 'sell_single'
+     * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2574,7 +2574,7 @@ export default class coincatch extends Exchange {
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy', 'sell', 'open_long', 'open_short', 'close_long', 'close_short', 'buy_single' or 'sell_single'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
