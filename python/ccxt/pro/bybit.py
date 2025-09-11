@@ -434,19 +434,19 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
         return await self.un_watch_topics(url, 'ticker', symbols, messageHashes, subMessageHashes, topics, params)
 
-    async def un_watch_ticker(self, symbols: str, params={}) -> Any:
+    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker
 
         https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
 
-        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param str[] symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        return await self.un_watch_tickers([symbols], params)
+        return await self.un_watch_tickers([symbol], params)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -848,16 +848,14 @@ class bybit(ccxt.async_support.bybit):
             if market['option']:
                 limit = 100
         else:
-            if not market['spot']:
-                if market['option']:
-                    if (limit != 25) and (limit != 100):
-                        raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.')
-                elif (limit != 1) and (limit != 50) and (limit != 200) and (limit != 500):
-                    # bybit only support limit 1, 50, 200, 500 for contract
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.')
-            else:
-                if (limit != 1) and (limit != 50) and (limit != 200):
-                    raise BadRequest(self.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.')
+            limits = {
+                'spot': [1, 50, 200, 1000],
+                'option': [25, 100],
+                'default': [1, 50, 200, 500, 1000],
+            }
+            selectedLimits = self.safe_list_2(limits, market['type'], 'default')
+            if not self.in_array(limit, selectedLimits):
+                raise BadRequest(self.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + self.json(selectedLimits))
         topics = []
         messageHashes = []
         for i in range(0, len(symbols)):
@@ -1631,6 +1629,7 @@ class bybit(ccxt.async_support.bybit):
             'contracts': self.safe_number_2(liquidation, 'size', 'v'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number_2(liquidation, 'price', 'p'),
+            'side': self.safe_string_lower(liquidation, 'side', 'S'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,

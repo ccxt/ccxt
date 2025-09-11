@@ -56,14 +56,24 @@ class gate extends gate$1["default"] {
                 },
                 'test': {
                     'public': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                     'private': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                 },
                 'referral': {
@@ -749,6 +759,9 @@ class gate extends gate$1["default"] {
                     'option': 'options',
                     'options': 'options',
                 },
+                'fetchMarkets': {
+                    'types': ['spot', 'swap', 'future', 'option'],
+                },
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
@@ -1226,22 +1239,29 @@ class gate extends gate$1["default"] {
         if (this.checkRequiredCredentials(false)) {
             await this.loadUnifiedStatus();
         }
-        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-        let rawPromises = [
-            this.fetchContractMarkets(params),
-            this.fetchOptionMarkets(params),
-        ];
-        if (!sandboxMode) {
-            // gate doesn't have a sandbox for spot markets
-            const mainnetOnly = [this.fetchSpotMarkets(params)];
-            rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
+        const rawPromises = [];
+        const fetchMarketsOptions = this.safeDict(this.options, 'fetchMarkets');
+        const types = this.safeList(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option']);
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'spot') {
+                // if (!sandboxMode) {
+                // gate doesn't have a sandbox for spot markets
+                rawPromises.push(this.fetchSpotMarkets(params));
+                // }
+            }
+            else if (marketType === 'swap') {
+                rawPromises.push(this.fetchSwapMarkets(params));
+            }
+            else if (marketType === 'future') {
+                rawPromises.push(this.fetchFutureMarkets(params));
+            }
+            else if (marketType === 'option') {
+                rawPromises.push(this.fetchOptionMarkets(params));
+            }
         }
-        const promises = await Promise.all(rawPromises);
-        const spotMarkets = this.safeValue(promises, 0, []);
-        const contractMarkets = this.safeValue(promises, 1, []);
-        const optionMarkets = this.safeValue(promises, 2, []);
-        const markets = this.arrayConcat(spotMarkets, contractMarkets);
-        return this.arrayConcat(markets, optionMarkets);
+        const results = await Promise.all(rawPromises);
+        return this.arraysConcat(results);
     }
     async fetchSpotMarkets(params = {}) {
         const marginPromise = this.publicMarginGetCurrencyPairs(params);
@@ -1357,10 +1377,12 @@ class gate extends gate$1["default"] {
         }
         return result;
     }
-    async fetchContractMarkets(params = {}) {
+    async fetchSwapMarkets(params = {}) {
         const result = [];
-        const swapSettlementCurrencies = this.getSettlementCurrencies('swap', 'fetchMarkets');
-        const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
+        let swapSettlementCurrencies = this.getSettlementCurrencies('swap', 'fetchMarkets');
+        if (this.options['sandboxMode']) {
+            swapSettlementCurrencies = ['usdt']; // gate sandbox only has usdt-margined swaps
+        }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
             const request = {
@@ -1372,6 +1394,14 @@ class gate extends gate$1["default"] {
                 result.push(parsedMarket);
             }
         }
+        return result;
+    }
+    async fetchFutureMarkets(params = {}) {
+        if (this.options['sandboxMode']) {
+            return []; // right now sandbox does not have inverse swaps
+        }
+        const result = [];
+        const futureSettlementCurrencies = this.getSettlementCurrencies('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
             const request = {
@@ -2598,7 +2628,13 @@ class gate extends gate$1["default"] {
         //
         const [request, query] = this.prepareRequest(market, market['type'], params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            if (market['spot']) {
+                limit = Math.min(limit, 1000);
+            }
+            else {
+                limit = Math.min(limit, 300);
+            }
+            request['limit'] = limit;
         }
         request['with_id'] = true;
         let response = undefined;
@@ -7659,12 +7695,33 @@ class gate extends gate$1["default"] {
         if (quoteValueString === undefined) {
             quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
         }
+        // --- derive side ---
+        // 1) options payload has explicit 'side': 'long' | 'short'
+        const optPos = this.safeStringLower(liquidation, 'side');
+        let side = undefined;
+        if (optPos === 'long') {
+            side = 'buy';
+        }
+        else if (optPos === 'short') {
+            side = 'sell';
+        }
+        else {
+            if (size !== undefined) { // 2) futures/perpetual (and fallback for options): infer from size
+                if (Precise["default"].stringGt(size, '0')) {
+                    side = 'buy';
+                }
+                else if (Precise["default"].stringLt(size, '0')) {
+                    side = 'sell';
+                }
+            }
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': this.safeSymbol(marketId, market),
             'contracts': this.parseNumber(contractsString),
             'contractSize': this.parseNumber(contractSizeString),
             'price': this.parseNumber(priceString),
+            'side': side,
             'baseValue': this.parseNumber(baseValueString),
             'quoteValue': this.parseNumber(Precise["default"].stringAbs(quoteValueString)),
             'timestamp': timestamp,

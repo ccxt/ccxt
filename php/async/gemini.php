@@ -266,7 +266,7 @@ class gemini extends Exchange {
                 'fetchMarketFromWebRetries' => 10,
                 'fetchMarketsFromAPI' => array(
                     'fetchDetailsForAllSymbols' => false,
-                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL' ),
+                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC' ),
                 ),
                 'fetchMarkets' => array(
                     'webApiEnable' => true, // fetches from WEB
@@ -710,8 +710,8 @@ class gemini extends Exchange {
         //
         //     array(
         //         'BTCUSD',   // $symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -730,7 +730,7 @@ class gemini extends Exchange {
         //         "wrap_enabled" => false
         //         "product_type" => "swap", // only in perps
         //         "contract_type" => "linear", // only in perps
-        //         "contract_price_currency" => "GUSD" // only in perps
+        //         "contract_price_currency" => "GUSD"
         //     }
         //
         $marketId = null;

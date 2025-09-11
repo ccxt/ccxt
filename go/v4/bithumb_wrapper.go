@@ -440,6 +440,9 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
 
 // missing typed methods from base
 // nolint
+func (this *Bithumb) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bithumb) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

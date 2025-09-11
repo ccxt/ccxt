@@ -2883,6 +2883,7 @@ class bitmex(Exchange, ImplicitAPI):
             'contracts': None,
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),
+            'side': self.safe_string_lower(liquidation, 'side'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': None,

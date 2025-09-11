@@ -955,6 +955,9 @@ func (this *Bitrue) SetMargin(symbol string, amount float64, options ...SetMargi
 
 // missing typed methods from base
 // nolint
+func (this *Bitrue) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitrue) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

@@ -427,6 +427,7 @@ class binance extends \ccxt\async\binance {
             'contracts' => $this->safe_number($liquidation, 'l'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'ap'),
+            'side' => $this->safe_string_lower($liquidation, 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -3337,8 +3338,8 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $this->get_market_type('cancelAllOrdersWs', $market, $params);
-            if ($type !== 'spot' && $type !== 'future') {
-                throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot or swap markets');
+            if ($type !== 'spot') {
+                throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot markets');
             }
             $url = $this->urls['api']['ws']['ws-api'][$type];
             $requestId = $this->request_id($url);
@@ -3351,7 +3352,7 @@ class binance extends \ccxt\async\binance {
             );
             $message = array(
                 'id' => $messageHash,
-                'method' => 'order.cancel',
+                'method' => 'openOrders.cancelAll',
                 'params' => $this->sign_params($this->extend($payload, $params)),
             );
             $subscription = array(
@@ -4390,7 +4391,7 @@ class binance extends \ccxt\async\binance {
         $code = $this->safe_integer($error, 'code');
         $msg = $this->safe_string($error, 'msg');
         try {
-            $this->handle_errors($code, $msg, $client->url, null, null, $this->json($error), $error, null, null);
+            $this->handle_errors($code, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
         } catch (Exception $e) {
             $rejected = true;
             // private endpoint uses $id

@@ -98,7 +98,7 @@ func (this *krakenfutures) Describe() interface{} {
 				"private":      "https://futures.kraken.com/derivatives/api/",
 			},
 			"www":      "https://futures.kraken.com/",
-			"doc":      []interface{}{"https://docs.futures.kraken.com/#introduction"},
+			"doc":      []interface{}{"https://docs.kraken.com/api/docs/futures-api/trading/market-data/"},
 			"fees":     "https://support.kraken.com/hc/en-us/articles/360022835771-Transaction-fees-and-rebates-for-Kraken-Futures",
 			"referral": nil,
 		},
@@ -166,6 +166,7 @@ func (this *krakenfutures) Describe() interface{} {
 						"executions":    "private",
 						"triggers":      "private",
 						"accountlogcsv": "private",
+						"account-log":   "private",
 					},
 				},
 			},
@@ -298,7 +299,7 @@ func (this *krakenfutures) Describe() interface{} {
  * @method
  * @name krakenfutures#fetchMarkets
  * @description Fetches the available trading markets from the exchange, Multi-collateral markets are returned as linear markets, but can be settled in multiple currencies
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
  * @param {object} [params] exchange specific params
  * @returns An array of market structures
  */
@@ -485,7 +486,7 @@ func (this *krakenfutures) FetchMarkets(optionalArgs ...interface{}) <-chan inte
 /**
  * @method
  * @name krakenfutures#fetchOrderBook
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-orderbook
  * @description Fetches a list of open orders in a market
  * @param {string} symbol Unified market symbol
  * @param {int} [limit] Not used by krakenfutures
@@ -502,8 +503,8 @@ func (this *krakenfutures) FetchOrderBook(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5488 := (<-this.LoadMarkets())
-		PanicOnError(retRes5488)
+		retRes5498 := (<-this.LoadMarkets())
+		PanicOnError(retRes5498)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -554,7 +555,7 @@ func (this *krakenfutures) FetchOrderBook(symbol interface{}, optionalArgs ...in
  * @method
  * @name krakenfutures#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
  * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -569,8 +570,8 @@ func (this *krakenfutures) FetchTickers(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5988 := (<-this.LoadMarkets())
-		PanicOnError(retRes5988)
+		retRes5998 := (<-this.LoadMarkets())
+		PanicOnError(retRes5998)
 
 		response := (<-this.PublicGetTickers(params))
 		PanicOnError(response)
@@ -692,7 +693,7 @@ func (this *krakenfutures) ParseTicker(ticker interface{}, optionalArgs ...inter
 /**
  * @method
  * @name krakenfutures#fetchOHLCV
- * @see https://docs.futures.kraken.com/#http-api-charts-candles
+ * @see https://docs.kraken.com/api/docs/futures-api/charts/candles
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -716,8 +717,8 @@ func (this *krakenfutures) FetchOHLCV(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes7238 := (<-this.LoadMarkets())
-		PanicOnError(retRes7238)
+		retRes7248 := (<-this.LoadMarkets())
+		PanicOnError(retRes7248)
 		var market interface{} = this.Market(symbol)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -725,9 +726,9 @@ func (this *krakenfutures) FetchOHLCV(symbol interface{}, optionalArgs ...interf
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes72819 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
-			PanicOnError(retRes72819)
-			ch <- retRes72819
+			retRes72919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 5000))
+			PanicOnError(retRes72919)
+			ch <- retRes72919
 			return nil
 		}
 		var request interface{} = map[string]interface{}{
@@ -797,8 +798,8 @@ func (this *krakenfutures) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfa
 /**
  * @method
  * @name krakenfutures#fetchTrades
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
- * @see https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-history
+ * @see https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
  * @description Fetch a history of filled trades that this account has made
  * @param {string} symbol Unified CCXT market symbol
  * @param {int} [since] Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -821,17 +822,17 @@ func (this *krakenfutures) FetchTrades(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes8098 := (<-this.LoadMarkets())
-		PanicOnError(retRes8098)
+		retRes8108 := (<-this.LoadMarkets())
+		PanicOnError(retRes8108)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes81319 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes81319)
-			ch <- retRes81319
+			retRes81419 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes81419)
+			ch <- retRes81419
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -1191,8 +1192,8 @@ func (this *krakenfutures) CreateOrder(symbol interface{}, typeVar interface{}, 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11428 := (<-this.LoadMarkets())
-		PanicOnError(retRes11428)
+		retRes11438 := (<-this.LoadMarkets())
+		PanicOnError(retRes11438)
 		var market interface{} = this.Market(symbol)
 		var orderRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -1256,8 +1257,8 @@ func (this *krakenfutures) CreateOrders(orders interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes11928 := (<-this.LoadMarkets())
-		PanicOnError(retRes11928)
+		retRes11938 := (<-this.LoadMarkets())
+		PanicOnError(retRes11938)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -1310,7 +1311,7 @@ func (this *krakenfutures) CreateOrders(orders interface{}, optionalArgs ...inte
 /**
  * @method
  * @name krakenfutures#editOrder
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/edit-order-spring
  * @description Edit an open order on the exchange
  * @param {string} id order id
  * @param {string} symbol Not used by Krakenfutures
@@ -1333,8 +1334,8 @@ func (this *krakenfutures) EditOrder(id interface{}, symbol interface{}, typeVar
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes12508 := (<-this.LoadMarkets())
-		PanicOnError(retRes12508)
+		retRes12518 := (<-this.LoadMarkets())
+		PanicOnError(retRes12518)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -1362,7 +1363,7 @@ func (this *krakenfutures) EditOrder(id interface{}, symbol interface{}, typeVar
 /**
  * @method
  * @name krakenfutures#cancelOrder
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-order
  * @description Cancel an open order on the exchange
  * @param {string} id Order id
  * @param {string} symbol Not used by Krakenfutures
@@ -1379,8 +1380,8 @@ func (this *krakenfutures) CancelOrder(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12798 := (<-this.LoadMarkets())
-		PanicOnError(retRes12798)
+		retRes12808 := (<-this.LoadMarkets())
+		PanicOnError(retRes12808)
 
 		response := (<-this.PrivatePostCancelorder(this.Extend(map[string]interface{}{
 			"order_id": id,
@@ -1406,7 +1407,7 @@ func (this *krakenfutures) CancelOrder(id interface{}, optionalArgs ...interface
  * @method
  * @name krakenfutures#cancelOrders
  * @description cancel multiple orders
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/send-batch-order
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1425,8 +1426,8 @@ func (this *krakenfutures) CancelOrders(ids interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13048 := (<-this.LoadMarkets())
-		PanicOnError(retRes13048)
+		retRes13058 := (<-this.LoadMarkets())
+		PanicOnError(retRes13058)
 		var orders interface{} = []interface{}{}
 		var clientOrderIds interface{} = this.SafeValue(params, "clientOrderIds", []interface{}{})
 		var clientOrderIdsLength interface{} = GetArrayLength(clientOrderIds)
@@ -1492,7 +1493,7 @@ func (this *krakenfutures) CancelOrders(ids interface{}, optionalArgs ...interfa
 /**
  * @method
  * @name krakenfutures#cancelAllOrders
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
  * @description Cancels all orders on the exchange, including trigger orders
  * @param {str} symbol Unified market symbol
  * @param {dict} [params] Exchange specific params
@@ -1565,7 +1566,7 @@ func (this *krakenfutures) CancelAllOrders(optionalArgs ...interface{}) <-chan i
  * @method
  * @name krakenfutures#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
@@ -1578,8 +1579,8 @@ func (this *krakenfutures) CancelAllOrdersAfter(timeout interface{}, optionalArg
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14218 := (<-this.LoadMarkets())
-		PanicOnError(retRes14218)
+		retRes14228 := (<-this.LoadMarkets())
+		PanicOnError(retRes14228)
 		var request interface{} = map[string]interface{}{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), (this.ParseToInt(Divide(timeout, 1000))), 0),
 		}
@@ -1607,7 +1608,7 @@ func (this *krakenfutures) CancelAllOrdersAfter(timeout interface{}, optionalArg
 /**
  * @method
  * @name krakenfutures#fetchOpenOrders
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-orders
  * @description Gets all open orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
@@ -1629,8 +1630,8 @@ func (this *krakenfutures) FetchOpenOrders(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14518 := (<-this.LoadMarkets())
-		PanicOnError(retRes14518)
+		retRes14528 := (<-this.LoadMarkets())
+		PanicOnError(retRes14528)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1672,8 +1673,8 @@ func (this *krakenfutures) FetchClosedOrders(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14738 := (<-this.LoadMarkets())
-		PanicOnError(retRes14738)
+		retRes14748 := (<-this.LoadMarkets())
+		PanicOnError(retRes14748)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1714,7 +1715,7 @@ func (this *krakenfutures) FetchClosedOrders(optionalArgs ...interface{}) <-chan
 /**
  * @method
  * @name krakenfutures#fetchCanceledOrders
- * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+ * @see https://docs.kraken.com/api/docs/futures-api/history/get-order-events
  * @description Gets all canceled orders, including trigger orders, for an account from the exchange api
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order.
@@ -1736,8 +1737,8 @@ func (this *krakenfutures) FetchCanceledOrders(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes15168 := (<-this.LoadMarkets())
-		PanicOnError(retRes15168)
+		retRes15178 := (<-this.LoadMarkets())
+		PanicOnError(retRes15178)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2227,7 +2228,7 @@ func (this *krakenfutures) ParseOrder(order interface{}, optionalArgs ...interfa
  * @method
  * @name krakenfutures#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-fills
  * @param {string} symbol unified market symbol
  * @param {int} [since] *not used by the  api* the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2249,8 +2250,8 @@ func (this *krakenfutures) FetchMyTrades(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20068 := (<-this.LoadMarkets())
-		PanicOnError(retRes20068)
+		retRes20078 := (<-this.LoadMarkets())
+		PanicOnError(retRes20078)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2290,7 +2291,7 @@ func (this *krakenfutures) FetchMyTrades(optionalArgs ...interface{}) <-chan int
 /**
  * @method
  * @name krakenfutures#fetchBalance
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-accounts
  * @description Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
  * @param {object} [params] Exchange specific parameters
  * @param {string} [params.type] The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -2305,8 +2306,8 @@ func (this *krakenfutures) FetchBalance(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20478 := (<-this.LoadMarkets())
-		PanicOnError(retRes20478)
+		retRes20488 := (<-this.LoadMarkets())
+		PanicOnError(retRes20488)
 		var typeVar interface{} = this.SafeString2(params, "type", "account")
 		var symbol interface{} = this.SafeString(params, "symbol")
 		params = this.Omit(params, []interface{}{"type", "account", "symbol"})
@@ -2528,7 +2529,7 @@ func (this *krakenfutures) ParseBalance(response interface{}) interface{} {
  * @method
  * @name krakenfutures#fetchFundingRates
  * @description fetch the current funding rates for multiple markets
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-tickers
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2543,8 +2544,8 @@ func (this *krakenfutures) FetchFundingRates(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22698 := (<-this.LoadMarkets())
-		PanicOnError(retRes22698)
+		retRes22708 := (<-this.LoadMarkets())
+		PanicOnError(retRes22708)
 		var marketIds interface{} = this.MarketIds(symbols)
 
 		response := (<-this.PublicGetTickers(params))
@@ -2634,7 +2635,7 @@ func (this *krakenfutures) ParseFundingRate(ticker interface{}, optionalArgs ...
  * @method
  * @name krakenfutures#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/historical-funding-rates
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -2658,8 +2659,8 @@ func (this *krakenfutures) FetchFundingRateHistory(optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes23628 := (<-this.LoadMarkets())
-		PanicOnError(retRes23628)
+		retRes23638 := (<-this.LoadMarkets())
+		PanicOnError(retRes23638)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadRequest(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
@@ -2707,7 +2708,7 @@ func (this *krakenfutures) FetchFundingRateHistory(optionalArgs ...interface{}) 
 /**
  * @method
  * @name krakenfutures#fetchPositions
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-open-positions
  * @description Fetches current contract trading positions
  * @param {string[]} symbols List of unified symbols
  * @param {object} [params] Not used by krakenfutures
@@ -2723,8 +2724,8 @@ func (this *krakenfutures) FetchPositions(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24108 := (<-this.LoadMarkets())
-		PanicOnError(retRes24108)
+		retRes24118 := (<-this.LoadMarkets())
+		PanicOnError(retRes24118)
 		var request interface{} = map[string]interface{}{}
 
 		response := (<-this.PrivateGetOpenpositions(request))
@@ -2828,7 +2829,7 @@ func (this *krakenfutures) ParsePosition(position interface{}, optionalArgs ...i
  * @method
  * @name krakenfutures#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-instruments
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -2843,8 +2844,8 @@ func (this *krakenfutures) FetchLeverageTiers(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25098 := (<-this.LoadMarkets())
-		PanicOnError(retRes25098)
+		retRes25108 := (<-this.LoadMarkets())
+		PanicOnError(retRes25108)
 
 		response := (<-this.PublicGetInstruments(params))
 		PanicOnError(response)
@@ -3039,9 +3040,9 @@ func (this *krakenfutures) TransferOut(code interface{}, amount interface{}, opt
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes268915 := (<-this.Transfer(code, amount, "future", "spot", params))
-		PanicOnError(retRes268915)
-		ch <- retRes268915
+		retRes269015 := (<-this.Transfer(code, amount, "future", "spot", params))
+		PanicOnError(retRes269015)
+		ch <- retRes269015
 		return nil
 
 	}()
@@ -3051,8 +3052,8 @@ func (this *krakenfutures) TransferOut(code interface{}, amount interface{}, opt
 /**
  * @method
  * @name krakenfutures#transfer
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/transfer
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/sub-account-transfer
  * @description transfers currencies between sub-accounts
  * @param {string} code Unified currency code
  * @param {float} amount Size of the transfer
@@ -3069,8 +3070,8 @@ func (this *krakenfutures) Transfer(code interface{}, amount interface{}, fromAc
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27068 := (<-this.LoadMarkets())
-		PanicOnError(retRes27068)
+		retRes27078 := (<-this.LoadMarkets())
+		PanicOnError(retRes27078)
 		var currency interface{} = this.Currency(code)
 		if IsTrue(IsEqual(fromAccount, "spot")) {
 			panic(BadRequest(Add(this.Id, " transfer does not yet support transfers from spot")))
@@ -3118,7 +3119,7 @@ func (this *krakenfutures) Transfer(code interface{}, amount interface{}, fromAc
  * @method
  * @name krakenfutures#setLeverage
  * @description set the level of leverage for a market
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/set-leverage-setting
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3137,19 +3138,19 @@ func (this *krakenfutures) SetLeverage(leverage interface{}, optionalArgs ...int
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes27558 := (<-this.LoadMarkets())
-		PanicOnError(retRes27558)
+		retRes27568 := (<-this.LoadMarkets())
+		PanicOnError(retRes27568)
 		var request interface{} = map[string]interface{}{
 			"maxLeverage": leverage,
 			"symbol":      ToUpper(this.MarketId(symbol)),
 		}
 
-		retRes276315 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
-		PanicOnError(retRes276315)
+		retRes276415 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
+		PanicOnError(retRes276415)
 		//
 		// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 		//
-		ch <- retRes276315
+		ch <- retRes276415
 		return nil
 
 	}()
@@ -3160,7 +3161,7 @@ func (this *krakenfutures) SetLeverage(leverage interface{}, optionalArgs ...int
  * @method
  * @name krakenfutures#fetchLeverages
  * @description fetch the set leverage for all contract and margin markets
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -3175,8 +3176,8 @@ func (this *krakenfutures) FetchLeverages(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes27768 := (<-this.LoadMarkets())
-		PanicOnError(retRes27768)
+		retRes27778 := (<-this.LoadMarkets())
+		PanicOnError(retRes27778)
 
 		response := (<-this.PrivateGetLeveragepreferences(params))
 		PanicOnError(response)
@@ -3205,7 +3206,7 @@ func (this *krakenfutures) FetchLeverages(optionalArgs ...interface{}) <-chan in
  * @method
  * @name krakenfutures#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-leverage-setting
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -3221,8 +3222,8 @@ func (this *krakenfutures) FetchLeverage(symbol interface{}, optionalArgs ...int
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverage() requires a symbol argument")))
 		}
 
-		retRes28078 := (<-this.LoadMarkets())
-		PanicOnError(retRes28078)
+		retRes28088 := (<-this.LoadMarkets())
+		PanicOnError(retRes28088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": ToUpper(this.MarketId(symbol)),

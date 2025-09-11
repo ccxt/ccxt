@@ -21,6 +21,9 @@ func NewOkxus(userConfig map[string]interface{}) *Okxus {
 
 // missing typed methods from base
 // nolint
+func (this *Okxus) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Okxus) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

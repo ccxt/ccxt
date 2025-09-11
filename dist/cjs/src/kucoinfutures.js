@@ -228,7 +228,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                     '429': errors.RateLimitExceeded,
                     '500': errors.ExchangeNotAvailable,
                     '503': errors.ExchangeNotAvailable,
-                    '100001': errors.InvalidOrder,
+                    '100001': errors.OrderNotFound,
                     '100004': errors.BadRequest,
                     '101030': errors.PermissionDenied,
                     '200004': errors.InsufficientFunds,
@@ -247,7 +247,8 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                     '400100': errors.BadRequest,
                     '411100': errors.AccountSuspended,
                     '500000': errors.ExchangeNotAvailable,
-                    '300009': errors.InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
+                    '300009': errors.InvalidOrder,
+                    '330008': errors.InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': errors.OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
@@ -468,7 +469,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -551,7 +552,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //    }
         //
         const result = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString(market, 'symbol');
@@ -768,7 +769,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -832,7 +833,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.parseToInt(this.safeInteger(data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
@@ -1162,7 +1163,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const dataList = this.safeValue(data, 'dataList', []);
+        const dataList = this.safeList(data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -2123,7 +2124,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         }
         //     }
         //
-        const responseData = this.safeValue(response, 'data', {});
+        const responseData = this.safeDict(response, 'data', {});
         const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2493,6 +2494,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -3050,7 +3052,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -3139,7 +3141,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRateHistories(data, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {

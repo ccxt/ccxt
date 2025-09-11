@@ -1431,6 +1431,9 @@ func (this *Digifinex) SetMarginMode(marginMode string, options ...SetMarginMode
 
 // missing typed methods from base
 // nolint
+func (this *Digifinex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Digifinex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

@@ -1113,6 +1113,9 @@ func (this *Bitmex) FetchLiquidations(symbol string, options ...FetchLiquidation
 
 // missing typed methods from base
 // nolint
+func (this *Bitmex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitmex) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }

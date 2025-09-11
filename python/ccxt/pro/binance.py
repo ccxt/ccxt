@@ -409,6 +409,7 @@ class binance(ccxt.async_support.binance):
             'contracts': self.safe_number(liquidation, 'l'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'ap'),
+            'side': self.safe_string_lower(liquidation, 'S'),
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -3032,8 +3033,8 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         type = self.get_market_type('cancelAllOrdersWs', market, params)
-        if type != 'spot' and type != 'future':
-            raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot or swap markets')
+        if type != 'spot':
+            raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
@@ -3045,7 +3046,7 @@ class binance(ccxt.async_support.binance):
         }
         message: dict = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {
@@ -3972,7 +3973,7 @@ class binance(ccxt.async_support.binance):
         code = self.safe_integer(error, 'code')
         msg = self.safe_string(error, 'msg')
         try:
-            self.handle_errors(code, msg, client.url, None, None, self.json(error), error, None, None)
+            self.handle_errors(code, msg, client.url, '', {}, self.json(error), error, {}, {})
         except Exception as e:
             rejected = True
             # private endpoint uses id

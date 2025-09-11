@@ -474,15 +474,15 @@ public partial class bybit : ccxt.bybit
      * @description unWatches a price ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbols, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.unWatchTickers(new List<object>() {symbols}, parameters);
+        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -936,24 +936,15 @@ public partial class bybit : ccxt.bybit
             }
         } else
         {
-            if (!isTrue(getValue(market, "spot")))
+            object limits = new Dictionary<string, object>() {
+                { "spot", new List<object>() {1, 50, 200, 1000} },
+                { "option", new List<object>() {25, 100} },
+                { "default", new List<object>() {1, 50, 200, 500, 1000} },
+            };
+            object selectedLimits = this.safeList2(limits, getValue(market, "type"), "default");
+            if (!isTrue(this.inArray(limit, selectedLimits)))
             {
-                if (isTrue(getValue(market, "option")))
-                {
-                    if (isTrue(isTrue((!isEqual(limit, 25))) && isTrue((!isEqual(limit, 100)))))
-                    {
-                        throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.")) ;
-                    }
-                } else if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))) && isTrue((!isEqual(limit, 500)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.")) ;
-                }
-            } else
-            {
-                if (isTrue(isTrue(isTrue((!isEqual(limit, 1))) && isTrue((!isEqual(limit, 50)))) && isTrue((!isEqual(limit, 200)))))
-                {
-                    throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.")) ;
-                }
+                throw new BadRequest ((string)add(add(add(add(this.id, " watchOrderBookForSymbols(): for "), getValue(market, "type")), " markets limit can be one of: "), this.json(selectedLimits))) ;
             }
         }
         object topics = new List<object>() {};
@@ -1888,6 +1879,7 @@ public partial class bybit : ccxt.bybit
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber2(liquidation, "price", "p") },
+            { "side", this.safeStringLower(liquidation, "side", "S") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", timestamp },

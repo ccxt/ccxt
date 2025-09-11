@@ -556,8 +556,11 @@ public partial class bingx : Exchange
                     { "LTC", "LTC" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "ARB", "ARBITRUM" },
+                    { "ARBITRUM", "ARB" },
                     { "MATIC", "POLYGON" },
+                    { "ZKSYNC", "ZKSYNCERA" },
+                    { "AVAXC", "AVAX-C" },
+                    { "HBAR", "HEDERA" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -2310,7 +2313,7 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetBalance(marketTypeQuery);
         } else if (isTrue(isTrue((isEqual(marketType, "funding"))) || isTrue((isEqual(marketType, "fund")))))
         {
-            response = await ((Task<object>)callDynamically(this, "fundV1PrivateGetAccountBalance", new object[] { marketTypeQuery }));
+            response = await this.fundV1PrivateGetAccountBalance(marketTypeQuery);
         } else if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);

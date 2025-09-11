@@ -11,7 +11,7 @@ const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, index
 import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser } from "./errors.js";
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -29,6 +29,14 @@ import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 // ----------------------------------------------------------------------------
+let protobufMexc = undefined;
+(async () => {
+    try {
+        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+    }
+    catch { }
+})();
+//-----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
@@ -534,6 +542,37 @@ export default class Exchange {
         }
         return undefined;
     }
+    isBinaryMessage(msg) {
+        return msg instanceof Uint8Array;
+    }
+    decodeProtoMsg(data) {
+        if (!protobufMexc) {
+            throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof Uint8Array) {
+            const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
+            const dict = decoded.toJSON();
+            //  {
+            //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
+            //    "symbol":"BTCUSDT",
+            //    "symbolId":"2fb942154ef44a4ab2ef98c8afb6a4a7",
+            //    "createTime":"1754737941062",
+            //    "publicSpotKline":{
+            //       "interval":"Min1",
+            //       "windowStart":"1754737920",
+            //       "openingPrice":"117317.31",
+            //       "closingPrice":"117325.26",
+            //       "highestPrice":"117341",
+            //       "lowestPrice":"117317.3",
+            //       "volume":"3.12599854",
+            //       "amount":"366804.43",
+            //       "windowEnd":"1754737980"
+            //    }
+            // }
+            return dict;
+        }
+        return data;
+    }
     async fetch(url, method = 'GET', headers = undefined, body = undefined) {
         // load node-http(s) modules only on first call
         if (isNode) {
@@ -905,7 +944,8 @@ export default class Exchange {
                 // add support for proxies
                 'options': {
                     'agent': finalAgent,
-                }
+                },
+                'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient(url, onMessage, onError, onClose, onConnected, options);
         }
@@ -1104,8 +1144,15 @@ export default class Exchange {
         }
     }
     async close() {
+        // test by running ts/src/pro/test/base/test.close.ts
+        await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
         const closedClients = [];
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            client.error = new ExchangeClosedByUser(this.id + ' closedByUser');
+            closedClients.push(client.close());
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             delete this.clients[client.url];
@@ -1137,6 +1184,7 @@ export default class Exchange {
             }
             client.reject(new ExchangeError(this.id + ' nonce is behind the cache after ' + maxRetries.toString() + ' tries.'), messageHash);
             delete this.clients[client.url];
+            this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }
         catch (e) {
             client.reject(e, messageHash);
@@ -1785,6 +1833,13 @@ export default class Exchange {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;
     }
+    arraysConcat(arraysOfArrays) {
+        let result = [];
+        for (let i = 0; i < arraysOfArrays.length; i++) {
+            result = this.arrayConcat(result, arraysOfArrays[i]);
+        }
+        return result;
+    }
     findTimeframe(timeframe, timeframes = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
@@ -2141,6 +2196,9 @@ export default class Exchange {
     async unWatchPositions(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' unWatchPositions() is not supported yet');
     }
+    async unWatchTicker(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchTicker() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
@@ -2374,9 +2432,9 @@ export default class Exchange {
     parseToNumeric(number) {
         const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.indexOf('.') >= 0) {
             return parseFloat(stringVersion);
         }
@@ -4169,16 +4227,29 @@ export default class Exchange {
         }
         return result;
     }
-    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTradesHelper(isWs, trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         trades = this.toArray(trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend(this.parseTrade(trades[i], market), params);
+            let parsed = undefined;
+            if (isWs) {
+                parsed = this.parseWsTrade(trades[i], market);
+            }
+            else {
+                parsed = this.parseTrade(trades[i], market);
+            }
+            const trade = this.extend(parsed, params);
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.parseTradesHelper(false, trades, market, since, limit, params);
+    }
+    parseWsTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.parseTradesHelper(true, trades, market, since, limit, params);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transactions = this.toArray(transactions);
@@ -4629,6 +4700,12 @@ export default class Exchange {
             return market;
         }
         return result;
+    }
+    marketOrNull(symbol) {
+        if (symbol === undefined) {
+            return undefined;
+        }
+        return this.market(symbol);
     }
     checkRequiredCredentials(error = true) {
         /**
@@ -6128,6 +6205,35 @@ export default class Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    handleTriggerPricesAndParams(symbol, params, omitParams = true) {
+        //
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        let triggerPriceStr = undefined;
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        let stopLossPriceStr = undefined;
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        let takeProfitPriceStr = undefined;
+        //
+        if (triggerPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit(params, ['triggerPrice', 'stopPrice']);
+            }
+            triggerPriceStr = this.priceToPrecision(symbol, parseFloat(triggerPrice));
+        }
+        if (stopLossPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit(params, 'stopLossPrice');
+            }
+            stopLossPriceStr = this.priceToPrecision(symbol, parseFloat(stopLossPrice));
+        }
+        if (takeProfitPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit(params, 'takeProfitPrice');
+            }
+            takeProfitPriceStr = this.priceToPrecision(symbol, parseFloat(takeProfitPrice));
+        }
+        return [triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params];
     }
     handleTriggerDirectionAndParams(params, exchangeSpecificKey = undefined, allowEmpty = false) {
         /**

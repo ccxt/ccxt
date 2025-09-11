@@ -1450,7 +1450,7 @@ public partial class coinex : ccxt.coinex
         object error = this.safeString(message, "message");
         if (isTrue(!isEqual(error, null)))
         {
-            this.handleErrors(null, null, client.url, method, null, this.json(error), message, null, null);
+            this.handleErrors(1, "", client.url, method, new Dictionary<string, object>() {}, this.json(error), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
         object handlers = new Dictionary<string, object>() {
             { "state.update", this.handleTicker },

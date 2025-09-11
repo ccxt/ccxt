@@ -3016,6 +3016,7 @@ class bitmex extends bitmex$1["default"] {
             'contracts': undefined,
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
+            'side': this.safeStringLower(liquidation, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': undefined,

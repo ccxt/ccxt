@@ -905,6 +905,22 @@
         ],
         "cancelOrders": [
             {
+                "description": "cancelOrders with clientOrderIds",
+                "method": "cancelOrders",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1756029958875&symbol=ETHUSDT&recvWindow=10000&origclientorderidlist=%5B%22id1%22%2C%22id2%22%5D&signature=6a3b8cc049c6a824c4c6b839ec465b67c619496a33833176d7c04210d3a5335b",
+                "input": [
+                    [],
+                    "ETH/USDT:USDT",
+                    {
+                        "clientOrderIds": [
+                            "id1",
+                            "id2"
+                        ]
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Swap cancelOrders",
                 "method": "cancelOrders",
                 "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=%5B652511506%5D&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
@@ -3641,6 +3657,36 @@
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
+            },
+            {
+                "description": "withdraw using custom precision 1",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "ASR",
+                  10.34,
+                  "xyz",
+                  null,
+                  {
+                    "network": "BSC"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10.34&network=BSC&recvWindow=10000&signature=signature"
+            },
+            {
+                "description": "withdraw using custom precision 2",
+                "method": "withdraw",
+                "url": "https://api.binance.com/sapi/v1/capital/withdraw/apply",
+                "input": [
+                  "ASR",
+                  10.34,
+                  "xyz",
+                  null,
+                  {
+                    "network": "CHZ"
+                  }
+                ],
+                "output": "timestamp=1718724487672&coin=ASR&address=xyz&amount=10&network=CHZ&recvWindow=10000&signature=signature"
             }
         ],
         "fetchCurrencies": [

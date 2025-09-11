@@ -1104,6 +1104,9 @@ func (this *Blofin) SetPositionMode(hedged bool, options ...SetPositionModeOptio
 
 // missing typed methods from base
 // nolint
+func (this *Blofin) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Blofin) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

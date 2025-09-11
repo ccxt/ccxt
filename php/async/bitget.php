@@ -1924,7 +1924,7 @@ class bitget extends Exchange {
                 $res = $this->safe_dict($results, $i);
                 $data = $this->safe_list($res, 'data', array());
                 $firstData = $this->safe_dict($data, 0, array());
-                $isBorrowable = $this->safe_string($firstData, 'isBorrowable');
+                $isBorrowable = $this->safe_bool($firstData, 'isBorrowable');
                 if ($fetchMargins && $isBorrowable !== null) {
                     $keysList = is_array($this->index_by($data, 'symbol')) ? array_keys($this->index_by($data, 'symbol')) : array();
                     $this->options['crossMarginPairsData'] = $keysList;
@@ -5838,6 +5838,7 @@ class bitget extends Exchange {
              * @param {string} [$params->planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
              * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing $order
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+             * @param {string} [$params->clientOrderId] the $clientOrderId of the $order, $id does not need to be provided if $clientOrderId is provided
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */
             if ($symbol === null) {
@@ -5855,13 +5856,32 @@ class bitget extends Exchange {
             if (!($market['spot'] && $trigger)) {
                 $request['symbol'] = $market['id'];
             }
-            if (!(($market['swap'] || $market['future']) && $trigger)) {
-                $request['orderId'] = $id;
-            }
             $uta = null;
             list($uta, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'uta', false);
+            $isPlanOrder = $trigger || $trailing;
+            $isContract = $market['swap'] || $market['future'];
+            $isContractTriggerEndpoint = $isContract && $isPlanOrder && !$uta;
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOid');
+            if ($isContractTriggerEndpoint) {
+                $orderIdList = array();
+                $orderId = array();
+                if ($clientOrderId !== null) {
+                    $params = $this->omit($params, 'clientOrderId');
+                    $orderId['clientOid'] = $clientOrderId;
+                } else {
+                    $orderId['orderId'] = $id;
+                }
+                $orderIdList[] = $orderId;
+                $request['orderIdList'] = $orderIdList;
+            } else {
+                if ($clientOrderId !== null) {
+                    $params = $this->omit($params, 'clientOrderId');
+                    $request['clientOid'] = $clientOrderId;
+                } else {
+                    $request['orderId'] = $id;
+                }
+            }
             if ($uta) {
-                $request['orderId'] = $id;
                 if ($trigger) {
                     $response = Async\await($this->privateUtaPostV3TradeCancelStrategyOrder ($this->extend($request, $params)));
                 } else {
@@ -5871,14 +5891,6 @@ class bitget extends Exchange {
                 $productType = null;
                 list($productType, $params) = $this->handle_product_type_and_params($market, $params);
                 $request['productType'] = $productType;
-                if ($trigger || $trailing) {
-                    $orderIdList = array();
-                    $orderId = array(
-                        'orderId' => $id,
-                    );
-                    $orderIdList[] = $orderId;
-                    $request['orderIdList'] = $orderIdList;
-                }
                 if ($trailing) {
                     $planType = $this->safe_string($params, 'planType', 'track_plan');
                     $request['planType'] = $planType;
@@ -5957,7 +5969,7 @@ class bitget extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $order = null;
-            if (($market['swap'] || $market['future']) && $trigger && !$uta) {
+            if ($isContractTriggerEndpoint) {
                 $orderInfo = $this->safe_value($data, 'successList', array());
                 $order = $orderInfo[0];
             } else {
@@ -7648,7 +7660,7 @@ class bitget extends Exchange {
             //         "requestTime" => 1700802995406,
             //         "data" => array(
             //             {
-            //                 "userId" => "7264631750",
+            //                 "userId" => "7264631751",
             //                 "symbol" => "BTCUSDT",
             //                 "orderId" => "1098394344925597696",
             //                 "tradeId" => "1098394344974925824",

@@ -2,6 +2,49 @@
     "exchange": "mexc",
     "options": {},
     "methods": {
+        "withdraw": [
+            {
+                "description": "internal transfer withdraw",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    0.1,
+                    "to_someone@gmail.com",
+                    null,
+                    {
+                        "internal": true,
+                        "toAccountType": "EMAIL"
+                    }
+                ],
+                "httpResponse": {
+                    "tranId": "bbf2b4b7be1c46298e2547c3f90ba1eb"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tranId": "bbf2b4b7be1c46298e2547c3f90ba1eb"
+                    },
+                    "id": "bbf2b4b7be1c46298e2547c3f90ba1eb",
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": null,
+                    "currency": "USDT",
+                    "status": null,
+                    "updated": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": null
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "spot market buy order",

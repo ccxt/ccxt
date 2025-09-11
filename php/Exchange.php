@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.99';
+$version = '4.5.3';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.99';
+    const VERSION = '4.5.3';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -391,7 +391,6 @@ class Exchange {
         'deribit',
         'derive',
         'digifinex',
-        'ellipx',
         'exmo',
         'fmfwio',
         'foxbit',
@@ -436,7 +435,6 @@ class Exchange {
         'tokocrypto',
         'tradeogre',
         'upbit',
-        'vertex',
         'wavesexchange',
         'whitebit',
         'woo',
@@ -2843,6 +2841,14 @@ class Exchange {
         return -1;
     }
 
+    public function arrays_concat(array $arraysOfArrays) {
+        $result = array();
+        for ($i = 0; $i < count($arraysOfArrays); $i++) {
+            $result = $this->array_concat($result, $arraysOfArrays[$i]);
+        }
+        return $result;
+    }
+
     public function find_timeframe($timeframe, $timeframes = null) {
         if ($timeframes === null) {
             $timeframes = $this->timeframes;
@@ -3221,6 +3227,10 @@ class Exchange {
         throw new NotSupported($this->id . ' unWatchPositions() is not supported yet');
     }
 
+    public function un_watch_ticker(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchTicker() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
@@ -3509,9 +3519,9 @@ class Exchange {
     public function parse_to_numeric($number) {
         $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS => 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS =>     1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP =>    1 == 1.0 is true, but 1 === 1.0 is false.
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
@@ -4797,7 +4807,7 @@ class Exchange {
         throw new NotSupported($this->id . ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         $message = '';
         if ($this->has['fetchTrades']) {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
@@ -4805,7 +4815,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet' . $message);
     }
 
-    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         $message = '';
         if ($this->has['fetchTradesWs']) {
             $message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file';
@@ -4813,7 +4823,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' . $message);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
@@ -5325,16 +5335,30 @@ class Exchange {
         return $result;
     }
 
-    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_trades_helper(bool $isWs, array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->extend($this->parse_trade($trades[$i], $market), $params);
+            $parsed = null;
+            if ($isWs) {
+                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            } else {
+                $parsed = $this->parse_trade($trades[$i], $market);
+            }
+            $trade = $this->extend($parsed, $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->parse_trades_helper(false, $trades, $market, $since, $limit, $params);
+    }
+
+    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->parse_trades_helper(true, $trades, $market, $since, $limit, $params);
     }
 
     public function parse_transactions(array $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5814,6 +5838,13 @@ class Exchange {
             return $market;
         }
         return $result;
+    }
+
+    public function market_or_null(string $symbol) {
+        if ($symbol === null) {
+            return null;
+        }
+        return $this->market($symbol);
     }
 
     public function check_required_credentials($error = true) {
@@ -7418,6 +7449,36 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function handle_trigger_prices_and_params($symbol, $params, $omitParams = true) {
+        //
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPriceStr = null;
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $stopLossPriceStr = null;
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $takeProfitPriceStr = null;
+        //
+        if ($triggerPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+            }
+            $triggerPriceStr = $this->price_to_precision($symbol, floatval($triggerPrice));
+        }
+        if ($stopLossPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, 'stopLossPrice');
+            }
+            $stopLossPriceStr = $this->price_to_precision($symbol, floatval($stopLossPrice));
+        }
+        if ($takeProfitPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, 'takeProfitPrice');
+            }
+            $takeProfitPriceStr = $this->price_to_precision($symbol, floatval($takeProfitPrice));
+        }
+        return array( $triggerPriceStr, $stopLossPriceStr, $takeProfitPriceStr, $params );
+    }
+
     public function handle_trigger_direction_and_params($params, ?string $exchangeSpecificKey = null, Bool $allowEmpty = false) {
         /**
          * @ignore
@@ -7604,7 +7665,7 @@ class Exchange {
         }
     }
 
-    public function fetch_mark_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_mark_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical mark price candlestick data containing the open, high, low, and close price of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
@@ -7624,7 +7685,7 @@ class Exchange {
         }
     }
 
-    public function fetch_index_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_index_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
@@ -7644,7 +7705,7 @@ class Exchange {
         }
     }
 
-    public function fetch_premium_index_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_premium_index_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
