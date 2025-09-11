@@ -62,6 +62,16 @@
             {
                 "description": "cancelOrder symbol spot",
                 "method": "cancelOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "2037458701057622272",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "orderId=2037458701057622272&recvWindow=5000&timestamp=1757623009123&signature=39908f71b1536972d40a82bc5194aeed2fa225cafcbc7b76be9bac0723d2cd2a"
+            },
+            {
+                "description": "cancelOrder symbol spot",
+                "method": "cancelOrder",
                 "url": "https://api.toobit.com/api/v1/spot/order",
                 "input": [
                     "2037173542953448448",
