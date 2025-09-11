@@ -547,7 +547,7 @@ export default class backpack extends Exchange {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'blockchain');
-                const networkCode = this.networkCodeToId (networkId);
+                const networkCode = this.networkIdToCode (networkId);
                 parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
