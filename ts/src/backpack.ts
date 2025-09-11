@@ -724,7 +724,7 @@ export default class backpack extends Exchange {
             settleId = this.safeString (market, 'quoteSymbol');
             settle = this.safeCurrencyCode (settleId);
             symbol += ':' + settle;
-            contractSize = 1; // todo check contract size
+            contractSize = 1;
         }
         const orderBookState = this.safeString (market, 'orderBookState');
         return this.safeMarketStructure ({
@@ -1153,6 +1153,7 @@ export default class backpack extends Exchange {
      * @name backpack#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
+     * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1170,10 +1171,8 @@ export default class backpack extends Exchange {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
         let response = undefined;
-        const offset = this.safeInteger (params, 'offset', 0);
-        params = this.omit (params, 'offset');
-        if (offset > 0) {
-            request['offset'] = offset;
+        const offset = this.safeInteger (params, 'offset');
+        if (offset !== undefined) {
             response = await this.publicGetApiV1TradesHistory (this.extend (request, params));
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
