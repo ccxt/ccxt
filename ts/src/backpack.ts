@@ -1246,6 +1246,8 @@ export default class backpack extends Exchange {
         //     }
         //
         const id = this.safeString2 (trade, 'id', 'tradeId');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'quantity');
         const isMaker = this.safeBool (trade, 'isMaker');
