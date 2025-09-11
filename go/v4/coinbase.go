@@ -6122,11 +6122,14 @@ func (this *coinbase) ParsePortfolioDetails(portfolioData interface{}) interface
 	return parsedPositions
 }
 func (this *coinbase) CreateAuthToken(seconds interface{}, optionalArgs ...interface{}) interface{} {
-	// it may not work for v2
+	// v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+	// v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
 	method := GetArg(optionalArgs, 0, nil)
 	_ = method
 	url := GetArg(optionalArgs, 1, nil)
 	_ = url
+	useEddsa := GetArg(optionalArgs, 2, false)
+	_ = useEddsa
 	var uri interface{} = nil
 	if IsTrue(!IsEqual(url, nil)) {
 		uri = Add(Add(method, " "), Replace(url, "https://", ""))
@@ -6137,24 +6140,41 @@ func (this *coinbase) CreateAuthToken(seconds interface{}, optionalArgs ...inter
 			uri = Slice(uri, 0, quesPos)
 		}
 	}
+	// eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
 	var nonce interface{} = this.RandomBytes(16)
+	var aud interface{} = Ternary(IsTrue(useEddsa), "cdp_service", "retail_rest_api_proxy")
+	var iss interface{} = Ternary(IsTrue(useEddsa), "cdp", "coinbase-cloud")
 	var request interface{} = map[string]interface{}{
-		"aud": []interface{}{"retail_rest_api_proxy"},
-		"iss": "coinbase-cloud",
+		"aud": []interface{}{aud},
+		"iss": iss,
 		"nbf": seconds,
 		"exp": Add(seconds, 120),
 		"sub": this.ApiKey,
 		"iat": seconds,
 	}
 	if IsTrue(!IsEqual(uri, nil)) {
-		AddElementToObject(request, "uri", uri)
+		if !IsTrue(useEddsa) {
+			AddElementToObject(request, "uri", uri)
+		} else {
+			AddElementToObject(request, "uris", []interface{}{uri})
+		}
 	}
-	var token interface{} = Jwt(request, this.Encode(this.Secret), sha256, false, map[string]interface{}{
-		"kid":   this.ApiKey,
-		"nonce": nonce,
-		"alg":   "ES256",
-	})
-	return token
+	if IsTrue(useEddsa) {
+		var byteArray interface{} = this.Base64ToBinary(this.Secret)
+		var seed interface{} = this.ArraySlice(byteArray, 0, 32)
+		return Jwt(request, seed, sha256, false, map[string]interface{}{
+			"kid":   this.ApiKey,
+			"nonce": nonce,
+			"alg":   "EdDSA",
+		})
+	} else {
+		// ecdsa with p256
+		return Jwt(request, this.Encode(this.Secret), sha256, false, map[string]interface{}{
+			"kid":   this.ApiKey,
+			"nonce": nonce,
+			"alg":   "ES256",
+		})
+	}
 }
 func (this *coinbase) Nonce() interface{} {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
@@ -6211,8 +6231,10 @@ func (this *coinbase) Sign(path interface{}, optionalArgs ...interface{}) interf
 			// v2: 'GET' require payload in the signature
 			// https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
 			var isCloudAPiKey interface{} = IsTrue((IsGreaterThanOrEqual(GetIndexOf(this.ApiKey, "organizations/"), 0))) || IsTrue((StartsWith(this.Secret, "-----BEGIN")))
-			if IsTrue(isCloudAPiKey) {
-				if IsTrue(StartsWith(this.ApiKey, "-----BEGIN")) {
+			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
+			var isV2CloudAPiKey interface{} = IsTrue(IsTrue(IsEqual(GetLength(this.Secret), 88)) || IsTrue(this.SafeBool(this.Options, "v2CloudAPiKey", false))) || IsTrue(EndsWith(this.Secret, "="))
+			if IsTrue(IsTrue(isCloudAPiKey) || IsTrue(isV2CloudAPiKey)) {
+				if IsTrue(IsTrue(isCloudAPiKey) && IsTrue(StartsWith(this.ApiKey, "-----BEGIN"))) {
 					panic(ArgumentsRequired(Add(this.Id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")))
 				}
 				// // it may not work for v2
@@ -6233,7 +6255,7 @@ func (this *coinbase) Sign(path interface{}, optionalArgs ...interface{}) interf
 				//     'uri': uri,
 				//     'iat': seconds,
 				// };
-				var token interface{} = this.CreateAuthToken(seconds, method, url)
+				var token interface{} = this.CreateAuthToken(seconds, method, url, isV2CloudAPiKey)
 				// const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
 				authorizationString = Add("Bearer ", token)
 			} else {
