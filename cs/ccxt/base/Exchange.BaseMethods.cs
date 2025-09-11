@@ -7980,7 +7980,7 @@ public partial class Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
                 {
                     object client = getValue(clients, i);
-                    object futures = this.safeDict(client, "futures");
+                    object futures = (client as WebSocketClient).futures;
                     if (isTrue(isTrue((!isEqual(futures, null))) && isTrue((inOp(futures, "fetchPositionsSnapshot")))))
                     {
                         ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
