@@ -44,4 +44,4 @@ try
 !
 !
 !
-trrigger
+trrigger!
