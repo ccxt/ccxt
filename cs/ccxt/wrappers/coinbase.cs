@@ -1398,9 +1398,9 @@ public partial class coinbase
         var res = await this.fetchPortfolioDetails(portfolioUuid, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
+    public string CreateAuthToken(Int64 seconds, string method = null, string url = null, bool useEddsa = false)
     {
-        var res = this.createAuthToken(seconds, method, url);
+        var res = this.createAuthToken(seconds, method, url, useEddsa);
         return ((string)res);
     }
 }
