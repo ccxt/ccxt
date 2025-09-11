@@ -1190,6 +1190,7 @@ export default class backpack extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1210,6 +1211,10 @@ export default class backpack extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['to'] = until;
+        }
+        const fillType = this.safeString (params, 'fillType');
+        if (fillType === undefined) {
+            request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
