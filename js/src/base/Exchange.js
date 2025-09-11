@@ -6208,7 +6208,7 @@ export default class Exchange {
     }
     handleTriggerPricesAndParams(symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeString(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr = undefined;
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         let stopLossPriceStr = undefined;
