@@ -6558,17 +6558,12 @@ class binance extends Exchange {
             }
         }
         if ($quantityIsRequired) {
-            // portfolio margin has a different $amount $precision
-            if ($isPortfolioMargin) {
-                $request['quantity'] = $this->parse_to_numeric($amount);
+            $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+            $isPrecisionAvailable = ($marketAmountPrecision !== null);
+            if ($isPrecisionAvailable) {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
-                $isPrecisionAvailable = ($marketAmountPrecision !== null);
-                if ($isPrecisionAvailable) {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                } else {
-                    $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
-                }
+                $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
             }
         }
         if ($priceIsRequired && !$isPriceMatch) {
@@ -11337,7 +11332,7 @@ class binance extends Exchange {
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($hedged, $symbol, $params) {
             /**
-             * set $hedged to true or false for a market
+             * set $hedged to true or false for a $market
              *
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
@@ -11351,11 +11346,14 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} $response from the exchange
              */
-            $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $params = $this->omit($params, array( 'type' ));
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('setPositionMode', $market, $params);
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', null, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'setPositionMode', 'papi', 'portfolioMargin', false);
             $dualSidePosition = null;

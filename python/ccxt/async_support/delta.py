@@ -223,6 +223,7 @@ class delta(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'userAgent': self.userAgents['chrome39'],  # needed for C#
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',

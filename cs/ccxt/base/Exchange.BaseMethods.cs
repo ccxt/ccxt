@@ -1013,6 +1013,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " unWatchPositions() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTicker() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1402,9 +1408,9 @@ public partial class Exchange
     {
         object stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (isTrue(isGreaterThanOrEqual(getIndexOf(stringVersion, "."), 0)))
         {
             return parseFloat(stringVersion);
@@ -3617,19 +3623,39 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseTradesHelper(object isWs, object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         trades = this.toArray(trades);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
-            object trade = this.extend(this.parseTrade(getValue(trades, i), market), parameters);
+            object parsed = null;
+            if (isTrue(isWs))
+            {
+                parsed = this.parseWsTrade(getValue(trades, i), market);
+            } else
+            {
+                parsed = this.parseTrade(getValue(trades, i), market);
+            }
+            object trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
         object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+
+    public virtual object parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return this.parseTradesHelper(false, trades, market, since, limit, parameters);
+    }
+
+    public virtual object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }
 
     public virtual object parseTransactions(object transactions, object currency = null, object since = null, object limit = null, object parameters = null)
@@ -4246,6 +4272,15 @@ public partial class Exchange
             return market;
         }
         return result;
+    }
+
+    public virtual object marketOrNull(object symbol)
+    {
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return null;
+        }
+        return this.market(symbol);
     }
 
     public virtual object checkRequiredCredentials(object error = null)
@@ -6376,6 +6411,44 @@ public partial class Exchange
         object sorted = this.sortBy(rates, "timestamp");
         object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+
+    public virtual object handleTriggerPricesAndParams(object symbol, object parameters, object omitParams = null)
+    {
+        //
+        omitParams ??= true;
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        object triggerPriceStr = null;
+        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        object stopLossPriceStr = null;
+        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        object takeProfitPriceStr = null;
+        //
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            if (isTrue(omitParams))
+            {
+                parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
+            }
+            triggerPriceStr = this.priceToPrecision(symbol, parseFloat(triggerPrice));
+        }
+        if (isTrue(!isEqual(stopLossPrice, null)))
+        {
+            if (isTrue(omitParams))
+            {
+                parameters = this.omit(parameters, "stopLossPrice");
+            }
+            stopLossPriceStr = this.priceToPrecision(symbol, parseFloat(stopLossPrice));
+        }
+        if (isTrue(!isEqual(takeProfitPrice, null)))
+        {
+            if (isTrue(omitParams))
+            {
+                parameters = this.omit(parameters, "takeProfitPrice");
+            }
+            takeProfitPriceStr = this.priceToPrecision(symbol, parseFloat(takeProfitPrice));
+        }
+        return new List<object>() {triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, parameters};
     }
 
     public virtual object handleTriggerDirectionAndParams(object parameters, object exchangeSpecificKey = null, object allowEmpty = null)

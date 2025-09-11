@@ -36,6 +36,11 @@ class kucoin(ccxt.async_support.kucoin):
                 'watchOrderBookForSymbols': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
+                'unWatchTicker': True,
+                'unWatchOHLCV': True,
+                'unWatchOrderBook': True,
+                'unWatchTrades': True,
+                'unWatchhTradesForSymbols': True,
             },
             'options': {
                 'tradesLimit': 1000,
@@ -137,6 +142,9 @@ class kucoin(ccxt.async_support.kucoin):
             client.subscriptions[requestId] = subscriptionHash
         return await self.watch(url, messageHash, message, subscriptionHash, subscription)
 
+    async def un_subscribe(self, url, messageHash, topic, subscriptionHash, params={}, subscription: dict = None):
+        return await self.un_subscribe_multiple(url, [messageHash], topic, [subscriptionHash], params, subscription)
+
     async def subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription=None):
         requestId = str(self.request_id())
         request: dict = {
@@ -189,6 +197,34 @@ class kucoin(ccxt.async_support.kucoin):
         topic = method + ':' + market['id']
         messageHash = 'ticker:' + symbol
         return await self.subscribe(url, messageHash, topic, query)
+
+    async def un_watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        url = await self.negotiate(False)
+        method = None
+        method, params = self.handle_option_and_params(params, 'watchTicker', 'method', '/market/snapshot')
+        topic = method + ':' + market['id']
+        messageHash = 'unsubscribe:ticker:' + symbol
+        subMessageHash = 'ticker:' + symbol
+        subscription = {
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+            'topic': 'trades',
+            'unsubscribe': True,
+            'symbols': [symbol],
+        }
+        return await self.un_subscribe(url, messageHash, topic, subMessageHash, params, subscription)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -416,6 +452,34 @@ class kucoin(ccxt.async_support.kucoin):
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> List[list]:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        url = await self.negotiate(False)
+        market = self.market(symbol)
+        symbol = market['symbol']
+        period = self.safe_string(self.timeframes, timeframe, timeframe)
+        topic = '/market/candles:' + market['id'] + '_' + period
+        messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe
+        subMessageHash = 'candles:' + symbol + ':' + timeframe
+        subscription = {
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+            'topic': 'ohlcv',
+            'unsubscribe': True,
+            'symbols': [symbol],
+        }
+        return await self.un_subscribe(url, messageHash, topic, messageHash, params, subscription)
 
     def handle_ohlcv(self, client: Client, message):
         #

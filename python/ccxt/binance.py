@@ -6295,16 +6295,12 @@ class binance(Exchange, ImplicitAPI):
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
-            # portfolio margin has a different amount precision
-            if isPortfolioMargin:
-                request['quantity'] = self.parse_to_numeric(amount)
+            marketAmountPrecision = self.safe_string(market['precision'], 'amount')
+            isPrecisionAvailable = (marketAmountPrecision is not None)
+            if isPrecisionAvailable:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
             else:
-                marketAmountPrecision = self.safe_string(market['precision'], 'amount')
-                isPrecisionAvailable = (marketAmountPrecision is not None)
-                if isPrecisionAvailable:
-                    request['quantity'] = self.amount_to_precision(symbol, amount)
-                else:
-                    request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
+                request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
         if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
@@ -10668,11 +10664,13 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: response from the exchange
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, ['type'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('setPositionMode', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('setPositionMode', None, params)
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
         dualSidePosition = None
