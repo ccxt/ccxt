@@ -3416,6 +3416,27 @@ export default class Exchange {
         return this.markets;
     }
 
+    setMarketsFromExchange (sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange.markets) {
+            throw new ExchangeError ('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this;
+    }
+
     getDescribeForExtendedWsExchange (currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
         const extendedRestDescribe = this.deepExtend (parentRestInstance.describe (), currentRestInstance.describe ());
         const superWithRestDescribe = this.deepExtend (extendedRestDescribe, wsBaseDescribe);
@@ -6874,7 +6895,7 @@ export default class Exchange {
 
     handleTriggerPricesAndParams (symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         let stopLossPriceStr: Str = undefined;
@@ -8118,7 +8139,7 @@ export default class Exchange {
                 const clients = Object.values (this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = this.safeDict (client, 'futures');
+                    const futures = client.futures;
                     if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
                         delete futures['fetchPositionsSnapshot'];
                     }

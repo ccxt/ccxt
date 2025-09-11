@@ -1,3 +1,35 @@
+<a id="v4.5.4"></a>
+# [v4.5.4](https://github.com/ccxt/ccxt/releases/tag/v4.5.4) - 2025-09-11
+
+## What's Changed
+* feat(okx): 2025-09-02 changelog by [@Dan-krm](https://github.com/Dan-krm) in [#26769](https://github.com/ccxt/ccxt/pull/26769)
+* remove duplicate folders from repo by [@ttodua](https://github.com/ttodua) in [#26768](https://github.com/ccxt/ccxt/pull/26768)
+* feat(parseWsTrades): parseTrades reorg by [@ttodua](https://github.com/ttodua) in [#26780](https://github.com/ccxt/ccxt/pull/26780)
+* feat(handleTriggerPrices): implement by [@ttodua](https://github.com/ttodua) in [#26749](https://github.com/ccxt/ccxt/pull/26749)
+* fix: binance setPositionMode by [@caoilainnl](https://github.com/caoilainnl) in [#26783](https://github.com/ccxt/ccxt/pull/26783)
+* fix(kucoinfutures): add 100001 and 330008 errors by [@carlosmiei](https://github.com/carlosmiei) in [#26777](https://github.com/ccxt/ccxt/pull/26777)
+* fix(bitvavo): check operatorId in cancelAllOrders by [@carlosmiei](https://github.com/carlosmiei) in [#26774](https://github.com/ccxt/ccxt/pull/26774)
+* feat(bitget): watchMyTrades, uta support by [@Dan-krm](https://github.com/Dan-krm) in [#26755](https://github.com/ccxt/ccxt/pull/26755)
+* fix(cs): websockets fix by [@ttodua](https://github.com/ttodua) in [#26775](https://github.com/ccxt/ccxt/pull/26775)
+* fix(bitget): watchMyTrades spot type by [@carlosmiei](https://github.com/carlosmiei) in [#26791](https://github.com/ccxt/ccxt/pull/26791)
+* test(python): fix path by [@ttodua](https://github.com/ttodua) in [#26781](https://github.com/ccxt/ccxt/pull/26781)
+* fix(coinbase): signature in GO by adding p256 curve to ecdsa and fixing jwt options by [@carlosmiei](https://github.com/carlosmiei) in [#26790](https://github.com/ccxt/ccxt/pull/26790)
+* fix(delta): assets request by [@ttodua](https://github.com/ttodua) in [#26797](https://github.com/ccxt/ccxt/pull/26797)
+* coincatch exchange - update createOrder by [@yzh-pelle](https://github.com/yzh-pelle) in [#26801](https://github.com/ccxt/ccxt/pull/26801)
+* go cli fix by [@caoilainnl](https://github.com/caoilainnl) in [#26805](https://github.com/ccxt/ccxt/pull/26805)
+* fix(handleTriggerPrices): quick by [@ttodua](https://github.com/ttodua) in [#26806](https://github.com/ccxt/ccxt/pull/26806)
+* feat: allow sharing markets between exchanges by [@pcriadoperez](https://github.com/pcriadoperez) in [#26685](https://github.com/ccxt/ccxt/pull/26685)
+* fix(coinex): correct type in watchOrderBookForSymbols by [@sc0Vu](https://github.com/sc0Vu) in [#26808](https://github.com/ccxt/ccxt/pull/26808)
+* feat(coinbase): add Ed25519 support by [@carlosmiei](https://github.com/carlosmiei) in [#26803](https://github.com/ccxt/ccxt/pull/26803)
+* feat(bybit): watchMyTrades, add fast.execution by [@Dan-krm](https://github.com/Dan-krm) in [#26795](https://github.com/ccxt/ccxt/pull/26795)
+* fix(ws): unsubscribe futures cleanup by [@pcriadoperez](https://github.com/pcriadoperez) in [#26785](https://github.com/ccxt/ccxt/pull/26785)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.3...v4.5.4
+
+[Changes][v4.5.4]
+
+
 <a id="v4.5.3"></a>
 # [v4.5.3](https://github.com/ccxt/ccxt/releases/tag/v4.5.3) - 2025-09-03
 
@@ -10319,6 +10351,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.4]: https://github.com/ccxt/ccxt/compare/v4.5.3...v4.5.4
 [v4.5.3]: https://github.com/ccxt/ccxt/compare/v4.5.2...v4.5.3
 [v4.5.2]: https://github.com/ccxt/ccxt/compare/v4.5.1...v4.5.2
 [v4.5.1]: https://github.com/ccxt/ccxt/compare/v4.5.0...v4.5.1

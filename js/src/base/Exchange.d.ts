@@ -568,6 +568,7 @@ export default class Exchange {
     safeCurrencyStructure(currency: object): CurrencyInterface;
     safeMarketStructure(market?: Dict): MarketInterface;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
+    setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
