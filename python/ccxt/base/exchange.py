@@ -7110,7 +7110,7 @@ class Exchange(object):
                 clients = list(self.clients.values())
                 for i in range(0, len(clients)):
                     client = clients[i]
-                    futures = self.safe_dict(client, 'futures')
+                    futures = client.futures
                     if (futures is not None) and ('fetchPositionsSnapshot' in futures):
                         del futures['fetchPositionsSnapshot']
             elif topic == 'ticker' and (self.tickers is not None):
