@@ -2278,6 +2278,7 @@ export default class backpack extends Exchange {
                 'X-Window': recvWindow,
                 'X-API-Key': this.apiKey,
                 'X-Signature': signature,
+                'X-Broker-Id': 1400,
             };
             if (method !== 'GET') {
                 body = this.json (sortedParams);
