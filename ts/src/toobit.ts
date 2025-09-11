@@ -167,6 +167,7 @@ export default class toobit extends Exchange {
                     '-1004': BadRequest, // {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027symbol, orderIds or clientOrderIds\u0027 was empty."}
                     '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                    '-1140': BadRequest, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
                     '-1202': BadRequest, // {"code":-1202,"msg":"Create order sell quantity too small"}
                     '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
                 },
@@ -1483,9 +1484,19 @@ export default class toobit extends Exchange {
         const request: Dict = {
             'symbol': id,
             'side': side.toUpperCase (),
-            'quantity': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
+        let cost: Str = undefined;
+        [ cost, params ] = this.handleParamString (params, 'cost');
+        if (type === 'market') {
+            if (cost === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires params["cost"] for market orders');
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, cost);
+            }
+        } else {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
         let isPostOnly = undefined;
         [ isPostOnly, params ] = this.handlePostOnly (type === 'market', false, params);
         if (isPostOnly) {
@@ -1517,6 +1528,7 @@ export default class toobit extends Exchange {
         if (this.inArray (type, [ 'limit', 'LIMIT' ])) {
             request['type'] = type.toUpperCase ();
         } else if (type === 'market') {
+            request['type'] = 'LIMIT'; // weird, but exchange works this way
             request['priceType'] = 'MARKET';
         }
         let isPostOnly = undefined;
@@ -1894,34 +1906,41 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetApiV1SpotOpenOrders (request);
-        //
-        //    [
-        //        {
-        //            "accountId": "1783404067076253952",
-        //            "exchangeId": "301",
-        //            "symbol": "ETHUSDT",
-        //            "symbolName": "ETHUSDT",
-        //            "clientOrderId": "17561415157172008",
-        //            "orderId": "2025056244339984384",
-        //            "price": "3000",
-        //            "origQty": "0.002",
-        //            "executedQty": "0",
-        //            "cummulativeQuoteQty": "0",
-        //            "cumulativeQuoteQty": "0",
-        //            "avgPrice": "0",
-        //            "status": "NEW",
-        //            "timeInForce": "GTC",
-        //            "type": "LIMIT",
-        //            "side": "BUY",
-        //            "stopPrice": "0.0",
-        //            "icebergQty": "0.0",
-        //            "time": "1756141516189",
-        //            "updateTime": "1756141516198",
-        //            "isWorking": true
-        //        }, ...
-        //    ]
-        //
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "accountId": "1783404067076253952",
+            //            "exchangeId": "301",
+            //            "symbol": "ETHUSDT",
+            //            "symbolName": "ETHUSDT",
+            //            "clientOrderId": "17561415157172008",
+            //            "orderId": "2025056244339984384",
+            //            "price": "3000",
+            //            "origQty": "0.002",
+            //            "executedQty": "0",
+            //            "cummulativeQuoteQty": "0",
+            //            "cumulativeQuoteQty": "0",
+            //            "avgPrice": "0",
+            //            "status": "NEW",
+            //            "timeInForce": "GTC",
+            //            "type": "LIMIT",
+            //            "side": "BUY",
+            //            "stopPrice": "0.0",
+            //            "icebergQty": "0.0",
+            //            "time": "1756141516189",
+            //            "updateTime": "1756141516198",
+            //            "isWorking": true
+            //        }, ...
+            //    ]
+            //
+        } else {
+            response = await this.privateGetApiV1FuturesOpenOrders (this.extend (request, params));
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
