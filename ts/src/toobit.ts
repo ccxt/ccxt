@@ -164,6 +164,11 @@ export default class toobit extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '-1004': BadRequest, // {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
+                    '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027symbol, orderIds or clientOrderIds\u0027 was empty."}
+                    '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                    '-1202': BadRequest, // {"code":-1202,"msg":"Create order sell quantity too small"}
+                    '-1203': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
                 },
                 'broad': {
                 },
@@ -1739,12 +1744,12 @@ export default class toobit extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotOpenOrders (params);
+            response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
             // {"success":true}  // always same response
             //
         } else {
-            response = await this.privateDeleteApiV1FuturesBatchOrders (params);
+            response = await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
             //
             // { "code": 200, "message":"success", "timestamp":1541161088303 }
             //
@@ -1782,12 +1787,12 @@ export default class toobit extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateDeleteApiV1SpotCancelOrderByIds (params);
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
             //
             // {"success":true}  // always same response
             //
         } else {
-            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (params);
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request, params));
             //
             // {
             //     "code":200,
@@ -2539,10 +2544,11 @@ export default class toobit extends Exchange {
         const request: Dict = {
             'coin': currency['id'],
         };
-        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (this.extend (request, params));
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() : param["network"] is required');
         }
+        request['chainType'] = this.networkCodeToId (networkCode);
         const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, paramsOmitted));
         //
         //     {
@@ -2737,7 +2743,7 @@ export default class toobit extends Exchange {
                 request['symbol'] = market['id'];
             }
         }
-        const response = await this.privateGetApiV1FuturesPositions (params);
+        const response = await this.privateGetApiV1FuturesPositions (this.extend (request, params));
         //
         //    [
         //        {
