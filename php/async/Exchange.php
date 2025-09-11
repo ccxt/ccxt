@@ -5597,7 +5597,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function handle_trigger_prices_and_params($symbol, $params, $omitParams = true) {
         //
-        $triggerPrice = $this->safe_string($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $triggerPriceStr = null;
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $stopLossPriceStr = null;
