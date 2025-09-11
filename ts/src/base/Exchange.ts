@@ -2893,9 +2893,9 @@ export default class Exchange {
     parseToNumeric (number) {
         const stringVersion = this.numberToString (number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.indexOf ('.') >= 0) {
             return parseFloat (stringVersion);
         }
@@ -3414,6 +3414,27 @@ export default class Exchange {
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
         return this.markets;
+    }
+
+    setMarketsFromExchange (sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange.markets) {
+            throw new ExchangeError ('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this;
     }
 
     getDescribeForExtendedWsExchange (currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
@@ -4714,16 +4735,30 @@ export default class Exchange {
         return result;
     }
 
-    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+    parseTradesHelper (isWs: boolean, trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend (this.parseTrade (trades[i], market), params);
+            let parsed = undefined;
+            if (isWs) {
+                parsed = this.parseWsTrade (trades[i], market);
+            } else {
+                parsed = this.parseTrade (trades[i], market);
+            }
+            const trade = this.extend (parsed, params);
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+    }
+
+    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        return this.parseTradesHelper (false, trades, market, since, limit, params);
+    }
+
+    parseWsTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        return this.parseTradesHelper (true, trades, market, since, limit, params);
     }
 
     parseTransactions (transactions: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
@@ -6856,6 +6891,36 @@ export default class Exchange {
         const sorted = this.sortBy (rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
+    }
+
+    handleTriggerPricesAndParams (symbol, params, omitParams = true) {
+        //
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        let triggerPriceStr: Str = undefined;
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        let stopLossPriceStr: Str = undefined;
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        let takeProfitPriceStr: Str = undefined;
+        //
+        if (triggerPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
+            }
+            triggerPriceStr = this.priceToPrecision (symbol, parseFloat (triggerPrice));
+        }
+        if (stopLossPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit (params, 'stopLossPrice');
+            }
+            stopLossPriceStr = this.priceToPrecision (symbol, parseFloat (stopLossPrice));
+        }
+        if (takeProfitPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit (params, 'takeProfitPrice');
+            }
+            takeProfitPriceStr = this.priceToPrecision (symbol, parseFloat (takeProfitPrice));
+        }
+        return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
     }
 
     handleTriggerDirectionAndParams (params, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false) {

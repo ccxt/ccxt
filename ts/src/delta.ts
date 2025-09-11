@@ -215,6 +215,7 @@ export default class delta extends Exchange {
                     },
                 },
             },
+            'userAgent': this.userAgents['chrome39'], // needed for C#
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',

@@ -229,7 +229,7 @@ export default class kucoinfutures extends kucoin {
                     '429': RateLimitExceeded,
                     '500': ExchangeNotAvailable,
                     '503': ExchangeNotAvailable,
-                    '100001': InvalidOrder,
+                    '100001': OrderNotFound,
                     '100004': BadRequest,
                     '101030': PermissionDenied,
                     '200004': InsufficientFunds,
@@ -248,7 +248,8 @@ export default class kucoinfutures extends kucoin {
                     '400100': BadRequest,
                     '411100': AccountSuspended,
                     '500000': ExchangeNotAvailable,
-                    '300009': InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
+                    '300009': InvalidOrder,
+                    '330008': InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }

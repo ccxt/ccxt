@@ -422,7 +422,11 @@ class NewTranspiler {
         const isOptional =  param.optional || param.initializer !== undefined;
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
-        if (param.type == undefined) {
+        
+        // Special case for setMarketsFromExchange method
+        if (name === 'sourceExchange' && param.type === undefined) {
+            paramType = 'Exchange';
+        } else if (param.type == undefined) {
             paramType = 'object';
         } else {
             paramType = this.convertJavascriptTypeToCsharpType(name, param.type);
@@ -484,6 +488,7 @@ class NewTranspiler {
             'fetchCurrencies',
             'loadMarketsHelper',
             'createNetworksByIdObject',
+            'setMarketsFromExchange',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -737,6 +742,9 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2'); // tmp fix for c#
+        
+        // Fix setMarketsFromExchange parameter type
+        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
