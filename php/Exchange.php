@@ -1243,10 +1243,24 @@ class Exchange {
         } else if ($algoType === 'ES') {
             $signed = static::ecdsa($token, $secret, 'p256', $algorithm);
             $signature = hex2bin(str_pad($signed['r'], 64, '0', STR_PAD_LEFT) . str_pad($signed['s'], 64, '0', STR_PAD_LEFT));
+        } else if ($algoType === 'Ed') {
+            $signed = static::eddsa($token, $secret);
+            $signature = static::base64_to_base64url($signed);
+            return $token . '.' . $signature; // eddsa returns the value  already as a base64 string
         } else {
             $signature = static::hmac($token, $secret, $algorithm, 'binary');
         }
         return $token . '.' . static::urlencode_base64($signature);
+    }
+
+    public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {
+        $base64url = strtr($base64, '+/', '-_');
+
+        if ($stripPadding) {
+            $base64url = rtrim($base64url, '=');
+        }
+
+    return $base64url;
     }
 
     public static function rsa($request, $secret, $alg = 'sha256') {
