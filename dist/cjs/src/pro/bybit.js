@@ -2563,7 +2563,7 @@ class bybit extends bybit$1["default"] {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades');
+                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
                     this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);
