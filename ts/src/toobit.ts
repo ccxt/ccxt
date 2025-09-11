@@ -1643,7 +1643,7 @@ export default class toobit extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
-        const rawSide = this.safeString (order, 'side');
+        const rawSideLower = this.safeStringLower (order, 'side');
         let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
@@ -1661,7 +1661,7 @@ export default class toobit extends Exchange {
             'type': this.parseOrderType (rawType),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': (rawType === 'LIMIT_MAKER'),
-            'side': rawSide.toLowerCase (),
+            'side': rawSideLower,
             'price': this.omitZero (this.safeString (order, 'price')),
             'triggerPrice': triggerPrice,
             'cost': this.omitZero (this.safeString (order, 'cumulativeQuoteQty')),
