@@ -362,6 +362,10 @@ func Eddsa(data2 interface{}, secret interface{}, curve interface{}) string {
 		secretsBytes = bytes
 	}
 
+	if len(secretsBytes) == 0 {
+		return ""
+	}
+
 	key := ed25.NewKeyFromSeed(secretsBytes)
 	if key == nil {
 		panic("invalid ed25519 secret")
