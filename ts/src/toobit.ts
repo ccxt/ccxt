@@ -1493,9 +1493,8 @@ export default class toobit extends Exchange {
 
     createContractOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
-        const id = market['id'];
         const request: Dict = {
-            'symbol': id,
+            'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
         };
         request['price'] = this.priceToPrecision (symbol, price);
