@@ -6417,7 +6417,7 @@ public partial class Exchange
     {
         //
         omitParams ??= true;
-        object triggerPrice = this.safeString(parameters, "triggerPrice", "stopPrice");
+        object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object triggerPriceStr = null;
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object stopLossPriceStr = null;
