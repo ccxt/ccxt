@@ -5062,6 +5062,7 @@ export default class coinbase extends Exchange {
                 uri = uri.slice (0, quesPos);
             }
         }
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         const nonce = this.randomBytes (16);
         const aud = useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
         const iss = useEddsa ? 'cdp' : 'coinbase-cloud';
@@ -5074,7 +5075,11 @@ export default class coinbase extends Exchange {
             'iat': seconds,
         };
         if (uri !== undefined) {
-            request['uri'] = uri;
+            if (!useEddsa) {
+                request['uri'] = uri;
+            } else {
+                request['uris'] = [ uri ];
+            }
         }
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);

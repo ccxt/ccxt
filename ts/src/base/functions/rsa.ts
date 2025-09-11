@@ -1,7 +1,7 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
 import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, base16ToBinary, base64ToBinary } from './encode.js';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 import { ecdsa } from '../../base/functions/crypto.js';
@@ -22,13 +22,14 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
         alg = opts['alg'].toUpperCase ();
     }
     const header = Object.assign({ 'alg': alg, 'typ': 'JWT' }, opts);
+
     if (header['iat'] !== undefined) {
         request['iat'] = header['iat'];
         delete header['iat'];
     }
     const encodedHeader = urlencodeBase64 (JSON.stringify(header));
     const encodedData = urlencodeBase64 (JSON.stringify (request));
-    const token = [ encodedHeader, encodedData ].join ('.');
+    let token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
     let signature = undefined;
     if (algoType === 'HS') {
@@ -41,7 +42,10 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
         const s = signedHash.s.padStart (64, '0');
         signature = urlencodeBase64 (base16ToBinary (r + s));
     } else if (algoType === 'ED') {
-        signature = urlencodeBase64(eddsa(toHex(token), secret, ed25519));
+        const base64str = eddsa(toHex(token), secret, ed25519);
+        // we need urlencoded64 not base64
+        const binary = base64ToBinary(base64str);
+        signature = urlencodeBase64 (binary);
     }
     return [ token, signature ].join ('.');
 }
