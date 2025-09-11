@@ -168,7 +168,7 @@ export default class toobit extends Exchange {
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027symbol, orderIds or clientOrderIds\u0027 was empty."}
                     '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
                     '-1202': BadRequest, // {"code":-1202,"msg":"Create order sell quantity too small"}
-                    '-1203': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
                 },
                 'broad': {
                 },
@@ -1386,7 +1386,7 @@ export default class toobit extends Exchange {
             //     ]
             //
         } else {
-            response = await this.privateGetApiV1SpotAccount ();
+            response = await this.privateGetApiV1Account ();
             //
             //    {
             //        "userId": "912902020",

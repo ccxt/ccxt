@@ -16,6 +16,81 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetchBalance type spot",
+                "method": "fetchBalance",
+                "input": [
+                    "{type:\\\"spot\\\"}"
+                ],
+                "httpResponse": {
+                    "userId": "912902020",
+                    "balances": [
+                        {
+                            "asset": "ETH",
+                            "assetId": "ETH",
+                            "assetName": "ETH",
+                            "total": "0.022",
+                            "free": "0.022",
+                            "locked": "0"
+                        },
+                        {
+                            "asset": "USDT",
+                            "assetId": "USDT",
+                            "assetName": "USDT",
+                            "total": "3.81011606",
+                            "free": "3.81011606",
+                            "locked": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "userId": "912902020",
+                        "balances": [
+                            {
+                                "asset": "ETH",
+                                "assetId": "ETH",
+                                "assetName": "ETH",
+                                "total": "0.022",
+                                "free": "0.022",
+                                "locked": "0"
+                            },
+                            {
+                                "asset": "USDT",
+                                "assetId": "USDT",
+                                "assetName": "USDT",
+                                "total": "3.81011606",
+                                "free": "3.81011606",
+                                "locked": "0"
+                            }
+                        ]
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "ETH": {
+                        "free": 0.022,
+                        "used": 0,
+                        "total": 0.022
+                    },
+                    "USDT": {
+                        "free": 3.81011606,
+                        "used": 0,
+                        "total": 3.81011606
+                    },
+                    "free": {
+                        "ETH": 0.022,
+                        "USDT": 3.81011606
+                    },
+                    "used": {
+                        "ETH": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "ETH": 0.022,
+                        "USDT": 3.81011606
+                    }
+                }
+            },
+            {
                 "description": "fetchBalance type perp",
                 "method": "fetchBalance",
                 "input": [

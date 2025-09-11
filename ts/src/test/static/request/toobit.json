@@ -170,6 +170,15 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetchBalance type spot",
+                "method": "fetchBalance",
+                "url": "https://api.toobit.com/api/v1/account?recvWindow=5000&timestamp=1757584959171&signature=b554c9d862c7f28b50e518788d65dfc13c26f76a6d67feae27f514f75a3e4e92",
+                "input": [
+                    "{type:\\\"spot\\\"}"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchBalance type perp",
                 "method": "fetchBalance",
                 "url": "https://api.toobit.com/api/v1/futures/balance?recvWindow=5000&timestamp=1757566484080&signature=0e21998f9c0151b3f84f3ac43b906e36d2ee01f4eaf36eb1831492d7ea509a82",
@@ -222,6 +231,19 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "perp limit sell",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    5000
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=5000&side=SELL_OPEN&type=LIMIT&newClientOrderId=6ef21fd2-74fc-49ed-b77c-b69b670e21cb&recvWindow=5000&timestamp=1757580545569&signature=8b31b48e5c7390a3edf674f2339e1c60761ceb6aa4e8430f4f7bc56c100b7756"
+            },
             {
                 "description": "perp limit sell",
                 "method": "createOrder",
