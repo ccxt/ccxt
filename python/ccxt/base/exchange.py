@@ -1310,7 +1310,7 @@ class Exchange(object):
             rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
             signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
         elif algoType == 'Ed':
-            signature = Exchange.eddsa(token.encode('utf-8'), secret, 'ed25519',True)
+            signature = Exchange.eddsa(token.encode('utf-8'), secret, 'ed25519', True)
             # here the signature is already a urlencoded base64-encoded string
             return token + '.' + signature
         else:
@@ -1453,7 +1453,7 @@ class Exchange(object):
         return encoded.rstrip("=")
 
     @staticmethod
-    def eddsa(request, secret, curve='ed25519', url_encode = False):
+    def eddsa(request, secret, curve='ed25519', url_encode=False):
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
         private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
