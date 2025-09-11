@@ -3,6 +3,7 @@ package ccxt
 import (
 	"crypto"
 	"crypto/ecdsa"
+	ed25 "crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/hmac"
 	md5Hash "crypto/md5"
@@ -15,6 +16,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"fmt"
 	"hash/crc32"
 	"math/big"
 	"strings"
@@ -252,6 +254,8 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 		s := ec["s"].(string)
 		converted, _ := convertHexStringToByteArray(r + s)
 		signature = Base64urlencode(converted)
+	} else if alg[:2] == "Ed" {
+		signature = Eddsa(token, secret, "ed25519")
 	} else {
 		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
 	}
@@ -334,13 +338,50 @@ func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) s
 	return base64.StdEncoding.EncodeToString(signData)
 }
 
-func Eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
-	return "" // to do
+func Base64ToBase64URL(base64Str string, stripPadding bool) string {
+	base64URL := strings.NewReplacer("+", "-", "/", "_").Replace(base64Str)
+
+	if stripPadding {
+		base64URL = strings.TrimRight(base64URL, "=")
+	}
+
+	return base64URL
+}
+
+func Eddsa(data2 interface{}, secret interface{}, curve interface{}) string {
+	// it should use ed25519 and return a base64 string
+	data := data2.(string)
+	secretBytes, err := interfacesToBytes(secret.([]interface{}))
+	if err != nil {
+		panic(err)
+	}
+	key := ed25.NewKeyFromSeed(secretBytes)
+	if key == nil {
+		panic("invalid ed25519 secret")
+	}
+	signature := ed25.Sign(key, []byte(data))
+	if signature == nil {
+		return ""
+	}
+	base64Str := base64.StdEncoding.EncodeToString(signature)
+	return Base64ToBase64URL(base64Str, true)
 }
 
 // func Ecdsa(request interface{}, secret interface{}, alg interface{}, hash interface{}) string {
 // 	return "" // to do
 // }
+
+func interfacesToBytes(input []interface{}) ([]uint8, error) {
+	result := make([]uint8, len(input))
+	for i, v := range input {
+		b, ok := v.(uint8) // type assertion
+		if !ok {
+			return nil, fmt.Errorf("element at index %d is not uint8 (got %T)", i, v)
+		}
+		result[i] = b
+	}
+	return result, nil
+}
 
 func stringToPrivateKey(privKeyStr string) *ecdsa.PrivateKey {
 	// Decode PEM formatted private key
