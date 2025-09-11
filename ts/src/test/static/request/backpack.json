@@ -1,6 +1,6 @@
 {
     "exchange": "backpack",
-    "skipKeys": [ "signature", "startTime" ],
+    "skipKeys": [ "signature", "startTime", "orderId" ],
     "outputType": "both",
     "secret": "bSQmK8JSjtExl2iBSi0d9CxZRon4tjWTjFC7HfEhVv+IRkdI74dJ7d7l+MRWHFAZiQpQl76bnzDxBCuiAZYFCQ==",
     "methods": {
@@ -56,7 +56,7 @@
                 "method": "cancelOrder",
                 "url": "https://api.backpack.exchange/api/v1/order",
                 "input": [
-                    8284661092,
+                    "8284661092",
                     "ETH/USDC"
                 ],
                 "output": "{\"orderId\":8284661092,\"symbol\":\"ETH_USDC\"}"
