@@ -2,6 +2,62 @@
     "exchange": "toobit",
     "skipKeys": [],
     "methods": {
+        "cancelOrders": [
+            {
+                "description": "cancelOrders type perp",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/futures/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037127702314513408"
+                    ],
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "ids=2037127702314513408&recvWindow=5000&timestamp=1757622450113&signature=c972f36f60f40f24cb3d6705ad9ee96cb9de27a7225a7a0dbd9446a5f8f319e2"
+            },
+            {
+                "description": "cancelOrders type spot",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/spot/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037173542953448448"
+                    ],
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "ids=2037173542953448448&recvWindow=5000&timestamp=1757622440190&signature=cab94dcd49cf528aa65f9aece08fb4715e96d91b884fbfd1d3258d87f90627b4"
+            },
+            {
+                "description": "cancelOrders symbol perp",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/futures/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037127702314513408"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "output": "ids=2037127702314513408&symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757622432014&signature=5eec0bdf6560547ef65a921b93f8925274d8cfa8f3d4f1f5d0f70edc4b0d62ea"
+            },
+            {
+                "description": "cancelOrders symbol spot",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/spot/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037173542953448448"
+                    ],
+                    "ETH/USDT"
+                ],
+                "output": "ids=2037173542953448448&symbol=ETHUSDT&recvWindow=5000&timestamp=1757622423710&signature=672dcc9d2e2af39ef62102f6630a823980f3e7a6295b442fa9737c7096e84439"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancelOrder symbol spot",
@@ -318,6 +374,19 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "createOrder perp sell limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    7234
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=7234&side=SELL_OPEN&type=LIMIT&newClientOrderId=177e1c59-2dc9-4287-86be-f86264c6c76c&recvWindow=5000&timestamp=1757622368443&signature=eb246a10f4578910202c11412d32aded4a324f02c4572748c8f951bc323bea8a"
+            },
             {
                 "description": "createOrder perp buy market",
                 "method": "createOrder",

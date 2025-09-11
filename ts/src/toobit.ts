@@ -168,6 +168,7 @@ export default class toobit extends Exchange {
                     '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027symbol, orderIds or clientOrderIds\u0027 was empty."}
                     '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
                     '-1140': BadRequest, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
+                    '-1142': OrderNotFound, // {"code":-1142,"msg":"Order has been canceled"}
                     '-1202': BadRequest, // {"code":-1202,"msg":"Create order sell quantity too small"}
                     '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
                 },
