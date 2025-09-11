@@ -202,9 +202,9 @@
                     "allowWithdraw": true
                 }
             },
-            "TRX": {
+            "TRC20": {
                 "id": "TRX",
-                "network": "TRX",
+                "network": "TRC20",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -231,9 +231,9 @@
                     "allowWithdraw": true
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "BSC",
-                "network": "BSC",
+                "network": "BEP20",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -557,9 +557,9 @@
                     "allowWithdraw": true
                 }
             },
-            "ARBITRUM": {
+            "ARBONE": {
                 "id": "ARBITRUM",
-                "network": "ARBITRUM",
+                "network": "ARBONE",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -586,9 +586,9 @@
                     "allowWithdraw": true
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "BSC",
-                "network": "BSC",
+                "network": "BEP20",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -703,7 +703,7 @@
                     "withdrawFee": "0.02",
                     "minWithdrawQuantity": "0.035",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.00459157",
+                    "minDepositQuantity": "0.00442203",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 },
@@ -712,7 +712,7 @@
                     "withdrawFee": "0.005",
                     "minWithdrawQuantity": "0.035",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.00459157",
+                    "minDepositQuantity": "0.00442125",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
@@ -742,7 +742,7 @@
                 "precision": null,
                 "limits": {
                     "deposit": {
-                        "min": 0.00459157,
+                        "min": 0.00442203,
                         "max": null
                     },
                     "withdraw": {
@@ -755,14 +755,14 @@
                     "withdrawFee": "0.02",
                     "minWithdrawQuantity": "0.035",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.00459157",
+                    "minDepositQuantity": "0.00442203",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "BSC",
-                "network": "BSC",
+                "network": "BEP20",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -771,7 +771,7 @@
                 "precision": null,
                 "limits": {
                     "deposit": {
-                        "min": 0.00459157,
+                        "min": 0.00442125,
                         "max": null
                     },
                     "withdraw": {
@@ -784,7 +784,7 @@
                     "withdrawFee": "0.005",
                     "minWithdrawQuantity": "0.035",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.00459157",
+                    "minDepositQuantity": "0.00442125",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
@@ -800,7 +800,7 @@
                 "max": 0
             },
             "deposit": {
-                "min": 0.00459157,
+                "min": 0.00442125,
                 "max": null
             }
         }
@@ -819,7 +819,7 @@
                     "withdrawFee": "0.5",
                     "minWithdrawQuantity": "0.8",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.04226542",
+                    "minDepositQuantity": "0.04132231",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 },
@@ -828,7 +828,7 @@
                     "withdrawFee": "0.05",
                     "minWithdrawQuantity": "0.22",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.04226542",
+                    "minDepositQuantity": "0.0413736",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
@@ -858,7 +858,7 @@
                 "precision": null,
                 "limits": {
                     "deposit": {
-                        "min": 0.04226542,
+                        "min": 0.04132231,
                         "max": null
                     },
                     "withdraw": {
@@ -871,14 +871,14 @@
                     "withdrawFee": "0.5",
                     "minWithdrawQuantity": "0.8",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.04226542",
+                    "minDepositQuantity": "0.04132231",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "BSC",
-                "network": "BSC",
+                "network": "BEP20",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -887,7 +887,7 @@
                 "precision": null,
                 "limits": {
                     "deposit": {
-                        "min": 0.04226542,
+                        "min": 0.0413736,
                         "max": null
                     },
                     "withdraw": {
@@ -900,7 +900,7 @@
                     "withdrawFee": "0.05",
                     "minWithdrawQuantity": "0.22",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "0.04226542",
+                    "minDepositQuantity": "0.0413736",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
@@ -916,7 +916,7 @@
                 "max": 0
             },
             "deposit": {
-                "min": 0.04226542,
+                "min": 0.04132231,
                 "max": null
             }
         }
@@ -935,7 +935,7 @@
                     "withdrawFee": "1",
                     "minWithdrawQuantity": "9",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "1.131349",
+                    "minDepositQuantity": "1.132502",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 },
@@ -944,7 +944,7 @@
                     "withdrawFee": "1",
                     "minWithdrawQuantity": "9",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "1.1313497",
+                    "minDepositQuantity": "1.13327289",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
@@ -974,7 +974,7 @@
                 "precision": null,
                 "limits": {
                     "deposit": {
-                        "min": 1.131349,
+                        "min": 1.132502,
                         "max": null
                     },
                     "withdraw": {
@@ -987,14 +987,14 @@
                     "withdrawFee": "1",
                     "minWithdrawQuantity": "9",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "1.131349",
+                    "minDepositQuantity": "1.132502",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
             },
-            "BSC": {
+            "BEP20": {
                 "id": "BSC",
-                "network": "BSC",
+                "network": "BEP20",
                 "margin": null,
                 "deposit": "true",
                 "withdraw": "true",
@@ -1003,7 +1003,7 @@
                 "precision": null,
                 "limits": {
                     "deposit": {
-                        "min": 1.1313497,
+                        "min": 1.13327289,
                         "max": null
                     },
                     "withdraw": {
@@ -1016,7 +1016,7 @@
                     "withdrawFee": "1",
                     "minWithdrawQuantity": "9",
                     "maxWithdrawQuantity": "0",
-                    "minDepositQuantity": "1.1313497",
+                    "minDepositQuantity": "1.13327289",
                     "allowDeposit": true,
                     "allowWithdraw": true
                 }
@@ -1032,7 +1032,7 @@
                 "max": 0
             },
             "deposit": {
-                "min": 1.131349,
+                "min": 1.132502,
                 "max": null
             }
         }

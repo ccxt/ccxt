@@ -706,7 +706,7 @@ export default class toobit extends Exchange {
         const minNotionalFilter = this.safeDict (filtersByType, 'MIN_NOTIONAL', {});
         let symbol = base + '/' + quote;
         const isContract = ('contractMultiplier' in market);
-        const inverse = this.safeBool (market, 'isInverse');
+        const inverse = this.safeBool2 (market, 'isInverse', 'inverse');
         if (isContract) {
             symbol += ':' + settle;
         }
