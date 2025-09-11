@@ -8012,7 +8012,7 @@ func (this *Exchange) HandleTriggerPricesAndParams(symbol interface{}, params in
 	//
 	omitParams := GetArg(optionalArgs, 0, true)
 	_ = omitParams
-	var triggerPrice interface{} = this.SafeString(params, "triggerPrice", "stopPrice")
+	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var triggerPriceStr interface{} = nil
 	var stopLossPrice interface{} = this.SafeString(params, "stopLossPrice")
 	var stopLossPriceStr interface{} = nil
