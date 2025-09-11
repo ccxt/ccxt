@@ -1810,7 +1810,8 @@ export default class toobit extends Exchange {
             //
             // or empty array if no orders were canceled
         }
-        return this.parseOrders (response, market);
+        const result = this.safeList (response, 'result', []);
+        return this.parseOrders (result, market);
     }
 
     /**
@@ -2059,6 +2060,9 @@ export default class toobit extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         let request: Dict = {};
         if (since !== undefined) {
@@ -2067,13 +2071,10 @@ export default class toobit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
+        const market = this.market (symbol);
+        request['symbol'] = market['id'];
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let response = undefined;
         if (marketType === 'spot') {
@@ -2215,9 +2216,9 @@ export default class toobit extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
-            response = await this.privateGetV1AccountBalanceFlow (this.extend (request, params));
+            response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));
         } else {
-            response = await this.privateGetV1FuturesBalanceFlow (this.extend (request, params));
+            response = await this.privateGetApiV1FuturesBalanceFlow (this.extend (request, params));
         }
         //
         // both answers are same format
@@ -2692,7 +2693,7 @@ export default class toobit extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetApiV1FuturersAccountLeverage (this.extend (request, params));
+        const response = await this.privateGetApiV1FuturesAccountLeverage (this.extend (request, params));
         //
         // [
         //     {
@@ -2861,7 +2862,7 @@ export default class toobit extends Exchange {
         }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
-        if (errorCode && errorCode !== '200') {
+        if (errorCode && errorCode !== '200' && errorCode !== '0') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);

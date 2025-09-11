@@ -3,6 +3,636 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetchPositions with symbols",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [],
+                "parsedResponse": []
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage 3x",
+                "method": "setLeverage",
+                "input": [
+                    3,
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "symbolId": "ETH-SWAP-USDT",
+                    "leverage": "3"
+                },
+                "parsedResponse": {
+                    "code": "200",
+                    "symbolId": "ETH-SWAP-USDT",
+                    "leverage": "3"
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder spot sell market",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.005
+                ],
+                "httpResponse": {
+                    "accountId": "1783404067076253952",
+                    "symbol": "ETHUSDT",
+                    "symbolName": "ETHUSDT",
+                    "clientOrderId": "1757587732493303",
+                    "orderId": "2037187989914828800",
+                    "transactTime": "1757587732959",
+                    "price": "0",
+                    "origQty": "0.005",
+                    "executedQty": "0",
+                    "status": "PENDING_NEW",
+                    "timeInForce": "GTC",
+                    "type": "MARKET",
+                    "side": "SELL"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountId": "1783404067076253952",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "clientOrderId": "1757587732493303",
+                        "orderId": "2037187989914828800",
+                        "transactTime": "1757587732959",
+                        "price": "0",
+                        "origQty": "0.005",
+                        "executedQty": "0",
+                        "status": "PENDING_NEW",
+                        "timeInForce": "GTC",
+                        "type": "MARKET",
+                        "side": "SELL"
+                    },
+                    "id": "2037187989914828800",
+                    "clientOrderId": "1757587732493303",
+                    "timestamp": 1757587732959,
+                    "datetime": "2025-09-11T10:48:52.959Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "ETH/USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "average": null,
+                    "amount": 0.005,
+                    "filled": 0,
+                    "remaining": 0.005,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234,
+                    {
+                        "triggerPrice": 1434
+                    }
+                ],
+                "httpResponse": {
+                    "time": "1757587694101",
+                    "updateTime": "1757587694101",
+                    "orderId": "2037187663941910528",
+                    "clientOrderId": "fb6f5307-bf3c-452c-8988-941b90c47dc1",
+                    "symbol": "ETH-SWAP-USDT",
+                    "price": "1234",
+                    "leverage": "50",
+                    "origQty": "1",
+                    "executedQty": "0",
+                    "executeQty": "0",
+                    "avgPrice": "0",
+                    "marginLocked": "0.24",
+                    "type": "LIMIT",
+                    "side": "BUY_OPEN",
+                    "timeInForce": "GTC",
+                    "status": "PENDING_NEW",
+                    "priceType": "INPUT",
+                    "contractMultiplier": "0.01000000",
+                    "triggerType": "0",
+                    "fallType": "0",
+                    "activeStatus": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "time": "1757587694101",
+                        "updateTime": "1757587694101",
+                        "orderId": "2037187663941910528",
+                        "clientOrderId": "fb6f5307-bf3c-452c-8988-941b90c47dc1",
+                        "symbol": "ETH-SWAP-USDT",
+                        "price": "1234",
+                        "leverage": "50",
+                        "origQty": "1",
+                        "executedQty": "0",
+                        "executeQty": "0",
+                        "avgPrice": "0",
+                        "marginLocked": "0.24",
+                        "type": "LIMIT",
+                        "side": "BUY_OPEN",
+                        "timeInForce": "GTC",
+                        "status": "PENDING_NEW",
+                        "priceType": "INPUT",
+                        "contractMultiplier": "0.01000000",
+                        "triggerType": "0",
+                        "fallType": "0",
+                        "activeStatus": "0"
+                    },
+                    "id": "2037187663941910528",
+                    "clientOrderId": "fb6f5307-bf3c-452c-8988-941b90c47dc1",
+                    "timestamp": 1757587694101,
+                    "datetime": "2025-09-11T10:48:14.101Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1757587694101,
+                    "status": "open",
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy_open",
+                    "price": 1234,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234
+                ],
+                "httpResponse": {
+                    "time": "1757587655976",
+                    "updateTime": "1757587655976",
+                    "orderId": "2037187344134599680",
+                    "clientOrderId": "b491825d-2608-4d38-9d1e-1ec6e1adf003",
+                    "symbol": "ETH-SWAP-USDT",
+                    "price": "1234",
+                    "leverage": "50",
+                    "origQty": "1",
+                    "executedQty": "0",
+                    "executeQty": "0",
+                    "avgPrice": "0",
+                    "marginLocked": "0.24",
+                    "type": "LIMIT",
+                    "side": "BUY_OPEN",
+                    "timeInForce": "GTC",
+                    "status": "PENDING_NEW",
+                    "priceType": "INPUT",
+                    "contractMultiplier": "0.01000000",
+                    "triggerType": "0",
+                    "fallType": "0",
+                    "activeStatus": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "time": "1757587655976",
+                        "updateTime": "1757587655976",
+                        "orderId": "2037187344134599680",
+                        "clientOrderId": "b491825d-2608-4d38-9d1e-1ec6e1adf003",
+                        "symbol": "ETH-SWAP-USDT",
+                        "price": "1234",
+                        "leverage": "50",
+                        "origQty": "1",
+                        "executedQty": "0",
+                        "executeQty": "0",
+                        "avgPrice": "0",
+                        "marginLocked": "0.24",
+                        "type": "LIMIT",
+                        "side": "BUY_OPEN",
+                        "timeInForce": "GTC",
+                        "status": "PENDING_NEW",
+                        "priceType": "INPUT",
+                        "contractMultiplier": "0.01000000",
+                        "triggerType": "0",
+                        "fallType": "0",
+                        "activeStatus": "0"
+                    },
+                    "id": "2037187344134599680",
+                    "clientOrderId": "b491825d-2608-4d38-9d1e-1ec6e1adf003",
+                    "timestamp": 1757587655976,
+                    "datetime": "2025-09-11T10:47:35.976Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1757587655976,
+                    "status": "open",
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy_open",
+                    "price": 1234,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 1,
+                    "filled": 0,
+                    "remaining": 1,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "createOrder spot buy limit",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.005,
+                    1234
+                ],
+                "httpResponse": {
+                    "accountId": "1783404067076253952",
+                    "symbol": "ETHUSDT",
+                    "symbolName": "ETHUSDT",
+                    "clientOrderId": "1757587626336189048",
+                    "orderId": "2037187099430515712",
+                    "transactTime": "1757587626805",
+                    "price": "1234",
+                    "origQty": "0.005",
+                    "executedQty": "0",
+                    "status": "PENDING_NEW",
+                    "timeInForce": "GTC",
+                    "type": "LIMIT",
+                    "side": "BUY"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountId": "1783404067076253952",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "clientOrderId": "1757587626336189048",
+                        "orderId": "2037187099430515712",
+                        "transactTime": "1757587626805",
+                        "price": "1234",
+                        "origQty": "0.005",
+                        "executedQty": "0",
+                        "status": "PENDING_NEW",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "side": "BUY"
+                    },
+                    "id": "2037187099430515712",
+                    "clientOrderId": "1757587626336189048",
+                    "timestamp": 1757587626805,
+                    "datetime": "2025-09-11T10:47:06.805Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1234,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.005,
+                    "filled": 0,
+                    "remaining": 0.005,
+                    "trades": [],
+                    "fee": null,
+                    "marginMode": null,
+                    "reduceOnly": null,
+                    "leverage": null,
+                    "hedged": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders symbol spot",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": [],
+                "parsedResponse": []
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades symbol spot",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "id": "2037179086128908544",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "orderId": "2037179086019785728",
+                        "price": "4419.42",
+                        "qty": "0.001",
+                        "commission": "0.00441942",
+                        "commissionAsset": "USDT",
+                        "time": "1757586671541",
+                        "isBuyer": false,
+                        "isMaker": false,
+                        "fee": {
+                            "feeCoinId": "USDT",
+                            "feeCoinName": "USDT",
+                            "fee": "0.00441942"
+                        },
+                        "feeCoinId": "USDT",
+                        "feeAmount": "0.00441942",
+                        "makerRebate": "0",
+                        "ticketId": "4864450547564295177"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "2037179086128908544",
+                            "symbol": "ETHUSDT",
+                            "symbolName": "ETHUSDT",
+                            "orderId": "2037179086019785728",
+                            "price": "4419.42",
+                            "qty": "0.001",
+                            "commission": "0.00441942",
+                            "commissionAsset": "USDT",
+                            "time": "1757586671541",
+                            "isBuyer": false,
+                            "isMaker": false,
+                            "fee": {
+                                "feeCoinId": "USDT",
+                                "feeCoinName": "USDT",
+                                "fee": "0.00441942"
+                            },
+                            "feeCoinId": "USDT",
+                            "feeAmount": "0.00441942",
+                            "makerRebate": "0",
+                            "ticketId": "4864450547564295177"
+                        },
+                        "timestamp": 1757586671541,
+                        "datetime": "2025-09-11T10:31:11.541Z",
+                        "symbol": "ETH/USDT",
+                        "id": "2037179086128908544",
+                        "order": "2037179086019785728",
+                        "type": null,
+                        "side": "sell",
+                        "amount": 0.001,
+                        "price": 4419.42,
+                        "cost": 4.41942,
+                        "takerOrMaker": "taker",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.00441942
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.00441942
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "39iXjk2xCt8AhkRptkTRJdfCvQs9tesU7E",
+                    "addressExt": "",
+                    "minQuantity": "0.0001",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "1",
+                    "canWithdrawConfirmTimes": "4",
+                    "coinType": "CHAIN_TOKEN"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canDeposit": true,
+                        "address": "39iXjk2xCt8AhkRptkTRJdfCvQs9tesU7E",
+                        "addressExt": "",
+                        "minQuantity": "0.0001",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "1",
+                        "canWithdrawConfirmTimes": "4",
+                        "coinType": "CHAIN_TOKEN"
+                    },
+                    "currency": "BTC",
+                    "network": null,
+                    "address": "39iXjk2xCt8AhkRptkTRJdfCvQs9tesU7E",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "addressExt": "",
+                    "minQuantity": "0.001",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "6",
+                    "canWithdrawConfirmTimes": "64",
+                    "coinType": "ERC20_TOKEN"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canDeposit": true,
+                        "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                        "addressExt": "",
+                        "minQuantity": "0.001",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "6",
+                        "canWithdrawConfirmTimes": "64",
+                        "coinType": "ERC20_TOKEN"
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "addressExt": "",
+                    "minQuantity": "0.001",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "6",
+                    "canWithdrawConfirmTimes": "64",
+                    "coinType": "ERC20_TOKEN"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canDeposit": true,
+                        "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                        "addressExt": "",
+                        "minQuantity": "0.001",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "6",
+                        "canWithdrawConfirmTimes": "64",
+                        "coinType": "ERC20_TOKEN"
+                    },
+                    "currency": "ETH",
+                    "network": null,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "addressExt": "",
+                    "minQuantity": "1",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "6",
+                    "canWithdrawConfirmTimes": "64",
+                    "coinType": "CHAIN_TOKEN"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canDeposit": true,
+                        "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                        "addressExt": "",
+                        "minQuantity": "1",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "6",
+                        "canWithdrawConfirmTimes": "64",
+                        "coinType": "CHAIN_TOKEN"
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "addressExt": "",
+                    "minQuantity": "1",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "6",
+                    "canWithdrawConfirmTimes": "64",
+                    "coinType": "CHAIN_TOKEN"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "canDeposit": true,
+                        "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                        "addressExt": "",
+                        "minQuantity": "1",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "6",
+                        "canWithdrawConfirmTimes": "64",
+                        "coinType": "CHAIN_TOKEN"
+                    },
+                    "currency": "USDT",
+                    "network": null,
+                    "address": "0x6e59a43a4126920226c5fd9dbec2721f59af28f8",
+                    "tag": null
+                }
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "fetchClosedOrders symbol perp",
@@ -15,6 +645,79 @@
             }
         ],
         "fetchBalance": [
+            {
+                "description": "fetchBalance no args",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "userId": "912902020",
+                    "balances": [
+                        {
+                            "asset": "ETH",
+                            "assetId": "ETH",
+                            "assetName": "ETH",
+                            "total": "0.021",
+                            "free": "0.021",
+                            "locked": "0"
+                        },
+                        {
+                            "asset": "USDT",
+                            "assetId": "USDT",
+                            "assetName": "USDT",
+                            "total": "8.22511664",
+                            "free": "8.22511664",
+                            "locked": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "userId": "912902020",
+                        "balances": [
+                            {
+                                "asset": "ETH",
+                                "assetId": "ETH",
+                                "assetName": "ETH",
+                                "total": "0.021",
+                                "free": "0.021",
+                                "locked": "0"
+                            },
+                            {
+                                "asset": "USDT",
+                                "assetId": "USDT",
+                                "assetName": "USDT",
+                                "total": "8.22511664",
+                                "free": "8.22511664",
+                                "locked": "0"
+                            }
+                        ]
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "ETH": {
+                        "free": 0.021,
+                        "used": 0,
+                        "total": 0.021
+                    },
+                    "USDT": {
+                        "free": 8.22511664,
+                        "used": 0,
+                        "total": 8.22511664
+                    },
+                    "free": {
+                        "ETH": 0.021,
+                        "USDT": 8.22511664
+                    },
+                    "used": {
+                        "ETH": 0,
+                        "USDT": 0
+                    },
+                    "total": {
+                        "ETH": 0.021,
+                        "USDT": 8.22511664
+                    }
+                }
+            },
             {
                 "description": "fetchBalance type spot",
                 "method": "fetchBalance",
