@@ -46,7 +46,6 @@ interface Exchange {
     privateGetWapiV1HistoryFills (params?: {}): Promise<implicitReturnType>;
     privateGetWapiV1HistoryFunding (params?: {}): Promise<implicitReturnType>;
     privateGetWapiV1HistoryOrders (params?: {}): Promise<implicitReturnType>;
-    privateGetWapiV1HistoryPnl (params?: {}): Promise<implicitReturnType>;
     privateGetWapiV1HistoryRfq (params?: {}): Promise<implicitReturnType>;
     privateGetWapiV1HistoryQuote (params?: {}): Promise<implicitReturnType>;
     privateGetWapiV1HistorySettlement (params?: {}): Promise<implicitReturnType>;
