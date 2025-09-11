@@ -130,6 +130,24 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "fetchOpenOrders symbol perp",
+                "method": "fetchOpenOrders",
+                "url": "https://api.toobit.com/api/v1/futures/openOrders?symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757619841633&signature=ff44b1304fc7f9a84b6977ca21ac39be1666b69336e76df11d2c7bd7429b432e",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOpenOrders symbol spot",
+                "method": "fetchOpenOrders",
+                "url": "https://api.toobit.com/api/v1/spot/openOrders?symbol=ETHUSDT&recvWindow=5000&timestamp=1757619823899&signature=1abf0f69d75bb6b886dbcafdd0dd3cd672d9ebeb2237e77f342d9040d27c4dd7",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOpenOrders symbol spot",
                 "method": "fetchOpenOrders",
                 "url": "https://api.toobit.com/api/v1/spot/openOrders?symbol=BTCUSDT&recvWindow=5000&timestamp=1757566753921&signature=dee658743b3b9c3c762ec4aa2cdf091d7ccace5e5d7a76a013b5155fe2d92ca8",
@@ -301,6 +319,89 @@
         ],
         "createOrder": [
             {
+                "description": "createOrder perp buy market",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&side=BUY_OPEN&type=LIMIT&priceType=MARKET&newClientOrderId=95304ae6-10a6-4b60-81f2-48f94dcb290c&recvWindow=5000&timestamp=1757621429647&signature=9c6dfed6ed946cba87344f89439569db3890311ec440bbe4d28797dd01cdc3bb"
+            },
+            {
+                "description": "createOrder spot buy market",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "symbol=ETHUSDT&side=BUY&quantity=5&type=MARKET&recvWindow=5000&timestamp=1757621240280&signature=5d36bc9820868372f18e7f1aca35c56faa3d4fdec28e5a60ec7cd632013821d1"
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234,
+                    {
+                        "triggerPrice": 1434
+                    }
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_OPEN&type=LIMIT&stopPrice=1434&newClientOrderId=2ed3f1ad-ed45-43c5-8c85-1a23c574f4a5&recvWindow=5000&timestamp=1757620041611&signature=0af4cd4c75da5f646d31c9af6172a4e9fe7c669c0fed992efd62395fc5f3c5d9"
+            },
+            {
+                "description": "createOrder perp buy limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_OPEN&type=LIMIT&newClientOrderId=2487475c-1f0b-4543-be20-643cfe28eae6&recvWindow=5000&timestamp=1757620003849&signature=8c9d2e52380e4b2a0955c0ecc1c2814d8d5d47c0551d859424a0b379a6dfebd5"
+            },
+            {
+                "description": "createOrder spot sell limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.01,
+                    8234
+                ],
+                "output": "symbol=ETHUSDT&side=SELL&quantity=0.01&price=8234&type=LIMIT&recvWindow=5000&timestamp=1757619794776&signature=c7010788706313dc1cd15298db718cc147d48115bed9880f9f31a540c5e4c213"
+            },
+            {
+                "description": "createOrder spot buy limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.005,
+                    1234
+                ],
+                "output": "symbol=ETHUSDT&side=BUY&quantity=0.005&price=1234&type=LIMIT&recvWindow=5000&timestamp=1757588577501&signature=b0ea6a396ba5afcc050ca6a5b0efa650c6f8fd1937bef5dfd7abb9419ca8f4b8"
+            },
+            {
                 "description": "createOrder spot sell market",
                 "method": "createOrder",
                 "url": "https://api.toobit.com/api/v1/spot/order",
@@ -311,58 +412,6 @@
                     0.001
                 ],
                 "output": "symbol=ETHUSDT&side=SELL&quantity=0.001&type=MARKET&recvWindow=5000&timestamp=1757586671089&signature=7ae3a5a3e77f4a441d4dc3f9272fcb5b88698b0d340123185b74bc97a44b6391"
-            },
-            {
-                "description": "perp limit sell",
-                "method": "createOrder",
-                "url": "https://api.toobit.com/api/v1/spot/order",
-                "input": [
-                    "ETH/USDT",
-                    "limit",
-                    "sell",
-                    0.01,
-                    5000
-                ],
-                "output": "symbol=ETHUSDT&side=SELL&quantity=0.01&price=5000&type=LIMIT&recvWindow=5000&timestamp=1757586010323&signature=f74fbd38ffff794788c08889c8f613e0f32fefd4247be6f2f499ec0eae68fac5"
-            },
-            {
-                "description": "perp limit sell",
-                "method": "createOrder",
-                "url": "https://api.toobit.com/api/v1/futures/order",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "limit",
-                    "sell",
-                    1,
-                    5000
-                ],
-                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=5000&side=SELL_OPEN&type=LIMIT&newClientOrderId=6ef21fd2-74fc-49ed-b77c-b69b670e21cb&recvWindow=5000&timestamp=1757580545569&signature=8b31b48e5c7390a3edf674f2339e1c60761ceb6aa4e8430f4f7bc56c100b7756"
-            },
-            {
-                "description": "perp limit sell",
-                "method": "createOrder",
-                "url": "https://api.toobit.com/api/v1/futures/order",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "limit",
-                    "sell",
-                    1,
-                    5000
-                ],
-                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=5000&side=SELL_OPEN&type=LIMIT&newClientOrderId=e496a769-f1bd-47a0-b459-9a9d26ada5ab&recvWindow=5000&timestamp=1757565585456&signature=5bd779ed8f33a9631036f20802ef025d4ab583f92e715a6e943b1ccd15b4373c"
-            },
-            {
-                "description": "limit sell",
-                "method": "createOrder",
-                "url": "https://api.toobit.com/api/v1/spot/order",
-                "input": [
-                    "ETH/USDT",
-                    "limit",
-                    "sell",
-                    0.002,
-                    5000
-                ],
-                "output": "symbol=ETHUSDT&side=SELL&quantity=0.002&price=5000&type=LIMIT&recvWindow=5000&timestamp=1757561471012&signature=32bb635daf86fec12023e46a46bab4bb71341a75b248dcc72d7ca47e1e0c4220"
             }
         ],
         "fetchTicker": [
