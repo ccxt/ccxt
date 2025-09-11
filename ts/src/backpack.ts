@@ -1727,8 +1727,10 @@ export default class backpack extends Exchange {
         let cost = this.safeString2 (params, 'cost', 'quoteQuantity');
         if (price !== undefined) {
             if (type === 'market') {
-                if (price === 1 && cost === undefined) {
-                    cost = amount.toString (); // market orders with price 1 are used to calculate cost
+                if (cost === undefined) {
+                    cost = this.numberToString (amount * price);
+                } else {
+                    throw new BadRequest (this.id + ' createOrder() cannot use cost parameter with amount and price arguments for market orders');
                 }
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
