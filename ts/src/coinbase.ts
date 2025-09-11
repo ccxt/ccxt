@@ -5083,7 +5083,7 @@ export default class coinbase extends Exchange {
         }
         if (useEddsa) {
             const byteArray = this.base64ToBinary (this.secret);
-            const seed = byteArray.slice (0, 32);
+            const seed = this.arraySlice (byteArray, 0, 32);
             return jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
         } else {
             // ecdsa with p256

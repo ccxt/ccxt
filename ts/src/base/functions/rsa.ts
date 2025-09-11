@@ -1,7 +1,7 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
-import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString } from './encode.js';
+import { base16, base64, utf8 } from '../../static_dependencies/scure-base/index.js';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString, base64ToBase64Url } from './encode.js';
 import { eddsa, hmac } from './crypto.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 import { ecdsa } from '../../base/functions/crypto.js';
@@ -44,8 +44,7 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
     } else if (algoType === 'ED') {
         const base64str = eddsa(toHex(token), secret, ed25519);
         // we need urlencoded64 not base64
-        const binary = base64ToBinary(base64str);
-        signature = urlencodeBase64 (binary);
+        signature = base64ToBase64Url (base64str);
     }
     return [ token, signature ].join ('.');
 }
