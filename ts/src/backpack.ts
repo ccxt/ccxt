@@ -419,6 +419,31 @@ export default class backpack extends Exchange {
                     'TRC20': 'Tron',
                     'XRP': 'XRP',
                 },
+                'networksById': {
+                    'aptos': 'APT',
+                    'arbitrum': 'ARB',
+                    'avalanche': 'AVAX',
+                    'base': 'BASE',
+                    'berachain': 'BERA',
+                    'bitcoin': 'BTC',
+                    'bitcoincash': 'BCH',
+                    'bsc': 'BSC',
+                    'cardano': 'ADA',
+                    'dogecoin': 'DOGE',
+                    'eclipse': 'ECLIPSE',
+                    'equalsmoney': 'EQUALSMONEY',
+                    'ethereum': 'ERC20',
+                    'hyperliquid': 'HYP',
+                    'litecoin': 'LTC',
+                    'optimism': 'OPTIMISM',
+                    'polygon': 'MATIC',
+                    'sei': 'SEI',
+                    'sui': 'SUI',
+                    'solana': 'SOL',
+                    'story': 'STORY',
+                    'tron': 'TRC20',
+                    'xrp': 'XRP',
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -506,7 +531,8 @@ export default class backpack extends Exchange {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'blockchain');
-                const networkCode = this.networkIdToCode (networkId);
+                const networkIdLowerCase = this.safeStringLower (network, 'blockchain');
+                const networkCode = this.networkIdToCode (networkIdLowerCase);
                 parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -1525,8 +1551,8 @@ export default class backpack extends Exchange {
         const code = this.safeCurrencyCode (coin, currency);
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const amount = this.safeNumber (transaction, 'quantity');
-        const networkId = this.safeString2 (transaction, 'source', 'blockchain');
-        const network = this.networkCodeToId (networkId);
+        const networkId = this.safeStringLower2 (transaction, 'source', 'blockchain');
+        const network = this.networkIdToCode (networkId);
         const addressTo = this.safeString (transaction, 'toAddress');
         const addressFrom = this.safeString (transaction, 'fromAddress');
         const tag = this.safeString (transaction, 'platformMemo');
