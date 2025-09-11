@@ -2671,7 +2671,7 @@ class bybit extends \ccxt\async\bybit {
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
                     $subHash = $subMessageHashes[$j];
-                    $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades');
+                    $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
                     $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
                 }
                 $this->clean_cache($subscription);

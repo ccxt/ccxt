@@ -8701,7 +8701,7 @@ class Exchange {
                 $clients = is_array($this->clients) ? array_values($this->clients) : array();
                 for ($i = 0; $i < count($clients); $i++) {
                     $client = $clients[$i];
-                    $futures = $this->safe_dict($client, 'futures');
+                    $futures = $client->futures;
                     if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
                         unset($futures['fetchPositionsSnapshot']);
                     }
