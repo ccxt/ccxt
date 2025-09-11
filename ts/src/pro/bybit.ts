@@ -1272,7 +1272,7 @@ export default class bybit extends bybitRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @param {boolean} [params.fast] use fast execution
+     * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1291,11 +1291,11 @@ export default class bybit extends bybitRest {
             'usdc': 'user.openapi.perp.trade',
         };
         let topic = this.safeValue (topicByMarket, this.getPrivateType (url));
-        const fast = this.safeBool (params, 'fast', false);
-        if (fast) {
+        let executionFast = false;
+        [ executionFast, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
+        if (executionFast) {
             topic = 'execution.fast';
         }
-        params = this.omit (params, 'fast');
         const trades = await this.watchTopics (url, [ messageHash ], [ topic ], params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -1312,7 +1312,7 @@ export default class bybit extends bybitRest {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
-     * @param {boolean} [params.fast] use fast execution
+     * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
@@ -1331,11 +1331,11 @@ export default class bybit extends bybitRest {
             'usdc': 'user.openapi.perp.trade',
         };
         let topic = this.safeValue (topicByMarket, this.getPrivateType (url));
-        const fast = this.safeBool (params, 'fast', false);
-        if (fast) {
+        let executionFast = false;
+        [ executionFast, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'executionFast', false);
+        if (executionFast) {
             topic = 'execution.fast';
         }
-        params = this.omit (params, 'fast');
         return await this.unWatchTopics (url, 'myTrades', [ ], [ messageHash ], [ subHash ], [ topic ], params);
     }
 
