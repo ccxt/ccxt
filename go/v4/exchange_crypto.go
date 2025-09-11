@@ -351,11 +351,18 @@ func Base64ToBase64URL(base64Str string, stripPadding bool) string {
 func Eddsa(data2 interface{}, secret interface{}, curve interface{}) string {
 	// it should use ed25519 and return a base64 string
 	data := data2.(string)
-	secretBytes, err := interfacesToBytes(secret.([]interface{}))
-	if err != nil {
-		panic(err)
+	secretsBytes := []uint8{}
+	if s, ok := secret.([]uint8); ok {
+		secretsBytes = s
+	} else {
+		bytes, err := interfacesToBytes(secret.([]interface{}))
+		if err != nil {
+			panic(err)
+		}
+		secretsBytes = bytes
 	}
-	key := ed25.NewKeyFromSeed(secretBytes)
+
+	key := ed25.NewKeyFromSeed(secretsBytes)
 	if key == nil {
 		panic("invalid ed25519 secret")
 	}
