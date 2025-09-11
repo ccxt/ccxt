@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, OrderRequest, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage, Currencies } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, TransferEntry, Num, Dict, int, DepositAddress, Market, MarketInterface, FundingRateHistory, LedgerEntry, Position, FundingRate, FundingRates, TradingFees, Leverage, Currencies } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1501,9 +1501,9 @@ export default class toobit extends Exchange {
         let reduceOnly = undefined;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY';
+            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
         } else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL';
+            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1556,6 +1556,9 @@ export default class toobit extends Exchange {
                 request['tpTriggerBy'] = this.safeString (triggerPriceTypes, triggerPriceType, triggerPriceType);
             }
             params = this.omit (params, 'takeProfit');
+        }
+        if (!('newClientOrderId' in params)) {
+            request['newClientOrderId'] = this.uuid ();
         }
         return [ request, params ];
     }
