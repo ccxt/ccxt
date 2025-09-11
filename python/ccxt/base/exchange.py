@@ -6069,7 +6069,7 @@ class Exchange(object):
 
     def handle_trigger_prices_and_params(self, symbol, params, omitParams=True):
         #
-        triggerPrice = self.safe_string(params, 'triggerPrice', 'stopPrice')
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         triggerPriceStr: Str = None
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         stopLossPriceStr: Str = None
