@@ -4042,6 +4042,27 @@ class Exchange {
         return $this->markets;
     }
 
+    public function set_markets_from_exchange($sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if ($this->id !== $sourceExchange->id) {
+            throw new ArgumentsRequired($this->id . ' shareMarkets() can only share markets with exchanges of the same type (got ' . $sourceExchange['id'] . ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!$sourceExchange->markets) {
+            throw new ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        $this->markets = $sourceExchange->markets;
+        $this->markets_by_id = $sourceExchange->markets_by_id;
+        $this->symbols = $sourceExchange->symbols;
+        $this->ids = $sourceExchange->ids;
+        $this->currencies = $sourceExchange->currencies;
+        $this->baseCurrencies = $sourceExchange->baseCurrencies;
+        $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
+        $this->codes = $sourceExchange->codes;
+        return $this;
+    }
+
     public function get_describe_for_extended_ws_exchange(mixed $currentRestInstance, mixed $parentRestInstance, array $wsBaseDescribe) {
         $extendedRestDescribe = $this->deep_extend($parentRestInstance->describe (), $currentRestInstance->describe ());
         $superWithRestDescribe = $this->deep_extend($extendedRestDescribe, $wsBaseDescribe);
