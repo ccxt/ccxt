@@ -48,8 +48,6 @@ let protobufMexc = undefined;
 export default class Exchange {
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
-        this.throttleProp = undefined;
-        this.sleep = sleep;
         this.api = undefined;
         this.certified = false;
         this.pro = false;
@@ -146,11 +144,13 @@ export default class Exchange {
         this.socksProxyAgentModuleChecked = false;
         this.proxyDictionaries = {};
         this.proxiesModulesLoading = undefined;
+        this.alias = false;
         // WS/PRO options
         this.clients = {};
         this.newUpdates = true;
         this.streaming = {};
-        this.alias = false;
+        // INTERNAL METHODS
+        this.sleep = sleep;
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
@@ -484,7 +484,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
                     }
                     catch (err) {
                         // TODO: handle error
@@ -659,7 +659,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch;
+                        this.fetchImplementation = fetch; // eslint-disable-line
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
