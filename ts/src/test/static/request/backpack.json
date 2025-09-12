@@ -89,6 +89,22 @@
         ],
         "createOrder": [
             {
+                "description": "order with\n client order Id",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ADA/USDC:USDC",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "clientOrderId": 55555
+                    }
+                ],
+                "output": "{\"clientId\":55555,\"orderType\":\"Market\",\"quantity\":\"1\",\"side\":\"Bid\",\"symbol\":\"ADA_USDC_PERP\"}"
+            },
+            {
                 "description": "swap order with take profit and stop loss",
                 "method": "createOrder",
                 "url": "https://api.backpack.exchange/api/v1/order",
