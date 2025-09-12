@@ -545,5 +545,78 @@
                 "max": null
             }
         }
+    },
+    "DOGE": {
+        "info": {
+            "coingeckoId": "doge",
+            "displayName": "Dogecoin",
+            "symbol": "DOGE",
+            "tokens": [
+                {
+                    "blockchain": "Dogecoin",
+                    "contractAddress": "d0g",
+                    "depositEnabled": true,
+                    "displayName": "Dogecoin",
+                    "maximumWithdrawal": null,
+                    "minimumDeposit": "2",
+                    "minimumWithdrawal": "4",
+                    "withdrawEnabled": true,
+                    "withdrawalFee": "2"
+                }
+            ]
+        },
+        "id": "DOGE",
+        "numericId": null,
+        "code": "DOGE",
+        "precision": null,
+        "type": "crypto",
+        "name": "Dogecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 2,
+        "fees": {},
+        "networks": {
+            "DOGE": {
+                "id": "Dogecoin",
+                "network": "DOGE",
+                "limits": {
+                    "withdraw": {
+                        "min": 4,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 2,
+                        "max": null
+                    }
+                },
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2,
+                "precision": null,
+                "info": {
+                    "blockchain": "Dogecoin",
+                    "contractAddress": "d0g",
+                    "depositEnabled": true,
+                    "displayName": "Dogecoin",
+                    "maximumWithdrawal": null,
+                    "minimumDeposit": "2",
+                    "minimumWithdrawal": "4",
+                    "withdrawEnabled": true,
+                    "withdrawalFee": "2"
+                }
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": 2,
+                "max": null
+            },
+            "withdraw": {
+                "min": 4,
+                "max": null
+            }
+        }
     }
 }
