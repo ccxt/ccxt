@@ -4996,7 +4996,13 @@ class mexc extends mexc$1["default"] {
         //         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        const id = this.safeString(transaction, 'id');
+        // internal withdraw (aka internal-transfer)
+        //
+        //     {
+        //         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+        //     }
+        //
+        const id = this.safeString2(transaction, 'id', 'tranId');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
         const timestamp = this.safeInteger2(transaction, 'insertTime', 'applyTime');
         const updated = this.safeInteger(transaction, 'updateTime');
@@ -5509,17 +5515,40 @@ class mexc extends mexc$1["default"] {
      * @name mexc#withdraw
      * @description make a withdrawal
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+     * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.internal] false by default, set to true for an "internal transfer"
+     * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets();
         const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        const internal = this.safeBool(params, 'internal', false);
+        if (internal) {
+            params = this.omit(params, 'internal');
+            const requestForInternal = {
+                'asset': currency['id'],
+                'amount': amount,
+                'toAccount': address,
+            };
+            const toAccountType = this.safeString(params, 'toAccountType');
+            if (toAccountType === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE');
+            }
+            const responseForInternal = await this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, params));
+            //
+            //     {
+            //       "id":"7213fea8e94b4a5593d507237e5a555b"
+            //     }
+            //
+            return this.parseTransaction(responseForInternal, currency);
+        }
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias

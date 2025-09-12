@@ -1916,7 +1916,7 @@ class bitget(Exchange, ImplicitAPI):
             res = self.safe_dict(results, i)
             data = self.safe_list(res, 'data', [])
             firstData = self.safe_dict(data, 0, {})
-            isBorrowable = self.safe_string(firstData, 'isBorrowable')
+            isBorrowable = self.safe_bool(firstData, 'isBorrowable')
             if fetchMargins and isBorrowable is not None:
                 keysList = list(self.index_by(data, 'symbol').keys())
                 self.options['crossMarginPairsData'] = keysList
@@ -7233,7 +7233,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "requestTime": 1700802995406,
         #         "data": [
         #             {
-        #                 "userId": "7264631750",
+        #                 "userId": "7264631751",
         #                 "symbol": "BTCUSDT",
         #                 "orderId": "1098394344925597696",
         #                 "tradeId": "1098394344974925824",

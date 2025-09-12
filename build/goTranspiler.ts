@@ -1513,6 +1513,20 @@ ${constStatements.join('\n')}
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
         ]);
+        // remove this later too, and move it to the list
+        baseClass = baseClass.replaceAll(/\=\snew\s/gm, "= ");
+        // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
+        baseClass = baseClass.replaceAll(/callDynamically\(/gm, 'this.callDynamically(') //fix this on the transpiler
+        baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
+        baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
+        baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
+        baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
+        baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
+        baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
+        baseClass = baseClass.replaceAll (/(var \w+ interface{}) = client.Futures/g, '$1 = (client.(Client)).Futures'); // tmp fix for go not needed after ws-merge
+        
+        // Fix setMarketsFromExchange parameter type
+        baseClass = baseClass.replaceAll(/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)');
 
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
