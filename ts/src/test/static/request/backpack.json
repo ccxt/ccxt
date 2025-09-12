@@ -209,7 +209,7 @@
             {
                 "description": "fetch users trades with since and limit parameters",
                 "method": "fetchMyTrades",
-                "url": "https://api.backpack.exchange/wapi/v1/history/fills?from=1754062378000&limit=1&symbol=ETH_USDC",
+                "url": "https://api.backpack.exchange/wapi/v1/history/fills?fillType=User&from=1754062378000&limit=1&symbol=ETH_USDC",
                 "input": [
                     "ETH/USDC",
                     1754062378000,
@@ -220,7 +220,7 @@
             {
                 "description": "Fetch my trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.backpack.exchange/wapi/v1/history/fills?symbol=ETH_USDC",
+                "url": "https://api.backpack.exchange/wapi/v1/history/fills?fillType=User&symbol=ETH_USDC",
                 "input": [
                     "ETH/USDC"
                 ],

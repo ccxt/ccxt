@@ -724,7 +724,7 @@ export default class backpack extends Exchange {
             settleId = this.safeString (market, 'quoteSymbol');
             settle = this.safeCurrencyCode (settleId);
             symbol += ':' + settle;
-            contractSize = 1; // todo check contract size
+            contractSize = 1;
         }
         const orderBookState = this.safeString (market, 'orderBookState');
         return this.safeMarketStructure ({
@@ -1153,6 +1153,7 @@ export default class backpack extends Exchange {
      * @name backpack#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.backpack.exchange/#tag/Trades/operation/get_recent_trades
+     * @see https://docs.backpack.exchange/#tag/Trades/operation/get_historical_trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1170,10 +1171,8 @@ export default class backpack extends Exchange {
             request['limit'] = Math.min (limit, 1000); // api maximum 1000
         }
         let response = undefined;
-        const offset = this.safeInteger (params, 'offset', 0);
-        params = this.omit (params, 'offset');
-        if (offset > 0) {
-            request['offset'] = offset;
+        const offset = this.safeInteger (params, 'offset');
+        if (offset !== undefined) {
             response = await this.publicGetApiV1TradesHistory (this.extend (request, params));
         } else {
             response = await this.publicGetApiV1Trades (this.extend (request, params));
@@ -1191,6 +1190,7 @@ export default class backpack extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 100, max 1000)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1211,6 +1211,10 @@ export default class backpack extends Exchange {
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['to'] = until;
+        }
+        const fillType = this.safeString (params, 'fillType');
+        if (fillType === undefined) {
+            request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -1723,8 +1727,10 @@ export default class backpack extends Exchange {
         let cost = this.safeString2 (params, 'cost', 'quoteQuantity');
         if (price !== undefined) {
             if (type === 'market') {
-                if (price === 1 && cost === undefined) {
-                    cost = amount.toString (); // market orders with price 1 are used to calculate cost
+                if (cost === undefined) {
+                    cost = this.numberToString (amount * price);
+                } else {
+                    throw new BadRequest (this.id + ' createOrder() cannot use cost parameter with amount and price arguments for market orders');
                 }
             } else {
                 request['price'] = this.priceToPrecision (symbol, price);
