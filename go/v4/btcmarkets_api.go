@@ -7,142 +7,142 @@
 
 package ccxt
 
-func (this *btcmarkets) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *btcmarkets) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *btcmarkets) PublicGetMarketsMarketIdTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsMarketIdTicker", args...)
+func (this *btcmarkets) PublicGetMarketsMarketIdTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsMarketIdTicker", args...)
 }
 
-func (this *btcmarkets) PublicGetMarketsMarketIdTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsMarketIdTrades", args...)
+func (this *btcmarkets) PublicGetMarketsMarketIdTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsMarketIdTrades", args...)
 }
 
-func (this *btcmarkets) PublicGetMarketsMarketIdOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsMarketIdOrderbook", args...)
+func (this *btcmarkets) PublicGetMarketsMarketIdOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsMarketIdOrderbook", args...)
 }
 
-func (this *btcmarkets) PublicGetMarketsMarketIdCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsMarketIdCandles", args...)
+func (this *btcmarkets) PublicGetMarketsMarketIdCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsMarketIdCandles", args...)
 }
 
-func (this *btcmarkets) PublicGetMarketsTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsTickers", args...)
+func (this *btcmarkets) PublicGetMarketsTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsTickers", args...)
 }
 
-func (this *btcmarkets) PublicGetMarketsOrderbooks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarketsOrderbooks", args...)
+func (this *btcmarkets) PublicGetMarketsOrderbooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketsOrderbooks", args...)
 }
 
-func (this *btcmarkets) PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTime", args...)
+func (this *btcmarkets) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *btcmarkets) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *btcmarkets) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *btcmarkets) PrivateGetOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersId", args...)
+func (this *btcmarkets) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *btcmarkets) PrivateGetBatchordersIds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBatchordersIds", args...)
+func (this *btcmarkets) PrivateGetBatchordersIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBatchordersIds", args...)
 }
 
-func (this *btcmarkets) PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTrades", args...)
+func (this *btcmarkets) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *btcmarkets) PrivateGetTradesId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradesId", args...)
+func (this *btcmarkets) PrivateGetTradesId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradesId", args...)
 }
 
-func (this *btcmarkets) PrivateGetWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *btcmarkets) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *btcmarkets) PrivateGetWithdrawalsId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawalsId", args...)
+func (this *btcmarkets) PrivateGetWithdrawalsId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawalsId", args...)
 }
 
-func (this *btcmarkets) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDeposits", args...)
+func (this *btcmarkets) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *btcmarkets) PrivateGetDepositsId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositsId", args...)
+func (this *btcmarkets) PrivateGetDepositsId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositsId", args...)
 }
 
-func (this *btcmarkets) PrivateGetTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransfers", args...)
+func (this *btcmarkets) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *btcmarkets) PrivateGetTransfersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransfersId", args...)
+func (this *btcmarkets) PrivateGetTransfersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransfersId", args...)
 }
 
-func (this *btcmarkets) PrivateGetAddresses (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAddresses", args...)
+func (this *btcmarkets) PrivateGetAddresses(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAddresses", args...)
 }
 
-func (this *btcmarkets) PrivateGetWithdrawalFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawalFees", args...)
+func (this *btcmarkets) PrivateGetWithdrawalFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawalFees", args...)
 }
 
-func (this *btcmarkets) PrivateGetAssets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssets", args...)
+func (this *btcmarkets) PrivateGetAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssets", args...)
 }
 
-func (this *btcmarkets) PrivateGetAccountsMeTradingFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsMeTradingFees", args...)
+func (this *btcmarkets) PrivateGetAccountsMeTradingFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsMeTradingFees", args...)
 }
 
-func (this *btcmarkets) PrivateGetAccountsMeWithdrawalLimits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsMeWithdrawalLimits", args...)
+func (this *btcmarkets) PrivateGetAccountsMeWithdrawalLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsMeWithdrawalLimits", args...)
 }
 
-func (this *btcmarkets) PrivateGetAccountsMeBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsMeBalances", args...)
+func (this *btcmarkets) PrivateGetAccountsMeBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsMeBalances", args...)
 }
 
-func (this *btcmarkets) PrivateGetAccountsMeTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountsMeTransactions", args...)
+func (this *btcmarkets) PrivateGetAccountsMeTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountsMeTransactions", args...)
 }
 
-func (this *btcmarkets) PrivateGetReportsId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetReportsId", args...)
+func (this *btcmarkets) PrivateGetReportsId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetReportsId", args...)
 }
 
-func (this *btcmarkets) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *btcmarkets) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *btcmarkets) PrivatePostBatchorders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostBatchorders", args...)
+func (this *btcmarkets) PrivatePostBatchorders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostBatchorders", args...)
 }
 
-func (this *btcmarkets) PrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawals", args...)
+func (this *btcmarkets) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *btcmarkets) PrivatePostReports (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostReports", args...)
+func (this *btcmarkets) PrivatePostReports(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostReports", args...)
 }
 
-func (this *btcmarkets) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *btcmarkets) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *btcmarkets) PrivateDeleteOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteOrdersId", args...)
+func (this *btcmarkets) PrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteOrdersId", args...)
 }
 
-func (this *btcmarkets) PrivateDeleteBatchordersIds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteBatchordersIds", args...)
+func (this *btcmarkets) PrivateDeleteBatchordersIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteBatchordersIds", args...)
 }
 
-func (this *btcmarkets) PrivatePutOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutOrdersId", args...)
+func (this *btcmarkets) PrivatePutOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutOrdersId", args...)
 }

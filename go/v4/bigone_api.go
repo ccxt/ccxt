@@ -7,166 +7,166 @@
 
 package ccxt
 
-func (this *bigone) PublicGetPing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPing", args...)
+func (this *bigone) PublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *bigone) PublicGetAssetPairs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairs", args...)
+func (this *bigone) PublicGetAssetPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairs", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairsAssetPairNameDepth", args...)
+func (this *bigone) PublicGetAssetPairsAssetPairNameDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameDepth", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTrades", args...)
+func (this *bigone) PublicGetAssetPairsAssetPairNameTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTrades", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTicker", args...)
+func (this *bigone) PublicGetAssetPairsAssetPairNameTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTicker", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairsAssetPairNameCandles", args...)
+func (this *bigone) PublicGetAssetPairsAssetPairNameCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameCandles", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetPairsTickers", args...)
+func (this *bigone) PublicGetAssetPairsTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsTickers", args...)
 }
 
-func (this *bigone) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccounts", args...)
+func (this *bigone) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *bigone) PrivateGetFundAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFundAccounts", args...)
+func (this *bigone) PrivateGetFundAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFundAccounts", args...)
 }
 
-func (this *bigone) PrivateGetAssetsAssetSymbolAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAssetsAssetSymbolAddress", args...)
+func (this *bigone) PrivateGetAssetsAssetSymbolAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsAssetSymbolAddress", args...)
 }
 
-func (this *bigone) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrders", args...)
+func (this *bigone) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *bigone) PrivateGetOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersId", args...)
+func (this *bigone) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *bigone) PrivateGetOrdersMulti (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrdersMulti", args...)
+func (this *bigone) PrivateGetOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersMulti", args...)
 }
 
-func (this *bigone) PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTrades", args...)
+func (this *bigone) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *bigone) PrivateGetWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawals", args...)
+func (this *bigone) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *bigone) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDeposits", args...)
+func (this *bigone) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *bigone) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrders", args...)
+func (this *bigone) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *bigone) PrivatePostOrdersIdCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersIdCancel", args...)
+func (this *bigone) PrivatePostOrdersIdCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersIdCancel", args...)
 }
 
-func (this *bigone) PrivatePostOrdersCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrdersCancel", args...)
+func (this *bigone) PrivatePostOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
-func (this *bigone) PrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawals", args...)
+func (this *bigone) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *bigone) PrivatePostTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransfer", args...)
+func (this *bigone) PrivatePostTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *bigone) ContractPublicGetSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetSymbols", args...)
+func (this *bigone) ContractPublicGetSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSymbols", args...)
 }
 
-func (this *bigone) ContractPublicGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetInstruments", args...)
+func (this *bigone) ContractPublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetInstruments", args...)
 }
 
-func (this *bigone) ContractPublicGetDepthSymbolSnapshot (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetDepthSymbolSnapshot", args...)
+func (this *bigone) ContractPublicGetDepthSymbolSnapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetDepthSymbolSnapshot", args...)
 }
 
-func (this *bigone) ContractPublicGetInstrumentsDifference (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetInstrumentsDifference", args...)
+func (this *bigone) ContractPublicGetInstrumentsDifference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetInstrumentsDifference", args...)
 }
 
-func (this *bigone) ContractPublicGetInstrumentsPrices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPublicGetInstrumentsPrices", args...)
+func (this *bigone) ContractPublicGetInstrumentsPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetInstrumentsPrices", args...)
 }
 
-func (this *bigone) ContractPrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetAccounts", args...)
+func (this *bigone) ContractPrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccounts", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetOrdersId", args...)
+func (this *bigone) ContractPrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersId", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetOrders", args...)
+func (this *bigone) ContractPrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrders", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersOpening (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetOrdersOpening", args...)
+func (this *bigone) ContractPrivateGetOrdersOpening(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersOpening", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersCount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetOrdersCount", args...)
+func (this *bigone) ContractPrivateGetOrdersCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersCount", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersOpeningCount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetOrdersOpeningCount", args...)
+func (this *bigone) ContractPrivateGetOrdersOpeningCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersOpeningCount", args...)
 }
 
-func (this *bigone) ContractPrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetTrades", args...)
+func (this *bigone) ContractPrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetTrades", args...)
 }
 
-func (this *bigone) ContractPrivateGetTradesCount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateGetTradesCount", args...)
+func (this *bigone) ContractPrivateGetTradesCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetTradesCount", args...)
 }
 
-func (this *bigone) ContractPrivatePostOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostOrders", args...)
+func (this *bigone) ContractPrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrders", args...)
 }
 
-func (this *bigone) ContractPrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePostOrdersBatch", args...)
+func (this *bigone) ContractPrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrdersBatch", args...)
 }
 
-func (this *bigone) ContractPrivatePutPositionsSymbolMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePutPositionsSymbolMargin", args...)
+func (this *bigone) ContractPrivatePutPositionsSymbolMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePutPositionsSymbolMargin", args...)
 }
 
-func (this *bigone) ContractPrivatePutPositionsSymbolRiskLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivatePutPositionsSymbolRiskLimit", args...)
+func (this *bigone) ContractPrivatePutPositionsSymbolRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePutPositionsSymbolRiskLimit", args...)
 }
 
-func (this *bigone) ContractPrivateDeleteOrdersId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateDeleteOrdersId", args...)
+func (this *bigone) ContractPrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateDeleteOrdersId", args...)
 }
 
-func (this *bigone) ContractPrivateDeleteOrdersBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("contractPrivateDeleteOrdersBatch", args...)
+func (this *bigone) ContractPrivateDeleteOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateDeleteOrdersBatch", args...)
 }
 
-func (this *bigone) WebExchangeGetV3Assets (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("webExchangeGetV3Assets", args...)
+func (this *bigone) WebExchangeGetV3Assets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webExchangeGetV3Assets", args...)
 }
