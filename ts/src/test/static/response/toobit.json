@@ -726,6 +726,7 @@
                 }
             },
             {
+                "disabledPHP": true,
                 "description": "createOrder spot buy market",
                 "method": "createOrder",
                 "input": [

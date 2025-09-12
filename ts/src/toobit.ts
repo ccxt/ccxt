@@ -1513,7 +1513,6 @@ export default class toobit extends Exchange {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
         };
-        request['price'] = this.priceToPrecision (symbol, price);
         let reduceOnly = undefined;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
@@ -1527,6 +1526,7 @@ export default class toobit extends Exchange {
         }
         if (this.inArray (type, [ 'limit', 'LIMIT' ])) {
             request['type'] = type.toUpperCase ();
+            request['price'] = this.priceToPrecision (symbol, price);
         } else if (type === 'market') {
             request['type'] = 'LIMIT'; // weird, but exchange works this way
             request['priceType'] = 'MARKET';
