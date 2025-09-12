@@ -67,6 +67,11 @@ from ccxt.static_dependencies.starknet.hash.address import compute_address
 from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
 from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
+
+# dydx
+from ccxt.static_dependencies.bip import Bip39MnemonicGenerator, Bip39SeedGenerator, Bip44
+# from ccxt.static_dependencies.bip.conf.bip44 import Bip44Coins
+
 try:
     import apexpro.zklink_sdk as zklink_sdk
 except ImportError:
@@ -1878,6 +1883,18 @@ class Exchange(object):
 
     def is_binary_message(self, message):
         return isinstance(message, bytes) or isinstance(message, bytearray)
+
+    def retrieve_dydx_credentials(self, entropy):
+        mnemonic = Bip39MnemonicGenerator().FromEntropy(self.base16_to_binary(entropy))
+        seed = Bip39SeedGenerator(mnemonic.ToStr()).Generate()
+        keyPair = Bip44.FromSeed(seed).DeriveDefaultPath()
+        privateKey = keyPair.PrivateKey().Raw().ToBytes()
+        publicKey = keyPair.PublicKey().RawCompressed().ToBytes()
+        return {
+            'mnemonic': mnemonic.ToStr(),
+            'privateKey': privateKey,
+            'publicKey': publicKey,
+        }
 
     # ########################################################################
     # ########################################################################

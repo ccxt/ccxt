@@ -169,6 +169,10 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
+import { generateRegistry } from '../static_dependencies/dydx-v4-client/registry';
+import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
+import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from '../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx';
+import { SignMode } from '../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
@@ -1665,6 +1669,112 @@ export default class Exchange {
         const tx = contractor.jsValue ();
         const zkSign = tx?.signature?.signature;
         return zkSign;
+    }
+
+    retrieveDydxCredentials (entropy: string) {
+        const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
+        return credentials;
+    }
+
+    encodeDydxTxForSimulation (
+        message,
+        memo,
+        sequence,
+        publicKey,
+    ): string {
+        if (!publicKey) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const registry = generateRegistry ();
+        const messages = [ message ];
+        const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
+        const tx = Tx.fromPartial ({
+            'body': TxBody.fromPartial ({
+                'messages': encodedMessages,
+                'memo': memo,
+            }),
+            'authInfo': AuthInfo.fromPartial ({
+                'fee': {},
+                'signerInfos': [
+                    {
+                        'publicKey': registry.encodeAsAny ({
+                            'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                            'value': publicKey,
+                        }),
+                        'sequence': sequence,
+                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
+                    },
+                ],
+            }),
+            'signatures': [ new Uint8Array () ],
+        });
+        return this.binaryToBase64 (Tx.encode (tx).finish ());
+    }
+
+    encodeDydxTxForSigning (
+        message,
+        memo,
+        chainId,
+        account,
+        authenticators,
+        fee = undefined,
+    ): [ string, Dict ] {
+        if (!account.pub_key) {
+            throw new Error('Public key cannot be undefined');
+        }
+        const messages = [ message ];
+        const sequence = this.milliseconds ();
+        if (fee === undefined) {
+            fee = {
+                'amount': [],
+                'gasLimit': '1000000',
+            };
+        }
+        const registry = generateRegistry ();
+        const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
+        const nonCriticalExtensionOptions = [
+            registry.encodeAsAny ({
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': {
+                    selectedAuthenticators: authenticators ?? [],
+                },
+            }),
+        ];
+        const txBodyBytes = TxBody.encode (TxBody.fromPartial ({
+            'messages': encodedMessages,
+            'memo': memo,
+            'extensionOptions': [],
+            'nonCriticalExtensionOptions': nonCriticalExtensionOptions,
+        })).finish ();
+        const authInfoBytes = AuthInfo.encode (AuthInfo.fromPartial ({
+            'fee': fee,
+            'signerInfos': [
+                {
+                    'publicKey': registry.encodeAsAny ({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': account.pub_key,
+                    }),
+                    'sequence': sequence,
+                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
+                },
+            ],
+        })).finish ();
+        const signDoc = SignDoc.fromPartial({
+            'accountNumber': account.account_number,
+            'authInfoBytes': authInfoBytes,
+            'bodyBytes': txBodyBytes,
+            'chainId': chainId,
+        }) ;
+        const signingHash = this.hash (SignDoc.encode (signDoc).finish (), sha256, 'hex');
+        return [ signingHash, signDoc ];
+    }
+
+    encodeDydxTxRaw (signDoc: Dict, signature: string): string {
+        return '0x' + this.binaryToBase16 (TxRaw.encode (TxRaw.fromPartial({
+            'bodyBytes': signDoc.bodyBytes,
+            'authInfoBytes': signDoc.authInfoBytes,
+            'signatures': [ this.base16ToBinary (signature) ],
+        })).finish ());
     }
 
     intToBase16(elem): string {
