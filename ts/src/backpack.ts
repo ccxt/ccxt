@@ -141,13 +141,14 @@ export default class backpack extends Exchange {
                 '1M': '1month',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f',
                 'api': {
                     'public': 'https://api.backpack.exchange',
                     'private': 'https://api.backpack.exchange',
                 },
                 'www': 'https://backpack.exchange/',
                 'doc': 'https://docs.backpack.exchange/',
+                'referral': 'https://backpack.exchange/join/ib8qxwyl',
             },
             'api': {
                 'public': {
