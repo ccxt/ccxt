@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.2';
+$version = '4.5.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.2';
+    const VERSION = '4.5.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -1525,9 +1525,9 @@ class Exchange extends \ccxt\Exchange {
     public function parse_to_numeric($number) {
         $stringVersion = $this->number_to_string($number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS => 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS =>     1 === 1.0 is true
         // in Python => 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP =>    1 == 1.0 is true, but 1 === 1.0 is false.
         if (mb_strpos($stringVersion, '.') !== false) {
             return floatval($stringVersion);
         }
@@ -2046,6 +2046,27 @@ class Exchange extends \ccxt\Exchange {
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
+    }
+
+    public function set_markets_from_exchange($sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if ($this->id !== $sourceExchange->id) {
+            throw new ArgumentsRequired($this->id . ' shareMarkets() can only share markets with exchanges of the same type (got ' . $sourceExchange['id'] . ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!$sourceExchange->markets) {
+            throw new ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        $this->markets = $sourceExchange->markets;
+        $this->markets_by_id = $sourceExchange->markets_by_id;
+        $this->symbols = $sourceExchange->symbols;
+        $this->ids = $sourceExchange->ids;
+        $this->currencies = $sourceExchange->currencies;
+        $this->baseCurrencies = $sourceExchange->baseCurrencies;
+        $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
+        $this->codes = $sourceExchange->codes;
+        return $this;
     }
 
     public function get_describe_for_extended_ws_exchange(mixed $currentRestInstance, mixed $parentRestInstance, array $wsBaseDescribe) {
@@ -3347,16 +3368,30 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
-    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function parse_trades_helper(bool $isWs, array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = $this->extend($this->parse_trade($trades[$i], $market), $params);
+            $parsed = null;
+            if ($isWs) {
+                $parsed = $this->parse_ws_trade($trades[$i], $market);
+            } else {
+                $parsed = $this->parse_trade($trades[$i], $market);
+            }
+            $trade = $this->extend($parsed, $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->parse_trades_helper(false, $trades, $market, $since, $limit, $params);
+    }
+
+    public function parse_ws_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return $this->parse_trades_helper(true, $trades, $market, $since, $limit, $params);
     }
 
     public function parse_transactions(array $transactions, ?array $currency = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -5581,6 +5616,36 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function handle_trigger_prices_and_params($symbol, $params, $omitParams = true) {
+        //
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $triggerPriceStr = null;
+        $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+        $stopLossPriceStr = null;
+        $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+        $takeProfitPriceStr = null;
+        //
+        if ($triggerPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+            }
+            $triggerPriceStr = $this->price_to_precision($symbol, floatval($triggerPrice));
+        }
+        if ($stopLossPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, 'stopLossPrice');
+            }
+            $stopLossPriceStr = $this->price_to_precision($symbol, floatval($stopLossPrice));
+        }
+        if ($takeProfitPrice !== null) {
+            if ($omitParams) {
+                $params = $this->omit($params, 'takeProfitPrice');
+            }
+            $takeProfitPriceStr = $this->price_to_precision($symbol, floatval($takeProfitPrice));
+        }
+        return array( $triggerPriceStr, $stopLossPriceStr, $takeProfitPriceStr, $params );
+    }
+
     public function handle_trigger_direction_and_params($params, ?string $exchangeSpecificKey = null, Bool $allowEmpty = false) {
         /**
          * @ignore
@@ -6794,7 +6859,7 @@ class Exchange extends \ccxt\Exchange {
                 $clients = is_array($this->clients) ? array_values($this->clients) : array();
                 for ($i = 0; $i < count($clients); $i++) {
                     $client = $clients[$i];
-                    $futures = $this->safe_dict($client, 'futures');
+                    $futures = $client->futures;
                     if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
                         unset($futures['fetchPositionsSnapshot']);
                     }

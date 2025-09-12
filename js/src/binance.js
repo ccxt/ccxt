@@ -6612,19 +6612,13 @@ export default class binance extends Exchange {
             }
         }
         if (quantityIsRequired) {
-            // portfolio margin has a different amount precision
-            if (isPortfolioMargin) {
-                request['quantity'] = this.parseToNumeric(amount);
+            const marketAmountPrecision = this.safeString(market['precision'], 'amount');
+            const isPrecisionAvailable = (marketAmountPrecision !== undefined);
+            if (isPrecisionAvailable) {
+                request['quantity'] = this.amountToPrecision(symbol, amount);
             }
             else {
-                const marketAmountPrecision = this.safeString(market['precision'], 'amount');
-                const isPrecisionAvailable = (marketAmountPrecision !== undefined);
-                if (isPrecisionAvailable) {
-                    request['quantity'] = this.amountToPrecision(symbol, amount);
-                }
-                else {
-                    request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
-                }
+                request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
             }
         }
         if (priceIsRequired && !isPriceMatch) {
@@ -11410,11 +11404,14 @@ export default class binance extends Exchange {
      * @returns {object} response from the exchange
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
-        const defaultType = this.safeString(this.options, 'defaultType', 'future');
-        const type = this.safeString(params, 'type', defaultType);
-        params = this.omit(params, ['type']);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('setPositionMode', market, params);
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('setPositionMode', undefined, params);
+        [subType, params] = this.handleSubTypeAndParams('setPositionMode', market, params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'setPositionMode', 'papi', 'portfolioMargin', false);
         let dualSidePosition = undefined;

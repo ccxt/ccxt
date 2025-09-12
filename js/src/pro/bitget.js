@@ -1132,6 +1132,32 @@ export default class bitget extends bitgetRest {
         //           "uTime": "1714471204194"
         //        }
         //
+        // uta private
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderType": "market",
+        //         "updatedTime": "1736378720623",
+        //         "side": "buy",
+        //         "orderId": "1288888888888888888",
+        //         "execPnl": "0",
+        //         "feeDetail": [
+        //             {
+        //                 "feeCoin": "USDT",
+        //                 "fee": "0.569958"
+        //             }
+        //         ],
+        //         "execTime": "1736378720623",
+        //         "tradeScope": "taker",
+        //         "tradeSide": "open",
+        //         "execId": "1288888888888888888",
+        //         "execLinkId": "1288888888888888888",
+        //         "execPrice": "94993",
+        //         "holdSide": "long",
+        //         "execValue": "949.93",
+        //         "category": "USDT-FUTURES",
+        //         "execQty": "0.01",
+        //         "clientOid": "1288888888888888889"
         // uta
         //
         //     {
@@ -1145,11 +1171,18 @@ export default class bitget extends bitgetRest {
         //
         const instId = this.safeString2(trade, 'symbol', 'instId');
         const posMode = this.safeString(trade, 'posMode');
-        const defaultType = (posMode !== undefined) ? 'contract' : 'spot';
+        const category = this.safeString(trade, 'category');
+        let defaultType = undefined;
+        if (category !== undefined) {
+            defaultType = (category !== 'SPOT') ? 'contract' : 'spot';
+        }
+        else {
+            defaultType = (posMode !== undefined) ? 'contract' : 'spot';
+        }
         if (market === undefined) {
             market = this.safeMarket(instId, undefined, undefined, defaultType);
         }
-        const timestamp = this.safeIntegerN(trade, ['uTime', 'cTime', 'ts', 'T']);
+        const timestamp = this.safeIntegerN(trade, ['uTime', 'cTime', 'ts', 'T', 'execTime']);
         const feeDetail = this.safeList(trade, 'feeDetail', []);
         const first = this.safeDict(feeDetail, 0);
         let fee = undefined;
@@ -1157,13 +1190,13 @@ export default class bitget extends bitgetRest {
             const feeCurrencyId = this.safeString(first, 'feeCoin');
             const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = {
-                'cost': Precise.stringAbs(this.safeString(first, 'totalFee')),
+                'cost': Precise.stringAbs(this.safeString2(first, 'totalFee', 'fee')),
                 'currency': feeCurrencyCode,
             };
         }
         return this.safeTrade({
             'info': trade,
-            'id': this.safeString2(trade, 'tradeId', 'i'),
+            'id': this.safeStringN(trade, ['tradeId', 'i', 'execId']),
             'order': this.safeString2(trade, 'orderId', 'L'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -1171,9 +1204,9 @@ export default class bitget extends bitgetRest {
             'type': this.safeString(trade, 'orderType'),
             'side': this.safeString2(trade, 'side', 'S'),
             'takerOrMaker': this.safeString(trade, 'tradeScope'),
-            'price': this.safeStringN(trade, ['priceAvg', 'price', 'P']),
-            'amount': this.safeStringN(trade, ['size', 'baseVolume', 'v']),
-            'cost': this.safeString2(trade, 'amount', 'quoteVolume'),
+            'price': this.safeStringN(trade, ['priceAvg', 'price', 'execPrice', 'P']),
+            'amount': this.safeStringN(trade, ['size', 'baseVolume', 'execQty', 'v']),
+            'cost': this.safeStringN(trade, ['amount', 'quoteVolume', 'execValue']),
             'fee': fee,
         }, market);
     }
@@ -1769,11 +1802,13 @@ export default class bitget extends bitgetRest {
      * @method
      * @name bitget#watchMyTrades
      * @description watches trades made by the user
-     * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Fill-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Fill-Channel
      * @param {str} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1788,18 +1823,29 @@ export default class bitget extends bitgetRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchMyTrades', market, params);
         let instType = undefined;
+        let uta = undefined;
+        [uta, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'uta', false);
         if (market === undefined && type === 'spot') {
-            instType = 'spot';
+            instType = 'SPOT';
         }
         else {
-            [instType, params] = this.getInstType(market, false, params);
+            [instType, params] = this.getInstType(market, uta, params);
+        }
+        if (uta) {
+            instType = 'UTA';
         }
         const subscriptionHash = 'fill:' + instType;
         const args = {
             'instType': instType,
-            'channel': 'fill',
-            'instId': 'default',
         };
+        const topicOrChannel = uta ? 'topic' : 'channel';
+        args[topicOrChannel] = 'fill';
+        if (!uta) {
+            args['instId'] = 'default';
+        }
+        else {
+            params['uta'] = true;
+        }
         const trades = await this.watchPrivate(messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
@@ -1876,6 +1922,44 @@ export default class bitget extends bitgetRest {
         //            }
         //         ],
         //         "ts": 1714471276629
+        //     }
+        //
+        // uta
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "orderType": "market",
+        //                 "updatedTime": "1736378720623",
+        //                 "side": "buy",
+        //                 "orderId": "1288888888888888888",
+        //                 "execPnl": "0",
+        //                 "feeDetail": [
+        //                     {
+        //                         "feeCoin": "USDT",
+        //                         "fee": "0.569958"
+        //                     }
+        //                 ],
+        //                 "execTime": "1736378720623",
+        //                 "tradeScope": "taker",
+        //                 "tradeSide": "open",
+        //                 "execId": "1288888888888888888",
+        //                 "execLinkId": "1288888888888888888",
+        //                 "execPrice": "94993",
+        //                 "holdSide": "long",
+        //                 "execValue": "949.93",
+        //                 "category": "USDT-FUTURES",
+        //                 "execQty": "0.01",
+        //                 "clientOid": "1288888888888888889"
+        //             }
+        //         ],
+        //         "arg": {
+        //             "instType": "UTA",
+        //             "topic": "fill"
+        //         },
+        //         "action": "snapshot",
+        //         "ts": 1733904123981
         //     }
         //
         if (this.myTrades === undefined) {
@@ -2140,12 +2224,25 @@ export default class bitget extends bitgetRest {
         return await future;
     }
     async watchPrivate(messageHash, subscriptionHash, args, params = {}) {
-        let url = this.urls['api']['ws']['private'];
+        let uta = undefined;
+        let url = undefined;
+        [uta, params] = this.handleOptionAndParams(params, 'watchPrivate', 'uta', false);
+        if (uta) {
+            url = this.urls['api']['ws']['utaPrivate'];
+        }
+        else {
+            url = this.urls['api']['ws']['private'];
+        }
         const sandboxMode = this.safeBool2(this.options, 'sandboxMode', 'sandbox', false);
         if (sandboxMode) {
             const instType = this.safeString(args, 'instType');
             if ((instType !== 'SCOIN-FUTURES') && (instType !== 'SUSDT-FUTURES') && (instType !== 'SUSDC-FUTURES')) {
-                url = this.urls['api']['demo']['private'];
+                if (uta) {
+                    url = this.urls['api']['demo']['utaPrivate'];
+                }
+                else {
+                    url = this.urls['api']['demo']['private'];
+                }
             }
         }
         await this.authenticate({ 'url': url });
