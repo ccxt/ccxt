@@ -446,40 +446,41 @@ export default class backpack extends Exchange {
             },
             'commonCurrencies': {},
             'exceptions': {
-                'exact': {},
-                'INVALID_CLIENT_REQUEST': InvalidOrder,
-                'INVALID_ORDER': InvalidOrder,
-                'ACCOUNT_LIQUIDATING': BadRequest,
-                'BORROW_LIMIT': BadRequest,
-                'BORROW_REQUIRES_LEND_REDEEM': BadRequest,
-                'FORBIDDEN': OperationRejected,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'INSUFFICIENT_MARGIN': InsufficientFunds,
-                'INSUFFICIENT_SUPPLY': InsufficientFunds,
-                'INVALID_ASSET': BadRequest,
-                'INVALID_MARKET': BadSymbol,
-                'INVALID_PRICE': BadRequest,
-                'INVALID_POSITION_ID': BadRequest,
-                'INVALID_QUANTITY': BadRequest,
-                'INVALID_RANGE': BadRequest,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'INVALID_SOURCE': BadRequest,
-                'INVALID_SYMBOL': BadSymbol,
-                'INVALID_TWO_FACTOR_CODE': BadRequest,
-                'LEND_LIMIT': BadRequest,
-                'LEND_REQUIRES_BORROW_REPAY': BadRequest,
-                'MAINTENANCE': ExchangeError,
-                'MAX_LEVERAGE_REACHED': InsufficientFunds,
-                'NOT_IMPLEMENTED': OperationFailed,
-                'ORDER_LIMIT': OperationRejected,
-                'POSITION_LIMIT': OperationRejected,
-                'PRECONDITION_FAILED': OperationFailed,
-                'RESOURCE_NOT_FOUND': ExchangeNotAvailable,
-                'SERVER_ERROR': NetworkError,
-                'TIMEOUT': RequestTimeout,
-                'TOO_MANY_REQUESTS': RateLimitExceeded,
-                'TRADING_PAUSED': ExchangeNotAvailable,
-                'UNAUTHORIZED': AuthenticationError,
+                'exact': {
+                    'INVALID_CLIENT_REQUEST': BadRequest,
+                    'INVALID_ORDER': InvalidOrder,
+                    'ACCOUNT_LIQUIDATING': BadRequest,
+                    'BORROW_LIMIT': BadRequest,
+                    'BORROW_REQUIRES_LEND_REDEEM': BadRequest,
+                    'FORBIDDEN': OperationRejected,
+                    'INSUFFICIENT_FUNDS': InsufficientFunds,
+                    'INSUFFICIENT_MARGIN': InsufficientFunds,
+                    'INSUFFICIENT_SUPPLY': InsufficientFunds,
+                    'INVALID_ASSET': BadRequest,
+                    'INVALID_MARKET': BadSymbol,
+                    'INVALID_PRICE': BadRequest,
+                    'INVALID_POSITION_ID': BadRequest,
+                    'INVALID_QUANTITY': BadRequest,
+                    'INVALID_RANGE': BadRequest,
+                    'INVALID_SIGNATURE': AuthenticationError,
+                    'INVALID_SOURCE': BadRequest,
+                    'INVALID_SYMBOL': BadSymbol,
+                    'INVALID_TWO_FACTOR_CODE': BadRequest,
+                    'LEND_LIMIT': BadRequest,
+                    'LEND_REQUIRES_BORROW_REPAY': BadRequest,
+                    'MAINTENANCE': ExchangeError,
+                    'MAX_LEVERAGE_REACHED': InsufficientFunds,
+                    'NOT_IMPLEMENTED': OperationFailed,
+                    'ORDER_LIMIT': OperationRejected,
+                    'POSITION_LIMIT': OperationRejected,
+                    'PRECONDITION_FAILED': OperationFailed,
+                    'RESOURCE_NOT_FOUND': ExchangeNotAvailable,
+                    'SERVER_ERROR': NetworkError,
+                    'TIMEOUT': RequestTimeout,
+                    'TOO_MANY_REQUESTS': RateLimitExceeded,
+                    'TRADING_PAUSED': ExchangeNotAvailable,
+                    'UNAUTHORIZED': AuthenticationError,
+                },
                 // Bad Request parse request payload error: failed to parse "MarketSymbol": Invalid market symbol (occurred while parsing "OrderExecutePayload")
                 // failed to parse parameter `interval`: failed to parse "KlineInterval": Expect a valid enumeration value.
                 'broad': {},
@@ -1724,43 +1725,26 @@ export default class backpack extends Exchange {
             'side': this.encodeOrderSide (side),
             'orderType': this.capitalize (type),
         };
-        let cost = this.safeString2 (params, 'cost', 'quoteQuantity');
-        if (price !== undefined) {
-            if (type === 'market') {
-                if (cost === undefined) {
-                    cost = this.numberToString (amount * price);
-                } else {
-                    throw new BadRequest (this.id + ' createOrder() cannot use cost parameter with amount and price arguments for market orders');
-                }
-            } else {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-        }
         const triggerPrice = this.safeString (params, 'triggerPrice');
         const isTriggerOrder = triggerPrice !== undefined;
+        const quantityKey = isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        // handle basic limit/market order types
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+            request[quantityKey] = this.amountToPrecision (symbol, amount);
+        } else if (type === 'market') {
+            const cost = this.safeString2 (params, 'cost', 'quoteQuantity');
+            if (cost !== undefined) {
+                request['quoteQuantity'] = this.costToPrecision (symbol, cost);
+                params = this.omit (params, [ 'cost', 'quoteQuantity' ]);
+            } else {
+                request[quantityKey] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        // trigger orders
         if (isTriggerOrder) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             params = this.omit (params, 'triggerPrice');
-        }
-        if (cost !== undefined) {
-            if (type === 'limit') {
-                throw new BadRequest (this.id + ' createOrder() does not support cost parameter for limit orders, use amount argument instead');
-            }
-            if (isTriggerOrder) {
-                throw new BadRequest (this.id + ' createOrder() does not support cost parameter for trigger orders, use amount argument instead');
-            }
-            params = this.omit (params, [ 'cost', 'quoteQuantity' ]);
-            request['quoteQuantity'] = this.costToPrecision (symbol, cost);
-        } else if (amount !== undefined) {
-            if (isTriggerOrder) {
-                request['triggerQuantity'] = this.amountToPrecision (symbol, amount);
-            } else {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
-            }
-        } else if (type === 'market') {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument or a cost parameter for market orders');
-        } else {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires an amount argument for limit orders');
         }
         const clientOrderId = this.safeInteger (params, 'clientOrderId'); // the exchange requires uint
         if (clientOrderId !== undefined) {
@@ -2327,8 +2311,8 @@ export default class backpack extends Exchange {
         const message = this.safeString (response, 'message');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }

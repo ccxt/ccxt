@@ -89,6 +89,59 @@
         ],
         "createOrder": [
             {
+                "description": "swap order with take profit and stop loss",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "ADA/USDC:USDC",
+                    "market",
+                    "buy",
+                    4,
+                    null,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 0.2
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 2
+                        }
+                    }
+                ],
+                "output": "{\"orderType\":\"Market\",\"quantity\":\"4\",\"side\":\"Bid\",\"stopLossTriggerPrice\":\"0.2\",\"symbol\":\"ADA_USDC_PERP\",\"takeProfitTriggerPrice\":\"2\"}"
+            },
+            {
+                "description": "spot market sell with cost",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "DOGE/USDC",
+                    "market",
+                    "sell",
+                    0,
+                    0,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "{\"orderType\":\"Market\",\"quoteQuantity\":\"5\",\"side\":\"Ask\",\"symbol\":\"DOGE_USDC\"}"
+            },
+            {
+                "description": "spot market buy with cost",
+                "method": "createOrder",
+                "url": "https://api.backpack.exchange/api/v1/order",
+                "input": [
+                    "DOGE/USDC",
+                    "market",
+                    "buy",
+                    0,
+                    0,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "{\"orderType\":\"Market\",\"quoteQuantity\":\"5\",\"side\":\"Bid\",\"symbol\":\"DOGE_USDC\"}"
+            },
+            {
                 "description": "swap order with trigger price",
                 "method": "createOrder",
                 "url": "https://api.backpack.exchange/api/v1/order",

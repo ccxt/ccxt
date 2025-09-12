@@ -28,14 +28,32 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-            "precision": { "amount": 0.0001, "price": 0.01 },
-            "limits": {
-                "leverage": { "min": null, "max": null },
-                "amount": { "min": 0.0001, "max": null },
-                "price": { "min": 0.01, "max": null },
-                "cost": { "min": null, "max": null }
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
             },
-        "marginModes": { "cross": null, "isolated": null },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1737441294691,
         "info": {
             "baseSymbol": "ETH",
@@ -47,7 +65,10 @@
                     "maxImpactMultiplier": "1.02",
                     "maxMultiplier": "1.25",
                     "maxPrice": null,
-                    "meanMarkPriceBand": { "maxMultiplier": "1.07", "minMultiplier": "0.92" },
+                    "meanMarkPriceBand": {
+                        "maxMultiplier": "1.07",
+                        "minMultiplier": "0.92"
+                    },
                     "meanPremiumBand": null,
                     "minImpactMultiplier": "0.98",
                     "minMultiplier": "0.75",
@@ -101,14 +122,32 @@
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
-        "precision": { "amount": 0.0001, "price": 0.01 },
-        "limits": {
-            "leverage": { "min": null, "max": null },
-            "amount": { "min": 0.0001, "max": null },
-            "price": { "min": 0.01, "max": 1000000 },
-            "cost": { "min": null, "max": null }
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
         },
-        "marginModes": { "cross": null, "isolated": null },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
         "created": 1737441294691,
         "info": {
             "baseSymbol": "ETH",
@@ -120,29 +159,149 @@
                     "maxImpactMultiplier": "1.02",
                     "maxMultiplier": "1.25",
                     "maxPrice": "1000000",
-                    "meanMarkPriceBand": { "maxMultiplier": "1.09", "minMultiplier": "0.92" },
-                    "meanPremiumBand": { "tolerancePct": "0.05" },
+                    "meanMarkPriceBand": {
+                        "maxMultiplier": "1.09",
+                        "minMultiplier": "0.92"
+                    },
+                    "meanPremiumBand": {
+                        "tolerancePct": "0.05"
+                    },
                     "minImpactMultiplier": "0.98",
                     "minMultiplier": "0.75",
                     "minPrice": "0.01",
                     "tickSize": "0.01"
                 },
-            "quantity": {
-                "maxQuantity": null,
-                "minQuantity": "0.0001",
-                "stepSize": "0.0001"
-            }
-        },
+                "quantity": {
+                    "maxQuantity": null,
+                    "minQuantity": "0.0001",
+                    "stepSize": "0.0001"
+                }
+            },
             "fundingInterval": "28800000",
             "fundingRateLowerBound": "-100",
             "fundingRateUpperBound": "100",
-            "imfFunction": { "base": "0.02", "factor": "0.0000935", "type": "sqrt" },
+            "imfFunction": {
+                "base": "0.02",
+                "factor": "0.0000935",
+                "type": "sqrt"
+            },
             "marketType": "PERP",
-            "mmfFunction": { "base": "0.0125", "factor": "0.0000561", "type": "sqrt" },
+            "mmfFunction": {
+                "base": "0.0125",
+                "factor": "0.0000561",
+                "type": "sqrt"
+            },
             "openInterestLimit": "64000",
             "orderBookState": "Open",
             "quoteSymbol": "USDC",
             "symbol": "ETH_USDC_PERP"
         }
+    },
+    "ADA/USDC:USDC": {
+        "id": "ADA_USDC_PERP",
+        "lowercaseId": null,
+        "symbol": "ADA/USDC:USDC",
+        "base": "ADA",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ADA",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1739332190513,
+        "info": {
+            "baseSymbol": "ADA",
+            "createdAt": "2025-02-12T03:49:50.513163",
+            "filters": {
+                "price": {
+                    "borrowEntryFeeMaxMultiplier": null,
+                    "borrowEntryFeeMinMultiplier": null,
+                    "maxImpactMultiplier": "1.03",
+                    "maxMultiplier": "1.25",
+                    "maxPrice": "1000",
+                    "meanMarkPriceBand": {
+                        "maxMultiplier": "1.12",
+                        "minMultiplier": "0.09"
+                    },
+                    "meanPremiumBand": {
+                        "tolerancePct": "0.05"
+                    },
+                    "minImpactMultiplier": "0.97",
+                    "minMultiplier": "0.75",
+                    "minPrice": "0.0001",
+                    "tickSize": "0.0001"
+                },
+                "quantity": {
+                    "maxQuantity": null,
+                    "minQuantity": "1",
+                    "stepSize": "1"
+                }
+            },
+            "fundingInterval": "3600000",
+            "fundingRateLowerBound": "-150",
+            "fundingRateUpperBound": "150",
+            "imfFunction": {
+                "base": "0.1",
+                "factor": "0.00044",
+                "type": "sqrt"
+            },
+            "marketType": "PERP",
+            "mmfFunction": {
+                "base": "0.05",
+                "factor": "0.00026",
+                "type": "sqrt"
+            },
+            "openInterestLimit": "32000000",
+            "orderBookState": "Open",
+            "quoteSymbol": "USDC",
+            "symbol": "ADA_USDC_PERP",
+            "visible": true
+        },
+        "tierBased": null,
+        "percentage": null
     }
 }
