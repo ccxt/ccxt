@@ -1736,7 +1736,7 @@
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
                     "previousFundingDatetime": null,
-                    "interval": null
+                    "interval": "1h"
                 }
             }
         ],

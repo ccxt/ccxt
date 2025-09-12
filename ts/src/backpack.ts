@@ -1050,7 +1050,7 @@ export default class backpack extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': '1h',
         } as FundingRate;
     }
 
