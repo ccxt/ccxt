@@ -477,7 +477,6 @@ export default class toobit extends Exchange {
     parseCurrency (rawCurrency: Dict): Currency {
         const id = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (id);
-        const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeList (rawCurrency, 'chainTypes');
         for (let j = 0; j < rawNetworks.length; j++) {
@@ -488,11 +487,11 @@ export default class toobit extends Exchange {
                 'id': networkId,
                 'network': networkCode,
                 'margin': undefined,
-                'deposit': this.safeString (rawNetwork, 'allowDeposit'),
-                'withdraw': this.safeString (rawNetwork, 'allowWithdraw'),
+                'deposit': this.safeBool (rawNetwork, 'allowDeposit'),
+                'withdraw': this.safeBool (rawNetwork, 'allowWithdraw'),
                 'active': undefined,
                 'fee': this.safeNumber (rawNetwork, 'withdrawFee'),
-                'precision': currencyPrecision,
+                'precision': undefined,
                 'limits': {
                     'deposit': {
                         'min': this.safeNumber (rawNetwork, 'minDepositQuantity'),
@@ -515,7 +514,7 @@ export default class toobit extends Exchange {
             'deposit': this.safeBool (rawCurrency, 'allowDeposit'),
             'withdraw': this.safeBool (rawCurrency, 'allowWithdraw'),
             'fee': undefined,
-            'precision': currencyPrecision,
+            'precision': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
