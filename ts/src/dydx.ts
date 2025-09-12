@@ -1190,8 +1190,8 @@ export default class dydx extends Exchange {
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
         const account = this.safeDict (response, 'info');
-        account.pub_key = {
-            'key': this.base64ToBinary (account.pub_key['key']),
+        account['pub_key'] = {
+            'key': this.base64ToBinary (account['pub_key']['key']),
         };
         this.options['dydxAccount'] = account;
         return account;
@@ -1664,28 +1664,8 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async simulateTx (params = {}): Promise<any> {
-        const request = {
-            'tx': {
-                'auth_info': {
-                    'fee': {},
-                    'signer_infos': {},
-                },
-                'body': {
-                    'messages': [],
-                    'memo': '',
-                },
-            },
-            'tx_bytes': '',
-        };
-        const response = this.nodeRestPostCosmosTxV1beta1Simulate (request);
-        //
-        //
-        return response;
-    }
-
     async estimateTxFee (message: any, memo: string, account: any): Promise<any> {
-        const txBytes = await this.encodeDydxTxForSimulation (message, memo, account.sequence, account.pub_key);
+        const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request = {
             'txBytes': txBytes,
         };
