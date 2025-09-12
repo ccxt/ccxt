@@ -387,24 +387,36 @@ class coinmetro(Exchange, ImplicitAPI):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            withdraw = self.safe_value(currency, 'canWithdraw')
-            deposit = self.safe_value(currency, 'canDeposit')
-            canTrade = self.safe_value(currency, 'canTrade')
-            active = withdraw if canTrade else True
-            minAmount = self.safe_number(currency, 'minQty')
+            typeRaw = self.safe_string(currency, 'type')
+            type = None
+            if typeRaw == 'coin' or typeRaw == 'token' or typeRaw == 'erc20':
+                type = 'crypto'
+            elif typeRaw == 'fiat':
+                type = 'fiat'
+            precisionDigits = self.safe_string_2(currency, 'digits', 'notabeneDecimals')
+            if code == 'RENDER':
+                # RENDER is an exception(with broken info)
+                precisionDigits = '4'
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'name': code,
+                'type': type,
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': self.safe_bool(currency, 'canTrade'),
+                'deposit': self.safe_bool(currency, 'canDeposit'),
+                'withdraw': self.safe_bool(currency, 'canWithdraw'),
                 'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'digits'))),
+                'precision': self.parse_number(self.parse_precision(precisionDigits)),
                 'limits': {
-                    'amount': {'min': minAmount, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
+                    'amount': {
+                        'min': self.safe_number(currency, 'minQty'),
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
                 'networks': {},
             })
@@ -427,9 +439,12 @@ class coinmetro(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetMarkets(params)
+        promises = []
+        promises.append(self.publicGetMarkets(params))
         if self.safe_value(self.options, 'currenciesByIdForParseMarket') is None:
-            self.fetch_currencies()
+            promises.append(self.fetch_currencies())
+        responses = promises
+        response = responses[0]
         #
         #     [
         #         {
@@ -445,7 +460,14 @@ class coinmetro(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_markets(response)
+        result = []
+        for i in range(0, len(response)):
+            market = self.parse_market(response[i])
+            # there are several broken(unavailable info) markets
+            if market['base'] is None or market['quote'] is None:
+                continue
+            result.append(market)
+        return result
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'pair')

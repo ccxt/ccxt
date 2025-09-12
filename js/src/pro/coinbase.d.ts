@@ -47,7 +47,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTickers(client: any, message: any): any;
+    handleTickers(client: any, message: any): void;
     parseWsTicker(ticker: any, market?: any): Ticker;
     /**
      * @method
@@ -107,11 +107,12 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
-    handleTrade(client: any, message: any): any;
-    handleOrder(client: any, message: any): any;
+    handleTrade(client: any, message: any): void;
+    handleOrder(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): void;
+    tryResolveUsdc(client: any, messageHash: any, result: any): void;
     handleSubscriptionStatus(client: any, message: any): any;
     handleHeartbeats(client: any, message: any): any;
     handleMessage(client: any, message: any): void;

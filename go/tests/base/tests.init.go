@@ -11,8 +11,11 @@ func BaseTestsInit()  {
     TestDeepExtend()
     TestCryptography()
     TestDatetime()
-    TestNumber()
+    TestDecimalToPrecision()
+    TestNumberToString()
+    TestPrecise()
     TestSafeMethods()
+    TestSafeTicker()
     // testJson ();
     TestSortBy()
     TestSum()
@@ -21,4 +24,6 @@ func BaseTestsInit()  {
     TestFilterBy()
     TestHandleMethods()
     TestRemoveRepeatedElementsFromArray()
+    TestParsePrecision()
+    TestArraysConcat()
 }

@@ -8,10 +8,10 @@ type yobit struct {
 
 }
 
-func NewYobitCore() yobit {
-   p := yobit{}
-   setDefaults(&p)
-   return p
+func NewYobitCore() *yobit {
+    p := &yobit{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *yobit) Describe() interface{}  {
@@ -498,7 +498,7 @@ func  (this *yobit) FetchMarkets(optionalArgs ...interface{}) <- chan interface{
                 var feeString interface{} = this.SafeString(market, "fee")
                 feeString = Precise.StringDiv(feeString, "100")
                 // yobit maker = taker
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "symbol": Add(Add(base, "/"), quote),
                     "base": base,
@@ -771,12 +771,12 @@ func  (this *yobit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
                     var prefix interface{} = Ternary(IsTrue((IsEqual(ids, ""))), "", "-")
                     ids = Add(ids, Add(prefix, id))
                     if IsTrue(IsGreaterThan(GetLength(ids), maxLength)) {
-                        AppendToArray(&promises,this.FetchTickersHelper(ids, params))
+                        AppendToArray(&promises, this.FetchTickersHelper(ids, params))
                         ids = ""
                     }
                 }
                 if IsTrue(!IsEqual(ids, "")) {
-                    AppendToArray(&promises,this.FetchTickersHelper(ids, params))
+                    AppendToArray(&promises, this.FetchTickersHelper(ids, params))
                 }
             } else {
                 symbols = this.MarketSymbols(symbols)
@@ -787,7 +787,7 @@ func  (this *yobit) FetchTickers(optionalArgs ...interface{}) <- chan interface{
                 if IsTrue(IsGreaterThan(actualLength, maxLength)) {
                     panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(Add(this.Id, " fetchTickers() is being requested for "), ToString(idsLength)), " markets (which has an URL length of "), ToString(actualLength)), " characters), but it exceedes max URL length ("), ToString(maxLength)), "), please pass limisted symbols array to fetchTickers to fit in one request")))
                 }
-                AppendToArray(&promises,this.FetchTickersHelper(idsString, params))
+                AppendToArray(&promises, this.FetchTickersHelper(idsString, params))
             }
         
             resultAll:= (<-promiseAll(promises))
@@ -1469,7 +1469,7 @@ func  (this *yobit) FetchMyTrades(optionalArgs ...interface{}) <- chan interface
                 var trade interface{} = this.ParseTrade(this.Extend(GetValue(trades, id), map[string]interface{} {
                     "trade_id": id,
                 }), market)
-                AppendToArray(&result,trade)
+                AppendToArray(&result, trade)
             }
         
             ch <- this.FilterBySymbolSinceLimit(result, GetValue(market, "symbol"), since, limit)

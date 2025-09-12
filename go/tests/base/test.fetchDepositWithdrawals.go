@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchDepositWithdrawals(exchange ccxt.IExchange, skippedProperties interface{}, code interface{}) <- chan interface{} {
+    func TestFetchDepositWithdrawals(exchange ccxt.ICoreExchange, skippedProperties interface{}, code interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)

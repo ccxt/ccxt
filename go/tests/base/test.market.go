@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestMarket(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, market interface{})  {
+    func TestMarket(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, market interface{})  {
         var format interface{} = map[string]interface{} {
             "id": "btcusd",
             "symbol": "BTC/USD",
@@ -76,20 +76,20 @@ import "github.com/ccxt/ccxt/go/v4"
         //
         var emptyAllowedFor interface{} = []interface{}{"margin"}
         if !IsTrue(contract) {
-            AppendToArray(&emptyAllowedFor,"contractSize")
-            AppendToArray(&emptyAllowedFor,"linear")
-            AppendToArray(&emptyAllowedFor,"inverse")
-            AppendToArray(&emptyAllowedFor,"quanto")
-            AppendToArray(&emptyAllowedFor,"settle")
-            AppendToArray(&emptyAllowedFor,"settleId")
+            AppendToArray(&emptyAllowedFor, "contractSize")
+            AppendToArray(&emptyAllowedFor, "linear")
+            AppendToArray(&emptyAllowedFor, "inverse")
+            AppendToArray(&emptyAllowedFor, "quanto")
+            AppendToArray(&emptyAllowedFor, "settle")
+            AppendToArray(&emptyAllowedFor, "settleId")
         }
         if IsTrue(!IsTrue(future) && !IsTrue(option)) {
-            AppendToArray(&emptyAllowedFor,"expiry")
-            AppendToArray(&emptyAllowedFor,"expiryDatetime")
+            AppendToArray(&emptyAllowedFor, "expiry")
+            AppendToArray(&emptyAllowedFor, "expiryDatetime")
         }
         if !IsTrue(option) {
-            AppendToArray(&emptyAllowedFor,"optionType")
-            AppendToArray(&emptyAllowedFor,"strike")
+            AppendToArray(&emptyAllowedFor, "optionType")
+            AppendToArray(&emptyAllowedFor, "strike")
         }
         AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor)
         AssertSymbol(exchange, skippedProperties, method, market, "symbol")
@@ -194,7 +194,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 Assert(IsEqual(GetValue(market, "strike"), nil), Add("\"strike\" must be undefined when \"option\" is false", logText))
                 Assert(IsEqual(GetValue(market, "optionType"), nil), Add("\"optionType\" must be undefined when \"option\" is false", logText))
             }
-        } else {
+        } else if IsTrue(spot) {
             // otherwise, expiry needs to be undefined
             Assert(IsTrue((IsEqual(GetValue(market, "expiry"), nil))) && IsTrue((IsEqual(GetValue(market, "expiryDatetime"), nil))), Add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText))
         }

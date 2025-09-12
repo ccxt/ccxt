@@ -616,25 +616,52 @@ export default class whitebit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = response[id];
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
-            const canDeposit = this.safeBool(currency, 'can_deposit', true);
-            const canWithdraw = this.safeBool(currency, 'can_withdraw', true);
-            const active = canDeposit && canWithdraw;
+            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             const code = this.safeCurrencyCode(id);
             const hasProvider = ('providers' in currency);
-            result[code] = {
+            const networks = {};
+            const rawNetworks = this.safeDict(currency, 'networks', {});
+            const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
+            const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
+            const networkLimits = this.safeDict(currency, 'limits', {});
+            const depositLimits = this.safeDict(networkLimits, 'deposit', {});
+            const withdrawLimits = this.safeDict(networkLimits, 'withdraw', {});
+            const allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+            for (let j = 0; j < allNetworks.length; j++) {
+                const networkId = allNetworks[j];
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.inArray(networkId, depositsNetworks),
+                    'withdraw': this.inArray(networkId, withdrawsNetworks),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(depositLimits, 'min', undefined),
+                            'max': this.safeNumber(depositLimits, 'max', undefined),
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(withdrawLimits, 'min', undefined),
+                            'max': this.safeNumber(withdrawLimits, 'max', undefined),
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': undefined,
-                'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'active': undefined,
+                'deposit': this.safeBool(currency, 'can_deposit'),
+                'withdraw': this.safeBool(currency, 'can_withdraw'),
                 'fee': undefined,
                 'networks': undefined,
                 'type': hasProvider ? 'fiat' : 'crypto',
-                'precision': undefined,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'currency_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -644,8 +671,12 @@ export default class whitebit extends Exchange {
                         'min': this.safeNumber(currency, 'min_withdraw'),
                         'max': this.safeNumber(currency, 'max_withdraw'),
                     },
+                    'deposit': {
+                        'min': this.safeNumber(currency, 'min_deposit'),
+                        'max': this.safeNumber(currency, 'max_deposit'),
+                    },
                 },
-            };
+            });
         }
         return result;
     }

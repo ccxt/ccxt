@@ -1,5 +1,5 @@
 import coinoneRest from '../coinone.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict } from '../base/types.js';
+import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinone extends coinoneRest {
     describe(): any;
@@ -42,7 +42,7 @@ export default class coinone extends coinoneRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: Dict, market?: Market): Trade;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         request_type: string;

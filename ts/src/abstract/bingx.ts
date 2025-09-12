@@ -9,6 +9,7 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
+    fundV1PrivateGetAccountBalance (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetServerTime (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetCommonSymbols (params?: {}): Promise<implicitReturnType>;
     spotV1PublicGetMarketTrades (params?: {}): Promise<implicitReturnType>;
@@ -160,9 +161,12 @@ interface Exchange {
     copyTradingV1PrivatePostSwapTraceSetTPSL (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSpotTraderSellOrder (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    apiV3PrivateGetAssetTransferRecord (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
     apiV3PrivatePostPostAssetTransfer (params?: {}): Promise<implicitReturnType>;
+    apiAssetV1PrivatePostTransfer (params?: {}): Promise<implicitReturnType>;
+    apiAssetV1PublicGetTransferSupportCoins (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

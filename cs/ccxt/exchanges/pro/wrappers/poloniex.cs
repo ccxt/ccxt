@@ -102,10 +102,10 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrderWs(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders

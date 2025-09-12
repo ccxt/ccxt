@@ -39,31 +39,73 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
+                'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'closeAllPositions': False,
+                'closePosition': False,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
+                'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverages': False,
+                'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -75,6 +117,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -82,7 +126,16 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
+                'setLeverage': False,
+                'setMargin': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -307,6 +360,78 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                     'inverse': None,
                 },
             },
+            'options': {
+                'networks': {
+                    'BTC': 'bitcoin',
+                    # LIGHTNING unsupported
+                    'ETH': 'ethereum',
+                    # TRON unsupported
+                    'SOL': 'solana',
+                    # BSC unsupported
+                    'ARBONE': 'arbitrum',
+                    'AVAXC': 'avacchain',
+                    'MATIC': 'polygon',
+                    'BASE': 'base',
+                    'SUI': 'sui',
+                    'OP': 'optimism',
+                    'NEAR': 'near',
+                    # CRONOS unsupported
+                    # GNO unsupported
+                    'APT': 'aptos',
+                    # SCROLL unsupported
+                    'KAVA': 'kava',
+                    # TAIKO unsupported
+                    # BOB unsupported
+                    # LINEA unsupported
+                    'BLAST': 'blast',
+                    'XLM': 'stellar',
+                    # RSK unsupported
+                    'SEI': 'sei',
+                    # TON unsupported
+                    # MANTLE unsupported
+                    'ADA': 'cardano',
+                    # HYPE unsupported
+                    'CORE': 'coredao',
+                    'ALGO': 'algorand',
+                    # RUNE unsupported
+                    'OSMO': 'osmosis',
+                    # XIN unsupported
+                    'CELO': 'celo',
+                    'HBAR': 'hedera',
+                    # FTM unsupported
+                    # WEMIX unsupported
+                    'ZKSYNC': 'zksync',
+                    # KLAY unsupported
+                    # HT unsupported
+                    # FSN unsupported
+                    # EOS unsupported, eosio?
+                    # ACA unsupported
+                    'STX': 'stacks',
+                    'XTZ': 'tezos',
+                    # NEO unsupported
+                    # METIS unsupported
+                    # TLOS unsupported
+                    'EGLD': 'elrond',
+                    # ASTR unsupported
+                    # CFX unsupported
+                    # GLMR unsupported
+                    # CANTO unsupported
+                    # SCRT unsupported
+                    'LTC': 'litecoin',
+                    # AURORA unsupported
+                    # ONG unsupported
+                    'ATOM': 'cosmos',
+                    # CHZ unsupported
+                    'FIL': 'filecoin',
+                    'DOT': 'polkadot',
+                    'DOGE': 'dogecoin',
+                    # BRC20 unsupported
+                    'XRP': 'ripple',
+                    # XMR unsupported
+                    'DASH': 'dash',
+                    # akash, aleo,  axelar, bitcoincash, berachain, deso, ethereumclassic, unichain, flow, flare, dfinity, story,kusama,  mina, ronin, oasis, bittensor, celestia, noble, vara, vechain, zcash, horizen, zetachain
+                },
+            },
             'exceptions': {
                 'exact': {
                     'Insufficient funds': InsufficientFunds,
@@ -342,30 +467,45 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         """
         response = await self.publicGetCurrencies(params)
         #
-        #     [
-        #         {
-        #             "id": "XTZ",
-        #             "name": "Tezos",
-        #             "min_size": "0.000001",
-        #             "status": "online",
-        #             "message": '',
-        #             "max_precision": "0.000001",
-        #             "convertible_to": [],
-        #             "details": {
-        #                 "type": "crypto",
-        #                 "symbol": "Τ",
-        #                 "network_confirmations": 60,
-        #                 "sort_order": 53,
-        #                 "crypto_address_link": "https://tzstats.com/{{address}}",
-        #                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
-        #                 "push_payment_methods": ["crypto"],
-        #                 "group_types": [],
-        #                 "display_name": '',
-        #                 "processing_time_seconds": 0,
-        #                 "min_withdrawal_amount": 1
-        #             }
-        #         }
-        #     ]
+        #   {
+        #     "id": "USDT",
+        #     "name": "Tether",
+        #     "min_size": "0.000001",
+        #     "status": "online",
+        #     "message": "",
+        #     "max_precision": "0.000001",
+        #     "convertible_to": [],
+        #     "details": {
+        #       "type": "crypto",
+        #       "symbol": null,
+        #       "network_confirmations": 14,
+        #       "sort_order": 0,
+        #       "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        #       "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        #       "push_payment_methods": [],
+        #       "group_types": [],
+        #       "display_name": null,
+        #       "processing_time_seconds": null,
+        #       "min_withdrawal_amount": 0.000001,
+        #       "max_withdrawal_amount": 20000000
+        #     },
+        #     "default_network": "ethereum",
+        #     "supported_networks": [
+        #       {
+        #         "id": "ethereum",
+        #         "name": "Ethereum",
+        #         "status": "online",
+        #         "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        #         "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        #         "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        #         "min_withdrawal_amount": 0.000001,
+        #         "max_withdrawal_amount": 20000000,
+        #         "network_confirmations": 14,
+        #         "processing_time_seconds": null
+        #       }
+        #     ],
+        #     "display_name": "USDT"
+        #   }
         #
         result: dict = {}
         for i in range(0, len(response)):
@@ -373,16 +513,38 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             id = self.safe_string(currency, 'id')
             name = self.safe_string(currency, 'name')
             code = self.safe_currency_code(id)
-            details = self.safe_value(currency, 'details', {})
-            status = self.safe_string(currency, 'status')
-            active = (status == 'online')
-            result[code] = {
+            details = self.safe_dict(currency, 'details', {})
+            networks: dict = {}
+            supportedNetworks = self.safe_list(currency, 'supported_networks', [])
+            for j in range(0, len(supportedNetworks)):
+                network = supportedNetworks[j]
+                networkId = self.safe_string(network, 'id')
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'name': self.safe_string(network, 'name'),
+                    'network': networkCode,
+                    'active': self.safe_string(network, 'status') == 'online',
+                    'withdraw': None,
+                    'deposit': None,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(network, 'min_withdrawal_amount'),
+                            'max': self.safe_number(network, 'max_withdrawal_amount'),
+                        },
+                    },
+                    'contract': self.safe_string(network, 'contract_address'),
+                    'info': network,
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'type': self.safe_string(details, 'type'),
                 'name': name,
-                'active': active,
+                'active': self.safe_string(currency, 'status') == 'online',
                 'deposit': None,
                 'withdraw': None,
                 'fee': None,
@@ -394,11 +556,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                     },
                     'withdraw': {
                         'min': self.safe_number(details, 'min_withdrawal_amount'),
-                        'max': None,
+                        'max': self.safe_number(details, 'max_withdrawal_amount'),
                     },
                 },
-                'networks': {},
-            }
+                'networks': networks,
+            })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -1379,7 +1541,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        return await getattr(self, method)(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
+        return self.safe_order({'info': response})
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1397,12 +1560,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        return await self.privateDeleteOrders(self.extend(request, params))
+        response = await self.privateDeleteOrders(self.extend(request, params))
+        return [self.safe_order({'info': response})]
 
     async def fetch_payment_methods(self, params={}):
         return await self.privateGetPaymentMethods(params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

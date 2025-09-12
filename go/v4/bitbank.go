@@ -8,10 +8,10 @@ type bitbank struct {
 
 }
 
-func NewBitbankCore() bitbank {
-   p := bitbank{}
-   setDefaults(&p)
-   return p
+func NewBitbankCore() *bitbank {
+    p := &bitbank{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitbank) Describe() interface{}  {

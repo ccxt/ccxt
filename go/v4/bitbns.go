@@ -8,10 +8,10 @@ type bitbns struct {
 
 }
 
-func NewBitbnsCore() bitbns {
-   p := bitbns{}
-   setDefaults(&p)
-   return p
+func NewBitbnsCore() *bitbns {
+    p := &bitbns{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bitbns) Describe() interface{}  {
@@ -275,7 +275,7 @@ func  (this *bitbns) FetchMarkets(optionalArgs ...interface{}) <- chan interface
                 var usdt interface{} =         (IsEqual(quoteId, "USDT"))
                 // INR markets don't need a _INR prefix
                 var uppercaseId interface{} = Ternary(IsTrue(usdt), (Add(Add(baseId, "_"), quoteId)), baseId)
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "id": id,
                     "uppercaseId": uppercaseId,
                     "symbol": Add(Add(base, "/"), quote),
@@ -787,8 +787,8 @@ func  (this *bitbns) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
             quoteSide = Add(quoteSide, tail)
             AddElementToObject(request, "side", quoteSide)
             
-        response = (<-this.V2PostCancel(this.Extend(request, params)))
-            PanicOnError(response)
+            response = (<-this.V2PostCancel(this.Extend(request, params)))
+                PanicOnError(response)
         
             ch <- this.ParseOrder(response, market)
             return nil

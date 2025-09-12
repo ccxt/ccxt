@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestBorrowInterest(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{}, requestedCode interface{}, requestedSymbol interface{})  {
+    func TestBorrowInterest(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{}, requestedCode interface{}, requestedSymbol interface{})  {
         var format interface{} = map[string]interface{} {
             "info": map[string]interface{} {},
             "account": "BTC/USDT",

@@ -231,7 +231,7 @@ class kucoinfutures extends kucoin {
                     '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests -- Access limit breached
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
-                    '100001' => '\\ccxt\\InvalidOrder',     // array("code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\"")
+                    '100001' => '\\ccxt\\OrderNotFound',     // array("msg":"error.getOrder.orderNotExist","code":"100001")
                     '100004' => '\\ccxt\\BadRequest',       // array("code":"100004","msg":"Order is in not cancelable state")
                     '101030' => '\\ccxt\\PermissionDenied', // array("code":"101030","msg":"You haven't yet enabled the margin trading")
                     '200004' => '\\ccxt\\InsufficientFunds',
@@ -251,6 +251,7 @@ class kucoinfutures extends kucoin {
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '300009' => '\\ccxt\\InvalidOrder', // array("msg":"No open positions to close.","code":"300009")
+                    '330008' => '\\ccxt\\InsufficientFunds', // array("msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008")
                 ),
                 'broad' => array(
                     'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )
@@ -473,7 +474,7 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $status = $this->safe_string($data, 'status');
             return array(
                 'status' => ($status === 'open') ? 'ok' : 'maintenance',
@@ -559,7 +560,7 @@ class kucoinfutures extends kucoin {
             //    }
             //
             $result = array();
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $market = $data[$i];
                 $id = $this->safe_string($market, 'symbol');
@@ -784,7 +785,7 @@ class kucoinfutures extends kucoin {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $address = $this->safe_string($data, 'address');
             if ($currencyId !== 'NIM') {
                 // contains spaces
@@ -849,7 +850,7 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->parse_to_int($this->safe_integer($data, 'ts') / 1000000);
             $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
             $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
@@ -1192,7 +1193,7 @@ class kucoinfutures extends kucoin {
             //    }
             //
             $data = $this->safe_value($response, 'data');
-            $dataList = $this->safe_value($data, 'dataList', array());
+            $dataList = $this->safe_list($data, 'dataList', array());
             $fees = array();
             for ($i = 0; $i < count($dataList); $i++) {
                 $listItem = $dataList[$i];
@@ -1574,6 +1575,7 @@ class kucoinfutures extends kucoin {
              * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
              * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
              * @param {float} [$params->cost] the cost of the order in units of USDT
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'isolated'
              * ----------------- Exchange Specific Parameters -----------------
              * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
              * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1679,6 +1681,11 @@ class kucoinfutures extends kucoin {
             'type' => $type, // limit or $market
             'leverage' => 1,
         );
+        $marginModeUpper = $this->safe_string_upper($params, 'marginMode');
+        if ($marginModeUpper !== null) {
+            $params = $this->omit($params, 'marginMode');
+            $request['marginMode'] = $marginModeUpper;
+        }
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
         if ($cost !== null) {
@@ -1803,7 +1810,7 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
@@ -1907,7 +1914,8 @@ class kucoinfutures extends kucoin {
             //       ),
             //   }
             //
-            return $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data');
+            return array( $this->safe_order(array( 'info' => $data )) );
         }) ();
     }
 
@@ -2164,7 +2172,7 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-            $responseData = $this->safe_value($response, 'data', array());
+            $responseData = $this->safe_dict($response, 'data', array());
             $orders = $this->safe_list($responseData, 'items', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
@@ -2555,6 +2563,7 @@ class kucoinfutures extends kucoin {
              * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->code] the unified $currency $code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3126,7 +3135,7 @@ class kucoinfutures extends kucoin {
             //        )
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_market_leverage_tiers($data, $market);
         }) ();
     }
@@ -3217,7 +3226,7 @@ class kucoinfutures extends kucoin {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_funding_rate_histories($data, $market, $since, $limit);
         }) ();
     }
@@ -3429,7 +3438,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

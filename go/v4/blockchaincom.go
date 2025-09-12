@@ -8,10 +8,10 @@ type blockchaincom struct {
 
 }
 
-func NewBlockchaincomCore() blockchaincom {
-   p := blockchaincom{}
-   setDefaults(&p)
-   return p
+func NewBlockchaincomCore() *blockchaincom {
+    p := &blockchaincom{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *blockchaincom) Describe() interface{}  {
@@ -343,7 +343,7 @@ func  (this *blockchaincom) FetchMarkets(optionalArgs ...interface{}) <- chan in
                 } else {
                     maxOrderSize = nil
                 }
-                AppendToArray(&result,map[string]interface{} {
+                AppendToArray(&result, map[string]interface{} {
                     "info": market,
                     "id": marketId,
                     "numericId": numericId,

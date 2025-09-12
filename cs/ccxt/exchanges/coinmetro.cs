@@ -371,24 +371,35 @@ public partial class coinmetro : Exchange
             object currency = getValue(response, i);
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
-            object withdraw = this.safeValue(currency, "canWithdraw");
-            object deposit = this.safeValue(currency, "canDeposit");
-            object canTrade = this.safeValue(currency, "canTrade");
-            object active = ((bool) isTrue(canTrade)) ? withdraw : true;
-            object minAmount = this.safeNumber(currency, "minQty");
+            object typeRaw = this.safeString(currency, "type");
+            object type = null;
+            if (isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))))
+            {
+                type = "crypto";
+            } else if (isTrue(isEqual(typeRaw, "fiat")))
+            {
+                type = "fiat";
+            }
+            object precisionDigits = this.safeString2(currency, "digits", "notabeneDecimals");
+            if (isTrue(isEqual(code, "RENDER")))
+            {
+                // RENDER is an exception (with broken info)
+                precisionDigits = "4";
+            }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "name", code },
+                { "type", type },
                 { "info", currency },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
+                { "active", this.safeBool(currency, "canTrade") },
+                { "deposit", this.safeBool(currency, "canDeposit") },
+                { "withdraw", this.safeBool(currency, "canWithdraw") },
                 { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "digits"))) },
+                { "precision", this.parseNumber(this.parsePrecision(precisionDigits)) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", minAmount },
+                        { "min", this.safeNumber(currency, "minQty") },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -425,11 +436,14 @@ public partial class coinmetro : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetMarkets(parameters);
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetMarkets(parameters));
         if (isTrue(isEqual(this.safeValue(this.options, "currenciesByIdForParseMarket"), null)))
         {
-            await this.fetchCurrencies();
+            ((IList<object>)promises).Add(this.fetchCurrencies());
         }
+        object responses = await promiseAll(promises);
+        object response = getValue(responses, 0);
         //
         //     [
         //         {
@@ -445,7 +459,18 @@ public partial class coinmetro : Exchange
         //         ...
         //     ]
         //
-        return this.parseMarkets(response);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object market = this.parseMarket(getValue(response, i));
+            // there are several broken (unavailable info) markets
+            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
+            {
+                continue;
+            }
+            ((IList<object>)result).Add(market);
+        }
+        return result;
     }
 
     public override object parseMarket(object market)

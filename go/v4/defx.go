@@ -8,10 +8,10 @@ type defx struct {
 
 }
 
-func NewDefxCore() defx {
-   p := defx{}
-   setDefaults(&p)
-   return p
+func NewDefxCore() *defx {
+    p := &defx{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *defx) Describe() interface{}  {
@@ -1719,7 +1719,9 @@ func  (this *defx) CancelAllOrders(optionalArgs ...interface{}) <- chan interfac
             //     }
             // }
             //
-        ch <- response
+        ch <- []interface{}{this.SafeOrder(map[string]interface{} {
+            "info": response,
+        })}
             return nil
         
             }()

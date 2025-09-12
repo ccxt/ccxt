@@ -190,6 +190,7 @@ class Liquidation(TypedDict):
     price: Num
     baseValue: Num
     quoteValue: Num
+    side: OrderSide
 
 
 class FundingHistory(TypedDict):
@@ -308,6 +309,9 @@ class Greeks(TypedDict):
     theta: Num
     vega: Num
     rho: Num
+    vanna: Num
+    volga: Num
+    charm: Num
     bidSize: Num
     askSize: Num
     bidImpliedVolatility: Num
@@ -603,3 +607,4 @@ class ConstructorArgs(TypedDict, total=False):
     hostname: str
     urls: Dict[str, Any]
     headers: Dict[str, Any]
+    session: Any

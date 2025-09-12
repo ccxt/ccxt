@@ -8,10 +8,10 @@ type coinbaseinternational struct {
 
 }
 
-func NewCoinbaseinternationalCore() coinbaseinternational {
-   p := coinbaseinternational{}
-   setDefaults(&p)
-   return p
+func NewCoinbaseinternationalCore() *coinbaseinternational {
+    p := &coinbaseinternational{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *coinbaseinternational) Describe() interface{}  {

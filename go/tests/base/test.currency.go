@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestCurrency(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
+    func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
         var format interface{} = map[string]interface{} {
             "id": "btc",
             "code": "BTC",
@@ -37,13 +37,13 @@ import "github.com/ccxt/ccxt/go/v4"
             AssertInArray(exchange, skippedProperties, method, entry, "type", []interface{}{"fiat", "crypto", "leveraged", "other", nil}) // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if IsTrue(IsTrue(!IsEqual(currencyType, "crypto")) && IsTrue((InOp(skippedProperties, "depositForNonCrypto")))) {
-                AppendToArray(&emptyAllowedFor,"deposit")
+                AppendToArray(&emptyAllowedFor, "deposit")
             }
             if IsTrue(IsTrue(!IsEqual(currencyType, "crypto")) && IsTrue((InOp(skippedProperties, "withdrawForNonCrypto")))) {
-                AppendToArray(&emptyAllowedFor,"withdraw")
+                AppendToArray(&emptyAllowedFor, "withdraw")
             }
             if IsTrue(IsTrue(IsEqual(currencyType, "leveraged")) || IsTrue(IsEqual(currencyType, "other"))) {
-                AppendToArray(&emptyAllowedFor,"precision")
+                AppendToArray(&emptyAllowedFor, "precision")
             }
         }
         //

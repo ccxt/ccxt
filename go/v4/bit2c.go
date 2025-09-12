@@ -8,10 +8,10 @@ type bit2c struct {
 
 }
 
-func NewBit2cCore() bit2c {
-   p := bit2c{}
-   setDefaults(&p)
-   return p
+func NewBit2cCore() *bit2c {
+    p := &bit2c{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *bit2c) Describe() interface{}  {
@@ -490,12 +490,12 @@ func  (this *bit2c) FetchTrades(symbol interface{}, optionalArgs ...interface{})
             var response interface{} = nil
             if IsTrue(IsEqual(method, "public_get_exchanges_pair_trades")) {
                 
-        response = (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetExchangesPairTrades(this.Extend(request, params)))
+                    PanicOnError(response)
             } else {
                 
-        response = (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
-                PanicOnError(response)
+            response = (<-this.PublicGetExchangesPairLasttrades(this.Extend(request, params)))
+                    PanicOnError(response)
             }
             //
             //     [

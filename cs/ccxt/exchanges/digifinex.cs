@@ -343,6 +343,16 @@ public partial class digifinex : Exchange
                     { "TRX", "TRC20" },
                     { "VECHAIN", "Vechain" },
                 } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TRC20", "TRC20" },
+                    { "TRX", "TRC20" },
+                    { "BEP20", "BEP20" },
+                    { "BSC", "BEP20" },
+                    { "ERC20", "ERC20" },
+                    { "ETH", "ERC20" },
+                    { "Polygon", "POLYGON" },
+                    { "Crypto.com", "CRONOS" },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "BHT", "Black House Test" },
@@ -375,6 +385,7 @@ public partial class digifinex : Exchange
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             },
@@ -385,6 +396,7 @@ public partial class digifinex : Exchange
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             },
@@ -395,6 +407,7 @@ public partial class digifinex : Exchange
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
         //                 "currency":"DGF13",
+        //                 "withdraw_fee_currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             },
@@ -402,136 +415,48 @@ public partial class digifinex : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object groupedById = this.groupBy(data, "currency");
+        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object currency = getValue(data, i);
-            object id = this.safeString(currency, "currency");
+            object id = getValue(keys, i);
+            object networkEntries = getValue(groupedById, id);
             object code = this.safeCurrencyCode(id);
-            object depositStatus = this.safeInteger(currency, "deposit_status", 1);
-            object withdrawStatus = this.safeInteger(currency, "withdraw_status", 1);
-            object deposit = isGreaterThan(depositStatus, 0);
-            object withdraw = isGreaterThan(withdrawStatus, 0);
-            object active = isTrue(deposit) && isTrue(withdraw);
-            object feeString = this.safeString(currency, "min_withdraw_fee"); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            object minWithdrawString = this.safeString(currency, "min_withdraw_amount");
-            object minDepositString = this.safeString(currency, "min_deposit_amount");
-            object minDeposit = this.parseNumber(minDepositString);
-            object minWithdraw = this.parseNumber(minWithdrawString);
-            object fee = this.parseNumber(feeString);
-            // define precision with temporary way
-            object minFoundPrecision = Precise.stringMin(feeString, Precise.stringMin(minDepositString, minWithdrawString));
-            object precision = this.parseNumber(minFoundPrecision);
-            object networkId = this.safeString(currency, "chain");
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
-                networkCode = this.networkIdToCode(networkId);
-            }
-            object network = new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", active },
-                { "fee", fee },
-                { "precision", precision },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
-                        { "max", null },
-                    } },
-                } },
-            };
-            if (isTrue(inOp(result, code)))
-            {
-                object resultCodeInfo = getValue(getValue(result, code), "info");
-                if (isTrue(((resultCodeInfo is IList<object>) || (resultCodeInfo.GetType().IsGenericType && resultCodeInfo.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-                {
-                    ((IList<object>)resultCodeInfo).Add(currency);
-                } else
-                {
-                    resultCodeInfo = new List<object>() {resultCodeInfo, currency};
-                }
-                if (isTrue(withdraw))
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["withdraw"] = true;
-                    ((IDictionary<string,object>)getValue(getValue(getValue(result, code), "limits"), "withdraw"))["min"] = mathMin(getValue(getValue(getValue(getValue(result, code), "limits"), "withdraw"), "min"), minWithdraw);
-                }
-                if (isTrue(deposit))
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["deposit"] = true;
-                    ((IDictionary<string,object>)getValue(getValue(getValue(result, code), "limits"), "deposit"))["min"] = mathMin(getValue(getValue(getValue(getValue(result, code), "limits"), "deposit"), "min"), minDeposit);
-                }
-                if (isTrue(active))
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["active"] = true;
-                }
-            } else
-            {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", id },
-                    { "code", code },
-                    { "info", currency },
-                    { "type", null },
-                    { "name", null },
-                    { "active", active },
-                    { "deposit", deposit },
-                    { "withdraw", withdraw },
-                    { "fee", this.parseNumber(feeString) },
+                object networkEntry = getValue(networkEntries, j);
+                object networkId = this.safeString(networkEntry, "chain");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
+                    { "withdraw", isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1) },
+                    { "fee", this.safeNumber(networkEntry, "min_withdraw_fee") },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdraw },
+                            { "min", this.safeNumber(networkEntry, "min_withdraw_amount") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", minDeposit },
+                            { "min", this.safeNumber(networkEntry, "min_deposit_amount") },
                             { "max", null },
                         } },
                     } },
-                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", networkEntry },
                 };
             }
-            if (isTrue(!isEqual(networkId, null)))
-            {
-                ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkId] = network;
-            } else
-            {
-                ((IDictionary<string,object>)getValue(result, code))["active"] = active;
-                ((IDictionary<string,object>)getValue(result, code))["fee"] = this.parseNumber(feeString);
-                ((IDictionary<string,object>)getValue(result, code))["deposit"] = deposit;
-                ((IDictionary<string,object>)getValue(result, code))["withdraw"] = withdraw;
-                ((IDictionary<string,object>)getValue(result, code))["limits"] = new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
-                        { "max", null },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)getValue(result, code))["precision"] = ((bool) isTrue((isEqual(getValue(getValue(result, code), "precision"), null)))) ? precision : mathMax(getValue(getValue(result, code), "precision"), precision);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "info", networkEntries },
+                { "networks", networks },
+            });
         }
         return result;
     }

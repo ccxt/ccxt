@@ -8,10 +8,10 @@ type gateio struct {
 
 }
 
-func NewGateioCore() gateio {
-   p := gateio{}
-   setDefaults(&p)
-   return p
+func NewGateioCore() *gateio {
+    p := &gateio{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *gateio) Describe() interface{}  {

@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchMarkets(exchange ccxt.IExchange, skippedProperties interface{}) <- chan interface{} {
+    func TestFetchMarkets(exchange ccxt.ICoreExchange, skippedProperties interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -28,7 +28,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 }()
                 return ch
             }
-    func DetectMarketConflicts(exchange ccxt.IExchange, marketValues interface{}) interface{}  {
+    func DetectMarketConflicts(exchange ccxt.ICoreExchange, marketValues interface{}) interface{}  {
         // detect if there are markets with different ids for the same symbol
         var ids interface{} = map[string]interface{} {}
         for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {

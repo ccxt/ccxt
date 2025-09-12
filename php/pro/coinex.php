@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -782,7 +783,6 @@ class coinex extends \ccxt\async\coinex {
             $type = null;
             $callerMethodName = null;
             list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
-            list($type, $params) = $this->handle_market_type_and_params($callerMethodName, null, $params);
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
             $limits = $this->safe_list($options, 'limits', array());
             if ($limit === null) {
@@ -799,16 +799,16 @@ class coinex extends \ccxt\async\coinex {
             }
             $params = $this->omit($params, 'aggregation');
             $symbolsDefined = ($symbols !== null);
-            if ($symbolsDefined) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $market = $this->market($symbol);
-                    $messageHashes[] = 'orderbook:' . $market['symbol'];
-                    $watchOrderBookSubscriptions[$symbol] = [ $market['id'], $limit, $aggregation, true ];
-                }
-            } else {
-                $messageHashes[] = 'orderbook';
+            if (!$symbolsDefined) {
+                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a $symbol argument');
             }
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $messageHashes[] = 'orderbook:' . $market['symbol'];
+                $watchOrderBookSubscriptions[$symbol] = [ $market['id'], $limit, $aggregation, true ];
+            }
+            list($type, $params) = $this->handle_market_type_and_params($callerMethodName, $market, $params);
             $marketList = is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array();
             $subscribe = array(
                 'method' => 'depth.subscribe',
@@ -882,7 +882,8 @@ class coinex extends \ccxt\async\coinex {
         //         "id" => null
         //     }
         //
-        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isSpot = mb_strpos($client->url, 'spot') > -1;
+        $defaultType = $isSpot ? 'spot' : 'swap';
         $data = $this->safe_dict($message, 'data', array());
         $depth = $this->safe_dict($data, 'depth', array());
         $marketId = $this->safe_string($data, 'market');
@@ -1346,7 +1347,7 @@ class coinex extends \ccxt\async\coinex {
         $method = $this->safe_string($message, 'method');
         $error = $this->safe_string($message, 'message');
         if ($error !== null) {
-            $this->handle_errors(null, null, $client->url, $method, null, $this->json($error), $message, null, null);
+            $this->handle_errors(1, '', $client->url, $method, array(), $this->json($error), $message, array(), array());
         }
         $handlers = array(
             'state.update' => array($this, 'handle_ticker'),

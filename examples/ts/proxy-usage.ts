@@ -3,7 +3,10 @@ import ccxt from '../../js/ccxt.js';
 
 // AUTO-TRANSPILE //
 
-// ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+// 1) ABOUT CCXT PROXIES, READ MORE AT: https://docs.ccxt.com/#/README?id=proxy
+// 2) in python, uncomment the below:
+// if sys.platform == 'win32':
+//     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 async function example_proxyUrl () {
     const myEx = new ccxt.kucoin ();
@@ -28,10 +31,15 @@ async function example_webSockets () {
     myEx.httpProxy = 'http://188.34.194.190:8911'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
     myEx.wsProxy = 'http://188.34.194.190:8911'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
     await myEx.loadMarkets ();
-    while (true) {
-        const ticker = await myEx.watchTicker ('BTC/USDT');
-        console.log (ticker);
-    }
+    //
+    // To ensure your WS proxy works, uncomment below code and watch the log
+    //
+    // myEx.verbose = true;
+    // await myEx.loadHttpProxyAgent ();
+    // await myEx.watch ('ws://188.34.194.190:9876/', 'myip'); // in the incoming logs, confirm that you see the proxy IP in "hello" message
+    //
+    console.log (await myEx.watchTicker ('BTC/USDT'));
+    await myEx.close ();
 }
 
 

@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchTrades(exchange ccxt.IExchange, skippedProperties interface{}, symbol interface{}) <- chan interface{} {
+    func TestFetchTrades(exchange ccxt.ICoreExchange, skippedProperties interface{}, symbol interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)
@@ -20,7 +20,7 @@ import "github.com/ccxt/ccxt/go/v4"
                     TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now)
                     AssertInArray(exchange, skippedProperties, method, GetValue(trades, i), "takerOrMaker", []interface{}{"taker", nil})
                 }
-                if !IsTrue((InOp(skippedProperties, "timestamp"))) {
+                if !IsTrue((InOp(skippedProperties, "timestampSort"))) {
                     AssertTimestampOrder(exchange, method, symbol, trades)
                 }
             

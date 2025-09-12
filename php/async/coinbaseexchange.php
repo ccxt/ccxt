@@ -32,31 +32,73 @@ class coinbaseexchange extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => true,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -68,6 +110,8 @@ class coinbaseexchange extends Exchange {
                 'fetchPositionsForSymbol' => false,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -75,7 +119,16 @@ class coinbaseexchange extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
+                'setLeverage' => false,
+                'setMargin' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -300,6 +353,78 @@ class coinbaseexchange extends Exchange {
                     'inverse' => null,
                 ),
             ),
+            'options' => array(
+                'networks' => array(
+                    'BTC' => 'bitcoin',
+                    // LIGHTNING unsupported
+                    'ETH' => 'ethereum',
+                    // TRON unsupported
+                    'SOL' => 'solana',
+                    // BSC unsupported
+                    'ARBONE' => 'arbitrum',
+                    'AVAXC' => 'avacchain',
+                    'MATIC' => 'polygon',
+                    'BASE' => 'base',
+                    'SUI' => 'sui',
+                    'OP' => 'optimism',
+                    'NEAR' => 'near',
+                    // CRONOS unsupported
+                    // GNO unsupported
+                    'APT' => 'aptos',
+                    // SCROLL unsupported
+                    'KAVA' => 'kava',
+                    // TAIKO unsupported
+                    // BOB unsupported
+                    // LINEA unsupported
+                    'BLAST' => 'blast',
+                    'XLM' => 'stellar',
+                    // RSK unsupported
+                    'SEI' => 'sei',
+                    // TON unsupported
+                    // MANTLE unsupported
+                    'ADA' => 'cardano',
+                    // HYPE unsupported
+                    'CORE' => 'coredao',
+                    'ALGO' => 'algorand',
+                    // RUNE unsupported
+                    'OSMO' => 'osmosis',
+                    // XIN unsupported
+                    'CELO' => 'celo',
+                    'HBAR' => 'hedera',
+                    // FTM unsupported
+                    // WEMIX unsupported
+                    'ZKSYNC' => 'zksync',
+                    // KLAY unsupported
+                    // HT unsupported
+                    // FSN unsupported
+                    // EOS unsupported, eosio?
+                    // ACA unsupported
+                    'STX' => 'stacks',
+                    'XTZ' => 'tezos',
+                    // NEO unsupported
+                    // METIS unsupported
+                    // TLOS unsupported
+                    'EGLD' => 'elrond',
+                    // ASTR unsupported
+                    // CFX unsupported
+                    // GLMR unsupported
+                    // CANTO unsupported
+                    // SCRT unsupported
+                    'LTC' => 'litecoin',
+                    // AURORA unsupported
+                    // ONG unsupported
+                    'ATOM' => 'cosmos',
+                    // CHZ unsupported
+                    'FIL' => 'filecoin',
+                    'DOT' => 'polkadot',
+                    'DOGE' => 'dogecoin',
+                    // BRC20 unsupported
+                    'XRP' => 'ripple',
+                    // XMR unsupported
+                    'DASH' => 'dash',
+                    // akash, aleo,  axelar, bitcoincash, berachain, deso, ethereumclassic, unichain, flow, flare, dfinity, story,kusama,  mina, ronin, oasis, bittensor, celestia, noble, vara, vechain, zcash, horizen, zetachain
+                ),
+            ),
             'exceptions' => array(
                 'exact' => array(
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
@@ -337,30 +462,45 @@ class coinbaseexchange extends Exchange {
              */
             $response = Async\await($this->publicGetCurrencies ($params));
             //
-            //     array(
-            //         {
-            //             "id" => "XTZ",
-            //             "name" => "Tezos",
-            //             "min_size" => "0.000001",
-            //             "status" => "online",
-            //             "message" => '',
-            //             "max_precision" => "0.000001",
-            //             "convertible_to" => array(),
-            //             "details" => {
-            //                 "type" => "crypto",
-            //                 "symbol" => "Τ",
-            //                 "network_confirmations" => 60,
-            //                 "sort_order" => 53,
-            //                 "crypto_address_link" => "https://tzstats.com/array({address})",
-            //                 "crypto_transaction_link" => "https://tzstats.com/array({txId})",
-            //                 "push_payment_methods" => array( "crypto" ),
-            //                 "group_types" => array(),
-            //                 "display_name" => '',
-            //                 "processing_time_seconds" => 0,
-            //                 "min_withdrawal_amount" => 1
-            //             }
-            //         }
-            //     )
+            //   {
+            //     "id" => "USDT",
+            //     "name" => "Tether",
+            //     "min_size" => "0.000001",
+            //     "status" => "online",
+            //     "message" => "",
+            //     "max_precision" => "0.000001",
+            //     "convertible_to" => array(),
+            //     "details" => array(
+            //       "type" => "crypto",
+            //       "symbol" => null,
+            //       "network_confirmations" => 14,
+            //       "sort_order" => 0,
+            //       "crypto_address_link" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=array({address})",
+            //       "crypto_transaction_link" => "https://etherscan.io/tx/0xarray({txId})",
+            //       "push_payment_methods" => array(),
+            //       "group_types" => array(),
+            //       "display_name" => null,
+            //       "processing_time_seconds" => null,
+            //       "min_withdrawal_amount" => 0.000001,
+            //       "max_withdrawal_amount" => 20000000
+            //     ),
+            //     "default_network" => "ethereum",
+            //     "supported_networks" => array(
+            //       {
+            //         "id" => "ethereum",
+            //         "name" => "Ethereum",
+            //         "status" => "online",
+            //         "contract_address" => "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            //         "crypto_address_link" => "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a=array({address})",
+            //         "crypto_transaction_link" => "https://etherscan.io/tx/0xarray({txId})",
+            //         "min_withdrawal_amount" => 0.000001,
+            //         "max_withdrawal_amount" => 20000000,
+            //         "network_confirmations" => 14,
+            //         "processing_time_seconds" => null
+            //       }
+            //     ),
+            //     "display_name" => "USDT"
+            //   }
             //
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
@@ -368,16 +508,39 @@ class coinbaseexchange extends Exchange {
                 $id = $this->safe_string($currency, 'id');
                 $name = $this->safe_string($currency, 'name');
                 $code = $this->safe_currency_code($id);
-                $details = $this->safe_value($currency, 'details', array());
-                $status = $this->safe_string($currency, 'status');
-                $active = ($status === 'online');
-                $result[$code] = array(
+                $details = $this->safe_dict($currency, 'details', array());
+                $networks = array();
+                $supportedNetworks = $this->safe_list($currency, 'supported_networks', array());
+                for ($j = 0; $j < count($supportedNetworks); $j++) {
+                    $network = $supportedNetworks[$j];
+                    $networkId = $this->safe_string($network, 'id');
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networks[$networkCode] = array(
+                        'id' => $networkId,
+                        'name' => $this->safe_string($network, 'name'),
+                        'network' => $networkCode,
+                        'active' => $this->safe_string($network, 'status') === 'online',
+                        'withdraw' => null,
+                        'deposit' => null,
+                        'fee' => null,
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($network, 'min_withdrawal_amount'),
+                                'max' => $this->safe_number($network, 'max_withdrawal_amount'),
+                            ),
+                        ),
+                        'contract' => $this->safe_string($network, 'contract_address'),
+                        'info' => $network,
+                    );
+                }
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
                     'info' => $currency,
                     'type' => $this->safe_string($details, 'type'),
                     'name' => $name,
-                    'active' => $active,
+                    'active' => $this->safe_string($currency, 'status') === 'online',
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
@@ -389,11 +552,11 @@ class coinbaseexchange extends Exchange {
                         ),
                         'withdraw' => array(
                             'min' => $this->safe_number($details, 'min_withdrawal_amount'),
-                            'max' => null,
+                            'max' => $this->safe_number($details, 'max_withdrawal_amount'),
                         ),
                     ),
-                    'networks' => array(),
-                );
+                    'networks' => $networks,
+                ));
             }
             return $result;
         }) ();
@@ -1475,7 +1638,8 @@ class coinbaseexchange extends Exchange {
                 $market = $this->market($symbol);
                 $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
             }
-            return Async\await($this->$method ($this->extend($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
+            return $this->safe_order(array( 'info' => $response ));
         }) ();
     }
 
@@ -1497,7 +1661,8 @@ class coinbaseexchange extends Exchange {
                 $market = $this->market($symbol);
                 $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
             }
-            return Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
@@ -1507,7 +1672,7 @@ class coinbaseexchange extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

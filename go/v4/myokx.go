@@ -8,10 +8,10 @@ type myokx struct {
 
 }
 
-func NewMyokxCore() myokx {
-   p := myokx{}
-   setDefaults(&p)
-   return p
+func NewMyokxCore() *myokx {
+    p := &myokx{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *myokx) Describe() interface{}  {

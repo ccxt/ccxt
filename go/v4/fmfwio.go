@@ -8,10 +8,10 @@ type fmfwio struct {
 
 }
 
-func NewFmfwioCore() fmfwio {
-   p := fmfwio{}
-   setDefaults(&p)
-   return p
+func NewFmfwioCore() *fmfwio {
+    p := &fmfwio{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *fmfwio) Describe() interface{}  {

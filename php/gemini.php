@@ -258,7 +258,7 @@ class gemini extends Exchange {
                 'fetchMarketFromWebRetries' => 10,
                 'fetchMarketsFromAPI' => array(
                     'fetchDetailsForAllSymbols' => false,
-                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH' ),
+                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC' ),
                 ),
                 'fetchMarkets' => array(
                     'webApiEnable' => true, // fetches from WEB
@@ -416,8 +416,6 @@ class gemini extends Exchange {
             $networkCode = null;
             if ($networkId !== null) {
                 $networkCode = $this->network_id_to_code($networkId);
-            }
-            if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $currency,
                     'id' => $networkId,
@@ -439,7 +437,7 @@ class gemini extends Exchange {
                     ),
                 );
             }
-            $result[$code] = array(
+            $result[$code] = $this->safe_currency_structure(array(
                 'info' => $currency,
                 'id' => $id,
                 'code' => $code,
@@ -461,7 +459,7 @@ class gemini extends Exchange {
                     ),
                 ),
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }
@@ -692,8 +690,8 @@ class gemini extends Exchange {
         //
         //     array(
         //         'BTCUSD',   // $symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -712,7 +710,7 @@ class gemini extends Exchange {
         //         "wrap_enabled" => false
         //         "product_type" => "swap", // only in perps
         //         "contract_type" => "linear", // only in perps
-        //         "contract_price_currency" => "GUSD" // only in perps
+        //         "contract_price_currency" => "GUSD"
         //     }
         //
         $marketId = null;
@@ -1682,7 +1680,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

@@ -8,10 +8,10 @@ type zaif struct {
 
 }
 
-func NewZaifCore() zaif {
-   p := zaif{}
-   setDefaults(&p)
-   return p
+func NewZaifCore() *zaif {
+    p := &zaif{}
+    setDefaults(p)
+    return p
 }
 
 func  (this *zaif) Describe() interface{}  {
