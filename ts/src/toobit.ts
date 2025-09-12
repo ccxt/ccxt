@@ -2756,7 +2756,8 @@ export default class toobit extends Exchange {
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {
-            if (symbols.length > 1) {
+            const length = symbols.length;
+            if (length > 1) {
                 throw new BadRequest (this.id + ' fetchPositions() only accepts an array with a single symbol or without symbols argument');
             }
             const firstSymbol = this.safeString (symbols, 0);
