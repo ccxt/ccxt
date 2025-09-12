@@ -3787,7 +3787,7 @@
                         "precision": null,
                         "type": null,
                         "name": "TetherUS",
-                        "active": null,
+                        "active": true,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.0006,
@@ -3799,7 +3799,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 7.5,
                                 "precision": null,
                                 "limits": {
@@ -3828,7 +3828,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -3857,7 +3857,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 0.3,
                                 "precision": null,
                                 "limits": {
@@ -3886,7 +3886,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 1,
                                 "precision": null,
                                 "limits": {
@@ -3915,7 +3915,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 0.35,
                                 "precision": null,
                                 "limits": {
@@ -3944,7 +3944,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 0.15,
                                 "precision": null,
                                 "limits": {
@@ -3973,7 +3973,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 0.23005,
                                 "precision": null,
                                 "limits": {
@@ -4002,7 +4002,7 @@
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
-                                "active": null,
+                                "active": true,
                                 "fee": 0.0006,
                                 "precision": null,
                                 "limits": {
