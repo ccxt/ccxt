@@ -1305,6 +1305,21 @@
         ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
+                "description": "createOrder with tp+sl using the new api",
+                "method": "createOrderWithTakeProfitAndStopLoss",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "ADA/USDT:USDT",
+                    "market",
+                    "buy",
+                    5,
+                    null,
+                    2,
+                    0.2
+                ],
+                "output": "[{\"instId\":\"ADA-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"5\",\"tdMode\":\"cross\",\"attachAlgoOrds\":[{\"slTriggerPx\":\"0.2\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\",\"tpTriggerPx\":\"2\",\"tpOrdPx\":\"-1\",\"tpTriggerPxType\":\"last\"}],\"clOrdId\":\"6b9ad766b55dBCDE3cd583e674adac79\",\"tag\":\"6b9ad766b55dBCDE\"}]"
+            },
+            {
                 "description": "Swap create an order with a take profit and stop loss attached using the createOrderWithTakeProfitAndStopLoss method (type 3)",
                 "method": "createOrderWithTakeProfitAndStopLoss",
                 "url": "https://www.okx.com/api/v5/trade/batch-orders",
