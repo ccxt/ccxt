@@ -2242,6 +2242,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.hedged]: *swap markets only* must be set to True if position mode is hedged(default False)
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param float [params.triggerPrice]: the price that the order is to be triggered
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
@@ -2420,6 +2421,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.hedged]: must be set to True if position mode is hedged(default False)
         :param bool [params.postOnly]: *non-trigger orders only* if True, the order will only be posted to the order book and not executed immediately
         :param bool [params.reduceOnly]: True or False whether the order is reduce only
         :param str [params.timeInForce]: *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2471,7 +2473,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: how much of you want to trade in units of the base currency
         :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.hedged]: default False
+        :param bool [params.hedged]: must be set to True if position mode is hedged(default False)
         :param bool [params.postOnly]: *non-trigger orders only* if True, the order will only be posted to the order book and not executed immediately
         :param bool [params.reduceOnly]: True or False whether the order is reduce only
         :param str [params.timeInForce]: *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2507,24 +2509,31 @@ class coincatch(Exchange, ImplicitAPI):
                 request['price'] = self.price_to_precision(symbol, price)
         if (endpointType != 'tpsl'):
             request['orderType'] = type
-            hedged: Bool = False
-            hedged, params = self.handle_option_and_params(params, methodName, 'hedged', hedged)
-            # hedged and non-hedged orders have different side values and reduceOnly handling
-            reduceOnly: Bool = False
-            reduceOnly, params = self.handle_param_bool(params, 'reduceOnly', reduceOnly)
-            if hedged:
-                if reduceOnly:
-                    if side == 'buy':
-                        side = 'close_short'
-                    elif side == 'sell':
-                        side = 'close_long'
+            sideIsExchangeSpecific = False
+            hedged = False
+            if (side == 'buy_single') or (side == 'sell_single') or (side == 'open_long') or (side == 'open_short') or (side == 'close_long') or (side == 'close_short'):
+                sideIsExchangeSpecific = True
+                if (side != 'buy_single') and (side != 'sell_single'):
+                    hedged = True
+            if not sideIsExchangeSpecific:
+                hedged, params = self.handle_option_and_params(params, methodName, 'hedged', hedged)
+                # hedged and non-hedged orders have different side values and reduceOnly handling
+                reduceOnly = self.safe_bool(params, 'reduceOnly')
+                if hedged:
+                    if (reduceOnly is not None) and reduceOnly:
+                        if side == 'buy':
+                            side = 'close_short'
+                        elif side == 'sell':
+                            side = 'close_long'
+                    else:
+                        if side == 'buy':
+                            side = 'open_long'
+                        elif side == 'sell':
+                            side = 'open_short'
                 else:
-                    if side == 'buy':
-                        side = 'open_long'
-                    elif side == 'sell':
-                        side = 'open_short'
-            else:
-                side = side.lower() + '_single'
+                    side = side.lower() + '_single'
+            if hedged:
+                params = self.omit(params, 'reduceOnly')
             request['side'] = side
         return self.extend(request, params)
 

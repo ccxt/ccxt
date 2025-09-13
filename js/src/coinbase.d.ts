@@ -211,7 +211,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    findAccountId(code: any, params?: {}): Promise<any>;
+    findAccountId(code: any, params?: {}): Promise<string>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<Dict[]>;
     /**
@@ -611,7 +611,7 @@ export default class coinbase extends Exchange {
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: {}): Promise<any[]>;
     parsePortfolioDetails(portfolioData: Dict): any[];
-    createAuthToken(seconds: Int, method?: Str, url?: Str): string;
+    createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

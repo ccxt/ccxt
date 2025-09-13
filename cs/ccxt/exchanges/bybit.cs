@@ -3074,20 +3074,33 @@ public partial class bybit : Exchange
         //         "tradeId": "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
         //     }
         //
+        // watchMyTrades execution.fast
+        //
+        //     {
+        //         "category": "linear",
+        //         "symbol": "ICPUSDT",
+        //         "execId": "3510f361-0add-5c7b-a2e7-9679810944fc",
+        //         "execPrice": "12.015",
+        //         "execQty": "3000",
+        //         "orderId": "443d63fa-b4c3-4297-b7b1-23bca88b04dc",
+        //         "isMaker": false,
+        //         "orderLinkId": "test-00001",
+        //         "side": "Sell",
+        //         "execTime": "1716800399334",
+        //         "seq": 34771365464
+        //     }
+        //
         object id = this.safeStringN(trade, new List<object>() {"execId", "id", "tradeId"});
         object marketId = this.safeString(trade, "symbol");
         object marketType = ((bool) isTrue((inOp(trade, "createType")))) ? "contract" : "spot";
-        if (isTrue(!isEqual(market, null)))
-        {
-            marketType = getValue(market, "type");
-        }
         object category = this.safeString(trade, "category");
         if (isTrue(!isEqual(category, null)))
         {
-            if (isTrue(isEqual(category, "spot")))
-            {
-                marketType = "spot";
-            }
+            marketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
+        }
+        if (isTrue(!isEqual(market, null)))
+        {
+            marketType = getValue(market, "type");
         }
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");

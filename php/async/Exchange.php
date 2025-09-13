@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.3';
+$version = '4.5.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.3';
+    const VERSION = '4.5.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -2046,6 +2046,27 @@ class Exchange extends \ccxt\Exchange {
         $currenciesSortedByCode = $this->keysort($this->currencies);
         $this->codes = is_array($currenciesSortedByCode) ? array_keys($currenciesSortedByCode) : array();
         return $this->markets;
+    }
+
+    public function set_markets_from_exchange($sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if ($this->id !== $sourceExchange->id) {
+            throw new ArgumentsRequired($this->id . ' shareMarkets() can only share markets with exchanges of the same type (got ' . $sourceExchange['id'] . ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!$sourceExchange->markets) {
+            throw new ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        $this->markets = $sourceExchange->markets;
+        $this->markets_by_id = $sourceExchange->markets_by_id;
+        $this->symbols = $sourceExchange->symbols;
+        $this->ids = $sourceExchange->ids;
+        $this->currencies = $sourceExchange->currencies;
+        $this->baseCurrencies = $sourceExchange->baseCurrencies;
+        $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
+        $this->codes = $sourceExchange->codes;
+        return $this;
     }
 
     public function get_describe_for_extended_ws_exchange(mixed $currentRestInstance, mixed $parentRestInstance, array $wsBaseDescribe) {
@@ -5597,7 +5618,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function handle_trigger_prices_and_params($symbol, $params, $omitParams = true) {
         //
-        $triggerPrice = $this->safe_string($params, 'triggerPrice', 'stopPrice');
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $triggerPriceStr = null;
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $stopLossPriceStr = null;
@@ -6838,7 +6859,7 @@ class Exchange extends \ccxt\Exchange {
                 $clients = is_array($this->clients) ? array_values($this->clients) : array();
                 for ($i = 0; $i < count($clients); $i++) {
                     $client = $clients[$i];
-                    $futures = $this->safe_dict($client, 'futures');
+                    $futures = $client->futures;
                     if (($futures !== null) && (is_array($futures) && array_key_exists('fetchPositionsSnapshot', $futures))) {
                         unset($futures['fetchPositionsSnapshot']);
                     }

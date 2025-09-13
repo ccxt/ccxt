@@ -1,11 +1,10 @@
 import * as functions from './functions.js';
 import WsClient from './ws/WsClient.js';
-import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook as Ob } from './ws/OrderBook.js';
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
-import { OrderBook as Ob } from './ws/OrderBook.js';
 import Client from './ws/Client.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
 /**
  * @class Exchange
  */
@@ -14,9 +13,7 @@ export default class Exchange {
         [key: string]: any;
     };
     isSandboxModeEnabled: boolean;
-    throttleProp: any;
-    sleep: (ms: any) => Promise<unknown>;
-    api: any;
+    api: Dictionary<any>;
     certified: boolean;
     pro: boolean;
     countries: Str[];
@@ -49,8 +46,8 @@ export default class Exchange {
     wss_proxy: string;
     wsSocksProxy: string;
     ws_socks_proxy: string;
-    userAgents: any;
-    headers: any;
+    userAgents: Dictionary<string>;
+    headers: Dictionary<string>;
     returnResponseHeaders: boolean;
     origin: string;
     MAX_VALUE: Num;
@@ -71,7 +68,7 @@ export default class Exchange {
     validateClientSsl: boolean;
     timeout: Int;
     verbose: boolean;
-    twofa: any;
+    twofa: string;
     apiKey: string;
     secret: string;
     uid: string;
@@ -81,7 +78,7 @@ export default class Exchange {
     privateKey: string;
     walletAddress: string;
     token: string;
-    balance: {};
+    balance: any;
     liquidations: Dictionary<Liquidation>;
     orderbooks: Dictionary<Ob>;
     tickers: Dictionary<Ticker>;
@@ -90,7 +87,7 @@ export default class Exchange {
     orders: ArrayCache;
     triggerOrders: ArrayCache;
     trades: Dictionary<ArrayCache>;
-    transactions: {};
+    transactions: Dictionary<Transaction>;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: Dictionary<Liquidation>;
     myTrades: ArrayCache;
@@ -117,16 +114,16 @@ export default class Exchange {
     enableLastJsonResponse: boolean;
     enableLastHttpResponse: boolean;
     enableLastResponseHeaders: boolean;
-    last_http_response: any;
+    last_http_response: string;
     last_json_response: any;
-    last_response_headers: any;
-    last_request_headers: any;
+    last_response_headers: Dictionary<string>;
+    last_request_headers: Dictionary<string>;
     last_request_body: any;
-    last_request_url: any;
-    last_request_path: any;
+    last_request_url: string;
+    last_request_path: string;
     id: string;
     markets: Dictionary<any>;
-    has: Dictionary<boolean | 'emulated'>;
+    has: Dictionary<boolean | 'emulated' | undefined>;
     features: Dictionary<Dictionary<any>>;
     status: {
         status: Str;
@@ -147,10 +144,10 @@ export default class Exchange {
         token: Bool;
     };
     rateLimit: Num;
-    tokenBucket: any;
+    tokenBucket: Dictionary<number>;
     throttler: any;
     enableRateLimit: boolean;
-    httpExceptions: any;
+    httpExceptions: Dictionary<any>;
     limits: {
         amount?: MinMax;
         cost?: MinMax;
@@ -175,14 +172,14 @@ export default class Exchange {
     symbols: string[];
     ids: string[];
     currencies: Currencies;
-    baseCurrencies: any;
-    quoteCurrencies: any;
-    currencies_by_id: any;
-    codes: any;
+    baseCurrencies: Dictionary<CurrencyInterface>;
+    quoteCurrencies: Dictionary<CurrencyInterface>;
+    currencies_by_id: Dictionary<CurrencyInterface>;
+    codes: string[];
     reloadingMarkets: boolean;
-    marketsLoading: Promise<Dictionary<any>>;
-    accounts: any;
-    accountsById: any;
+    marketsLoading: Promise<Dictionary<Market>>;
+    accounts: Account[];
+    accountsById: Dictionary<Account>;
     commonCurrencies: Dictionary<string>;
     hostname: Str;
     precisionMode: Num;
@@ -190,15 +187,22 @@ export default class Exchange {
     exceptions: Dictionary<string>;
     timeframes: Dictionary<number | string>;
     version: Str;
-    marketsByAltname: Dictionary<any>;
+    marketsByAltname: Dictionary<Market>;
     name: Str;
     lastRestRequestTimestamp: number;
-    targetAccount: any;
-    stablePairs: {};
+    targetAccount: string;
+    stablePairs: Dictionary<boolean>;
+    httpProxyAgentModule: any;
+    httpsProxyAgentModule: any;
+    socksProxyAgentModule: any;
+    socksProxyAgentModuleChecked: boolean;
+    proxyDictionaries: Dictionary<any>;
+    proxiesModulesLoading: Promise<any>;
+    alias: boolean;
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
-    streaming: {};
-    alias: boolean;
+    streaming: Dictionary<any>;
+    sleep: (ms: any) => Promise<unknown>;
     deepExtend: (...xs: any) => any;
     deepExtendSafe: (...xs: any) => any;
     isNode: boolean;
@@ -322,12 +326,6 @@ export default class Exchange {
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
     defineRestApi(api: any, methodName: any, paths?: any[]): void;
     log(...args: any[]): void;
-    httpProxyAgentModule: any;
-    httpsProxyAgentModule: any;
-    socksProxyAgentModule: any;
-    socksProxyAgentModuleChecked: boolean;
-    proxyDictionaries: any;
-    proxiesModulesLoading: Promise<any>;
     loadProxyModules(): Promise<any>;
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
@@ -398,7 +396,7 @@ export default class Exchange {
         address: string;
     };
     starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
-    starknetSign(hash: any, pri: any): string;
+    starknetSign(msgHash: any, pri: any): string;
     getZKContractSignatureObj(seed: any, params?: {}): Promise<any>;
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     intToBase16(elem: any): string;
@@ -568,6 +566,7 @@ export default class Exchange {
     safeCurrencyStructure(currency: object): CurrencyInterface;
     safeMarketStructure(market?: Dict): MarketInterface;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
+    setMarketsFromExchange(sourceExchange: any): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;
@@ -662,7 +661,7 @@ export default class Exchange {
     filterByArray(objects: any, key: IndexType, values?: any, indexed?: boolean): any;
     fetch2(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
     request(path: any, api?: any, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
-    loadAccounts(reload?: boolean, params?: {}): Promise<any>;
+    loadAccounts(reload?: boolean, params?: {}): Promise<Account[]>;
     buildOHLCVC(trades: Trade[], timeframe?: string, since?: number, limit?: number): OHLCVC[];
     parseTradingViewOHLCV(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     editLimitBuyOrder(id: string, symbol: string, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -798,7 +797,7 @@ export default class Exchange {
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     account(): BalanceAccount;
     commonCurrencyCode(code: string): string;
-    currency(code: string): any;
+    currency(code: string): CurrencyInterface;
     market(symbol: string): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: Dict): boolean;

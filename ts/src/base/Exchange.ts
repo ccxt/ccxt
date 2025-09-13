@@ -186,9 +186,7 @@ export default class Exchange {
 
     isSandboxModeEnabled: boolean = false;
 
-    throttleProp = undefined;
-    sleep = sleep;
-    api = undefined;
+    api: Dictionary<any> = undefined;
     certified: boolean = false;
     pro: boolean = false;
     countries: Str[] = undefined;
@@ -220,21 +218,21 @@ export default class Exchange {
     wsSocksProxy: string;
     ws_socks_proxy: string;
     //
-    userAgents: any = {
+    userAgents: Dictionary<string> = {
         'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
         'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     };
 
-    headers: any = {};
+    headers: Dictionary<string> = {};
     returnResponseHeaders: boolean = false;
-    origin = '*';  // CORS origin
+    origin: string = '*';  // CORS origin
     MAX_VALUE: Num = Number.MAX_VALUE;
     //
-    agent = undefined;  // maintained for backwards compatibility
+    agent: any = undefined;  // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
-    httpAgent = undefined;
-    httpsAgent = undefined;
+    httpAgent: any = undefined;
+    httpsAgent: any = undefined;
 
     minFundingAddressLength: Int = 1;  // used in checkAddress
     substituteCommonCurrencyCodes: boolean = true;  // reserved
@@ -256,19 +254,19 @@ export default class Exchange {
 
     timeout: Int = 10000;  // milliseconds
     verbose: boolean = false;
-    twofa = undefined;  // two-factor authentication (2-FA)
+    twofa: string = undefined;  // two-factor authentication (2-FA)
 
     apiKey: string;
     secret: string;
     uid: string;
     accountId: string;
-    login:string;
+    login: string;
     password: string;
     privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
     walletAddress: string;  // a wallet address "0x"-prefixed hexstring
     token: string;  // reserved for HTTP auth in some cases
 
-    balance = {};
+    balance: any = {};
     liquidations: Dictionary<Liquidation> = {};
     orderbooks: Dictionary<Ob> = {};
     tickers: Dictionary<Ticker> = {};
@@ -277,7 +275,7 @@ export default class Exchange {
     orders: ArrayCache = undefined;
     triggerOrders: ArrayCache = undefined;
     trades: Dictionary<ArrayCache>;
-    transactions = {};
+    transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: Dictionary<Liquidation> = {};
     myTrades: ArrayCache;
@@ -306,18 +304,18 @@ export default class Exchange {
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response = undefined;
-    last_json_response = undefined;
-    last_response_headers = undefined;
-    last_request_headers = undefined;
-    last_request_body = undefined;
-    last_request_url = undefined;
-    last_request_path = undefined;
+    last_http_response: string = undefined;
+    last_json_response: any = undefined;
+    last_response_headers: Dictionary<string> = undefined;
+    last_request_headers: Dictionary<string> = undefined;
+    last_request_body: any = undefined;
+    last_request_url: string = undefined;
+    last_request_path: string = undefined;
 
     id: string = 'Exchange';
 
     markets: Dictionary<any> = undefined;
-    has: Dictionary<boolean | 'emulated'>;
+    has: Dictionary<boolean | 'emulated' | undefined>;
     features: Dictionary<Dictionary<any>> = undefined;
     status: {
         status: Str,
@@ -339,12 +337,12 @@ export default class Exchange {
         token: Bool,  // reserved for HTTP auth in some cases
     };
 
-    rateLimit: Num = undefined;  // milliseconds
-    tokenBucket = undefined;
-    throttler = undefined;
+    rateLimit: Num = undefined; // milliseconds
+    tokenBucket: Dictionary<number> = undefined;
+    throttler: any = undefined;
     enableRateLimit: boolean = undefined;
 
-    httpExceptions = undefined;
+    httpExceptions: Dictionary<any> = undefined;
 
     limits: {
         amount?: MinMax,
@@ -373,16 +371,16 @@ export default class Exchange {
     ids: string[] = undefined;
     currencies: Currencies = {};
 
-    baseCurrencies = undefined;
-    quoteCurrencies = undefined;
-    currencies_by_id = undefined;
-    codes = undefined;
+    baseCurrencies: Dictionary<CurrencyInterface> = undefined;
+    quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
+    currencies_by_id: Dictionary<CurrencyInterface> = undefined;
+    codes: string[] = undefined;
 
     reloadingMarkets: boolean = undefined;
-    marketsLoading: Promise<Dictionary<any>> = undefined;
+    marketsLoading: Promise<Dictionary<Market>> = undefined;
 
-    accounts = undefined;
-    accountsById = undefined;
+    accounts: Account[] = undefined;
+    accountsById: Dictionary<Account> = undefined;
 
     commonCurrencies: Dictionary<string> = undefined;
 
@@ -396,30 +394,31 @@ export default class Exchange {
 
     version: Str = undefined;
 
-    marketsByAltname: Dictionary<any> = undefined;
+    marketsByAltname: Dictionary<Market> = undefined;
 
-    name:Str = undefined;
+    name: Str = undefined;
 
-    lastRestRequestTimestamp:number;
+    lastRestRequestTimestamp: number;
 
-    targetAccount = undefined;
+    targetAccount: string = undefined;
 
-    stablePairs = {};
+    stablePairs: Dictionary<boolean> = {};
 
     httpProxyAgentModule: any = undefined;
     httpsProxyAgentModule: any = undefined;
     socksProxyAgentModule: any = undefined;
     socksProxyAgentModuleChecked: boolean = false;
-    proxyDictionaries: any = {};
+    proxyDictionaries: Dictionary<any> = {};
     proxiesModulesLoading: Promise<any> = undefined;
+    alias: boolean = false;
 
     // WS/PRO options
     clients: Dictionary<WsClient> = {};
     newUpdates: boolean = true;
-    streaming = {};
+    streaming: Dictionary<any> = {};
 
-    alias: boolean = false;
-
+    // INTERNAL METHODS
+    sleep = sleep;
     deepExtend = deepExtend;
     deepExtendSafe = deepExtend;
     isNode = isNode;
@@ -755,7 +754,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
                     } catch (err) {
                         // TODO: handle error
                     }
@@ -930,7 +929,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch;
+                        this.fetchImplementation = fetch; // eslint-disable-line
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -3424,6 +3423,27 @@ export default class Exchange {
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
         return this.markets;
+    }
+
+    setMarketsFromExchange (sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange.markets) {
+            throw new ExchangeError ('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this;
     }
 
     getDescribeForExtendedWsExchange (currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
@@ -6884,7 +6904,7 @@ export default class Exchange {
 
     handleTriggerPricesAndParams (symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         let stopLossPriceStr: Str = undefined;
@@ -8128,7 +8148,7 @@ export default class Exchange {
                 const clients = Object.values (this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = this.safeDict (client, 'futures');
+                    const futures = client.futures;
                     if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
                         delete futures['fetchPositionsSnapshot'];
                     }
