@@ -129,7 +129,7 @@ export default class coinone extends coinoneRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'price', 'qty');
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'qty');
         bookside.storeArray (bidAsk);
     }
 

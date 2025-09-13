@@ -260,7 +260,7 @@ export default class alpaca extends alpacaRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 'p', 's');
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'p', 's');
         bookside.storeArray (bidAsk);
     }
 

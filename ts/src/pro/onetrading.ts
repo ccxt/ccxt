@@ -402,7 +402,7 @@ export default class onetrading extends onetradingRest {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        const bidAsk = this.parseBidAsk (delta, 1, 2);
+        const bidAsk = this.parseOrderBookBidAsk (delta, 1, 2);
         const type = this.safeString (delta, 0);
         if (type === 'BUY') {
             const bids = orderbook['bids'];
