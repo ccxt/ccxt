@@ -2321,11 +2321,13 @@ export default class okx extends Exchange {
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
+     * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-historical-market-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
+     * @param {string} [params.method] 'publicGetMarketTrades', 'publicGetMarketHistoryTrades' or 'publicGetPublicMarketDataHistory' default is 'publicGetMarketTrades'
+     * @param {int} [params.until] timestamp in ms of the latest trades to fetch
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -2337,22 +2339,43 @@ export default class okx extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', undefined, 100) as Trade[];
         }
         const market = this.market (symbol);
-        const request: Dict = {
-            'instId': market['id'],
-        };
+        const request: Dict = {};
         let response = undefined;
         if (market['option']) {
             response = await this.publicGetPublicOptionTrades (this.extend (request, params));
         } else {
-            if (limit !== undefined) {
-                request['limit'] = limit; // default 100
-            }
             let method = undefined;
             [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
-            if (method === 'publicGetMarketTrades') {
-                response = await this.publicGetMarketTrades (this.extend (request, params));
-            } else if (method === 'publicGetMarketHistoryTrades') {
-                response = await this.publicGetMarketHistoryTrades (this.extend (request, params));
+            if (method === 'publicGetPublicMarketDataHistory') {
+                request['module'] = 1;
+                request['instType'] = this.convertToInstrumentType (market['type']);
+                if (market['spot']) {
+                    request['instIdList'] = [ market['id'] ];
+                } else {
+                    request['instFamilyList'] = [ market['id'] ];
+                }
+                request['dateAggrType'] = 'daily';
+                if (since === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTrades() requires a since argument');
+                }
+                request['begin'] = since;
+                const until = this.safeInteger (params, 'until');
+                if (until === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchTrades() requires an until parameter');
+                }
+                request['end'] = until;
+                params = this.omit (params, 'until');
+                response = await this.publicGetPublicMarketDataHistory (this.extend (request, params));
+            } else {
+                if (limit !== undefined) {
+                    request['limit'] = limit; // default 100
+                }
+                request['instId'] = market['id'];
+                if (method === 'publicGetMarketTrades') {
+                    response = await this.publicGetMarketTrades (this.extend (request, params));
+                } else if (method === 'publicGetMarketHistoryTrades') {
+                    response = await this.publicGetMarketHistoryTrades (this.extend (request, params));
+                }
             }
         }
         //
