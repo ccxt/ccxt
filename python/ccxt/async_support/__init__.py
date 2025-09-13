@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.6.2'
+__version__ = '4.7.0'
 
 # -----------------------------------------------------------------------------
 
@@ -183,6 +183,7 @@ from ccxt.async_support.tabdeal import tabdeal                                  
 from ccxt.async_support.tetherland import tetherland                            # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
+from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
 from ccxt.async_support.twox import twox                                        # noqa: F401
 from ccxt.async_support.ubitex import ubitex                                    # noqa: F401
@@ -318,6 +319,7 @@ exchanges = [
     'tetherland',
     'timex',
     'tokocrypto',
+    'toobit',
     'tradeogre',
     'twox',
     'ubitex',

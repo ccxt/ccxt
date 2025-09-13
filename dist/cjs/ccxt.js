@@ -131,6 +131,7 @@ var tabdeal = require('./src/tabdeal.js');
 var tetherland = require('./src/tetherland.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
+var toobit = require('./src/toobit.js');
 var tradeogre = require('./src/tradeogre.js');
 var twox = require('./src/twox.js');
 var ubitex = require('./src/ubitex.js');
@@ -221,7 +222,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.6.2';
+const version = '4.7.0';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'abantether': abantether["default"],
@@ -343,6 +344,7 @@ const exchanges = {
     'tetherland': tetherland["default"],
     'timex': timex["default"],
     'tokocrypto': tokocrypto["default"],
+    'toobit': toobit["default"],
     'tradeogre': tradeogre["default"],
     'twox': twox["default"],
     'ubitex': ubitex["default"],
@@ -603,6 +605,7 @@ exports.tabdeal = tabdeal["default"];
 exports.tetherland = tetherland["default"];
 exports.timex = timex["default"];
 exports.tokocrypto = tokocrypto["default"];
+exports.toobit = toobit["default"];
 exports.tradeogre = tradeogre["default"];
 exports.twox = twox["default"];
 exports.ubitex = ubitex["default"];

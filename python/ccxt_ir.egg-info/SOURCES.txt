@@ -125,6 +125,7 @@ ccxt/tabdeal.py
 ccxt/tetherland.py
 ccxt/timex.py
 ccxt/tokocrypto.py
+ccxt/toobit.py
 ccxt/tradeogre.py
 ccxt/twox.py
 ccxt/ubitex.py
@@ -259,6 +260,7 @@ ccxt/abstract/tabdeal.py
 ccxt/abstract/tetherland.py
 ccxt/abstract/timex.py
 ccxt/abstract/tokocrypto.py
+ccxt/abstract/toobit.py
 ccxt/abstract/tradeogre.py
 ccxt/abstract/twox.py
 ccxt/abstract/ubitex.py
@@ -393,6 +395,7 @@ ccxt/async_support/tabdeal.py
 ccxt/async_support/tetherland.py
 ccxt/async_support/timex.py
 ccxt/async_support/tokocrypto.py
+ccxt/async_support/toobit.py
 ccxt/async_support/tradeogre.py
 ccxt/async_support/twox.py
 ccxt/async_support/ubitex.py

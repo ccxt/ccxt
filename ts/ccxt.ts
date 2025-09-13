@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.6.2';
+const version = '4.7.0';
 
 (Exchange as any).ccxtVersion = version
 
@@ -165,6 +165,7 @@ import tabdeal from  './src/tabdeal.js'
 import tetherland from  './src/tetherland.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
+import toobit from  './src/toobit.js'
 import tradeogre from  './src/tradeogre.js'
 import twox from  './src/twox.js'
 import ubitex from  './src/ubitex.js'
@@ -375,6 +376,7 @@ const exchanges = {
     'tetherland':             tetherland,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
+    'toobit':                 toobit,
     'tradeogre':              tradeogre,
     'twox':                   twox,
     'ubitex':                 ubitex,
@@ -728,6 +730,7 @@ export {
     tetherland,
     timex,
     tokocrypto,
+    toobit,
     tradeogre,
     twox,
     ubitex,
