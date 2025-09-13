@@ -1050,7 +1050,7 @@ export default class zebpay extends Exchange {
         //        },
         //    }
         //
-        return this.safeDict (response, 'data');
+        return this.parseOrder (this.safeDict (response, 'data'));
     }
 
     /**
