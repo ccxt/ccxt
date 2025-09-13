@@ -169,7 +169,7 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
-import { generateRegistry } from '../static_dependencies/dydx-v4-client/registry';
+import { encodeAsAny } from '../static_dependencies/dydx-v4-client/registry';
 import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from '../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx';
 import { SignMode } from '../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing';
@@ -1684,9 +1684,8 @@ export default class Exchange {
         if (!publicKey) {
             throw new Error('Public key cannot be undefined');
         }
-        const registry = generateRegistry ();
         const messages = [ message ];
-        const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
+        const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
         const tx = Tx.fromPartial ({
             'body': TxBody.fromPartial ({
                 'messages': encodedMessages,
@@ -1696,7 +1695,7 @@ export default class Exchange {
                 'fee': {},
                 'signerInfos': [
                     {
-                        'publicKey': registry.encodeAsAny ({
+                        'publicKey': encodeAsAny ({
                             'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                             'value': publicKey,
                         }),
@@ -1729,10 +1728,9 @@ export default class Exchange {
                 'gasLimit': '1000000',
             };
         }
-        const registry = generateRegistry ();
-        const encodedMessages = messages.map ((msg) => registry.encodeAsAny (msg));
+        const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
         const nonCriticalExtensionOptions = [
-            registry.encodeAsAny ({
+            encodeAsAny ({
                 'typeUrl': '/dydxprotocol.accountplus.TxExtension',
                 'value': {
                     selectedAuthenticators: authenticators ?? [],
@@ -1749,7 +1747,7 @@ export default class Exchange {
             'fee': fee,
             'signerInfos': [
                 {
-                    'publicKey': registry.encodeAsAny ({
+                    'publicKey': encodeAsAny ({
                         'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                         'value': account.pub_key,
                     }),

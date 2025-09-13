@@ -1,4 +1,3 @@
-import { GeneratedType, Registry } from './cregistry';
 import { PubKey } from './cosmos/crypto/secp256k1/keys';
 import { TxExtension } from './dydxprotocol/accountplus/tx';
 import {
@@ -11,22 +10,36 @@ import {
   MsgDepositToSubaccount,
 } from './dydxprotocol/sending/transfer';
 import { MsgCreateTransfer } from './dydxprotocol/sending/tx';
+import { Any } from "./google/protobuf/any";
 
-export const registry: ReadonlyArray<[string, GeneratedType]> = [];
-export function generateRegistry(): Registry {
-  return new Registry([
-    // clob
-    [ '/dydxprotocol.clob.MsgPlaceOrder', MsgPlaceOrder as GeneratedType ],
-    [ '/dydxprotocol.clob.MsgCancelOrder', MsgCancelOrder as GeneratedType ],
-    [ '/dydxprotocol.clob.MsgBatchCancel', MsgBatchCancel as GeneratedType ],
+export const registry: Record<string, any> = {
+  // clob
+  '/dydxprotocol.clob.MsgPlaceOrder': MsgPlaceOrder,
+  '/dydxprotocol.clob.MsgCancelOrder': MsgCancelOrder,
+  '/dydxprotocol.clob.MsgBatchCancel': MsgBatchCancel,
 
-    // sending
-    [ '/dydxprotocol.sending.MsgCreateTransfer', MsgCreateTransfer as GeneratedType ],
-    [ '/dydxprotocol.sending.MsgWithdrawFromSubaccount', MsgWithdrawFromSubaccount as GeneratedType ],
-    [ '/dydxprotocol.sending.MsgDepositToSubaccount', MsgDepositToSubaccount as GeneratedType ],
+  // sending
+  '/dydxprotocol.sending.MsgCreateTransfer': MsgCreateTransfer,
+  '/dydxprotocol.sending.MsgWithdrawFromSubaccount': MsgWithdrawFromSubaccount,
+  '/dydxprotocol.sending.MsgDepositToSubaccount': MsgDepositToSubaccount,
+  '/dydxprotocol.accountplus.TxExtension': TxExtension,
+  '/cosmos.crypto.secp256k1.PubKey': PubKey,
+};
 
-    [ '/dydxprotocol.accountplus.TxExtension', TxExtension as GeneratedType ],
-    [ '/cosmos.crypto.secp256k1.PubKey', PubKey as GeneratedType ],
+export interface EncodeObject {
+  readonly typeUrl: string;
+  readonly value: any;
+}
 
-  ]);
+export function encodeAsAny (encodeObject: EncodeObject) {
+  const { typeUrl, value } = encodeObject;
+  const type = registry[typeUrl];
+  if (!type) {
+    throw new Error (`Unsupport type url: ${typeUrl}`);
+  }
+  const encodedMsg = type.encode (type.fromPartial (value)).finish ();
+  return Any.fromPartial ({
+    typeUrl: typeUrl,
+    value: encodedMsg,
+  });
 }
