@@ -2798,19 +2798,19 @@ export default class binance extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const fetchCurrenciesEnabled = this.safeBool (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
-            return undefined;
+            return {};
         }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         // sandbox/testnet does not support sapi endpoints
         const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
-            return undefined;
+            return {};
         }
         const promises = [ this.sapiGetCapitalConfigGetall (params) ];
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);

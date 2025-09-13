@@ -1054,7 +1054,7 @@ export default class mexc extends Exchange {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         const response = await this.spotPrivateGetCapitalConfigGetall (params);
         //
