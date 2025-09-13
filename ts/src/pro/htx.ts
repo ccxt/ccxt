@@ -102,6 +102,7 @@ export default class htx extends htxRest {
                 'watchOrderBook': {
                     'maxRetries': 3,
                     'checksum': true,
+                    'adjustLimit': false, // to automatically ceil the limit number to the nearest supported value
                 },
                 'ws': {
                     'gunzip': true,
@@ -340,20 +341,31 @@ export default class htx extends htxRest {
     /**
      * @method
      * @name htx#watchOrderBook
-     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
-     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
-     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec5362b-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec5342e-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec5378b-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7c51d-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7c385-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c337c2-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c336e3-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d514518-77b6-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d514395-77b6-11ed-9966-0242ac110003
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.adjustLimit] true/false, to automatically ceil the limit to the nearest supported value
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const allowedLimits = [ 20, 150 ];
+        const supportedLimits = {
+            'spot': [ 5, 20, 150, 400 ], // for incremental
+            'swapinverse': [ 30, 150 ], // only for swap-inverse markets
+            'default': [ 20, 150 ], // for other contract markets
+        };
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
@@ -361,8 +373,14 @@ export default class htx extends htxRest {
         if (limit === undefined) {
             limit = market['spot'] ? 150 : 20;
         }
-        if (!this.inArray (limit, allowedLimits)) {
-            throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 20 and 150 only');
+        const marketKey = market['type'] + this.safeString (market, 'subType');
+        const selectedLimits = this.safeList2 (supportedLimits, marketKey, 'default');
+        if (!this.inArray (limit, selectedLimits)) {
+            if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
+                limit = this.findNearestCeiling (selectedLimits, limit);
+            } else {
+                throw new BadRequest (this.id + ' watchOrderBook(): for ' + marketKey + ' markets the limit argument must be one of ' + this.json (selectedLimits));
+            }
         }
         let messageHash = undefined;
         if (market['spot']) {
