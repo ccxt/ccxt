@@ -684,7 +684,7 @@ export default class binance extends Exchange {
         price: number;
         cost: number;
         fee: {
-            currency: any;
+            currency: string;
             cost: number;
         };
         info: any;
