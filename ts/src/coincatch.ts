@@ -1378,7 +1378,7 @@ export default class coincatch extends Exchange {
      * @param {string} [params.price] "mark" for mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const methodName = 'fetchOHLCV';
         await this.loadMarkets ();
         const market = this.market (symbol);
