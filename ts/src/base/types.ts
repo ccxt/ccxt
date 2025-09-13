@@ -51,6 +51,13 @@ export interface MarketMarginModes {
     cross: boolean;
 }
 
+export interface MarketLimits {
+    amount?: MinMax,
+    cost?: MinMax,
+    leverage?: MinMax,
+    price?: MinMax,
+    market?: MinMax,
+}
 export interface MarketInterface {
     id: Str;
     numericId?: Num;
@@ -91,13 +98,7 @@ export interface MarketInterface {
         cost?: Num
     };
     marginModes?: MarketMarginModes;
-    limits: {
-        amount?: MinMax,
-        cost?: MinMax,
-        leverage?: MinMax,
-        price?: MinMax,
-        market?: MinMax,
-    };
+    limits: MarketLimits;
     created: Int;
     info: any;
 }

@@ -5391,9 +5391,11 @@ public partial class coinbase : Exchange
         return parsedPositions;
     }
 
-    public virtual object createAuthToken(object seconds, object method = null, object url = null)
+    public virtual object createAuthToken(object seconds, object method = null, object url = null, object useEddsa = null)
     {
-        // it may not work for v2
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
+        useEddsa ??= false;
         object uri = null;
         if (isTrue(!isEqual(url, null)))
         {
@@ -5406,10 +5408,13 @@ public partial class coinbase : Exchange
                 uri = slice(uri, 0, quesPos);
             }
         }
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         object nonce = this.randomBytes(16);
+        object aud = ((bool) isTrue(useEddsa)) ? "cdp_service" : "retail_rest_api_proxy";
+        object iss = ((bool) isTrue(useEddsa)) ? "cdp" : "coinbase-cloud";
         object request = new Dictionary<string, object>() {
-            { "aud", new List<object>() {"retail_rest_api_proxy"} },
-            { "iss", "coinbase-cloud" },
+            { "aud", new List<object>() {aud} },
+            { "iss", iss },
             { "nbf", seconds },
             { "exp", add(seconds, 120) },
             { "sub", this.apiKey },
@@ -5417,14 +5422,32 @@ public partial class coinbase : Exchange
         };
         if (isTrue(!isEqual(uri, null)))
         {
-            ((IDictionary<string,object>)request)["uri"] = uri;
+            if (!isTrue(useEddsa))
+            {
+                ((IDictionary<string,object>)request)["uri"] = uri;
+            } else
+            {
+                ((IDictionary<string,object>)request)["uris"] = new List<object>() {uri};
+            }
         }
-        object token = jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
-            { "kid", this.apiKey },
-            { "nonce", nonce },
-            { "alg", "ES256" },
-        });
-        return token;
+        if (isTrue(useEddsa))
+        {
+            object byteArray = this.base64ToBinary(this.secret);
+            object seed = this.arraySlice(byteArray, 0, 32);
+            return jwt(request, seed, sha256, false, new Dictionary<string, object>() {
+                { "kid", this.apiKey },
+                { "nonce", nonce },
+                { "alg", "EdDSA" },
+            });
+        } else
+        {
+            // ecdsa with p256
+            return jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+                { "kid", this.apiKey },
+                { "nonce", nonce },
+                { "alg", "ES256" },
+            });
+        }
     }
 
     public override object nonce()
@@ -5489,9 +5512,11 @@ public partial class coinbase : Exchange
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
-                if (isTrue(isCloudAPiKey))
+                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+                object isV2CloudAPiKey = isTrue(isTrue(isEqual(((string)this.secret).Length, 88)) || isTrue(this.safeBool(this.options, "v2CloudAPiKey", false))) || isTrue(((string)this.secret).EndsWith(((string)"=")));
+                if (isTrue(isTrue(isCloudAPiKey) || isTrue(isV2CloudAPiKey)))
                 {
-                    if (isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN"))))
+                    if (isTrue(isTrue(isCloudAPiKey) && isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN")))))
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }
@@ -5513,7 +5538,7 @@ public partial class coinbase : Exchange
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    object token = this.createAuthToken(seconds, method, url);
+                    object token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = add("Bearer ", token);
                 } else

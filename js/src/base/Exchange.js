@@ -5,13 +5,13 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-/* eslint-disable */
 import * as functions from './functions.js';
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
-import { keys as keysFunc, values as valuesFunc, vwap as vwapFunc } from './functions.js';
+import { keys as keysFunc, values as valuesFunc, 
+// inArray as inArrayFunc,
+vwap as vwapFunc, } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
-ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser } from "./errors.js";
+ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
 import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
@@ -23,28 +23,31 @@ import { axolotl } from './functions/crypto.js';
 import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { SecureRandom } from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
+import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
+// ecdsa,
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 (async () => {
     try {
         protobufMexc = await import('../protobuf/mexc/compiled.cjs');
     }
-    catch { }
+    catch {
+        // TODO: handle error
+    }
 })();
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
 export default class Exchange {
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
-        this.throttleProp = undefined;
-        this.sleep = sleep;
         this.api = undefined;
         this.certified = false;
         this.pro = false;
@@ -69,6 +72,7 @@ export default class Exchange {
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        // eslint-disable-next-line no-unused-vars
         this.number = Number; // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
@@ -134,11 +138,19 @@ export default class Exchange {
         this.name = undefined;
         this.targetAccount = undefined;
         this.stablePairs = {};
+        this.httpProxyAgentModule = undefined;
+        this.httpsProxyAgentModule = undefined;
+        this.socksProxyAgentModule = undefined;
+        this.socksProxyAgentModuleChecked = false;
+        this.proxyDictionaries = {};
+        this.proxiesModulesLoading = undefined;
+        this.alias = false;
         // WS/PRO options
         this.clients = {};
         this.newUpdates = true;
         this.streaming = {};
-        this.alias = false;
+        // INTERNAL METHODS
+        this.sleep = sleep;
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
@@ -241,12 +253,6 @@ export default class Exchange {
         this.crc32 = crc32;
         this.packb = packb;
         this.urlencodeBase64 = urlencodeBase64;
-        this.httpProxyAgentModule = undefined;
-        this.httpsProxyAgentModule = undefined;
-        this.socksProxyAgentModule = undefined;
-        this.socksProxyAgentModuleChecked = false;
-        this.proxyDictionaries = {};
-        this.proxiesModulesLoading = undefined;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -368,7 +374,14 @@ export default class Exchange {
     }
     checkRequiredVersion(requiredVersion, error = true) {
         let result = true;
-        const [major1, minor1, patch1] = requiredVersion.split('.'), [major2, minor2, patch2] = Exchange.ccxtVersion.split('.'), intMajor1 = this.parseToInt(major1), intMinor1 = this.parseToInt(minor1), intPatch1 = this.parseToInt(patch1), intMajor2 = this.parseToInt(major2), intMinor2 = this.parseToInt(minor2), intPatch2 = this.parseToInt(patch2);
+        const [major1, minor1, patch1] = requiredVersion.split('.');
+        const [major2, minor2, patch2] = Exchange.ccxtVersion.split('.');
+        const intMajor1 = this.parseToInt(major1);
+        const intMinor1 = this.parseToInt(minor1);
+        const intPatch1 = this.parseToInt(patch1);
+        const intMajor2 = this.parseToInt(major2);
+        const intMinor2 = this.parseToInt(minor2);
+        const intPatch2 = this.parseToInt(patch2);
         if (intMajor1 > intMajor2) {
             result = false;
         }
@@ -437,7 +450,7 @@ export default class Exchange {
                         this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
                     }
                     else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config });
+                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
                     }
                     else {
                         throw new NotSupported(this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
@@ -450,6 +463,7 @@ export default class Exchange {
         }
     }
     log(...args) {
+        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
@@ -470,16 +484,20 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
                     }
-                    catch (e) { }
+                    catch (err) {
+                        // TODO: handle error
+                    }
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await import(/* webpackIgnore: true */ 'socks-proxy-agent');
                     }
-                    catch (e) { }
+                    catch (e) {
+                        // TODO: handle error
+                    }
                     this.socksProxyAgentModuleChecked = true;
                 }
             })();
@@ -579,7 +597,7 @@ export default class Exchange {
             if (!this.nodeHttpModuleLoaded) {
                 this.nodeHttpModuleLoaded = true;
                 const httpsModule = await import(/* webpackIgnore: true */ 'node:https');
-                this.httpsAgent = new httpsModule.Agent({ keepAlive: true });
+                this.httpsAgent = new httpsModule.Agent({ 'keepAlive': true });
             }
         }
         // ##### PROXY & HEADERS #####
@@ -623,7 +641,7 @@ export default class Exchange {
         headers = this.setHeaders(headers);
         // log
         if (this.verbose) {
-            this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
+            this.log('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
         }
         // end of proxies & headers
         if (this.fetchImplementation === undefined) {
@@ -632,16 +650,16 @@ export default class Exchange {
                     this.agent = this.httpsAgent;
                 }
                 try {
-                    const module = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
-                    this.AbortError = module.AbortError;
-                    this.fetchImplementation = module.default;
-                    this.FetchError = module.FetchError;
+                    const nodeFetchModule = await import(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js');
+                    this.AbortError = nodeFetchModule.AbortError;
+                    this.fetchImplementation = nodeFetchModule.default;
+                    this.FetchError = nodeFetchModule.FetchError;
                 }
                 catch (e) {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch;
+                        this.fetchImplementation = fetch; // eslint-disable-line
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -653,6 +671,7 @@ export default class Exchange {
                 }
             }
             else {
+                // eslint-disable-next-line
                 this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
@@ -661,7 +680,7 @@ export default class Exchange {
         // fetchImplementation cannot be called on this. in browsers:
         // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
         const fetchImplementation = this.fetchImplementation;
-        const params = { method, headers, body, timeout: this.timeout };
+        const params = { method, headers, body, 'timeout': this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
         }
@@ -724,14 +743,14 @@ export default class Exchange {
                 this.last_http_response = responseBuffer;
             }
             if (this.verbose) {
-                this.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n");
+                this.log('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'ZIP redacted', '\n');
             }
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
         return response.text().then((responseBody) => {
             const bodyText = this.onRestResponse(response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
-            const json = this.parseJson(bodyText);
+            const parsedBody = this.parseJson(bodyText);
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders;
             }
@@ -739,19 +758,19 @@ export default class Exchange {
                 this.last_http_response = responseBody;
             }
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json;
+                this.last_json_response = parsedBody;
             }
             if (this.verbose) {
-                this.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n");
+                this.log('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, '\nResponseBody:\n', responseBody, '\n');
             }
-            const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody);
+            const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, parsedBody, requestHeaders, requestBody);
             if (!skipFurtherErrorHandling) {
                 this.handleHttpStatusCode(response.status, response.statusText, url, method, responseBody);
             }
-            if (json && !Array.isArray(json) && this.returnResponseHeaders) {
-                json['responseHeaders'] = responseHeaders;
+            if (parsedBody && !Array.isArray(parsedBody) && this.returnResponseHeaders) {
+                parsedBody['responseHeaders'] = responseHeaders;
             }
-            return json || responseBody;
+            return parsedBody || responseBody;
         });
     }
     onRestResponse(statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
@@ -811,31 +830,38 @@ export default class Exchange {
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(this.currencies));
+        return new Promise((resolve, reject) => {
+            resolve(this.currencies);
+        });
     }
     async fetchCurrenciesWs(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(this.currencies));
+        return new Promise((resolve, reject) => {
+            resolve(this.currencies);
+        });
     }
     async fetchMarkets(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
+        return new Promise((resolve, reject) => {
+            resolve(Object.values(this.markets));
+        });
     }
     async fetchMarketsWs(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
+        return new Promise((resolve, reject) => {
+            resolve(Object.values(this.markets));
+        });
     }
     checkRequiredDependencies() {
-        return;
     }
     parseNumber(value, d = undefined) {
         if (value === undefined) {
@@ -852,7 +878,7 @@ export default class Exchange {
                     return this.number(numberToString(parseFloat(numberNormalized)));
                 }
                 const result = this.number(numberNormalized);
-                return isNaN(result) ? d : result;
+                return Number.isNaN(result) ? d : result;
             }
             catch (e) {
                 return d;
@@ -934,6 +960,7 @@ export default class Exchange {
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
             // part only for node-js
             const httpProxyAgent = this.getHttpAgentIfNeeded(url);
+            // eslint-disable-next-line no-nested-ternary
             const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend(this.streaming, {
@@ -983,10 +1010,10 @@ export default class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
-        const future = Future.race(messageHashes.map(messageHash => client.future(messageHash)));
+        const future = Future.race(messageHashes.map((messageHash) => client.future(messageHash)));
         // read and write subscription, this is done before connecting the client
         // to avoid race conditions when other parts of the code read or write to the client.subscriptions
-        let missingSubscriptions = [];
+        const missingSubscriptions = [];
         if (subscribeHashes !== undefined) {
             for (let i = 0; i < subscribeHashes.length; i++) {
                 const subscribeHash = subscribeHashes[i];
@@ -1236,18 +1263,18 @@ export default class Exchange {
         const privateKey = ethSigToPrivate(signature);
         const publicKey = getStarkKey(privateKey);
         const callData = Starknet.CallData.compile({
-            implementation: accountClassHash,
-            selector: Starknet.hash.getSelectorFromName('initialize'),
-            calldata: Starknet.CallData.compile({
-                signer: publicKey,
-                guardian: '0',
+            'implementation': accountClassHash,
+            'selector': Starknet.hash.getSelectorFromName('initialize'),
+            'calldata': Starknet.CallData.compile({
+                'signer': publicKey,
+                'guardian': '0',
             }),
         });
         const address = Starknet.hash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
-            address
+            address,
         };
     }
     starknetEncodeStructuredData(domain, messageTypes, messageData, address) {
@@ -1260,9 +1287,9 @@ export default class Exchange {
             'primaryType': types[0],
             'types': this.extend({
                 'StarkNetDomain': [
-                    { 'name': "name", 'type': "felt" },
-                    { 'name': "chainId", 'type': "felt" },
-                    { 'name': "version", 'type': "felt" },
+                    { 'name': 'name', 'type': 'felt' },
+                    { 'name': 'chainId', 'type': 'felt' },
+                    { 'name': 'version', 'type': 'felt' },
                 ],
             }, messageTypes),
             'message': messageData,
@@ -1270,9 +1297,9 @@ export default class Exchange {
         const msgHash = Starknet.typedData.getMessageHash(request, address);
         return msgHash;
     }
-    starknetSign(hash, pri) {
+    starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = starknetCurveSign(hash.replace('0x', ''), pri.slice(-64));
+        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.slice(-64));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     async getZKContractSignatureObj(seed, params = {}) {
@@ -1286,10 +1313,10 @@ export default class Exchange {
         await init();
         const _signer = zklink.newRpcSignerWithProvider({});
         await _signer.initZklinkSigner(seed);
-        let tx_builder = new zklink.ContractBuilder(accountId, 0, slotId, nonce, this.safeInteger(params, 'pairId'), Precise.stringMul(this.safeString(params, 'size'), '1e18'), Precise.stringMul(this.safeString(params, 'price'), '1e18'), this.safeString(params, 'direction') === 'BUY', parseInt(Precise.stringMul(this.safeString(params, 'makerFeeRate'), '10000')), parseInt(Precise.stringMul(this.safeString(params, 'takerFeeRate'), '10000')), false);
-        let contractor = zklink.newContract(tx_builder);
-        //const signer = ZkLinkSigner.ethSig(seed);
-        //const signer = new Signer(seed);
+        const tx_builder = new zklink.ContractBuilder(accountId, 0, slotId, nonce, this.safeInteger(params, 'pairId'), Precise.stringMul(this.safeString(params, 'size'), '1e18'), Precise.stringMul(this.safeString(params, 'price'), '1e18'), this.safeString(params, 'direction') === 'BUY', parseInt(Precise.stringMul(this.safeString(params, 'makerFeeRate'), '10000')), parseInt(Precise.stringMul(this.safeString(params, 'takerFeeRate'), '10000')), false);
+        const contractor = zklink.newContract(tx_builder);
+        // const signer = ZkLinkSigner.ethSig(seed);
+        // const signer = new Signer(seed);
         contractor?.sign(_signer?.getZkLinkSigner());
         const tx = contractor.jsValue();
         const zkSign = tx?.signature?.signature;
@@ -1305,10 +1332,10 @@ export default class Exchange {
             const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha256, 'hex'))).toString();
             nonce = Precise.stringMod(formattedNonce, formattedUint32);
         }
-        let tx_builder = new zklink.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
-        let contractor = zklink.newTransfer(tx_builder);
-        //const signer = ZkLinkSigner.ethSig(seed);
-        //const signer = new Signer(seed);
+        const tx_builder = new zklink.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
+        const contractor = zklink.newTransfer(tx_builder);
+        // const signer = ZkLinkSigner.ethSig(seed);
+        // const signer = new Signer(seed);
         contractor?.sign(_signer?.getZkLinkSigner());
         const tx = contractor.jsValue();
         const zkSign = tx?.signature?.signature;
@@ -2948,6 +2975,26 @@ export default class Exchange {
         const currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = Object.keys(currenciesSortedByCode);
         return this.markets;
+    }
+    setMarketsFromExchange(sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new ArgumentsRequired(this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange.markets) {
+            throw new ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this;
     }
     getDescribeForExtendedWsExchange(currentRestInstance, parentRestInstance, wsBaseDescribe) {
         const extendedRestDescribe = this.deepExtend(parentRestInstance.describe(), currentRestInstance.describe());
@@ -6208,7 +6255,7 @@ export default class Exchange {
     }
     handleTriggerPricesAndParams(symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeString(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr = undefined;
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         let stopLossPriceStr = undefined;
@@ -7431,7 +7478,7 @@ export default class Exchange {
                 const clients = Object.values(this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = this.safeDict(client, 'futures');
+                    const futures = client.futures;
                     if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
                         delete futures['fetchPositionsSnapshot'];
                     }

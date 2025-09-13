@@ -38,7 +38,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, MarketLimits, Status, RequiredCredentials, Urls, Precision } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, MarketLimits, Status, RequiredCredentials, Urls, Precision } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -225,7 +225,7 @@ export default class Exchange {
     headers: Dictionary<string> = {};
     returnResponseHeaders: boolean = false;
     origin: string = '*';  // CORS origin
-    MAX_VALUE: number = Number.MAX_VALUE;
+    MAX_VALUE: Num = Number.MAX_VALUE;
     //
     agent: any = undefined;  // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -287,7 +287,7 @@ export default class Exchange {
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response: any = undefined;
+    last_http_response: string = undefined;
     last_json_response: any = undefined;
     last_response_headers: Dictionary<string> = undefined;
     last_request_headers: Dictionary<string> = undefined;
@@ -311,7 +311,7 @@ export default class Exchange {
 
     requiredCredentials: RequiredCredentials;
 
-    rateLimit: number = -1; // milliseconds
+    rateLimit: Num = undefined; // milliseconds
     tokenBucket: Dictionary<number> = undefined;
     throttler: any = undefined;
     enableRateLimit: boolean = undefined;
@@ -710,7 +710,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
                     } catch (err) {
                         // TODO: handle error
                     }
@@ -885,7 +885,7 @@ export default class Exchange {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch;
+                        this.fetchImplementation = fetch; // eslint-disable-line
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -3379,6 +3379,27 @@ export default class Exchange {
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
         return this.markets;
+    }
+
+    setMarketsFromExchange (sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange.markets) {
+            throw new ExchangeError ('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        return this;
     }
 
     getDescribeForExtendedWsExchange (currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>) {
@@ -6839,7 +6860,7 @@ export default class Exchange {
 
     handleTriggerPricesAndParams (symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeString (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         let stopLossPriceStr: Str = undefined;
@@ -8083,7 +8104,7 @@ export default class Exchange {
                 const clients = Object.values (this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = this.safeDict (client, 'futures');
+                    const futures = client.futures;
                     if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
                         delete futures['fetchPositionsSnapshot'];
                     }
