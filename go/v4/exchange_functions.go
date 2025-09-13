@@ -139,6 +139,18 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 		return aa
 	}
 
+	// Handle case where aa is not a map (e.g., string, nil, etc.)
+	if aa == nil {
+		return aa
+	}
+
+	// Try to convert to map, if it fails, return the original value
+	a, ok := aa.(map[string]interface{})
+	if !ok {
+		// If it's not a map, return the original value
+		return aa
+	}
+
 	var keys []interface{}
 	switch k.(type) {
 	case string:
@@ -149,7 +161,6 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 		}
 	}
 
-	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
 	for key, value := range a {
 		if !this.Contains(keys, key) {
@@ -214,6 +225,11 @@ func (this *Exchange) ToArray(a interface{}) []interface{} {
 	// Check if `a` is a slice of `[]interface{}`
 	if slice, ok := a.([]interface{}); ok {
 		return slice
+	}
+
+	// Check if `a` implements IArrayCache interface (handles all cache types)
+	if cache, ok := a.(IArrayCache); ok {
+		return cache.ToArray()
 	}
 
 	// Check if `a` is a map of `map[string]interface{}`
