@@ -3012,6 +3012,44 @@ export default class bybit extends Exchange {
         //         "seq": 34771365464
         //     }
         //
+        // watchMyTrades execution
+        //
+        //     {
+        //         "category": "linear",
+        //         "symbol": "BTCUSDT",
+        //         "closedSize": "0",
+        //         "execFee": "0.0679239",
+        //         "execId": "135dbae5-cbed-5275-9290-3956bb2ed907",
+        //         "execPrice": "123498",
+        //         "execQty": "0.001",
+        //         "execType": "Trade",
+        //         "execValue": "123.498",
+        //         "feeRate": "0.00055",
+        //         "tradeIv": "",
+        //         "markIv": "",
+        //         "blockTradeId": "",
+        //         "markPrice": "122392",
+        //         "indexPrice": "",
+        //         "underlyingPrice": "",
+        //         "leavesQty": "0",
+        //         "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
+        //         "orderLinkId": "",
+        //         "orderPrice": "123615.9",
+        //         "orderQty": "0.001",
+        //         "orderType": "Market",
+        //         "stopOrderType": "UNKNOWN",
+        //         "side": "Buy",
+        //         "execTime": "1757837580469",
+        //         "isLeverage": "0",
+        //         "isMaker": false,
+        //         "seq": 9517074055,
+        //         "marketUnit": "",
+        //         "execPnl": "0",
+        //         "createType": "CreateByUser",
+        //         "extraFees": [],
+        //         "feeCoin": "USDT"
+        //  }
+        //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
         let marketType = ('createType' in trade) ? 'contract' : 'spot';
@@ -3080,7 +3118,7 @@ export default class bybit extends Exchange {
             }
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': this.safeString (trade, 'feeCoin', feeCurrencyCode),
                 'rate': feeRateString,
             };
         }
@@ -3741,6 +3779,7 @@ export default class bybit extends Exchange {
         const status = this.parseOrderStatus (rawStatus);
         const side = this.safeStringLower (order, 'side');
         let fee = undefined;
+        // TODO parse fee once the response is updated to use cumFeeDetail instead of cumExecFee for fetchOpenOrders fetchClosedOrders
         const feeCostString = this.safeString (order, 'cumExecFee');
         if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
