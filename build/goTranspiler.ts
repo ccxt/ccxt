@@ -1489,6 +1489,7 @@ ${constStatements.join('\n')}
             [/this.Number = String/g, 'this.Number = "string"'],
             [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
             [/ch <- nil\s+\/\/.+/g, ''],
+
             [/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange'],
             // --- WebSocket related fixes specific to **Go** ----------------------
             // 1) Access the strongly-typed field instead of dynamic lookup.
@@ -1512,6 +1513,9 @@ ${constStatements.join('\n')}
             [/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
+            [/(var \w+ interface{}) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
+            // Fix setMarketsFromExchange parameter type
+            [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
         ]);
 
         const jsDelimiter = '// ' + delimiter;

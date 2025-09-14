@@ -1279,6 +1279,7 @@ class binance extends Exchange {
                 'defaultSubType' => null, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                'currencyToPrecisionRoundingMode' => TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
@@ -2743,15 +2744,6 @@ class binance extends Exchange {
 
     public function cost_to_precision($symbol, $cost) {
         return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['quote'], $this->precisionMode, $this->paddingMode);
-    }
-
-    public function currency_to_precision($code, $fee, $networkCode = null) {
-        // info is available in currencies only if the user has configured his api keys
-        if ($this->safe_value($this->currencies[$code], 'precision') !== null) {
-            return $this->decimal_to_precision($fee, TRUNCATE, $this->currencies[$code]['precision'], $this->precisionMode, $this->paddingMode);
-        } else {
-            return $this->number_to_string($fee);
-        }
     }
 
     public function nonce() {
@@ -6513,17 +6505,12 @@ class binance extends Exchange {
             }
         }
         if ($quantityIsRequired) {
-            // portfolio margin has a different $amount $precision
-            if ($isPortfolioMargin) {
-                $request['quantity'] = $this->parse_to_numeric($amount);
+            $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+            $isPrecisionAvailable = ($marketAmountPrecision !== null);
+            if ($isPrecisionAvailable) {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             } else {
-                $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
-                $isPrecisionAvailable = ($marketAmountPrecision !== null);
-                if ($isPrecisionAvailable) {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                } else {
-                    $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
-                }
+                $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
             }
         }
         if ($priceIsRequired && !$isPriceMatch) {
@@ -7674,6 +7661,7 @@ class binance extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [$params->clientOrderIds] alternative to $ids, array of client order $ids
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string[]} [$params->origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7690,8 +7678,15 @@ class binance extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'orderidlist' => $ids,
+            // 'orderidlist' => $ids,
         );
+        $origClientOrderIdList = $this->safe_list_2($params, 'origClientOrderIdList', 'clientOrderIds');
+        if ($origClientOrderIdList !== null) {
+            $params = $this->omit($params, array( 'clientOrderIds' ));
+            $request['origClientOrderIdList'] = $origClientOrderIdList;
+        } else {
+            $request['orderidlist'] = $ids;
+        }
         $response = null;
         if ($market['linear']) {
             $response = $this->fapiPrivateDeleteBatchOrders ($this->extend($request, $params));
@@ -9279,7 +9274,6 @@ class binance extends Exchange {
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
-            'amount' => $this->currency_to_precision($code, $amount),
             // issue sapiGetCapitalConfigGetall () to get $networks for withdrawing USDT ERC20 vs USDT Omni
             // 'network' => 'ETH', // 'BTC', 'TRX', etc, optional
         );
@@ -9293,6 +9287,7 @@ class binance extends Exchange {
             $request['network'] = $network;
             $params = $this->omit($params, 'network');
         }
+        $request['amount'] = $this->currency_to_precision($code, $amount, $network);
         $response = $this->sapiPostCapitalWithdrawApply ($this->extend($request, $params));
         //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
         return $this->parse_transaction($response, $currency);
@@ -11203,7 +11198,7 @@ class binance extends Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
-         * set $hedged to true or false for a market
+         * set $hedged to true or false for a $market
          *
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
@@ -11217,11 +11212,14 @@ class binance extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} $response from the exchange
          */
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, array( 'type' ));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('setPositionMode', $market, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', null, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'setPositionMode', 'papi', 'portfolioMargin', false);
         $dualSidePosition = null;
@@ -11864,8 +11862,8 @@ class binance extends Exchange {
             } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false) || (mb_strpos($path, 'simple-earn') !== false)) {
                 if (($method === 'DELETE') && ($path === 'batchOrders')) {
                     $orderidlist = $this->safe_list($extendedParams, 'orderidlist', array());
-                    $origclientorderidlist = $this->safe_list($extendedParams, 'origclientorderidlist', array());
-                    $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist' ));
+                    $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
+                    $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
                     $origclientorderidlistLength = count($origclientorderidlist);
@@ -11873,7 +11871,12 @@ class binance extends Exchange {
                         $query = $query . '&' . 'orderidlist=%5B' . implode('%2C', $orderidlist) . '%5D';
                     }
                     if ($origclientorderidlistLength > 0) {
-                        $query = $query . '&' . 'origclientorderidlist=%5B' . implode('%2C', $origclientorderidlist) . '%5D';
+                        // wrap clientOrderids around ""
+                        $newClientOrderIds = array();
+                        for ($i = 0; $i < $origclientorderidlistLength; $i++) {
+                            $newClientOrderIds[] = '%22' . $origclientorderidlist[$i] . '%22';
+                        }
+                        $query = $query . '&' . 'origclientorderidlist=%5B' . implode('%2C', $newClientOrderIds) . '%5D';
                     }
                 } else {
                     $query = $this->rawencode($extendedParams);

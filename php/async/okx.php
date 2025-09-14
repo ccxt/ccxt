@@ -218,6 +218,7 @@ class okx extends Exchange {
                         'market/open-oracle' => 50,
                         'market/exchange-rate' => 20,
                         'market/index-components' => 1,
+                        'public/market-data-history' => 4,
                         'public/economic-calendar' => 50,
                         'market/block-tickers' => 1,
                         'market/block-ticker' => 1,
@@ -369,7 +370,7 @@ class okx extends Exchange {
                         'account/fixed-loan/borrowing-limit' => 4,
                         'account/fixed-loan/borrowing-quote' => 5,
                         'account/fixed-loan/borrowing-orders-list' => 5,
-                        'account/spot-manual-borrow-repay' => 10,
+                        'account/spot-manual-borrow-repay' => 30,
                         'account/set-auto-repay' => 4,
                         'account/spot-borrow-repay-history' => 4,
                         'account/move-positions-history' => 10,
@@ -2460,6 +2461,7 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks-history
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks-history
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-candlesticks-history
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
@@ -2468,6 +2470,7 @@ class okx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+             * @param {string} [$params->type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
@@ -2482,6 +2485,7 @@ class okx extends Exchange {
             $params = $this->omit($params, 'price');
             $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $timezone = $this->safe_string($options, 'timezone', 'UTC');
+            $limitIsUndefined = ($limit === null);
             if ($limit === null) {
                 $limit = 100; // default 100, max 100
             } else {
@@ -2505,7 +2509,8 @@ class okx extends Exchange {
                 $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
                 if ($since < $historyBorder) {
                     $defaultType = 'HistoryCandles';
-                    $limit = min ($limit, 100); // max 100 for historical endpoint
+                    $maxLimit = ($price !== null) ? 100 : 300;
+                    $limit = min ($limit, $maxLimit); // max 300 for historical endpoint
                 }
                 $startTime = max ($since - 1, 0);
                 $request['before'] = $startTime;
@@ -2536,6 +2541,10 @@ class okx extends Exchange {
                 }
             } else {
                 if ($isHistoryCandles) {
+                    if ($limitIsUndefined && ($limit === 100)) {
+                        $limit = 300;
+                        $request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                    }
                     $response = Async\await($this->publicGetMarketHistoryCandles ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->publicGetMarketCandles ($this->extend($request, $params)));
@@ -2892,10 +2901,10 @@ class okx extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
+             * create a $market buy order by providing the $symbol and $cost
              *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
              *
-             * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2917,10 +2926,10 @@ class okx extends Exchange {
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
+             * create a $market buy order by providing the $symbol and $cost
              *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
              *
-             * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2984,6 +2993,8 @@ class okx extends Exchange {
         $takeProfitDefined = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
+        $isTrailingPriceOrder = $trailingPrice !== null;
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $isReduceOnly = $this->safe_value($params, 'reduceOnly', false);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
@@ -3090,14 +3101,19 @@ class okx extends Exchange {
             $convertedTrailingPercent = Precise::string_div($trailingPercent, '100');
             $request['callbackRatio'] = $convertedTrailingPercent;
             $request['ordType'] = 'move_order_stop';
+        } elseif ($isTrailingPriceOrder) {
+            $request['callbackSpread'] = $trailingPrice;
+            $request['ordType'] = 'move_order_stop';
         } elseif ($stopLossDefined || $takeProfitDefined) {
+            $attachAlgoOrd = array();
             if ($stopLossDefined) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 $slTriggerPx = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['slTriggerPx'] = $slTriggerPx;
+                $slOrder = array();
+                $slOrder['slTriggerPx'] = $slTriggerPx;
                 $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type');
                 if ($stopLossOrderType !== null) {
@@ -3109,30 +3125,32 @@ class okx extends Exchange {
                         if ($stopLossLimitPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] or $params["stopLoss"]["slOrdPx"] for a stop loss limit order');
                         } else {
-                            $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
+                            $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
                         }
                     } elseif ($stopLossOrderType === 'market') {
-                        $request['slOrdPx'] = '-1';
+                        $slOrder['slOrdPx'] = '-1';
                     }
                 } elseif ($stopLossLimitPrice !== null) {
-                    $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
+                    $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
                 } else {
-                    $request['slOrdPx'] = '-1'; // $market sl order
+                    $slOrder['slOrdPx'] = '-1'; // $market sl order
                 }
                 $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
                     if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
                     }
-                    $request['slTriggerPxType'] = $stopLossTriggerPriceType;
+                    $slOrder['slTriggerPxType'] = $stopLossTriggerPriceType;
                 }
+                $attachAlgoOrd = $this->extend($attachAlgoOrd, $slOrder);
             }
             if ($takeProfitDefined) {
                 $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
                 if ($takeProfitTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"], or $params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
-                $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $tpOrder = array();
+                $tpOrder['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 $takeProfitLimitPrice = $this->safe_value_n($takeProfit, array( 'price', 'takeProfitPrice', 'tpOrdPx' ));
                 $takeProfitOrderType = $this->safe_string_2($takeProfit, 'type', 'tpOrdKind');
                 if ($takeProfitOrderType !== null) {
@@ -3144,25 +3162,31 @@ class okx extends Exchange {
                         if ($takeProfitLimitPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["takeProfit"]["price"] or $params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         } else {
-                            $request['tpOrdKind'] = $takeProfitOrderType;
-                            $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
+                            $tpOrder['tpOrdKind'] = $takeProfitOrderType;
+                            $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
                         }
                     } elseif ($takeProfitOrderType === 'market') {
-                        $request['tpOrdPx'] = '-1';
+                        $tpOrder['tpOrdPx'] = '-1';
                     }
                 } elseif ($takeProfitLimitPrice !== null) {
-                    $request['tpOrdKind'] = 'limit';
-                    $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
+                    $tpOrder['tpOrdKind'] = 'limit';
+                    $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
                 } else {
-                    $request['tpOrdPx'] = '-1'; // $market tp order
+                    $tpOrder['tpOrdPx'] = '-1'; // $market tp order
                 }
                 $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
                     if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
                     }
-                    $request['tpTriggerPxType'] = $takeProfitTriggerPriceType;
+                    $tpOrder['tpTriggerPxType'] = $takeProfitTriggerPriceType;
                 }
+                $attachAlgoOrd = $this->extend($attachAlgoOrd, $tpOrder);
+            }
+            $attachOrdKeys = is_array($attachAlgoOrd) ? array_keys($attachAlgoOrd) : array();
+            $attachOrdLen = count($attachOrdKeys);
+            if ($attachOrdLen > 0) {
+                $request['attachAlgoOrds'] = array( $attachAlgoOrd );
             }
         } elseif ($trigger) {
             $request['ordType'] = 'trigger';

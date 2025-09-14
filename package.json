@@ -1,7 +1,7 @@
 {
   "name": "ccxt",
-  "version": "4.5.1",
-  "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
+  "version": "4.5.4",
+  "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
   "exports": {

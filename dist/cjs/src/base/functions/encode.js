@@ -24,10 +24,18 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 function packb(req) {
     return msgpack.serialize(req);
 }
+function base64ToBase64Url(base64, stripPadding = true) {
+    let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_");
+    if (stripPadding) {
+        base64url = base64url.replace(/=+$/, "");
+    }
+    return base64url;
+}
 /*  ------------------------------------------------------------------------ */
 
 exports.base16ToBinary = base16ToBinary;
 exports.base58ToBinary = base58ToBinary;
+exports.base64ToBase64Url = base64ToBase64Url;
 exports.base64ToBinary = base64ToBinary;
 exports.base64ToString = base64ToString;
 exports.binaryConcat = binaryConcat;

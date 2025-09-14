@@ -136,6 +136,7 @@ public partial class delta : Exchange
                     } },
                 } },
             } },
+            { "userAgent", getValue(this.userAgents, "chrome39") },
             { "options", new Dictionary<string, object>() {
                 { "networks", new Dictionary<string, object>() {
                     { "TRC20", "TRC20(TRON)" },

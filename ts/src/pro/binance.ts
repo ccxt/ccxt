@@ -3266,8 +3266,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelAllOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -3280,7 +3280,7 @@ export default class binance extends binanceRest {
         };
         const message: Dict = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': this.signParams (this.extend (payload, params)),
         };
         const subscription: Dict = {

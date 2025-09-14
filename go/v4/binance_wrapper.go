@@ -1283,6 +1283,7 @@ func (this *Binance) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma

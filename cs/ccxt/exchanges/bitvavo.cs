@@ -1511,6 +1511,17 @@ public partial class bitvavo : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
+        object operatorId = null;
+        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId");
+        operatorId = ((IList<object>)operatorIdparametersVariable)[0];
+        parameters = ((IList<object>)operatorIdparametersVariable)[1];
+        if (isTrue(!isEqual(operatorId, null)))
+        {
+            ((IDictionary<string,object>)request)["operatorId"] = this.parseToInt(operatorId);
+        } else
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+        }
         object response = await this.privateDeleteOrders(this.extend(request, parameters));
         //
         //     [

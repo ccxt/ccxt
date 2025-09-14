@@ -937,7 +937,7 @@ export default class bitbank extends Exchange {
         const address = this.safeString(firstAccount, 'address');
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': undefined,
             'address': address,
             'tag': undefined,
