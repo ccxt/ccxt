@@ -3013,6 +3013,14 @@ func PanicOnError(msg interface{}) {
 				PanicOnError(nestedSlice)
 			}
 		}
+	case *Error:
+        stack := debug.Stack()
+        panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
+        panic(panicMsg)
+	case error: // ✅ optional: handle any other error type
+        stack := debug.Stack()
+        panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
+        panic(panicMsg)
 	default:
 		return
 	}
