@@ -1,8 +1,10 @@
+
 import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
-/*  ------------------------------------------------------------------------ */
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+
 
 async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
 
@@ -13,7 +15,7 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];
 
-    if (skippedExchanges.includes (exchange.id)) {
+    if (exchange.inArray (exchange.id, skippedExchanges)) {
         console.log (exchange.id, method + '() test skipped');
         return false;
     }
@@ -36,7 +38,8 @@ async function testWatchLiquidations (exchange: Exchange, skippedProperties: obj
 
             now = Date.now ();
 
-            assert (Array.isArray (response));
+            const isArray = Array.isArray (response);
+            assert (isArray, "response must be an array");
 
             console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
 

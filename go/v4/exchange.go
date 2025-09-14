@@ -220,8 +220,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	// warmup itf cache
 
-	this.initializeProperties(extendedProperties)
-
 	limit := 10000
 	// Initialize WebSocket data structures with thread-safe sync.Map
 	this.Trades = make(map[string]*ArrayCache)
@@ -248,6 +246,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.ProxyDictionaries = make(map[string]interface{})
 	this.AccountsById = make(map[string]interface{})
 	this.Accounts = make([]interface{}, 0)
+
+	this.initializeProperties(extendedProperties)
 	this.AfterConstruct()
 
 	this.transformApiNew(this.Api)
