@@ -503,7 +503,7 @@ class NewTranspiler {
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
             [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
-            [/order.Limit/g, 'orderbooks.(GetsLimit).Limit'],
+            [/order.Limit([^"])/g, 'orderbooks.(GetsLimit).Limit$1'],
             // OrderBook
             [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
             [/(?:&)?(storedOrderBook|orderbook)\.Cache/g, '$1.(OrderBookInterface).GetCache()'],
