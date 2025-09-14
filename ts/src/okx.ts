@@ -6330,14 +6330,18 @@ export default class okx extends Exchange {
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                let queryInner = '?' + this.urlencode (query);
+                if (queryInner.indexOf ('%5B') > -1) {
+                    queryInner = queryInner.replace ('%5B', '[').replace ('%5D', ']');
+                }
+                url += queryInner;
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             // inject id in implicit api call
             if (method === 'POST' && (path === 'trade/batch-orders' || path === 'trade/order-algo' || path === 'trade/order')) {
                 const brokerId = this.safeString (this.options, 'brokerId', '6b9ad766b55dBCDE');
-                if (Array.isArray (params)) {
+                if (isArray) {
                     for (let i = 0; i < params.length; i++) {
                         const entry = params[i];
                         const clientOrderId = this.safeString (entry, 'clOrdId');
