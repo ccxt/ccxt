@@ -289,7 +289,7 @@ public partial class testMainClass : BaseTest
         //     }
         // }
         // "[" + e.GetType().Name + "] " + message
-        return e?.ToString().Substring(0, LOG_CHARS_LENGTH) ?? "Exception occurred, but no message available.";
+        return e?.ToString().Substring(0, Math.Min(LOG_CHARS_LENGTH, e.ToString().Length)) ?? "Exception occurred, but no message available.";
     }
 
     public System.Exception getRootException(Exception exc)

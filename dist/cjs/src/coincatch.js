@@ -4940,7 +4940,7 @@ class coincatch extends coincatch$1["default"] {
                 }
             }
         }
-        return positions[0];
+        return this.safeDict(positions, 0, {});
     }
     /**
      * @method

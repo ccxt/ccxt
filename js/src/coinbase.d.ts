@@ -211,7 +211,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    findAccountId(code: any, params?: {}): Promise<any>;
+    findAccountId(code: any, params?: {}): Promise<string>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<Dict[]>;
     /**

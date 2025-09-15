@@ -4897,7 +4897,7 @@ class coincatch extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()): array {
         /**
          * fetch data on a single open contract trade $position
          *
@@ -4921,7 +4921,7 @@ class coincatch extends Exchange {
                 }
             }
         }
-        return $positions[0];
+        return $this->safe_dict($positions, 0, array());
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()): array {
