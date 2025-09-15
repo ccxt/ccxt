@@ -210,6 +210,7 @@ class delta extends Exchange {
                     ),
                 ),
             ),
+            'userAgent' => $this->userAgents['chrome39'], // needed for C#
             'options' => array(
                 'networks' => array(
                     'TRC20' => 'TRC20(TRON)',

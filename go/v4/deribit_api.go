@@ -7,490 +7,490 @@
 
 package ccxt
 
-func (this *deribit) PublicGetAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAuth", args...)
+func (this *deribit) PublicGetAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAuth", args...)
 }
 
-func (this *deribit) PublicGetExchangeToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeToken", args...)
+func (this *deribit) PublicGetExchangeToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeToken", args...)
 }
 
-func (this *deribit) PublicGetForkToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetForkToken", args...)
+func (this *deribit) PublicGetForkToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetForkToken", args...)
 }
 
-func (this *deribit) PublicGetSetHeartbeat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSetHeartbeat", args...)
+func (this *deribit) PublicGetSetHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSetHeartbeat", args...)
 }
 
-func (this *deribit) PublicGetDisableHeartbeat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetDisableHeartbeat", args...)
+func (this *deribit) PublicGetDisableHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetDisableHeartbeat", args...)
 }
 
-func (this *deribit) PublicGetGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetTime", args...)
+func (this *deribit) PublicGetGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetTime", args...)
 }
 
-func (this *deribit) PublicGetHello (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetHello", args...)
+func (this *deribit) PublicGetHello(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetHello", args...)
 }
 
-func (this *deribit) PublicGetStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetStatus", args...)
+func (this *deribit) PublicGetStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetStatus", args...)
 }
 
-func (this *deribit) PublicGetTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTest", args...)
+func (this *deribit) PublicGetTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTest", args...)
 }
 
-func (this *deribit) PublicGetSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetSubscribe", args...)
+func (this *deribit) PublicGetSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetSubscribe", args...)
 }
 
-func (this *deribit) PublicGetUnsubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetUnsubscribe", args...)
+func (this *deribit) PublicGetUnsubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUnsubscribe", args...)
 }
 
-func (this *deribit) PublicGetUnsubscribeAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetUnsubscribeAll", args...)
+func (this *deribit) PublicGetUnsubscribeAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetUnsubscribeAll", args...)
 }
 
-func (this *deribit) PublicGetGetAnnouncements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetAnnouncements", args...)
+func (this *deribit) PublicGetGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetAnnouncements", args...)
 }
 
-func (this *deribit) PublicGetGetBookSummaryByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetBookSummaryByCurrency", args...)
+func (this *deribit) PublicGetGetBookSummaryByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetBookSummaryByCurrency", args...)
 }
 
-func (this *deribit) PublicGetGetBookSummaryByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetBookSummaryByInstrument", args...)
+func (this *deribit) PublicGetGetBookSummaryByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetBookSummaryByInstrument", args...)
 }
 
-func (this *deribit) PublicGetGetContractSize (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetContractSize", args...)
+func (this *deribit) PublicGetGetContractSize(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetContractSize", args...)
 }
 
-func (this *deribit) PublicGetGetCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetCurrencies", args...)
+func (this *deribit) PublicGetGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetCurrencies", args...)
 }
 
-func (this *deribit) PublicGetGetDeliveryPrices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetDeliveryPrices", args...)
+func (this *deribit) PublicGetGetDeliveryPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetDeliveryPrices", args...)
 }
 
-func (this *deribit) PublicGetGetFundingChartData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetFundingChartData", args...)
+func (this *deribit) PublicGetGetFundingChartData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetFundingChartData", args...)
 }
 
-func (this *deribit) PublicGetGetFundingRateHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetFundingRateHistory", args...)
+func (this *deribit) PublicGetGetFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetFundingRateHistory", args...)
 }
 
-func (this *deribit) PublicGetGetFundingRateValue (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetFundingRateValue", args...)
+func (this *deribit) PublicGetGetFundingRateValue(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetFundingRateValue", args...)
 }
 
-func (this *deribit) PublicGetGetHistoricalVolatility (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetHistoricalVolatility", args...)
+func (this *deribit) PublicGetGetHistoricalVolatility(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetHistoricalVolatility", args...)
 }
 
-func (this *deribit) PublicGetGetIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetIndex", args...)
+func (this *deribit) PublicGetGetIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetIndex", args...)
 }
 
-func (this *deribit) PublicGetGetIndexPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetIndexPrice", args...)
+func (this *deribit) PublicGetGetIndexPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetIndexPrice", args...)
 }
 
-func (this *deribit) PublicGetGetIndexPriceNames (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetIndexPriceNames", args...)
+func (this *deribit) PublicGetGetIndexPriceNames(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetIndexPriceNames", args...)
 }
 
-func (this *deribit) PublicGetGetInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetInstrument", args...)
+func (this *deribit) PublicGetGetInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetInstrument", args...)
 }
 
-func (this *deribit) PublicGetGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetInstruments", args...)
+func (this *deribit) PublicGetGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetInstruments", args...)
 }
 
-func (this *deribit) PublicGetGetLastSettlementsByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetLastSettlementsByCurrency", args...)
+func (this *deribit) PublicGetGetLastSettlementsByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetLastSettlementsByCurrency", args...)
 }
 
-func (this *deribit) PublicGetGetLastSettlementsByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetLastSettlementsByInstrument", args...)
+func (this *deribit) PublicGetGetLastSettlementsByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetLastSettlementsByInstrument", args...)
 }
 
-func (this *deribit) PublicGetGetLastTradesByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetLastTradesByCurrency", args...)
+func (this *deribit) PublicGetGetLastTradesByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetLastTradesByCurrency", args...)
 }
 
-func (this *deribit) PublicGetGetLastTradesByCurrencyAndTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetLastTradesByCurrencyAndTime", args...)
+func (this *deribit) PublicGetGetLastTradesByCurrencyAndTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetLastTradesByCurrencyAndTime", args...)
 }
 
-func (this *deribit) PublicGetGetLastTradesByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetLastTradesByInstrument", args...)
+func (this *deribit) PublicGetGetLastTradesByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetLastTradesByInstrument", args...)
 }
 
-func (this *deribit) PublicGetGetLastTradesByInstrumentAndTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetLastTradesByInstrumentAndTime", args...)
+func (this *deribit) PublicGetGetLastTradesByInstrumentAndTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetLastTradesByInstrumentAndTime", args...)
 }
 
-func (this *deribit) PublicGetGetMarkPriceHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetMarkPriceHistory", args...)
+func (this *deribit) PublicGetGetMarkPriceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetMarkPriceHistory", args...)
 }
 
-func (this *deribit) PublicGetGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetOrderBook", args...)
+func (this *deribit) PublicGetGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetOrderBook", args...)
 }
 
-func (this *deribit) PublicGetGetTradeVolumes (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetTradeVolumes", args...)
+func (this *deribit) PublicGetGetTradeVolumes(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetTradeVolumes", args...)
 }
 
-func (this *deribit) PublicGetGetTradingviewChartData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetTradingviewChartData", args...)
+func (this *deribit) PublicGetGetTradingviewChartData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetTradingviewChartData", args...)
 }
 
-func (this *deribit) PublicGetGetVolatilityIndexData (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetGetVolatilityIndexData", args...)
+func (this *deribit) PublicGetGetVolatilityIndexData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetGetVolatilityIndexData", args...)
 }
 
-func (this *deribit) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *deribit) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *deribit) PrivateGetLogout (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLogout", args...)
+func (this *deribit) PrivateGetLogout(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLogout", args...)
 }
 
-func (this *deribit) PrivateGetEnableCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetEnableCancelOnDisconnect", args...)
+func (this *deribit) PrivateGetEnableCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEnableCancelOnDisconnect", args...)
 }
 
-func (this *deribit) PrivateGetDisableCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDisableCancelOnDisconnect", args...)
+func (this *deribit) PrivateGetDisableCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDisableCancelOnDisconnect", args...)
 }
 
-func (this *deribit) PrivateGetGetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetCancelOnDisconnect", args...)
+func (this *deribit) PrivateGetGetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetCancelOnDisconnect", args...)
 }
 
-func (this *deribit) PrivateGetSubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubscribe", args...)
+func (this *deribit) PrivateGetSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubscribe", args...)
 }
 
-func (this *deribit) PrivateGetUnsubscribe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnsubscribe", args...)
+func (this *deribit) PrivateGetUnsubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnsubscribe", args...)
 }
 
-func (this *deribit) PrivateGetUnsubscribeAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetUnsubscribeAll", args...)
+func (this *deribit) PrivateGetUnsubscribeAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetUnsubscribeAll", args...)
 }
 
-func (this *deribit) PrivateGetChangeApiKeyName (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetChangeApiKeyName", args...)
+func (this *deribit) PrivateGetChangeApiKeyName(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetChangeApiKeyName", args...)
 }
 
-func (this *deribit) PrivateGetChangeScopeInApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetChangeScopeInApiKey", args...)
+func (this *deribit) PrivateGetChangeScopeInApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetChangeScopeInApiKey", args...)
 }
 
-func (this *deribit) PrivateGetChangeSubaccountName (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetChangeSubaccountName", args...)
+func (this *deribit) PrivateGetChangeSubaccountName(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetChangeSubaccountName", args...)
 }
 
-func (this *deribit) PrivateGetCreateApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCreateApiKey", args...)
+func (this *deribit) PrivateGetCreateApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCreateApiKey", args...)
 }
 
-func (this *deribit) PrivateGetCreateSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCreateSubaccount", args...)
+func (this *deribit) PrivateGetCreateSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCreateSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetDisableApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDisableApiKey", args...)
+func (this *deribit) PrivateGetDisableApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDisableApiKey", args...)
 }
 
-func (this *deribit) PrivateGetDisableTfaForSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDisableTfaForSubaccount", args...)
+func (this *deribit) PrivateGetDisableTfaForSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDisableTfaForSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetEnableAffiliateProgram (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetEnableAffiliateProgram", args...)
+func (this *deribit) PrivateGetEnableAffiliateProgram(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEnableAffiliateProgram", args...)
 }
 
-func (this *deribit) PrivateGetEnableApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetEnableApiKey", args...)
+func (this *deribit) PrivateGetEnableApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEnableApiKey", args...)
 }
 
-func (this *deribit) PrivateGetGetAccessLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetAccessLog", args...)
+func (this *deribit) PrivateGetGetAccessLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetAccessLog", args...)
 }
 
-func (this *deribit) PrivateGetGetAccountSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetAccountSummary", args...)
+func (this *deribit) PrivateGetGetAccountSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetAccountSummary", args...)
 }
 
-func (this *deribit) PrivateGetGetAccountSummaries (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetAccountSummaries", args...)
+func (this *deribit) PrivateGetGetAccountSummaries(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetAccountSummaries", args...)
 }
 
-func (this *deribit) PrivateGetGetAffiliateProgramInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetAffiliateProgramInfo", args...)
+func (this *deribit) PrivateGetGetAffiliateProgramInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetAffiliateProgramInfo", args...)
 }
 
-func (this *deribit) PrivateGetGetEmailLanguage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetEmailLanguage", args...)
+func (this *deribit) PrivateGetGetEmailLanguage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetEmailLanguage", args...)
 }
 
-func (this *deribit) PrivateGetGetNewAnnouncements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetNewAnnouncements", args...)
+func (this *deribit) PrivateGetGetNewAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetNewAnnouncements", args...)
 }
 
-func (this *deribit) PrivateGetGetPortfolioMargins (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetPortfolioMargins", args...)
+func (this *deribit) PrivateGetGetPortfolioMargins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetPortfolioMargins", args...)
 }
 
-func (this *deribit) PrivateGetGetPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetPosition", args...)
+func (this *deribit) PrivateGetGetPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetPosition", args...)
 }
 
-func (this *deribit) PrivateGetGetPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetPositions", args...)
+func (this *deribit) PrivateGetGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetPositions", args...)
 }
 
-func (this *deribit) PrivateGetGetSubaccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetSubaccounts", args...)
+func (this *deribit) PrivateGetGetSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetSubaccounts", args...)
 }
 
-func (this *deribit) PrivateGetGetSubaccountsDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetSubaccountsDetails", args...)
+func (this *deribit) PrivateGetGetSubaccountsDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetSubaccountsDetails", args...)
 }
 
-func (this *deribit) PrivateGetGetTransactionLog (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetTransactionLog", args...)
+func (this *deribit) PrivateGetGetTransactionLog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetTransactionLog", args...)
 }
 
-func (this *deribit) PrivateGetListApiKeys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetListApiKeys", args...)
+func (this *deribit) PrivateGetListApiKeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetListApiKeys", args...)
 }
 
-func (this *deribit) PrivateGetRemoveApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRemoveApiKey", args...)
+func (this *deribit) PrivateGetRemoveApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRemoveApiKey", args...)
 }
 
-func (this *deribit) PrivateGetRemoveSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetRemoveSubaccount", args...)
+func (this *deribit) PrivateGetRemoveSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetRemoveSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetResetApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetResetApiKey", args...)
+func (this *deribit) PrivateGetResetApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetResetApiKey", args...)
 }
 
-func (this *deribit) PrivateGetSetAnnouncementAsRead (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSetAnnouncementAsRead", args...)
+func (this *deribit) PrivateGetSetAnnouncementAsRead(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSetAnnouncementAsRead", args...)
 }
 
-func (this *deribit) PrivateGetSetApiKeyAsDefault (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSetApiKeyAsDefault", args...)
+func (this *deribit) PrivateGetSetApiKeyAsDefault(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSetApiKeyAsDefault", args...)
 }
 
-func (this *deribit) PrivateGetSetEmailForSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSetEmailForSubaccount", args...)
+func (this *deribit) PrivateGetSetEmailForSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSetEmailForSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetSetEmailLanguage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSetEmailLanguage", args...)
+func (this *deribit) PrivateGetSetEmailLanguage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSetEmailLanguage", args...)
 }
 
-func (this *deribit) PrivateGetSetPasswordForSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSetPasswordForSubaccount", args...)
+func (this *deribit) PrivateGetSetPasswordForSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSetPasswordForSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetToggleNotificationsFromSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetToggleNotificationsFromSubaccount", args...)
+func (this *deribit) PrivateGetToggleNotificationsFromSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetToggleNotificationsFromSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetToggleSubaccountLogin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetToggleSubaccountLogin", args...)
+func (this *deribit) PrivateGetToggleSubaccountLogin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetToggleSubaccountLogin", args...)
 }
 
-func (this *deribit) PrivateGetExecuteBlockTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExecuteBlockTrade", args...)
+func (this *deribit) PrivateGetExecuteBlockTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExecuteBlockTrade", args...)
 }
 
-func (this *deribit) PrivateGetGetBlockTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetBlockTrade", args...)
+func (this *deribit) PrivateGetGetBlockTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetBlockTrade", args...)
 }
 
-func (this *deribit) PrivateGetGetLastBlockTradesByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetLastBlockTradesByCurrency", args...)
+func (this *deribit) PrivateGetGetLastBlockTradesByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetLastBlockTradesByCurrency", args...)
 }
 
-func (this *deribit) PrivateGetInvalidateBlockTradeSignature (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetInvalidateBlockTradeSignature", args...)
+func (this *deribit) PrivateGetInvalidateBlockTradeSignature(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetInvalidateBlockTradeSignature", args...)
 }
 
-func (this *deribit) PrivateGetVerifyBlockTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetVerifyBlockTrade", args...)
+func (this *deribit) PrivateGetVerifyBlockTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetVerifyBlockTrade", args...)
 }
 
-func (this *deribit) PrivateGetBuy (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBuy", args...)
+func (this *deribit) PrivateGetBuy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBuy", args...)
 }
 
-func (this *deribit) PrivateGetSell (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSell", args...)
+func (this *deribit) PrivateGetSell(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSell", args...)
 }
 
-func (this *deribit) PrivateGetEdit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetEdit", args...)
+func (this *deribit) PrivateGetEdit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEdit", args...)
 }
 
-func (this *deribit) PrivateGetEditByLabel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetEditByLabel", args...)
+func (this *deribit) PrivateGetEditByLabel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetEditByLabel", args...)
 }
 
-func (this *deribit) PrivateGetCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancel", args...)
+func (this *deribit) PrivateGetCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancel", args...)
 }
 
-func (this *deribit) PrivateGetCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancelAll", args...)
+func (this *deribit) PrivateGetCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancelAll", args...)
 }
 
-func (this *deribit) PrivateGetCancelAllByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancelAllByCurrency", args...)
+func (this *deribit) PrivateGetCancelAllByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancelAllByCurrency", args...)
 }
 
-func (this *deribit) PrivateGetCancelAllByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancelAllByInstrument", args...)
+func (this *deribit) PrivateGetCancelAllByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancelAllByInstrument", args...)
 }
 
-func (this *deribit) PrivateGetCancelByLabel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancelByLabel", args...)
+func (this *deribit) PrivateGetCancelByLabel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancelByLabel", args...)
 }
 
-func (this *deribit) PrivateGetClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetClosePosition", args...)
+func (this *deribit) PrivateGetClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetClosePosition", args...)
 }
 
-func (this *deribit) PrivateGetGetMargins (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetMargins", args...)
+func (this *deribit) PrivateGetGetMargins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetMargins", args...)
 }
 
-func (this *deribit) PrivateGetGetMmpConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetMmpConfig", args...)
+func (this *deribit) PrivateGetGetMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetMmpConfig", args...)
 }
 
-func (this *deribit) PrivateGetGetOpenOrdersByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetOpenOrdersByCurrency", args...)
+func (this *deribit) PrivateGetGetOpenOrdersByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetOpenOrdersByCurrency", args...)
 }
 
-func (this *deribit) PrivateGetGetOpenOrdersByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetOpenOrdersByInstrument", args...)
+func (this *deribit) PrivateGetGetOpenOrdersByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetOpenOrdersByInstrument", args...)
 }
 
-func (this *deribit) PrivateGetGetOrderHistoryByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetOrderHistoryByCurrency", args...)
+func (this *deribit) PrivateGetGetOrderHistoryByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetOrderHistoryByCurrency", args...)
 }
 
-func (this *deribit) PrivateGetGetOrderHistoryByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetOrderHistoryByInstrument", args...)
+func (this *deribit) PrivateGetGetOrderHistoryByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetOrderHistoryByInstrument", args...)
 }
 
-func (this *deribit) PrivateGetGetOrderMarginByIds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetOrderMarginByIds", args...)
+func (this *deribit) PrivateGetGetOrderMarginByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetOrderMarginByIds", args...)
 }
 
-func (this *deribit) PrivateGetGetOrderState (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetOrderState", args...)
+func (this *deribit) PrivateGetGetOrderState(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetOrderState", args...)
 }
 
-func (this *deribit) PrivateGetGetStopOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetStopOrderHistory", args...)
+func (this *deribit) PrivateGetGetStopOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetStopOrderHistory", args...)
 }
 
-func (this *deribit) PrivateGetGetTriggerOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetTriggerOrderHistory", args...)
+func (this *deribit) PrivateGetGetTriggerOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetTriggerOrderHistory", args...)
 }
 
-func (this *deribit) PrivateGetGetUserTradesByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetUserTradesByCurrency", args...)
+func (this *deribit) PrivateGetGetUserTradesByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetUserTradesByCurrency", args...)
 }
 
-func (this *deribit) PrivateGetGetUserTradesByCurrencyAndTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetUserTradesByCurrencyAndTime", args...)
+func (this *deribit) PrivateGetGetUserTradesByCurrencyAndTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetUserTradesByCurrencyAndTime", args...)
 }
 
-func (this *deribit) PrivateGetGetUserTradesByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetUserTradesByInstrument", args...)
+func (this *deribit) PrivateGetGetUserTradesByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetUserTradesByInstrument", args...)
 }
 
-func (this *deribit) PrivateGetGetUserTradesByInstrumentAndTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetUserTradesByInstrumentAndTime", args...)
+func (this *deribit) PrivateGetGetUserTradesByInstrumentAndTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetUserTradesByInstrumentAndTime", args...)
 }
 
-func (this *deribit) PrivateGetGetUserTradesByOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetUserTradesByOrder", args...)
+func (this *deribit) PrivateGetGetUserTradesByOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetUserTradesByOrder", args...)
 }
 
-func (this *deribit) PrivateGetResetMmp (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetResetMmp", args...)
+func (this *deribit) PrivateGetResetMmp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetResetMmp", args...)
 }
 
-func (this *deribit) PrivateGetSetMmpConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSetMmpConfig", args...)
+func (this *deribit) PrivateGetSetMmpConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSetMmpConfig", args...)
 }
 
-func (this *deribit) PrivateGetGetSettlementHistoryByInstrument (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetSettlementHistoryByInstrument", args...)
+func (this *deribit) PrivateGetGetSettlementHistoryByInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetSettlementHistoryByInstrument", args...)
 }
 
-func (this *deribit) PrivateGetGetSettlementHistoryByCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetSettlementHistoryByCurrency", args...)
+func (this *deribit) PrivateGetGetSettlementHistoryByCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetSettlementHistoryByCurrency", args...)
 }
 
-func (this *deribit) PrivateGetCancelTransferById (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancelTransferById", args...)
+func (this *deribit) PrivateGetCancelTransferById(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancelTransferById", args...)
 }
 
-func (this *deribit) PrivateGetCancelWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCancelWithdrawal", args...)
+func (this *deribit) PrivateGetCancelWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCancelWithdrawal", args...)
 }
 
-func (this *deribit) PrivateGetCreateDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetCreateDepositAddress", args...)
+func (this *deribit) PrivateGetCreateDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetCreateDepositAddress", args...)
 }
 
-func (this *deribit) PrivateGetGetCurrentDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetCurrentDepositAddress", args...)
+func (this *deribit) PrivateGetGetCurrentDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetCurrentDepositAddress", args...)
 }
 
-func (this *deribit) PrivateGetGetDeposits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetDeposits", args...)
+func (this *deribit) PrivateGetGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetDeposits", args...)
 }
 
-func (this *deribit) PrivateGetGetTransfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetTransfers", args...)
+func (this *deribit) PrivateGetGetTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetTransfers", args...)
 }
 
-func (this *deribit) PrivateGetGetWithdrawals (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetGetWithdrawals", args...)
+func (this *deribit) PrivateGetGetWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGetWithdrawals", args...)
 }
 
-func (this *deribit) PrivateGetSubmitTransferToSubaccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubmitTransferToSubaccount", args...)
+func (this *deribit) PrivateGetSubmitTransferToSubaccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubmitTransferToSubaccount", args...)
 }
 
-func (this *deribit) PrivateGetSubmitTransferToUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubmitTransferToUser", args...)
+func (this *deribit) PrivateGetSubmitTransferToUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubmitTransferToUser", args...)
 }
 
-func (this *deribit) PrivateGetWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdraw", args...)
+func (this *deribit) PrivateGetWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdraw", args...)
 }

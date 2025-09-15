@@ -2908,15 +2908,30 @@ class bybit(Exchange, ImplicitAPI):
         #         "tradeId": "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
         #     }
         #
+        # watchMyTrades execution.fast
+        #
+        #     {
+        #         "category": "linear",
+        #         "symbol": "ICPUSDT",
+        #         "execId": "3510f361-0add-5c7b-a2e7-9679810944fc",
+        #         "execPrice": "12.015",
+        #         "execQty": "3000",
+        #         "orderId": "443d63fa-b4c3-4297-b7b1-23bca88b04dc",
+        #         "isMaker": False,
+        #         "orderLinkId": "test-00001",
+        #         "side": "Sell",
+        #         "execTime": "1716800399334",
+        #         "seq": 34771365464
+        #     }
+        #
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
         marketType = 'contract' if ('createType' in trade) else 'spot'
-        if market is not None:
-            marketType = market['type']
         category = self.safe_string(trade, 'category')
         if category is not None:
-            if category == 'spot':
-                marketType = 'spot'
+            marketType = 'spot' if (category == 'spot') else 'contract'
+        if market is not None:
+            marketType = market['type']
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])

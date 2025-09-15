@@ -839,9 +839,6 @@ public partial class coinex : ccxt.coinex
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
-        var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object limits = this.safeList(options, "limits", new List<object>() {});
         if (isTrue(isEqual(limit, null)))
@@ -861,19 +858,20 @@ public partial class coinex : ccxt.coinex
         }
         parameters = this.omit(parameters, "aggregation");
         object symbolsDefined = (!isEqual(symbols, null));
-        if (isTrue(symbolsDefined))
+        if (!isTrue(symbolsDefined))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
-                ((IDictionary<string,object>)watchOrderBookSubscriptions)[(string)symbol] = new List<object>() {getValue(market, "id"), limit, aggregation, true};
-            }
-        } else
-        {
-            ((IList<object>)messageHashes).Add("orderbook");
+            throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a symbol argument")) ;
         }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            market = this.market(symbol);
+            ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
+            ((IDictionary<string,object>)watchOrderBookSubscriptions)[(string)symbol] = new List<object>() {getValue(market, "id"), limit, aggregation, true};
+        }
+        var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
         object subscribe = new Dictionary<string, object>() {
             { "method", "depth.subscribe" },
@@ -953,7 +951,8 @@ public partial class coinex : ccxt.coinex
         //         "id": null
         //     }
         //
-        object defaultType = this.safeString(this.options, "defaultType");
+        object isSpot = isGreaterThan(getIndexOf(client.url, "spot"), -1);
+        object defaultType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "market");
