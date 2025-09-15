@@ -2397,6 +2397,7 @@ class hyperliquid extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->subAccountAddress] sub account user address
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2405,12 +2406,19 @@ class hyperliquid extends Exchange {
         list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
         $this->load_markets();
         $market = $this->safe_market($symbol);
-        $isClientOrderId = strlen($id) >= 34;
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array(
             'type' => 'orderStatus',
-            'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
+            // 'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
             'user' => $userAddress,
         );
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['oid'] = $clientOrderId;
+        } else {
+            $isClientOrderId = strlen($id) >= 34;
+            $request['oid'] = $isClientOrderId ? $id : $this->parse_to_numeric($id);
+        }
         $response = $this->publicPostInfo ($this->extend($request, $params));
         //
         //     {
@@ -3871,11 +3879,15 @@ class hyperliquid extends Exchange {
         //     }
         // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
+        // array("status":"unknownOid")
+        //
         $status = $this->safe_string($response, 'status', '');
         $error = $this->safe_string($response, 'error');
         $message = null;
         if ($status === 'err') {
             $message = $this->safe_string($response, 'response');
+        } elseif ($status === 'unknownOid') {
+            throw new OrderNotFound($this->id . ' ' . $body); // array("status":"unknownOid")
         } elseif ($error !== null) {
             $message = $error;
         } else {

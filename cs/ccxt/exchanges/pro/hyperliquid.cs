@@ -106,6 +106,12 @@ public partial class hyperliquid : ccxt.hyperliquid
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
         object orders = await this.createOrdersWs(new List<object>() {((object)order)}, globalParams);
+        object ordersLength = getArrayLength(orders);
+        if (isTrue(isEqual(ordersLength, 0)))
+        {
+            // not sure why but it is happening sometimes
+            return this.safeOrder(new Dictionary<string, object>() {});
+        }
         object parsedOrder = getValue(orders, 0);
         return parsedOrder;
     }
@@ -1027,6 +1033,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object id = this.safeString(message, "id");
+        if (isTrue(isEqual(id, null)))
+        {
+            id = this.safeString(data, "id");
+        }
         object response = this.safeDict(data, "response", new Dictionary<string, object>() {});
         object payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
         object status = this.safeString(payload, "status");

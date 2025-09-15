@@ -446,13 +446,13 @@ export default class bybit extends bybitRest {
      * @description unWatches a price ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTicker(symbols, params = {}) {
+    async unWatchTicker(symbol, params = {}) {
         await this.loadMarkets();
-        return await this.unWatchTickers([symbols], params);
+        return await this.unWatchTickers([symbol], params);
     }
     handleTicker(client, message) {
         //
@@ -867,21 +867,14 @@ export default class bybit extends bybitRest {
             }
         }
         else {
-            if (!market['spot']) {
-                if (market['option']) {
-                    if ((limit !== 25) && (limit !== 100)) {
-                        throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 25 and 100 for option markets.');
-                    }
-                }
-                else if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    // bybit only support limit 1, 50, 200, 500 for contract
-                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500 for swap and future markets.');
-                }
-            }
-            else {
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200)) {
-                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1,50, and 200 for spot markets.');
-                }
+            const limits = {
+                'spot': [1, 50, 200, 1000],
+                'option': [25, 100],
+                'default': [1, 50, 200, 500, 1000],
+            };
+            const selectedLimits = this.safeList2(limits, market['type'], 'default');
+            if (!this.inArray(limit, selectedLimits)) {
+                throw new BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
         const topics = [];
@@ -1251,11 +1244,13 @@ export default class bybit extends bybitRest {
      * @name bybit#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1273,7 +1268,12 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        const topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let executionFast = false;
+        [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
+        if (executionFast) {
+            topic = 'execution.fast';
+        }
         const trades = await this.watchTopics(url, [messageHash], [topic], params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
@@ -1285,9 +1285,11 @@ export default class bybit extends bybitRest {
      * @name bybit#unWatchMyTrades
      * @description unWatches information on multiple trades made by the user
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
@@ -1305,7 +1307,12 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        const topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let executionFast = false;
+        [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
+        if (executionFast) {
+            topic = 'execution.fast';
+        }
         return await this.unWatchTopics(url, 'myTrades', [], [messageHash], [subHash], [topic], params);
     }
     handleMyTrades(client, message) {
@@ -1371,8 +1378,31 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
+        // execution.fast
+        //
+        //     {
+        //         "topic": "execution.fast",
+        //         "creationTime": 1757405601981,
+        //         "data": [
+        //             {
+        //                 "category": "linear",
+        //                 "symbol": "BTCUSDT",
+        //                 "execId": "ffcac6ac-7571-536d-a28a-847dd7d08a0f",
+        //                 "execPrice": "112529.6",
+        //                 "execQty": "0.001",
+        //                 "orderId": "6e25ab73-7a55-4ae7-adc2-8ea95f167c85",
+        //                 "isMaker": false,
+        //                 "orderLinkId": "test-00001",
+        //                 "side": "Buy",
+        //                 "execTime": "1757405601977",
+        //                 "seq": 9515624038
+        //             }
+        //         ]
+        //     }
+        //
         const topic = this.safeString(message, 'topic');
         const spot = topic === 'ticketInfo';
+        const executionFast = topic === 'execution.fast';
         let data = this.safeValue(message, 'data', []);
         if (!Array.isArray(data)) {
             data = this.safeValue(data, 'result', []);
@@ -1387,12 +1417,15 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
-            if (spot) {
+            if (spot && !executionFast) {
                 parsed = this.parseWsTrade(rawTrade);
             }
             else {
                 // filter unified trades
-                const execType = this.safeString(rawTrade, 'execType', '');
+                let execType = this.safeString(rawTrade, 'execType', '');
+                if (executionFast) {
+                    execType = 'Trade';
+                }
                 if (!this.inArray(execType, filterExecTypes)) {
                     continue;
                 }
@@ -2348,12 +2381,13 @@ export default class bybit extends bybitRest {
         }
     }
     handleMessage(client, message) {
+        const topic = this.safeString2(message, 'topic', 'op', '');
         if (this.handleErrorMessage(client, message)) {
             return;
         }
         // contract pong
         const ret_msg = this.safeString(message, 'ret_msg');
-        if (ret_msg === 'pong') {
+        if ((ret_msg === 'pong') || (topic === 'pong')) {
             this.handlePong(client, message);
             return;
         }
@@ -2365,11 +2399,10 @@ export default class bybit extends bybitRest {
         }
         // pong
         const event = this.safeString(message, 'event');
-        if (event === 'sub') {
+        if (event === 'sub' || (topic === 'subscribe')) {
             this.handleSubscriptionStatus(client, message);
             return;
         }
-        const topic = this.safeString2(message, 'topic', 'op', '');
         const methods = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
@@ -2382,6 +2415,7 @@ export default class bybit extends bybitRest {
             'wallet': this.handleBalance,
             'outboundAccountInfo': this.handleBalance,
             'execution': this.handleMyTrades,
+            'execution.fast': this.handleMyTrades,
             'ticketInfo': this.handleMyTrades,
             'user.openapi.perp.trade': this.handleMyTrades,
             'position': this.handlePositions,
@@ -2431,6 +2465,14 @@ export default class bybit extends bybitRest {
         //
         //   { pong: 1653296711335 }
         //
+        //
+        //   {
+        //       "req_id": "2",
+        //       "op": "pong",
+        //       "args": [ "1757405570352" ],
+        //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
+        //   }
+        //
         client.lastPong = this.safeInteger(message, 'pong');
         return message;
     }
@@ -2448,6 +2490,13 @@ export default class bybit extends bybitRest {
         //        "retMsg":"OK",
         //        "op":"auth",
         //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
+        //    {
+        //        "success": true,
+        //        "ret_msg": "",
+        //        "op": "auth",
+        //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
         const success = this.safeValue(message, 'success');
@@ -2515,7 +2564,7 @@ export default class bybit extends bybitRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades');
+                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
                     this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);

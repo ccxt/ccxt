@@ -108,6 +108,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             Async\await($this->load_markets());
             list($order, $globalParams) = $this->parseCreateEditOrderArgs (null, $symbol, $type, $side, $amount, $price, $params);
             $orders = Async\await($this->create_orders_ws(array( $order ), $globalParams));
+            $ordersLength = count($orders);
+            if ($ordersLength === 0) {
+                // not sure why but it is happening sometimes
+                return $this->safe_order(array());
+            }
             $parsedOrder = $orders[0];
             return $parsedOrder;
         }) ();
@@ -986,6 +991,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $data = $this->safe_dict($message, 'data', array());
         $id = $this->safe_string($message, 'id');
+        if ($id === null) {
+            $id = $this->safe_string($data, 'id');
+        }
         $response = $this->safe_dict($data, 'response', array());
         $payload = $this->safe_dict($response, 'payload', array());
         $status = $this->safe_string($payload, 'status');

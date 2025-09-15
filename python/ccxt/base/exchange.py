@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.100'
+__version__ = '4.5.4'
 
 # -----------------------------------------------------------------------------
 
@@ -1309,6 +1309,10 @@ class Exchange(object):
         elif algoType == 'ES':
             rawSignature = Exchange.ecdsa(token, secret, 'p256', algorithm)
             signature = Exchange.base16_to_binary(rawSignature['r'].rjust(64, "0") + rawSignature['s'].rjust(64, "0"))
+        elif algoType == 'Ed':
+            signature = Exchange.eddsa(token.encode('utf-8'), secret, 'ed25519', True)
+            # here the signature is already a urlencoded base64-encoded string
+            return token + '.' + signature
         else:
             signature = Exchange.hmac(Exchange.encode(token), secret, algos[algorithm], 'binary')
         return token + '.' + Exchange.urlencode_base64(signature)
@@ -1379,9 +1383,9 @@ class Exchange(object):
         return msgHash
 
     @staticmethod
-    def starknet_sign (hash, pri):
+    def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
-        r, s = message_signature(hash, pri)
+        r, s = message_signature(msg_hash, pri)
         return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
@@ -1442,12 +1446,22 @@ class Exchange(object):
             'v': v,
         }
 
+
     @staticmethod
-    def eddsa(request, secret, curve='ed25519'):
+    def binary_to_urlencoded_base64(data: bytes) -> str:
+        encoded = base64.urlsafe_b64encode(data).decode("utf-8")
+        return encoded.rstrip("=")
+
+    @staticmethod
+    def eddsa(request, secret, curve='ed25519', url_encode=False):
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
         private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
-        return Exchange.binary_to_base64(private_key.sign(request))
+        signature = private_key.sign(request)
+        if url_encode:
+            return Exchange.binary_to_urlencoded_base64(signature)
+
+        return Exchange.binary_to_base64(signature)
 
     @staticmethod
     def axolotl(request, secret, curve='ed25519'):
@@ -2337,6 +2351,12 @@ class Exchange(object):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1
 
+    def arrays_concat(self, arraysOfArrays: List[Any]):
+        result = []
+        for i in range(0, len(arraysOfArrays)):
+            result = self.array_concat(result, arraysOfArrays[i])
+        return result
+
     def find_timeframe(self, timeframe, timeframes=None):
         if timeframes is None:
             timeframes = self.timeframes
@@ -2635,6 +2655,9 @@ class Exchange(object):
     def un_watch_positions(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' unWatchPositions() is not supported yet')
 
+    def un_watch_ticker(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchTicker() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
@@ -2856,9 +2879,9 @@ class Exchange(object):
     def parse_to_numeric(self, number):
         stringVersion = self.number_to_string(number)  # self will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         # keep self in mind:
-        # in JS: 1 == 1.0 is True;  1 == 1.0 is True
+        # in JS:     1 == 1.0 is True
         # in Python: 1 == 1.0 is True
-        # in PHP 1 == 1.0 is True, but 1 == 1.0 is False.
+        # in PHP:    1 == 1.0 is True, but 1 == 1.0 is False.
         if stringVersion.find('.') >= 0:
             return float(stringVersion)
         return int(stringVersion)
@@ -3303,6 +3326,24 @@ class Exchange(object):
         currenciesSortedByCode = self.keysort(self.currencies)
         self.codes = list(currenciesSortedByCode.keys())
         return self.markets
+
+    def set_markets_from_exchange(self, sourceExchange):
+        # Validate that both exchanges are of the same type
+        if self.id != sourceExchange.id:
+            raise ArgumentsRequired(self.id + ' shareMarkets() can only share markets with exchanges of the same type(got ' + sourceExchange['id'] + ')')
+        # Validate that source exchange has loaded markets
+        if not sourceExchange.markets:
+            raise ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function')
+        # Set all market-related data
+        self.markets = sourceExchange.markets
+        self.markets_by_id = sourceExchange.markets_by_id
+        self.symbols = sourceExchange.symbols
+        self.ids = sourceExchange.ids
+        self.currencies = sourceExchange.currencies
+        self.baseCurrencies = sourceExchange.baseCurrencies
+        self.quoteCurrencies = sourceExchange.quoteCurrencies
+        self.codes = sourceExchange.codes
+        return self
 
     def get_describe_for_extended_ws_exchange(self, currentRestInstance: Any, parentRestInstance: Any, wsBaseDescribe: dict):
         extendedRestDescribe = self.deep_extend(parentRestInstance.describe(), currentRestInstance.describe())
@@ -3942,19 +3983,19 @@ class Exchange(object):
     def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead')
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
         if self.has['fetchTrades']:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCV() is not supported yet' + message)
 
-    def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         message = ''
         if self.has['fetchTradesWs']:
             message = '. If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see "build-ohlcv-bars" file'
         raise NotSupported(self.id + ' fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead.' + message)
 
-    def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
     def convert_trading_view_to_ohlcv(self, ohlcvs: List[List[float]], timestamp='t', open='o', high='h', low='l', close='c', volume='v', ms=False):
@@ -4366,15 +4407,26 @@ class Exchange(object):
             result.append(account)
         return result
 
-    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+    def parse_trades_helper(self, isWs: bool, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
         trades = self.to_array(trades)
         result = []
         for i in range(0, len(trades)):
-            trade = self.extend(self.parse_trade(trades[i], market), params)
+            parsed = None
+            if isWs:
+                parsed = self.parse_ws_trade(trades[i], market)
+            else:
+                parsed = self.parse_trade(trades[i], market)
+            trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
         symbol = market['symbol'] if (market is not None) else None
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+
+    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+        return self.parse_trades_helper(False, trades, market, since, limit, params)
+
+    def parse_ws_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}):
+        return self.parse_trades_helper(True, trades, market, since, limit, params)
 
     def parse_transactions(self, transactions: List[Any], currency: Currency = None, since: Int = None, limit: Int = None, params={}):
         transactions = self.to_array(transactions)
@@ -4756,6 +4808,11 @@ class Exchange(object):
         if market is not None:
             return market
         return result
+
+    def market_or_null(self, symbol: str):
+        if symbol is None:
+            return None
+        return self.market(symbol)
 
     def check_required_credentials(self, error=True):
         """
@@ -6042,6 +6099,29 @@ class Exchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    def handle_trigger_prices_and_params(self, symbol, params, omitParams=True):
+        #
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        triggerPriceStr: Str = None
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        stopLossPriceStr: Str = None
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        takeProfitPriceStr: Str = None
+        #
+        if triggerPrice is not None:
+            if omitParams:
+                params = self.omit(params, ['triggerPrice', 'stopPrice'])
+            triggerPriceStr = self.price_to_precision(symbol, float(triggerPrice))
+        if stopLossPrice is not None:
+            if omitParams:
+                params = self.omit(params, 'stopLossPrice')
+            stopLossPriceStr = self.price_to_precision(symbol, float(stopLossPrice))
+        if takeProfitPrice is not None:
+            if omitParams:
+                params = self.omit(params, 'takeProfitPrice')
+            takeProfitPriceStr = self.price_to_precision(symbol, float(takeProfitPrice))
+        return [triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params]
+
     def handle_trigger_direction_and_params(self, params, exchangeSpecificKey: Str = None, allowEmpty: Bool = False):
         """
  @ignore
@@ -6195,7 +6275,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchFundingInterval() is not supported yet')
 
-    def fetch_mark_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_mark_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -6213,7 +6293,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchMarkOHLCV() is not supported yet')
 
-    def fetch_index_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -6231,7 +6311,7 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchIndexOHLCV() is not supported yet')
 
-    def fetch_premium_index_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_premium_index_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -7030,7 +7110,7 @@ class Exchange(object):
                 clients = list(self.clients.values())
                 for i in range(0, len(clients)):
                     client = clients[i]
-                    futures = self.safe_dict(client, 'futures')
+                    futures = client.futures
                     if (futures is not None) and ('fetchPositionsSnapshot' in futures):
                         del futures['fetchPositionsSnapshot']
             elif topic == 'ticker' and (self.tickers is not None):

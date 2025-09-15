@@ -179,7 +179,7 @@ public partial class mexc : ccxt.mexc
         this.handleBidAsk(client as WebSocketClient, message);
         object rawTicker = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"});
         object marketId = this.safeString2(message, "s", "symbol");
-        object timestamp = this.safeInteger2(message, "t", "sendtime");
+        object timestamp = this.safeInteger2(message, "t", "sendTime");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object ticker = null;
@@ -922,7 +922,6 @@ public partial class mexc : ccxt.mexc
             object timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)storedOrderBook)["nonce"] = this.safeInteger(data, "fromVersion");
         } catch(Exception e)
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
@@ -1512,7 +1511,7 @@ public partial class mexc : ccxt.mexc
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },
-            { "clientOrderId", this.safeString(order, "clientOrderId") },
+            { "clientOrderId", this.safeString(order, "clientId") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
@@ -1637,7 +1636,7 @@ public partial class mexc : ccxt.mexc
         //         "ts": 1680059188190
         //     }
         //
-        object c = this.safeString2(message, "c", "channel");
+        object c = this.safeString(message, "c"); // do not add 'channel' here, this is especially for spot
         object type = ((bool) isTrue((isEqual(c, null)))) ? "swap" : "spot";
         object messageHash = add("balance:", type);
         object data = this.safeDictN(message, new List<object>() {"d", "data", "privateAccount"});
@@ -1653,7 +1652,12 @@ public partial class mexc : ccxt.mexc
         object currencyId = this.safeStringN(data, new List<object>() {"a", "currency", "vcoinName"});
         object code = this.safeCurrencyCode(currencyId);
         object account = this.account();
-        ((IDictionary<string,object>)account)["total"] = this.safeStringN(data, new List<object>() {"f", "availableBalance", "balanceAmount"});
+        object balanceAmount = this.safeString(data, "balanceAmount");
+        if (isTrue(!isEqual(balanceAmount, null)))
+        {
+            ((IDictionary<string,object>)account)["free"] = balanceAmount;
+        }
+        ((IDictionary<string,object>)account)["total"] = this.safeStringN(data, new List<object>() {"f", "availableBalance"});
         ((IDictionary<string,object>)account)["used"] = this.safeStringN(data, new List<object>() {"l", "frozenBalance", "frozenAmount"});
         ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
@@ -1668,7 +1672,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1681,7 +1685,7 @@ public partial class mexc : ccxt.mexc
             channel = add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", getValue(market, "id"));
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             channel = "unsub.ticker";
@@ -1689,7 +1693,7 @@ public partial class mexc : ccxt.mexc
                 { "symbol", getValue(market, "id") },
             };
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
@@ -1733,7 +1737,7 @@ public partial class mexc : ccxt.mexc
             ((IList<object>)messageHashes).Add("unsubscribe:ticker");
         }
         var client = this.client(url);
-        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         this.handleUnsubscriptions(client as WebSocketClient, messageHashes);
         return null;
     }
@@ -1782,7 +1786,7 @@ public partial class mexc : ccxt.mexc
             { "params", topics },
         };
         var client = this.client(url);
-        await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         this.handleUnsubscriptions(client as WebSocketClient, messageHashes);
         return null;
     }
@@ -1813,7 +1817,7 @@ public partial class mexc : ccxt.mexc
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             object channel = add(add(add("spot@public.kline.v3.api.pb@", getValue(market, "id")), "@"), timeframeId);
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
@@ -1822,7 +1826,7 @@ public partial class mexc : ccxt.mexc
                 { "symbol", getValue(market, "id") },
                 { "interval", timeframeId },
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
@@ -1855,7 +1859,7 @@ public partial class mexc : ccxt.mexc
             parameters = ((IList<object>)frequencyparametersVariable)[1];
             object channel = add(add(add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), getValue(market, "id"));
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
@@ -1863,7 +1867,7 @@ public partial class mexc : ccxt.mexc
             object requestParams = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
@@ -1892,7 +1896,7 @@ public partial class mexc : ccxt.mexc
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             object channel = add("spot@public.aggre.deals.v3.api.pb@100ms@", getValue(market, "id"));
             ((IDictionary<string,object>)parameters)["unsubscribed"] = true;
-            await this.watchSpotPublic(channel, messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
@@ -1900,7 +1904,7 @@ public partial class mexc : ccxt.mexc
             object requestParams = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
             };
-            await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
         var client = this.client(url);
         this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});

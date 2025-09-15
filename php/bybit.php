@@ -2988,17 +2988,31 @@ class bybit extends Exchange {
         //         "tradeId" => "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
         //     }
         //
+        // watchMyTrades execution.fast
+        //
+        //     {
+        //         "category" => "linear",
+        //         "symbol" => "ICPUSDT",
+        //         "execId" => "3510f361-0add-5c7b-a2e7-9679810944fc",
+        //         "execPrice" => "12.015",
+        //         "execQty" => "3000",
+        //         "orderId" => "443d63fa-b4c3-4297-b7b1-23bca88b04dc",
+        //         "isMaker" => false,
+        //         "orderLinkId" => "test-00001",
+        //         "side" => "Sell",
+        //         "execTime" => "1716800399334",
+        //         "seq" => 34771365464
+        //     }
+        //
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = (is_array($trade) && array_key_exists('createType', $trade)) ? 'contract' : 'spot';
-        if ($market !== null) {
-            $marketType = $market['type'];
-        }
         $category = $this->safe_string($trade, 'category');
         if ($category !== null) {
-            if ($category === 'spot') {
-                $marketType = 'spot';
-            }
+            $marketType = ($category === 'spot') ? 'spot' : 'contract';
+        }
+        if ($market !== null) {
+            $marketType = $market['type'];
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];

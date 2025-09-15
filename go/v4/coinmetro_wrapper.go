@@ -553,6 +553,9 @@ func (this *Coinmetro) FetchOrder(id string, options ...FetchOrderOptions) (Orde
 
 // missing typed methods from base
 // nolint
+func (this *Coinmetro) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Coinmetro) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

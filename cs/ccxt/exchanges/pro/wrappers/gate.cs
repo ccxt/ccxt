@@ -351,6 +351,11 @@ public partial class gate
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>

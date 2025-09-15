@@ -2627,6 +2627,7 @@ public partial class hyperliquid : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2640,12 +2641,20 @@ public partial class hyperliquid : Exchange
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         await this.loadMarkets();
         object market = this.safeMarket(symbol);
-        object isClientOrderId = isGreaterThanOrEqual(((string)id).Length, 34);
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
         object request = new Dictionary<string, object>() {
             { "type", "orderStatus" },
-            { "oid", ((bool) isTrue(isClientOrderId)) ? id : this.parseToNumeric(id) },
             { "user", userAddress },
         };
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            parameters = this.omit(parameters, "clientOrderId");
+            ((IDictionary<string,object>)request)["oid"] = clientOrderId;
+        } else
+        {
+            object isClientOrderId = isGreaterThanOrEqual(((string)id).Length, 34);
+            ((IDictionary<string,object>)request)["oid"] = ((bool) isTrue(isClientOrderId)) ? id : this.parseToNumeric(id);
+        }
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
         //     {
@@ -4263,12 +4272,17 @@ public partial class hyperliquid : Exchange
         //     }
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
+        // {"status":"unknownOid"}
+        //
         object status = this.safeString(response, "status", "");
         object error = this.safeString(response, "error");
         object message = null;
         if (isTrue(isEqual(status, "err")))
         {
             message = this.safeString(response, "response");
+        } else if (isTrue(isEqual(status, "unknownOid")))
+        {
+            throw new OrderNotFound ((string)add(add(this.id, " "), body)) ;
         } else if (isTrue(!isEqual(error, null)))
         {
             message = error;

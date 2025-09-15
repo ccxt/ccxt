@@ -931,7 +931,7 @@ class bitbank(Exchange, ImplicitAPI):
         address = self.safe_string(firstAccount, 'address')
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': None,
             'address': address,
             'tag': None,

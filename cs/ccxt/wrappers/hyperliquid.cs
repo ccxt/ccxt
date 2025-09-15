@@ -943,6 +943,12 @@ public partial class hyperliquid
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.user</term>
     /// <description>
     /// string : user address, will default to this.walletAddress if not provided

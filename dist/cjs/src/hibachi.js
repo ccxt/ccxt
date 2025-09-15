@@ -1595,7 +1595,7 @@ class hibachi extends hibachi$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        headers = {};
+        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit(params, this.extractParams(path));
             const query = this.urlencode(request);

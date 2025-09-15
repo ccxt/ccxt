@@ -227,9 +227,7 @@ export interface CurrencyInterface {
     },
     margin?: Bool;
     name?: Str;
-    networks: {
-        string: any,
-    },
+    networks: Dictionary<any>,
     numericId?: Int;
     precision: number;
     type?: Str;

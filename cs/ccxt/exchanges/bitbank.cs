@@ -954,7 +954,7 @@ public partial class bitbank : Exchange
         object address = this.safeString(firstAccount, "address");
         return new Dictionary<string, object>() {
             { "info", response },
-            { "currency", currency },
+            { "currency", getValue(currency, "code") },
             { "network", null },
             { "address", address },
             { "tag", null },

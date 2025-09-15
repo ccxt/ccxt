@@ -237,6 +237,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/open-oracle': 50,
                         'market/exchange-rate': 20,
                         'market/index-components': 1,
+                        'public/market-data-history': 4,
                         'public/economic-calendar': 50,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
@@ -388,7 +389,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
-                        'account/spot-manual-borrow-repay': 10,
+                        'account/spot-manual-borrow-repay': 30,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
                         'account/move-positions-history': 10,
@@ -1243,7 +1244,7 @@ class okx(Exchange, ImplicitAPI):
                     'FUTURES': 'FUTURES',
                     'OPTION': 'OPTION',
                 },
-                'brokerId': 'e847386590ce4dBC',
+                'brokerId': '6b9ad766b55dBCDE',
             },
             'features': {
                 'default': {
@@ -2394,6 +2395,7 @@ class okx(Exchange, ImplicitAPI):
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -2402,6 +2404,7 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
+        :param str [params.type]: "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -2415,6 +2418,7 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
+        limitIsUndefined = (limit is None)
         if limit is None:
             limit = 100  # default 100, max 100
         else:
@@ -2436,7 +2440,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-                limit = min(limit, 100)  # max 100 for historical endpoint
+                maxLimit = 100 if (price is not None) else 300
+                limit = min(limit, maxLimit)  # max 300 for historical endpoint
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
@@ -2462,6 +2467,9 @@ class okx(Exchange, ImplicitAPI):
                 response = self.publicGetMarketIndexCandles(self.extend(request, params))
         else:
             if isHistoryCandles:
+                if limitIsUndefined and (limit == 100):
+                    limit = 300
+                    request['limit'] = 300  # reassign to 300, but self whole logic needs to be simplified...
                 response = self.publicGetMarketHistoryCandles(self.extend(request, params))
             else:
                 response = self.publicGetMarketCandles(self.extend(request, params))
@@ -2789,10 +2797,10 @@ class okx(Exchange, ImplicitAPI):
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
+        create a market buy order by providing the symbol and cost
 
         https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
 
-        create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2810,10 +2818,10 @@ class okx(Exchange, ImplicitAPI):
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
+        create a market buy order by providing the symbol and cost
 
         https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
 
-        create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2874,6 +2882,8 @@ class okx(Exchange, ImplicitAPI):
         takeProfitDefined = (takeProfit is not None)
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callbackRatio')
         isTrailingPercentOrder = trailingPercent is not None
+        trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
+        isTrailingPriceOrder = trailingPrice is not None
         trigger = (triggerPrice is not None) or (type == 'trigger')
         isReduceOnly = self.safe_value(params, 'reduceOnly', False)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
@@ -2962,13 +2972,18 @@ class okx(Exchange, ImplicitAPI):
             convertedTrailingPercent = Precise.string_div(trailingPercent, '100')
             request['callbackRatio'] = convertedTrailingPercent
             request['ordType'] = 'move_order_stop'
+        elif isTrailingPriceOrder:
+            request['callbackSpread'] = trailingPrice
+            request['ordType'] = 'move_order_stop'
         elif stopLossDefined or takeProfitDefined:
+            attachAlgoOrd = {}
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
                 slTriggerPx = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['slTriggerPx'] = slTriggerPx
+                slOrder = {}
+                slOrder['slTriggerPx'] = slTriggerPx
                 stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
                 if stopLossOrderType is not None:
@@ -2980,23 +2995,25 @@ class okx(Exchange, ImplicitAPI):
                         if stopLossLimitPrice is None:
                             raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order')
                         else:
-                            request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
+                            slOrder['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
                     elif stopLossOrderType == 'market':
-                        request['slOrdPx'] = '-1'
+                        slOrder['slOrdPx'] = '-1'
                 elif stopLossLimitPrice is not None:
-                    request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
+                    slOrder['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
                 else:
-                    request['slOrdPx'] = '-1'  # market sl order
+                    slOrder['slOrdPx'] = '-1'  # market sl order
                 stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last')
                 if stopLossTriggerPriceType is not None:
                     if (stopLossTriggerPriceType != 'last') and (stopLossTriggerPriceType != 'index') and (stopLossTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
-                    request['slTriggerPxType'] = stopLossTriggerPriceType
+                    slOrder['slTriggerPxType'] = stopLossTriggerPriceType
+                attachAlgoOrd = self.extend(attachAlgoOrd, slOrder)
             if takeProfitDefined:
                 takeProfitTriggerPrice = self.safe_value_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
                 if takeProfitTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
-                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                tpOrder = {}
+                tpOrder['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
                 takeProfitOrderType = self.safe_string_2(takeProfit, 'type', 'tpOrdKind')
                 if takeProfitOrderType is not None:
@@ -3008,20 +3025,25 @@ class okx(Exchange, ImplicitAPI):
                         if takeProfitLimitPrice is None:
                             raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order')
                         else:
-                            request['tpOrdKind'] = takeProfitOrderType
-                            request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
+                            tpOrder['tpOrdKind'] = takeProfitOrderType
+                            tpOrder['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
                     elif takeProfitOrderType == 'market':
-                        request['tpOrdPx'] = '-1'
+                        tpOrder['tpOrdPx'] = '-1'
                 elif takeProfitLimitPrice is not None:
-                    request['tpOrdKind'] = 'limit'
-                    request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
+                    tpOrder['tpOrdKind'] = 'limit'
+                    tpOrder['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
                 else:
-                    request['tpOrdPx'] = '-1'  # market tp order
+                    tpOrder['tpOrdPx'] = '-1'  # market tp order
                 takeProfitTriggerPriceType = self.safe_string_2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last')
                 if takeProfitTriggerPriceType is not None:
                     if (takeProfitTriggerPriceType != 'last') and (takeProfitTriggerPriceType != 'index') and (takeProfitTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
-                    request['tpTriggerPxType'] = takeProfitTriggerPriceType
+                    tpOrder['tpTriggerPxType'] = takeProfitTriggerPriceType
+                attachAlgoOrd = self.extend(attachAlgoOrd, tpOrder)
+            attachOrdKeys = list(attachAlgoOrd.keys())
+            attachOrdLen = len(attachOrdKeys)
+            if attachOrdLen > 0:
+                request['attachAlgoOrds'] = [attachAlgoOrd]
         elif trigger:
             request['ordType'] = 'trigger'
             request['triggerPx'] = self.price_to_precision(symbol, triggerPrice)
@@ -6008,7 +6030,7 @@ class okx(Exchange, ImplicitAPI):
             self.check_required_credentials()
             # inject id in implicit api call
             if method == 'POST' and (path == 'trade/batch-orders' or path == 'trade/order-algo' or path == 'trade/order'):
-                brokerId = self.safe_string(self.options, 'brokerId', 'e847386590ce4dBC')
+                brokerId = self.safe_string(self.options, 'brokerId', '6b9ad766b55dBCDE')
                 if isinstance(params, list):
                     for i in range(0, len(params)):
                         entry = params[i]

@@ -48,14 +48,24 @@ public partial class gate : Exchange
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "futures", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "delivery", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "options", "https://fx-api-testnet.gateio.ws/api/v4" },
+                        { "futures", "https://api-testnet.gateapi.io/api/v4" },
+                        { "delivery", "https://api-testnet.gateapi.io/api/v4" },
+                        { "options", "https://api-testnet.gateapi.io/api/v4" },
+                        { "spot", "https://api-testnet.gateapi.io/api/v4" },
+                        { "wallet", "https://api-testnet.gateapi.io/api/v4" },
+                        { "margin", "https://api-testnet.gateapi.io/api/v4" },
+                        { "sub_accounts", "https://api-testnet.gateapi.io/api/v4" },
+                        { "account", "https://api-testnet.gateapi.io/api/v4" },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "futures", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "delivery", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "options", "https://fx-api-testnet.gateio.ws/api/v4" },
+                        { "futures", "https://api-testnet.gateapi.io/api/v4" },
+                        { "delivery", "https://api-testnet.gateapi.io/api/v4" },
+                        { "options", "https://api-testnet.gateapi.io/api/v4" },
+                        { "spot", "https://api-testnet.gateapi.io/api/v4" },
+                        { "wallet", "https://api-testnet.gateapi.io/api/v4" },
+                        { "margin", "https://api-testnet.gateapi.io/api/v4" },
+                        { "sub_accounts", "https://api-testnet.gateapi.io/api/v4" },
+                        { "account", "https://api-testnet.gateapi.io/api/v4" },
                     } },
                 } },
                 { "referral", new Dictionary<string, object>() {
@@ -729,6 +739,9 @@ public partial class gate : Exchange
                     { "option", "options" },
                     { "options", "options" },
                 } },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "swap", "future", "option"} },
+                } },
                 { "swap", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
                         { "settlementCurrencies", new List<object>() {"usdt", "btc"} },
@@ -1156,20 +1169,30 @@ public partial class gate : Exchange
         {
             await this.loadUnifiedStatus();
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
-        if (!isTrue(sandboxMode))
+        object rawPromises = new List<object>() {};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        object types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
+        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
-            // gate doesn't have a sandbox for spot markets
-            object mainnetOnly = new List<object> {this.fetchSpotMarkets(parameters)};
-            rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
+            object marketType = getValue(types, i);
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                // if (!sandboxMode) {
+                // gate doesn't have a sandbox for spot markets
+                ((IList<object>)rawPromises).Add(this.fetchSpotMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "swap")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchSwapMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "future")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchFutureMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "option")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchOptionMarkets(parameters));
+            }
         }
-        object promises = await promiseAll(rawPromises);
-        object spotMarkets = this.safeValue(promises, 0, new List<object>() {});
-        object contractMarkets = this.safeValue(promises, 1, new List<object>() {});
-        object optionMarkets = this.safeValue(promises, 2, new List<object>() {});
-        object markets = this.arrayConcat(spotMarkets, contractMarkets);
-        return this.arrayConcat(markets, optionMarkets);
+        object results = await promiseAll(rawPromises);
+        return this.arraysConcat(results);
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters = null)
@@ -1293,12 +1316,15 @@ public partial class gate : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchContractMarkets(object parameters = null)
+    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
         object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
+        }
         for (object c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(swapSettlementCurrencies, c);
@@ -1312,6 +1338,18 @@ public partial class gate : Exchange
                 ((IList<object>)result).Add(parsedMarket);
             }
         }
+        return result;
+    }
+
+    public async virtual Task<object> fetchFutureMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            return new List<object>() {};  // right now sandbox does not have inverse swaps
+        }
+        object result = new List<object>() {};
+        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
         for (object c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(futureSettlementCurrencies, c);
@@ -2671,7 +2709,14 @@ public partial class gate : Exchange
         var query = ((IList<object>) requestqueryVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 10, max 100
+            if (isTrue(getValue(market, "spot")))
+            {
+                limit = mathMin(limit, 1000);
+            } else
+            {
+                limit = mathMin(limit, 300);
+            }
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         ((IDictionary<string,object>)request)["with_id"] = true;
         object response = null;

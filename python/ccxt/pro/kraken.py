@@ -86,6 +86,7 @@ class kraken(ccxt.async_support.kraken):
                     'broad': {
                         'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Currency pair not supported': BadSymbol,
                         'Malformed request': BadRequest,
                         'Pair field must be an array': BadRequest,
                         'Pair field unsupported for self subscription type': BadRequest,
@@ -1612,7 +1613,7 @@ class kraken(ccxt.async_support.kraken):
         #
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
-            # requestId = self.safe_value_2(message, 'reqid', 'req_id')
+            requestId = self.safe_string_2(message, 'reqid', 'req_id')
             broad = self.exceptions['ws']['broad']
             broadKey = self.find_broadly_matched_key(broad, errorMessage)
             exception = None
@@ -1620,11 +1621,8 @@ class kraken(ccxt.async_support.kraken):
                 exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
             else:
                 exception = broad[broadKey](errorMessage)
-            # if requestId is not None:
-            #     client.reject(exception, requestId)
-            # else:
-            client.reject(exception)
-            # }
+            if requestId is not None:
+                client.reject(exception, requestId)
             return False
         return True
 

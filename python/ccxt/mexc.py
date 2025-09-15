@@ -680,6 +680,7 @@ class mexc(Exchange, ImplicitAPI):
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
+                    'Ethereum(ERC20)': 'ERC20',
                     # TODO: uncomment below after deciding unified name
                     # 'PEPE COIN BSC':
                     # 'SMART BLOCKCHAIN':
@@ -4759,7 +4760,13 @@ class mexc(Exchange, ImplicitAPI):
         #         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # internal withdraw(aka internal-transfer)
+        #
+        #     {
+        #         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+        #     }
+        #
+        id = self.safe_string_2(transaction, 'id', 'tranId')
         type = 'deposit' if (id is None) else 'withdrawal'
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         updated = self.safe_integer(transaction, 'updateTime')
@@ -4960,7 +4967,7 @@ class mexc(Exchange, ImplicitAPI):
         #        positionShowStatus: 'CLOSED'
         #    }
         #
-        market = self.safe_market(self.safe_string(position, 'symbol'), market)
+        market = self.safe_market(self.safe_string(position, 'symbol'), market, None, 'swap')
         symbol = market['symbol']
         contracts = self.safe_string(position, 'holdVol')
         entryPrice = self.safe_number(position, 'openAvgPrice')
@@ -5253,17 +5260,38 @@ class mexc(Exchange, ImplicitAPI):
         make a withdrawal
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.internal]: False by default, set to True for an "internal transfer"
+        :param dict [params.toAccountType]: skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        internal = self.safe_bool(params, 'internal', False)
+        if internal:
+            params = self.omit(params, 'internal')
+            requestForInternal = {
+                'asset': currency['id'],
+                'amount': amount,
+                'toAccount': address,
+            }
+            toAccountType = self.safe_string(params, 'toAccountType')
+            if toAccountType is None:
+                raise ArgumentsRequired(self.id + ' withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE')
+            responseForInternal = self.spotPrivatePostCapitalTransferInternal(self.extend(requestForInternal, params))
+            #
+            #     {
+            #       "id":"7213fea8e94b4a5593d507237e5a555b"
+            #     }
+            #
+            return self.parse_transaction(responseForInternal, currency)
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias

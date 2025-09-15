@@ -4194,11 +4194,16 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
         :param dict params: extra parameters specific to the xt api endpoint
+        :param bool params['paginate']: True/false whether to use the pagination helper to aumatically paginate through the results
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200)
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
@@ -4207,6 +4212,8 @@ class xt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
+        else:
+            request['limit'] = 200  # max
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingRateHistory', market, params)
         response = None

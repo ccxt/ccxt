@@ -1659,7 +1659,7 @@ class hibachi extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $headers = array();
+        $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
         if ($method === 'GET') {
             $request = $this->omit($params, $this->extract_params($path));
             $query = $this->urlencode($request);

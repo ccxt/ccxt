@@ -202,6 +202,7 @@ public partial class okx : Exchange
                         { "market/open-oracle", 50 },
                         { "market/exchange-rate", 20 },
                         { "market/index-components", 1 },
+                        { "public/market-data-history", 4 },
                         { "public/economic-calendar", 50 },
                         { "market/block-tickers", 1 },
                         { "market/block-ticker", 1 },
@@ -343,7 +344,7 @@ public partial class okx : Exchange
                         { "account/fixed-loan/borrowing-limit", 4 },
                         { "account/fixed-loan/borrowing-quote", 5 },
                         { "account/fixed-loan/borrowing-orders-list", 5 },
-                        { "account/spot-manual-borrow-repay", 10 },
+                        { "account/spot-manual-borrow-repay", 30 },
                         { "account/set-auto-repay", 4 },
                         { "account/spot-borrow-repay-history", 4 },
                         { "account/move-positions-history", 10 },
@@ -1114,7 +1115,7 @@ public partial class okx : Exchange
                     { "FUTURES", "FUTURES" },
                     { "OPTION", "OPTION" },
                 } },
-                { "brokerId", "e847386590ce4dBC" },
+                { "brokerId", "6b9ad766b55dBCDE" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -2409,6 +2410,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-mark-price-candlesticks-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-index-candlesticks-history
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-candlesticks-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2416,6 +2418,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -2437,6 +2440,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "price");
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
+        object limitIsUndefined = (isEqual(limit, null));
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100; // default 100, max 100
@@ -2465,7 +2469,8 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                limit = mathMin(limit, 100); // max 100 for historical endpoint
+                object maxLimit = ((bool) isTrue((!isEqual(price, null)))) ? 100 : 300;
+                limit = mathMin(limit, maxLimit); // max 300 for historical endpoint
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -2505,6 +2510,11 @@ public partial class okx : Exchange
         {
             if (isTrue(isHistoryCandles))
             {
+                if (isTrue(isTrue(limitIsUndefined) && isTrue((isEqual(limit, 100)))))
+                {
+                    limit = 300;
+                    ((IDictionary<string,object>)request)["limit"] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                }
                 response = await this.publicGetMarketHistoryCandles(this.extend(request, parameters));
             } else
             {
@@ -2883,8 +2893,8 @@ public partial class okx : Exchange
     /**
      * @method
      * @name okx#createMarketBuyOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2909,8 +2919,8 @@ public partial class okx : Exchange
     /**
      * @method
      * @name okx#createMarketSellOrderWithCost
-     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2959,6 +2969,8 @@ public partial class okx : Exchange
         object takeProfitDefined = (!isEqual(takeProfit, null));
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRatio");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        object trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
+        object isTrailingPriceOrder = !isEqual(trailingPrice, null);
         object trigger = isTrue((!isEqual(triggerPrice, null))) || isTrue((isEqual(type, "trigger")));
         object isReduceOnly = this.safeValue(parameters, "reduceOnly", false);
         object defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
@@ -3101,8 +3113,13 @@ public partial class okx : Exchange
             object convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
             ((IDictionary<string,object>)request)["callbackRatio"] = convertedTrailingPercent;
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
+        } else if (isTrue(isTrailingPriceOrder))
+        {
+            ((IDictionary<string,object>)request)["callbackSpread"] = trailingPrice;
+            ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
         } else if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
         {
+            object attachAlgoOrd = new Dictionary<string, object>() {};
             if (isTrue(stopLossDefined))
             {
                 object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
@@ -3111,7 +3128,8 @@ public partial class okx : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
                 object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                ((IDictionary<string,object>)request)["slTriggerPx"] = slTriggerPx;
+                object slOrder = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)slOrder)["slTriggerPx"] = slTriggerPx;
                 object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 object stopLossOrderType = this.safeString(stopLoss, "type");
                 if (isTrue(!isEqual(stopLossOrderType, null)))
@@ -3128,18 +3146,18 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
                         } else
                         {
-                            ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
+                            ((IDictionary<string,object>)slOrder)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
                         }
                     } else if (isTrue(isEqual(stopLossOrderType, "market")))
                     {
-                        ((IDictionary<string,object>)request)["slOrdPx"] = "-1";
+                        ((IDictionary<string,object>)slOrder)["slOrdPx"] = "-1";
                     }
                 } else if (isTrue(!isEqual(stopLossLimitPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
+                    ((IDictionary<string,object>)slOrder)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
                 } else
                 {
-                    ((IDictionary<string,object>)request)["slOrdPx"] = "-1"; // market sl order
+                    ((IDictionary<string,object>)slOrder)["slOrdPx"] = "-1"; // market sl order
                 }
                 object stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTriggerPxType", "last");
                 if (isTrue(!isEqual(stopLossTriggerPriceType, null)))
@@ -3148,8 +3166,9 @@ public partial class okx : Exchange
                     {
                         throw new InvalidOrder ((string)add(this.id, " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((IDictionary<string,object>)request)["slTriggerPxType"] = stopLossTriggerPriceType;
+                    ((IDictionary<string,object>)slOrder)["slTriggerPxType"] = stopLossTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
             if (isTrue(takeProfitDefined))
             {
@@ -3158,7 +3177,8 @@ public partial class okx : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
-                ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                object tpOrder = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)tpOrder)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
                 object takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if (isTrue(!isEqual(takeProfitOrderType, null)))
@@ -3175,20 +3195,20 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
-                            ((IDictionary<string,object>)request)["tpOrdKind"] = takeProfitOrderType;
-                            ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
+                            ((IDictionary<string,object>)tpOrder)["tpOrdKind"] = takeProfitOrderType;
+                            ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     } else if (isTrue(isEqual(takeProfitOrderType, "market")))
                     {
-                        ((IDictionary<string,object>)request)["tpOrdPx"] = "-1";
+                        ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = "-1";
                     }
                 } else if (isTrue(!isEqual(takeProfitLimitPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["tpOrdKind"] = "limit";
-                    ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
+                    ((IDictionary<string,object>)tpOrder)["tpOrdKind"] = "limit";
+                    ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 } else
                 {
-                    ((IDictionary<string,object>)request)["tpOrdPx"] = "-1"; // market tp order
+                    ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = "-1"; // market tp order
                 }
                 object takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTriggerPxType", "last");
                 if (isTrue(!isEqual(takeProfitTriggerPriceType, null)))
@@ -3197,8 +3217,15 @@ public partial class okx : Exchange
                     {
                         throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((IDictionary<string,object>)request)["tpTriggerPxType"] = takeProfitTriggerPriceType;
+                    ((IDictionary<string,object>)tpOrder)["tpTriggerPxType"] = takeProfitTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
+            }
+            object attachOrdKeys = new List<object>(((IDictionary<string,object>)attachAlgoOrd).Keys);
+            object attachOrdLen = getArrayLength(attachOrdKeys);
+            if (isTrue(isGreaterThan(attachOrdLen, 0)))
+            {
+                ((IDictionary<string,object>)request)["attachAlgoOrds"] = new List<object>() {attachAlgoOrd};
             }
         } else if (isTrue(trigger))
         {
@@ -6601,7 +6628,7 @@ public partial class okx : Exchange
             // inject id in implicit api call
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue(isTrue(isEqual(path, "trade/batch-orders")) || isTrue(isEqual(path, "trade/order-algo"))) || isTrue(isEqual(path, "trade/order"))))))
             {
-                object brokerId = this.safeString(this.options, "brokerId", "e847386590ce4dBC");
+                object brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
                 if (isTrue(((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     for (object i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))

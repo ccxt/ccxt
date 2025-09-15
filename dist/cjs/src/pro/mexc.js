@@ -176,7 +176,7 @@ class mexc extends mexc$1["default"] {
         this.handleBidAsk(client, message);
         const rawTicker = this.safeDictN(message, ['d', 'data', 'publicAggreBookTicker']);
         const marketId = this.safeString2(message, 's', 'symbol');
-        const timestamp = this.safeInteger2(message, 't', 'sendtime');
+        const timestamp = this.safeInteger2(message, 't', 'sendTime');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let ticker = undefined;
@@ -879,7 +879,6 @@ class mexc extends mexc$1["default"] {
             const timestamp = this.safeIntegerN(message, ['t', 'ts', 'sendTime']);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601(timestamp);
-            storedOrderBook['nonce'] = this.safeInteger(data, 'fromVersion');
         }
         catch (e) {
             delete client.subscriptions[messageHash];
@@ -1422,7 +1421,7 @@ class mexc extends mexc$1["default"] {
         }
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
-            'clientOrderId': this.safeString(order, 'clientOrderId'),
+            'clientOrderId': this.safeString(order, 'clientId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
@@ -1533,7 +1532,7 @@ class mexc extends mexc$1["default"] {
         //         "ts": 1680059188190
         //     }
         //
-        const c = this.safeString2(message, 'c', 'channel');
+        const c = this.safeString(message, 'c'); // do not add 'channel' here, this is especially for spot
         const type = (c === undefined) ? 'swap' : 'spot';
         const messageHash = 'balance:' + type;
         const data = this.safeDictN(message, ['d', 'data', 'privateAccount']);
@@ -1548,7 +1547,11 @@ class mexc extends mexc$1["default"] {
         const currencyId = this.safeStringN(data, ['a', 'currency', 'vcoinName']);
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
-        account['total'] = this.safeStringN(data, ['f', 'availableBalance', 'balanceAmount']);
+        const balanceAmount = this.safeString(data, 'balanceAmount');
+        if (balanceAmount !== undefined) {
+            account['free'] = balanceAmount;
+        }
+        account['total'] = this.safeStringN(data, ['f', 'availableBalance']);
         account['used'] = this.safeStringN(data, ['l', 'frozenBalance', 'frozenAmount']);
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance(this.balance[type]);

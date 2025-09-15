@@ -98,6 +98,11 @@ class hyperliquid extends hyperliquid$1["default"] {
         await this.loadMarkets();
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
+        const ordersLength = orders.length;
+        if (ordersLength === 0) {
+            // not sure why but it is happening sometimes
+            return this.safeOrder({});
+        }
         const parsedOrder = orders[0];
         return parsedOrder;
     }
@@ -920,7 +925,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             return true;
         }
         const data = this.safeDict(message, 'data', {});
-        const id = this.safeString(message, 'id');
+        let id = this.safeString(message, 'id');
+        if (id === undefined) {
+            id = this.safeString(data, 'id');
+        }
         const response = this.safeDict(data, 'response', {});
         const payload = this.safeDict(response, 'payload', {});
         const status = this.safeString(payload, 'status');
