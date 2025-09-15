@@ -973,7 +973,7 @@ export default class toobit extends Exchange {
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, 'until');
-            request['endTime'] = this.iso8601 (until);
+            request['endTime'] = until;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1489,10 +1489,10 @@ export default class toobit extends Exchange {
         let cost: Str = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
         if (type === 'market') {
-            if (cost === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires params["cost"] for market orders');
+            if (cost === undefined && side === 'buy') {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires params["cost"] for market buy order');
             } else {
-                request['quantity'] = this.amountToPrecision (symbol, cost);
+                request['quantity'] = this.costToPrecision (symbol, cost);
             }
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
@@ -1968,10 +1968,14 @@ export default class toobit extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2096,7 +2100,7 @@ export default class toobit extends Exchange {
         await this.loadMarkets ();
         let request: Dict = {};
         if (since !== undefined) {
-            request['startTime'] = this.iso8601 (since);
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
