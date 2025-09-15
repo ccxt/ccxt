@@ -74,6 +74,7 @@ func (this *Onetrading) FetchMarkets(params ...interface{}) ([]MarketInterface, 
  * @see https://docs.onetrading.com/#fee-groups
  * @see https://docs.onetrading.com/#fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
  */
 func (this *Onetrading) FetchTradingFees(params ...interface{}) (TradingFees, error) {
