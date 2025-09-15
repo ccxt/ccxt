@@ -2708,7 +2708,7 @@ export default class toobit extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'leverage': this.numberToString (leverage),
+            'leverage': leverage,
         };
         const response = await this.privatePostApiV1FuturesLeverage (this.extend (request, params));
         //
