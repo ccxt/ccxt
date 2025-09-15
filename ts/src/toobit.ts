@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/toobit.js';
-import { ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported } from './base/errors.js';
+import { OperationFailed, ArgumentsRequired, ExchangeError, BadRequest, OrderNotFound, BadSymbol, NotSupported, PermissionDenied, RateLimitExceeded, OperationRejected, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -164,15 +164,93 @@ export default class toobit extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '-1000': OperationFailed, // An unknown error occurred while processing the request.
+                    '-1001': OperationFailed, // Internal error; unable to process your request. Please try again.
+                    '-1002': PermissionDenied, // You are not authorized to execute this request.
+                    '-1003': RateLimitExceeded, // TOO_MANY_REQUESTS
                     '-1004': BadRequest, // {"code":-1004,"msg":"Missing required parameter \u0027xyz\u0027"} | {"code":-1004,"msg":"Bad request"}
-                    '-1105': ArgumentsRequired, // {"code":-1105,"msg":"Parameter \u0027symbol, orderIds or clientOrderIds\u0027 was empty."}
-                    '-1117': BadRequest, // {"code":-1117,"msg":"Invalid side."}
-                    '-1140': BadRequest, // {"code":-1140,"msg":"Transaction amount lower than the minimum."}
-                    '-1142': OrderNotFound, // {"code":-1142,"msg":"Order has been canceled"}
-                    '-1202': BadRequest, // {"code":-1202,"msg":"Create order sell quantity too small"}
-                    '-2013': OrderNotFound, // {"code":-2013,"msg":"Order does not exist."}
+                    '-1006': OperationFailed, // An unexpected response was received from the message bus. Execution status unknown
+                    '-1007': OperationFailed, // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
+                    '-1014': OperationFailed, // Unsupported order combination.
+                    '-1015': RateLimitExceeded, // Too many new orders
+                    '-1016': OperationRejected, // This service is no longer available.
+                    '-1020': OperationRejected, // This operation is not supported.
+                    '-1021': OperationRejected, // Timestamp for this request is outside of the recvWindow.
+                    '-1022': OperationRejected, // Signature for this request is not valid.
+                    '-1100': BadRequest, // Illegal characters found in a parameter.
+                    '-1101': BadRequest, // Too many parameters sent for this endpoint.
+                    '-1102': BadRequest, // A mandatory parameter was not sent, was empty/null, or malformed
+                    '-1103': BadRequest, // An unknown parameter was sent
+                    '-1104': BadRequest, // Not all sent parameters were read
+                    '-1105': BadRequest, // A parameter was empty
+                    '-1106': BadRequest, // A parameter was sent when not required
+                    '-1111': BadRequest, // Precision is over the maximum defined for this asset.
+                    '-1112': OperationRejected, // No orders on book for symbol.
+                    '-1114': BadRequest, // TimeInForce parameter sent when not required.
+                    '-1115': BadRequest, // Invalid timeInForce
+                    '-1116': BadRequest, // Invalid orderType
+                    '-1117': BadRequest, // Invalid side
+                    '-1118': InvalidOrder, // New client order ID was empty.
+                    '-1119': InvalidOrder, // Original client order ID was empty
+                    '-1120': BadRequest, // Invalid interval
+                    '-1121': BadRequest, // Invalid symbol
+                    '-1125': OperationRejected, // This listenKey does not exist.
+                    '-1127': OperationRejected, // Lookup interval is too big
+                    '-1128': BadRequest, // Combination of optional parameters invalid
+                    '-1130': BadRequest, // Invalid data sent for a parameter
+                    '-1132': OperationRejected, // Order price too high
+                    '-1133': OperationRejected, // Order price lower than the minimum,please check general broker info
+                    '-1134': OperationRejected, // Order price decimal too long,please check general broker info
+                    '-1135': OperationRejected, // Order quantity too large
+                    '-1136': OperationRejected, // Order quantity lower than the minimum
+                    '-1137': OperationRejected, // Order quantity decimal too long
+                    '-1138': OperationRejected, // Order price exceeds permissible range
+                    '-1139': OperationRejected, // Order has been filled
+                    '-1140': OperationRejected, // Transaction amount lower than the minimum
+                    '-1141': InvalidOrder, // Duplicate clientOrderId
+                    '-1142': InvalidOrder, // Order has been canceled
+                    '-1143': InvalidOrder, // Cannot be found on order book
+                    '-1144': OperationRejected, // Order has been locked
+                    '-1145': OperationRejected, // This order type does not support cancellation
+                    '-1146': OperationFailed, // Order creation timeout
+                    '-1147': OperationFailed, // Order cancellation timeout
+                    '-1193': OperationRejected, // Create order count limit
+                    '-1194': OperationRejected, // Create market order forbidden
+                    '-1195': OperationRejected, // Create limit order price too small
+                    '-1196': OperationRejected, // Create limit order price too big
+                    '-1197': OperationRejected, // Create limit order buy price too big
+                    '-1198': OperationRejected, // Create limit order sell price too small
+                    '-1199': OperationRejected, // Create order buy quantity too small
+                    '-1200': OperationRejected, // Create order buy quantity too big
+                    '-1201': OperationRejected, // Create limit order sell price too big
+                    '-1202': OperationRejected, // Create order sell quantity too small
+                    '-1203': OperationRejected, // Create order sell quantity too big
+                    '-1206': OperationRejected, // Orders over the maximum transaction amount
+                    '-2010': OperationFailed, // NEW_ORDER_REJECTED
+                    '-2011': OperationFailed, // CANCEL_REJECTED
+                    '-2013': InvalidOrder, // Order does not exist.
+                    '-2014': PermissionDenied, // API-key format invalid.
+                    '-2015': PermissionDenied, // Invalid API-key, IP, or permissions for action.
+                    '-2016': BadRequest, // No trading window could be found for the symbol. Try ticker/24hrs instead.
                 },
                 'broad': {
+                    'Unknown order sent': OrderNotFound,
+                    'Duplicate order sent': InvalidOrder,
+                    'Market is closed': OperationRejected,
+                    'Account has insufficient balance for requested action': InsufficientFunds,
+                    'Market orders are not supported for this symbol': OperationRejected,
+                    'Iceberg orders are not supported for this symbol': OperationRejected,
+                    'Stop loss orders are not supported for this symbol': OperationRejected,
+                    'Stop loss limit orders are not supported for this symbol': OperationRejected,
+                    'Take profit orders are not supported for this symbol': OperationRejected,
+                    'Take profit limit orders are not supported for this symbol': OperationRejected,
+                    'QTY is zero or less': BadRequest,
+                    'IcebergQty exceeds QTY': OperationRejected,
+                    'This action disabled is on this account': PermissionDenied,
+                    'Unsupported order combination': BadRequest,
+                    'Order would trigger immediately': OperationRejected,
+                    'Cancel order is invalid. Check origClOrdId and orderId': OperationRejected,
+                    'Order would immediately match and take': OperationRejected,
                 },
             },
             'commonCurrencies': {},
