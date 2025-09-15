@@ -485,7 +485,7 @@ export default class krakenfutures extends Exchange {
                 'future': future,
                 'option': false,
                 'index': index,
-                'active': undefined,
+                'active': this.safeBool (market, 'tradeable'),
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
