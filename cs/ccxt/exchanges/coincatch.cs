@@ -5307,7 +5307,7 @@ public partial class coincatch : Exchange
                 }
             }
         }
-        return getValue(positions, 0);
+        return this.safeDict(positions, 0, new Dictionary<string, object>() {});
     }
 
     /**
