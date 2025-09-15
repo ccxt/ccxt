@@ -1372,7 +1372,7 @@ export default class toobit extends Exchange {
         let response = undefined;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        if (this.inArray (marketType, [ 'swap', 'futures' ])) {
+        if (this.inArray (marketType, [ 'swap', 'future' ])) {
             response = await this.privateGetApiV1FuturesBalance ();
             //
             //     [
@@ -1713,15 +1713,21 @@ export default class toobit extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const request = {};
-        if (id !== undefined) {
+        if (this.safeString (params, 'clientOrderId') === undefined) {
             request['orderId'] = id;
         }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const market = this.market (symbol);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'none');
+        if (marketType === 'none') {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+        }
         let response = undefined;
-        if (market['spot']) {
+        if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
         } else {
             response = await this.privateDeleteApiV1FuturesOrder (this.extend (request, params));
@@ -1753,7 +1759,10 @@ export default class toobit extends Exchange {
             request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'none');
+        if (marketType === 'none') {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+        }
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
@@ -1793,10 +1802,12 @@ export default class toobit extends Exchange {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrders', market, params, 'none');
+        if (marketType === 'none') {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+        }
         let response = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request, params));
