@@ -104,6 +104,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.load_markets()
         order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
+        ordersLength = len(orders)
+        if ordersLength == 0:
+            # not sure why but it is happening sometimes
+            return self.safe_order({})
         parsedOrder = orders[0]
         return parsedOrder
 

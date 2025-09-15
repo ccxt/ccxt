@@ -1924,7 +1924,7 @@ class bitget extends Exchange {
                 $res = $this->safe_dict($results, $i);
                 $data = $this->safe_list($res, 'data', array());
                 $firstData = $this->safe_dict($data, 0, array());
-                $isBorrowable = $this->safe_string($firstData, 'isBorrowable');
+                $isBorrowable = $this->safe_bool($firstData, 'isBorrowable');
                 if ($fetchMargins && $isBorrowable !== null) {
                     $keysList = is_array($this->index_by($data, 'symbol')) ? array_keys($this->index_by($data, 'symbol')) : array();
                     $this->options['crossMarginPairsData'] = $keysList;
@@ -7660,7 +7660,7 @@ class bitget extends Exchange {
             //         "requestTime" => 1700802995406,
             //         "data" => array(
             //             {
-            //                 "userId" => "7264631750",
+            //                 "userId" => "7264631751",
             //                 "symbol" => "BTCUSDT",
             //                 "orderId" => "1098394344925597696",
             //                 "tradeId" => "1098394344974925824",

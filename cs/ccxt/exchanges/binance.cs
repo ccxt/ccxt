@@ -6836,21 +6836,14 @@ public partial class binance : Exchange
         }
         if (isTrue(quantityIsRequired))
         {
-            // portfolio margin has a different amount precision
-            if (isTrue(isPortfolioMargin))
+            object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+            object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+            if (isTrue(isPrecisionAvailable))
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount);
+                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
-                object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
-                if (isTrue(isPrecisionAvailable))
-                {
-                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-                } else
-                {
-                    ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
-                }
+                ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
             }
         }
         if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
@@ -8107,6 +8100,7 @@ public partial class binance : Exchange
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] alternative to ids, array of client order ids
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string[]} [params.origClientOrderIdList] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -8128,8 +8122,16 @@ public partial class binance : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "orderidlist", ids },
         };
+        object origClientOrderIdList = this.safeList2(parameters, "origClientOrderIdList", "clientOrderIds");
+        if (isTrue(!isEqual(origClientOrderIdList, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"clientOrderIds"});
+            ((IDictionary<string,object>)request)["origClientOrderIdList"] = origClientOrderIdList;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderidlist"] = ids;
+        }
         object response = null;
         if (isTrue(getValue(market, "linear")))
         {
@@ -11788,11 +11790,17 @@ public partial class binance : Exchange
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object defaultType = this.safeString(this.options, "defaultType", "future");
-        object type = this.safeString(parameters, "type", defaultType);
-        parameters = this.omit(parameters, new List<object>() {"type"});
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("setPositionMode", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", null, parameters);
+        var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object isPortfolioMargin = null;
@@ -12553,8 +12561,8 @@ public partial class binance : Exchange
                 if (isTrue(isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(path, "batchOrders")))))
                 {
                     object orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
-                    object origclientorderidlist = this.safeList(extendedParams, "origclientorderidlist", new List<object>() {});
-                    extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist"});
+                    object origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
+                    extendedParams = this.omit(extendedParams, new List<object>() {"orderidlist", "origclientorderidlist", "origClientOrderIdList"});
                     query = this.rawencode(extendedParams);
                     object orderidlistLength = getArrayLength(orderidlist);
                     object origclientorderidlistLength = getArrayLength(origclientorderidlist);
@@ -12564,7 +12572,13 @@ public partial class binance : Exchange
                     }
                     if (isTrue(isGreaterThan(origclientorderidlistLength, 0)))
                     {
-                        query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)origclientorderidlist).ToArray())), "%5D");
+                        // wrap clientOrderids around ""
+                        object newClientOrderIds = new List<object>() {};
+                        for (object i = 0; isLessThan(i, origclientorderidlistLength); postFixIncrement(ref i))
+                        {
+                            ((IList<object>)newClientOrderIds).Add(add(add("%22", getValue(origclientorderidlist, i)), "%22"));
+                        }
+                        query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)newClientOrderIds).ToArray())), "%5D");
                     }
                 } else
                 {

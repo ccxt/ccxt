@@ -64,6 +64,9 @@ abstract class myokx extends \ccxt\async\okx {
     public function public_get_market_index_components($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_public_market_data_history($params = array()) {
+        return $this->request('public/market-data-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_public_economic_calendar($params = array()) {
         return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -476,7 +479,7 @@ abstract class myokx extends \ccxt\async\okx {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_account_spot_manual_borrow_repay($params = array()) {
-        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_account_set_auto_repay($params = array()) {
         return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
@@ -1099,6 +1102,9 @@ abstract class myokx extends \ccxt\async\okx {
     public function publicGetMarketIndexComponents($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetPublicMarketDataHistory($params = array()) {
+        return $this->request('public/market-data-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function publicGetPublicEconomicCalendar($params = array()) {
         return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -1511,7 +1517,7 @@ abstract class myokx extends \ccxt\async\okx {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetAccountSpotManualBorrowRepay($params = array()) {
-        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetAccountSetAutoRepay($params = array()) {
         return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));

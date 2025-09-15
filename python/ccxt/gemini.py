@@ -679,8 +679,8 @@ class gemini(Exchange, ImplicitAPI):
         #
         #     [
         #         'BTCUSD',   # symbol
-        #         2,          # priceTickDecimalPlaces
-        #         8,          # quantityTickDecimalPlaces
+        #         2,          # tick precision(priceTickDecimalPlaces)
+        #         8,          # amount precision(quantityTickDecimalPlaces)
         #         '0.00001',  # quantityMinimum
         #         10,         # quantityRoundDecimalPlaces
         #         True        # minimumsAreInclusive
@@ -699,7 +699,7 @@ class gemini(Exchange, ImplicitAPI):
         #         "wrap_enabled": False
         #         "product_type": "swap",  # only in perps
         #         "contract_type": "linear",  # only in perps
-        #         "contract_price_currency": "GUSD"  # only in perps
+        #         "contract_price_currency": "GUSD"
         #     }
         #
         marketId = None
