@@ -374,14 +374,6 @@
                     "BTC/USDT"
                 ],
                 "output": "recvWindow=5000&timestamp=1757566374569&signature=e9c2d21edd8222f7483c1367eae005946be69469213e4b58b16c8cfb4dd87885"
-            },
-            {
-                "disabled": true,
-                "description": "cancelAllOrders no args",
-                "method": "cancelAllOrders",
-                "url": "https://api.toobit.com/api/v1/spot/openOrders",
-                "input": [],
-                "output": "recvWindow=5000&timestamp=1757566366666&signature=44bfb49eea925c3d3c46cad85896b80099a1e6f45b623026051202c95de4a7c6"
             }
         ],
         "fetchOrder": [
