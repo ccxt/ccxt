@@ -2033,12 +2033,16 @@ export default class toobit extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         await this.loadMarkets ();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         let response = undefined;
