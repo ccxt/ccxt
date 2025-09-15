@@ -62,7 +62,7 @@ export default class toobit extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://private-user-images.githubusercontent.com/43336371/489292500-3fc13870-5406-431b-8be0-2aab69c4f225.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NTc5NjkyOTUsIm5iZiI6MTc1Nzk2ODk5NSwicGF0aCI6Ii80MzMzNjM3MS80ODkyOTI1MDAtM2ZjMTM4NzAtNTQwNi00MzFiLThiZTAtMmFhYjY5YzRmMjI1LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTA5MTUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwOTE1VDIwNDMxNVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWZmOWIwZDNmODExNjhlOTIzZmU4ODgwM2FmMGI0NDBlNjZiZjBkZDNkMThmY2VkOGVmYzVlZmQzMGU1MmFlZTImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.4gC3ae7L9Yh2ns2Q3b8vcQy5Me8laUvfzLhinmhlcfY',
                 'api': {
                     'common': 'https://api.toobit.com',
                     'private': 'https://api.toobit.com',
