@@ -5791,7 +5791,7 @@ func (this *coincatch) FetchPosition(symbol interface{}, optionalArgs ...interfa
 			}
 		}
 
-		ch <- GetValue(positions, 0)
+		ch <- this.SafeDict(positions, 0, map[string]interface{}{})
 		return nil
 
 	}()
