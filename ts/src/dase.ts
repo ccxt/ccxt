@@ -14,7 +14,7 @@ export default class dase extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'dase',
             'name': 'DASE',
-            'countries': ['EU'],
+            'countries': [ 'EU' ],
             'rateLimit': 200,
             'version': 'v1',
             'has': {
