@@ -488,7 +488,7 @@ class krakenfutures extends Exchange {
                     'future' => $future,
                     'option' => false,
                     'index' => $index,
-                    'active' => null,
+                    'active' => $this->safe_bool($market, 'tradeable'),
                     'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => $inverse,

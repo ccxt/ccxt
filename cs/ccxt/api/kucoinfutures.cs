@@ -1076,6 +1076,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPrivatePostPositionChangeMarginMode",parameters);
     }
 
+    public async Task<object> futuresPrivatePostPositionSwitchPositionMode (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivatePostPositionSwitchPositionMode",parameters);
+    }
+
     public async Task<object> futuresPrivateDeleteOrdersOrderId (object parameters = null)
     {
         return await this.callAsync ("futuresPrivateDeleteOrdersOrderId",parameters);
