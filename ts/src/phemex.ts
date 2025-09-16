@@ -4003,7 +4003,7 @@ export default class phemex extends Exchange {
         const markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
         const contracts = this.safeString (position, 'size');
         const contractSize = this.safeValue (market, 'contractSize');
-        const contractSizeString = this.numberToString (contractSize);
+        // const contractSizeString = this.numberToString (contractSize);
         const leverage = this.parseNumber (Precise.stringAbs ((this.safeString2 (position, 'leverage', 'leverageRr'))));
         const entryPriceString = this.safeString2 (position, 'avgEntryPrice', 'avgEntryPriceRp');
         const rawSide = this.safeString (position, 'side');
@@ -4046,7 +4046,7 @@ export default class phemex extends Exchange {
             'lastPrice': undefined,
             'entryPrice': this.parseNumber (entryPriceString),
             'timestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeIntegerProduct (position, 'transactTimeNs', 0.000001),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
