@@ -2362,46 +2362,59 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
 
-    async ensureUserDataStreamWsSubscription (scope: string = 'spot'): Promise<number> {
-        // Establish a User Data Stream subscription on the WebSocket API using signature
-        // Scope can be 'spot' for spot/margin accounts (portfolio margin uses separate papi streams and remains listenKey-based)
-        const userDataStream = this.safeDict (this.options, 'userDataStream');
-        const scopeState = this.safeDict (userDataStream, scope);
-        const existingSubscriptionId = this.safeInteger (scopeState, 'subscriptionId');
-        if (existingSubscriptionId !== undefined) {
-            return existingSubscriptionId;
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @param params {object} extra parameters specific to the exchange API endpoint
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot', params = {}) {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType === marketType) {
+            return;
         }
-        const url = this.urls['api']['ws']['ws-api'][scope];
+        client.subscriptions[marketType] = true;
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const message: Dict = {
             'id': messageHash,
             'method': 'userDataStream.subscribe.signature',
-            'params': this.signParams ({}),
+            'params': this.signParams (params),
         };
         const subscription: Dict = {
+            'id': messageHash,
             'method': this.handleUserDataStreamSubscribe,
-            'scope': scope,
+            'subscription': marketType,
         };
         await this.watch (url, messageHash, message, messageHash, subscription);
-        const updatedUserDataStream = this.safeDict (this.options, 'userDataStream');
-        const updatedScopeState = this.safeDict (updatedUserDataStream, scope);
-        return this.safeInteger (updatedScopeState, 'subscriptionId');
     }
 
-    handleUserDataStreamSubscribe (client: Client, message, subscription) {
-        // { id, status: 200, result: { subscriptionId: 0 } }
-        const id = this.safeString (message, 'id');
+    handleUserDataStreamSubscribe (client: Client, message) {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {
+        //         "subscriptionId": 0
+        //     }
+        //   }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const result = this.safeDict (message, 'result', {});
         const subscriptionId = this.safeInteger (result, 'subscriptionId');
-        const scope = this.safeString (subscription, 'scope', 'spot');
-        const userDataStream = this.safeDict (this.options, 'userDataStream');
-        userDataStream[scope] = this.extend (this.safeDict (userDataStream, scope), {
-            'subscriptionId': subscriptionId,
-            'lastSubscribedTime': this.milliseconds (),
-        });
-        this.options['userDataStream'] = userDataStream;
-        client.resolve (message, id);
+        if (subscriptionId === undefined) {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+        client.resolve (message, messageHash);
     }
 
     async authenticate (params = {}) {
@@ -2417,9 +2430,9 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        // For spot/margin (non-portfolio margin), migrate to WebSocket API signature subscription
-        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
-            await this.ensureUserDataStreamWsSubscription ('spot');
+        // For spot use WebSocket API signature subscription
+        if (type === 'spot') {
+            await this.ensureUserDataStreamWsSubscribeSignature ('spot', params);
             return;
         }
         let marginMode = undefined;
@@ -2475,7 +2488,7 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         // userDataStream over ws-api does not require listen key keepalive
-        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+        if (type === 'spot') {
             return;
         }
         const options = this.safeValue (this.options, type, {});
@@ -2544,7 +2557,7 @@ export default class binance extends binanceRest {
     }
 
     setBalanceCache (client: Client, type, isPortfolioMargin = false) {
-        if (type in client.subscriptions) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
@@ -2813,12 +2826,11 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        let url: string;
+        let url = '';
         let urlType = type;
-        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+        if (type === 'spot') {
             // route to WebSocket API connection where the user data stream is subscribed
-            urlType = 'ws-api';
-            url = this.urls['api']['ws']['ws-api']['spot'];
+            url = this.urls['api']['ws']['ws-api'][type];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -2899,9 +2911,9 @@ export default class binance extends binanceRest {
         //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
@@ -2942,6 +2954,18 @@ export default class binance extends binanceRest {
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
+    }
+
+    getAccountTypeFromSubscriptions (subscriptions: string[]): string {
+        let accountType = '';
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery')) {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
     }
 
     getMarketType (method, market, params = {}) {
@@ -3550,10 +3574,10 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        let url: string;
-        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
+        let url = '';
+        if (type === 'spot') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api']['spot'];
+            url = this.urls['api']['ws']['ws-api'][type];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -3949,8 +3973,9 @@ export default class binance extends binanceRest {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -4230,9 +4255,9 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        let url: string;
-        if ((type === 'spot' || type === 'margin') && !isPortfolioMargin) {
-            url = this.urls['api']['ws']['ws-api']['spot'];
+        let url = '';
+        if (type === 'spot') {
+            url = this.urls['api']['ws']['ws-api'][type];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -4383,8 +4408,12 @@ export default class binance extends binanceRest {
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];
                 const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
                 if (id === subscriptionId) {
                     client.reject (e, subscriptionHash);
+                    if (subscription !== undefined) {
+                        delete client.subscriptions[subscription];
+                    }
                 }
             }
         }
@@ -4400,11 +4429,18 @@ export default class binance extends binanceRest {
 
     handleEventStreamTerminated (client: Client, message) {
         //
-        //    { e: 'eventStreamTerminated', E: 1757896885229 }
+        //    {
+        //        e: 'eventStreamTerminated',
+        //        E: 1757896885229
+        //    }
         //
-        const event = this.safeString (message, 'event');
+        const event = this.safeString (message, 'e');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (event === 'eventStreamTerminated') {
-            client.reject (message, 'eventStreamTerminated');
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
         }
     }
 
@@ -4455,11 +4491,9 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
-            'eventStreamTerminated': undefined,
+            'eventStreamTerminated': this.handleEventStreamTerminated,
         };
-        // unwrap WebSocket API event wrapper if present
-        const eventWrapper = this.safeDict (message, 'event');
-        let event = (eventWrapper !== undefined) ? this.safeString (eventWrapper, 'e') : this.safeString (message, 'e');
+        let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {
             const data = message[0];
             event = this.safeString (data, 'e') + '@arr';
