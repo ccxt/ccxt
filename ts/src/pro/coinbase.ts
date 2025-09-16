@@ -101,10 +101,10 @@ export default class coinbase extends coinbaseRest {
      * @method
      * @description unSubscribes to a websocket channel
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} topic unified topic
      * @param {string} name the name of the channel
      * @param {boolean} isPrivate whether the channel is private or not
      * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
     async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol = undefined) {
@@ -193,6 +193,7 @@ export default class coinbase extends coinbaseRest {
      * @method
      * @description unsubscribes to a websocket channel
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} topic unified topic
      * @param {string} name the name of the channel
      * @param {boolean} isPrivate whether the channel is private or not
      * @param {string[]} [symbols] unified market symbol
@@ -531,8 +532,6 @@ export default class coinbase extends coinbaseRest {
      * @description stops watching the list of most recent trades for a particular symbol
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
      * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -571,8 +570,6 @@ export default class coinbase extends coinbaseRest {
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
      * @param {string[]} symbols unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -609,8 +606,6 @@ export default class coinbase extends coinbaseRest {
      * @description stops watching information on multiple orders made by the user
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
      * @param {string} [symbol] unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -645,7 +640,6 @@ export default class coinbase extends coinbaseRest {
      * @description stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
