@@ -36,6 +36,7 @@ export default class coinbase extends coinbaseRest {
                 'unWatchTickers': true,
                 'unWatchTrades': true,
                 'unWatchOrders': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -108,6 +109,10 @@ export default class coinbase extends coinbaseRest {
      */
     async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol = undefined) {
         await this.loadMarkets ();
+        if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
+            throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
+        }
+        this.options['unSubscriptionPending'] = true;
         let market = undefined;
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
@@ -129,7 +134,6 @@ export default class coinbase extends coinbaseRest {
         let message = {
             'type': 'unsubscribe',
             'product_ids': productIds,
-            'sequence_num': this.numberToString (this.nonce ()),
             'channel': name,
         };
         const subscription = {
@@ -142,7 +146,11 @@ export default class coinbase extends coinbaseRest {
         if (isPrivate) {
             message = this.extend (message, this.createWSAuth (name, productIds));
         }
-        return await this.watch (url, unWatchMessageHash, message, unWatchMessageHash, subscription);
+        this.options['unSubscription'] = subscription;
+        const res = await this.watch (url, unWatchMessageHash, message, unWatchMessageHash, subscription);
+        this.options['unSubscriptionPending'] = false;
+        this.options['unSubscription'] = undefined;
+        return res;
     }
 
     /**
@@ -178,6 +186,58 @@ export default class coinbase extends coinbaseRest {
             subscribe = this.extend (subscribe, this.createWSAuth (name, productIds));
         }
         return await this.watchMultiple (url, messageHashes, subscribe, messageHashes);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes to a websocket channel
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+     * @param {string} name the name of the channel
+     * @param {boolean} isPrivate whether the channel is private or not
+     * @param {string[]} [symbols] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} subscription to a websocket channel
+     */
+    async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean, symbols: Strings = undefined, params = {}) {
+        if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
+            throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
+        }
+        this.options['unSubscriptionPending'] = true;
+        await this.loadMarkets ();
+        const productIds = [];
+        const watchMessageHashes = [];
+        const unWatchMessageHashes = [];
+        symbols = this.marketSymbols (symbols, undefined, false);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            productIds.push (marketId);
+            watchMessageHashes.push (name + '::' + symbol);
+            unWatchMessageHashes.push ('unsubscribe:' + name + '::' + symbol);
+        }
+        const url = this.urls['api']['ws'];
+        let message = {
+            'type': 'unsubscribe',
+            'product_ids': productIds,
+            'channel': name,
+        };
+        if (isPrivate) {
+            message = this.extend (message, this.createWSAuth (name, productIds));
+        }
+        const subscription = {
+            'messageHashes': unWatchMessageHashes,
+            'subMessageHashes': watchMessageHashes,
+            'topic': topic,
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        this.options['unSubscription'] = subscription;
+        const res = await this.watchMultiple (url, unWatchMessageHashes, message, unWatchMessageHashes, subscription);
+        this.options['unSubscriptionPending'] = false;
+        this.options['unSubscription'] = undefined;
+        return res;
     }
 
     createWSAuth (name: string, productIds: string[]) {
@@ -277,8 +337,7 @@ export default class coinbase extends coinbaseRest {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        const name = 'ticker_batch';
-        return await this.unSubscribe ('ticker_batch', name, false, symbols);
+        return await this.unSubscribeMultiple ('ticker', 'ticker_batch', false, symbols);
     }
 
     handleTickers (client, message) {
@@ -504,6 +563,23 @@ export default class coinbase extends coinbaseRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name coinbase#unWatchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const name = 'market_trades';
+        return await this.unSubscribeMultiple ('trades', name, false, symbols, params);
     }
 
     /**
@@ -844,6 +920,30 @@ export default class coinbase extends coinbaseRest {
         //         ]
         //     }
         //
+        //
+        //      {
+        //        channel: 'subscriptions',
+        //        client_id: '',
+        //        timestamp: '2025-09-15T17:02:49.90120868Z',
+        //        sequence_num: 3,
+        //        events: [ { subscriptions: {} } ]
+        //      }
+        //
+        const events = this.safeList (message, 'events', []);
+        const firstEvent = this.safeValue (events, 0, {});
+        const isUnsub = ('subscriptions' in firstEvent);
+        const subKeys = Object.keys (firstEvent['subscriptions']);
+        if (isUnsub && subKeys.length === 0) {
+            const unSubObject = this.safeDict (this.options, 'unSubscription', {});
+            const messageHashes = this.safeList (unSubObject, 'messageHashes', []);
+            const subMessageHashes = this.safeList (unSubObject, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription (client, subHash, messageHash);
+            }
+            this.cleanCache (unSubObject);
+        }
         return message;
     }
 
