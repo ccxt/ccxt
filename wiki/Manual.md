@@ -673,7 +673,7 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
     - boolean `true` means the endpoint is natively available from the exchange API and unified in the ccxt library
     - `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
 
-    For a complete list of all exchages and their supported methods, please, refer to this example: https://github.com/ccxt/ccxt/blob/master/examples/js/exchange-capabilities.js
+    For a complete list of all exchanges and their supported methods, please, refer to this example: https://github.com/ccxt/ccxt/blob/master/examples/js/exchange-capabilities.js
 
 ## Rate Limit
 
@@ -876,7 +876,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
 - `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
 - `name`. A human-readable name of the currency (can be a mix of uppercase & lowercase characters).
-- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
@@ -911,7 +911,7 @@ Each network is an associative array (aka dictionary) with the following keys:
 - `id`. The string or numeric ID of the network within the exchange. Network ids are used inside exchanges internally to identify networks during the request/response process.
 - `network`. An uppercase string representation of a particular network. Networks are used to reference networks within the ccxt library.
 - `name`. A human-readable name of the network (can be a mix of uppercase & lowercase characters).
-- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
@@ -2271,7 +2271,7 @@ if (exchange.has['fetchTrades']) {
         }
         const trades = await exchange.fetchTrades (symbol, since, limit, params)
         if (trades.length) {
-            // not thread-safu and exchange-specific !
+            // not thread-safe and exchange-specific!
             last_json_response = exchange.parseJson (exchange.last_http_response)
             page = last_json_response['cursor']
             allTrades.push (trades)
@@ -2296,7 +2296,7 @@ if exchange.has['fetchOrders']:
         }
         orders = await exchange.fetch_orders(symbol, since, limit, params)
         if len(orders):
-            # not thread-safu and exchange-specific !
+            # not thread-safe and exchange-specific!
             cursor = exchange.last_response_headers['CB-AFTER']
             all_orders += orders
         else:
@@ -2317,7 +2317,7 @@ if ($exchange->has['fetchMyTrades']) {
         );
         $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
         if (count($trades)) {
-            // not thread-safu and exchange-specific !
+            // not thread-safe and exchange-specific!
             $last_json_response = $exchange->parse_json ($exchange->last_http_response);
             $start = $last_json_response['next'];
             $all_trades = array_merge ($all_trades, $trades);
@@ -5098,7 +5098,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 
 ##### Hedge mode for order
 
-If exchange supports [feature](#features) for `hedged` orders, user can pass `params['hedged'] = true` in `createOrder` to open a `hedged` position instead of default `one-way` mode order. However, if exchange supports `.has['setPositionMode']` then those exchanges might not support `hedged` param directly through `createOrder`, instead on such exchange you need to change teh account-mode at first using [setPositionMode()](#set-position-mode) and then run `createOrder` (without `hedged` param) and it will place hedged order by default.
+If exchange supports [feature](#features) for `hedged` orders, user can pass `params['hedged'] = true` in `createOrder` to open a `hedged` position instead of default `one-way` mode order. However, if exchange supports `.has['setPositionMode']` then those exchanges might not support `hedged` param directly through `createOrder`, instead on such exchange you need to change the account-mode at first using [setPositionMode()](#set-position-mode) and then run `createOrder` (without `hedged` param) and it will place hedged order by default.
 
 
 

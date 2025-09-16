@@ -4668,6 +4668,7 @@ public partial class xt : Exchange
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
      * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4678,6 +4679,14 @@ public partial class xt : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "id", "id", 1, 200);
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
@@ -4689,6 +4698,9 @@ public partial class xt : Exchange
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["limit"] = 200; // max
         }
         object subType = null;
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);

@@ -3105,13 +3105,15 @@ class okx extends Exchange {
             $request['callbackSpread'] = $trailingPrice;
             $request['ordType'] = 'move_order_stop';
         } elseif ($stopLossDefined || $takeProfitDefined) {
+            $attachAlgoOrd = array();
             if ($stopLossDefined) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 $slTriggerPx = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['slTriggerPx'] = $slTriggerPx;
+                $slOrder = array();
+                $slOrder['slTriggerPx'] = $slTriggerPx;
                 $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type');
                 if ($stopLossOrderType !== null) {
@@ -3123,30 +3125,32 @@ class okx extends Exchange {
                         if ($stopLossLimitPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] or $params["stopLoss"]["slOrdPx"] for a stop loss limit order');
                         } else {
-                            $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
+                            $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
                         }
                     } elseif ($stopLossOrderType === 'market') {
-                        $request['slOrdPx'] = '-1';
+                        $slOrder['slOrdPx'] = '-1';
                     }
                 } elseif ($stopLossLimitPrice !== null) {
-                    $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
+                    $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
                 } else {
-                    $request['slOrdPx'] = '-1'; // $market sl order
+                    $slOrder['slOrdPx'] = '-1'; // $market sl order
                 }
                 $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
                     if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
                     }
-                    $request['slTriggerPxType'] = $stopLossTriggerPriceType;
+                    $slOrder['slTriggerPxType'] = $stopLossTriggerPriceType;
                 }
+                $attachAlgoOrd = $this->extend($attachAlgoOrd, $slOrder);
             }
             if ($takeProfitDefined) {
                 $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
                 if ($takeProfitTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"], or $params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
-                $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $tpOrder = array();
+                $tpOrder['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 $takeProfitLimitPrice = $this->safe_value_n($takeProfit, array( 'price', 'takeProfitPrice', 'tpOrdPx' ));
                 $takeProfitOrderType = $this->safe_string_2($takeProfit, 'type', 'tpOrdKind');
                 if ($takeProfitOrderType !== null) {
@@ -3158,25 +3162,31 @@ class okx extends Exchange {
                         if ($takeProfitLimitPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["takeProfit"]["price"] or $params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         } else {
-                            $request['tpOrdKind'] = $takeProfitOrderType;
-                            $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
+                            $tpOrder['tpOrdKind'] = $takeProfitOrderType;
+                            $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
                         }
                     } elseif ($takeProfitOrderType === 'market') {
-                        $request['tpOrdPx'] = '-1';
+                        $tpOrder['tpOrdPx'] = '-1';
                     }
                 } elseif ($takeProfitLimitPrice !== null) {
-                    $request['tpOrdKind'] = 'limit';
-                    $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
+                    $tpOrder['tpOrdKind'] = 'limit';
+                    $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
                 } else {
-                    $request['tpOrdPx'] = '-1'; // $market tp order
+                    $tpOrder['tpOrdPx'] = '-1'; // $market tp order
                 }
                 $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
                     if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
                     }
-                    $request['tpTriggerPxType'] = $takeProfitTriggerPriceType;
+                    $tpOrder['tpTriggerPxType'] = $takeProfitTriggerPriceType;
                 }
+                $attachAlgoOrd = $this->extend($attachAlgoOrd, $tpOrder);
+            }
+            $attachOrdKeys = is_array($attachAlgoOrd) ? array_keys($attachAlgoOrd) : array();
+            $attachOrdLen = count($attachOrdKeys);
+            if ($attachOrdLen > 0) {
+                $request['attachAlgoOrds'] = array( $attachAlgoOrd );
             }
         } elseif ($trigger) {
             $request['ordType'] = 'trigger';
