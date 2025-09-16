@@ -569,6 +569,17 @@ export default class coinmetro extends Exchange {
                 }
             }
         }
+        if (baseId === undefined || quoteId === undefined) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (marketId.endsWith ('USDT')) {
+                baseId = marketId.replace ('USDT', '');
+                quoteId = 'USDT';
+            }
+            if (marketId.endsWith ('USD')) {
+                baseId = marketId.replace ('USD', '');
+                quoteId = 'USD';
+            }
+        }
         const result: Dict = {
             'baseId': baseId,
             'quoteId': quoteId,

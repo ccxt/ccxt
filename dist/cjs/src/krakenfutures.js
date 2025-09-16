@@ -487,7 +487,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'future': future,
                 'option': false,
                 'index': index,
-                'active': undefined,
+                'active': this.safeBool(market, 'tradeable'),
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,
