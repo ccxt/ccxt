@@ -4918,7 +4918,7 @@ export default class coincatch extends Exchange {
      * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPosition (symbol: string, params = {}) {
+    async fetchPosition (symbol: string, params = {}): Promise<Position> {
         const methodName = 'fetchPosition';
         let side = 'long';
         [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
@@ -4932,7 +4932,7 @@ export default class coincatch extends Exchange {
                 }
             }
         }
-        return positions[0] as Position;
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     /**

@@ -2950,6 +2950,14 @@ class gate extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
+         *
+         * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+         * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+         * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+         * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+         * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-account-information
+         *
          * @param {array} [$params] exchange specific parameters
          * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3194,7 +3202,7 @@ class gate extends Exchange {
         $result = array(
             'info' => $response,
         );
-        $isolated = $marginMode === 'margin';
+        $isolated = $marginMode === 'margin' && $type === 'spot';
         $data = $response;
         if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
             $flatBalances = array();

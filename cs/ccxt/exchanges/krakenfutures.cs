@@ -421,7 +421,7 @@ public partial class krakenfutures : Exchange
                 { "future", future },
                 { "option", false },
                 { "index", index },
-                { "active", null },
+                { "active", this.safeBool(market, "tradeable") },
                 { "contract", contract },
                 { "linear", linear },
                 { "inverse", inverse },

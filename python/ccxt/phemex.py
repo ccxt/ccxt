@@ -1267,7 +1267,7 @@ class phemex(Exchange, ImplicitAPI):
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
 
-    def to_ev(self, amount, market: Market = None):
+    def to_ev(self, amount, market: dict = None):
         if (amount is None) or (market is None):
             return amount
         return self.to_en(amount, market['valueScale'])
