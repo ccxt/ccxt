@@ -104,6 +104,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
