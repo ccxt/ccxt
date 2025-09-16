@@ -2487,10 +2487,6 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        // userDataStream over ws-api does not require listen key keepalive
-        if (type === 'spot') {
-            return;
-        }
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
