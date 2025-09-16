@@ -4011,23 +4011,23 @@ export default class phemex extends Exchange {
         if (rawSide !== undefined) {
             side = (rawSide === 'Buy') ? 'long' : 'short';
         }
-        let priceDiff = undefined;
-        const currency = this.safeString (position, 'currency');
-        if (currency === 'USD') {
-            if (side === 'long') {
-                priceDiff = Precise.stringSub (markPriceString, entryPriceString);
-            } else {
-                priceDiff = Precise.stringSub (entryPriceString, markPriceString);
-            }
-        } else {
-            // inverse
-            if (side === 'long') {
-                priceDiff = Precise.stringSub (Precise.stringDiv ('1', entryPriceString), Precise.stringDiv ('1', markPriceString));
-            } else {
-                priceDiff = Precise.stringSub (Precise.stringDiv ('1', markPriceString), Precise.stringDiv ('1', entryPriceString));
-            }
-        }
-        const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
+        // const priceDiff = undefined;
+        // const currency = this.safeString (position, 'currency');
+        // if (currency === 'USD') {
+        //     if (side === 'long') {
+        //         priceDiff = Precise.stringSub (markPriceString, entryPriceString);
+        //     } else {
+        //         priceDiff = Precise.stringSub (entryPriceString, markPriceString);
+        //     }
+        // } else {
+        //     // inverse
+        //     if (side === 'long') {
+        //         priceDiff = Precise.stringSub (Precise.stringDiv ('1', entryPriceString), Precise.stringDiv ('1', markPriceString));
+        //     } else {
+        //         priceDiff = Precise.stringSub (Precise.stringDiv ('1', markPriceString), Precise.stringDiv ('1', entryPriceString));
+        //     }
+        // }
+        // const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         const isCross = this.safeValue (position, 'crossMargin');
         return this.safePosition ({
@@ -4036,7 +4036,8 @@ export default class phemex extends Exchange {
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
-            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'realizedPnl': this.safeNumber (position, 'curTermRealisedPnlRv'),
+            'unrealizedPnl': undefined,
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
             'collateral': this.parseNumber (collateral),
@@ -4054,7 +4055,7 @@ export default class phemex extends Exchange {
             'datetime': undefined,
             'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
-            'hedged': false,
+            'hedged': this.safeString (position, 'posMode') === 'Hedged',
             'percentage': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
