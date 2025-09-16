@@ -427,7 +427,7 @@ func (this *krakenfutures) FetchMarkets(optionalArgs ...interface{}) <-chan inte
 				"future":                future,
 				"option":                false,
 				"index":                 index,
-				"active":                nil,
+				"active":                this.SafeBool(market, "tradeable"),
 				"contract":              contract,
 				"linear":                linear,
 				"inverse":               inverse,
