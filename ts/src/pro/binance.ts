@@ -4398,14 +4398,29 @@ export default class binance extends binanceRest {
         }
     }
 
+    handleEventStreamTerminated (client: Client, message) {
+        //
+        //    { e: 'eventStreamTerminated', E: 1757896885229 }
+        //
+        const event = this.safeString (message, 'event');
+        if (event === 'eventStreamTerminated') {
+            client.reject (message, 'eventStreamTerminated');
+        }
+    }
+
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
+        const eventMsg = this.safeDict (message, 'event');
+        if (eventMsg !== undefined) {
+            message = eventMsg;
+        }
         const status = this.safeString (message, 'status');
         const error = this.safeValue (message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, message);
             return;
         }
+        // user subscription wraps message in subscriptionId and event
         const id = this.safeString (message, 'id');
         const subscriptions = this.safeValue (client.subscriptions, id);
         let method = this.safeValue (subscriptions, 'method');
@@ -4440,7 +4455,6 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
-            // websocket API specific wrapper event
             'eventStreamTerminated': undefined,
         };
         // unwrap WebSocket API event wrapper if present
