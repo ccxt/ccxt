@@ -1547,6 +1547,7 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1556,7 +1557,8 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+     * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1735,7 +1737,22 @@ export default class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        let hedged = undefined;
+        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        if (reduceOnly) {
+            request['reduceOnly'] = reduceOnly;
+            if (hedged) {
+                const reduceOnlyPosSide = (side === 'sell') ? 'LONG' : 'SHORT';
+                request['positionSide'] = reduceOnlyPosSide;
+            }
+        } else {
+            if (hedged) {
+                const posSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                request['positionSide'] = posSide;
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return this.extend (request, params);
     }
 
