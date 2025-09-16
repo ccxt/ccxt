@@ -152,6 +152,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "setSandboxMode": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
+    "parseLastPrice": false,
     "sign": false
 }
 
