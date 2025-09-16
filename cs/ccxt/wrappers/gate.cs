@@ -365,6 +365,12 @@ public partial class gate
     /// undefined
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#margin-account-list"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-futures-account"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

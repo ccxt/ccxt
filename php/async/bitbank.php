@@ -980,7 +980,7 @@ class bitbank extends Exchange {
             $address = $this->safe_string($firstAccount, 'address');
             return array(
                 'info' => $response,
-                'currency' => $currency,
+                'currency' => $currency['code'],
                 'network' => null,
                 'address' => $address,
                 'tag' => null,

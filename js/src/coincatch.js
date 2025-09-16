@@ -4941,7 +4941,7 @@ export default class coincatch extends Exchange {
                 }
             }
         }
-        return positions[0];
+        return this.safeDict(positions, 0, {});
     }
     /**
      * @method

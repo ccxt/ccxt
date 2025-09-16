@@ -4998,7 +4998,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade $position
@@ -5023,7 +5023,7 @@ class coincatch extends Exchange {
                     }
                 }
             }
-            return $positions[0];
+            return $this->safe_dict($positions, 0, array());
         }) ();
     }
 
