@@ -714,6 +714,27 @@
                   "stopLossPrice": null
                 }
             }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set the position mode to one-way",
+                "method": "setPositionMode",
+                "input": [
+                    false
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "positionMode": 0
+                    }
+                },
+                "parsedResponse": {
+                    "code": "200000",
+                    "data": {
+                        "positionMode": 0
+                    }
+                }
+            }
         ]
     }
 }
