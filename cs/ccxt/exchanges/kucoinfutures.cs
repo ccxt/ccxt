@@ -96,6 +96,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchWithdrawals", true },
                 { "setLeverage", false },
                 { "setMarginMode", true },
+                { "setPositionMode", true },
                 { "transfer", true },
                 { "withdraw", null },
             } },
@@ -187,6 +188,7 @@ public partial class kucoinfutures : kucoin
                         { "sub/api-key/update", 1 },
                         { "changeCrossUserLeverage", 1 },
                         { "position/changeMarginMode", 1 },
+                        { "position/switchPositionMode", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{withdrawalId}", 1 },
@@ -302,6 +304,7 @@ public partial class kucoinfutures : kucoin
                             { "transfer-out", "v2" },
                             { "changeCrossUserLeverage", "v2" },
                             { "position/changeMarginMode", "v2" },
+                            { "position/switchPositionMode", "v2" },
                         } },
                     } },
                     { "futuresPublic", new Dictionary<string, object>() {
@@ -1563,6 +1566,7 @@ public partial class kucoinfutures : kucoin
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1572,7 +1576,8 @@ public partial class kucoinfutures : kucoin
      * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+     * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1786,7 +1791,28 @@ public partial class kucoinfutures : kucoin
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        object hedged = null;
+        var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+        hedged = ((IList<object>)hedgedparametersVariable)[0];
+        parameters = ((IList<object>)hedgedparametersVariable)[1];
+        if (isTrue(reduceOnly))
+        {
+            ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
+            if (isTrue(hedged))
+            {
+                object reduceOnlyPosSide = ((bool) isTrue((isEqual(side, "sell")))) ? "LONG" : "SHORT";
+                ((IDictionary<string,object>)request)["positionSide"] = reduceOnlyPosSide;
+            }
+        } else
+        {
+            if (isTrue(hedged))
+            {
+                object posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                ((IDictionary<string,object>)request)["positionSide"] = posSide;
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"}); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return this.extend(request, parameters);
     }
 
@@ -3475,6 +3501,36 @@ public partial class kucoinfutures : kucoin
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ((object)this.parseMarginMode(data, market));
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.kucoin.com/docs-new/3475097e0
+     * @param {bool} hedged set to true to use two way position
+     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response from the exchange
+     */
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object posMode = ((bool) isTrue(hedged)) ? "1" : "0";
+        object request = new Dictionary<string, object>() {
+            { "positionMode", posMode },
+        };
+        object response = await ((Task<object>)callDynamically(this, "futuresPrivatePostPositionSwitchPositionMode", new object[] { this.extend(request, parameters) }));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "positionMode": 1
+        //         }
+        //     }
+        //
+        return response;
     }
 
     /**
