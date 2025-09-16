@@ -1569,8 +1569,10 @@ export default class toobit extends Exchange {
         const request: Dict = {
             'symbol': id,
             'side': side.toUpperCase (),
-            'price': this.priceToPrecision (symbol, price),
         };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let cost: Str = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
         if (type === 'market') {
