@@ -1567,15 +1567,11 @@ export default class mexc extends mexcRest {
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601 (timestamp);
-        const currencyId = this.safeStringN (data, [ 'a', 'currency', 'vcoinName' ]);
+        const currencyId = this.safeStringN (data, [ 'currency', 'vcoinName' ]);
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        const balanceAmount = this.safeString (data, 'balanceAmount');
-        if (balanceAmount !== undefined) {
-            account['free'] = balanceAmount;
-        }
-        account['total'] = this.safeStringN (data, [ 'f', 'availableBalance' ]);
-        account['used'] = this.safeStringN (data, [ 'l', 'frozenBalance', 'frozenAmount' ]);
+        account['free'] = this.safeString2 (data, 'balanceAmount', 'availableBalance');
+        account['used'] = this.safeStringN (data, [ 'frozenBalance', 'frozenAmount' ]);
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], messageHash);
