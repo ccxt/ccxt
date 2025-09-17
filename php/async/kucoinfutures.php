@@ -568,7 +568,7 @@ class kucoinfutures extends kucoin {
                 $market = $data[$i];
                 $id = $this->safe_string($market, 'symbol');
                 $expiry = $this->safe_integer($market, 'expireDate');
-                $future = $expiry ? true : false;
+                $future = $this->safe_string($market, 'nextFundingRateTime') === null;
                 $swap = !$future;
                 $baseId = $this->safe_string($market, 'baseCurrency');
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
