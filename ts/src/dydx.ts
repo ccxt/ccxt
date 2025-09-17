@@ -1191,7 +1191,8 @@ export default class dydx extends Exchange {
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
         const account = this.safeDict (response, 'info');
         account['pub_key'] = {
-            'key': this.base64ToBinary (account['pub_key']['key']),
+            // encode with binary key would fail in python
+            'key': account['pub_key']['key'],
         };
         this.options['dydxAccount'] = account;
         return account;
@@ -1205,21 +1206,6 @@ export default class dydx extends Exchange {
             r = Precise.stringMul (r, n);
         }
         return r;
-    }
-
-    toLong (numStr: string): object {
-        // see: https://github.com/dcodeIO/long.js/blob/main/index.js
-        const TWO_PWR_32_DBL = '4294967296'; // 2 ** 32
-        const TWO_PWR_63_DBL = '9223372036854776000'; // 2 ** 63
-        const ZERO = '0';
-        if (Precise.stringLt (numStr, ZERO) || Precise.stringGe (Precise.stringAdd (numStr, '1'), TWO_PWR_63_DBL) || Precise.stringLt (numStr, '-' + TWO_PWR_63_DBL)) {
-            throw new BadRequest (this.id + ' number is out of bound');
-        }
-        return {
-            'low': Precise.stringOr (Precise.stringMod (numStr, TWO_PWR_32_DBL), ZERO),
-            'high': Precise.stringOr (Precise.stringDiv (numStr, TWO_PWR_32_DBL), ZERO),
-            'unsigned': false,
-        };
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1319,15 +1305,15 @@ export default class dydx extends Exchange {
                     'clobPairId': marketInfo['clobPairId'],
                 },
                 'side': sideNumber,
-                'quantums': this.toLong (quantums),
-                'subticks': this.toLong (subticks),
+                'quantums': this.toDydxLong (quantums),
+                'subticks': this.toDydxLong (subticks),
                 'goodTilBlock': goodTillBlock,
                 'goodTilBlockTime': goodTillBlockTime,
                 'timeInForce': timeInForceNumber,
                 'reduceOnly': reduceOnly,
                 'clientMetadata': clientMetadata,
                 'conditionType': conditionalType,
-                'conditionalOrderTriggerSubticks': this.toLong (conditionalOrderTriggerSubticks),
+                'conditionalOrderTriggerSubticks': this.toDydxLong (conditionalOrderTriggerSubticks),
             },
         };
         const signingPayload = {

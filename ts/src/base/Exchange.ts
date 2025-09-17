@@ -1670,6 +1670,21 @@ export default class Exchange {
         return zkSign;
     }
 
+    toDydxLong (numStr: string): object {
+        // see: https://github.com/dcodeIO/long.js/blob/main/index.js
+        const TWO_PWR_32_DBL = '4294967296'; // 2 ** 32
+        const TWO_PWR_63_DBL = '9223372036854776000'; // 2 ** 63
+        const ZERO = '0';
+        if (Precise.stringLt (numStr, ZERO) || Precise.stringGe (Precise.stringAdd (numStr, '1'), TWO_PWR_63_DBL) || Precise.stringLt (numStr, '-' + TWO_PWR_63_DBL)) {
+            throw new BadRequest (this.id + ' number is out of bound');
+        }
+        return {
+            'low': Precise.stringOr (Precise.stringMod (numStr, TWO_PWR_32_DBL), ZERO),
+            'high': Precise.stringOr (Precise.stringDiv (numStr, TWO_PWR_32_DBL), ZERO),
+            'unsigned': false,
+        };
+    }
+
     retrieveDydxCredentials (entropy: string) {
         const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
         return credentials;
@@ -1725,7 +1740,7 @@ export default class Exchange {
         if (fee === undefined) {
             fee = {
                 'amount': [],
-                'gasLimit': '1000000',
+                'gasLimit': 1000000,
             };
         }
         const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
