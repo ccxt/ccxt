@@ -523,7 +523,7 @@ public partial class kucoinfutures : kucoin
             object market = getValue(data, i);
             object id = this.safeString(market, "symbol");
             object expiry = this.safeInteger(market, "expireDate");
-            object future = ((bool) isTrue(expiry)) ? true : false;
+            object future = isEqual(this.safeString(market, "nextFundingRateTime"), null);
             object swap = !isTrue(future);
             object baseId = this.safeString(market, "baseCurrency");
             object quoteId = this.safeString(market, "quoteCurrency");
