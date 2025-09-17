@@ -696,10 +696,12 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
@@ -710,16 +712,18 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         channel = 'books'
         limit = self.safe_integer(params, 'limit')
-        if (limit == 1) or (limit == 5) or (limit == 15):
+        if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
             params = self.omit(params, 'limit')
             channel += str(limit)
         return await self.un_watch_channel(symbol, channel, 'orderbook', params)
@@ -752,33 +756,41 @@ class bitget(ccxt.async_support.bitget):
 
         https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
         https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+        https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'books'
         incrementalFeed = True
-        if (limit == 1) or (limit == 5) or (limit == 15):
+        if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
             channel += str(limit)
             incrementalFeed = False
         topics = []
         messageHashes = []
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'uta', False)
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             instType = None
-            instType, params = self.get_inst_type(market, False, params)
+            instType, params = self.get_inst_type(market, uta, params)
             args: dict = {
                 'instType': instType,
-                'channel': channel,
-                'instId': market['id'],
             }
+            topicOrChannel = 'topic' if uta else 'channel'
+            symbolOrInstId = 'symbol' if uta else 'instId'
+            args[topicOrChannel] = channel
+            args[symbolOrInstId] = market['id']
             topics.append(args)
             messageHashes.append('orderbook:' + symbol)
+        if uta:
+            params['uta'] = True
         orderbook = await self.watch_public_multiple(messageHashes, topics, params)
         if incrementalFeed:
             return orderbook.limit()
@@ -816,11 +828,27 @@ class bitget(ccxt.async_support.bitget):
         #       ]
         #   }
         #
+        # {
+        #     "action": "snapshot",
+        #     "arg": {"instType": "usdt-futures", "topic": "books", "symbol": "BTCUSDT"},
+        #     "data": [
+        #         {
+        #             "a": [Array],
+        #             "b": [Array],
+        #             "checksum": 0,
+        #             "pseq": 0,
+        #             "seq": "1343064377779269632",
+        #             "ts": "1755937421270"
+        #         }
+        #     ],
+        #     "ts": 1755937421337
+        # }
+        #
         arg = self.safe_value(message, 'arg')
-        channel = self.safe_string(arg, 'channel')
-        instType = self.safe_string(arg, 'instType')
-        marketType = 'spot' if (instType == 'SPOT') else 'contract'
-        marketId = self.safe_string(arg, 'instId')
+        channel = self.safe_string_2(arg, 'channel', 'topic')
+        instType = self.safe_string_lower(arg, 'instType')
+        marketType = 'spot' if (instType == 'spot') else 'contract'
+        marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -836,8 +864,8 @@ class bitget(ccxt.async_support.bitget):
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
             storedOrderBook = self.orderbooks[symbol]
-            asks = self.safe_value(rawOrderBook, 'asks', [])
-            bids = self.safe_value(rawOrderBook, 'bids', [])
+            asks = self.safe_list_2(rawOrderBook, 'asks', 'a', [])
+            bids = self.safe_list_2(rawOrderBook, 'bids', 'b', [])
             self.handle_deltas(storedOrderBook['asks'], asks)
             self.handle_deltas(storedOrderBook['bids'], bids)
             storedOrderBook['timestamp'] = timestamp
