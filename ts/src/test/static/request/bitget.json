@@ -1217,6 +1217,17 @@
                     "useHistoryEndpoint": true
                   }
                 ]
+            },
+            {
+                "description": "fetchPositions uta",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v3/position/current-position?category=USDT-FUTURES",
+                "input": [
+                    null,
+                    {
+                        "uta": true
+                    }
+                ]
             }
         ],
         "fetchPositionHistory": [
