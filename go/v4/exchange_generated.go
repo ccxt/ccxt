@@ -9291,6 +9291,17 @@ func (this *Exchange) RemoveRepeatedTradesFromArray(input interface{}) interface
 	var values interface{} = ObjectValues(uniqueResult)
 	return values
 }
+func (this *Exchange) RemoveKeysFromDict(dict interface{}, removeKeys interface{}) interface{} {
+	var keys interface{} = ObjectKeys(dict)
+	var newDict interface{} = map[string]interface{}{}
+	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+		var key interface{} = GetValue(keys, i)
+		if !IsTrue(this.InArray(key, removeKeys)) {
+			AddElementToObject(newDict, key, GetValue(dict, key))
+		}
+	}
+	return newDict
+}
 func (this *Exchange) HandleUntilOption(key interface{}, request interface{}, params interface{}, optionalArgs ...interface{}) interface{} {
 	multiplier := GetArg(optionalArgs, 0, 1)
 	_ = multiplier
