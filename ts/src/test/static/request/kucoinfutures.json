@@ -517,6 +517,15 @@
         ],
         "fetchTicker": [
             {
+                "description": "fetch ticker of a market with expiry",
+                "method": "fetchTicker",
+                "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=OMNIUSDTM",
+                "input": [
+                    "OMNI/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "Swap ticker",
                 "method": "fetchTicker",
                 "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDTM",
