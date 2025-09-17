@@ -15,6 +15,7 @@ var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
+var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
 var binance = require('./src/binance.js');
@@ -120,6 +121,7 @@ var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
+var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
 var binancecoinm$1 = require('./src/pro/binancecoinm.js');
@@ -198,6 +200,7 @@ const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'ascendex': ascendex["default"],
+    'backpack': backpack["default"],
     'bequant': bequant["default"],
     'bigone': bigone["default"],
     'binance': binance["default"],
@@ -305,6 +308,7 @@ const pro = {
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
     'ascendex': ascendex$1["default"],
+    'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
     'binance': binance$1["default"],
     'binancecoinm': binancecoinm$1["default"],
@@ -429,6 +433,7 @@ exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.ascendex = ascendex["default"];
+exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
 exports.bigone = bigone["default"];
 exports.binance = binance["default"];
