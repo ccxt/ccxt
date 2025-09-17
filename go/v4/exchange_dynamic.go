@@ -21,6 +21,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		ascendexItf := &ascendex{}
 		ascendexItf.Init(exchangeArgs)
 		return ascendexItf, true
+	case "backpack":
+		backpackItf := &backpack{}
+		backpackItf.Init(exchangeArgs)
+		return backpackItf, true
 	case "bequant":
 		bequantItf := &bequant{}
 		bequantItf.Init(exchangeArgs)

@@ -2763,6 +2763,25 @@ func WithFetchTransfersParams(params map[string]interface{}) FetchTransfersOptio
 	}
 }
 
+type FetchOpenOrderOptionsStruct struct {
+	Symbol *string
+	Params *map[string]interface{}
+}
+
+type FetchOpenOrderOptions func(opts *FetchOpenOrderOptionsStruct)
+
+func WithFetchOpenOrderSymbol(symbol string) FetchOpenOrderOptions {
+	return func(opts *FetchOpenOrderOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithFetchOpenOrderParams(params map[string]interface{}) FetchOpenOrderOptions {
+	return func(opts *FetchOpenOrderOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditSpotOrderOptionsStruct struct {
 	Price  *float64
 	Params *map[string]interface{}
@@ -2797,25 +2816,6 @@ func WithEditContractOrderPrice(price float64) EditContractOrderOptions {
 
 func WithEditContractOrderParams(params map[string]interface{}) EditContractOrderOptions {
 	return func(opts *EditContractOrderOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type FetchOpenOrderOptionsStruct struct {
-	Symbol *string
-	Params *map[string]interface{}
-}
-
-type FetchOpenOrderOptions func(opts *FetchOpenOrderOptionsStruct)
-
-func WithFetchOpenOrderSymbol(symbol string) FetchOpenOrderOptions {
-	return func(opts *FetchOpenOrderOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithFetchOpenOrderParams(params map[string]interface{}) FetchOpenOrderOptions {
-	return func(opts *FetchOpenOrderOptionsStruct) {
 		opts.Params = &params
 	}
 }
