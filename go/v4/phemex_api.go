@@ -155,8 +155,8 @@ func (this *phemex) PrivateGetGAccountsAccountPositions(args ...interface{}) <-c
 	return this.callEndpointAsync("privateGetGAccountsAccountPositions", args...)
 }
 
-func (this *phemex) PrivateGetAccountsPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccountsPositions", args...)
+func (this *phemex) PrivateGetGAccountsPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGAccountsPositions", args...)
 }
 
 func (this *phemex) PrivateGetApiDataFuturesFundingFees(args ...interface{}) <-chan interface{} {
