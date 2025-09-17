@@ -1442,9 +1442,10 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
 	if clientSubscription == nil {
 		if subscription != nil {
-			client.Subscriptions[subscribeHash.(string)] = subscription.(chan interface{})
+			client.Subscriptions[subscribeHash.(string)] = subscription
 		} else {
-			client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
+			// client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
+			client.Subscriptions[subscribeHash.(string)] = true
 		}
 	}
 	client.SubscriptionsMu.Unlock()

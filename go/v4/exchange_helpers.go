@@ -346,6 +346,30 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		if keyNum >= 0 && keyNum < len(v) {
 			return string(v[keyNum])
 		}
+	case map[string]map[string]*ArrayCacheByTimestamp:
+		if keyStr != "" {
+			if innerMap, ok := v[keyStr]; ok {
+				return innerMap
+			}
+		}
+	case map[string]*ArrayCacheByTimestamp:
+		if keyStr != "" {
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+	case map[string]*ArrayCache:
+		if keyStr != "" {
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
+	case map[string]*ArrayCacheBySymbolBySide:
+		if keyStr != "" {
+			if val, ok := v[keyStr]; ok {
+				return val
+			}
+		}
 	default:
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
 		if obs, ok := collection.(IOrderBookSide); ok {
@@ -979,6 +1003,50 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 			// return nil
 		} else {
 			// return fmt.Errorf("invalid key type for sync.Map: expected string")
+		}
+	case map[string]map[string]*ArrayCacheByTimestamp:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(map[string]*ArrayCacheByTimestamp); ok {
+				obj[key] = v
+			} else if _, ok := value.(map[string]interface{}); ok {
+				// assume we want a new map[string]*ArrayCacheByTimestamp
+				cache := make(map[string]*ArrayCacheByTimestamp)
+				obj[key] = cache
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]map[string]*ArrayCacheByTimestamp")
+			}
+		}
+	case map[string]*ArrayCacheByTimestamp:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCacheByTimestamp); ok {
+				obj[key] = v
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheByTimestamp")
+			}
+		}
+	case map[string]*ArrayCache:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCache); ok {
+				obj[key] = v
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCache")
+			}
+		}
+	case map[string]*ArrayCacheBySymbolById:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCacheBySymbolById); ok {
+				obj[key] = v
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolById")
+			}
+		}
+	case map[string]*ArrayCacheBySymbolBySide:
+		if key, ok := stringOrInt.(string); ok {
+			if v, ok := value.(*ArrayCacheBySymbolBySide); ok {
+				obj[key] = v
+			} else {
+				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolBySide")
+			}
 		}
 	default:
 		// Handle OrderBookInterface types using type assertion
@@ -3014,13 +3082,13 @@ func PanicOnError(msg interface{}) {
 			}
 		}
 	case *Error:
-        stack := debug.Stack()
-        panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
-        panic(panicMsg)
+		stack := debug.Stack()
+		panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
+		panic(panicMsg)
 	case error: // ✅ optional: handle any other error type
-        stack := debug.Stack()
-        panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
-        panic(panicMsg)
+		stack := debug.Stack()
+		panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
+		panic(panicMsg)
 	default:
 		return
 	}
