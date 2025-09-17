@@ -7834,7 +7834,7 @@ func (this *Exchange) ParseLastPrices(pricesData interface{}, optionalArgs ...in
 	var results interface{} = []interface{}{}
 	if IsTrue(IsArray(pricesData)) {
 		for i := 0; IsLessThan(i, GetArrayLength(pricesData)); i++ {
-			var priceData interface{} = this.Extend(this.ParseLastPrice(GetValue(pricesData, i)), params)
+			var priceData interface{} = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params)
 			AppendToArray(&results, priceData)
 		}
 	} else {
@@ -7844,7 +7844,7 @@ func (this *Exchange) ParseLastPrices(pricesData interface{}, optionalArgs ...in
 
 			var market interface{} = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
-			var priceData interface{} = this.Extend(this.ParseLastPrice(GetValue(pricesData, marketId), market), params)
+			var priceData interface{} = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
 			AppendToArray(&results, priceData)
 		}
 	}
