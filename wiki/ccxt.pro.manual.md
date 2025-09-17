@@ -416,7 +416,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 *Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 const ccxtpro = require ('ccxt').pro
 console.log ('CCXT version', ccxtpro.version)
@@ -445,14 +445,16 @@ CCXT Pro is designed for async/await style syntax and relies heavily on async pr
 Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 const ccxt = require ('ccxt').pro
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
-The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
 #### **Python**
+
+The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
+
 ```python
 import ccxt.pro as ccxtpro
 from asyncio import run
@@ -472,7 +474,6 @@ run(main())
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
 ```php
-// PHP
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
@@ -623,7 +624,7 @@ If the underlying exchange does not accept a limiting argument, the limiting is 
 
 The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks, but never more than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than `limit` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOrderBook']) {
     while (true) {
@@ -672,7 +673,7 @@ if ($exchange->has['watchOrderBook']) {
 Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOrderBookForSymbols']) {
     while (true) {
@@ -751,7 +752,7 @@ if ($exchange->has['watchTicker']) {
 ### watchTickers
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchTickers']) {
     while (true) {
@@ -837,7 +838,7 @@ That explains why some exchanges reasonably think that OHLCVs are not necessary 
 If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOHLCV']) {
     while (true) {
@@ -886,7 +887,7 @@ if ($exchange->has['watchOHLCV']) {
 
 Similar to `watchOHLCV` but allows multiple subscriptions of symbols and timeframes
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOHLCVForSymbols']) {
     while (true) {
@@ -928,7 +929,7 @@ if exchange.has['watchOHLCVForSymbols']:
 
 ### watchTrades
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 // JavaScript
 if (exchange.has['watchTrades']) {
@@ -977,7 +978,7 @@ if ($exchange->has['watchTrades']) {
 Similar to `watchTrades` but allows subscribing to multiple symbols in a single call.
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchTradesForSymbols']) {
     while (true) {
@@ -1012,9 +1013,8 @@ In most cases the authentication logic is borrowed from CCXT since the exchanges
 
 ### watchBalance
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
-// JavaScript
 if (exchange.has['watchBalance']) {
     while (true) {
         try {
@@ -1060,7 +1060,7 @@ if ($exchange->has['watchBalance']) {
 ### watchOrders
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
@@ -1082,7 +1082,7 @@ public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 =
 
 ### watchMyTrades
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
@@ -1107,7 +1107,7 @@ public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2
 watch all open positions and returns a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 watchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) 
 ```
@@ -1129,9 +1129,8 @@ public async Task<List<Position>> WatchPositions(List<string> symbols = null, In
 
 ### createOrderWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
-// JavaScript
+#### **TypeScript**
+```typescript
 createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
 ```
 #### **Python**
@@ -1151,8 +1150,8 @@ create_order_ws(string $symbol, string $type, string $side, float $amount, ?floa
 <!-- tabs:end -->
 ### editOrderWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 // JavaScript
 editOrderWs (id, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
 ```
@@ -1168,8 +1167,8 @@ edit_order_ws(string id, string $symbol, string $type, string $side, float $amou
 
 ### cancelOrderWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 cancelOrderWs(id: string, symbol: string = undefined, params = {})
 ```
 #### **Python**
@@ -1185,8 +1184,8 @@ cancel_order_ws(string $id, string $symbol, $params = array ())
 
 ### cancelOrdersWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 cancelOrdersWs(ids: string[], symbol: string = undefined, params = {})
 ```
 #### **Python**
@@ -1202,8 +1201,8 @@ cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 
 ### cancelAllOrdersWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 cancelAllOrdersWs(symbol: string = undefined, params = {})
 ```
 #### **Python**
@@ -1229,7 +1228,7 @@ If you want to have an access to raw incoming messages and use your custom handl
 A) By inheritance:
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 class myExchange extends ccxt.pro.coinbase {
     handleMessage (wsClient, data) {
@@ -1281,7 +1280,7 @@ $ex->watch_ticker('BTC/USDT');
 B) by overriding the method:
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 function myHandler(ws, data, orignal_handler){
     orignal_handler(ws, data); // trigger original `handleMessage`
