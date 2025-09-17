@@ -968,7 +968,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         if market['swap']:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #

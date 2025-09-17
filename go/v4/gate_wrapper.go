@@ -61,8 +61,15 @@ func (this *Gate) FetchSpotMarkets(params ...interface{}) ([]map[string]interfac
 	}
 	return res.([]map[string]interface{}), nil
 }
-func (this *Gate) FetchContractMarkets(params ...interface{}) ([]map[string]interface{}, error) {
-	res := <-this.Core.FetchContractMarkets(params...)
+func (this *Gate) FetchSwapMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+	res := <-this.Core.FetchSwapMarkets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res.([]map[string]interface{}), nil
+}
+func (this *Gate) FetchFutureMarkets(params ...interface{}) ([]map[string]interface{}, error) {
+	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -498,6 +505,12 @@ func (this *Gate) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 /**
  * @method
  * @name gate#fetchBalance
+ * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+ * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+ * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+ * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
  * @param {object} [params] exchange specific parameters
  * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
  * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -2168,6 +2181,9 @@ func (this *Gate) FetchPositionsHistory(options ...FetchPositionsHistoryOptions)
 
 // missing typed methods from base
 // nolint
+func (this *Gate) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Gate) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

@@ -1971,6 +1971,7 @@ class paradex(Exchange, ImplicitAPI):
             'contracts': None,
             'contractSize': None,
             'price': None,
+            'side': None,
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,

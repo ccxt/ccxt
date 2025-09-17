@@ -802,6 +802,7 @@ func (this *Bitget) EditOrder(id string, symbol string, typeVar string, side str
  * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
  * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -922,6 +923,7 @@ func (this *Bitget) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+ * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Bitget) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
@@ -1317,13 +1319,15 @@ func (this *Bitget) FetchPosition(symbol string, options ...FetchPositionOptions
  * @description fetch all open positions
  * @see https://www.bitget.com/api-doc/contract/position/get-all-position
  * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+ * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
  * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
- * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+ * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+ * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Bitget) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -2246,6 +2250,9 @@ func (this *Bitget) FetchLongShortRatioHistory(options ...FetchLongShortRatioHis
 
 // missing typed methods from base
 // nolint
+func (this *Bitget) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitget) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

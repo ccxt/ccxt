@@ -611,6 +611,9 @@ func (this *Wavesexchange) Withdraw(code string, amount float64, address string,
 
 // missing typed methods from base
 // nolint
+func (this *Wavesexchange) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Wavesexchange) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

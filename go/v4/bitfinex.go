@@ -4343,12 +4343,15 @@ func (this *bitfinex) ParseLiquidation(liquidation interface{}, optionalArgs ...
 	var contractSize interface{} = this.SafeString(market, "contractSize")
 	var baseValue interface{} = Precise.StringMul(contracts, contractSize)
 	var price interface{} = this.SafeString(entry, 11)
+	var sideFlag interface{} = this.SafeInteger(entry, 8)
+	var side interface{} = Ternary(IsTrue((IsEqual(sideFlag, 1))), "buy", "sell")
 	return this.SafeLiquidation(map[string]interface{}{
 		"info":         entry,
 		"symbol":       this.SafeSymbol(marketId, market, nil, "contract"),
 		"contracts":    this.ParseNumber(contracts),
 		"contractSize": this.ParseNumber(contractSize),
 		"price":        this.ParseNumber(price),
+		"side":         side,
 		"baseValue":    this.ParseNumber(baseValue),
 		"quoteValue":   this.ParseNumber(Precise.StringMul(baseValue, price)),
 		"timestamp":    timestamp,
@@ -4374,8 +4377,8 @@ func (this *bitfinex) SetMargin(symbol interface{}, amount interface{}, optional
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37378 := (<-this.LoadMarkets())
-		PanicOnError(retRes37378)
+		retRes37408 := (<-this.LoadMarkets())
+		PanicOnError(retRes37408)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(this.Id, " setMargin() only support swap markets")))
@@ -4451,8 +4454,8 @@ func (this *bitfinex) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes37968 := (<-this.LoadMarkets())
-		PanicOnError(retRes37968)
+		retRes37998 := (<-this.LoadMarkets())
+		PanicOnError(retRes37998)
 		var request interface{} = map[string]interface{}{
 			"id": []interface{}{this.ParseToNumeric(id)},
 		}
@@ -4552,8 +4555,8 @@ func (this *bitfinex) EditOrder(id interface{}, symbol interface{}, typeVar inte
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes38748 := (<-this.LoadMarkets())
-		PanicOnError(retRes38748)
+		retRes38778 := (<-this.LoadMarkets())
+		PanicOnError(retRes38778)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"id": this.ParseToNumeric(id),

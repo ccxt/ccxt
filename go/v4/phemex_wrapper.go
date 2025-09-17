@@ -760,7 +760,7 @@ func (this *Phemex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
- * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
+ * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
  */
 func (this *Phemex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1336,6 +1336,9 @@ func (this *Phemex) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 
 // missing typed methods from base
 // nolint
+func (this *Phemex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Phemex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

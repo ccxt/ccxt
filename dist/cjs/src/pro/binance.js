@@ -416,6 +416,7 @@ class binance extends binance$1["default"] {
             'contracts': this.safeNumber(liquidation, 'l'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'ap'),
+            'side': this.safeStringLower(liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2810,6 +2811,14 @@ class binance extends binance$1["default"] {
         //             ]
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
         //
         const wallet = this.safeString(this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
@@ -3239,8 +3248,8 @@ class binance extends binance$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('cancelAllOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId(url);
@@ -3253,7 +3262,7 @@ class binance extends binance$1["default"] {
         };
         const message = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': this.signParams(this.extend(payload, params)),
         };
         const subscription = {
@@ -4266,7 +4275,7 @@ class binance extends binance$1["default"] {
         const code = this.safeInteger(error, 'code');
         const msg = this.safeString(error, 'msg');
         try {
-            this.handleErrors(code, msg, client.url, undefined, undefined, this.json(error), error, undefined, undefined);
+            this.handleErrors(code, msg, client.url, '', {}, this.json(error), error, {}, {});
         }
         catch (e) {
             rejected = true;
@@ -4333,6 +4342,7 @@ class binance extends binance$1["default"] {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString(message, 'e');
         if (Array.isArray(message)) {

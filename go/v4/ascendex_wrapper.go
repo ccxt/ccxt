@@ -1084,6 +1084,9 @@ func (this *Ascendex) FetchLeverages(options ...FetchLeveragesOptions) (Leverage
 
 // missing typed methods from base
 // nolint
+func (this *Ascendex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Ascendex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

@@ -720,6 +720,9 @@ func (this *Gemini) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 
 // missing typed methods from base
 // nolint
+func (this *Gemini) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Gemini) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

@@ -1073,7 +1073,7 @@ func (this *lbank) FetchOrderBook(symbol interface{}, optionalArgs ...interface{
 			return nil
 		}
 
-		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", 1, 0)
+		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks")
 		return nil
 
 	}()

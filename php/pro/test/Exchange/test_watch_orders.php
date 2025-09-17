@@ -19,6 +19,7 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
+            $success = true;
             try {
                 $response = Async\await($exchange->watch_orders($symbol));
             } catch(\Throwable $e) {
@@ -26,14 +27,18 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
-            $now = $exchange->milliseconds();
-            for ($i = 0; $i < count($response); $i++) {
-                test_order($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+            if ($success === true) {
+                assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
+                $now = $exchange->milliseconds();
+                for ($i = 0; $i < count($response); $i++) {
+                    test_order($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                }
+                assert_timestamp_order($exchange, $method, $symbol, $response);
             }
-            assert_timestamp_order($exchange, $method, $symbol, $response);
         }
+        return true;
     }) ();
 }

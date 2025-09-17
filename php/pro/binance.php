@@ -427,6 +427,7 @@ class binance extends \ccxt\async\binance {
             'contracts' => $this->safe_number($liquidation, 'l'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'ap'),
+            'side' => $this->safe_string_lower($liquidation, 'S'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2900,6 +2901,14 @@ class binance extends \ccxt\async\binance {
         //             )
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e" => "externalLockUpdate",  // Event Type
+        //        "E" => 1581557507324,         // Event Time
+        //        "a" => "NEO",                 // Asset
+        //        "d" => "10.00000000",         // Delta
+        //        "T" => 1581557507268          // Transaction Time
+        //    }
         //
         $wallet = $this->safe_string($this->options, 'wallet', 'wb'); // cw for cross $wallet
         // each $account is connected to a different endpoint
@@ -3337,8 +3346,8 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $type = $this->get_market_type('cancelAllOrdersWs', $market, $params);
-            if ($type !== 'spot' && $type !== 'future') {
-                throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot or swap markets');
+            if ($type !== 'spot') {
+                throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot markets');
             }
             $url = $this->urls['api']['ws']['ws-api'][$type];
             $requestId = $this->request_id($url);
@@ -3351,7 +3360,7 @@ class binance extends \ccxt\async\binance {
             );
             $message = array(
                 'id' => $messageHash,
-                'method' => 'order.cancel',
+                'method' => 'openOrders.cancelAll',
                 'params' => $this->sign_params($this->extend($payload, $params)),
             );
             $subscription = array(
@@ -4390,7 +4399,7 @@ class binance extends \ccxt\async\binance {
         $code = $this->safe_integer($error, 'code');
         $msg = $this->safe_string($error, 'msg');
         try {
-            $this->handle_errors($code, $msg, $client->url, null, null, $this->json($error), $error, null, null);
+            $this->handle_errors($code, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
         } catch (Exception $e) {
             $rejected = true;
             // private endpoint uses $id
@@ -4457,6 +4466,7 @@ class binance extends \ccxt\async\binance {
             'executionReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
             'forceOrder' => array($this, 'handle_liquidation'),
+            'externalLockUpdate' => array($this, 'handle_balance'),
         );
         $event = $this->safe_string($message, 'e');
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {

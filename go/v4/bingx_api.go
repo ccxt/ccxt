@@ -7,6 +7,10 @@
 
 package ccxt
 
+func (this *bingx) FundV1PrivateGetAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("fundV1PrivateGetAccountBalance", args...)
+}
+
 func (this *bingx) SpotV1PublicGetServerTime(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotV1PublicGetServerTime", args...)
 }

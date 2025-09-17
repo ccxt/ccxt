@@ -1164,7 +1164,8 @@
                         "baseValue": 0.0033,
                         "quoteValue": 120.29952,
                         "timestamp": 1700267258000,
-                        "datetime": "2023-11-18T00:27:38.000Z"
+                        "datetime": "2023-11-18T00:27:38.000Z",
+                        "side":"buy"
                     },
                     {
                         "info": {
@@ -1182,6 +1183,7 @@
                         "baseValue": 0.0287,
                         "quoteValue": 1046.24128,
                         "timestamp": 1700267258000,
+                        "side":"buy",
                         "datetime": "2023-11-18T00:27:38.000Z"
                     }
                 ]

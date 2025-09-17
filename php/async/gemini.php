@@ -266,7 +266,7 @@ class gemini extends Exchange {
                 'fetchMarketFromWebRetries' => 10,
                 'fetchMarketsFromAPI' => array(
                     'fetchDetailsForAllSymbols' => false,
-                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL' ),
+                    'quoteCurrencies' => array( 'USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC' ),
                 ),
                 'fetchMarkets' => array(
                     'webApiEnable' => true, // fetches from WEB
@@ -300,6 +300,7 @@ class gemini extends Exchange {
                         'quote' => 'USD',
                     ),
                 ),
+                'brokenPairs' => array( 'efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd' ),
             ),
             'features' => array(
                 'default' => array(
@@ -646,10 +647,10 @@ class gemini extends Exchange {
             //
             $result = array();
             $options = $this->safe_dict($this->options, 'fetchMarketsFromAPI', array());
-            $bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+            $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
             $marketIds = array();
             for ($i = 0; $i < count($marketIdsRaw); $i++) {
-                if ($marketIdsRaw[$i] !== $bugSymbol) {
+                if (!$this->in_array($marketIdsRaw[$i], $brokenPairs)) {
                     $marketIds[] = $marketIdsRaw[$i];
                 }
             }
@@ -686,13 +687,15 @@ class gemini extends Exchange {
                     for ($i = 0; $i < count($marketIds); $i++) {
                         $marketId = $marketIds[$i];
                         $tradingPair = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
-                        if ($tradingPair !== null) {
+                        if ($tradingPair !== null && !$this->in_array($tradingPair, $brokenPairs)) {
                             $result[] = $this->parse_market($tradingPair);
                         }
                     }
                 } else {
                     for ($i = 0; $i < count($marketIds); $i++) {
-                        $result[] = $this->parse_market($marketIds[$i]);
+                        if (!$this->in_array($marketIds[$i], $brokenPairs)) {
+                            $result[] = $this->parse_market($marketIds[$i]);
+                        }
                     }
                 }
             }
@@ -710,8 +713,8 @@ class gemini extends Exchange {
         //
         //     array(
         //         'BTCUSD',   // $symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -730,7 +733,7 @@ class gemini extends Exchange {
         //         "wrap_enabled" => false
         //         "product_type" => "swap", // only in perps
         //         "contract_type" => "linear", // only in perps
-        //         "contract_price_currency" => "GUSD" // only in perps
+        //         "contract_price_currency" => "GUSD"
         //     }
         //
         $marketId = null;
@@ -1094,7 +1097,9 @@ class gemini extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_tickers($response, $symbols);
+            $result = $this->parse_tickers($response, $symbols);
+            $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
+            return $this->remove_keys_from_dict($result, $brokenPairs);
         }) ();
     }
 

@@ -473,6 +473,7 @@ func (this *Kucoinfutures) FetchPositionsHistory(options ...FetchPositionsHistor
  * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
  * @param {float} [params.cost] the cost of the order in units of USDT
  * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+ * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
  * ----------------- Exchange Specific Parameters -----------------
  * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
  * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -482,7 +483,8 @@ func (this *Kucoinfutures) FetchPositionsHistory(options ...FetchPositionsHistor
  * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
  * @param {bool} [params.closeOrder] set to true to close position
  * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
- * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+ * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+ * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Kucoinfutures) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -890,6 +892,7 @@ func (this *Kucoinfutures) FetchFundingInterval(symbol string, options ...FetchF
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
  */
 func (this *Kucoinfutures) FetchBalance(params ...interface{}) (Balances, error) {
@@ -1273,6 +1276,40 @@ func (this *Kucoinfutures) SetMarginMode(marginMode string, options ...SetMargin
 
 /**
  * @method
+ * @name kucoinfutures#setPositionMode
+ * @description set hedged to true or false for a market
+ * @see https://www.kucoin.com/docs-new/3475097e0
+ * @param {bool} hedged set to true to use two way position
+ * @param {string} [symbol] not used by bybit setPositionMode ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response from the exchange
+ */
+func (this *Kucoinfutures) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+
+	opts := SetPositionModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.SetPositionMode(hedged, symbol, params)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return res.(map[string]interface{}), nil
+}
+
+/**
+ * @method
  * @name kucoinfutures#fetchLeverage
  * @description fetch the set leverage for a market
  * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
@@ -1335,6 +1372,9 @@ func (this *Kucoinfutures) SetLeverage(leverage int64, options ...SetLeverageOpt
 
 // missing typed methods from base
 // nolint
+func (this *Kucoinfutures) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Kucoinfutures) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
@@ -1601,9 +1641,6 @@ func (this *Kucoinfutures) FetchTransfers(options ...FetchTransfersOptions) ([]T
 }
 func (this *Kucoinfutures) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Kucoinfutures) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
-	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Kucoinfutures) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 	return this.exchangeTyped.Withdraw(code, amount, address, options...)

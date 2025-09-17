@@ -119,6 +119,7 @@ class bingx(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
+                    'fund': 'https://open-api.{hostname}/openApi',
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
                     'contract': 'https://open-api.{hostname}/openApi',
@@ -155,6 +156,15 @@ class bingx(Exchange, ImplicitAPI):
                 'secret': True,
             },
             'api': {
+                'fund': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'account/balance': 1,
+                            },
+                        },
+                    },
+                },
                 'spot': {
                     'v1': {
                         'public': {
@@ -569,8 +579,11 @@ class bingx(Exchange, ImplicitAPI):
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ARB': 'ARBITRUM',
+                    'ARBITRUM': 'ARB',
                     'MATIC': 'POLYGON',
+                    'ZKSYNC': 'ZKSYNCERA',
+                    'AVAXC': 'AVAX-C',
+                    'HBAR': 'HEDERA',
                 },
             },
             'features': {
@@ -2127,6 +2140,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
+        :param str [params.type]: the type of balance to fetch(spot, swap, funding) default is `spot`
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -2156,6 +2170,21 @@ class bingx(Exchange, ImplicitAPI):
             #         ]
             #     }
             #
+        elif (marketType == 'funding') or (marketType == 'fund'):
+            response = await self.fundV1PrivateGetAccountBalance(marketTypeQuery)
+            # {
+            #     code: '0',
+            #     timestamp: '1754906016631',
+            #     data: {
+            #         assets: [
+            #             {
+            #                 asset: 'USDT',
+            #                 free: '44.37692200000000237300',
+            #                 locked: '0.00000000000000000000'
+            #             }
+            #         ]
+            #     }
+            # }
         elif marketType == 'spot':
             response = await self.spotV1PrivateGetAccountBalance(marketTypeQuery)
             #
@@ -2304,7 +2333,7 @@ class bingx(Exchange, ImplicitAPI):
         firstStandardOrInverse = self.safe_dict(standardAndInverseBalances, 0)
         isStandardOrInverse = firstStandardOrInverse is not None
         spotData = self.safe_dict(response, 'data', {})
-        spotBalances = self.safe_list(spotData, 'balances')
+        spotBalances = self.safe_list_2(spotData, 'balances', 'assets', [])
         firstSpot = self.safe_dict(spotBalances, 0)
         isSpot = firstSpot is not None
         if isStandardOrInverse:

@@ -352,6 +352,9 @@ func (this *Zaif) Withdraw(code string, amount float64, address string, options 
 
 // missing typed methods from base
 // nolint
+func (this *Zaif) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Zaif) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

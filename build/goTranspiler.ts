@@ -152,6 +152,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "setSandboxMode": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
+    "parseLastPrice": false,
     "sign": false
 }
 
@@ -1052,7 +1053,8 @@ class NewTranspiler {
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
-            missingMethodsWrappers = missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
+            missingMethodsWrappers = `func (this *${this.capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`
+            missingMethodsWrappers += missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
         }
 
         const shouldCreateClassWrappers = exchange === 'Exchange';
@@ -1090,7 +1092,15 @@ class NewTranspiler {
                 `   return &ExchangeTyped{`,
                 `       Exchange: exchangePointer,`,
                 `   }`,
-                '}'
+                '}',
+                '',
+                'func (this *ExchangeTyped) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {',
+                '	res := <-this.Exchange.LoadMarkets(params...)',
+                '	if IsError(res) {',
+                '		return nil, CreateReturnError(res)',
+                '	}',
+                '	return NewMarketsMap(res), nil',
+                '}',
             ].join('\n');
 
         } else {
@@ -1258,6 +1268,10 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
         baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
         baseClass = baseClass.replaceAll(/args\.\.\.\)/g, '(args).([]interface{})...)');
+        baseClass = baseClass.replaceAll (/(var \w+ interface{}) = client.Futures/g, '$1 = (client.(Client)).Futures'); // tmp fix for go not needed after ws-merge
+        
+        // Fix setMarketsFromExchange parameter type
+        baseClass = baseClass.replaceAll(/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#

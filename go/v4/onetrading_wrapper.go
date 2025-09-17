@@ -74,6 +74,7 @@ func (this *Onetrading) FetchMarkets(params ...interface{}) ([]MarketInterface, 
  * @see https://docs.onetrading.com/#fee-groups
  * @see https://docs.onetrading.com/#fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
  */
 func (this *Onetrading) FetchTradingFees(params ...interface{}) (TradingFees, error) {
@@ -611,6 +612,9 @@ func (this *Onetrading) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade,
 
 // missing typed methods from base
 // nolint
+func (this *Onetrading) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Onetrading) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

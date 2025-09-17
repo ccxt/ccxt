@@ -1908,7 +1908,7 @@ class bitget extends Exchange {
             $res = $this->safe_dict($results, $i);
             $data = $this->safe_list($res, 'data', array());
             $firstData = $this->safe_dict($data, 0, array());
-            $isBorrowable = $this->safe_string($firstData, 'isBorrowable');
+            $isBorrowable = $this->safe_bool($firstData, 'isBorrowable');
             if ($fetchMargins && $isBorrowable !== null) {
                 $keysList = is_array($this->index_by($data, 'symbol')) ? array_keys($this->index_by($data, 'symbol')) : array();
                 $this->options['crossMarginPairsData'] = $keysList;
@@ -5778,6 +5778,7 @@ class bitget extends Exchange {
          * @param {string} [$params->planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
          * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing $order
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->clientOrderId] the $clientOrderId of the $order, $id does not need to be provided if $clientOrderId is provided
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
@@ -5795,13 +5796,32 @@ class bitget extends Exchange {
         if (!($market['spot'] && $trigger)) {
             $request['symbol'] = $market['id'];
         }
-        if (!(($market['swap'] || $market['future']) && $trigger)) {
-            $request['orderId'] = $id;
-        }
         $uta = null;
         list($uta, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'uta', false);
+        $isPlanOrder = $trigger || $trailing;
+        $isContract = $market['swap'] || $market['future'];
+        $isContractTriggerEndpoint = $isContract && $isPlanOrder && !$uta;
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOid');
+        if ($isContractTriggerEndpoint) {
+            $orderIdList = array();
+            $orderId = array();
+            if ($clientOrderId !== null) {
+                $params = $this->omit($params, 'clientOrderId');
+                $orderId['clientOid'] = $clientOrderId;
+            } else {
+                $orderId['orderId'] = $id;
+            }
+            $orderIdList[] = $orderId;
+            $request['orderIdList'] = $orderIdList;
+        } else {
+            if ($clientOrderId !== null) {
+                $params = $this->omit($params, 'clientOrderId');
+                $request['clientOid'] = $clientOrderId;
+            } else {
+                $request['orderId'] = $id;
+            }
+        }
         if ($uta) {
-            $request['orderId'] = $id;
             if ($trigger) {
                 $response = $this->privateUtaPostV3TradeCancelStrategyOrder ($this->extend($request, $params));
             } else {
@@ -5811,14 +5831,6 @@ class bitget extends Exchange {
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
-            if ($trigger || $trailing) {
-                $orderIdList = array();
-                $orderId = array(
-                    'orderId' => $id,
-                );
-                $orderIdList[] = $orderId;
-                $request['orderIdList'] = $orderIdList;
-            }
             if ($trailing) {
                 $planType = $this->safe_string($params, 'planType', 'track_plan');
                 $request['planType'] = $planType;
@@ -5897,7 +5909,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $order = null;
-        if (($market['swap'] || $market['future']) && $trigger && !$uta) {
+        if ($isContractTriggerEndpoint) {
             $orderInfo = $this->safe_value($data, 'successList', array());
             $order = $orderInfo[0];
         } else {
@@ -6195,6 +6207,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
+         * @param {string} [$params->clientOrderId] the $clientOrderId of the order, $id does not need to be provided if $clientOrderId is provided
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         if ($symbol === null) {
@@ -6203,8 +6216,15 @@ class bitget extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'orderId' => $id,
+            // 'orderId' => $id,
         );
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientOid');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'clientOrderId' ));
+            $request['clientOid'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
         $response = null;
         $uta = null;
         list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'uta', false);
@@ -7558,7 +7578,7 @@ class bitget extends Exchange {
         //         "requestTime" => 1700802995406,
         //         "data" => array(
         //             {
-        //                 "userId" => "7264631750",
+        //                 "userId" => "7264631751",
         //                 "symbol" => "BTCUSDT",
         //                 "orderId" => "1098394344925597696",
         //                 "tradeId" => "1098394344974925824",
@@ -7806,6 +7826,7 @@ class bitget extends Exchange {
          *
          * @see https://www.bitget.com/api-doc/contract/position/get-all-$position
          * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+         * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
          *
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -7813,7 +7834,8 @@ class bitget extends Exchange {
          * @param {string} [$params->productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
-         * @param {string} [$params->method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+         * @param {string} [$params->method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+         * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
@@ -7836,12 +7858,15 @@ class bitget extends Exchange {
         }
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        $request = array(
-            'productType' => $productType,
-        );
+        $request = array();
         $response = null;
         $isHistory = false;
-        if ($method === 'privateMixGetV2MixPositionAllPosition') {
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'uta', false);
+        if ($uta) {
+            $request['category'] = $productType;
+            $response = $this->privateUtaGetV3PositionCurrentPosition ($this->extend($request, $params));
+        } elseif ($method === 'privateMixGetV2MixPositionAllPosition') {
             $marginCoin = $this->safe_string($params, 'marginCoin', 'USDT');
             if ($symbols !== null) {
                 $marginCoin = $market['settleId'];
@@ -7859,12 +7884,14 @@ class bitget extends Exchange {
                 }
             }
             $request['marginCoin'] = $marginCoin;
+            $request['productType'] = $productType;
             $response = $this->privateMixGetV2MixPositionAllPosition ($this->extend($request, $params));
         } else {
             $isHistory = true;
             if ($market !== null) {
                 $request['symbol'] = $market['id'];
             }
+            $request['productType'] = $productType;
             $response = $this->privateMixGetV2MixPositionHistoryPosition ($this->extend($request, $params));
         }
         //
@@ -7929,12 +7956,51 @@ class bitget extends Exchange {
         //         }
         //     }
         //
+        // privateUtaGetV3PositionCurrentPosition
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 1750929905423,
+        //         "data" => {
+        //             "list" => array(
+        //                 {
+        //                     "category" => "USDT-FUTURES",
+        //                     "symbol" => "BTCUSDT",
+        //                     "marginCoin" => "USDT",
+        //                     "holdMode" => "hedge_mode",
+        //                     "posSide" => "long",
+        //                     "marginMode" => "crossed",
+        //                     "positionBalance" => "5.435199",
+        //                     "available" => "0.001",
+        //                     "frozen" => "0",
+        //                     "total" => "0.001",
+        //                     "leverage" => "20",
+        //                     "curRealisedPnl" => "0",
+        //                     "avgPrice" => "107410.3",
+        //                     "positionStatus" => "normal",
+        //                     "unrealisedPnl" => "0.0047",
+        //                     "liquidationPrice" => "0",
+        //                     "mmr" => "0.004",
+        //                     "profitRate" => "0.0008647337475591",
+        //                     "markPrice" => "107415.3",
+        //                     "breakEvenPrice" => "107539.2",
+        //                     "totalFunding" => "0",
+        //                     "openFeeTotal" => "-0.06444618",
+        //                     "closeFeeTotal" => "0",
+        //                     "createdTime" => "1750495670699",
+        //                     "updatedTime" => "1750929883465"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
         $position = array();
-        if (!$isHistory) {
-            $position = $this->safe_list($response, 'data', array());
-        } else {
+        if ($uta || $isHistory) {
             $data = $this->safe_dict($response, 'data', array());
             $position = $this->safe_list($data, 'list', array());
+        } else {
+            $position = $this->safe_list($response, 'data', array());
         }
         $result = array();
         for ($i = 0; $i < count($position); $i++) {

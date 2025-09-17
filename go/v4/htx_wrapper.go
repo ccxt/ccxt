@@ -2286,6 +2286,9 @@ func (this *Htx) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
 
 // missing typed methods from base
 // nolint
+func (this *Htx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Htx) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }

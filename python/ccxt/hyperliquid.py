@@ -1675,6 +1675,43 @@ class hyperliquid(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
         self.load_markets()
+        request = self.cancel_orders_request(ids, symbol, params)
+        response = self.privatePostExchange(request)
+        #
+        #     {
+        #         "status":"ok",
+        #         "response":{
+        #             "type":"cancel",
+        #             "data":{
+        #                 "statuses":[
+        #                     "success"
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        innerResponse = self.safe_dict(response, 'response')
+        data = self.safe_dict(innerResponse, 'data')
+        statuses = self.safe_list(data, 'statuses')
+        orders = []
+        for i in range(0, len(statuses)):
+            status = statuses[i]
+            orders.append(self.safe_order({
+                'info': status,
+                'status': status,
+            }))
+        return orders
+
+    def cancel_orders_request(self, ids: List[str], symbol: Str = None, params={}) -> dict:
+        """
+        build the request payload for cancelling multiple orders
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+        :param str[] ids: order ids
+        :param str symbol: unified market symbol
+        :param dict [params]:
+        :returns dict: the raw request object to be sent to the exchange
+        """
         market = self.market(symbol)
         clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
@@ -1715,31 +1752,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = self.privatePostExchange(request)
-        #
-        #     {
-        #         "status":"ok",
-        #         "response":{
-        #             "type":"cancel",
-        #             "data":{
-        #                 "statuses":[
-        #                     "success"
-        #                 ]
-        #             }
-        #         }
-        #     }
-        #
-        innerResponse = self.safe_dict(response, 'response')
-        data = self.safe_dict(innerResponse, 'data')
-        statuses = self.safe_list(data, 'statuses')
-        orders = []
-        for i in range(0, len(statuses)):
-            status = statuses[i]
-            orders.append(self.safe_order({
-                'info': status,
-                'status': status,
-            }))
-        return orders
+        return request
 
     def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """
@@ -2270,6 +2283,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2278,12 +2292,18 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAddress, params = self.handle_public_address('fetchOrder', params)
         self.load_markets()
         market = self.safe_market(symbol)
-        isClientOrderId = len(id) >= 34
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         request: dict = {
             'type': 'orderStatus',
-            'oid': id if isClientOrderId else self.parse_to_numeric(id),
+            # 'oid': id if isClientOrderId else self.parse_to_numeric(id),
             'user': userAddress,
         }
+        if clientOrderId is not None:
+            params = self.omit(params, 'clientOrderId')
+            request['oid'] = clientOrderId
+        else:
+            isClientOrderId = len(id) >= 34
+            request['oid'] = id if isClientOrderId else self.parse_to_numeric(id)
         response = self.publicPostInfo(self.extend(request, params))
         #
         #     {
@@ -3655,19 +3675,25 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #
+        # {"status":"unknownOid"}
+        #
         status = self.safe_string(response, 'status', '')
         error = self.safe_string(response, 'error')
         message = None
         if status == 'err':
             message = self.safe_string(response, 'response')
+        elif status == 'unknownOid':
+            raise OrderNotFound(self.id + ' ' + body)  # {"status":"unknownOid"}
         elif error is not None:
             message = error
         else:
             responsePayload = self.safe_dict(response, 'response', {})
             data = self.safe_dict(responsePayload, 'data', {})
             statuses = self.safe_list(data, 'statuses', [])
-            firstStatus = self.safe_dict(statuses, 0)
-            message = self.safe_string(firstStatus, 'error')
+            for i in range(0, len(statuses)):
+                message = self.safe_string(statuses[i], 'error')
+                if message is not None:
+                    break
         feedback = self.id + ' ' + body
         nonEmptyMessage = ((message is not None) and (message != ''))
         if nonEmptyMessage:

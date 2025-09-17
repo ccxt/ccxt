@@ -48,12 +48,25 @@ public partial class Exchange
     {
         // var client = (WebSocketClient)client2;
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
+        rejectFutures(urlClient, urlClient.error);
         if (urlClient != null && urlClient.error)
         {
             // this.clients.Remove(client.url);
             this.clients.TryRemove(client.url, out _);
         }
         this.streamProduce("errors", null, error);
+    }
+
+    void rejectFutures (WebSocketClient urlClient, object error)
+    {
+        foreach (var KeyValue in urlClient.subscriptions) {
+            urlClient.subscriptions.Remove(KeyValue.Key);
+            Future existingFuture = null;
+            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
+            {
+                existingFuture.reject(error);
+            }
+        }
     }
 
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
@@ -142,7 +155,8 @@ public partial class Exchange
             wsOptions = this.deepExtend(this.streaming, wsOptions);
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive);
+            var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
+            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -164,15 +178,22 @@ public partial class Exchange
         var messageHash = messageHash2.ToString();
         var subscribeHash = subscribeHash2?.ToString();
         var client = this.client(url);
+        var backoffDelay = 0;
 
-        var future = (client.futures as ConcurrentDictionary<string, Future>).GetOrAdd(messageHash, (key) => client.future(messageHash));
-        if (subscribeHash == null)
+        Future existingFuture = null;
+        if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
         {
-            return await future;
+            return await existingFuture;
         }
-        var connected = client.connect(0);
-
-        if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
+        var future = client.future(messageHash);
+        object clientSubscription = null;
+        bool clientSubscriptionExists = (client.subscriptions as ConcurrentDictionary<string, object>).TryGetValue(subscribeHash, out clientSubscription);
+        if (!clientSubscriptionExists)
+        {
+            (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true);
+        }
+        var connected = client.connect(backoffDelay);
+        if (!clientSubscriptionExists)
         {
             await connected;
             if (message != null)

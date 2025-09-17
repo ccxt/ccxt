@@ -42,7 +42,8 @@ export default class gate extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchContractMarkets(params?: {}): Promise<any[]>;
+    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchFutureMarkets(params?: {}): Promise<any[]>;
     parseContractMarket(market: any, settleId: any): {
         id: string;
         symbol: string;
@@ -278,6 +279,12 @@ export default class gate extends Exchange {
     /**
      * @method
      * @name gate#fetchBalance
+     * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future

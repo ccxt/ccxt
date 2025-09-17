@@ -62,6 +62,7 @@ public partial class kraken : ccxt.kraken
                     { "broad", new Dictionary<string, object>() {
                         { "Already subscribed", typeof(BadRequest) },
                         { "Currency pair not in ISO 4217-A3 format", typeof(BadSymbol) },
+                        { "Currency pair not supported", typeof(BadSymbol) },
                         { "Malformed request", typeof(BadRequest) },
                         { "Pair field must be an array", typeof(BadRequest) },
                         { "Pair field unsupported for this subscription type", typeof(BadRequest) },
@@ -1898,7 +1899,7 @@ public partial class kraken : ccxt.kraken
         object errorMessage = this.safeString2(message, "errorMessage", "error");
         if (isTrue(!isEqual(errorMessage, null)))
         {
-            // const requestId = this.safeValue2 (message, 'reqid', 'req_id');
+            object requestId = this.safeString2(message, "reqid", "req_id");
             object broad = getValue(getValue(this.exceptions, "ws"), "broad");
             object broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             object exception = null;
@@ -1909,11 +1910,10 @@ public partial class kraken : ccxt.kraken
             {
                 exception = this.newException(getValue(broad, broadKey), errorMessage);
             }
-            // if (requestId !== undefined) {
-            //     ((WebSocketClient)client).reject (exception, requestId);
-            // } else {
-            ((WebSocketClient)client).reject(exception);
-            // }
+            if (isTrue(!isEqual(requestId, null)))
+            {
+                ((WebSocketClient)client).reject(exception, requestId);
+            }
             return false;
         }
         return true;

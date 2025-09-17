@@ -186,7 +186,7 @@ class phemex extends Exchange {
                         // swap
                         'accounts/accountPositions' => 1, // ?currency=<currency>
                         'g-accounts/accountPositions' => 1, // ?currency=<currency>
-                        'accounts/positions' => 25, // ?currency=<currency>
+                        'g-accounts/positions' => 25, // ?currency=<currency>
                         'api-data/futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees' => 5, // ?symbol=<symbol>
                         'api-data/futures/orders' => 5, // ?symbol=<symbol>
@@ -3772,7 +3772,7 @@ class phemex extends Exchange {
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USDT is the default
-         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
+         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
@@ -3810,7 +3810,7 @@ class phemex extends Exchange {
             if ($method === 'privateGetGAccountsAccountPositions') {
                 $response = $this->privateGetGAccountsAccountPositions ($this->extend($request, $params));
             } else {
-                $response = $this->privateGetAccountsPositions ($this->extend($request, $params));
+                $response = $this->privateGetGAccountsPositions ($this->extend($request, $params));
             }
         } else {
             $response = $this->privateGetAccountsAccountPositions ($this->extend($request, $params));
@@ -3984,7 +3984,7 @@ class phemex extends Exchange {
         $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString);
         $liquidationPrice = $this->safe_number_2($position, 'liquidationPrice', 'liquidationPriceRp');
         $markPriceString = $this->safe_string_2($position, 'markPrice', 'markPriceRp');
-        $contracts = $this->safe_string($position, 'size');
+        $contracts = $this->safe_string_2($position, 'size', 'sizeRq');
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $leverage = $this->parse_number(Precise::string_abs(($this->safe_string_2($position, 'leverage', 'leverageRr'))));
@@ -3994,9 +3994,12 @@ class phemex extends Exchange {
         if ($rawSide !== null) {
             $side = ($rawSide === 'Buy') ? 'long' : 'short';
         }
+        // Inverse long contract => unRealizedPnl = (posSize * $contractSize) / avgEntryPrice - (posSize * $contractSize) / markPrice
+        // Inverse short contract => unRealizedPnl =  (posSize *$contractSize) / markPrice - (posSize * $contractSize) / avgEntryPrice
+        // Linear long contract =>  unRealizedPnl = (posSize * $contractSize) * markPrice - (posSize * $contractSize) * avgEntryPrice
+        // Linear short contract =>  unRealizedPnl = (posSize * $contractSize) * avgEntryPrice - (posSize * $contractSize) * markPrice
         $priceDiff = null;
-        $currency = $this->safe_string($position, 'currency');
-        if ($currency === 'USD') {
+        if ($market['linear']) {
             if ($side === 'long') {
                 $priceDiff = Precise::string_sub($markPriceString, $entryPriceString);
             } else {
@@ -4011,6 +4014,8 @@ class phemex extends Exchange {
             }
         }
         $unrealizedPnl = Precise::string_mul(Precise::string_mul($priceDiff, $contracts), $contractSizeString);
+        // the $unrealizedPnl is only available in a specific endpoint which much higher RL limits
+        $apiUnrealizedPnl = $this->safe_string($position, 'unRealisedPnlRv', $unrealizedPnl);
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
         $isCross = $this->safe_value($position, 'crossMargin');
         return $this->safe_position(array(
@@ -4019,7 +4024,8 @@ class phemex extends Exchange {
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,
-            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'realizedPnl' => $this->safe_number($position, 'curTermRealisedPnlRv'),
+            'unrealizedPnl' => $this->parse_number($apiUnrealizedPnl),
             'leverage' => $leverage,
             'liquidationPrice' => $liquidationPrice,
             'collateral' => $this->parse_number($collateral),
@@ -4028,7 +4034,7 @@ class phemex extends Exchange {
             'lastPrice' => null,
             'entryPrice' => $this->parse_number($entryPriceString),
             'timestamp' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer_product($position, 'transactTimeNs', 0.000001),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
@@ -4037,7 +4043,7 @@ class phemex extends Exchange {
             'datetime' => null,
             'marginMode' => $isCross ? 'cross' : 'isolated',
             'side' => $side,
-            'hedged' => false,
+            'hedged' => $this->safe_string($position, 'posMode') === 'Hedged',
             'percentage' => null,
             'stopLossPrice' => null,
             'takeProfitPrice' => null,

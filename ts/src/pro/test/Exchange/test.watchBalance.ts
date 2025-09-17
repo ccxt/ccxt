@@ -26,6 +26,7 @@ async function testWatchBalance (exchange, skippedProperties, code) {
     }
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchBalance ();
         } catch (e) {
@@ -33,7 +34,11 @@ async function testWatchBalance (exchange, skippedProperties, code) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
+        }
+        if (success === false) {
+            continue; // retry
         }
         testBalance (exchange, skippedProperties, method, response);
         now = exchange.milliseconds ();

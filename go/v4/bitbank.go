@@ -1136,7 +1136,7 @@ func (this *bitbank) FetchDepositAddress(code interface{}, optionalArgs ...inter
 
 		ch <- map[string]interface{}{
 			"info":     response,
-			"currency": currency,
+			"currency": GetValue(currency, "code"),
 			"network":  nil,
 			"address":  address,
 			"tag":      nil,

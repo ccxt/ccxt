@@ -75,6 +75,7 @@ class kraken extends \ccxt\async\kraken {
                     'broad' => array(
                         'Already subscribed' => '\\ccxt\\BadRequest',
                         'Currency pair not in ISO 4217-A3 format' => '\\ccxt\\BadSymbol',
+                        'Currency pair not supported' => '\\ccxt\\BadSymbol',
                         'Malformed request' => '\\ccxt\\BadRequest',
                         'Pair field must be an array' => '\\ccxt\\BadRequest',
                         'Pair field unsupported for this subscription type' => '\\ccxt\\BadRequest',
@@ -1780,7 +1781,7 @@ class kraken extends \ccxt\async\kraken {
         //
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
         if ($errorMessage !== null) {
-            // $requestId = $this->safe_value_2($message, 'reqid', 'req_id');
+            $requestId = $this->safe_string_2($message, 'reqid', 'req_id');
             $broad = $this->exceptions['ws']['broad'];
             $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
             $exception = null;
@@ -1789,11 +1790,9 @@ class kraken extends \ccxt\async\kraken {
             } else {
                 $exception = new $broad[$broadKey] ($errorMessage);
             }
-            // if ($requestId !== null) {
-            //     $client->reject ($exception, $requestId);
-            // } else {
-            $client->reject ($exception);
-            // }
+            if ($requestId !== null) {
+                $client->reject ($exception, $requestId);
+            }
             return false;
         }
         return true;

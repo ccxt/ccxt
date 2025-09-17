@@ -8,7 +8,6 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Any, Bool, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 
 
 class hyperliquid(ccxt.async_support.hyperliquid):
@@ -17,6 +16,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'has': {
                 'ws': True,
+                'cancelOrderWs': True,
+                'cancelOrdersWs': True,
                 'createOrderWs': True,
                 'createOrdersWs': True,
                 'editOrderWs': True,
@@ -103,10 +104,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         await self.load_markets()
         order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
+        ordersLength = len(orders)
+        if ordersLength == 0:
+            # not sure why but it is happening sometimes
+            return self.safe_order({})
         parsedOrder = orders[0]
-        orderInfo = self.safe_dict(parsedOrder, 'info')
-        # handle potential error here
-        self.handle_errors(None, None, None, None, None, self.json(orderInfo), orderInfo, None, None)
         return parsedOrder
 
     async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
@@ -145,10 +147,56 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         statuses = self.safe_list(dataObject, 'statuses', [])
         first = self.safe_dict(statuses, 0, {})
         parsedOrder = self.parse_order(first, market)
-        orderInfo = self.safe_dict(parsedOrder, 'info')
-        # handle potential error here
-        self.handle_errors(None, None, None, None, None, self.json(orderInfo), orderInfo, None, None)
         return parsedOrder
+
+    async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
+        """
+        cancel multiple orders using WebSocket post request
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests
+
+        :param str[] ids: list of order ids to cancel
+        :param str symbol: unified symbol of the market the orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderId]: list of client order ids to cancel instead of order ids
+        :param str [params.vaultAddress]: the vault address for order cancellation
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_credentials()
+        await self.load_markets()
+        request = self.cancelOrdersRequest(ids, symbol, params)
+        url = self.urls['api']['ws']['public']
+        wrapped = self.wrap_as_post_action(request)
+        wsRequest = self.safe_dict(wrapped, 'request', {})
+        requestId = self.safe_string(wrapped, 'requestId')
+        response = await self.watch(url, requestId, wsRequest, requestId)
+        responseObj = self.safe_dict(response, 'response', {})
+        data = self.safe_dict(responseObj, 'data', {})
+        statuses = self.safe_list(data, 'statuses', [])
+        orders = []
+        for i in range(0, len(statuses)):
+            status = statuses[i]
+            orders.append(self.safe_order({
+                'info': status,
+                'status': status,
+            }))
+        return orders
+
+    async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
+        """
+        cancel a single order using WebSocket post request
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests
+
+        :param str id: order id to cancel
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id to cancel instead of order id
+        :param str [params.vaultAddress]: the vault address for order cancellation
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        orders = await self.cancel_orders_ws([id], symbol, params)
+        return self.safe_dict(orders, 0)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -825,17 +873,62 @@ class hyperliquid(ccxt.async_support.hyperliquid):
 
     def handle_error_message(self, client: Client, message) -> Bool:
         #
-        #     {
+        #    {
+        #      "channel": "post",
+        #      "data": {
+        #        "id": 1,
+        #        "response": {
+        #          "type": "action",
+        #          "payload": {
+        #            "status": "ok",
+        #            "response": {
+        #              "type": "order",
+        #              "data": {
+        #                "statuses": [
+        #                  {
+        #                    "error": "Order price cannot be more than 80% away from the reference price"
+        #                  }
+        #                ]
+        #              }
+        #            }
+        #          }
+        #        }
+        #      }
+        #    }
+        #
+        #    {
         #         "channel": "error",
         #         "data": "Error parsing JSON into valid websocket request: {\"type\": \"allMids\"}"
         #     }
         #
         channel = self.safe_string(message, 'channel', '')
-        ret_msg = self.safe_string(message, 'data', '')
         if channel == 'error':
-            raise ExchangeError(self.id + ' ' + ret_msg)
-        else:
-            return False
+            ret_msg = self.safe_string(message, 'data', '')
+            errorMsg = self.id + ' ' + ret_msg
+            client.reject(errorMsg)
+            return True
+        data = self.safe_dict(message, 'data', {})
+        id = self.safe_string(message, 'id')
+        if id is None:
+            id = self.safe_string(data, 'id')
+        response = self.safe_dict(data, 'response', {})
+        payload = self.safe_dict(response, 'payload', {})
+        status = self.safe_string(payload, 'status')
+        if status is not None and status != 'ok':
+            errorMsg = self.id + ' ' + self.json(payload)
+            client.reject(errorMsg, id)
+            return True
+        type = self.safe_string(payload, 'type')
+        if type == 'error':
+            error = self.id + ' ' + self.json(payload)
+            client.reject(error, id)
+            return True
+        try:
+            self.handle_errors(0, '', '', '', {}, self.json(payload), payload, {}, {})
+        except Exception as e:
+            client.reject(e, id)
+            return True
+        return False
 
     def handle_order_book_unsubscription(self, client: Client, subscription: dict):
         #
