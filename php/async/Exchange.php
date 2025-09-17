@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.4';
+$version = '4.5.5';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.4';
+    const VERSION = '4.5.5';
 
     public $browser;
     public $marketsLoading = null;
@@ -6465,6 +6465,18 @@ class Exchange extends \ccxt\Exchange {
         }
         $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
         return $values;
+    }
+
+    public function remove_keys_from_dict(array $dict, array $removeKeys) {
+        $keys = is_array($dict) ? array_keys($dict) : array();
+        $newDict = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!$this->in_array($key, $removeKeys)) {
+                $newDict[$key] = $dict[$key];
+            }
+        }
+        return $newDict;
     }
 
     public function handle_until_option(string $key, $request, $params, $multiplier = 1) {

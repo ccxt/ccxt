@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.4'
+__version__ = '4.5.5'
 
 # -----------------------------------------------------------------------------
 
@@ -6782,6 +6782,15 @@ class Exchange(object):
                 uniqueResult[id] = entry
         values = list(uniqueResult.values())
         return values
+
+    def remove_keys_from_dict(self, dict: dict, removeKeys: List[str]):
+        keys = list(dict.keys())
+        newDict = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if not self.in_array(key, removeKeys):
+                newDict[key] = dict[key]
+        return newDict
 
     def handle_until_option(self, key: str, request, params, multiplier=1):
         until = self.safe_integer_2(params, 'until', 'till')

@@ -2625,6 +2625,14 @@ class binance(ccxt.async_support.binance):
         #             ]
         #         }
         #     }
+        # externalLockUpdate
+        #    {
+        #        "e": "externalLockUpdate",  # Event Type
+        #        "E": 1581557507324,         # Event Time
+        #        "a": "NEO",                 # Asset
+        #        "d": "10.00000000",         # Delta
+        #        "T": 1581557507268          # Transaction Time
+        #    }
         #
         wallet = self.safe_string(self.options, 'wallet', 'wb')  # cw for cross wallet
         # each account is connected to a different endpoint
@@ -4032,6 +4040,7 @@ class binance(ccxt.async_support.binance):
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
             'forceOrder': self.handle_liquidation,
+            'externalLockUpdate': self.handle_balance,
         }
         event = self.safe_string(message, 'e')
         if isinstance(message, list):

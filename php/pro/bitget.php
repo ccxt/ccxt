@@ -734,10 +734,12 @@ class bitget extends \ccxt\async\bitget {
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
@@ -751,16 +753,18 @@ class bitget extends \ccxt\async\bitget {
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook $limit, default is null
+             * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $channel = 'books';
             $limit = $this->safe_integer($params, 'limit');
-            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15) || ($limit === 50)) {
                 $params = $this->omit($params, 'limit');
                 $channel .= (string) $limit;
             }
@@ -801,34 +805,43 @@ class bitget extends \ccxt\async\bitget {
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $channel = 'books';
             $incrementalFeed = true;
-            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
+            if (($limit === 1) || ($limit === 5) || ($limit === 15) || ($limit === 50)) {
                 $channel .= (string) $limit;
                 $incrementalFeed = false;
             }
             $topics = array();
             $messageHashes = array();
+            $uta = null;
+            list($uta, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'uta', false);
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $instType = null;
-                list($instType, $params) = $this->get_inst_type($market, false, $params);
+                list($instType, $params) = $this->get_inst_type($market, $uta, $params);
                 $args = array(
                     'instType' => $instType,
-                    'channel' => $channel,
-                    'instId' => $market['id'],
                 );
+                $topicOrChannel = $uta ? 'topic' : 'channel';
+                $symbolOrInstId = $uta ? 'symbol' : 'instId';
+                $args[$topicOrChannel] = $channel;
+                $args[$symbolOrInstId] = $market['id'];
                 $topics[] = $args;
                 $messageHashes[] = 'orderbook:' . $symbol;
+            }
+            if ($uta) {
+                $params['uta'] = true;
             }
             $orderbook = Async\await($this->watch_public_multiple($messageHashes, $topics, $params));
             if ($incrementalFeed) {
@@ -870,11 +883,27 @@ class bitget extends \ccxt\async\bitget {
         //       ]
         //   }
         //
+        // {
+        //     "action" => "snapshot",
+        //     "arg" => array( "instType" => "usdt-futures", "topic" => "books", "symbol" => "BTCUSDT" ),
+        //     "data" => [
+        //         {
+        //             "a" => [Array],
+        //             "b" => [Array],
+        //             "checksum" => 0,
+        //             "pseq" => 0,
+        //             "seq" => "1343064377779269632",
+        //             "ts" => "1755937421270"
+        //         }
+        //     ],
+        //     "ts" => 1755937421337
+        // }
+        //
         $arg = $this->safe_value($message, 'arg');
-        $channel = $this->safe_string($arg, 'channel');
-        $instType = $this->safe_string($arg, 'instType');
-        $marketType = ($instType === 'SPOT') ? 'spot' : 'contract';
-        $marketId = $this->safe_string($arg, 'instId');
+        $channel = $this->safe_string_2($arg, 'channel', 'topic');
+        $instType = $this->safe_string_lower($arg, 'instType');
+        $marketType = ($instType === 'spot') ? 'spot' : 'contract';
+        $marketId = $this->safe_string_2($arg, 'instId', 'symbol');
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
@@ -891,8 +920,8 @@ class bitget extends \ccxt\async\bitget {
                 $this->orderbooks[$symbol] = $ob;
             }
             $storedOrderBook = $this->orderbooks[$symbol];
-            $asks = $this->safe_value($rawOrderBook, 'asks', array());
-            $bids = $this->safe_value($rawOrderBook, 'bids', array());
+            $asks = $this->safe_list_2($rawOrderBook, 'asks', 'a', array());
+            $bids = $this->safe_list_2($rawOrderBook, 'bids', 'b', array());
             $this->handle_deltas($storedOrderBook['asks'], $asks);
             $this->handle_deltas($storedOrderBook['bids'], $bids);
             $storedOrderBook['timestamp'] = $timestamp;

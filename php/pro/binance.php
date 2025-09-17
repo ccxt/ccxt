@@ -2901,6 +2901,14 @@ class binance extends \ccxt\async\binance {
         //             )
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e" => "externalLockUpdate",  // Event Type
+        //        "E" => 1581557507324,         // Event Time
+        //        "a" => "NEO",                 // Asset
+        //        "d" => "10.00000000",         // Delta
+        //        "T" => 1581557507268          // Transaction Time
+        //    }
         //
         $wallet = $this->safe_string($this->options, 'wallet', 'wb'); // cw for cross $wallet
         // each $account is connected to a different endpoint
@@ -4458,6 +4466,7 @@ class binance extends \ccxt\async\binance {
             'executionReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
             'forceOrder' => array($this, 'handle_liquidation'),
+            'externalLockUpdate' => array($this, 'handle_balance'),
         );
         $event = $this->safe_string($message, 'e');
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {

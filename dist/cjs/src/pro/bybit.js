@@ -7,7 +7,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bybit extends bybit$1["default"] {
     describe() {
@@ -331,6 +331,9 @@ class bybit extends bybit$1["default"] {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
+        }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate(url);

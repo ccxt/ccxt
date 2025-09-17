@@ -1580,6 +1580,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/get-all-position"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1614,7 +1615,13 @@ public partial class bitget
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+    /// string : either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>

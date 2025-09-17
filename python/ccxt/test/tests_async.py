@@ -1188,7 +1188,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1734,6 +1734,22 @@ class testMainClass:
             request = json_parse(exchange.last_request_body)
         broker_id = request['order_tag']
         assert broker_id == id, 'modetrade - id: ' + id + ' different from  broker_id: ' + broker_id
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_backpack(self):
+        exchange = self.init_offline_exchange('backpack')
+        exchange.apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo='
+        exchange.secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU='
+        req_headers = None
+        id = '1400'
+        try:
+            await exchange.create_order('ETH/USDC', 'limit', 'buy', 1, 5000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-Broker-Id'] == id, 'backpack - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
         return True

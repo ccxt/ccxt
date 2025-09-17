@@ -292,6 +292,7 @@ class gemini extends Exchange {
                         'quote' => 'USD',
                     ),
                 ),
+                'brokenPairs' => array( 'efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd' ),
             ),
             'features' => array(
                 'default' => array(
@@ -627,10 +628,10 @@ class gemini extends Exchange {
         //
         $result = array();
         $options = $this->safe_dict($this->options, 'fetchMarketsFromAPI', array());
-        $bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
         $marketIds = array();
         for ($i = 0; $i < count($marketIdsRaw); $i++) {
-            if ($marketIdsRaw[$i] !== $bugSymbol) {
+            if (!$this->in_array($marketIdsRaw[$i], $brokenPairs)) {
                 $marketIds[] = $marketIdsRaw[$i];
             }
         }
@@ -667,13 +668,15 @@ class gemini extends Exchange {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $tradingPair = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
-                    if ($tradingPair !== null) {
+                    if ($tradingPair !== null && !$this->in_array($tradingPair, $brokenPairs)) {
                         $result[] = $this->parse_market($tradingPair);
                     }
                 }
             } else {
                 for ($i = 0; $i < count($marketIds); $i++) {
-                    $result[] = $this->parse_market($marketIds[$i]);
+                    if (!$this->in_array($marketIds[$i], $brokenPairs)) {
+                        $result[] = $this->parse_market($marketIds[$i]);
+                    }
                 }
             }
         }
@@ -1063,7 +1066,9 @@ class gemini extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_tickers($response, $symbols);
+        $result = $this->parse_tickers($response, $symbols);
+        $brokenPairs = $this->safe_list($this->options, 'brokenPairs', array());
+        return $this->remove_keys_from_dict($result, $brokenPairs);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
