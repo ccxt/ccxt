@@ -1558,9 +1558,9 @@ export default class mexc extends mexcRest {
         const channel = this.safeString (message, 'channel');
         const type = (channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
         const messageHash = 'balance:' + type;
-        const data = this.safeDictN (message, [ 'd', 'data', 'privateAccount' ]);
-        const futuresTimestamp = this.safeInteger (message, 'ts');
-        const timestamp = this.safeInteger2 (data, 'c', 'time', futuresTimestamp);
+        const data = this.safeDictN (message, [ 'data', 'privateAccount' ]);
+        const futuresTimestamp = this.safeInteger2 (message, 'ts', 'createTime');
+        const timestamp = this.safeInteger2 (data, 'time', futuresTimestamp);
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
