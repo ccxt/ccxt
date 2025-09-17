@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/dydx.js';
-import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, NotSupported, ExchangeError, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
@@ -370,8 +370,113 @@ export default class dydx extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
+                    // error collision for clob and sending modules from 2 - 8
+                    // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/clob/types/errors.go#L320
+                    // https://github.com/dydxprotocol/v4-chain/blob/5f9f6c9b95cc87d732e23de764909703b81a6e8b/protocol/x/sending/types/errors.go
+                    '9': InvalidOrder, // A cancel already exists in the memclob for this order with a greater than or equal GoodTilBlock
+                    '10': InvalidOrder, // The next block height is greater than the GoodTilBlock of the message
+                    '11': InvalidOrder, // The GoodTilBlock of the message is further than ShortBlockWindow blocks into the future
+                    '12': InvalidOrder, // MsgPlaceOrder is invalid
+                    '13': InvalidOrder, // MsgProposedMatchOrders is invalid
+                    '14': InvalidOrder, // State filled amount cannot be unchanged
+                    '15': InvalidOrder, // State filled amount cannot decrease
+                    '16': InvalidOrder, // Cannot prune state fill amount that does not exist
+                    '17': InvalidOrder, // Subaccount cannot open more than 20 orders on a given CLOB and side
+                    '18': InvalidOrder, // `FillAmount` is not divisible by `StepBaseQuantums` of the specified `ClobPairId`
+                    '19': InvalidOrder, // The provided perpetual ID does not have any associated CLOB pairs
+                    '20': InvalidOrder, // Replacing an existing order failed
+                    '21': InvalidOrder, // Clob pair and perpetual ids do not match
+                    '22': InvalidOrder, // Matched order has negative fee
+                    '23': InvalidOrder, // Subaccounts updated for a matched order, but fee transfer to fee-collector failed
+                    '24': InvalidOrder, // Order is fully filled
+                    '25': InvalidOrder, // Attempting to get price premium with a non-perpetual CLOB pair
+                    '26': InvalidOrder, // Index price is zero when calculating price premium
+                    '27': InvalidOrder, // Invalid ClobPair parameter
+                    '28': InvalidOrder, // Oracle price must be > 0.
+                    '29': InvalidOrder, // Invalid stateful order cancellation
+                    '30': InvalidOrder, // An order with the same `OrderId` and `OrderHash` has already been processed for this CLOB
+                    '31': InvalidOrder, // Missing mid price for ClobPair
+                    '32': InvalidOrder, // Existing stateful order cancellation has higher-or-equal priority than the new one
+                    '33': InvalidOrder, // ClobPair with id already exists
+                    '34': InvalidOrder, // Order conflicts with ClobPair status
+                    '35': InvalidOrder, // Invalid ClobPair status transition
+                    '36': InvalidOrder, // Operation conflicts with ClobPair status
+                    '37': InvalidOrder, // Perpetual does not exist in state
+                    '39': InvalidOrder, // ClobPair update is invalid
+                    '40': InvalidOrder, // Authority is invalid
+                    '41': InvalidOrder, // perpetual ID is already associated with an existing CLOB pair
+                    '42': InvalidOrder, // Unexpected time in force
+                    '43': InvalidOrder, // Order has remaining size
+                    '44': InvalidOrder, // invalid time in force
+                    '45': InvalidOrder, // Invalid batch cancel message
+                    '46': InvalidOrder, // Batch cancel has failed
+                    '47': InvalidOrder, // CLOB has not been initialized
+                    '48': InvalidOrder, // This field has been deprecated
+                    '49': InvalidOrder, // Invalid TWAP order placement
+                    '50': InvalidOrder, // Invalid builder code
+                    '1000': BadRequest, // Proposed LiquidationsConfig is invalid
+                    '1001': BadRequest, // Subaccount has no perpetual positions to liquidate
+                    '1002': BadRequest, // Subaccount is not liquidatable
+                    '1003': InvalidOrder, // Subaccount does not have an open position for perpetual
+                    '1004': InvalidOrder, // Liquidation order has invalid size
+                    '1005': InvalidOrder, // Liquidation order is on the wrong side
+                    '1006': InvalidOrder, // Total fills amount exceeds size of liquidation order
+                    '1007': InvalidOrder, // Liquidation order does not contain any fills
+                    '1008': InvalidOrder, // Subaccount has previously liquidated this perpetual in the current block
+                    '1009': InvalidOrder, // Liquidation order has size smaller than min position notional specified in the liquidation config
+                    '1010': InvalidOrder, // Liquidation order has size greater than max position notional specified in the liquidation config
+                    '1011': InvalidOrder, // Liquidation exceeds the maximum notional amount that a single subaccount can have liquidated per block
+                    '1012': InvalidOrder, // Liquidation exceeds the maximum insurance fund payout amount for a given subaccount per block
+                    '1013': InvalidOrder, // Insurance fund does not have sufficient funds to cover liquidation losses
+                    '1014': InvalidOrder, // Invalid perpetual position size delta
+                    '1015': InvalidOrder, // Invalid delta base and/or quote quantums for insurance fund delta calculation
+                    '1017': InvalidOrder, // Cannot deleverage subaccount against itself
+                    '1018': InvalidOrder, // Deleveraging match cannot have fills with same id
+                    '1019': InvalidOrder, // Deleveraging match cannot have fills with zero amount
+                    '1020': InvalidOrder, // Position cannot be fully offset
+                    '1021': InvalidOrder, // Deleveraging match has incorrect value for isFinalSettlement flag
+                    '1022': InvalidOrder, // Liquidation conflicts with ClobPair status
+                    '2000': InvalidOrder, // FillOrKill order could not be fully filled
+                    '2001': InvalidOrder, // Reduce-only orders cannot increase the position size
+                    '2002': InvalidOrder, // Reduce-only orders cannot change the position side
+                    '2003': InvalidOrder, // Post-only order would cross one or more maker orders
+                    '2004': InvalidOrder, // IOC order is already filled, remaining size is cancelled.
+                    '2005': InvalidOrder, // Order would violate isolated subaccount constraints.
+                    '3000': InvalidOrder, // Invalid order flags
+                    '3001': InvalidOrder, // Invalid order goodTilBlockTime
+                    '3002': InvalidOrder, // Stateful orders cannot require immediate execution
+                    '3003': InvalidOrder, // The block time is greater than the GoodTilBlockTime of the message
+                    '3004': InvalidOrder, // The GoodTilBlockTime of the message is further than StatefulOrderTimeWindow into the future
+                    '3005': InvalidOrder, // Existing stateful order has higher-or-equal priority than the new one
+                    '3006': InvalidOrder, // Stateful order does not exist
+                    '3007': InvalidOrder, // Stateful order collateralization check failed
+                    '3008': InvalidOrder, // Stateful order was previously cancelled and therefore cannot be placed
+                    '3009': InvalidOrder, // Stateful order was previously removed and therefore cannot be placed
+                    '3010': InvalidOrder, // Stateful order cancellation failed because the order was already removed from state
+                    '4000': InvalidOrder, // MsgProposedOperations is invalid
+                    '4001': InvalidOrder, // Match Order is invalid
+                    '4002': InvalidOrder, // Order was not previously placed in operations queue
+                    '4003': InvalidOrder, // Fill amount cannot be zero
+                    '4004': InvalidOrder, // Deleveraging fill is invalid
+                    '4005': InvalidOrder, // Deleveraged subaccount in proposed deleveraged operation failed deleveraging validation
+                    '4006': InvalidOrder, // Order Removal is invalid
+                    '4007': InvalidOrder, // Order Removal reason is invalid
+                    '4008': InvalidOrder, // Zero-fill deleveraging operation included in block for non-negative TNC subaccount
+                    '5000': InvalidOrder, // Proposed BlockRateLimitConfig is invalid
+                    '5001': InvalidOrder, // Block rate limit exceeded
+                    '6000': InvalidOrder, // Conditional type is invalid
+                    '6001': InvalidOrder, // Conditional order trigger subticks is invalid
+                    '6002': InvalidOrder, // Conditional order is untriggered
+                    '9000': InvalidOrder, // Asset orders are not implemented
+                    '9001': InvalidOrder, // Updates for assets other than USDC are not implemented
+                    '9002': InvalidOrder, // This function is not implemented
+                    '9003': InvalidOrder, // Reduce-only is currently disabled for non-IOC orders
+                    '10000': InvalidOrder, // Proposed EquityTierLimitConfig is invalid
+                    '10001': InvalidOrder, // Subaccount cannot open more orders due to equity tier limit.
+                    '11000': InvalidOrder, // Invalid order router address
                 },
                 'broad': {
+                    'insufficient funds': InsufficientFunds,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -2200,13 +2305,22 @@ export default class dydx extends Exchange {
             return undefined; // fallback to default error handler
         }
         //
+        // abci response
+        // { "result": { "code": 0 } }
         //
-        const success = this.safeBool (response, 'success');
-        const errorCode = this.safeString (response, 'code');
-        if (!success) {
+        // rest response
+        // { "code": 123 }
+        //
+        const result = this.safeDict (response, 'result');
+        let errorCode = this.safeString (result, 'code');
+        if (!errorCode) {
+            errorCode = this.safeString (response, 'code');
+        }
+        if (errorCode) {
             const feedback = this.id + ' ' + this.json (response);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
