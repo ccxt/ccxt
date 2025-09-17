@@ -8311,6 +8311,18 @@ class Exchange {
         return $values;
     }
 
+    public function remove_keys_from_dict(array $dict, array $removeKeys) {
+        $keys = is_array($dict) ? array_keys($dict) : array();
+        $newDict = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!$this->in_array($key, $removeKeys)) {
+                $newDict[$key] = $dict[$key];
+            }
+        }
+        return $newDict;
+    }
+
     public function handle_until_option(string $key, $request, $params, $multiplier = 1) {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
