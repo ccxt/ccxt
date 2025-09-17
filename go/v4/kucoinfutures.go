@@ -546,7 +546,7 @@ func (this *kucoinfutures) FetchMarkets(optionalArgs ...interface{}) <-chan inte
 			var market interface{} = GetValue(data, i)
 			var id interface{} = this.SafeString(market, "symbol")
 			var expiry interface{} = this.SafeInteger(market, "expireDate")
-			var future interface{} = Ternary(IsTrue(expiry), true, false)
+			var future interface{} = IsEqual(this.SafeString(market, "nextFundingRateTime"), nil)
 			var swap interface{} = !IsTrue(future)
 			var baseId interface{} = this.SafeString(market, "baseCurrency")
 			var quoteId interface{} = this.SafeString(market, "quoteCurrency")
