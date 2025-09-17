@@ -4064,7 +4064,7 @@ public partial class phemex : Exchange
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, parameters));
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "privateGetGAccountsPositions", new object[] { this.extend(request, parameters) }));
+                response = await this.privateGetGAccountsPositions(this.extend(request, parameters));
             }
         } else
         {

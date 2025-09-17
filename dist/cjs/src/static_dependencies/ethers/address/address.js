@@ -14,7 +14,7 @@ require('../../../base/functions/encode.js');
 require('../../../base/functions/crypto.js');
 require('../../noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// TODO: unify address functions in other language? or remove it?
 const BN_0 = BigInt(0);
 const BN_36 = BigInt(36);
 function getChecksumAddress(address) {

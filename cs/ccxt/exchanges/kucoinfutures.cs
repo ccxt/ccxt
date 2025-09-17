@@ -3521,7 +3521,7 @@ public partial class kucoinfutures : kucoin
         object request = new Dictionary<string, object>() {
             { "positionMode", posMode },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivatePostPositionSwitchPositionMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",
