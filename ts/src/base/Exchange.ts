@@ -8,32 +8,29 @@ import {
     vwap as vwapFunc,
 } from './functions.js';
 // import exceptions from "./errors.js"
-
- import { // eslint-disable-line object-curly-newline
-    ExchangeError
-    , BadSymbol
-    , NullResponse
-    , InvalidAddress
-    , InvalidOrder
-    , NotSupported
-    , OperationFailed
-    , BadResponse
-    , AuthenticationError
-    , DDoSProtection
-    , RequestTimeout
-    , NetworkError
-    , InvalidProxySettings
-    , ExchangeNotAvailable
-    , ArgumentsRequired
-    , RateLimitExceeded
-    , BadRequest
-    , UnsubscribeError
-    , ConsumerFunctionError
-} from "./errors.js"
-
-import { Precise } from './Precise.js'
-
-
+import { // eslint-disable-line object-curly-newline
+    ExchangeError,
+    BadSymbol,
+    NullResponse,
+    InvalidAddress,
+    InvalidOrder,
+    NotSupported,
+    OperationFailed,
+    BadResponse,
+    AuthenticationError,
+    DDoSProtection,
+    RequestTimeout,
+    NetworkError,
+    InvalidProxySettings,
+    ExchangeNotAvailable,
+    ArgumentsRequired,
+    RateLimitExceeded,
+    BadRequest,
+    UnsubscribeError,
+    ConsumerFunctionError,
+    ExchangeClosedByUser,
+} from './errors.js';
+import { Precise } from './Precise.js';
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
@@ -42,15 +39,12 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFeeNetwork, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, Message, Topic, ConsumerFunction }  from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, Message, Topic, ConsumerFunction, DepositWithdrawFee } from './types.js';
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js'
-
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import Stream from './ws/Stream.js'
-
+import Stream from './ws/Stream.js';
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import totp from './functions/totp.js';
@@ -1580,7 +1574,7 @@ export default class Exchange {
             const payload = message.payload;
             const symbol = safeString (payload, 'symbol');
             this.stream.produce (topic + '::' + symbol, payload);
-        }
+        };
         return callback.bind (this);
     }
 
@@ -1588,14 +1582,14 @@ export default class Exchange {
         const callback = async (message: Message) => {
             const error = message.payload;
             if (error !== undefined && !(message.error instanceof ConsumerFunctionError)) {
-                try{
+                try {
                     await this.streamReconnect ();
                 } catch (e) {
                     this.log ('Failed to reconnect to stream: ', e);
                 }
             }
-        }
-        return callback.bind(this);
+        };
+        return callback.bind (this);
     }
 
     streamOHLCVS () {
@@ -1616,8 +1610,8 @@ export default class Exchange {
                     this.streamProduce ('ohlcvs::' + symbol + '::' + timeframe, ohlcv, err);
                 }
             }
-        }
-        return callback.bind(this);
+        };
+        return callback.bind (this);
     }
 
     ethAbiEncode (types, args) {

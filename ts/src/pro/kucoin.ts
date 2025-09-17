@@ -1526,6 +1526,7 @@ export default class kucoin extends kucoinRest {
             this.streamProduce ('errors', undefined, e);
             client.reject (e);
         }
+        return true;
     }
 
     handleMessage (client: Client, message) {

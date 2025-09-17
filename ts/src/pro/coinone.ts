@@ -3,7 +3,7 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict } from '../base/types.js';
+import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 

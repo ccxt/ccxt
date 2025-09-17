@@ -1302,6 +1302,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             this.streamProduce ('errors', undefined, e);
             client.reject (e);
         }
+        return true;
     }
 
     handleSubscriptionStatus (client: Client, message) {

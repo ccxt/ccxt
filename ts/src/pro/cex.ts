@@ -1507,13 +1507,13 @@ export default class cex extends cexRest {
         } catch (error) {
             const messageHash = this.safeString (message, 'oid');
             const future = this.safeValue (client['futures'], messageHash);
+            this.streamProduce ('errors', undefined, error);
             if (future !== undefined) {
                 client.reject (error, messageHash);
                 return true;
             } else {
                 throw error;
             }
-            this.streamProduce ('errors', undefined, error);
         }
     }
 

@@ -1250,6 +1250,7 @@ export default class onetrading extends onetradingRest {
             this.streamProduce ('errors', undefined, e);
             client.reject (e);
         }
+        return true;
     }
 
     handleMessage (client: Client, message) {
