@@ -1136,6 +1136,30 @@ func InOp(dict interface{}, key interface{}) bool {
 				return true
 			}
 		}
+	case map[string]map[string]*ArrayCacheByTimestamp:
+		if keyStr, ok := key.(string); ok {
+			if _, ok := v[keyStr]; ok {
+				return true
+			}
+		}
+	case map[string]*ArrayCacheByTimestamp:
+		if keyStr, ok := key.(string); ok {
+			if _, ok := v[keyStr]; ok {
+				return true
+			}
+		}
+	case map[string]*ArrayCache:
+		if keyStr, ok := key.(string); ok {
+			if _, ok := v[keyStr]; ok {
+				return true
+			}
+		}
+	case map[string]*ArrayCacheBySymbolBySide:
+		if keyStr, ok := key.(string); ok {
+			if _, ok := v[keyStr]; ok {
+				return true
+			}
+		}
 	}
 
 	return false
