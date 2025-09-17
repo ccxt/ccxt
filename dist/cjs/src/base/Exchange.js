@@ -7098,6 +7098,17 @@ class Exchange {
         const values = Object.values(uniqueResult);
         return values;
     }
+    removeKeysFromDict(dict, removeKeys) {
+        const keys = Object.keys(dict);
+        const newDict = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!this.inArray(key, removeKeys)) {
+                newDict[key] = dict[key];
+            }
+        }
+        return newDict;
+    }
     handleUntilOption(key, request, params, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');
         if (until !== undefined) {

@@ -297,6 +297,7 @@ class gemini extends gemini$1["default"] {
                         'quote': 'USD',
                     },
                 },
+                'brokenPairs': ['efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd'],
             },
             'features': {
                 'default': {
@@ -629,10 +630,10 @@ class gemini extends gemini$1["default"] {
         //
         const result = [];
         const options = this.safeDict(this.options, 'fetchMarketsFromAPI', {});
-        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
         const marketIds = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (marketIdsRaw[i] !== bugSymbol) {
+            if (!this.inArray(marketIdsRaw[i], brokenPairs)) {
                 marketIds.push(marketIdsRaw[i]);
             }
         }
@@ -670,14 +671,16 @@ class gemini extends gemini$1["default"] {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const tradingPair = this.safeList(indexedTradingPairs, marketId.toUpperCase());
-                    if (tradingPair !== undefined) {
+                    if (tradingPair !== undefined && !this.inArray(tradingPair, brokenPairs)) {
                         result.push(this.parseMarket(tradingPair));
                     }
                 }
             }
             else {
                 for (let i = 0; i < marketIds.length; i++) {
-                    result.push(this.parseMarket(marketIds[i]));
+                    if (!this.inArray(marketIds[i], brokenPairs)) {
+                        result.push(this.parseMarket(marketIds[i]));
+                    }
                 }
             }
         }
@@ -1063,7 +1066,9 @@ class gemini extends gemini$1["default"] {
         //         },
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        const result = this.parseTickers(response, symbols);
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
+        return this.removeKeysFromDict(result, brokenPairs);
     }
     parseTrade(trade, market = undefined) {
         //
