@@ -130,6 +130,7 @@ import hyperliquid from  './src/hyperliquid.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import jibitex from  './src/jibitex.js'
+import kcex from  './src/kcex.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -341,6 +342,7 @@ const exchanges = {
     'independentreserve':     independentreserve,
     'indodax':                indodax,
     'jibitex':                jibitex,
+    'kcex':                   kcex,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -695,6 +697,7 @@ export {
     independentreserve,
     indodax,
     jibitex,
+    kcex,
     kraken,
     krakenfutures,
     kucoin,
