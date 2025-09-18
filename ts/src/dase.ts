@@ -3,7 +3,8 @@
 import Exchange from './abstract/dase.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError } from './base/errors.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, int } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -36,7 +37,7 @@ export default class dase extends Exchange {
                 'fetchOHLCV': true,
                 'fetchCurrencies': false,
                 // private
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'createOrder': false,
                 'cancelOrder': false,
                 'cancelAllOrders': false,
@@ -53,8 +54,8 @@ export default class dase extends Exchange {
                 'doc': 'https://api.dase.com/docs',
             },
             'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
+                'apiKey': true,
+                'secret': true,
             },
             'api': {
                 'public': {
@@ -68,7 +69,11 @@ export default class dase extends Exchange {
                         'status',
                     ],
                 },
-                'private': {},
+                'private': {
+                    'get': [
+                        'balances',
+                    ],
+                },
             },
             'precisionMode': TICK_SIZE,
             'timeframes': { '1m': '1m', '5m': '5m', '15m': '15m', '30m': '30m', '1h': '1h', '2h': '2h', '6h': '6h', '1d': '1d' },
@@ -182,6 +187,36 @@ export default class dase extends Exchange {
             } as Market);
         }
         return result;
+    }
+
+    parseBalance (response): Balances {
+        const items = (Array.isArray (response)) ? response : this.safeList (response, 'balances', []);
+        const result: Dict = { 'info': response };
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const currencyId = this.safeString (item, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (item, 'available');
+            account['used'] = this.safeString (item, 'blocked');
+            account['total'] = this.safeString (item, 'total');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name dase#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.dase.com/docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const response = await (this as any).privateGetBalances (params);
+        return this.parseBalance (response);
     }
 
     /**
@@ -580,6 +615,35 @@ export default class dase extends Exchange {
         const pathWithParams = this.implodeParams (path, params);
         let url = this.urls['api']['rest'] + '/' + pathWithParams;
         const query = this.omit (params, this.extractParams (path));
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const versionedPath = '/v1/' + pathWithParams;
+            const hasQuery = Object.keys (query).length > 0;
+            const queryString = hasQuery ? ('?' + this.urlencode (query)) : '';
+            const timestamp = this.milliseconds ().toString ();
+            const upperMethod = method.toUpperCase ();
+            let payload = '';
+            if (upperMethod === 'GET') {
+                if (hasQuery) {
+                    url += queryString;
+                }
+            } else {
+                if (hasQuery) {
+                    body = this.json (query);
+                    payload = body;
+                }
+                headers = (headers === undefined) ? {} : headers;
+                headers['Content-Type'] = 'application/json';
+            }
+            const requestPath = versionedPath + ((upperMethod === 'GET' && hasQuery) ? queryString : '');
+            const auth = timestamp + upperMethod + requestPath + payload;
+            const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
+            headers = (headers === undefined) ? {} : headers;
+            headers['ex-api-key'] = this.apiKey;
+            headers['ex-api-sign'] = signature;
+            headers['ex-api-timestamp'] = timestamp;
+            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        }
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
