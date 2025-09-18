@@ -15,12 +15,15 @@ export default class toobit extends toobitRest {
                 'ws': true,
                 // 'watchBalance': false,
                 // 'watchMyTrades': true,
-                // 'watchOHLCV': true,
-                // 'watchOrderBook': true,
+                'watchOHLCV': true,
+                'watchOHLCVForSymbols': true,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 // 'watchOrders': true,
-                // 'watchTicker': true,
-                // 'watchTickers': false, // for now
-                // 'watchTrades': true,
+                'watchTicker': true,
+                'watchTickers': false, // for now
+                'watchTrades': true,
+                'watchTradesForSymbols': true,
                 // 'watchPosition': false,
             },
             'urls': {
