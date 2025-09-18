@@ -422,6 +422,7 @@ class kraken extends Exchange {
                     'OriginTrail' => 'OTP',
                     'Celestia' => 'TIA',
                 ),
+                'marketHelperProps' => array( 'marketsByAltname', 'delistedMarketsById' ), // used by setMarketsFromExchange
             ),
             'features' => array(
                 'spot' => array(
