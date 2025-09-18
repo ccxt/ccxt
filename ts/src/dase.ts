@@ -4,7 +4,7 @@ import Exchange from './abstract/dase.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, int } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, Str, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ export default class dase extends Exchange {
                 // private
                 'fetchBalance': true,
                 'createOrder': true,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelAllOrders': false,
                 'fetchOrder': false,
                 'fetchOpenOrders': false,
@@ -75,6 +75,9 @@ export default class dase extends Exchange {
                     ],
                     'post': [
                         'orders',
+                    ],
+                    'delete': [
+                        'orders/{order_id}',
                     ],
                 },
             },
@@ -280,6 +283,32 @@ export default class dase extends Exchange {
         return this.safeOrder ({
             'info': response,
             'id': id,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name dase#cancelOrder
+     * @description cancels an open order
+     * @see https://api.dase.com/docs#tag/orders/delete/v1/orders/{order_id}
+     * @param {string} id order id
+     * @param {string} symbol not used by dase cancelOrder()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const pathParams = { 'order_id': id };
+        const response = await (this as any).privateDeleteOrdersOrderId (pathParams);
+        // 204 No Content is expected; return minimal order object without forcing status
+        return this.safeOrder ({
+            'info': response,
+            'id': id,
+            'symbol': (market === undefined) ? undefined : market['symbol'],
         }, market);
     }
 
