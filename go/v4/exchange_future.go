@@ -25,9 +25,8 @@ func ToGetsLimit(v interface{}) GetsLimit {
 		//If the value already implements GetsLimit it is returned verbatim
 		return gl
 	}
-	return NoopLimit{Val: v}  // otherwise it is wrapped in NoopLimit
+	return NoopLimit{Val: v} // otherwise it is wrapped in NoopLimit
 }
-
 
 type Future struct {
 	result        chan interface{}
@@ -41,10 +40,10 @@ type Future struct {
 
 // Create new Future
 func NewFuture() *Future {
-    return &Future{
-        result: make(chan interface{}, 1),
-        err:    make(chan interface{}, 1),
-    }
+	return &Future{
+		result: make(chan interface{}, 1),
+		err:    make(chan interface{}, 1),
+	}
 }
 
 // Resolve asynchronously with a value
@@ -104,33 +103,67 @@ func (f *Future) Reject(reason interface{}) {
 // Await blocks until either result or error is received
 // Returns the resolved value (which could be an error)
 func (f *Future) Await() <-chan interface{} {
-	ch := make(chan interface{}, 1)
-	
+	ch := make(chan interface{})
+
 	go func() {
-		defer close(ch)
-		
-		f.mu.Lock()
+		// defer close(ch)
+
+		// f.mu.Lock()
 		if f.resolved {
-			// Already resolved, return cached value immediately
-			if f.resolvedError != nil {
-				ch <- f.resolvedError
-			} else {
-				ch <- f.resolvedValue
+			for true {
+				// Already resolved, return cached value immediately
+				if f.resolvedError != nil {
+					ch <- f.resolvedError
+				} else {
+					ch <- f.resolvedValue
+				}
+				// f.mu.Unlock()
+				// return
 			}
-			f.mu.Unlock()
-			return
 		}
+		// f.mu.Unlock()
+
+		// // Not resolved yet, wait for it
+		// select {
+		// case res := <-f.result:
+		// 	for {
+		// 		ch <- res
+		// 	}
+		// case err := <-f.err:
+		// 	for {
+		// 		ch <- err
+		// 	}
+		// }
+
+		resCh, errCh := f.result, f.err
+		// f.mu.Unlock()
+
+		var out interface{}
+		select {
+		case out = <-resCh:
+		case out = <-errCh:
+		}
+
+		// Cache the resolution
+		f.mu.Lock()
+		f.resolved = true
+		if e, ok := out.(error); ok {
+			f.resolvedError = e
+		} else {
+			f.resolvedValue = out
+		}
+		val, err := f.resolvedValue, f.resolvedError
 		f.mu.Unlock()
 
-		// Not resolved yet, wait for it
-		select {
-		case res := <-f.result:
-			ch <- res
-		case err := <-f.err:
-			ch <- err
+		for {
+			if err != nil {
+				ch <- err
+			} else {
+				ch <- val
+			}
 		}
 	}()
-	
+
 	return ch
 }
 
