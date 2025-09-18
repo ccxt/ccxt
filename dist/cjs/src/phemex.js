@@ -4072,7 +4072,7 @@ class phemex extends phemex$1["default"] {
         const isCross = this.safeValue(position, 'crossMargin');
         return this.safePosition({
             'info': position,
-            'id': undefined,
+            'id': this.safeString(position, 'execSeq'),
             'symbol': symbol,
             'contracts': this.parseNumber(contracts),
             'contractSize': contractSize,
