@@ -81,21 +81,6 @@ export default class dase extends Exchange {
                 },
             },
             'features': {},
-            'currencies': {
-                'BTC': {
-                    'id': 'BTC',
-                    'code': 'BTC',
-                    'name': 'Bitcoin',
-                    'active': true,
-                    'deposit': true,
-                    'withdraw': true,
-                    'precision': 8,
-                    'fee': undefined,
-                    'networks': undefined,
-                    'limits': undefined,
-                    'info': undefined,
-                },
-            },
         });
     }
 
