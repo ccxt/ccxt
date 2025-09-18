@@ -1939,17 +1939,9 @@
                     "filled": 0,
                     "remaining": 0.001,
                     "status": "open",
-                    "fee": {
-                        "cost": 0,
-                        "currency": "USDT"
-                    },
+                    "fee": null,
                     "trades": [],
-                    "fees": [
-                        {
-                            "cost": 0,
-                            "currency": "USDT"
-                        }
-                    ],
+                    "fees": [],
                     "stopPrice": null
                 }
             }
