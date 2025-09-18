@@ -70,7 +70,30 @@ from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as Type
 
 # dydx
 from ccxt.static_dependencies.bip import Bip39MnemonicGenerator, Bip39SeedGenerator, Bip44
-# from ccxt.static_dependencies.bip.conf.bip44 import Bip44Coins
+import google
+from google.protobuf.message import Message
+from ccxt.static_dependencies.dydx_v4_client.cosmos.base.v1beta1.coin_pb2 import Coin
+from ccxt.static_dependencies.dydx_v4_client.cosmos.crypto.secp256k1.keys_pb2 import PubKey
+from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+    AuthInfo,
+    Fee,
+    ModeInfo,
+    SignDoc,
+    SignerInfo,
+    Tx,
+    TxBody,
+    TxRaw,
+)
+from ccxt.static_dependencies.dydx_v4_client.dydxprotocol.sending.transfer_pb2 import (
+    MsgDepositToSubaccount,
+    MsgWithdrawFromSubaccount,
+    Transfer,
+)
+
+from ccxt.static_dependencies.dydx_v4_client.registry import (
+    encode_as_any,
+)
 
 try:
     import apexpro.zklink_sdk as zklink_sdk
@@ -1881,6 +1904,90 @@ class Exchange(object):
             'privateKey': privateKey,
             'publicKey': publicKey,
         }
+
+    def to_dydx_long(self, num):
+        return num
+
+    def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
+        messages = [
+            encode_as_any(
+                message,
+            )
+        ]
+        body = TxBody(
+            messages=messages,
+            memo=memo,
+        )
+        auth_info = AuthInfo(
+            signer_infos=[
+                SignerInfo(
+                    public_key=encode_as_any({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': publicKey,
+                    }),
+                    sequence=self.parse_to_int(sequence),
+                    mode_info=ModeInfo(single=ModeInfo.Single(mode=SignMode.SIGN_MODE_UNSPECIFIED))
+                )
+            ],
+            fee={},
+        )
+        tx = Tx(body=body, auth_info=auth_info, signatures=[ b'' ])
+        return self.binary_to_base64(tx.SerializeToString())
+
+    def encode_dydx_tx_for_signing(self, message, memo, chainId, account, authenticators, fee=None):
+        if fee == None:
+            fee = {
+                'amount': [],
+                'gasLimit': 1000000,
+            }
+        non_critical_extension_options = []
+        if authenticators is not None:
+            non_critical_extension_options.append(encode_as_any({
+                'typeUrl': '/dydxprotocol.accountplus.TxExtension',
+                'value': {
+                    'selected_authenticators': authenticators
+                }
+            }))
+        messages = [
+            encode_as_any(
+                message
+            )
+        ]
+        sequence = self.milliseconds()
+        body = TxBody(
+            messages=messages,
+            memo=memo,
+            non_critical_extension_options=non_critical_extension_options,
+        )
+        auth_info = AuthInfo(
+            signer_infos=[
+                SignerInfo(
+                    public_key=encode_as_any({
+                        'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
+                        'value': account['pub_key'],
+                    }),
+                    sequence=self.parse_to_int(sequence),
+                    mode_info=ModeInfo(single=ModeInfo.Single(mode=SignMode.SIGN_MODE_DIRECT))
+                )
+            ],
+            fee=Fee(amount=fee['amount'],gas_limit=fee['gasLimit']),
+        )
+        signDoc = SignDoc(
+            account_number=self.parse_to_int(account['account_number']),
+            auth_info_bytes=auth_info.SerializeToString(),
+            body_bytes=body.SerializeToString(),
+            chain_id=chainId,
+        )
+        signingHash = self.hash (signDoc.SerializeToString(), 'sha256', 'hex')
+        return [ signingHash, signDoc ]
+
+    def encode_dydx_tx_raw(self, signDoc, signature):
+        tx = TxRaw(
+            auth_info_bytes=signDoc.auth_info_bytes,
+            body_bytes=signDoc.body_bytes,
+            signatures=[ self.base16ToBinary(signature) ],
+        )
+        return '0x' + self.binary_to_base16(tx.SerializeToString())
 
     # ########################################################################
     # ########################################################################
