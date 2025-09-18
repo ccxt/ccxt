@@ -562,7 +562,7 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 	}
 
 	if this.Verbose {
-		this.Log(time.Now(), "onMessage", message)
+		this.Log(time.Now(), "onMessage", parsedMessage)
 		// unlimited depth
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
@@ -607,6 +607,7 @@ func (this *Client) GetKeepAlive() interface{} {
 func (this *Client) GetFutures() map[string]interface{} {
 	return this.Futures
 }
+
 type wsMessageHandler interface {
 	HandleMessage(client *Client, msg interface{})
 }

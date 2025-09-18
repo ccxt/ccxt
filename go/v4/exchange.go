@@ -1828,7 +1828,7 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan inte
 	future := NewFuture()
 
 	go func() {
-		response := CallDynamically(method, args...)
+		response := <-(CallDynamically(method, args...).(<-chan interface{}))
 		if err, ok := response.(error); ok {
 			future.Reject(err)
 		} else {
