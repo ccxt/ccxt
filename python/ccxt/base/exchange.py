@@ -69,31 +69,24 @@ from ccxt.static_dependencies.starknet.hash.utils import message_signature, priv
 from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # dydx
-from ccxt.static_dependencies.bip import Bip39MnemonicGenerator, Bip39SeedGenerator, Bip44
-import google
-from google.protobuf.message import Message
-from ccxt.static_dependencies.dydx_v4_client.cosmos.base.v1beta1.coin_pb2 import Coin
-from ccxt.static_dependencies.dydx_v4_client.cosmos.crypto.secp256k1.keys_pb2 import PubKey
-from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
-from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
-    AuthInfo,
-    Fee,
-    ModeInfo,
-    SignDoc,
-    SignerInfo,
-    Tx,
-    TxBody,
-    TxRaw,
-)
-from ccxt.static_dependencies.dydx_v4_client.dydxprotocol.sending.transfer_pb2 import (
-    MsgDepositToSubaccount,
-    MsgWithdrawFromSubaccount,
-    Transfer,
-)
-
-from ccxt.static_dependencies.dydx_v4_client.registry import (
-    encode_as_any,
-)
+try:
+    from ccxt.static_dependencies.bip import Bip39MnemonicGenerator, Bip39SeedGenerator, Bip44
+    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+        AuthInfo,
+        Fee,
+        ModeInfo,
+        SignDoc,
+        SignerInfo,
+        Tx,
+        TxBody,
+        TxRaw,
+    )
+    from ccxt.static_dependencies.dydx_v4_client.registry import (
+        encode_as_any,
+    )
+except ImportError:
+    encode_as_any = None
 
 try:
     import apexpro.zklink_sdk as zklink_sdk
@@ -1894,6 +1887,8 @@ class Exchange(object):
         return isinstance(message, bytes) or isinstance(message, bytearray)
 
     def retrieve_dydx_credentials(self, entropy):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
         mnemonic = Bip39MnemonicGenerator().FromEntropy(self.base16_to_binary(entropy))
         seed = Bip39SeedGenerator(mnemonic.ToStr()).Generate()
         keyPair = Bip44.FromSeed(seed).DeriveDefaultPath()
@@ -1909,6 +1904,8 @@ class Exchange(object):
         return num
 
     def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
         messages = [
             encode_as_any(
                 message,
@@ -1935,6 +1932,8 @@ class Exchange(object):
         return self.binary_to_base64(tx.SerializeToString())
 
     def encode_dydx_tx_for_signing(self, message, memo, chainId, account, authenticators, fee=None):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
         if fee == None:
             fee = {
                 'amount': [],
@@ -1982,6 +1981,8 @@ class Exchange(object):
         return [ signingHash, signDoc ]
 
     def encode_dydx_tx_raw(self, signDoc, signature):
+        if not encode_as_any:
+            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
         tx = TxRaw(
             auth_info_bytes=signDoc.auth_info_bytes,
             body_bytes=signDoc.body_bytes,
