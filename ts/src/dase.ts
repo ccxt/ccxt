@@ -116,8 +116,15 @@ export default class dase extends Exchange {
             const id = this.safeString (market, 'market');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            let base = this.safeCurrencyCode (baseId);
+            let quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined || quote === undefined) && (id !== undefined)) {
+                const parts = id.split ('-');
+                if (parts.length === 2) {
+                    base = this.safeCurrencyCode (parts[0]);
+                    quote = this.safeCurrencyCode (parts[1]);
+                }
+            }
             const amountPrecision = this.safeString (market, 'size_precision');
             const pricePrecision = this.safeString (market, 'price_precision');
             const minOrderSize = this.safeNumber (market, 'min_order_size');
@@ -237,7 +244,13 @@ export default class dase extends Exchange {
         //         "size": "0.5"
         //     }
         //
-        const timestamp = this.safeInteger (response, 'time');
+        let timestamp = this.safeInteger (response, 'time');
+        if (timestamp === undefined) {
+            const t = this.safeNumber (response, 'time');
+            if (t !== undefined) {
+                timestamp = this.parseToInt (t);
+            }
+        }
         const last = this.safeNumber (response, 'price');
         return this.safeTicker ({
             'symbol': market['symbol'],
@@ -351,7 +364,13 @@ export default class dase extends Exchange {
         //         "event_id": 123456
         //     }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
+        let timestamp = this.safeInteger (response, 'timestamp');
+        if (timestamp === undefined) {
+            const t = this.safeNumber (response, 'timestamp');
+            if (t !== undefined) {
+                timestamp = this.parseToInt (t);
+            }
+        }
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
     }
 
