@@ -4449,7 +4449,7 @@ func (this *phemex) ParsePosition(position interface{}, optionalArgs ...interfac
 	var isCross interface{} = this.SafeValue(position, "crossMargin")
 	return this.SafePosition(map[string]interface{}{
 		"info":                        position,
-		"id":                          nil,
+		"id":                          this.SafeString(position, "execSeq"),
 		"symbol":                      symbol,
 		"contracts":                   this.ParseNumber(contracts),
 		"contractSize":                contractSize,
