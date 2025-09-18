@@ -445,6 +445,7 @@ class kraken(Exchange, ImplicitAPI):
                     'OriginTrail': 'OTP',
                     'Celestia': 'TIA',
                 },
+                'marketHelperProps': ['marketsByAltname', 'delistedMarketsById'],  # used by setMarketsFromExchange
             },
             'features': {
                 'spot': {
