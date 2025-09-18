@@ -453,14 +453,12 @@ export default class dase extends Exchange {
         const allowed = { '1m': true, '5m': true, '15m': true, '30m': true, '1h': true, '2h': true, '6h': true, '1d': true } as Dict;
         const resolvedTimeframe = (timeframe in allowed) ? timeframe : '1m';
         const request: Dict = { 'market': market['id'], 'granularity': resolvedTimeframe };
-
         // API requires both 'from' and 'to'. Compute sensible defaults if missing.
         const durationMs = this.parseTimeframe (resolvedTimeframe) * 1000;
         const now = this.milliseconds ();
         const fromParam = this.safeNumber (params, 'from');
         const toParam = this.safeNumber (params, 'to');
         params = this.omit (params, [ 'from', 'to' ]);
-
         let fromMs: Int = undefined;
         let toMs: Int = undefined;
         if ((fromParam !== undefined) || (toParam !== undefined)) {
