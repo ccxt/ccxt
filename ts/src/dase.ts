@@ -374,7 +374,14 @@ export default class dase extends Exchange {
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
         const id = this.safeString (trade, 'id');
-        const timestamp = this.safeInteger (trade, 'time');
+        // server may return millisecond timestamps as floats or strings with decimals
+        let timestamp = this.safeInteger (trade, 'time');
+        if (timestamp === undefined) {
+            const timeNumber = this.safeNumber (trade, 'time');
+            if (timeNumber !== undefined) {
+                timestamp = this.parseToInt (timeNumber);
+            }
+        }
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
         const side = this.safeStringLower (trade, 'side');
@@ -413,15 +420,15 @@ export default class dase extends Exchange {
         const market = this.market (symbol);
         const request: Dict = { 'market': market['id'] };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            const minLimit = 1;
+            const maxLimit = 100;
+            const bounded = Math.max (minLimit, Math.min (limit, maxLimit));
+            request['limit'] = bounded;
         }
         const before = this.safeString (params, 'before');
         if (before !== undefined) {
-            const normalizedBefore = before.replace (/-/g, '');
-            const isHex32 = (normalizedBefore.length === 32) && (/^[A-Fa-f0-9]{32}$/.test (normalizedBefore));
-            if (isHex32) {
-                request['before'] = normalizedBefore;
-            }
+            // pass-through cursor/id unchanged to avoid surprising normalization
+            request['before'] = before;
             params = this.omit (params, [ 'before' ]);
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
