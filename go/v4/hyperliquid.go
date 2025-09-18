@@ -4388,6 +4388,9 @@ func (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		}
 		var until interface{} = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
+			if IsTrue(IsEqual(since, nil)) {
+				panic(ArgumentsRequired(Add(this.Id, " fetchDeposits requires since while until is set")))
+			}
 			AddElementToObject(request, "endTime", until)
 			params = this.Omit(params, []interface{}{"until"})
 		}
@@ -4443,8 +4446,8 @@ func (this *hyperliquid) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36618 := (<-this.LoadMarkets())
-		PanicOnError(retRes36618)
+		retRes36648 := (<-this.LoadMarkets())
+		PanicOnError(retRes36648)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4505,8 +4508,8 @@ func (this *hyperliquid) FetchOpenInterests(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes37048 := (<-this.LoadMarkets())
-		PanicOnError(retRes37048)
+		retRes37078 := (<-this.LoadMarkets())
+		PanicOnError(retRes37078)
 		symbols = this.MarketSymbols(symbols)
 
 		swapMarkets := (<-this.FetchSwapMarkets())
@@ -4536,8 +4539,8 @@ func (this *hyperliquid) FetchOpenInterest(symbol interface{}, optionalArgs ...i
 		_ = params
 		symbol = this.Symbol(symbol)
 
-		retRes37208 := (<-this.LoadMarkets())
-		PanicOnError(retRes37208)
+		retRes37238 := (<-this.LoadMarkets())
+		PanicOnError(retRes37238)
 
 		ois := (<-this.FetchOpenInterests([]interface{}{symbol}, params))
 		PanicOnError(ois)
@@ -4610,8 +4613,8 @@ func (this *hyperliquid) FetchFundingHistory(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes37728 := (<-this.LoadMarkets())
-		PanicOnError(retRes37728)
+		retRes37758 := (<-this.LoadMarkets())
+		PanicOnError(retRes37758)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
