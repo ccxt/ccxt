@@ -4284,7 +4284,7 @@ public partial class phemex : Exchange
         object isCross = this.safeValue(position, "crossMargin");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
-            { "id", null },
+            { "id", this.safeString(position, "execSeq") },
             { "symbol", symbol },
             { "contracts", this.parseNumber(contracts) },
             { "contractSize", contractSize },

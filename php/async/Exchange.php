@@ -2066,6 +2066,14 @@ class Exchange extends \ccxt\Exchange {
         $this->baseCurrencies = $sourceExchange->baseCurrencies;
         $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
         $this->codes = $sourceExchange->codes;
+        // check marketHelperProps
+        $sourceExchangeHelpers = $this->safe_list($sourceExchange->options, 'marketHelperProps', array());
+        for ($i = 0; $i < count($sourceExchangeHelpers); $i++) {
+            $helper = $sourceExchangeHelpers[$i];
+            if ($sourceExchange->options[$helper] !== null) {
+                $this->options[$helper] = $sourceExchange->options[$helper];
+            }
+        }
         return $this;
     }
 

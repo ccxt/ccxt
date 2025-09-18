@@ -385,6 +385,7 @@ public partial class kraken : Exchange
                     { "OriginTrail", "OTP" },
                     { "Celestia", "TIA" },
                 } },
+                { "marketHelperProps", new List<object>() {"marketsByAltname", "delistedMarketsById"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
