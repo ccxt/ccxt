@@ -29,8 +29,7 @@ export default class toobit extends toobitRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://stream.toobit.com',
-                        'swap': 'wss://stream.toobit.com',
+                        'common': 'wss://stream.toobit.com',
                     },
                 },
             },
@@ -53,6 +52,7 @@ export default class toobit extends toobitRest {
                         '1M': '1M',
                     },
                 },
+                'listenKeyRefreshRate': 1200000, // 20 mins
             },
             'streaming': {
                 'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
@@ -75,10 +75,12 @@ export default class toobit extends toobitRest {
 
     handleMessage (client: Client, message) {
         //
+        // public
+        //
         //     {
+        //         topic: "trade",
         //         symbol: "DOGEUSDT",
         //         symbolName: "DOGEUSDT",
-        //         topic: "trade",
         //         params: {
         //             realtimeInterval: "24h",
         //             binary: "false",
@@ -97,6 +99,19 @@ export default class toobit extends toobitRest {
         //         shared: false,
         //     }
         //
+        // private
+        //
+        //     [
+        //       {
+        //         e: 'outboundContractAccountInfo',
+        //         E: '1758228398234',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [ [Object] ]
+        //       }
+        //     ]
+        //
         const topic = this.safeString (message, 'topic');
         // const isSnapshot = this.safeBool (message, 'f');
         // if (this.handleErrorMessage (client, message)) {
@@ -110,6 +125,8 @@ export default class toobit extends toobitRest {
             'kline': this.handleOHLCV,
             'realtimes': this.handleTickers,
             'depth': this.handlePartialOrderBook,
+            'outboundAccountInfo': this.handleBalance,
+            'outboundContractAccountInfo': this.handleBalance,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -117,6 +134,16 @@ export default class toobit extends toobitRest {
             //     return; // todo
             // }
             method.call (this, client, message);
+        } else {
+            // check private streams
+            for (let i = 0; i < message.length; i++) {
+                const item = message[i];
+                const event = this.safeString (item, 'e');
+                const method2 = this.safeValue (methods, event);
+                if (method2 !== undefined) {
+                    method2.call (this, client, item);
+                }
+            }
         }
     }
 
@@ -384,7 +411,7 @@ export default class toobit extends toobitRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires a non-empty array of symbols');
         }
         symbols = this.marketSymbols (symbols);
         // const streamHash = 'multipleTrades' + '::' + symbols.join (',');
@@ -562,5 +589,178 @@ export default class toobit extends toobitRest {
             orderbook.reset (snapshot);
             client.resolve (orderbook, messageHash);
         }
+    }
+
+    /**
+     * @method
+     * @name bingx#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async watchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const isSpot = (type === 'spot');
+        const spotSubHash = 'spot:balance';
+        const swapSubHash = 'swap:private';
+        const spotMessageHash = 'spot:balance';
+        const swapMessageHash = 'swap:balance';
+        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        const url = this.getUserStreamUrl ();
+        const client = this.client (url);
+        this.setBalanceCache (client, type, undefined, subscriptionHash, params);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
+        return await this.watch (url, messageHash, params, subscriptionHash);
+    }
+
+    setBalanceCache (client: Client, type, subType, subscriptionHash, params) {
+        if (subscriptionHash in client.subscriptions) {
+            return;
+        }
+        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                subType = (type === 'spot') ? undefined : 'linear';
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type, subType);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // spot
+        // [
+        //     {
+        //         e: 'outboundAccountInfo',
+        //         E: '1758226989725',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [
+        //             {
+        //               a: "USDT",
+        //               f: "6.37242839",
+        //               l: "0",
+        //             },
+        //         ]
+        //     }
+        // ]
+        //
+        // swap
+        //
+        // [
+        //     {
+        //         e: 'outboundContractAccountInfo',
+        //         E: '1758226989742',
+        //         T: true,
+        //         W: true,
+        //         D: true,
+        //         B: [ [Object] ]
+        //     }
+        // ]
+        //
+        const a = this.safeDict (message, 'a', {});
+        const data = this.safeList (a, 'B', []);
+        const timestamp = this.safeInteger2 (message, 'T', 'E');
+        const type = ('P' in a) ? 'swap' : 'spot';
+        if (!(type in this.balance)) {
+            this.balance[type] = {};
+        }
+        this.balance[type]['info'] = data;
+        this.balance[type]['timestamp'] = timestamp;
+        this.balance[type]['datetime'] = this.iso8601 (timestamp);
+        for (let i = 0; i < data.length; i++) {
+            const balance = data[i];
+            const currencyId = this.safeString (balance, 'a');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['info'] = balance;
+            account['used'] = this.safeString (balance, 'lk');
+            account['free'] = this.safeString (balance, 'wb');
+            this.balance[type][code] = account;
+        }
+        this.balance[type] = this.safeBalance (this.balance[type]);
+        client.resolve (this.balance[type], type + ':balance');
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type, subType) {
+        const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
+        client.resolve (this.balance[type], type + ':balance');
+    }
+
+    async authenticate (params = {}) {
+        const time = this.milliseconds ();
+        const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
+        const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum (listenKeyRefreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
+            const response = await this.privatePostApiV1UserDataStream (params);
+            this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['ws']['lastAuthenticatedTime'] = time;
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+        }
+    }
+
+    async keepAliveListenKey (params = {}) {
+        const options = this.safeValue (this.options, 'ws', {});
+        const listenKey = this.safeString (options, 'listenKey');
+        if (listenKey === undefined) {
+            // A network error happened: we can't renew a listen key that does not exist.
+            return;
+        }
+        const time = this.milliseconds ();
+        try {
+            await this.fapiPrivatePutListenKey (params); 
+        } catch (error) {
+            const url = this.getUserStreamUrl ();
+            const client = this.client (url);
+            const messageHashes = Object.keys (client.futures);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                client.reject (error, messageHash);
+            }
+            this.options['ws']['listenKey'] = undefined;
+            this.options['ws']['lastAuthenticatedTime'] = 0;
+            return;
+        }
+        this.options['ws']['listenKey'] = listenKey;
+        this.options['ws']['lastAuthenticatedTime'] = time;
+        // whether or not to schedule another listenKey keepAlive request
+        const clients = Object.values (this.clients);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            const subscriptionKeys = Object.keys ((client as any).subscriptions);
+            for (let j = 0; j < subscriptionKeys.length; j++) {
+                const subscribeType = subscriptionKeys[j];
+                if (subscribeType === 'common') {
+                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    return;
+                }
+            }
+        }
+    }
+
+    getUserStreamUrl () {
+        return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
     }
 }
