@@ -456,7 +456,7 @@ export default class dase extends Exchange {
      * @description fetches a list of OHLCV candles for a market
      * @see https://api.dase.com/docs
      * @param {string} symbol unified symbol of the market to fetch OHLCV for
-     * @param {string} [timeframe] not used by dase.fetchOHLCV ()
+     * @param {string} [timeframe] timeframe string mapped to API granularity
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] max number of candles to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -468,14 +468,44 @@ export default class dase extends Exchange {
         const allowed = { '1m': true, '5m': true, '15m': true, '30m': true, '1h': true, '2h': true, '6h': true, '1d': true } as Dict;
         const resolvedTimeframe = (timeframe in allowed) ? timeframe : '1m';
         const request: Dict = { 'market': market['id'], 'granularity': resolvedTimeframe };
-        if (since !== undefined) {
-            request['from'] = since;
-            if (this.safeInteger (params, 'to') === undefined) {
-                request['to'] = this.milliseconds ();
+
+        // API requires both 'from' and 'to'. Compute sensible defaults if missing.
+        const durationMs = this.parseTimeframe (resolvedTimeframe) * 1000;
+        const now = this.milliseconds ();
+        const fromParam = this.safeNumber (params, 'from');
+        const toParam = this.safeNumber (params, 'to');
+        params = this.omit (params, [ 'from', 'to' ]);
+
+        let fromMs: Int = undefined;
+        let toMs: Int = undefined;
+        if ((fromParam !== undefined) || (toParam !== undefined)) {
+            if (fromParam !== undefined) {
+                fromMs = this.parseToInt (fromParam);
+            }
+            if (toParam !== undefined) {
+                toMs = this.parseToInt (toParam);
+            }
+            // If only one bound provided, infer the other using limit or reasonable default
+            const candles = (limit === undefined) ? 500 : limit;
+            if (fromMs === undefined && toMs !== undefined) {
+                fromMs = toMs - candles * durationMs;
+            }
+            if (toMs === undefined && fromMs !== undefined) {
+                toMs = (limit !== undefined) ? (fromMs + candles * durationMs) : now;
             }
         } else {
-            request['limit'] = (limit === undefined) ? 500 : limit;
+            if (since !== undefined) {
+                fromMs = since;
+                const candles = (limit === undefined) ? 500 : limit;
+                toMs = (limit !== undefined) ? (fromMs + candles * durationMs) : now;
+            } else {
+                const candles = (limit === undefined) ? 500 : limit;
+                toMs = now;
+                fromMs = toMs - candles * durationMs;
+            }
         }
+        request['from'] = fromMs;
+        request['to'] = toMs;
         const response = await this.publicGetMarketsMarketCandles (this.extend (request, params));
         //
         // Endpoint returns array of candles for a given market
@@ -492,7 +522,13 @@ export default class dase extends Exchange {
         const result: OHLCV[] = [];
         for (let i = 0; i < list.length; i++) {
             const ohlcv = list[i];
-            const ts = this.safeInteger (ohlcv, 0);
+            let ts = this.safeInteger (ohlcv, 0);
+            if (ts === undefined) {
+                const t = this.safeNumber (ohlcv, 0);
+                if (t !== undefined) {
+                    ts = this.parseToInt (t);
+                }
+            }
             const open = this.safeNumber (ohlcv, 1);
             const high = this.safeNumber (ohlcv, 2);
             const low = this.safeNumber (ohlcv, 3);
@@ -500,8 +536,7 @@ export default class dase extends Exchange {
             const volume = this.safeNumber (ohlcv, 5);
             result.push ([ ts, open, high, low, close, volume ]);
         }
-        // If 'to' was not provided and 'limit' was, the server already limited.
-        // If 'since' was provided without 'to', we already sent 'from'. Fallback filter locally just in case.
+        // Local fallback filters (should be redundant when 'from'/'to' are sent)
         let filtered = result;
         if (since !== undefined) {
             filtered = this.filterBySinceLimit (result, since, undefined, 0, true);
