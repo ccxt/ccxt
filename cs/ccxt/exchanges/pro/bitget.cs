@@ -776,9 +776,11 @@ public partial class bitget : ccxt.bitget
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
@@ -793,9 +795,11 @@ public partial class bitget : ccxt.bitget
      * @description unsubscribe from the orderbook channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
@@ -804,7 +808,7 @@ public partial class bitget : ccxt.bitget
         await this.loadMarkets();
         object channel = "books";
         object limit = this.safeInteger(parameters, "limit");
-        if (isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))))
+        if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
         {
             parameters = this.omit(parameters, "limit");
             channel = add(channel, ((object)limit).ToString());
@@ -850,9 +854,11 @@ public partial class bitget : ccxt.bitget
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
@@ -862,28 +868,38 @@ public partial class bitget : ccxt.bitget
         symbols = this.marketSymbols(symbols);
         object channel = "books";
         object incrementalFeed = true;
-        if (isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))))
+        if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
         {
             channel = add(channel, ((object)limit).ToString());
             incrementalFeed = false;
         }
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object instType = null;
-            var instTypeparametersVariable = this.getInstType(market, false, parameters);
+            var instTypeparametersVariable = this.getInstType(market, uta, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
             object args = new Dictionary<string, object>() {
                 { "instType", instType },
-                { "channel", channel },
-                { "instId", getValue(market, "id") },
             };
+            object topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
+            object symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
+            ((IDictionary<string,object>)args)[(string)topicOrChannel] = channel;
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
+        }
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)parameters)["uta"] = true;
         }
         object orderbook = await this.watchPublicMultiple(messageHashes, topics, parameters);
         if (isTrue(incrementalFeed))
@@ -927,11 +943,27 @@ public partial class bitget : ccxt.bitget
         //       ]
         //   }
         //
+        // {
+        //     "action": "snapshot",
+        //     "arg": { "instType": "usdt-futures", "topic": "books", "symbol": "BTCUSDT" },
+        //     "data": [
+        //         {
+        //             "a": [Array],
+        //             "b": [Array],
+        //             "checksum": 0,
+        //             "pseq": 0,
+        //             "seq": "1343064377779269632",
+        //             "ts": "1755937421270"
+        //         }
+        //     ],
+        //     "ts": 1755937421337
+        // }
+        //
         object arg = this.safeValue(message, "arg");
-        object channel = this.safeString(arg, "channel");
-        object instType = this.safeString(arg, "instType");
-        object marketType = ((bool) isTrue((isEqual(instType, "SPOT")))) ? "spot" : "contract";
-        object marketId = this.safeString(arg, "instId");
+        object channel = this.safeString2(arg, "channel", "topic");
+        object instType = this.safeStringLower(arg, "instType");
+        object marketType = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+        object marketId = this.safeString2(arg, "instId", "symbol");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
@@ -950,8 +982,8 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             object storedOrderBook = getValue(this.orderbooks, symbol);
-            object asks = this.safeValue(rawOrderBook, "asks", new List<object>() {});
-            object bids = this.safeValue(rawOrderBook, "bids", new List<object>() {});
+            object asks = this.safeList2(rawOrderBook, "asks", "a", new List<object>() {});
+            object bids = this.safeList2(rawOrderBook, "bids", "b", new List<object>() {});
             this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;

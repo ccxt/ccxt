@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class coincatch
@@ -4940,7 +4940,7 @@ class coincatch extends coincatch$1["default"] {
                 }
             }
         }
-        return positions[0];
+        return this.safeDict(positions, 0, {});
     }
     /**
      * @method

@@ -219,7 +219,8 @@ const VIRTUAL_BASE_METHODS: any = {
 	'watchTickers': true,
 	'watchTrades': true,
 	'watchTradesForSymbols': true,
-};
+    "parseLastPrice": false,
+}
 
 const INTERFACE_METHODS = [
     'cancelAllOrders',

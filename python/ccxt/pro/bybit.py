@@ -331,6 +331,8 @@ class bybit(ccxt.async_support.bybit):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrderWs() requires a symbol argument')
         orderRequest = self.cancel_order_request(id, symbol, params)
         url = self.urls['api']['ws']['private']['trade']
         await self.authenticate(url)

@@ -317,6 +317,7 @@ type IDerivedExchange interface {
 	ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{}
 	ParseAccount(account interface{}) interface{}
 	ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{}
+	ParseLastPrice(item interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}
 	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}

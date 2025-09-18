@@ -18,7 +18,7 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 def test_fetch_tickers(exchange, skipped_properties, symbol):
     without_symbol = test_fetch_tickers_helper(exchange, skipped_properties, None)
     with_symbol = test_fetch_tickers_helper(exchange, skipped_properties, [symbol])
-    results = asyncio.gather(*[without_symbol, with_symbol])
+    results = ([without_symbol, with_symbol])
     test_fetch_tickers_amounts(exchange, skipped_properties, results[0])
     return results
 

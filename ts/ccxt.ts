@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.4';
+const version = '4.5.5';
 
 (Exchange as any).ccxtVersion = version
 
@@ -49,6 +49,7 @@ const version = '4.5.4';
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
+import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
 import binance from  './src/binance.js'
@@ -157,6 +158,7 @@ import zonda from  './src/zonda.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
 import ascendexPro from  './src/pro/ascendex.js'
+import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
 import binancePro from  './src/pro/binance.js'
 import binancecoinmPro from  './src/pro/binancecoinm.js'
@@ -231,6 +233,7 @@ const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
     'ascendex':               ascendex,
+    'backpack':               backpack,
     'bequant':                bequant,
     'bigone':                 bigone,
     'binance':                binance,
@@ -339,6 +342,7 @@ const pro = {
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
     'ascendex':               ascendexPro,
+    'backpack':               backpackPro,
     'bequant':                bequantPro,
     'binance':                binancePro,
     'binancecoinm':           binancecoinmPro,
@@ -555,6 +559,7 @@ export {
     alpaca,
     apex,
     ascendex,
+    backpack,
     bequant,
     bigone,
     binance,

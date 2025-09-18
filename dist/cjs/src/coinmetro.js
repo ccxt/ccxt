@@ -7,7 +7,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class coinmetro
@@ -565,6 +565,17 @@ class coinmetro extends coinmetro$1["default"] {
                     }
                     break;
                 }
+            }
+        }
+        if (baseId === undefined || quoteId === undefined) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (marketId.endsWith('USDT')) {
+                baseId = marketId.replace('USDT', '');
+                quoteId = 'USDT';
+            }
+            if (marketId.endsWith('USD')) {
+                baseId = marketId.replace('USD', '');
+                quoteId = 'USD';
             }
         }
         const result = {

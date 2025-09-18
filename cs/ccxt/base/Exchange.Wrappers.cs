@@ -1229,6 +1229,7 @@ public partial class Exchange
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
+public class  Backpack: backpack { public Backpack(object args = null) : base(args) { } }
 public class  Bequant: bequant { public Bequant(object args = null) : base(args) { } }
 public class  Bigone: bigone { public Bigone(object args = null) : base(args) { } }
 public class  Binance: binance { public Binance(object args = null) : base(args) { } }

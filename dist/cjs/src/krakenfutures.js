@@ -9,7 +9,7 @@ var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class krakenfutures
@@ -487,7 +487,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'future': future,
                 'option': false,
                 'index': index,
-                'active': undefined,
+                'active': this.safeBool(market, 'tradeable'),
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,

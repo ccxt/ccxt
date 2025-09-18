@@ -501,7 +501,7 @@ Therefore we have a family of `safe*` functions:
 - `safeNumber (object, key, default)`, `safeNumber2 (object, key1, key2, default)` – for parsing amounts, prices, costs
 - `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
 - `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
-- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to uppercase
 - `safeBool(object, key, default)` - for parsing bools inside dictionaries and arrays/lists
 - `safeList(object, key, default)` - for parsing lists/arrays inside dictionaries and arrays/lists
 - `safeDict(object, key, default)` - for parsing dictionaries inside dictionaries and arrays/lists
