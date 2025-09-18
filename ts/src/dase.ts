@@ -2,9 +2,9 @@
 
 import Exchange from './abstract/dase.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError } from './base/errors.js';
+import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, int } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ export default class dase extends Exchange {
                 'fetchCurrencies': false,
                 // private
                 'fetchBalance': true,
-                'createOrder': false,
+                'createOrder': true,
                 'cancelOrder': false,
                 'cancelAllOrders': false,
                 'fetchOrder': false,
@@ -72,6 +72,9 @@ export default class dase extends Exchange {
                 'private': {
                     'get': [
                         'balances',
+                    ],
+                    'post': [
+                        'orders',
                     ],
                 },
             },
@@ -217,6 +220,67 @@ export default class dase extends Exchange {
         await this.loadMarkets ();
         const response = await (this as any).privateGetBalances (params);
         return this.parseBalance (response);
+    }
+
+    /**
+     * @method
+     * @name dase#createOrder
+     * @description create a trade order
+     * @see https://api.dase.com/v1/orders
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['id'],
+            'side': side,
+            'type': type,
+        };
+        const postOnly = this.safeBool (params, 'postOnly');
+        params = this.omit (params, [ 'postOnly' ]);
+        if (type === 'limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
+            }
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an amount for limit orders');
+            }
+            request['size'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (postOnly) {
+                request['post_only'] = true;
+            }
+        } else {
+            const funds = this.safeString2 (params, 'funds', 'cost');
+            if (funds !== undefined) {
+                request['funds'] = this.costToPrecision (symbol, funds);
+                params = this.omit (params, [ 'funds', 'cost' ]);
+            } else {
+                if (amount === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires either params.funds (quote) or amount (base) for market orders');
+                }
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
+        }
+        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
+        }
+        const response = await (this as any).privatePostOrders (this.extend (request, params));
+        // { order_id: "uuid" }
+        const id = this.safeString (response, 'order_id');
+        return this.safeOrder ({
+            'info': response,
+            'id': id,
+        }, market);
     }
 
     /**
