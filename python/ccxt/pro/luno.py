@@ -5,20 +5,21 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import IndexType, Int, OrderBook, Trade
+from ccxt.base.types import Any, IndexType, Int, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class luno(ccxt.async_support.luno):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(luno, self).describe(), {
             'has': {
                 'ws': True,
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': None,  # is in beta
                 'watchOrderBook': True,
@@ -41,7 +42,9 @@ class luno(ccxt.async_support.luno):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.luno.com/en/developers/api#tag/Streaming-API
+
+        https://www.luno.com/en/developers/api#tag/Streaming-API
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of    trades to fetch
@@ -193,15 +196,16 @@ class luno(ccxt.async_support.luno):
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.indexed_order_book({})
-        orderbook = self.orderbooks[symbol]
         asks = self.safe_value(message, 'asks')
         if asks is not None:
             snapshot = self.custom_parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id')
-            orderbook.reset(snapshot)
+            self.orderbooks[symbol] = self.indexed_order_book(snapshot)
         else:
-            self.handle_delta(orderbook, message)
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
+            ob = self.orderbooks[symbol]
+            self.handle_delta(ob, message)
+            ob['timestamp'] = timestamp
+            ob['datetime'] = self.iso8601(timestamp)
+        orderbook = self.orderbooks[symbol]
         nonce = self.safe_integer(message, 'sequence')
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)

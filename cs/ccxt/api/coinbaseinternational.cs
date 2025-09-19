@@ -46,9 +46,9 @@ public partial class coinbaseinternational : Exchange
         return await this.callAsync ("v1PublicGetInstrumentsInstrumentFunding",parameters);
     }
 
-    public async Task<object> v1PublicGet (object parameters = null)
+    public async Task<object> v1PublicGetInstrumentsInstrumentCandles (object parameters = null)
     {
-        return await this.callAsync ("v1PublicGet",parameters);
+        return await this.callAsync ("v1PublicGetInstrumentsInstrumentCandles",parameters);
     }
 
     public async Task<object> v1PrivateGetOrders (object parameters = null)

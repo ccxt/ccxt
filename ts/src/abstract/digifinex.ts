@@ -78,6 +78,7 @@ interface Exchange {
     privateSwapGetTradeHistoryTrades (params?: {}): Promise<implicitReturnType>;
     privateSwapGetTradeOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateSwapGetTradeOrderInfo (params?: {}): Promise<implicitReturnType>;
+    privateSwapPostAccountTransfer (params?: {}): Promise<implicitReturnType>;
     privateSwapPostAccountLeverage (params?: {}): Promise<implicitReturnType>;
     privateSwapPostAccountPositionMode (params?: {}): Promise<implicitReturnType>;
     privateSwapPostAccountPositionMargin (params?: {}): Promise<implicitReturnType>;

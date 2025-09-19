@@ -25,5 +25,6 @@ async function testFetchLeverageTiers(exchange, skippedProperties, symbol) {
             testLeverageTier(exchange, skippedProperties, method, tiersForSymbol[j]);
         }
     }
+    return true;
 }
 export default testFetchLeverageTiers;

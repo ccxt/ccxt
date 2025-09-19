@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchLedgerEntry(Exchange exchange, object skippedProperties, object code)
+    async static public Task<object> testFetchLedgerEntry(Exchange exchange, object skippedProperties, object code)
     {
         object method = "fetchLedgerEntry";
         object items = await exchange.fetchLedger(code);
@@ -21,6 +21,7 @@ public partial class testMainClass : BaseTest
             object now = exchange.milliseconds();
             testLedgerEntry(exchange, skippedProperties, method, item, code, now);
         }
+        return true;
     }
 
 }

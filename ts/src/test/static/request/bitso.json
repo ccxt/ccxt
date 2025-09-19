@@ -3,11 +3,69 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "createOrder": [
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "url": "https://bitso.com/api/v3/orders",
+                "input": [
+                  "XRP/USDT",
+                  "market",
+                  "buy",
+                  10
+                ],
+                "output": "{\"book\":\"xrp_usdt\",\"side\":\"buy\",\"type\":\"market\",\"major\":\"10\"}"
+            },
+            {
+                "description": "market sell order",
+                "method": "createOrder",
+                "url": "https://bitso.com/api/v3/orders",
+                "input": [
+                  "XRP/USDT",
+                  "market",
+                  "sell",
+                  10
+                ],
+                "output": "{\"book\":\"xrp_usdt\",\"side\":\"sell\",\"type\":\"market\",\"major\":\"10\"}"
+            },
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://bitso.com/api/v3/orders",
+                "input": [
+                  "XRP/USDT",
+                  "limit",
+                  "buy",
+                  10,
+                  0.4
+                ],
+                "output": "{\"book\":\"xrp_usdt\",\"side\":\"buy\",\"type\":\"limit\",\"major\":\"10\",\"price\":\"0.4\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://bitso.com/api/v3/orders/hG5WlCiC4OWRt2up",
+                "input": [
+                  "hG5WlCiC4OWRt2up",
+                  "XRP/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://bitso.com/api/v3/orders/all",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.bitso.com/v3/balance?type=spot",
+                "url": "https://bitso.com/api/v3/balance?type=spot",
                 "input": [
                     {
                         "type": "spot"
@@ -17,7 +75,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.bitso.com/v3/balance?type=swap",
+                "url": "https://bitso.com/api/v3/balance?type=swap",
                 "input": [
                     {
                         "type": "swap"
@@ -29,7 +87,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api.bitso.com/v3/fundings",
+                "url": "https://bitso.com/api/v3/fundings",
                 "input": []
             }
         ],
@@ -37,7 +95,7 @@
             {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",
-                "url": "https://api.bitso.com/v3/ledger",
+                "url": "https://bitso.com/api/v3/ledger",
                 "input": [
                     "USDT"
                 ]
@@ -47,7 +105,7 @@
             {
                 "description": "spot fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.bitso.com/v3/trades?book=btc_usdt",
+                "url": "https://bitso.com/api/v3/trades?book=btc_usdt",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -57,7 +115,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.bitso.com/v3/order_book?book=btc_usdt",
+                "url": "https://bitso.com/api/v3/order_book?book=btc_usdt",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -67,9 +125,19 @@
             {
                 "description": "spot ticker",
                 "method": "fetchTicker",
-                "url": "https://api.bitso.com/v3/ticker?book=btc_usdt",
+                "url": "https://bitso.com/api/v3/ticker?book=btc_usdt",
                 "input": [
                     "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://bitso.com/api/v3/user_trades?book=btc_usdt&limit=25",
+                "input": [
+                  "BTC/USDT"
                 ]
             }
         ]

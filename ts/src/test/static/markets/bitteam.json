@@ -16,8 +16,8 @@
         "active": true,
         "contract": false,
         "precision": {
-            "amount": 8,
-            "price": 6
+            "amount": 0.00000001,
+            "price": 0.000001
         },
         "limits": {
             "leverage": {},
@@ -164,8 +164,8 @@
         "active": false,
         "contract": false,
         "precision": {
-            "amount": 8,
-            "price": 6
+            "amount": 0.00000001,
+            "price": 0.000001
         },
         "limits": {
             "leverage": {},
@@ -312,8 +312,8 @@
         "active": false,
         "contract": false,
         "precision": {
-            "amount": 6,
-            "price": 6
+            "amount": 0.000001,
+            "price": 0.000001
         },
         "limits": {
             "leverage": {},
@@ -460,8 +460,8 @@
         "active": true,
         "contract": false,
         "precision": {
-            "amount": 8,
-            "price": 6
+            "amount": 0.00000001,
+            "price": 0.000001
         },
         "limits": {
             "leverage": {},
@@ -608,8 +608,8 @@
         "active": true,
         "contract": false,
         "precision": {
-            "amount": 8,
-            "price": 6
+            "amount": 0.00000001,
+            "price": 0.000001
         },
         "limits": {
             "leverage": {},

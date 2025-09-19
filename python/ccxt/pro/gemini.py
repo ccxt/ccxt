@@ -6,16 +6,17 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Int, Order, OrderBook, Str, Strings, Tickers, Trade
+from ccxt.base.types import Any, Int, Order, OrderBook, Str, Strings, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class gemini(ccxt.async_support.gemini):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gemini, self).describe(), {
             'has': {
                 'ws': True,
@@ -45,7 +46,9 @@ class gemini(ccxt.async_support.gemini):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watch the list of most recent trades for a particular symbol
-        :see: https://docs.gemini.com/websocket-api/#market-data-version-2
+
+        https://docs.gemini.com/websocket-api/#market-data-version-2
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -76,7 +79,9 @@ class gemini(ccxt.async_support.gemini):
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.gemini.com/websocket-api/#multi-market-data
+
+        https://docs.gemini.com/websocket-api/#multi-market-data
+
         get the list of most recent trades for a list of symbols
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -249,7 +254,9 @@ class gemini(ccxt.async_support.gemini):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.gemini.com/websocket-api/#candles-data-feed
+
+        https://docs.gemini.com/websocket-api/#candles-data-feed
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -334,7 +341,9 @@ class gemini(ccxt.async_support.gemini):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.gemini.com/websocket-api/#market-data-version-2
+
+        https://docs.gemini.com/websocket-api/#market-data-version-2
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -366,9 +375,10 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         for i in range(0, len(changes)):
             delta = changes[i]
             price = self.safe_number(delta, 1)
@@ -384,7 +394,9 @@ class gemini(ccxt.async_support.gemini):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.gemini.com/websocket-api/#multi-market-data
+
+        https://docs.gemini.com/websocket-api/#multi-market-data
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -396,7 +408,9 @@ class gemini(ccxt.async_support.gemini):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
-        :see: https://docs.gemini.com/websocket-api/#multi-market-data
+
+        https://docs.gemini.com/websocket-api/#multi-market-data
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -444,9 +458,10 @@ class gemini(ccxt.async_support.gemini):
             entry = rawBidAskChanges[i]
             rawSide = self.safe_string(entry, 'side')
             price = self.safe_number(entry, 'price')
-            size = self.safe_number(entry, 'remaining')
-            if size == 0:
+            sizeString = self.safe_string(entry, 'remaining')
+            if Precise.string_eq(sizeString, '0'):
                 continue
+            size = self.parse_number(sizeString)
             if rawSide == 'bid':
                 currentBidAsk['bid'] = price
                 currentBidAsk['bidVolume'] = size
@@ -456,11 +471,15 @@ class gemini(ccxt.async_support.gemini):
         currentBidAsk['timestamp'] = timestamp
         currentBidAsk['datetime'] = self.iso8601(timestamp)
         currentBidAsk['info'] = rawBidAskChanges
+        bidsAsksDict = {}
+        bidsAsksDict[symbol] = currentBidAsk
         self.bidsasks[symbol] = currentBidAsk
-        client.resolve(currentBidAsk, messageHash)
+        client.resolve(bidsAsksDict, messageHash)
 
-    async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: List[str], params={}):
+    async def helper_for_watch_multiple_construct(self, itemHashName: str, symbols: List[str] = None, params={}):
         await self.load_markets()
+        if symbols is None:
+            raise NotSupported(self.id + ' watchMultiple requires at least one symbol')
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         if not firstMarket['spot'] and not firstMarket['linear']:
@@ -571,7 +590,9 @@ class gemini(ccxt.async_support.gemini):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://docs.gemini.com/websocket-api/#order-events
+
+        https://docs.gemini.com/websocket-api/#order-events
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve

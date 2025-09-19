@@ -74,6 +74,42 @@ interface Exchange {
     privateDeleteSmartorders (params?: {}): Promise<implicitReturnType>;
     privatePutOrdersId (params?: {}): Promise<implicitReturnType>;
     privatePutSmartordersId (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketAllInstruments (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketInstruments (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketOrderBook (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketCandles (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketIndexPriceCandlesticks (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketPremiumIndexCandlesticks (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketMarkPriceCandlesticks (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketTrades (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketLiquidationOrder (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketTickers (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketMarkPrice (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketIndexPrice (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketIndexPriceComponents (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketFundingRate (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketOpenInterest (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketInsurance (params?: {}): Promise<implicitReturnType>;
+    swapPublicGetV3MarketRiskLimit (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3AccountBalance (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3AccountBills (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3TradeOrderOpens (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3TradeOrderTrades (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3TradeOrderHistory (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3TradePositionOpens (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3TradePositionHistory (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3PositionLeverages (params?: {}): Promise<implicitReturnType>;
+    swapPrivateGetV3PositionMode (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3TradeOrder (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3TradeOrders (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3TradePosition (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3TradePositionAll (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3PositionLeverage (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3PositionMode (params?: {}): Promise<implicitReturnType>;
+    swapPrivatePostV3TradePositionMargin (params?: {}): Promise<implicitReturnType>;
+    swapPrivateDeleteV3TradeOrder (params?: {}): Promise<implicitReturnType>;
+    swapPrivateDeleteV3TradeBatchOrders (params?: {}): Promise<implicitReturnType>;
+    swapPrivateDeleteV3TradeAllOrders (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

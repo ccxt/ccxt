@@ -450,6 +450,8 @@
         ],
         "fetchCurrencies": [
             {
+                "disabled": true,
+                "disableReason": "multi request method",
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api-evm.orderly.org/v1/public/token",
@@ -506,6 +508,14 @@
                 ]
             }
         ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://api-evm.orderly.org/v1/funding_fee/history",
+                "input": []
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "open orders",
@@ -542,6 +552,16 @@
                     "1088558009",
                     "1088643232"
                   ]
+                ]
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api-evm.orderly.org/v1/public/funding_rate/PERP_BTC_USDC",
+                "input": [
+                  "BTC/USDC:USDC"
                 ]
             }
         ]

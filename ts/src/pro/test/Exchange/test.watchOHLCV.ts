@@ -2,8 +2,9 @@
 import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchOHLCV (exchange, skippedProperties, symbol) {
+async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCV';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
@@ -19,6 +20,7 @@ async function testWatchOHLCV (exchange, skippedProperties, symbol) {
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOHLCV (symbol, chosenTimeframeKey, since, limit);
         } catch (e) {
@@ -26,14 +28,18 @@ async function testWatchOHLCV (exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
-        now = exchange.milliseconds ();
-        for (let i = 0; i < response.length; i++) {
-            testOHLCV (exchange, skippedProperties, method, response[i], symbol, now);
+        if (success === true) {
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
+            now = exchange.milliseconds ();
+            for (let i = 0; i < response.length; i++) {
+                testOHLCV (exchange, skippedProperties, method, response[i], symbol, now);
+            }
         }
     }
+    return true;
 }
 
 export default testWatchOHLCV;

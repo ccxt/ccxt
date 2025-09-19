@@ -4,7 +4,7 @@ var poloniexfutures$1 = require('../poloniexfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class poloniexfutures extends poloniexfutures$1 {
     describe() {
@@ -25,6 +25,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': false,
@@ -49,6 +50,7 @@ class poloniexfutures extends poloniexfutures$1 {
                     'method': '/contractMarket/level2',
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5,
                 'streamBySubscriptionsHash': {},
@@ -130,18 +132,18 @@ class poloniexfutures extends poloniexfutures$1 {
         this.options['requestId'] = requestId;
         return requestId;
     }
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel and suscriptionHash
+     * @param {bool} isPrivate true for the authenticated url, false for the public url
+     * @param {string} symbol is required for all public channels, not required for private channels (except position)
+     * @param {object} subscription subscription parameters
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} data from the websocket stream
+     */
     async subscribe(name, isPrivate, symbol = undefined, subscription = undefined, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @description Connects to a websocket channel
-         * @param {string} name name of the channel and suscriptionHash
-         * @param {bool} isPrivate true for the authenticated url, false for the public url
-         * @param {string} symbol is required for all public channels, not required for private channels (except position)
-         * @param {object} subscription subscription parameters
-         * @param {object} [params] extra parameters specific to the poloniex api
-         * @returns {object} data from the websocket stream
-         */
         const url = await this.negotiate(isPrivate);
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -233,33 +235,33 @@ class poloniexfutures extends poloniexfutures$1 {
         const messageHash = this.safeString(message, 'id');
         client.resolve(message, messageHash);
     }
+    /**
+     * @method
+     * @name poloniexfutures#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/futures/websocket/public#get-real-time-symbol-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://futures-docs.poloniex.com/#get-real-time-symbol-ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const name = '/contractMarket/ticker';
         return await this.subscribe(name, false, symbol, undefined, params);
     }
+    /**
+     * @method
+     * @name poloniexfutures#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/futures/websocket/public#full-matching-engine-datalevel-3
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://futures-docs.poloniex.com/#full-matching-engine-data-level-3
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchTrades');
         let name = this.safeString(options, 'method', '/contractMarket/execution'); // can also be /contractMarket/snapshot
@@ -271,18 +273,18 @@ class poloniexfutures extends poloniexfutures$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name poloniexfutures#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/futures/websocket/public#level-2-market-data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] not used by poloniexfutures watchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://futures-docs.poloniex.com/#level-2-market-data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] not used by poloniexfutures watchOrderBook
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] the method to use. Defaults to /contractMarket/level2 can also be /contractMarket/level3v2 to receive the raw stream of orders
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrderBook');
         let name = this.safeString(options, 'method', '/contractMarket/level2'); // can also be /contractMarket/level2, /contractMarket/level2Depth5:{symbol}, /contractMarket/level2Depth50:{symbol}
@@ -301,19 +303,19 @@ class poloniexfutures extends poloniexfutures$1 {
         const orderbook = await this.subscribe(name, false, symbol, subscription, params);
         return orderbook.limit();
     }
+    /**
+     * @method
+     * @name poloniexfutures#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api-docs.poloniex.com/futures/websocket/user-messages#private-messages
+     * @param {string} symbol filter by unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://futures-docs.poloniex.com/#private-messages
-         * @param {string} symbol filter by unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] the method to use will default to /contractMarket/tradeOrders. Set to /contractMarket/advancedOrders to watch stop orders
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const options = this.safeValue(this.options, 'watchOrders');
         const name = this.safeString(options, 'method', '/contractMarket/tradeOrders');
@@ -328,15 +330,15 @@ class poloniexfutures extends poloniexfutures$1 {
         }
         return orders;
     }
+    /**
+     * @method
+     * @name poloniexfutures#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.poloniex.com/futures/websocket/user-messages#account-balance-events
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name poloniexfutures#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://futures-docs.poloniex.com/#account-balance-events
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const name = '/contractAccount/wallet';
         return await this.subscribe(name, true, undefined, undefined, params);
@@ -857,7 +859,10 @@ class poloniexfutures extends poloniexfutures$1 {
             return;
         }
         if (nonce !== lastSequence) {
-            throw new errors.InvalidNonce(this.id + ' watchOrderBook received an out-of-order nonce');
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(''));
+            }
         }
         const changes = this.safeList(delta, 'changes');
         for (let i = 0; i < changes.length; i++) {

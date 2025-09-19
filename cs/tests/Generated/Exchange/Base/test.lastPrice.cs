@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
             { "price", exchange.parseNumber("1.234") },
             { "side", "buy" },
         };
-        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "side"};
+        object emptyAllowedFor = new List<object>() {"timestamp", "datetime", "side", "price"}; // binance sometimes provides empty prices for old pairs
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         //

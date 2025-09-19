@@ -1,35 +1,60 @@
 {
     "BTC/USDT": {
         "id": "BTC-USDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-8,
             "price": 0.1
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.00001,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.1,
                 "max": 99999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "BTC-USDT",
             "name": "BTC-USDT",
@@ -47,12 +72,21 @@
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [
@@ -166,35 +200,60 @@
     },
     "ETH/USDT": {
         "id": "ETH-USDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1e-7,
             "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.0001,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.01,
                 "max": 999999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "ETH-USDT",
             "name": "ETH-USDT",
@@ -212,12 +271,21 @@
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [
@@ -331,35 +399,60 @@
     },
     "ADA/USDT": {
         "id": "ADA-USDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.0001,
-            "price": 0.000001
+            "amount": 0.01,
+            "price": 0.0001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 1,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.1,
                 "max": 99999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "ADA-USDT",
             "name": "ADA-USDT",
@@ -371,18 +464,27 @@
             "quoteMinSize": "0.1",
             "baseMaxSize": "10000000000",
             "quoteMaxSize": "99999999",
-            "baseIncrement": "0.0001",
-            "quoteIncrement": "0.000001",
-            "priceIncrement": "0.000001",
+            "baseIncrement": "0.01",
+            "quoteIncrement": "0.0001",
+            "priceIncrement": "0.0001",
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [
@@ -496,35 +598,60 @@
     },
     "LTC/USDT": {
         "id": "LTC-USDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.01,
             "price": 0.001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 0.001,
+                "min": 0.01,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.1,
                 "max": 99999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "LTC-USDT",
             "name": "LTC-USDT",
@@ -532,7 +659,7 @@
             "quoteCurrency": "USDT",
             "feeCurrency": "USDT",
             "market": "USDS",
-            "baseMinSize": "0.001",
+            "baseMinSize": "0.01",
             "quoteMinSize": "0.1",
             "baseMaxSize": "10000000000",
             "quoteMaxSize": "99999999",
@@ -542,12 +669,21 @@
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [
@@ -661,35 +797,60 @@
     },
     "XRP/USDT": {
         "id": "XRP-USDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.00001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.1,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.1,
                 "max": 99999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "XRP-USDT",
             "name": "XRP-USDT",
@@ -707,12 +868,21 @@
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [
@@ -826,35 +996,60 @@
     },
     "DOGE/USDT": {
         "id": "DOGE-USDT",
+        "lowercaseId": null,
         "symbol": "DOGE/USDT",
         "base": "DOGE",
         "quote": "USDT",
+        "settle": null,
         "baseId": "DOGE",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.00001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-                "min": 1,
+                "min": 10,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.1,
                 "max": 99999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "DOGE-USDT",
             "name": "DOGE-USDT",
@@ -862,7 +1057,7 @@
             "quoteCurrency": "USDT",
             "feeCurrency": "USDT",
             "market": "USDS",
-            "baseMinSize": "1",
+            "baseMinSize": "10",
             "quoteMinSize": "0.1",
             "baseMaxSize": "10000000000",
             "quoteMaxSize": "99999999",
@@ -872,12 +1067,21 @@
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [
@@ -991,35 +1195,60 @@
     },
     "TRX/USDT": {
         "id": "TRX-USDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": true,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.0001,
-            "price": 0.000001
+            "amount": 0.01,
+            "price": 0.0001
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 10,
                 "max": 10000000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
                 "min": 0.1,
                 "max": 99999999
-            },
-            "leverage": {}
+            }
         },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "created": null,
         "info": {
             "symbol": "TRX-USDT",
             "name": "TRX-USDT",
@@ -1031,18 +1260,27 @@
             "quoteMinSize": "0.1",
             "baseMaxSize": "10000000000",
             "quoteMaxSize": "99999999",
-            "baseIncrement": "0.0001",
-            "quoteIncrement": "0.000001",
-            "priceIncrement": "0.000001",
+            "baseIncrement": "0.01",
+            "quoteIncrement": "0.0001",
+            "priceIncrement": "0.0001",
             "priceLimitRate": "0.1",
             "minFunds": "0.1",
             "isMarginEnabled": true,
-            "enableTrading": true
+            "enableTrading": true,
+            "feeCategory": 1,
+            "makerFeeCoefficient": "1.00",
+            "takerFeeCoefficient": "1.00",
+            "st": false,
+            "callauctionIsEnabled": false,
+            "callauctionPriceFloor": null,
+            "callauctionPriceCeiling": null,
+            "callauctionFirstStageStartTime": null,
+            "callauctionSecondStageStartTime": null,
+            "callauctionThirdStageStartTime": null,
+            "tradingStartTime": null
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.001,
         "tiers": {
             "taker": [
                 [

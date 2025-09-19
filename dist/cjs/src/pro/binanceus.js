@@ -1,16 +1,19 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 var binanceus$1 = require('../binanceus.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceus extends binance {
+class binanceus extends binance["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binanceus$1();
+        const restInstance = new binanceus$1["default"]();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(restDescribe, super.describe());
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -25,7 +28,7 @@ class binanceus extends binance {
                     'web': 'https://www.binance.us',
                     'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
+                    'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
                     'v3': 'https://api.binance.us/api/v3',
                     'v1': 'https://api.binance.us/api/v1',
@@ -39,18 +42,12 @@ class binanceus extends binance {
                 'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
-                'fetchMarkets': ['spot'],
-            },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.0,
-                    'maker': 0.0, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                'fetchMarkets': {
+                    'types': ['spot'],
                 },
             },
         });
     }
 }
 
-module.exports = binanceus;
+exports["default"] = binanceus;

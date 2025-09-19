@@ -2,6 +2,303 @@
     "exchange": "delta",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "base_withdrawal_fee": "10.000000000000000000",
+                            "id": "5",
+                            "interest_credit": false,
+                            "interest_slabs": null,
+                            "kyc_deposit_limit": "100000.000000000000000000",
+                            "kyc_withdrawal_limit": "10000.000000000000000000",
+                            "min_withdrawal_amount": "30.000000000000000000",
+                            "minimum_precision": "2",
+                            "name": "Tether",
+                            "networks": [
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "1",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "6.000000000000000000",
+                                    "minimum_deposit_confirmations": "15",
+                                    "network": "BEP20(BSC)",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "3",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "1.000000000000000000",
+                                    "min_withdrawal_amount": "10.000000000000000000",
+                                    "minimum_deposit_confirmations": "1",
+                                    "network": "TRC20(TRON)",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "0",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "1.000000000000000000",
+                                    "minimum_deposit_confirmations": "1",
+                                    "network": "POLYGON",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "10",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "30.000000000000000000",
+                                    "minimum_deposit_confirmations": "12",
+                                    "network": "ERC20",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                }
+                            ],
+                            "precision": "8",
+                            "sort_priority": "1",
+                            "symbol": "USDT",
+                            "variable_withdrawal_fee": "0.000000000000000000"
+                        }
+                    ],
+                    "success": true
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "base_withdrawal_fee": "10.000000000000000000",
+                            "id": "5",
+                            "interest_credit": false,
+                            "interest_slabs": null,
+                            "kyc_deposit_limit": "100000.000000000000000000",
+                            "kyc_withdrawal_limit": "10000.000000000000000000",
+                            "min_withdrawal_amount": "30.000000000000000000",
+                            "minimum_precision": "2",
+                            "name": "Tether",
+                            "networks": [
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "1",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "6.000000000000000000",
+                                    "minimum_deposit_confirmations": "15",
+                                    "network": "BEP20(BSC)",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "3",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "1.000000000000000000",
+                                    "min_withdrawal_amount": "10.000000000000000000",
+                                    "minimum_deposit_confirmations": "1",
+                                    "network": "TRC20(TRON)",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "0",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "1.000000000000000000",
+                                    "minimum_deposit_confirmations": "1",
+                                    "network": "POLYGON",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "10",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "30.000000000000000000",
+                                    "minimum_deposit_confirmations": "12",
+                                    "network": "ERC20",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                }
+                            ],
+                            "precision": "8",
+                            "sort_priority": "1",
+                            "symbol": "USDT",
+                            "variable_withdrawal_fee": "0.000000000000000000"
+                        },
+                        "id": "USDT",
+                        "numericId": 5,
+                        "code": "USDT",
+                        "precision": 1e-8,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": false,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {
+                            "BEP20": {
+                                "id": "BEP20(BSC)",
+                                "network": "BEP20",
+                                "name": null,
+                                "info": {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "1",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "6.000000000000000000",
+                                    "minimum_deposit_confirmations": "15",
+                                    "network": "BEP20(BSC)",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1,
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.5,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 6,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "id": "TRC20(TRON)",
+                                "network": "TRC20",
+                                "name": null,
+                                "info": {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "3",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "1.000000000000000000",
+                                    "min_withdrawal_amount": "10.000000000000000000",
+                                    "minimum_deposit_confirmations": "1",
+                                    "network": "TRC20(TRON)",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 3,
+                                "limits": {
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "POLYGON": {
+                                "id": "POLYGON",
+                                "network": "POLYGON",
+                                "name": null,
+                                "info": {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "0",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "1.000000000000000000",
+                                    "minimum_deposit_confirmations": "1",
+                                    "network": "POLYGON",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 0,
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.5,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "id": "ERC20",
+                                "network": "ERC20",
+                                "name": null,
+                                "info": {
+                                    "allowed_deposit_groups": "G1",
+                                    "base_withdrawal_fee": "10",
+                                    "deposit_status": "enabled",
+                                    "memo_required": false,
+                                    "min_deposit_amount": "0.500000000000000000",
+                                    "min_withdrawal_amount": "30.000000000000000000",
+                                    "minimum_deposit_confirmations": "12",
+                                    "network": "ERC20",
+                                    "variable_withdrawal_fee": "0",
+                                    "withdrawal_status": "enabled"
+                                },
+                                "active": false,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 10,
+                                "limits": {
+                                    "deposit": {
+                                        "min": 0.5,
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": 30,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.5,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -37,7 +334,7 @@
                         "amount": 0.000635,
                         "cost": 46.5204175,
                         "takerOrMaker": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "buyer_role": "taker",
                             "price": "73260.5",
@@ -106,9 +403,11 @@
                     "previousClose": null,
                     "change": 1258.5,
                     "percentage": 1.7446333636004463,
-                    "average": 72764.75,
+                    "average": 72764.7,
                     "baseVolume": 1.4971349999999992,
                     "quoteVolume": 1.4971349999999992,
+                    "markPrice": 48000,
+                    "indexPrice": 73368.4,
                     "info": {
                         "close": "73394.0",
                         "contract_type": "spot",
@@ -363,6 +662,146 @@
                   }
                 }
               }
+        ],
+        "fetchMarginMode": [
+          {
+            "description": "fetch linear swap margin mode",
+            "method": "fetchMarginMode",
+            "input": [
+              "BTC/USDT:USDT"
+            ],
+            "httpResponse": {
+              "result": {
+                "nick_name": "still-breeze-41256597",
+                "password_updated_at": null,
+                "country": "Canada",
+                "country_calling_code": null,
+                "is_kyc_refresh_required": false,
+                "phone_number": null,
+                "is_kyc_done": true,
+                "registration_date": "2023-07-19T01:02:32Z",
+                "margin_mode": "isolated",
+                "is_sub_account": false,
+                "corporate_account_id": null,
+                "phishing_code": "DMGZ7264",
+                "kyc_expiry_date": null,
+                "tracking_info": {
+                  "ga_cid": "1353327053.1689113946",
+                  "is_kyc_gtm_tracked": true,
+                  "sub_account_config": {
+                    "cross": "2",
+                    "isolated": "2",
+                    "portfolio": "2"
+                  }
+                },
+                "dob": null,
+                "permissions": {},
+                "id": "30084879",
+                "region": null,
+                "occupation": null,
+                "proof_of_identity_status": "approved",
+                "withdrawal_blocked_till": null,
+                "is_kyc_provisioned": false,
+                "email": "daniel.richmond.martina@gmail.com",
+                "pf_index_symbol": null,
+                "is_password_set": true,
+                "income": null,
+                "max_sub_accounts_limit": "2",
+                "first_name": "",
+                "proof_of_address_status": "approved",
+                "phone_verification_status": "unverified",
+                "is_login_enabled": true,
+                "force_change_password": false,
+                "mfa_updated_at": "2023-07-19T01:04:43Z",
+                "sub_account_permissions": null,
+                "created_at": "2023-07-19T01:02:32Z",
+                "seen_intro": false,
+                "phone_verified_on": null,
+                "oauth_google_active": false,
+                "kyc_verified_on": null,
+                "preferences": {
+                  "favorites": []
+                },
+                "oauth_apple_active": false,
+                "force_change_mfa": false,
+                "oauth": null,
+                "is_mfa_enabled": true,
+                "is_withdrawal_enabled": true,
+                "is_password_change_blocked": false,
+                "enable_bots": false,
+                "last_seen": null,
+                "last_name": "",
+                "account_name": "Main"
+              },
+              "success": true
+            },
+            "parsedResponse": {
+              "info": {
+                "nick_name": "still-breeze-41256597",
+                "password_updated_at": null,
+                "country": "Canada",
+                "country_calling_code": null,
+                "is_kyc_refresh_required": false,
+                "phone_number": null,
+                "is_kyc_done": true,
+                "registration_date": "2023-07-19T01:02:32Z",
+                "margin_mode": "isolated",
+                "is_sub_account": false,
+                "corporate_account_id": null,
+                "phishing_code": "DMGZ7264",
+                "kyc_expiry_date": null,
+                "tracking_info": {
+                  "ga_cid": "1353327053.1689113946",
+                  "is_kyc_gtm_tracked": true,
+                  "sub_account_config": {
+                    "cross": "2",
+                    "isolated": "2",
+                    "portfolio": "2"
+                  }
+                },
+                "dob": null,
+                "permissions": {},
+                "id": "30084879",
+                "region": null,
+                "occupation": null,
+                "proof_of_identity_status": "approved",
+                "withdrawal_blocked_till": null,
+                "is_kyc_provisioned": false,
+                "email": "daniel.richmond.martina@gmail.com",
+                "pf_index_symbol": null,
+                "is_password_set": true,
+                "income": null,
+                "max_sub_accounts_limit": "2",
+                "first_name": "",
+                "proof_of_address_status": "approved",
+                "phone_verification_status": "unverified",
+                "is_login_enabled": true,
+                "force_change_password": false,
+                "mfa_updated_at": "2023-07-19T01:04:43Z",
+                "sub_account_permissions": null,
+                "created_at": "2023-07-19T01:02:32Z",
+                "seen_intro": false,
+                "phone_verified_on": null,
+                "oauth_google_active": false,
+                "kyc_verified_on": null,
+                "preferences": {
+                  "favorites": []
+                },
+                "oauth_apple_active": false,
+                "force_change_mfa": false,
+                "oauth": null,
+                "is_mfa_enabled": true,
+                "is_withdrawal_enabled": true,
+                "is_password_change_blocked": false,
+                "enable_bots": false,
+                "last_seen": null,
+                "last_name": "",
+                "account_name": "Main"
+              },
+              "symbol": "BTC/USDT:USDT",
+              "marginMode": "isolated"
+            }
+          }
         ]
     }
 }
