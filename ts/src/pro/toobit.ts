@@ -2,8 +2,8 @@
 
 import toobitRest from '../toobit.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Bool } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -130,6 +130,7 @@ export default class toobit extends toobitRest {
             'executionReport': this.handleOrder,
             'contractExecutionReport': this.handleOrder,
             'ticketInfo': this.handleMyTrade,
+            'outboundContractPositionInfo': this.handlePositions,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -617,12 +618,12 @@ export default class toobit extends toobitRest {
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
-        this.setBalanceCache (client, marketType, undefined, subscriptionHash, params);
+        this.setBalanceCache (client, marketType, subscriptionHash, params);
         client.future (type + ':fetchBalanceSnapshot');
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, marketType, subType: String = undefined, subscriptionHash: Str = undefined, params = {}) {
+    setBalanceCache (client: Client, marketType, subscriptionHash: Str = undefined, params = {}) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -802,7 +803,7 @@ export default class toobit extends toobitRest {
             'clientOrderId': this.safeString (order, 'c'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastUpdateTimestamp': this.safeInteger (order, 'E'),
+            'lastUpdateTimestamp': this.safeInteger2 (order, 'U', 'E'),
             'symbol': symbol,
             'type': orderType,
             'timeInForce': this.safeStringUpper (order, 'f'),
@@ -901,6 +902,164 @@ export default class toobit extends toobitRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name toobit#watchPositions
+     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+     * @description watch all open positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let messageHash = '';
+        if (!this.isEmpty (symbols)) {
+            symbols = this.marketSymbols (symbols);
+            messageHash = '::' + symbols.join (',');
+        }
+        const url = this.getUserStreamUrl ();
+        const client = this.client (url);
+        await this.authenticate (url);
+        this.setPositionsCache (client, symbols);
+        const cache = this.positions;
+        if (cache === undefined) {
+            const snapshot = await client.future ('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watch (url, messageHash, undefined, messageHash);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (type in this.positions) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type, isPortfolioMargin);
+            }
+        } else {
+            this.positions[type] = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash, type) {
+        const params: Dict = {
+            'type': type,
+        };
+        const positions = await this.fetchPositions (undefined, params);
+        this.positions[type] = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions[type];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            cache.append (position);
+        }
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve (cache);
+        client.resolve (cache, type + ':positions');
+    }
+
+    handlePositions (client, message) {
+        //
+        // [
+        //     {
+        //         e: 'outboundContractPositionInfo',
+        //         E: '1758316454554',
+        //         A: '1783404067076253954',
+        //         s: 'DOGE-SWAP-USDT',
+        //         S: 'LONG',
+        //         p: '0',
+        //         P: '0',
+        //         a: '0',
+        //         f: '0.1228',
+        //         m: '0',
+        //         r: '0',
+        //         up: '0',
+        //         pr: '0',
+        //         pv: '0',
+        //         v: '3.0',
+        //         mt: 'CROSS',
+        //         mm: '0',
+        //         mp: '0.265410000000000000'
+        //     }
+        // ]
+        //
+        const subscriptions = Object.keys (client.subscriptions);
+        const accountType = subscriptions[0];
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (!(accountType in this.positions)) {
+            this.positions[accountType] = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions[accountType];
+        const newPositions = [];
+        for (let i = 0; i < message.length; i++) {
+            const rawPosition = message[i];
+            const position = this.parseWsPosition (rawPosition);
+            const timestamp = this.safeInteger (rawPosition, 'E');
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601 (timestamp);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, accountType + ':positions');
+    }
+
+    parseWsPosition (position, market = undefined) {
+        const marketId = this.safeString (position, 's');
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol (marketId, undefined),
+            'notional': this.safeString (position, 'pv'),
+            'marginMode': undefined,
+            'liquidationPrice': this.safeString (position, 'f'),
+            'entryPrice': this.safeString (position, 'p'),
+            'unrealizedPnl': this.safeString (position, 'up'),
+            'percentage': undefined,
+            'contracts': undefined,
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': this.safeStringLower (position, 'S'),
+            'hedged': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
@@ -923,7 +1082,7 @@ export default class toobit extends toobitRest {
         }
         const time = this.milliseconds ();
         try {
-            await this.fapiPrivatePutListenKey (params); 
+            await this.fapiPrivatePutListenKey (params);
         } catch (error) {
             const url = this.getUserStreamUrl ();
             const client = this.client (url);
