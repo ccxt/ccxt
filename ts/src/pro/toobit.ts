@@ -602,9 +602,10 @@ export default class toobit extends toobitRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         await this.authenticate ();
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const isSpot = (type === 'spot');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const isSpot = (marketType === 'spot');
+        const type = isSpot ? 'spot' : 'contract';
         const spotSubHash = 'spot:balance';
         const swapSubHash = 'contract:private';
         const spotMessageHash = 'spot:balance';
@@ -613,19 +614,20 @@ export default class toobit extends toobitRest {
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
-        this.setBalanceCache (client, type, undefined, subscriptionHash, params);
-        await client.future (type + ':fetchBalanceSnapshot');
+        this.setBalanceCache (client, marketType, undefined, subscriptionHash, params);
+        client.future (type + ':fetchBalanceSnapshot');
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, type, subType: String = undefined, subscriptionHash: Str = undefined, params = {}) {
+    setBalanceCache (client: Client, marketType, subType: String = undefined, subscriptionHash: Str = undefined, params = {}) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
+        const type = (marketType === 'spot') ? 'spot' : 'contract';
         const messageHash = type + ':fetchBalanceSnapshot';
         if (!(messageHash in client.futures)) {
             client.future (messageHash);
-            this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            this.spawn (this.loadBalanceSnapshot, client, messageHash, marketType);
         }
     }
 
@@ -687,13 +689,15 @@ export default class toobit extends toobitRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client, messageHash, type) {
-        const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+    async loadBalanceSnapshot (client, messageHash, marketType) {
+        const response = await this.fetchBalance ({ 'type': marketType });
+        const type = (marketType === 'spot') ? 'spot' : 'contract';
+        this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve ();
-        client.resolve (this.balance[type], type + ':balance');
+        client.resolve (this.balance[type], type + ':fetchBalanceSnapshot');
+        client.resolve (this.balance[type], type + ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
     }
 
     async authenticate (params = {}) {
