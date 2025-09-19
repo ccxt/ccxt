@@ -45,6 +45,7 @@ export default class dase extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': undefined,
@@ -75,6 +76,7 @@ export default class dase extends Exchange {
                         'balances',
                         'orders',
                         'orders/{order_id}',
+                        'accounts/transactions',
                     ],
                     'post': [
                         'orders',
@@ -537,6 +539,76 @@ export default class dase extends Exchange {
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name dase#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.dase.com/v1/accounts/transactions
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] not used by dase fetchMyTrades()
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request: Dict = {};
+        if (limit !== undefined) {
+            const minLimit = 1;
+            const maxLimit = 100;
+            request['limit'] = Math.max (minLimit, Math.min (limit, maxLimit));
+        }
+        const before = this.safeString (params, 'before');
+        if (before !== undefined) {
+            request['before'] = before;
+            params = this.omit (params, [ 'before' ]);
+        }
+        const response = await (this as any).privateGetAccountsTransactions (this.extend (request, params));
+        const items = this.safeList (response, 'transactions', response);
+        const trades: Trade[] = [];
+        for (let i = 0; i < items.length; i++) {
+            const tx = items[i];
+            const tradeId = this.safeString (tx, 'trade_id');
+            if (tradeId === undefined) {
+                continue;
+            }
+            const txnType = this.safeString (tx, 'txn_type');
+            const isFill = (txnType !== undefined) ? (txnType.indexOf ('trade_fill_') === 0) : false;
+            if (!isFill) {
+                continue;
+            }
+            const createdAt = this.safeInteger (tx, 'created_at');
+            const amountStr = this.safeString (tx, 'amount');
+            let inferredSide = undefined;
+            if ((txnType === 'trade_fill_credit_base') || (txnType === 'trade_fill_debit_quote')) {
+                inferredSide = 'buy';
+            } else if ((txnType === 'trade_fill_debit_base') || (txnType === 'trade_fill_credit_quote')) {
+                inferredSide = 'sell';
+            }
+            const parsed: Trade = this.safeTrade ({
+                'id': tradeId,
+                'info': tx,
+                'timestamp': createdAt,
+                'datetime': (createdAt === undefined) ? undefined : this.iso8601 (createdAt),
+                'symbol': (market === undefined) ? undefined : market['symbol'],
+                'type': undefined,
+                'side': inferredSide,
+                'order': undefined,
+                'takerOrMaker': undefined,
+                'price': undefined,
+                'amount': amountStr,
+                'cost': undefined,
+                'fee': undefined,
+            }, market);
+            trades.push (parsed);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
