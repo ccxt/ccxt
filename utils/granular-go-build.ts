@@ -3,6 +3,7 @@ import * as path from 'path';
 import execSync from 'child_process';
 import log from 'ololog'
 
+const WS_SUPPORT = false; // set to true when WS support is added
 
 const foldersToSearch = [
     './go/v4'
@@ -122,7 +123,9 @@ function transpileAndGenerateAPI(exchanges: string[]) {
     execSync.execSync(`tsx ./build/generateImplicitAPI.ts`, { stdio: 'inherit' });
     for (const exchange of exchanges) {
         execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange}`, { stdio: 'inherit' });
-        // execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange} --ws`, { stdio: 'inherit' }); // enable this line when WS support is added
+        if (WS_SUPPORT) {
+            execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange} --ws`, { stdio: 'inherit' });
+        }
     }
 
 }
@@ -137,7 +140,9 @@ function main() {
     transpileAndGenerateAPI(args)
     foldersToSearch.forEach(folder => deleteFilesRecursively(folder, args));
     createExchangeDynamicFile(args);
-    // createExchangeDynamicFile(args, true); // enable this line when WS support is added
+    if (WS_SUPPORT) {
+        createExchangeDynamicFile(args, true);
+    }
     createExchangeTypedInterfaceFile(args);
 
     log.bright.cyan("Done! You can now build the Go project (tests/cli/etc) with 'go build' command.");
