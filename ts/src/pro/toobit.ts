@@ -127,6 +127,8 @@ export default class toobit extends toobitRest {
             'depth': this.handlePartialOrderBook,
             'outboundAccountInfo': this.handleBalance,
             'outboundContractAccountInfo': this.handleBalance,
+            'executionReport': this.handleOrder,
+            'contractExecutionReport': this.handleOrder,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -698,6 +700,124 @@ export default class toobit extends toobitRest {
         future.resolve ();
         client.resolve (this.balance[type], type + ':fetchBalanceSnapshot');
         client.resolve (this.balance[type], type + ':balance'); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
+    }
+
+    /**
+     * @method
+     * @name alpaca#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.marketOrNull (symbol);
+        symbol = this.safeString (market, 'symbol', symbol);
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
+        }
+        const url = this.getUserStreamUrl ();
+        const orders = await this.watch (url, messageHash, params, messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //    {
+        //        "e": "executionReport",
+        //        "E": "1758311011844",
+        //        "s": "DOGEUSDT",
+        //        "c": "1758311011948",
+        //        "S": "BUY",
+        //        "o": "LIMIT",
+        //        "f": "GTC",
+        //        "q": "22",
+        //        "p": "0.23",
+        //        "pt": "INPUT",
+        //        "X": "NEW",
+        //        "i": "2043255292855185152",
+        //        "l": "0", // Last executed quantity
+        //        "z": "0", // Cumulative filled quantity
+        //        "L": "0", // Last executed price
+        //        "n": "0",
+        //        "N": "",
+        //        "u": true,
+        //        "w": true,
+        //        "m": false,
+        //        "O": "1758311011833",
+        //        "U": "1758311011841",
+        //        "Z": "0",
+        //        "C": false,
+        //        "v": "0",
+        //        "rp": "0",
+        //        "td": "0"
+        //    }
+        //
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const order = this.parseWsOrder (message);
+        orders.append (order);
+        let messageHash = 'orders';
+        client.resolve (orders, messageHash);
+        messageHash = 'orders:' + order['symbol'];
+        client.resolve (orders, messageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        const timestamp = this.safeInteger (order, 'O');
+        const marketId = this.safeString (order, 's');
+        const symbol = this.safeSymbol (marketId, market);
+        const priceType = this.safeStringLower (order, 'pt');
+        const rawOrderType = this.safeStringLower (order, 'o');
+        let orderType: Str = undefined;
+        if (priceType === 'market') {
+            orderType = 'market';
+        } else {
+            orderType = rawOrderType;
+        }
+        const feeCost = this.safeNumber (order, 'n');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'i'),
+            'clientOrderId': this.safeString (order, 'c'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeInteger (order, 'E'),
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': this.safeStringUpper (order, 'f'),
+            'postOnly': undefined,
+            'side': this.safeStringLower (order, 'S'),
+            'price': this.safeString (order, 'L'),
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': this.safeString (order, 'q'),
+            'cost': undefined,
+            'average': this.safeString (order, 'p'),
+            'filled': this.safeString (order, 'z'),
+            'remaining': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'X')),
+            'fee': fee,
+            'trades': undefined,
+        }, market);
     }
 
     async authenticate (params = {}) {
