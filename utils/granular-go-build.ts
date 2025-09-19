@@ -1,5 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import execSync from 'child_process';
+import log from 'ololog'
 
 
 const foldersToSearch = [
@@ -19,6 +21,8 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
     fs.readdirSync(directory).forEach(file => {
         const fullPath = path.join(directory, file);
 
+        const fileWithoutExt = path.parse(file).name;
+
         const fileExtension = path.extname(file);
         if (fileExtension !== '.go' && !fs.statSync(fullPath).isDirectory()) {
             return; // Skip non-Go files
@@ -30,12 +34,12 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
 
         if (fs.statSync(fullPath).isDirectory()) {
             deleteFilesRecursively(fullPath, exchangesToKeep);
-        } else if (!exchangesToKeep.some(exchange => file.startsWith(exchange))) {
+        } else if (!exchangesToKeep.some(exchange => (fileWithoutExt === exchange || fileWithoutExt.startsWith(exchange + '_')))) {
             try {
                 fs.unlinkSync(fullPath);
-                console.log(`Deleted: ${fullPath}`);
+                log.red(`Deleted: ${fullPath}`);
             } catch (error) {
-                console.error(`Failed to delete ${fullPath}:`, error);
+                log.red(`Failed to delete ${fullPath}:`, error);
             }
         }
     });
@@ -71,7 +75,7 @@ ${caseStatements}
 }`
 
     fs.writeFileSync(dynamicPath, template.trim());
-    console.log(`Created: ${dynamicPath}`);
+    log.green(`Created: ${dynamicPath}`);
 }
 
 
@@ -114,6 +118,15 @@ ${caseStatements}
 }
 
 
+function transpileAndGenerateAPI(exchanges: string[]) {
+    execSync.execSync(`tsx ./build/generateImplicitAPI.ts`, { stdio: 'inherit' });
+    for (const exchange of exchanges) {
+        execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange}`, { stdio: 'inherit' });
+        execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange} --ws`, { stdio: 'inherit' });
+    }
+
+}
+
 function main() {
     const args = process.argv.slice(2);
 
@@ -121,11 +134,13 @@ function main() {
         console.error("Usage: tsx granular-go-build.ts <exchange1> <exchange2> ...");
         process.exit(1);
     }
-
+    transpileAndGenerateAPI(args)
     foldersToSearch.forEach(folder => deleteFilesRecursively(folder, args));
     createExchangeDynamicFile(args);
     createExchangeDynamicFile(args, true);
     createExchangeTypedInterfaceFile(args);
+
+    log.bright.cyan("Done! You can now build the Go project (tests/cli/etc) with 'go build' command.");
 }
 
 main();
