@@ -583,6 +583,9 @@ export default class dase extends Exchange {
             if (!isFill) {
                 continue;
             }
+            // derive market/symbol per-transaction instead of relying on input symbol
+            const marketIdFromTx = this.safeString2 (tx, 'market', 'market_id');
+            const tradeMarket = this.safeMarket (marketIdFromTx, market, '-');
             const createdAt = this.safeInteger (tx, 'created_at');
             const amountStr = this.safeString (tx, 'amount');
             let inferredSide = undefined;
@@ -596,7 +599,7 @@ export default class dase extends Exchange {
                 'info': tx,
                 'timestamp': createdAt,
                 'datetime': (createdAt === undefined) ? undefined : this.iso8601 (createdAt),
-                'symbol': (market === undefined) ? undefined : market['symbol'],
+                'symbol': tradeMarket['symbol'],
                 'type': undefined,
                 'side': inferredSide,
                 'order': undefined,
@@ -605,7 +608,7 @@ export default class dase extends Exchange {
                 'amount': amountStr,
                 'cost': undefined,
                 'fee': undefined,
-            }, market);
+            }, tradeMarket);
             trades.push (parsed);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
