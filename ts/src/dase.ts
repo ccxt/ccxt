@@ -43,7 +43,7 @@ export default class dase extends Exchange {
                 'cancelAllOrders': false,
                 'fetchOrder': true,
                 'fetchOpenOrders': false,
-                'fetchOrders': false,
+                'fetchOrders': true,
             },
             'urls': {
                 'logo': undefined,
@@ -72,6 +72,7 @@ export default class dase extends Exchange {
                 'private': {
                     'get': [
                         'balances',
+                        'orders',
                         'orders/{order_id}',
                     ],
                     'post': [
@@ -647,6 +648,45 @@ export default class dase extends Exchange {
         const response = await (this as any).privateGetOrdersOrderId (pathParams);
         const order = this.safeDict (response, 'order', response);
         return this.parseOrder (order, market);
+    }
+
+    /**
+     * @method
+     * @name dase#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api.dase.com/v1/orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            const minLimit = 1;
+            const maxLimit = 100;
+            request['limit'] = Math.max (minLimit, Math.min (limit, maxLimit));
+        }
+        const before = this.safeString (params, 'before');
+        if (before !== undefined) {
+            request['before'] = before;
+            params = this.omit (params, [ 'before' ]);
+        }
+        const status = this.safeString (params, 'status');
+        if (status !== undefined) {
+            request['status'] = status;
+            params = this.omit (params, [ 'status' ]);
+        }
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const list = this.safeList (response, 'orders', response);
+        return this.parseOrders (list, market, since, limit);
     }
 
     /**
