@@ -17,6 +17,27 @@ import (
 	"time"
 )
 
+func UnWrapType(value interface{}) interface{} {
+	// converts from wrapped types to basic types
+	// like OrderBook, Ticker, Trade, etc to map[string]interface{} or []interface{}
+	// also if value is a string, it panics with that string (error message)
+	if value == nil {
+		return nil
+	}
+	switch v := value.(type) {
+	case OrderBookInterface:
+		return v.ToMap()
+	case ArrayCacheByTimestamp:
+		return v.ToArray()
+	case ArrayCache:
+		return v.ToArray()
+	case string:
+		panic(v)
+	default:
+		return value
+	}
+}
+
 func Add(a interface{}, b interface{}) interface{} {
 	if (a == nil) || (b == nil) {
 		return nil

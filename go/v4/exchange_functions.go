@@ -275,9 +275,29 @@ func (this *Exchange) ArrayConcat(aa, bb interface{}) interface{} {
 }
 
 // aggregate is a stub function that returns an empty slice.
+// func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
+// 	var outList []interface{}
+// 	return outList
+// }
+
 func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
-	var outList []interface{}
-	return outList
+	result := make(map[float64]float64)
+
+	for _, pair := range bidasks.([][]interface{}) {
+		if len(pair) >= 2 {
+			price := ToFloat64(pair[0])
+			volume := ToFloat64(pair[1])
+			result[price] += volume
+		}
+	}
+
+	// Convert map back to [][]interface{}
+	res := make([]interface{}, 0, len(result))
+	for price, volume := range result {
+		res = append(res, []interface{}{price, volume})
+	}
+
+	return res
 }
 
 func (this *Exchange) ExtractParams(str2 interface{}) []interface{} {

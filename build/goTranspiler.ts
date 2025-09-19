@@ -511,6 +511,7 @@ class NewTranspiler {
             [/orderbook(s)?\.(Reset|Limit)/g, 'orderbook$1.(OrderBookInterface).$2'],
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
             [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
+            [/this.ParseWsBidAsk\(GetValue\(this.Orderbooks, symbol\)/g, 'this.ParseWsBidAsk(UnWrapType(ccxt.GetValue(this.Orderbooks, symbol))'],
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
