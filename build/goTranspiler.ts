@@ -1265,6 +1265,9 @@ ${constStatements.join('\n')}
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
         baseClass = baseClass.replaceAll (/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
         baseClass = baseClass.replaceAll (/ch <- nil\s+\/\/.+/g, '');
+        baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
+        baseClass = baseClass.replaceAll (/var stream interface\{\} = this.Stream/g, 'var stream *Stream = this.Stream');
+        baseClass = baseClass.replaceAll(/args\.\.\.\)/g, '(args).([]interface{})...)');
         baseClass = baseClass.replaceAll (/(var \w+ interface{}) = client.Futures/g, '$1 = (client.(Client)).Futures'); // tmp fix for go not needed after ws-merge
         
         // Fix setMarketsFromExchange parameter type
