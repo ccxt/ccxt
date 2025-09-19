@@ -43,6 +43,7 @@ export default class dase extends Exchange {
                 'cancelAllOrders': false,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOrders': true,
             },
             'urls': {
@@ -704,6 +705,40 @@ export default class dase extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         const request: Dict = { 'status': 'open' };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            const minLimit = 1;
+            const maxLimit = 100;
+            request['limit'] = Math.max (minLimit, Math.min (limit, maxLimit));
+        }
+        const before = this.safeString (params, 'before');
+        if (before !== undefined) {
+            request['before'] = before;
+            params = this.omit (params, [ 'before' ]);
+        }
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const list = this.safeList (response, 'orders', response);
+        return this.parseOrders (list, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dase#fetchClosedOrders
+     * @description fetches information on multiple canceled or filled orders made by the user
+     * @see https://api.dase.com/v1/orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = { 'status': 'closed' };
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
