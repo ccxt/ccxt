@@ -4,7 +4,7 @@ import Exchange from './abstract/dase.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, Str, int } from './base/types.js';
+import type { Dict, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, Str, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ export default class dase extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOpenOrders': false,
                 'fetchOrders': false,
             },
@@ -72,6 +72,7 @@ export default class dase extends Exchange {
                 'private': {
                     'get': [
                         'balances',
+                        'orders/{order_id}',
                     ],
                     'post': [
                         'orders',
@@ -536,6 +537,50 @@ export default class dase extends Exchange {
         }, market);
     }
 
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        // DASE ApiOrder example fields (from docs schemas):
+        // {
+        //   id, market, type, side, filled, filled_cost, filled_price,
+        //   status, created_at, price?, size?, funds?, client_id?, reason?
+        // }
+        const marketId = this.safeString (order, 'market');
+        market = this.safeMarket (marketId, market, '-');
+        const id = this.safeString (order, 'id');
+        const timestamp = this.safeInteger (order, 'created_at');
+        const side = this.safeStringLower (order, 'side');
+        const type = this.safeStringLower (order, 'type');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'filled');
+        const cost = this.safeString (order, 'filled_cost');
+        const average = this.safeString (order, 'filled_price');
+        const status = this.safeString (order, 'status');
+        const clientOrderId = this.safeString (order, 'client_id');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': cost,
+            'average': average,
+            'filled': filled,
+            'remaining': undefined,
+            'status': status,
+            'trades': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
     /**
      * @method
      * @name dase#fetchTrades
@@ -580,6 +625,28 @@ export default class dase extends Exchange {
         //
         const trades = (Array.isArray (response)) ? response : this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dase#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.dase.com/v1/orders/{order_id}
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const pathParams = { 'order_id': id };
+        const response = await (this as any).privateGetOrdersOrderId (pathParams);
+        const order = this.safeDict (response, 'order', response);
+        return this.parseOrder (order, market);
     }
 
     /**
