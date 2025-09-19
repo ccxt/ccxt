@@ -489,12 +489,12 @@ export default class btcalpha extends Exchange {
         return this.parseOrderBook (response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
     }
 
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
             const bidask = bidasks[i];
             if (bidask) {
-                result.push (this.parseBidAsk (bidask, priceKey, amountKey));
+                result.push (this.parseOrderBookBidAsk (bidask, priceKey, amountKey));
             }
         }
         return result;

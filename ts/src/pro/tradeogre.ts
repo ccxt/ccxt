@@ -127,7 +127,7 @@ export default class tradeogre extends tradeogreRest {
             const bidAsk = [ this.parseNumber (price), amount ];
             bookSide.storeArray (bidAsk);
         // for (let i = 0; i < bidAsks.length; i++) {
-        //     const bidAsk = this.parseBidAsk (bidAsks[i]);
+        //     const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
         //     bookSide.storeArray (bidAsk);
         // }
         }

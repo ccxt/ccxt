@@ -1173,9 +1173,9 @@ export default class phemex extends Exchange {
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey = 0, amountKey = 1, market: Market = undefined) {
+    customOrderBookParseBidAsk (bidask, priceKey = 0, amountKey = 1, market: Market = undefined) {
         if (market === undefined) {
-            throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
+            throw new ArgumentsRequired (this.id + ' customOrderBookParseBidAsk() requires a market argument');
         }
         let amount = this.safeString (bidask, amountKey);
         if (market['spot']) {
@@ -1200,7 +1200,7 @@ export default class phemex extends Exchange {
             const orders = [];
             const bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push (this.customParseBidAsk (bidasks[k], priceKey, amountKey, market));
+                orders.push (this.customOrderBookParseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }

@@ -253,7 +253,7 @@ export default class bithumb extends bithumbRest {
         //
         const sideId = this.safeString (delta, 'orderType');
         const side = (sideId === 'bid') ? 'bids' : 'asks';
-        const bidAsk = this.parseBidAsk (delta, 'price', 'quantity');
+        const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'quantity');
         const orderbookSide = orderbook[side];
         orderbookSide.storeArray (bidAsk);
     }
