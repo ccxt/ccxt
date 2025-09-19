@@ -13,15 +13,15 @@ export default class toobit extends toobitRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchBalance': false,
-                // 'watchMyTrades': true,
+                'watchBalance': true,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
-                // 'watchOrders': true,
+                'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 // 'watchPosition': false,
@@ -129,6 +129,7 @@ export default class toobit extends toobitRest {
             'outboundContractAccountInfo': this.handleBalance,
             'executionReport': this.handleOrder,
             'contractExecutionReport': this.handleOrder,
+            'ticketInfo': this.handleMyTrade,
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
@@ -513,9 +514,9 @@ export default class toobit extends toobitRest {
 
     /**
      * @method
-     * @name apex#watchOrderBookForSymbols
+     * @name toobit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -595,7 +596,7 @@ export default class toobit extends toobitRest {
 
     /**
      * @method
-     * @name bingx#watchBalance
+     * @name toobit#watchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -704,8 +705,9 @@ export default class toobit extends toobitRest {
 
     /**
      * @method
-     * @name alpaca#watchOrders
+     * @name toobit#watchOrders
      * @description watches information on multiple orders made by the user
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -770,7 +772,7 @@ export default class toobit extends toobitRest {
         orders.append (order);
         let messageHash = 'orders';
         client.resolve (orders, messageHash);
-        messageHash = 'orders:' + order['symbol'];
+        messageHash = 'orders:' + this.safeString (order, 'symbol');
         client.resolve (orders, messageHash);
     }
 
@@ -817,6 +819,85 @@ export default class toobit extends toobitRest {
             'status': this.parseOrderStatus (this.safeString (order, 'X')),
             'fee': fee,
             'trades': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name toobit#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const market = this.marketOrNull (symbol);
+        symbol = this.safeString (market, 'symbol', symbol);
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
+        }
+        const url = this.getUserStreamUrl ();
+        const trades = await this.watch (url, messageHash, params, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleMyTrade (client: Client, message) {
+        //
+        //    {
+        //        "e": "ticketInfo",
+        //        "E": "1758314657847",
+        //        "s": "DOGEUSDT",
+        //        "q": "22.0",
+        //        "t": "1758314657842",
+        //        "p": "0.26667",
+        //        "T": "4864732022877055421",
+        //        "o": "2043285877770284800",
+        //        "c": "1758314657002",
+        //        "a": "1783404067076253952",
+        //        "m": false,
+        //        "S": "BUY"
+        //    }
+        //
+        let myTrades = this.myTrades;
+        if (myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const trade = this.parseMyTrade (message);
+        myTrades.append (trade);
+        let messageHash = 'myTrades:' + trade['symbol'];
+        client.resolve (myTrades, messageHash);
+        messageHash = 'myTrades';
+        client.resolve (myTrades, messageHash);
+    }
+
+    parseMyTrade (trade, market = undefined) {
+        const marketId = this.safeString (trade, 's');
+        const ts = this.safeString (trade, 't');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'T'),
+            'timestamp': ts,
+            'datetime': this.iso8601 (ts),
+            'symbol': this.safeSymbol (marketId, market),
+            'order': this.safeString (trade, 'o'),
+            'type': undefined,
+            'side': this.safeStringLower (trade, 'S'),
+            'takerOrMaker': this.safeBool (trade, 'm') ? 'maker' : 'taker',
+            'price': this.safeString (trade, 'p'),
+            'amount': this.safeString (trade, 'q'),
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
