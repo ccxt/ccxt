@@ -42,7 +42,7 @@ export default class dase extends Exchange {
                 'cancelOrder': true,
                 'cancelAllOrders': false,
                 'fetchOrder': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrders': true,
             },
             'urls': {
@@ -683,6 +683,40 @@ export default class dase extends Exchange {
         if (status !== undefined) {
             request['status'] = status;
             params = this.omit (params, [ 'status' ]);
+        }
+        const response = await (this as any).privateGetOrders (this.extend (request, params));
+        const list = this.safeList (response, 'orders', response);
+        return this.parseOrders (list, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name dase#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api.dase.com/v1/orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] not used by dase fetchOpenOrders()
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = { 'status': 'open' };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (limit !== undefined) {
+            const minLimit = 1;
+            const maxLimit = 100;
+            request['limit'] = Math.max (minLimit, Math.min (limit, maxLimit));
+        }
+        const before = this.safeString (params, 'before');
+        if (before !== undefined) {
+            request['before'] = before;
+            params = this.omit (params, [ 'before' ]);
         }
         const response = await (this as any).privateGetOrders (this.extend (request, params));
         const list = this.safeList (response, 'orders', response);
