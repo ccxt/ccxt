@@ -3567,6 +3567,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
+            if (since === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchDeposits requires since while until is set');
+            }
             request['endTime'] = until;
             params = this.omit(params, ['until']);
         }
