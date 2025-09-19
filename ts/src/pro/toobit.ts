@@ -606,44 +606,33 @@ export default class toobit extends toobitRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const isSpot = (type === 'spot');
         const spotSubHash = 'spot:balance';
-        const swapSubHash = 'swap:private';
+        const swapSubHash = 'contract:private';
         const spotMessageHash = 'spot:balance';
-        const swapMessageHash = 'swap:balance';
+        const swapMessageHash = 'contract:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
         const url = this.getUserStreamUrl ();
         const client = this.client (url);
         this.setBalanceCache (client, type, undefined, subscriptionHash, params);
-        let fetchBalanceSnapshot = undefined;
-        let awaitBalanceSnapshot = undefined;
-        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'awaitBalanceSnapshot', false);
-        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
-            await client.future (type + ':fetchBalanceSnapshot');
-        }
+        await client.future (type + ':fetchBalanceSnapshot');
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, type, subType, subscriptionHash, params) {
+    setBalanceCache (client: Client, type, subType: String = undefined, subscriptionHash: Str = undefined, params = {}) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
-        if (fetchBalanceSnapshot) {
-            const messageHash = type + ':fetchBalanceSnapshot';
-            if (!(messageHash in client.futures)) {
-                client.future (messageHash);
-                subType = (type === 'spot') ? undefined : 'linear';
-                this.spawn (this.loadBalanceSnapshot, client, messageHash, type, subType);
-            }
-        } else {
-            this.balance[type] = {};
+        const messageHash = type + ':fetchBalanceSnapshot';
+        if (!(messageHash in client.futures)) {
+            client.future (messageHash);
+            this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
         }
     }
 
     handleBalance (client: Client, message) {
         //
         // spot
+        //
         // [
         //     {
         //         e: 'outboundAccountInfo',
@@ -661,7 +650,7 @@ export default class toobit extends toobitRest {
         //     }
         // ]
         //
-        // swap
+        // contract
         //
         // [
         //     {
@@ -674,10 +663,10 @@ export default class toobit extends toobitRest {
         //     }
         // ]
         //
-        const a = this.safeDict (message, 'a', {});
-        const data = this.safeList (a, 'B', []);
-        const timestamp = this.safeInteger2 (message, 'T', 'E');
-        const type = ('P' in a) ? 'swap' : 'spot';
+        const channel = this.safeString (message, 'e');
+        const data = this.safeList (message, 'B', []);
+        const timestamp = this.safeInteger (message, 'E');
+        const type = (channel === 'outboundContractAccountInfo') ? 'contract' : 'spot';
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
@@ -690,16 +679,16 @@ export default class toobit extends toobitRest {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['info'] = balance;
-            account['used'] = this.safeString (balance, 'lk');
-            account['free'] = this.safeString (balance, 'wb');
+            account['used'] = this.safeString (balance, 'l');
+            account['free'] = this.safeString (balance, 'f');
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance (this.balance[type]);
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client, messageHash, type, subType) {
-        const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const response = await this.fetchBalance ({ 'type': type });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
