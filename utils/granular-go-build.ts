@@ -3,7 +3,7 @@ import * as path from 'path';
 import execSync from 'child_process';
 import log from 'ololog'
 
-const WS_SUPPORT = false; // set to true when WS support is added
+const WS_SUPPORT = true; // set to true when WS support is added
 
 const foldersToSearch = [
     './go/v4'

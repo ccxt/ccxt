@@ -1,8 +1,9 @@
-go 1.23.4
+go 1.24.4
 
 use (
-	./v4
+	./cli
 	./tests
 	./tests/base
-	./cli
+	./v4
+	./v4/pro
 )

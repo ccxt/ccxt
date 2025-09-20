@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"strings"
 	"sync"
 	"time"
 )
@@ -649,6 +650,33 @@ type Balance struct {
 	Total *float64
 }
 
+// String returns a string representation of the Balance struct
+func (b *Balance) String() string {
+	var result strings.Builder
+	result.WriteString("Balance{")
+
+	if b.Free != nil {
+		result.WriteString(fmt.Sprintf(" Free:%v", *b.Free))
+	} else {
+		result.WriteString(" Free:nil")
+	}
+
+	if b.Used != nil {
+		result.WriteString(fmt.Sprintf(" Used:%v", *b.Used))
+	} else {
+		result.WriteString(" Used:nil")
+	}
+
+	if b.Total != nil {
+		result.WriteString(fmt.Sprintf(" Total:%v", *b.Total))
+	} else {
+		result.WriteString(" Total:nil")
+	}
+
+	result.WriteString("}")
+	return result.String()
+}
+
 type Balances struct {
 	Balances map[string]Balance
 	Free     map[string]*float64
@@ -743,6 +771,59 @@ func (b *Balances) GetBalance(key string) (Balance, error) {
 // SetBalance sets or updates a Balance by key.
 func (b *Balances) SetBalance(key string, balance Balance) {
 	b.Balances[key] = balance
+}
+
+// String returns a string representation of the Balances struct
+func (b *Balances) String() string {
+	var result strings.Builder
+	result.WriteString("Balances{")
+
+	if len(b.Balances) > 0 {
+		result.WriteString(" Balances:{")
+		for key, balance := range b.Balances {
+			result.WriteString(fmt.Sprintf(" %s:%s", key, balance.String()))
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Free) > 0 {
+		result.WriteString(" Free:{")
+		for key, value := range b.Free {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Used) > 0 {
+		result.WriteString(" Used:{")
+		for key, value := range b.Used {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Total) > 0 {
+		result.WriteString(" Total:{")
+		for key, value := range b.Total {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	result.WriteString("}")
+	return result.String()
 }
 
 // funding rate
