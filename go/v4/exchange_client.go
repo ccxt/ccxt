@@ -184,7 +184,9 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 	finalConfig := defaults
 	if len(config) > 0 {
 		for key, value := range config[0] {
+			if value != nil {
 			finalConfig[key] = value
+			}
 		}
 	}
 
