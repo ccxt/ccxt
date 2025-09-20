@@ -171,7 +171,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"ConnectionTimeout":     10000,
 		"PingInterval":          nil,
 		"Ping":                  nil,
-		"KeepAlive":             30000,
+		"keepAlive":             30000,
 		"MaxPingPongMisses":     2.0,
 		"Connection":            nil,
 		"StartedConnecting":     false,
@@ -185,7 +185,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 	if len(config) > 0 {
 		for key, value := range config[0] {
 			if value != nil {
-			finalConfig[key] = value
+				finalConfig[key] = value
 			}
 		}
 	}
