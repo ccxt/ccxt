@@ -24,7 +24,7 @@ func (this *bigone) Describe() interface{} {
 			"CORS":                           nil,
 			"spot":                           true,
 			"margin":                         false,
-			"swap":                           nil,
+			"swap":                           true,
 			"future":                         nil,
 			"option":                         false,
 			"cancelAllOrders":                true,
