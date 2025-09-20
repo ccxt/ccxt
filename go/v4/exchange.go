@@ -250,6 +250,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.initializeProperties(extendedProperties)
 	this.AfterConstruct()
 
+	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]interface{}{}).(map[string]interface{})
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
 
@@ -1649,6 +1650,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 	} else if httpProxyAgent != nil {
 		finalAgent = httpProxyAgent
 	}
+
 	options := DeepExtend(
 		this.streaming,
 		map[string]interface{}{

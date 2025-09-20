@@ -195,7 +195,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		Subscriptions:       finalConfig["Subscriptions"].(map[string]interface{}), // map[string]chan interface{}
 		Rejections:          finalConfig["Rejections"].(map[string]interface{}),
 		Verbose:             finalConfig["Verbose"].(bool),
-		KeepAlive:           int64(finalConfig["KeepAlive"].(int)),
+		KeepAlive:           int64(finalConfig["keepAlive"].(int)),
 		MaxPingPongMisses:   finalConfig["MaxPingPongMisses"],
 		IsConnected:         finalConfig["IsConnected"],
 		OnConnectedCallback: onConnectedCallback,
@@ -476,7 +476,11 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 	}
 
 	if this.Verbose {
-		this.Log(time.Now(), "onMessage", parsedMessage)
+		if parsedMessage != nil {
+			this.Log(time.Now(), "onMessage", parsedMessage)
+		} else {
+			this.Log(time.Now(), "onMessage", messageStr)
+		}
 		// unlimited depth
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
