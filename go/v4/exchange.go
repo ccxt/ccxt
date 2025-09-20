@@ -665,6 +665,10 @@ func (this *Exchange) ConvertToSafeDictionary(data interface{}) interface{} {
 	return data
 }
 
+func (this *Exchange) callDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
+	return this.callInternal(name2.(string), args...)
+}
+
 func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-chan interface{} {
 	return this.callInternal(name2.(string), args...)
 }
