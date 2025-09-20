@@ -1309,6 +1309,7 @@ class binance(Exchange, ImplicitAPI):
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
                 # https://github.com/ccxt/ccxt/pull/11624
@@ -2752,13 +2753,6 @@ class binance(Exchange, ImplicitAPI):
 
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
-
-    def currency_to_precision(self, code, fee, networkCode=None):
-        # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[code], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
-        else:
-            return self.number_to_string(fee)
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -6302,16 +6296,12 @@ class binance(Exchange, ImplicitAPI):
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
-            # portfolio margin has a different amount precision
-            if isPortfolioMargin:
-                request['quantity'] = self.parse_to_numeric(amount)
+            marketAmountPrecision = self.safe_string(market['precision'], 'amount')
+            isPrecisionAvailable = (marketAmountPrecision is not None)
+            if isPrecisionAvailable:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
             else:
-                marketAmountPrecision = self.safe_string(market['precision'], 'amount')
-                isPrecisionAvailable = (marketAmountPrecision is not None)
-                if isPrecisionAvailable:
-                    request['quantity'] = self.amount_to_precision(symbol, amount)
-                else:
-                    request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
+                request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
         if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
@@ -7366,6 +7356,7 @@ class binance(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: alternative to ids, array of client order ids
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7380,8 +7371,14 @@ class binance(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
         request: dict = {
             'symbol': market['id'],
-            'orderidlist': ids,
+            # 'orderidlist': ids,
         }
+        origClientOrderIdList = self.safe_list_2(params, 'origClientOrderIdList', 'clientOrderIds')
+        if origClientOrderIdList is not None:
+            params = self.omit(params, ['clientOrderIds'])
+            request['origClientOrderIdList'] = origClientOrderIdList
+        else:
+            request['orderidlist'] = ids
         response = None
         if market['linear']:
             response = await self.fapiPrivateDeleteBatchOrders(self.extend(request, params))
@@ -8864,7 +8861,6 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': self.currency_to_precision(code, amount),
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
         }
@@ -8876,6 +8872,7 @@ class binance(Exchange, ImplicitAPI):
         if network is not None:
             request['network'] = network
             params = self.omit(params, 'network')
+        request['amount'] = self.currency_to_precision(code, amount, network)
         response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
@@ -10668,11 +10665,13 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: response from the exchange
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, ['type'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('setPositionMode', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('setPositionMode', None, params)
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
         dualSidePosition = None
@@ -11253,15 +11252,19 @@ class binance(Exchange, ImplicitAPI):
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0) or (path.find('simple-earn') >= 0):
                 if (method == 'DELETE') and (path == 'batchOrders'):
                     orderidlist = self.safe_list(extendedParams, 'orderidlist', [])
-                    origclientorderidlist = self.safe_list(extendedParams, 'origclientorderidlist', [])
-                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
+                    origclientorderidlist = self.safe_list_2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', [])
+                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)
                     if orderidlistLength > 0:
                         query = query + '&' + 'orderidlist=%5B' + '%2C'.join(orderidlist) + '%5D'
                     if origclientorderidlistLength > 0:
-                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(origclientorderidlist) + '%5D'
+                        # wrap clientOrderids around ""
+                        newClientOrderIds = []
+                        for i in range(0, origclientorderidlistLength):
+                            newClientOrderIds.append('%22' + origclientorderidlist[i] + '%22')
+                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(newClientOrderIds) + '%5D'
                 else:
                     query = self.rawencode(extendedParams)
             else:

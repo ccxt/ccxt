@@ -184,7 +184,7 @@ class mexc extends \ccxt\async\mexc {
         $this->handle_bid_ask($client, $message);
         $rawTicker = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreBookTicker' ));
         $marketId = $this->safe_string_2($message, 's', 'symbol');
-        $timestamp = $this->safe_integer_2($message, 't', 'sendtime');
+        $timestamp = $this->safe_integer_2($message, 't', 'sendTime');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $ticker = null;
@@ -1552,18 +1552,21 @@ class mexc extends \ccxt\async\mexc {
     public function handle_balance(Client $client, $message) {
         //
         // spot
+        //
         //    {
-        //        "c" => "spot@private.account.v3.api",
-        //        "d" => array(
-        //            "a" => "USDT",
-        //            "c" => 1678185928428,
-        //            "f" => "302.185113007893322435",
-        //            "fd" => "-4.990689704",
-        //            "l" => "4.990689704",
-        //            "ld" => "4.990689704",
-        //            "o" => "ENTRUST_PLACE"
-        //        ),
-        //        "t" => 1678185928435
+        //        $channel => "spot@private.account.v3.api.pb",
+        //        createTime => "1758134605364",
+        //        sendTime => "1758134605373",
+        //        privateAccount => {
+        //          vcoinName => "USDT",
+        //          coinId => "128f589271cb4951b03e71e6323eb7be",
+        //          balanceAmount => "0.006016465074677006",
+        //          balanceAmountChange => "-4.4022",
+        //          frozenAmount => "4.4022",
+        //          frozenAmountChange => "4.4022",
+        //          $type => "ENTRUST_PLACE",
+        //          time => "1758134605364",
+        //       }
         //    }
         //
         //
@@ -1581,23 +1584,23 @@ class mexc extends \ccxt\async\mexc {
         //         "ts" => 1680059188190
         //     }
         //
-        $c = $this->safe_string_2($message, 'c', 'channel');
-        $type = ($c === null) ? 'swap' : 'spot';
+        $channel = $this->safe_string($message, 'channel');
+        $type = ($channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
         $messageHash = 'balance:' . $type;
-        $data = $this->safe_dict_n($message, array( 'd', 'data', 'privateAccount' ));
-        $futuresTimestamp = $this->safe_integer($message, 'ts');
-        $timestamp = $this->safe_integer_2($data, 'c', 'time', $futuresTimestamp);
+        $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
+        $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');
+        $timestamp = $this->safe_integer_2($data, 'time', $futuresTimestamp);
         if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
         $this->balance[$type]['timestamp'] = $timestamp;
         $this->balance[$type]['datetime'] = $this->iso8601($timestamp);
-        $currencyId = $this->safe_string_n($data, array( 'a', 'currency', 'vcoinName' ));
+        $currencyId = $this->safe_string_n($data, array( 'currency', 'vcoinName' ));
         $code = $this->safe_currency_code($currencyId);
         $account = $this->account();
-        $account['total'] = $this->safe_string_n($data, array( 'f', 'availableBalance', 'balanceAmount' ));
-        $account['used'] = $this->safe_string_n($data, array( 'l', 'frozenBalance', 'frozenAmount' ));
+        $account['free'] = $this->safe_string_2($data, 'balanceAmount', 'availableBalance');
+        $account['used'] = $this->safe_string_n($data, array( 'frozenBalance', 'frozenAmount' ));
         $this->balance[$type][$code] = $account;
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $client->resolve ($this->balance[$type], $messageHash);

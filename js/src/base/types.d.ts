@@ -212,9 +212,7 @@ export interface CurrencyInterface {
             max?: Num;
         };
     };
-    networks: {
-        string: any;
-    };
+    networks: Dictionary<any>;
     info: any;
 }
 export interface Balance {

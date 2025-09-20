@@ -5456,9 +5456,15 @@ func (this *mexc) ParseTransaction(transaction interface{}, optionalArgs ...inte
 	//         "id":"25fb2831fb6d4fc7aa4094612a26c81d"
 	//     }
 	//
+	// internal withdraw (aka internal-transfer)
+	//
+	//     {
+	//         "tranId":"ad36f0e9c9a24ae794b36fa4f152e471"
+	//     }
+	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id interface{} = this.SafeString(transaction, "id")
+	var id interface{} = this.SafeString2(transaction, "id", "tranId")
 	var typeVar interface{} = Ternary(IsTrue((IsEqual(id, nil))), "deposit", "withdrawal")
 	var timestamp interface{} = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var updated interface{} = this.SafeInteger(transaction, "updateTime")
@@ -5559,8 +5565,8 @@ func (this *mexc) FetchPosition(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes50858 := (<-this.LoadMarkets())
-		PanicOnError(retRes50858)
+		retRes50918 := (<-this.LoadMarkets())
+		PanicOnError(retRes50918)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -5595,8 +5601,8 @@ func (this *mexc) FetchPositions(optionalArgs ...interface{}) <-chan interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes51048 := (<-this.LoadMarkets())
-		PanicOnError(retRes51048)
+		retRes51108 := (<-this.LoadMarkets())
+		PanicOnError(retRes51108)
 
 		response := (<-this.ContractPrivateGetPositionOpenPositions(params))
 		PanicOnError(response)
@@ -5767,8 +5773,8 @@ func (this *mexc) FetchTransfer(id interface{}, optionalArgs ...interface{}) <-c
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
 
-		retRes52568 := (<-this.LoadMarkets())
-		PanicOnError(retRes52568)
+		retRes52628 := (<-this.LoadMarkets())
+		PanicOnError(retRes52628)
 		if IsTrue(IsEqual(marketType, "spot")) {
 			var request interface{} = map[string]interface{}{
 				"transact_id": id,
@@ -5832,8 +5838,8 @@ func (this *mexc) FetchTransfers(optionalArgs ...interface{}) <-chan interface{}
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
 
-		retRes52978 := (<-this.LoadMarkets())
-		PanicOnError(retRes52978)
+		retRes53038 := (<-this.LoadMarkets())
+		PanicOnError(retRes53038)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		var resultList interface{} = nil
@@ -5914,8 +5920,8 @@ func (this *mexc) Transfer(code interface{}, amount interface{}, fromAccount int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes53868 := (<-this.LoadMarkets())
-		PanicOnError(retRes53868)
+		retRes53928 := (<-this.LoadMarkets())
+		PanicOnError(retRes53928)
 		var currency interface{} = this.Currency(code)
 		var accounts interface{} = map[string]interface{}{
 			"spot":   "SPOT",
@@ -6048,11 +6054,14 @@ func (this *mexc) ParseTransferStatus(status interface{}) interface{} {
  * @name mexc#withdraw
  * @description make a withdrawal
  * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {object} [params.internal] false by default, set to true for an "internal transfer"
+ * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *mexc) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
@@ -6065,12 +6074,36 @@ func (this *mexc) Withdraw(code interface{}, amount interface{}, address interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes55218 := (<-this.LoadMarkets())
-		PanicOnError(retRes55218)
+		retRes55308 := (<-this.LoadMarkets())
+		PanicOnError(retRes55308)
 		var currency interface{} = this.Currency(code)
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
+		var internal interface{} = this.SafeBool(params, "internal", false)
+		if IsTrue(internal) {
+			params = this.Omit(params, "internal")
+			var requestForInternal interface{} = map[string]interface{}{
+				"asset":     GetValue(currency, "id"),
+				"amount":    amount,
+				"toAccount": address,
+			}
+			var toAccountType interface{} = this.SafeString(params, "toAccountType")
+			if IsTrue(IsEqual(toAccountType, nil)) {
+				panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")))
+			}
+
+			responseForInternal := (<-this.SpotPrivatePostCapitalTransferInternal(this.Extend(requestForInternal, params)))
+			PanicOnError(responseForInternal)
+
+			//
+			//     {
+			//       "id":"7213fea8e94b4a5593d507237e5a555b"
+			//     }
+			//
+			ch <- this.ParseTransaction(responseForInternal, currency)
+			return nil
+		}
 		var networks interface{} = this.SafeDict(this.Options, "networks", map[string]interface{}{})
 		var network interface{} = this.SafeString2(params, "network", "netWork") // this line allows the user to specify either ERC20 or ETH
 		network = this.SafeString(networks, network, network)                    // handle ETH > ERC-20 alias
@@ -6202,8 +6235,8 @@ func (this *mexc) FetchTransactionFees(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes56098 := (<-this.LoadMarkets())
-		PanicOnError(retRes56098)
+		retRes56388 := (<-this.LoadMarkets())
+		PanicOnError(retRes56388)
 
 		response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
 		PanicOnError(response)
@@ -6322,8 +6355,8 @@ func (this *mexc) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes57108 := (<-this.LoadMarkets())
-		PanicOnError(retRes57108)
+		retRes57398 := (<-this.LoadMarkets())
+		PanicOnError(retRes57398)
 
 		response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
 		PanicOnError(response)
@@ -6429,8 +6462,8 @@ func (this *mexc) FetchLeverage(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes58018 := (<-this.LoadMarkets())
-		PanicOnError(retRes58018)
+		retRes58308 := (<-this.LoadMarkets())
+		PanicOnError(retRes58308)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -6555,8 +6588,8 @@ func (this *mexc) FetchPositionsHistory(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes59008 := (<-this.LoadMarkets())
-		PanicOnError(retRes59008)
+		retRes59298 := (<-this.LoadMarkets())
+		PanicOnError(retRes59298)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var symbolsLength interface{} = GetArrayLength(symbols)
@@ -6643,8 +6676,8 @@ func (this *mexc) SetMarginMode(marginMode interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes59718 := (<-this.LoadMarkets())
-		PanicOnError(retRes59718)
+		retRes60008 := (<-this.LoadMarkets())
+		PanicOnError(retRes60008)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports contract markets only")))

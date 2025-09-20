@@ -2908,15 +2908,68 @@ class bybit(Exchange, ImplicitAPI):
         #         "tradeId": "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
         #     }
         #
+        # watchMyTrades execution.fast
+        #
+        #     {
+        #         "category": "linear",
+        #         "symbol": "ICPUSDT",
+        #         "execId": "3510f361-0add-5c7b-a2e7-9679810944fc",
+        #         "execPrice": "12.015",
+        #         "execQty": "3000",
+        #         "orderId": "443d63fa-b4c3-4297-b7b1-23bca88b04dc",
+        #         "isMaker": False,
+        #         "orderLinkId": "test-00001",
+        #         "side": "Sell",
+        #         "execTime": "1716800399334",
+        #         "seq": 34771365464
+        #     }
+        #
+        # watchMyTrades execution
+        #
+        #     {
+        #         "category": "linear",
+        #         "symbol": "BTCUSDT",
+        #         "closedSize": "0",
+        #         "execFee": "0.0679239",
+        #         "execId": "135dbae5-cbed-5275-9290-3956bb2ed907",
+        #         "execPrice": "123498",
+        #         "execQty": "0.001",
+        #         "execType": "Trade",
+        #         "execValue": "123.498",
+        #         "feeRate": "0.00055",
+        #         "tradeIv": "",
+        #         "markIv": "",
+        #         "blockTradeId": "",
+        #         "markPrice": "122392",
+        #         "indexPrice": "",
+        #         "underlyingPrice": "",
+        #         "leavesQty": "0",
+        #         "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
+        #         "orderLinkId": "",
+        #         "orderPrice": "123615.9",
+        #         "orderQty": "0.001",
+        #         "orderType": "Market",
+        #         "stopOrderType": "UNKNOWN",
+        #         "side": "Buy",
+        #         "execTime": "1757837580469",
+        #         "isLeverage": "0",
+        #         "isMaker": False,
+        #         "seq": 9517074055,
+        #         "marketUnit": "",
+        #         "execPnl": "0",
+        #         "createType": "CreateByUser",
+        #         "extraFees": [],
+        #         "feeCoin": "USDT"
+        #  }
+        #
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
         marketType = 'contract' if ('createType' in trade) else 'spot'
-        if market is not None:
-            marketType = market['type']
         category = self.safe_string(trade, 'category')
         if category is not None:
-            if category == 'spot':
-                marketType = 'spot'
+            marketType = 'spot' if (category == 'spot') else 'contract'
+        if market is not None:
+            marketType = market['type']
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -2964,7 +3017,7 @@ class bybit(Exchange, ImplicitAPI):
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': self.safe_string(trade, 'feeCoin', feeCurrencyCode),
                 'rate': feeRateString,
             }
         return self.safe_trade({
@@ -3502,48 +3555,56 @@ class bybit(Exchange, ImplicitAPI):
         #
         # v5
         #     {
-        #         "orderId": "14bad3a1-6454-43d8-bcf2-5345896cf74d",
-        #         "orderLinkId": "YLxaWKMiHU",
-        #         "blockTradeId": "",
         #         "symbol": "BTCUSDT",
-        #         "price": "26864.40",
-        #         "qty": "0.003",
-        #         "side": "Buy",
-        #         "isLeverage": "",
-        #         "positionIdx": 1,
-        #         "orderStatus": "Cancelled",
+        #         "orderType": "Market",
+        #         "orderLinkId": "",
+        #         "slLimitPrice": "0",
+        #         "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         #         "cancelType": "UNKNOWN",
-        #         "rejectReason": "EC_PostOnlyWillTakeLiquidity",
-        #         "avgPrice": "0",
-        #         "leavesQty": "0.000",
-        #         "leavesValue": "0",
-        #         "cumExecQty": "0.000",
-        #         "cumExecValue": "0",
-        #         "cumExecFee": "0",
-        #         "timeInForce": "PostOnly",
-        #         "orderType": "Limit",
-        #         "stopOrderType": "UNKNOWN",
-        #         "orderIv": "",
-        #         "triggerPrice": "0.00",
-        #         "takeProfit": "0.00",
-        #         "stopLoss": "0.00",
-        #         "tpTriggerBy": "UNKNOWN",
-        #         "slTriggerBy": "UNKNOWN",
-        #         "triggerDirection": 0,
-        #         "triggerBy": "UNKNOWN",
-        #         "lastPriceOnCreated": "0.00",
-        #         "reduceOnly": False,
-        #         "closeOnTrigger": False,
-        #         "smpType": "None",
-        #         "smpGroup": 0,
-        #         "smpOrderId": "",
+        #         "avgPrice": "122529.9",
+        #         "stopOrderType": "",
+        #         "lastPriceOnCreated": "123747.9",
+        #         "orderStatus": "Filled",
+        #         "createType": "CreateByUser",
+        #         "takeProfit": "",
+        #         "cumExecValue": "122.5299",
         #         "tpslMode": "",
-        #         "tpLimitPrice": "",
-        #         "slLimitPrice": "",
+        #         "smpType": "None",
+        #         "triggerDirection": 0,
+        #         "blockTradeId": "",
+        #         "cumFeeDetail": {
+        #             "USDT": "0.06739145"
+        #         },
+        #         "rejectReason": "EC_NoError",
+        #         "isLeverage": "",
+        #         "price": "120518",
+        #         "orderIv": "",
+        #         "createdTime": "1757837618905",
+        #         "tpTriggerBy": "",
+        #         "positionIdx": 0,
+        #         "timeInForce": "IOC",
+        #         "leavesValue": "0",
+        #         "updatedTime": "1757837618909",
+        #         "side": "Sell",
+        #         "smpGroup": 0,
+        #         "triggerPrice": "",
+        #         "tpLimitPrice": "0",
+        #         "cumExecFee": "0.06739145",
+        #         "slTriggerBy": "",
+        #         "leavesQty": "0",
+        #         "closeOnTrigger": False,
+        #         "slippageToleranceType": "UNKNOWN",
         #         "placeType": "",
-        #         "createdTime": "1684476068369",
-        #         "updatedTime": "1684476068372"
+        #         "cumExecQty": "0.001",
+        #         "reduceOnly": True,
+        #         "qty": "0.001",
+        #         "stopLoss": "",
+        #         "smpOrderId": "",
+        #         "slippageTolerance": "0",
+        #         "triggerBy": "",
+        #         "extraFees": ""
         #     }
+        #
         # createOrders failed order
         #    {
         #        "category": "linear",
@@ -3595,25 +3656,13 @@ class bybit(Exchange, ImplicitAPI):
         status = self.parse_order_status(rawStatus)
         side = self.safe_string_lower(order, 'side')
         fee = None
-        feeCostString = self.safe_string(order, 'cumExecFee')
-        if feeCostString is not None:
-            feeCurrencyCode = None
-            if market['spot']:
-                if Precise.string_gt(feeCostString, '0'):
-                    if side == 'buy':
-                        feeCurrencyCode = market['base']
-                    else:
-                        feeCurrencyCode = market['quote']
-                else:
-                    if side == 'buy':
-                        feeCurrencyCode = market['quote']
-                    else:
-                        feeCurrencyCode = market['base']
-            else:
-                feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
+        cumFeeDetail = self.safe_dict(order, 'cumFeeDetail', {})
+        feeCoins = list(cumFeeDetail.keys())
+        feeCoinId = self.safe_string(feeCoins, 0)
+        if feeCoinId is not None:
             fee = {
-                'cost': self.parse_number(feeCostString),
-                'currency': feeCurrencyCode,
+                'cost': self.safe_number(cumFeeDetail, feeCoinId),
+                'currency': feeCoinId,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -4947,49 +4996,63 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #         "retCode": 0,
         #         "retMsg": "OK",
         #         "result": {
-        #             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
+        #             "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
         #             "category": "linear",
         #             "list": [
         #                 {
         #                     "symbol": "BTCUSDT",
-        #                     "orderType": "Limit",
-        #                     "orderLinkId": "test-001",
-        #                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
-        #                     "cancelType": "CancelByUser",
-        #                     "avgPrice": "0",
-        #                     "stopOrderType": "UNKNOWN",
-        #                     "lastPriceOnCreated": "16656.5",
-        #                     "orderStatus": "Cancelled",
+        #                     "orderType": "Market",
+        #                     "orderLinkId": "",
+        #                     "slLimitPrice": "0",
+        #                     "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
+        #                     "cancelType": "UNKNOWN",
+        #                     "avgPrice": "122529.9",
+        #                     "stopOrderType": "",
+        #                     "lastPriceOnCreated": "123747.9",
+        #                     "orderStatus": "Filled",
+        #                     "createType": "CreateByUser",
         #                     "takeProfit": "",
-        #                     "cumExecValue": "0",
+        #                     "cumExecValue": "122.5299",
+        #                     "tpslMode": "",
+        #                     "smpType": "None",
         #                     "triggerDirection": 0,
         #                     "blockTradeId": "",
-        #                     "rejectReason": "EC_PerCancelRequest",
+        #                     "cumFeeDetail": {
+        #                         "USDT": "0.06739145"
+        #                     },
+        #                     "rejectReason": "EC_NoError",
         #                     "isLeverage": "",
-        #                     "price": "18000",
+        #                     "price": "120518",
         #                     "orderIv": "",
-        #                     "createdTime": "1672220109387",
-        #                     "tpTriggerBy": "UNKNOWN",
+        #                     "createdTime": "1757837618905",
+        #                     "tpTriggerBy": "",
         #                     "positionIdx": 0,
-        #                     "timeInForce": "GoodTillCancel",
+        #                     "timeInForce": "IOC",
         #                     "leavesValue": "0",
-        #                     "updatedTime": "1672220114123",
+        #                     "updatedTime": "1757837618909",
         #                     "side": "Sell",
+        #                     "smpGroup": 0,
         #                     "triggerPrice": "",
-        #                     "cumExecFee": "0",
-        #                     "slTriggerBy": "UNKNOWN",
+        #                     "tpLimitPrice": "0",
+        #                     "cumExecFee": "0.06739145",
+        #                     "slTriggerBy": "",
         #                     "leavesQty": "0",
         #                     "closeOnTrigger": False,
-        #                     "cumExecQty": "0",
-        #                     "reduceOnly": False,
-        #                     "qty": "0.1",
+        #                     "slippageToleranceType": "UNKNOWN",
+        #                     "placeType": "",
+        #                     "cumExecQty": "0.001",
+        #                     "reduceOnly": True,
+        #                     "qty": "0.001",
         #                     "stopLoss": "",
-        #                     "triggerBy": "UNKNOWN"
-        #                 }
+        #                     "smpOrderId": "",
+        #                     "slippageTolerance": "0",
+        #                     "triggerBy": "",
+        #                     "extraFees": ""
+        #                 },
         #             ]
         #         },
         #         "retExtInfo": {},
-        #         "time": 1672221263862
+        #         "time": 1758187806376
         #     }
         #
         data = self.add_pagination_cursor_to_result(response)
@@ -5096,48 +5159,63 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #         "retCode": 0,
         #         "retMsg": "OK",
         #         "result": {
-        #             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
-        #             "category": "spot",
+        #             "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
+        #             "category": "linear",
         #             "list": [
         #                 {
-        #                     "symbol": "ETHUSDT",
-        #                     "orderType": "Limit",
-        #                     "orderLinkId": "1672217748277652",
-        #                     "orderId": "1321052653536515584",
+        #                     "symbol": "BTCUSDT",
+        #                     "orderType": "Market",
+        #                     "orderLinkId": "",
+        #                     "slLimitPrice": "0",
+        #                     "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         #                     "cancelType": "UNKNOWN",
-        #                     "avgPrice": "",
-        #                     "stopOrderType": "tpslOrder",
-        #                     "lastPriceOnCreated": "",
-        #                     "orderStatus": "Cancelled",
+        #                     "avgPrice": "122529.9",
+        #                     "stopOrderType": "",
+        #                     "lastPriceOnCreated": "123747.9",
+        #                     "orderStatus": "Filled",
+        #                     "createType": "CreateByUser",
         #                     "takeProfit": "",
-        #                     "cumExecValue": "0",
+        #                     "cumExecValue": "122.5299",
+        #                     "tpslMode": "",
+        #                     "smpType": "None",
         #                     "triggerDirection": 0,
-        #                     "isLeverage": "0",
-        #                     "rejectReason": "",
-        #                     "price": "1000",
+        #                     "blockTradeId": "",
+        #                     "cumFeeDetail": {
+        #                         "USDT": "0.06739145"
+        #                     },
+        #                     "rejectReason": "EC_NoError",
+        #                     "isLeverage": "",
+        #                     "price": "120518",
         #                     "orderIv": "",
-        #                     "createdTime": "1672217748287",
+        #                     "createdTime": "1757837618905",
         #                     "tpTriggerBy": "",
         #                     "positionIdx": 0,
-        #                     "timeInForce": "GTC",
-        #                     "leavesValue": "500",
-        #                     "updatedTime": "1672217748287",
-        #                     "side": "Buy",
-        #                     "triggerPrice": "1500",
-        #                     "cumExecFee": "0",
-        #                     "leavesQty": "0",
+        #                     "timeInForce": "IOC",
+        #                     "leavesValue": "0",
+        #                     "updatedTime": "1757837618909",
+        #                     "side": "Sell",
+        #                     "smpGroup": 0,
+        #                     "triggerPrice": "",
+        #                     "tpLimitPrice": "0",
+        #                     "cumExecFee": "0.06739145",
         #                     "slTriggerBy": "",
+        #                     "leavesQty": "0",
         #                     "closeOnTrigger": False,
-        #                     "cumExecQty": "0",
-        #                     "reduceOnly": False,
-        #                     "qty": "0.5",
+        #                     "slippageToleranceType": "UNKNOWN",
+        #                     "placeType": "",
+        #                     "cumExecQty": "0.001",
+        #                     "reduceOnly": True,
+        #                     "qty": "0.001",
         #                     "stopLoss": "",
-        #                     "triggerBy": "1192.5"
-        #                 }
+        #                     "smpOrderId": "",
+        #                     "slippageTolerance": "0",
+        #                     "triggerBy": "",
+        #                     "extraFees": ""
+        #                 },
         #             ]
         #         },
         #         "retExtInfo": {},
-        #         "time": 1672219526294
+        #         "time": 1758187806376
         #     }
         #
         data = self.add_pagination_cursor_to_result(response)

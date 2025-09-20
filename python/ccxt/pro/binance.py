@@ -2625,6 +2625,14 @@ class binance(ccxt.async_support.binance):
         #             ]
         #         }
         #     }
+        # externalLockUpdate
+        #    {
+        #        "e": "externalLockUpdate",  # Event Type
+        #        "E": 1581557507324,         # Event Time
+        #        "a": "NEO",                 # Asset
+        #        "d": "10.00000000",         # Delta
+        #        "T": 1581557507268          # Transaction Time
+        #    }
         #
         wallet = self.safe_string(self.options, 'wallet', 'wb')  # cw for cross wallet
         # each account is connected to a different endpoint
@@ -3033,8 +3041,8 @@ class binance(ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         type = self.get_market_type('cancelAllOrdersWs', market, params)
-        if type != 'spot' and type != 'future':
-            raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot or swap markets')
+        if type != 'spot':
+            raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
         url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
@@ -3046,7 +3054,7 @@ class binance(ccxt.async_support.binance):
         }
         message: dict = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {
@@ -4032,6 +4040,7 @@ class binance(ccxt.async_support.binance):
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
             'forceOrder': self.handle_liquidation,
+            'externalLockUpdate': self.handle_balance,
         }
         event = self.safe_string(message, 'e')
         if isinstance(message, list):

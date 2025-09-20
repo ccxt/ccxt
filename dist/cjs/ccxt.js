@@ -15,6 +15,7 @@ var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
+var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
 var binance = require('./src/binance.js');
@@ -65,7 +66,6 @@ var delta = require('./src/delta.js');
 var deribit = require('./src/deribit.js');
 var derive = require('./src/derive.js');
 var digifinex = require('./src/digifinex.js');
-var ellipx = require('./src/ellipx.js');
 var exmo = require('./src/exmo.js');
 var fmfwio = require('./src/fmfwio.js');
 var foxbit = require('./src/foxbit.js');
@@ -108,9 +108,7 @@ var poloniex = require('./src/poloniex.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
-var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
-var vertex = require('./src/vertex.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
@@ -122,6 +120,7 @@ var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
+var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
 var binancecoinm$1 = require('./src/pro/binancecoinm.js');
@@ -185,9 +184,7 @@ var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var probit$1 = require('./src/pro/probit.js');
-var tradeogre$1 = require('./src/pro/tradeogre.js');
 var upbit$1 = require('./src/pro/upbit.js');
-var vertex$1 = require('./src/pro/vertex.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
@@ -195,12 +192,13 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.0';
+const version = '4.5.5';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'ascendex': ascendex["default"],
+    'backpack': backpack["default"],
     'bequant': bequant["default"],
     'bigone': bigone["default"],
     'binance': binance["default"],
@@ -251,7 +249,6 @@ const exchanges = {
     'deribit': deribit["default"],
     'derive': derive["default"],
     'digifinex': digifinex["default"],
-    'ellipx': ellipx["default"],
     'exmo': exmo["default"],
     'fmfwio': fmfwio["default"],
     'foxbit': foxbit["default"],
@@ -294,9 +291,7 @@ const exchanges = {
     'probit': probit["default"],
     'timex': timex["default"],
     'tokocrypto': tokocrypto["default"],
-    'tradeogre': tradeogre["default"],
     'upbit': upbit["default"],
-    'vertex': vertex["default"],
     'wavesexchange': wavesexchange["default"],
     'whitebit': whitebit["default"],
     'woo': woo["default"],
@@ -310,6 +305,7 @@ const pro = {
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
     'ascendex': ascendex$1["default"],
+    'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
     'binance': binance$1["default"],
     'binancecoinm': binancecoinm$1["default"],
@@ -373,9 +369,7 @@ const pro = {
     'phemex': phemex$1["default"],
     'poloniex': poloniex$1["default"],
     'probit': probit$1["default"],
-    'tradeogre': tradeogre$1["default"],
     'upbit': upbit$1["default"],
-    'vertex': vertex$1["default"],
     'whitebit': whitebit$1["default"],
     'woo': woo$1["default"],
     'woofipro': woofipro$1["default"],
@@ -435,6 +429,7 @@ exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.ascendex = ascendex["default"];
+exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
 exports.bigone = bigone["default"];
 exports.binance = binance["default"];
@@ -485,7 +480,6 @@ exports.delta = delta["default"];
 exports.deribit = deribit["default"];
 exports.derive = derive["default"];
 exports.digifinex = digifinex["default"];
-exports.ellipx = ellipx["default"];
 exports.exmo = exmo["default"];
 exports.fmfwio = fmfwio["default"];
 exports.foxbit = foxbit["default"];
@@ -528,9 +522,7 @@ exports.poloniex = poloniex["default"];
 exports.probit = probit["default"];
 exports.timex = timex["default"];
 exports.tokocrypto = tokocrypto["default"];
-exports.tradeogre = tradeogre["default"];
 exports.upbit = upbit["default"];
-exports.vertex = vertex["default"];
 exports.wavesexchange = wavesexchange["default"];
 exports.whitebit = whitebit["default"];
 exports.woo = woo["default"];

@@ -48,14 +48,24 @@ public partial class gate : Exchange
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "futures", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "delivery", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "options", "https://fx-api-testnet.gateio.ws/api/v4" },
+                        { "futures", "https://api-testnet.gateapi.io/api/v4" },
+                        { "delivery", "https://api-testnet.gateapi.io/api/v4" },
+                        { "options", "https://api-testnet.gateapi.io/api/v4" },
+                        { "spot", "https://api-testnet.gateapi.io/api/v4" },
+                        { "wallet", "https://api-testnet.gateapi.io/api/v4" },
+                        { "margin", "https://api-testnet.gateapi.io/api/v4" },
+                        { "sub_accounts", "https://api-testnet.gateapi.io/api/v4" },
+                        { "account", "https://api-testnet.gateapi.io/api/v4" },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "futures", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "delivery", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "options", "https://fx-api-testnet.gateio.ws/api/v4" },
+                        { "futures", "https://api-testnet.gateapi.io/api/v4" },
+                        { "delivery", "https://api-testnet.gateapi.io/api/v4" },
+                        { "options", "https://api-testnet.gateapi.io/api/v4" },
+                        { "spot", "https://api-testnet.gateapi.io/api/v4" },
+                        { "wallet", "https://api-testnet.gateapi.io/api/v4" },
+                        { "margin", "https://api-testnet.gateapi.io/api/v4" },
+                        { "sub_accounts", "https://api-testnet.gateapi.io/api/v4" },
+                        { "account", "https://api-testnet.gateapi.io/api/v4" },
                     } },
                 } },
                 { "referral", new Dictionary<string, object>() {
@@ -1160,7 +1170,6 @@ public partial class gate : Exchange
             await this.loadUnifiedStatus();
         }
         object rawPromises = new List<object>() {};
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         object types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
         for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
@@ -1168,11 +1177,9 @@ public partial class gate : Exchange
             object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
             {
-                if (!isTrue(sandboxMode))
-                {
-                    // gate doesn't have a sandbox for spot markets
-                    ((IList<object>)rawPromises).Add(this.fetchSpotMarkets(parameters));
-                }
+                // if (!sandboxMode) {
+                // gate doesn't have a sandbox for spot markets
+                ((IList<object>)rawPromises).Add(this.fetchSpotMarkets(parameters));
             } else if (isTrue(isEqual(marketType, "swap")))
             {
                 ((IList<object>)rawPromises).Add(this.fetchSwapMarkets(parameters));
@@ -1314,6 +1321,10 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
         object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
+        }
         for (object c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(swapSettlementCurrencies, c);
@@ -1333,6 +1344,10 @@ public partial class gate : Exchange
     public async virtual Task<object> fetchFutureMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            return new List<object>() {};  // right now sandbox does not have inverse swaps
+        }
         object result = new List<object>() {};
         object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
         for (object c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
@@ -3045,6 +3060,12 @@ public partial class gate : Exchange
     /**
      * @method
      * @name gate#fetchBalance
+     * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3313,7 +3334,7 @@ public partial class gate : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object isolated = isEqual(marginMode, "margin");
+        object isolated = isTrue(isEqual(marginMode, "margin")) && isTrue(isEqual(type, "spot"));
         object data = response;
         if (isTrue(inOp(data, "balances")))
         {

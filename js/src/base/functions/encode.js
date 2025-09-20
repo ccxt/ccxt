@@ -26,7 +26,14 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 function packb(req) {
     return serialize(req);
 }
-export { json, isJsonEncodedObject, binaryToString, stringToBinary, stringToBase64, base64ToBinary, base64ToString, binaryToBase64, base16ToBinary, binaryToBase16, binaryConcat, binaryConcatArray, urlencode, urlencodeWithArrayRepeat, rawencode, encode, decode
+function base64ToBase64Url(base64, stripPadding = true) {
+    let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_");
+    if (stripPadding) {
+        base64url = base64url.replace(/=+$/, "");
+    }
+    return base64url;
+}
+export { json, isJsonEncodedObject, binaryToString, stringToBinary, stringToBase64, base64ToBinary, base64ToString, binaryToBase64, base16ToBinary, binaryToBase16, binaryConcat, binaryConcatArray, base64ToBase64Url, urlencode, urlencodeWithArrayRepeat, rawencode, encode, decode
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 , urlencodeBase64, numberToLE, numberToBE, base58ToBinary, binaryToBase58, urlencodeNested, packb };
 /*  ------------------------------------------------------------------------ */

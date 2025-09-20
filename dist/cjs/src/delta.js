@@ -215,6 +215,7 @@ class delta extends delta$1["default"] {
                     },
                 },
             },
+            'userAgent': this.userAgents['chrome39'],
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',

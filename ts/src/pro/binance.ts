@@ -2836,6 +2836,14 @@ export default class binance extends binanceRest {
         //             ]
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
         //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
@@ -3266,8 +3274,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelAllOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -3280,7 +3288,7 @@ export default class binance extends binanceRest {
         };
         const message: Dict = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': this.signParams (this.extend (payload, params)),
         };
         const subscription: Dict = {
@@ -4369,6 +4377,7 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {

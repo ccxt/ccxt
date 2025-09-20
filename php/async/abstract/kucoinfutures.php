@@ -646,6 +646,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function futuresprivate_post_position_changemarginmode($params = array()) {
         return $this->request('position/changeMarginMode', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function futuresprivate_post_position_switchpositionmode($params = array()) {
+        return $this->request('position/switchPositionMode', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function futuresprivate_delete_orders_orderid($params = array()) {
         return $this->request('orders/{orderId}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -1386,6 +1389,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function futuresPrivatePostPositionChangeMarginMode($params = array()) {
         return $this->request('position/changeMarginMode', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function futuresPrivatePostPositionSwitchPositionMode($params = array()) {
+        return $this->request('position/switchPositionMode', 'futuresPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function futuresPrivateDeleteOrdersOrderId($params = array()) {
         return $this->request('orders/{orderId}', 'futuresPrivate', 'DELETE', $params, null, null, array("cost" => 1));

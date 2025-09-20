@@ -580,6 +580,20 @@ public partial class coinmetro : Exchange
                 }
             }
         }
+        if (isTrue(isTrue(isEqual(baseId, null)) || isTrue(isEqual(quoteId, null))))
+        {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (isTrue(((string)marketId).EndsWith(((string)"USDT"))))
+            {
+                baseId = ((string)marketId).Replace((string)"USDT", (string)"");
+                quoteId = "USDT";
+            }
+            if (isTrue(((string)marketId).EndsWith(((string)"USD"))))
+            {
+                baseId = ((string)marketId).Replace((string)"USD", (string)"");
+                quoteId = "USD";
+            }
+        }
         object result = new Dictionary<string, object>() {
             { "baseId", baseId },
             { "quoteId", quoteId },

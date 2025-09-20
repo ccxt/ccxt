@@ -626,6 +626,7 @@ func (this *Coincatch) CreateMarketBuyOrderWithCost(symbol string, cost float64,
  * @param {float} amount how much of you want to trade in units of the base currency
  * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @param {float} [params.triggerPrice] the price that the order is to be triggered
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately

@@ -35,7 +35,8 @@
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269432480#L3364",
                 "type": "todo",
                 "withdraw": "not provided for empty chains",
-                "deposit": "not provided for empty chains"
+                "deposit": "not provided for empty chains",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:214"
@@ -254,7 +255,8 @@
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "broken currencies",
-                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data"
+                "skipCurrenciesWithoutNetworks": "those currencies deosnt have data",
+                "maxInactiveCurrenciesPercentage": 60
             },
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
@@ -301,6 +303,9 @@
             },
             "watchOrderBook": {
                 "spread": "bid>ask issue, https://github.com/ccxt/ccxt/actions/runs/14356838751/job/40248419588?pr=25638#step:9:437"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
@@ -1093,7 +1098,10 @@
         }
     },
     "gemini": {
-        "skipWs": "fixes needed",
+        "skip": "temporary USDC symbol issue in their API engine for swaps",
+        "until": "2025-08-31",
+        "skipPhpAsync": "tmp",
+        "skipCSharp": "tmp",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
@@ -1579,8 +1587,8 @@
     "oxfun": {
         "skip": "cloudflare captcha block",
         "skipWs": "same",
-        "httpsProxy": "http://188.34.194.190:8911",
-        "wsProxy": "http://188.34.194.190:8911",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
@@ -1697,7 +1705,7 @@
     "p2b": {
         "skip": "temp issues",
         "skipWs": "flaky",
-        "httpsProxy": "http://188.34.194.190:8911",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": "invalid URL",
             "fetchTrades": "requires order id"
@@ -1718,7 +1726,8 @@
                 "deposit": "undefined",
                 "networks": "networks key is missing",
                 "precision": "not provided",
-                "type": "todo"
+                "type": "todo",
+                "maxInactiveCurrenciesPercentage": 70
             },
             "fetchTrades": {
                 "side": "side is not buy/sell"
@@ -1974,6 +1983,23 @@
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
+            }
+        }
+    },
+    "backpack": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "precision":"not provided"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     }
