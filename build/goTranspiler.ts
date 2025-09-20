@@ -1439,7 +1439,7 @@ ${constStatements.join('\n')}
     transpileBaseMethods(baseExchangeFile: string, isWs = false) {
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow);
         const goExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP';
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
         // to go
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');

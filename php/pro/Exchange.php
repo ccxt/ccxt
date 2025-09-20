@@ -86,7 +86,6 @@ Exchange::$exchanges = array(
     'phemex',
     'poloniex',
     'probit',
-    'tradeogre',
     'upbit',
     'whitebit',
     'woo',
