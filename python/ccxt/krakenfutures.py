@@ -494,7 +494,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'future': future,
                 'option': False,
                 'index': index,
-                'active': None,
+                'active': self.safe_bool(market, 'tradeable'),
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,

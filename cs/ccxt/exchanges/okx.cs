@@ -202,6 +202,7 @@ public partial class okx : Exchange
                         { "market/open-oracle", 50 },
                         { "market/exchange-rate", 20 },
                         { "market/index-components", 1 },
+                        { "public/market-data-history", 4 },
                         { "public/economic-calendar", 50 },
                         { "market/block-tickers", 1 },
                         { "market/block-ticker", 1 },
@@ -343,7 +344,7 @@ public partial class okx : Exchange
                         { "account/fixed-loan/borrowing-limit", 4 },
                         { "account/fixed-loan/borrowing-quote", 5 },
                         { "account/fixed-loan/borrowing-orders-list", 5 },
-                        { "account/spot-manual-borrow-repay", 10 },
+                        { "account/spot-manual-borrow-repay", 30 },
                         { "account/set-auto-repay", 4 },
                         { "account/spot-borrow-repay-history", 4 },
                         { "account/move-positions-history", 10 },
@@ -3118,6 +3119,7 @@ public partial class okx : Exchange
             ((IDictionary<string,object>)request)["ordType"] = "move_order_stop";
         } else if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
         {
+            object attachAlgoOrd = new Dictionary<string, object>() {};
             if (isTrue(stopLossDefined))
             {
                 object stopLossTriggerPrice = this.safeValueN(stopLoss, new List<object>() {"triggerPrice", "stopPrice", "slTriggerPx"});
@@ -3126,7 +3128,8 @@ public partial class okx : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")) ;
                 }
                 object slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                ((IDictionary<string,object>)request)["slTriggerPx"] = slTriggerPx;
+                object slOrder = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)slOrder)["slTriggerPx"] = slTriggerPx;
                 object stopLossLimitPrice = this.safeValueN(stopLoss, new List<object>() {"price", "stopLossPrice", "slOrdPx"});
                 object stopLossOrderType = this.safeString(stopLoss, "type");
                 if (isTrue(!isEqual(stopLossOrderType, null)))
@@ -3143,18 +3146,18 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")) ;
                         } else
                         {
-                            ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
+                            ((IDictionary<string,object>)slOrder)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice);
                         }
                     } else if (isTrue(isEqual(stopLossOrderType, "market")))
                     {
-                        ((IDictionary<string,object>)request)["slOrdPx"] = "-1";
+                        ((IDictionary<string,object>)slOrder)["slOrdPx"] = "-1";
                     }
                 } else if (isTrue(!isEqual(stopLossLimitPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
+                    ((IDictionary<string,object>)slOrder)["slOrdPx"] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
                 } else
                 {
-                    ((IDictionary<string,object>)request)["slOrdPx"] = "-1"; // market sl order
+                    ((IDictionary<string,object>)slOrder)["slOrdPx"] = "-1"; // market sl order
                 }
                 object stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTriggerPxType", "last");
                 if (isTrue(!isEqual(stopLossTriggerPriceType, null)))
@@ -3163,8 +3166,9 @@ public partial class okx : Exchange
                     {
                         throw new InvalidOrder ((string)add(this.id, " createOrder() stop loss trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((IDictionary<string,object>)request)["slTriggerPxType"] = stopLossTriggerPriceType;
+                    ((IDictionary<string,object>)slOrder)["slTriggerPxType"] = stopLossTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
             if (isTrue(takeProfitDefined))
             {
@@ -3173,7 +3177,8 @@ public partial class okx : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")) ;
                 }
-                ((IDictionary<string,object>)request)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                object tpOrder = new Dictionary<string, object>() {};
+                ((IDictionary<string,object>)tpOrder)["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 object takeProfitLimitPrice = this.safeValueN(takeProfit, new List<object>() {"price", "takeProfitPrice", "tpOrdPx"});
                 object takeProfitOrderType = this.safeString2(takeProfit, "type", "tpOrdKind");
                 if (isTrue(!isEqual(takeProfitOrderType, null)))
@@ -3190,20 +3195,20 @@ public partial class okx : Exchange
                             throw new InvalidOrder ((string)add(this.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")) ;
                         } else
                         {
-                            ((IDictionary<string,object>)request)["tpOrdKind"] = takeProfitOrderType;
-                            ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
+                            ((IDictionary<string,object>)tpOrder)["tpOrdKind"] = takeProfitOrderType;
+                            ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     } else if (isTrue(isEqual(takeProfitOrderType, "market")))
                     {
-                        ((IDictionary<string,object>)request)["tpOrdPx"] = "-1";
+                        ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = "-1";
                     }
                 } else if (isTrue(!isEqual(takeProfitLimitPrice, null)))
                 {
-                    ((IDictionary<string,object>)request)["tpOrdKind"] = "limit";
-                    ((IDictionary<string,object>)request)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
+                    ((IDictionary<string,object>)tpOrder)["tpOrdKind"] = "limit";
+                    ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 } else
                 {
-                    ((IDictionary<string,object>)request)["tpOrdPx"] = "-1"; // market tp order
+                    ((IDictionary<string,object>)tpOrder)["tpOrdPx"] = "-1"; // market tp order
                 }
                 object takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTriggerPxType", "last");
                 if (isTrue(!isEqual(takeProfitTriggerPriceType, null)))
@@ -3212,8 +3217,15 @@ public partial class okx : Exchange
                     {
                         throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"last\", \"index\" or \"mark\"")) ;
                     }
-                    ((IDictionary<string,object>)request)["tpTriggerPxType"] = takeProfitTriggerPriceType;
+                    ((IDictionary<string,object>)tpOrder)["tpTriggerPxType"] = takeProfitTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
+            }
+            object attachOrdKeys = new List<object>(((IDictionary<string,object>)attachAlgoOrd).Keys);
+            object attachOrdLen = getArrayLength(attachOrdKeys);
+            if (isTrue(isGreaterThan(attachOrdLen, 0)))
+            {
+                ((IDictionary<string,object>)request)["attachAlgoOrds"] = new List<object>() {attachAlgoOrd};
             }
         } else if (isTrue(trigger))
         {

@@ -150,6 +150,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "ascendex":
 		itf := NewAscendex(options)
 		return itf
+	case "backpack":
+		itf := NewBackpack(options)
+		return itf
 	case "bequant":
 		itf := NewBequant(options)
 		return itf
@@ -425,9 +428,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "tokocrypto":
 		itf := NewTokocrypto(options)
-		return itf
-	case "tradeogre":
-		itf := NewTradeogre(options)
 		return itf
 	case "upbit":
 		itf := NewUpbit(options)

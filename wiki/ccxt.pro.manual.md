@@ -61,6 +61,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![alpaca](https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b)](https://alpaca.markets)                                                                         | alpaca                | [Alpaca](https://alpaca.markets)                                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://alpaca.markets/docs/)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![apex](https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00)](https://omni.apex.exchange/trade)                                                                 | apex                  | [Apex](https://omni.apex.exchange/trade)                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api-docs.pro.apex.exchange)                                                 | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ascendex](https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                                      | ascendex              | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![backpack](https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f)](https://backpack.exchange/join/ib8qxwyl)                                                      | backpack              | [Backpack](https://backpack.exchange/join/ib8qxwyl)                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.backpack.exchange/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bequant](https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867)](https://bequant.io/referral/dd104e3bee7634ec)                                                  | bequant               | [Bequant](https://bequant.io/referral/dd104e3bee7634ec)                                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.bequant.io/)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![binance](https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                         | binance               | [Binance](https://accounts.binance.com/en/register?ref=D7YA7CLY)                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://developers.binance.com/en)                                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![binancecoinm](https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                    | binancecoinm          | [Binance COIN-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -116,7 +117,6 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                             | phemex                | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://phemex-docs.github.io/#overview)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                   | poloniex              | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://api-docs.poloniex.com/spot/)                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                         | probit                | [ProBit](https://www.probit.com/r/34608773)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![tradeogre](https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a)](https://tradeogre.com)                                                                     | tradeogre             | [tradeogre](https://tradeogre.com)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://tradeogre.com/help/api)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                           | upbit                 | [Upbit](https://upbit.com)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)       | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://woox.io/register?ref=DIJT0CNL)                                        | woo                   | [WOO X](https://woox.io/register?ref=DIJT0CNL)                                          | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woox.io/)                                                              | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -416,7 +416,7 @@ The result from the newUpdates mode will be one or more updates that have occurr
 
 *Deprecation Warning*: in the future `newUpdates: true` will be the default mode and you will have to set newUpdates to false to get the sliding cache.
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 const ccxtpro = require ('ccxt').pro
 console.log ('CCXT version', ccxtpro.version)
@@ -445,14 +445,16 @@ CCXT Pro is designed for async/await style syntax and relies heavily on async pr
 Creating a CCXT Pro exchange instance is pretty much identical to creating a CCXT exchange instance.
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 const ccxt = require ('ccxt').pro
 const exchange = new ccxtpro.binance ({ newUpdates: false })
 ```
 
-The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
 #### **Python**
+
+The Python implementation of CCXT Pro relies on builtin [asyncio](https://docs.python.org/3/library/asyncio.html) and [Event Loop](https://docs.python.org/3/library/asyncio-eventloop.html) in particular. In Python it is possible to supply an asyncio's event loop instance in the constructor arguments as shown below (identical to `ccxt.async support`):
+
 ```python
 import ccxt.pro as ccxtpro
 from asyncio import run
@@ -472,7 +474,6 @@ run(main())
 In PHP the async primitives are borrowed from [ReactPHP](https://reactphp.org). The PHP implementation of CCXT Pro relies on [Promise](https://github.com/reactphp/promise) and [EventLoop](https://github.com/reactphp/event-loop) in particular. In PHP the user is required to supply a ReactPHP's event loop instance in the constructor arguments as shown below:
 
 ```php
-// PHP
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 require_once 'vendor/autoload.php';
@@ -623,7 +624,7 @@ If the underlying exchange does not accept a limiting argument, the limiting is 
 
 The `limit` argument does not guarantee that the number of bids or asks will always be equal to `limit`. It designates the upper boundary or the maximum, so at some moment in time there may be less than `limit` bids or asks, but never more than `limit` bids or asks. This is the case when the exchange does not have enough orders on the orderbook, or when one of the top orders in the orderbook gets matched and removed from the orderbook, leaving less than `limit` entries on either bids side or asks side. The free space in the orderbook usually gets quickly filled with new data.
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOrderBook']) {
     while (true) {
@@ -672,7 +673,7 @@ if ($exchange->has['watchOrderBook']) {
 Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOrderBookForSymbols']) {
     while (true) {
@@ -751,7 +752,7 @@ if ($exchange->has['watchTicker']) {
 ### watchTickers
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchTickers']) {
     while (true) {
@@ -837,7 +838,7 @@ That explains why some exchanges reasonably think that OHLCVs are not necessary 
 If your application is not very time-critical, you can still subscribe to OHLCV streams, for charting purposes. If the underlying `exchange.has['watchOHLCV']`, you can `watchOHLCV()/watch_ohlcv()` as shown below:
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOHLCV']) {
     while (true) {
@@ -886,7 +887,7 @@ if ($exchange->has['watchOHLCV']) {
 
 Similar to `watchOHLCV` but allows multiple subscriptions of symbols and timeframes
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchOHLCVForSymbols']) {
     while (true) {
@@ -928,7 +929,7 @@ if exchange.has['watchOHLCVForSymbols']:
 
 ### watchTrades
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 // JavaScript
 if (exchange.has['watchTrades']) {
@@ -977,7 +978,7 @@ if ($exchange->has['watchTrades']) {
 Similar to `watchTrades` but allows subscribing to multiple symbols in a single call.
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 if (exchange.has['watchTradesForSymbols']) {
     while (true) {
@@ -1012,9 +1013,8 @@ In most cases the authentication logic is borrowed from CCXT since the exchanges
 
 ### watchBalance
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
-// JavaScript
 if (exchange.has['watchBalance']) {
     while (true) {
         try {
@@ -1060,7 +1060,7 @@ if ($exchange->has['watchBalance']) {
 ### watchOrders
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
@@ -1082,7 +1082,7 @@ public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 =
 
 ### watchMyTrades
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
@@ -1107,7 +1107,7 @@ public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2
 watch all open positions and returns a list of [position structure](https://docs.ccxt.com/en/latest/manual.html#position-structure)
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 watchPositions (symbols = undefined, since = undefined, limit = undefined, params = {}) 
 ```
@@ -1129,9 +1129,8 @@ public async Task<List<Position>> WatchPositions(List<string> symbols = null, In
 
 ### createOrderWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
-// JavaScript
+#### **TypeScript**
+```typescript
 createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
 ```
 #### **Python**
@@ -1151,8 +1150,8 @@ create_order_ws(string $symbol, string $type, string $side, float $amount, ?floa
 <!-- tabs:end -->
 ### editOrderWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 // JavaScript
 editOrderWs (id, symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {})
 ```
@@ -1168,8 +1167,8 @@ edit_order_ws(string id, string $symbol, string $type, string $side, float $amou
 
 ### cancelOrderWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 cancelOrderWs(id: string, symbol: string = undefined, params = {})
 ```
 #### **Python**
@@ -1185,8 +1184,8 @@ cancel_order_ws(string $id, string $symbol, $params = array ())
 
 ### cancelOrdersWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 cancelOrdersWs(ids: string[], symbol: string = undefined, params = {})
 ```
 #### **Python**
@@ -1202,8 +1201,8 @@ cancel_orders_ws(string[] $ids, string $symbol, $params = array ())
 
 ### cancelAllOrdersWs
 <!-- tabs:start -->
-#### **Typescript**
-```javascript
+#### **TypeScript**
+```typescript
 cancelAllOrdersWs(symbol: string = undefined, params = {})
 ```
 #### **Python**
@@ -1229,7 +1228,7 @@ If you want to have an access to raw incoming messages and use your custom handl
 A) By inheritance:
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 class myExchange extends ccxt.pro.coinbase {
     handleMessage (wsClient, data) {
@@ -1281,7 +1280,7 @@ $ex->watch_ticker('BTC/USDT');
 B) by overriding the method:
 
 <!-- tabs:start -->
-#### **Javascript**
+#### **JavaScript**
 ```javascript
 function myHandler(ws, data, orignal_handler){
     orignal_handler(ws, data); // trigger original `handleMessage`

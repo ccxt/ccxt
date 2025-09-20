@@ -485,34 +485,80 @@ func (this *onetrading) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 	return ch
 }
 func (this *onetrading) ParseMarket(market interface{}) interface{} {
-	var baseAsset interface{} = this.SafeValue(market, "base", map[string]interface{}{})
-	var quoteAsset interface{} = this.SafeValue(market, "quote", map[string]interface{}{})
+	//
+	//   {
+	//      "base":{
+	//         "code":"BTC",
+	//         "precision":"5"
+	//      },
+	//      "quote":{
+	//         "code":"USDC",
+	//         "precision":"2"
+	//      },
+	//      "amount_precision":"5",
+	//      "market_precision":"2",
+	//      "min_size":"10.0",
+	//      "min_price":"1000",
+	//      "max_price":"10000000",
+	//      "id":"BTC_USDC",
+	//      "type":"SPOT",
+	//      "state":"ACTIVE"
+	//   }
+	//
+	//
+	//  {
+	//      "base": {
+	//          "code": "BTC",
+	//          "precision": 5
+	//      },
+	//      "quote": {
+	//          "code": "EUR",
+	//          "precision": 2
+	//      },
+	//      "amount_precision": 5,
+	//      "market_precision": 2,
+	//      "min_size": "10.0",
+	//      "min_price": "1000",
+	//      "max_price": "10000000",
+	//      "id": "BTC_EUR_P",
+	//      "type": "PERP",
+	//      "state": "ACTIVE"
+	//  }
+	//
+	var baseAsset interface{} = this.SafeDict(market, "base", map[string]interface{}{})
+	var quoteAsset interface{} = this.SafeDict(market, "quote", map[string]interface{}{})
 	var baseId interface{} = this.SafeString(baseAsset, "code")
 	var quoteId interface{} = this.SafeString(quoteAsset, "code")
-	var id interface{} = Add(Add(baseId, "_"), quoteId)
+	var id interface{} = this.SafeString(market, "id")
 	var base interface{} = this.SafeCurrencyCode(baseId)
 	var quote interface{} = this.SafeCurrencyCode(quoteId)
 	var state interface{} = this.SafeString(market, "state")
+	var typeVar interface{} = this.SafeString(market, "type")
+	var isPerp interface{} = IsEqual(typeVar, "PERP")
+	var symbol interface{} = Add(Add(base, "/"), quote)
+	if IsTrue(isPerp) {
+		symbol = Add(Add(symbol, ":"), quote)
+	}
 	return map[string]interface{}{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         symbol,
 		"base":           base,
 		"quote":          quote,
-		"settle":         nil,
+		"settle":         Ternary(IsTrue(isPerp), quote, nil),
 		"baseId":         baseId,
 		"quoteId":        quoteId,
-		"settleId":       nil,
-		"type":           "spot",
-		"spot":           true,
+		"settleId":       Ternary(IsTrue(isPerp), quoteId, nil),
+		"type":           Ternary(IsTrue(isPerp), "swap", "spot"),
+		"spot":           !IsTrue(isPerp),
 		"margin":         false,
-		"swap":           false,
+		"swap":           isPerp,
 		"future":         false,
 		"option":         false,
 		"active":         (IsEqual(state, "ACTIVE")),
-		"contract":       false,
-		"linear":         nil,
-		"inverse":        nil,
-		"contractSize":   nil,
+		"contract":       isPerp,
+		"linear":         Ternary(IsTrue(isPerp), true, nil),
+		"inverse":        Ternary(IsTrue(isPerp), false, nil),
+		"contractSize":   Ternary(IsTrue(isPerp), this.ParseNumber("1"), nil),
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -551,6 +597,7 @@ func (this *onetrading) ParseMarket(market interface{}) interface{} {
  * @see https://docs.onetrading.com/#fee-groups
  * @see https://docs.onetrading.com/#fees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
  */
 func (this *onetrading) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
@@ -568,15 +615,15 @@ func (this *onetrading) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		}
 		if IsTrue(IsEqual(method, "fetchPrivateTradingFees")) {
 
-			retRes56619 := (<-this.FetchPrivateTradingFees(params))
-			PanicOnError(retRes56619)
-			ch <- retRes56619
+			retRes61319 := (<-this.FetchPrivateTradingFees(params))
+			PanicOnError(retRes61319)
+			ch <- retRes61319
 			return nil
 		} else if IsTrue(IsEqual(method, "fetchPublicTradingFees")) {
 
-			retRes56819 := (<-this.FetchPublicTradingFees(params))
-			PanicOnError(retRes56819)
-			ch <- retRes56819
+			retRes61519 := (<-this.FetchPublicTradingFees(params))
+			PanicOnError(retRes61519)
+			ch <- retRes61519
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
@@ -593,45 +640,74 @@ func (this *onetrading) FetchPublicTradingFees(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes5758 := (<-this.LoadMarkets())
-		PanicOnError(retRes5758)
+		retRes6228 := (<-this.LoadMarkets())
+		PanicOnError(retRes6228)
 
 		response := (<-this.PublicGetFees(params))
 		PanicOnError(response)
 		//
-		//     [
-		//         {
-		//             "fee_group_id":"default",
-		//             "display_text":"The standard fee plan.",
-		//             "fee_tiers":[
-		//                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
-		//                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
-		//                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
-		//                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
-		//                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
-		//                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
-		//                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
-		//             ],
-		//             "fee_discount_rate":"25.0",
-		//             "minimum_price_value":"0.12"
-		//         }
-		//     ]
+		// [
+		//     {
+		//         'fee_group_id': 'SPOT',
+		//         'display_text': 'The fee plan for spot trading.',
+		//         'volume_currency': 'EUR',
+		//         'fee_tiers': [
+		//             {
+		//                 'volume': '0',
+		//                 'fee_group_id': 'SPOT',
+		//                 'maker_fee': '0.1000',
+		//                 'taker_fee': '0.2000',
+		//             },
+		//             {
+		//                 'volume': '10000',
+		//                 'fee_group_id': 'SPOT',
+		//                 'maker_fee': '0.0400',
+		//                 'taker_fee': '0.0800',
+		//             },
+		//         ],
+		//     },
+		//     {
+		//         'fee_group_id': 'FUTURES',
+		//         'display_text': 'The fee plan for futures trading.',
+		//         'volume_currency': 'EUR',
+		//         'fee_tiers': [
+		//             {
+		//                 'volume': '0',
+		//                 'fee_group_id': 'FUTURES',
+		//                 'maker_fee': '0.1000',
+		//                 'taker_fee': '0.2000',
+		//             },
+		//             {
+		//                 'volume': '10000',
+		//                 'fee_group_id': 'FUTURES',
+		//                 'maker_fee': '0.0400',
+		//                 'taker_fee': '0.0800',
+		//             },
+		//         ],
+		//     },
+		// ];
 		//
-		var first interface{} = this.SafeValue(response, 0, map[string]interface{}{})
-		var feeTiers interface{} = this.SafeValue(first, "fee_tiers")
-		var tiers interface{} = this.ParseFeeTiers(feeTiers)
-		var firstTier interface{} = this.SafeValue(feeTiers, 0, map[string]interface{}{})
+		var spotFees interface{} = this.SafeDict(response, 0, map[string]interface{}{})
+		var futuresFees interface{} = this.SafeDict(response, 1, map[string]interface{}{})
+		var spotFeeTiers interface{} = this.SafeList(spotFees, "fee_tiers", []interface{}{})
+		var futuresFeeTiers interface{} = this.SafeList(futuresFees, "fee_tiers", []interface{}{})
+		var spotTiers interface{} = this.ParseFeeTiers(spotFeeTiers)
+		var futuresTiers interface{} = this.ParseFeeTiers(futuresFeeTiers)
+		var firstSpotTier interface{} = this.SafeDict(spotTiers, 0, map[string]interface{}{})
+		var firstFuturesTier interface{} = this.SafeDict(futuresTiers, 0, map[string]interface{}{})
 		var result interface{} = map[string]interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 			var symbol interface{} = GetValue(this.Symbols, i)
+			var market interface{} = this.Market(symbol)
+			var tierObject interface{} = Ternary(IsTrue((GetValue(market, "spot"))), firstSpotTier, firstFuturesTier)
 			AddElementToObject(result, symbol, map[string]interface{}{
-				"info":       first,
+				"info":       spotFees,
 				"symbol":     symbol,
-				"maker":      this.SafeNumber(firstTier, "maker_fee"),
-				"taker":      this.SafeNumber(firstTier, "taker_fee"),
+				"maker":      this.SafeNumber(tierObject, "maker_fee"),
+				"taker":      this.SafeNumber(tierObject, "taker_fee"),
 				"percentage": true,
 				"tierBased":  true,
-				"tiers":      tiers,
+				"tiers":      spotTiers,
 			})
 		}
 
@@ -649,42 +725,61 @@ func (this *onetrading) FetchPrivateTradingFees(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes6178 := (<-this.LoadMarkets())
-		PanicOnError(retRes6178)
+		retRes6938 := (<-this.LoadMarkets())
+		PanicOnError(retRes6938)
 
 		response := (<-this.PrivateGetAccountFees(params))
 		PanicOnError(response)
 		//
-		//     {
-		//         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
-		//         "running_trading_volume": "0.0",
-		//         "fee_group_id": "default",
-		//         "collect_fees_in_best": false,
-		//         "fee_discount_rate": "25.0",
-		//         "minimum_price_value": "0.12",
-		//         "fee_tiers": [
-		//             { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" },
-		//             { "volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1" },
-		//             { "volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1" },
-		//             { "volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09" },
-		//             { "volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08" },
-		//             { "volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07" },
-		//             { "volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06" },
-		//             { "volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05" }
-		//         ],
-		//         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
-		//     }
+		// {
+		//    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+		//    "running_volumes":[
+		//       {
+		//          "fee_group_id":"SPOT",
+		//          "volume":"0",
+		//          "currency":"EUR"
+		//       },
+		//       {
+		//          "fee_group_id":"FUTURES",
+		//          "volume":"0",
+		//          "currency":"EUR"
+		//       }
+		//    ],
+		//    "active_fee_tiers":[
+		//       {
+		//          "fee_group_id":"SPOT",
+		//          "volume":"0",
+		//          "maker_fee":"0.1000",
+		//          "taker_fee":"0.2000"
+		//       },
+		//       {
+		//          "fee_group_id":"FUTURES",
+		//          "volume":"0",
+		//          "maker_fee":"0.1000",
+		//          "taker_fee":"0.2000"
+		//       }
+		//    ]
+		// }
 		//
-		var activeFeeTier interface{} = this.SafeValue(response, "active_fee_tier", map[string]interface{}{})
-		var makerFee interface{} = this.SafeString(activeFeeTier, "maker_fee")
-		var takerFee interface{} = this.SafeString(activeFeeTier, "taker_fee")
-		makerFee = Precise.StringDiv(makerFee, "100")
-		takerFee = Precise.StringDiv(takerFee, "100")
-		var feeTiers interface{} = this.SafeValue(response, "fee_tiers")
+		var activeFeeTier interface{} = this.SafeList(response, "active_fee_tiers")
+		var spotFees interface{} = this.SafeDict(activeFeeTier, 0, map[string]interface{}{})
+		var futuresFees interface{} = this.SafeDict(activeFeeTier, 1, map[string]interface{}{})
+		var spotMakerFee interface{} = this.SafeString(spotFees, "maker_fee")
+		var spotTakerFee interface{} = this.SafeString(spotFees, "taker_fee")
+		spotMakerFee = Precise.StringDiv(spotMakerFee, "100")
+		spotTakerFee = Precise.StringDiv(spotTakerFee, "100")
+		// const feeTiers = this.safeValue (response, 'fee_tiers');
+		var futuresMakerFee interface{} = this.SafeString(futuresFees, "maker_fee")
+		var futuresTakerFee interface{} = this.SafeString(futuresFees, "taker_fee")
+		futuresMakerFee = Precise.StringDiv(futuresMakerFee, "100")
+		futuresTakerFee = Precise.StringDiv(futuresTakerFee, "100")
 		var result interface{} = map[string]interface{}{}
-		var tiers interface{} = this.ParseFeeTiers(feeTiers)
+		// const tiers = this.parseFeeTiers (feeTiers);
 		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 			var symbol interface{} = GetValue(this.Symbols, i)
+			var market interface{} = this.Market(symbol)
+			var makerFee interface{} = Ternary(IsTrue((GetValue(market, "spot"))), spotMakerFee, futuresMakerFee)
+			var takerFee interface{} = Ternary(IsTrue((GetValue(market, "spot"))), spotTakerFee, futuresTakerFee)
 			AddElementToObject(result, symbol, map[string]interface{}{
 				"info":       response,
 				"symbol":     symbol,
@@ -692,7 +787,7 @@ func (this *onetrading) FetchPrivateTradingFees(optionalArgs ...interface{}) <-c
 				"taker":      this.ParseNumber(takerFee),
 				"percentage": true,
 				"tierBased":  true,
-				"tiers":      tiers,
+				"tiers":      nil,
 			})
 		}
 
@@ -794,8 +889,8 @@ func (this *onetrading) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes7458 := (<-this.LoadMarkets())
-		PanicOnError(retRes7458)
+		retRes8408 := (<-this.LoadMarkets())
+		PanicOnError(retRes8408)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instrument_code": GetValue(market, "id"),
@@ -848,8 +943,8 @@ func (this *onetrading) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes7828 := (<-this.LoadMarkets())
-		PanicOnError(retRes7828)
+		retRes8778 := (<-this.LoadMarkets())
+		PanicOnError(retRes8778)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetMarketTicker(params))
@@ -908,8 +1003,8 @@ func (this *onetrading) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8258 := (<-this.LoadMarkets())
-		PanicOnError(retRes8258)
+		retRes9208 := (<-this.LoadMarkets())
+		PanicOnError(retRes9208)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instrument_code": GetValue(market, "id"),
@@ -1047,8 +1142,8 @@ func (this *onetrading) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes9558 := (<-this.LoadMarkets())
-		PanicOnError(retRes9558)
+		retRes10508 := (<-this.LoadMarkets())
+		PanicOnError(retRes10508)
 		var market interface{} = this.Market(symbol)
 		var periodUnit interface{} = this.SafeString(this.Timeframes, timeframe)
 		periodunitVariable := Split(periodUnit, "/")
@@ -1206,8 +1301,8 @@ func (this *onetrading) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes10978 := (<-this.LoadMarkets())
-		PanicOnError(retRes10978)
+		retRes11928 := (<-this.LoadMarkets())
+		PanicOnError(retRes11928)
 
 		response := (<-this.PrivateGetAccountBalances(params))
 		PanicOnError(response)
@@ -1397,8 +1492,8 @@ func (this *onetrading) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12748 := (<-this.LoadMarkets())
-		PanicOnError(retRes12748)
+		retRes13698 := (<-this.LoadMarkets())
+		PanicOnError(retRes13698)
 		var market interface{} = this.Market(symbol)
 		var uppercaseType interface{} = ToUpper(typeVar)
 		var request interface{} = map[string]interface{}{
@@ -1479,8 +1574,8 @@ func (this *onetrading) CancelOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13458 := (<-this.LoadMarkets())
-		PanicOnError(retRes13458)
+		retRes14408 := (<-this.LoadMarkets())
+		PanicOnError(retRes14408)
 		var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "client_id")
 		params = this.Omit(params, []interface{}{"clientOrderId", "client_id"})
 		var method interface{} = "privateDeleteAccountOrdersOrderId"
@@ -1531,8 +1626,8 @@ func (this *onetrading) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13788 := (<-this.LoadMarkets())
-		PanicOnError(retRes13788)
+		retRes14738 := (<-this.LoadMarkets())
+		PanicOnError(retRes14738)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market interface{} = this.Market(symbol)
@@ -1576,8 +1671,8 @@ func (this *onetrading) CancelOrders(ids interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14048 := (<-this.LoadMarkets())
-		PanicOnError(retRes14048)
+		retRes14998 := (<-this.LoadMarkets())
+		PanicOnError(retRes14998)
 		var request interface{} = map[string]interface{}{
 			"ids": Join(ids, ","),
 		}
@@ -1617,8 +1712,8 @@ func (this *onetrading) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14288 := (<-this.LoadMarkets())
-		PanicOnError(retRes14288)
+		retRes15238 := (<-this.LoadMarkets())
+		PanicOnError(retRes15238)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
 		}
@@ -1699,8 +1794,8 @@ func (this *onetrading) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14898 := (<-this.LoadMarkets())
-		PanicOnError(retRes14898)
+		retRes15848 := (<-this.LoadMarkets())
+		PanicOnError(retRes15848)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1836,9 +1931,9 @@ func (this *onetrading) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 			"with_cancelled_and_rejected": true,
 		}
 
-		retRes161415 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes161415)
-		ch <- retRes161415
+		retRes170915 := (<-this.FetchOpenOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes170915)
+		ch <- retRes170915
 		return nil
 
 	}()
@@ -1871,8 +1966,8 @@ func (this *onetrading) FetchOrderTrades(id interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16308 := (<-this.LoadMarkets())
-		PanicOnError(retRes16308)
+		retRes17258 := (<-this.LoadMarkets())
+		PanicOnError(retRes17258)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
 		}
@@ -1950,8 +2045,8 @@ func (this *onetrading) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16908 := (<-this.LoadMarkets())
-		PanicOnError(retRes16908)
+		retRes17858 := (<-this.LoadMarkets())
+		PanicOnError(retRes17858)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {

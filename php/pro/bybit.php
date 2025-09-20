@@ -346,6 +346,9 @@ class bybit extends \ccxt\async\bybit {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
+            }
             $orderRequest = $this->cancel_order_request($id, $symbol, $params);
             $url = $this->urls['api']['ws']['private']['trade'];
             Async\await($this->authenticate($url));
@@ -1315,12 +1318,14 @@ class bybit extends \ccxt\async\bybit {
              * watches information on multiple $trades made by the user
              *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
              *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
+             * @param {boolean} [$params->executionFast] use fast execution
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $method = 'watchMyTrades';
@@ -1338,6 +1343,11 @@ class bybit extends \ccxt\async\bybit {
                 'usdc' => 'user.openapi.perp.trade',
             );
             $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
+            $executionFast = false;
+            list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
+            if ($executionFast) {
+                $topic = 'execution.fast';
+            }
             $trades = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -1352,10 +1362,12 @@ class bybit extends \ccxt\async\bybit {
              * unWatches information on multiple trades made by the user
              *
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
              *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
+             * @param {boolean} [$params->executionFast] use fast execution
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $method = 'watchMyTrades';
@@ -1373,6 +1385,11 @@ class bybit extends \ccxt\async\bybit {
                 'usdc' => 'user.openapi.perp.trade',
             );
             $topic = $this->safe_value($topicByMarket, $this->get_private_type($url));
+            $executionFast = false;
+            list($executionFast, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'executionFast', false);
+            if ($executionFast) {
+                $topic = 'execution.fast';
+            }
             return Async\await($this->un_watch_topics($url, 'myTrades', [ ], array( $messageHash ), array( $subHash ), array( $topic ), $params));
         }) ();
     }
@@ -1440,8 +1457,31 @@ class bybit extends \ccxt\async\bybit {
         //         )
         //     }
         //
+        // execution.fast
+        //
+        //     {
+        //         "topic" => "execution.fast",
+        //         "creationTime" => 1757405601981,
+        //         "data" => array(
+        //             {
+        //                 "category" => "linear",
+        //                 "symbol" => "BTCUSDT",
+        //                 "execId" => "ffcac6ac-7571-536d-a28a-847dd7d08a0f",
+        //                 "execPrice" => "112529.6",
+        //                 "execQty" => "0.001",
+        //                 "orderId" => "6e25ab73-7a55-4ae7-adc2-8ea95f167c85",
+        //                 "isMaker" => false,
+        //                 "orderLinkId" => "test-00001",
+        //                 "side" => "Buy",
+        //                 "execTime" => "1757405601977",
+        //                 "seq" => 9515624038
+        //             }
+        //         )
+        //     }
+        //
         $topic = $this->safe_string($message, 'topic');
         $spot = $topic === 'ticketInfo';
+        $executionFast = $topic === 'execution.fast';
         $data = $this->safe_value($message, 'data', array());
         if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
             $data = $this->safe_value($data, 'result', array());
@@ -1456,11 +1496,14 @@ class bybit extends \ccxt\async\bybit {
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = null;
-            if ($spot) {
+            if ($spot && !$executionFast) {
                 $parsed = $this->parse_ws_trade($rawTrade);
             } else {
                 // filter unified $trades
                 $execType = $this->safe_string($rawTrade, 'execType', '');
+                if ($executionFast) {
+                    $execType = 'Trade';
+                }
                 if (!$this->in_array($execType, $filterExecTypes)) {
                     continue;
                 }
@@ -2444,12 +2487,13 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function handle_message(Client $client, $message) {
+        $topic = $this->safe_string_2($message, 'topic', 'op', '');
         if ($this->handle_error_message($client, $message)) {
             return;
         }
         // contract $pong
         $ret_msg = $this->safe_string($message, 'ret_msg');
-        if ($ret_msg === 'pong') {
+        if (($ret_msg === 'pong') || ($topic === 'pong')) {
             $this->handle_pong($client, $message);
             return;
         }
@@ -2461,11 +2505,10 @@ class bybit extends \ccxt\async\bybit {
         }
         // $pong
         $event = $this->safe_string($message, 'event');
-        if ($event === 'sub') {
+        if ($event === 'sub' || ($topic === 'subscribe')) {
             $this->handle_subscription_status($client, $message);
             return;
         }
-        $topic = $this->safe_string_2($message, 'topic', 'op', '');
         $methods = array(
             'orderbook' => array($this, 'handle_order_book'),
             'kline' => array($this, 'handle_ohlcv'),
@@ -2478,6 +2521,7 @@ class bybit extends \ccxt\async\bybit {
             'wallet' => array($this, 'handle_balance'),
             'outboundAccountInfo' => array($this, 'handle_balance'),
             'execution' => array($this, 'handle_my_trades'),
+            'execution.fast' => array($this, 'handle_my_trades'),
             'ticketInfo' => array($this, 'handle_my_trades'),
             'user.openapi.perp.trade' => array($this, 'handle_my_trades'),
             'position' => array($this, 'handle_positions'),
@@ -2529,6 +2573,14 @@ class bybit extends \ccxt\async\bybit {
         //
         //   array( pong => 1653296711335 )
         //
+        //
+        //   {
+        //       "req_id" => "2",
+        //       "op" => "pong",
+        //       "args" => array( "1757405570352" ),
+        //       "conn_id" => "d266o6hqo29sqmnq4vk0-1yus1"
+        //   }
+        //
         $client->lastPong = $this->safe_integer($message, 'pong');
         return $message;
     }
@@ -2547,6 +2599,13 @@ class bybit extends \ccxt\async\bybit {
         //        "retMsg":"OK",
         //        "op":"auth",
         //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
+        //    {
+        //        "success" => true,
+        //        "ret_msg" => "",
+        //        "op" => "auth",
+        //        "conn_id" => "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
         $success = $this->safe_value($message, 'success');
@@ -2615,7 +2674,7 @@ class bybit extends \ccxt\async\bybit {
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
                     $subHash = $subMessageHashes[$j];
-                    $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades');
+                    $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
                     $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
                 }
                 $this->clean_cache($subscription);

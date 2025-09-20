@@ -72,14 +72,24 @@ class gate(Exchange, ImplicitAPI):
                 },
                 'test': {
                     'public': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                     'private': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                 },
                 'referral': {
@@ -1238,15 +1248,15 @@ class gate(Exchange, ImplicitAPI):
         if self.check_required_credentials(False):
             await self.load_unified_status()
         rawPromises = []
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
         types = self.safe_list(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option'])
         for i in range(0, len(types)):
             marketType = types[i]
             if marketType == 'spot':
-                if not sandboxMode:
-                    # gate doesn't have a sandbox for spot markets
-                    rawPromises.append(self.fetch_spot_markets(params))
+                # if not sandboxMode:
+                # gate doesn't have a sandbox for spot markets
+                rawPromises.append(self.fetch_spot_markets(params))
+                # }
             elif marketType == 'swap':
                 rawPromises.append(self.fetch_swap_markets(params))
             elif marketType == 'future':
@@ -1372,6 +1382,8 @@ class gate(Exchange, ImplicitAPI):
     async def fetch_swap_markets(self, params={}):
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
+        if self.options['sandboxMode']:
+            swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
             request: dict = {
@@ -1384,6 +1396,8 @@ class gate(Exchange, ImplicitAPI):
         return result
 
     async def fetch_future_markets(self, params={}):
+        if self.options['sandboxMode']:
+            return []  # right now sandbox does not have inverse swaps
         result = []
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(futureSettlementCurrencies)):
@@ -2847,6 +2861,14 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
+
+        https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+        https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+        https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+        https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+        https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-account-information
+
         :param dict [params]: exchange specific parameters
         :param str [params.type]: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3087,7 +3109,7 @@ class gate(Exchange, ImplicitAPI):
         result: dict = {
             'info': response,
         }
-        isolated = marginMode == 'margin'
+        isolated = marginMode == 'margin' and type == 'spot'
         data = response
         if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []

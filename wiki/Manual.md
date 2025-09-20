@@ -79,6 +79,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 | [![alpaca](https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b)](https://alpaca.markets)                                                                          | alpaca                | [Alpaca](https://alpaca.markets)                                                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://alpaca.markets/docs/)                                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![apex](https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00)](https://omni.apex.exchange/trade)                                                                  | apex                  | [Apex](https://omni.apex.exchange/trade)                                                | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api-docs.pro.apex.exchange)                                                 | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![ascendex](https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                                       | ascendex              | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![backpack](https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f)](https://backpack.exchange/join/ib8qxwyl)                                                       | backpack              | [Backpack](https://backpack.exchange/join/ib8qxwyl)                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.backpack.exchange/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bequant](https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867)](https://bequant.io/referral/dd104e3bee7634ec)                                                   | bequant               | [Bequant](https://bequant.io/referral/dd104e3bee7634ec)                                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.bequant.io/)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bigone](https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1)](https://b1.run/users/new?code=D3LLBVFT)                                                          | bigone                | [BigONE](https://b1.run/users/new?code=D3LLBVFT)                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://open.big.one/docs/api.html)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![binance](https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                          | binance               | [Binance](https://accounts.binance.com/en/register?ref=D7YA7CLY)                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://developers.binance.com/en)                                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -168,7 +169,6 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                          | probit                | [ProBit](https://www.probit.com/r/34608773)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                  | timex                 | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://plasma-relay-backend.timex.io/swagger-ui/index.html)                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                 | tokocrypto            | [Tokocrypto](https://tokocrypto.com)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
-| [![tradeogre](https://github.com/ccxt/ccxt/assets/43336371/3aa748b7-ea44-45e9-a9e7-b1d207a2578a)](https://tradeogre.com)                                                                      | tradeogre             | [tradeogre](https://tradeogre.com)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://tradeogre.com/help/api)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                            | upbit                 | [Upbit](https://upbit.com)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://wx.network)                                                   | wavesexchange         | [Waves.Exchange](https://wx.network)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.wx.network)                                                            | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             |                                                                              |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -673,7 +673,7 @@ See this section on [Overriding exchange properties](#overriding-exchange-proper
     - boolean `true` means the endpoint is natively available from the exchange API and unified in the ccxt library
     - `'emulated'` string means the endpoint isn't natively available from the exchange API but reconstructed (as much as possible) by the ccxt library from other available true-methods
 
-    For a complete list of all exchages and their supported methods, please, refer to this example: https://github.com/ccxt/ccxt/blob/master/examples/js/exchange-capabilities.js
+    For a complete list of all exchanges and their supported methods, please, refer to this example: https://github.com/ccxt/ccxt/blob/master/examples/js/exchange-capabilities.js
 
 ## Rate Limit
 
@@ -876,7 +876,7 @@ Each currency is an associative array (aka dictionary) with the following keys:
 - `id`. The string or numeric ID of the currency within the exchange. Currency ids are used inside exchanges internally to identify coins during the request/response process.
 - `code`. An uppercase string code representation of a particular currency. Currency codes are used to reference currencies within the ccxt library (explained below).
 - `name`. A human-readable name of the currency (can be a mix of uppercase & lowercase characters).
-- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
@@ -911,7 +911,7 @@ Each network is an associative array (aka dictionary) with the following keys:
 - `id`. The string or numeric ID of the network within the exchange. Network ids are used inside exchanges internally to identify networks during the request/response process.
 - `network`. An uppercase string representation of a particular network. Networks are used to reference networks within the ccxt library.
 - `name`. A human-readable name of the network (can be a mix of uppercase & lowercase characters).
-- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchnange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
+- `fee`. The withdrawal fee value as specified by the exchange. In most cases it means a flat fixed amount paid in the same currency. If the exchange does not specify it via public endpoints, the `fee` can be `undefined/None/null` or missing.
 - `active`. A boolean indicating whether trading or funding (depositing or withdrawing) for this currency is currently possible, more about it here: [`active` status](#active-status).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. Precision accepted in values by exchanges upon referencing this currency. The value of this property depends on [`exchange.precisionMode`](#precision-mode).
@@ -1252,6 +1252,135 @@ var_dump($huobipro->id, $markets);
 Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
 
 The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended for end-users. The recommended way to preload markets is by calling the `loadMarkets()` unified method. However, new exchange integrations are required to implement these methods if the underlying exchange has the corresponding API endpoints.
+
+### Sharing Markets Between Exchange Instances
+
+To optimize memory usage and reduce redundant API calls, you can share market data between multiple instances of the same exchange. This is especially useful when creating multiple exchange instances or when you want to reuse market data that has already been loaded.
+
+<!-- tabs:start -->
+
+#### **Javascript**
+```javascript
+(async () => {
+    // Create first exchange instance and load markets
+    let exchange1 = new ccxt.binance()
+    await exchange1.loadMarkets()
+    
+    // Create second exchange instance
+    let exchange2 = new ccxt.binance()
+    
+    // Share markets from first instance to second using the setMarketsFromExchange method
+    exchange2.setMarketsFromExchange(exchange1)
+    
+    // Now exchange2 can use the shared markets without loading them
+    console.log(exchange2.symbols) // Available immediately
+    
+    // When calling loadMarkets on exchange2, it will use cached markets
+    await exchange2.loadMarkets() // No API call, uses shared markets
+})()
+```
+
+#### **Python**
+```python
+# Create first exchange instance and load markets
+exchange1 = ccxt.binance()
+exchange1.load_markets()
+
+# Create second exchange instance
+exchange2 = ccxt.binance()
+
+# Share markets from first instance to second using the setMarketsFromExchange method
+exchange2.set_markets_from_exchange(exchange1)
+
+# Now exchange2 can use the shared markets without loading them
+print(exchange2.symbols)  # Available immediately
+
+# When calling load_markets on exchange2, it will use cached markets
+exchange2.load_markets()  # No API call, uses shared markets
+```
+
+#### **PHP**
+```php
+// Create first exchange instance and load markets
+$exchange1 = new \ccxt\binance();
+$exchange1->load_markets();
+
+// Create second exchange instance
+$exchange2 = new \ccxt\binance();
+
+// Share markets from first instance to second using the setMarketsFromExchange method
+$exchange2->set_markets_from_exchange($exchange1);
+
+// Now exchange2 can use the shared markets without loading them
+var_dump($exchange2->symbols); // Available immediately
+
+// When calling load_markets on exchange2, it will use cached markets
+$exchange2->load_markets(); // No API call, uses shared markets
+```
+
+#### **Go**
+```go
+// Create first exchange instance and load markets
+binance1 := ccxt.NewBinance(nil)
+markets, err := binance1.LoadMarkets()
+if err != nil {
+    // Handle error
+}
+
+// Create second exchange instance
+binance2 := ccxt.NewBinance(nil)
+
+// Share markets from first instance to second using the SetMarketsFromExchange method
+binance2.SetMarketsFromExchange(binance1)
+
+// Now binance2 can use the shared markets without loading them
+fmt.Printf("Symbols loaded: %d\n", len(binance2.GetSymbols()))
+```
+
+#### **C#**
+```csharp
+// Create first exchange instance and load markets
+var binance1 = new Binance();
+await binance1.LoadMarkets();
+
+// Create second exchange instance
+var binance2 = new Binance();
+
+// Share markets from first instance to second using the setMarketsFromExchange method
+binance2.setMarketsFromExchange(binance1);
+
+// Now binance2 can use the shared markets without loading them
+Console.WriteLine($"Symbols loaded: {binance2.symbols?.Count ?? 0}");
+```
+
+<!-- tabs:end -->
+
+**Benefits of Market Sharing:**
+- **Memory Efficiency**: Multiple exchange instances share the same market objects in memory
+- **Performance**: Eliminates redundant API calls for market data
+- **Resource Conservation**: Reduces network requests and API rate limit usage
+- **Persistence**: Market data remains available even if individual exchange instances are destroyed
+
+**Alternative Simple Assignment:**
+
+If you prefer direct property assignment, you can also share markets by directly assigning the `markets` property:
+
+```javascript
+// Simple direct assignment (ensure both exchanges are of same type)
+exchange2.markets = exchange1.markets;
+exchange2.symbols = exchange1.symbols;  // Also copy symbols for full functionality
+```
+
+However, using the `setMarketsFromExchange()` method is recommended as it:
+- Validates that both exchanges are of the same type
+- Ensures all related market data is properly copied
+- Provides better error handling
+
+**Important Notes:**
+- Only share markets between instances of the same exchange type
+- Market sharing is most effective when both instances use the same API credentials and configuration
+- The shared market objects will persist in memory as long as at least one reference exists
+- Both the `setMarketsFromExchange()` method and direct assignment create shared references, not copies
 
 ## Symbols And Market Ids
 
@@ -2142,7 +2271,7 @@ if (exchange.has['fetchTrades']) {
         }
         const trades = await exchange.fetchTrades (symbol, since, limit, params)
         if (trades.length) {
-            // not thread-safu and exchange-specific !
+            // not thread-safe and exchange-specific!
             last_json_response = exchange.parseJson (exchange.last_http_response)
             page = last_json_response['cursor']
             allTrades.push (trades)
@@ -2167,7 +2296,7 @@ if exchange.has['fetchOrders']:
         }
         orders = await exchange.fetch_orders(symbol, since, limit, params)
         if len(orders):
-            # not thread-safu and exchange-specific !
+            # not thread-safe and exchange-specific!
             cursor = exchange.last_response_headers['CB-AFTER']
             all_orders += orders
         else:
@@ -2188,7 +2317,7 @@ if ($exchange->has['fetchMyTrades']) {
         );
         $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
         if (count($trades)) {
-            // not thread-safu and exchange-specific !
+            // not thread-safe and exchange-specific!
             $last_json_response = $exchange->parse_json ($exchange->last_http_response);
             $start = $last_json_response['next'];
             $all_trades = array_merge ($all_trades, $trades);
@@ -4969,7 +5098,7 @@ $exchange->create_order($symbol, $type, $side, $amount, $price, array(
 
 ##### Hedge mode for order
 
-If exchange supports [feature](#features) for `hedged` orders, user can pass `params['hedged'] = true` in `createOrder` to open a `hedged` position instead of default `one-way` mode order. However, if exchange supports `.has['setPositionMode']` then those exchanges might not support `hedged` param directly through `createOrder`, instead on such exchange you need to change teh account-mode at first using [setPositionMode()](#set-position-mode) and then run `createOrder` (without `hedged` param) and it will place hedged order by default.
+If exchange supports [feature](#features) for `hedged` orders, user can pass `params['hedged'] = true` in `createOrder` to open a `hedged` position instead of default `one-way` mode order. However, if exchange supports `.has['setPositionMode']` then those exchanges might not support `hedged` param directly through `createOrder`, instead on such exchange you need to change the account-mode at first using [setPositionMode()](#set-position-mode) and then run `createOrder` (without `hedged` param) and it will place hedged order by default.
 
 
 

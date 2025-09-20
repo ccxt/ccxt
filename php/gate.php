@@ -52,14 +52,24 @@ class gate extends Exchange {
                 ),
                 'test' => array(
                     'public' => array(
-                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures' => 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery' => 'https://api-testnet.gateapi.io/api/v4',
+                        'options' => 'https://api-testnet.gateapi.io/api/v4',
+                        'spot' => 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet' => 'https://api-testnet.gateapi.io/api/v4',
+                        'margin' => 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts' => 'https://api-testnet.gateapi.io/api/v4',
+                        'account' => 'https://api-testnet.gateapi.io/api/v4',
                     ),
                     'private' => array(
-                        'futures' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery' => 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options' => 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures' => 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery' => 'https://api-testnet.gateapi.io/api/v4',
+                        'options' => 'https://api-testnet.gateapi.io/api/v4',
+                        'spot' => 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet' => 'https://api-testnet.gateapi.io/api/v4',
+                        'margin' => 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts' => 'https://api-testnet.gateapi.io/api/v4',
+                        'account' => 'https://api-testnet.gateapi.io/api/v4',
                     ),
                 ),
                 'referral' => array(
@@ -1231,16 +1241,15 @@ class gate extends Exchange {
             $this->load_unified_status();
         }
         $rawPromises = array();
-        $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
         $types = $this->safe_list($fetchMarketsOptions, 'types', array( 'spot', 'swap', 'future', 'option' ));
         for ($i = 0; $i < count($types); $i++) {
             $marketType = $types[$i];
             if ($marketType === 'spot') {
-                if (!$sandboxMode) {
-                    // gate doesn't have a sandbox for spot markets
-                    $rawPromises[] = $this->fetch_spot_markets($params);
-                }
+                // if (!sandboxMode) {
+                // gate doesn't have a sandbox for spot markets
+                $rawPromises[] = $this->fetch_spot_markets($params);
+                // }
             } elseif ($marketType === 'swap') {
                 $rawPromises[] = $this->fetch_swap_markets($params);
             } elseif ($marketType === 'future') {
@@ -1371,6 +1380,9 @@ class gate extends Exchange {
     public function fetch_swap_markets($params = array ()) {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
+        if ($this->options['sandboxMode']) {
+            $swapSettlementCurrencies = array( 'usdt' ); // gate sandbox only has usdt-margined swaps
+        }
         for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
             $settleId = $swapSettlementCurrencies[$c];
             $request = array(
@@ -1386,6 +1398,9 @@ class gate extends Exchange {
     }
 
     public function fetch_future_markets($params = array ()) {
+        if ($this->options['sandboxMode']) {
+            return array(); // right now sandbox does not have inverse swaps
+        }
         $result = array();
         $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
         for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
@@ -2935,6 +2950,14 @@ class gate extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
+         *
+         * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+         * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+         * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+         * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+         * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+         * @see https://www.gate.com/docs/developers/apiv4/en/#$query-account-information
+         *
          * @param {array} [$params] exchange specific parameters
          * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3179,7 +3202,7 @@ class gate extends Exchange {
         $result = array(
             'info' => $response,
         );
-        $isolated = $marginMode === 'margin';
+        $isolated = $marginMode === 'margin' && $type === 'spot';
         $data = $response;
         if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
             $flatBalances = array();

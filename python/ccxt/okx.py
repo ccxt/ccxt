@@ -237,6 +237,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/open-oracle': 50,
                         'market/exchange-rate': 20,
                         'market/index-components': 1,
+                        'public/market-data-history': 4,
                         'public/economic-calendar': 50,
                         'market/block-tickers': 1,
                         'market/block-ticker': 1,
@@ -388,7 +389,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
-                        'account/spot-manual-borrow-repay': 10,
+                        'account/spot-manual-borrow-repay': 30,
                         'account/set-auto-repay': 4,
                         'account/spot-borrow-repay-history': 4,
                         'account/move-positions-history': 10,
@@ -2975,12 +2976,14 @@ class okx(Exchange, ImplicitAPI):
             request['callbackSpread'] = trailingPrice
             request['ordType'] = 'move_order_stop'
         elif stopLossDefined or takeProfitDefined:
+            attachAlgoOrd = {}
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
                 slTriggerPx = self.price_to_precision(symbol, stopLossTriggerPrice)
-                request['slTriggerPx'] = slTriggerPx
+                slOrder = {}
+                slOrder['slTriggerPx'] = slTriggerPx
                 stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
                 if stopLossOrderType is not None:
@@ -2992,23 +2995,25 @@ class okx(Exchange, ImplicitAPI):
                         if stopLossLimitPrice is None:
                             raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order')
                         else:
-                            request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
+                            slOrder['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
                     elif stopLossOrderType == 'market':
-                        request['slOrdPx'] = '-1'
+                        slOrder['slOrdPx'] = '-1'
                 elif stopLossLimitPrice is not None:
-                    request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
+                    slOrder['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)  # limit sl order
                 else:
-                    request['slOrdPx'] = '-1'  # market sl order
+                    slOrder['slOrdPx'] = '-1'  # market sl order
                 stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last')
                 if stopLossTriggerPriceType is not None:
                     if (stopLossTriggerPriceType != 'last') and (stopLossTriggerPriceType != 'index') and (stopLossTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"')
-                    request['slTriggerPxType'] = stopLossTriggerPriceType
+                    slOrder['slTriggerPxType'] = stopLossTriggerPriceType
+                attachAlgoOrd = self.extend(attachAlgoOrd, slOrder)
             if takeProfitDefined:
                 takeProfitTriggerPrice = self.safe_value_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
                 if takeProfitTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
-                request['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
+                tpOrder = {}
+                tpOrder['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                 takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
                 takeProfitOrderType = self.safe_string_2(takeProfit, 'type', 'tpOrdKind')
                 if takeProfitOrderType is not None:
@@ -3020,20 +3025,25 @@ class okx(Exchange, ImplicitAPI):
                         if takeProfitLimitPrice is None:
                             raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order')
                         else:
-                            request['tpOrdKind'] = takeProfitOrderType
-                            request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
+                            tpOrder['tpOrdKind'] = takeProfitOrderType
+                            tpOrder['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)
                     elif takeProfitOrderType == 'market':
-                        request['tpOrdPx'] = '-1'
+                        tpOrder['tpOrdPx'] = '-1'
                 elif takeProfitLimitPrice is not None:
-                    request['tpOrdKind'] = 'limit'
-                    request['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
+                    tpOrder['tpOrdKind'] = 'limit'
+                    tpOrder['tpOrdPx'] = self.price_to_precision(symbol, takeProfitLimitPrice)  # limit tp order
                 else:
-                    request['tpOrdPx'] = '-1'  # market tp order
+                    tpOrder['tpOrdPx'] = '-1'  # market tp order
                 takeProfitTriggerPriceType = self.safe_string_2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last')
                 if takeProfitTriggerPriceType is not None:
                     if (takeProfitTriggerPriceType != 'last') and (takeProfitTriggerPriceType != 'index') and (takeProfitTriggerPriceType != 'mark'):
                         raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"')
-                    request['tpTriggerPxType'] = takeProfitTriggerPriceType
+                    tpOrder['tpTriggerPxType'] = takeProfitTriggerPriceType
+                attachAlgoOrd = self.extend(attachAlgoOrd, tpOrder)
+            attachOrdKeys = list(attachAlgoOrd.keys())
+            attachOrdLen = len(attachOrdKeys)
+            if attachOrdLen > 0:
+                request['attachAlgoOrds'] = [attachAlgoOrd]
         elif trigger:
             request['ordType'] = 'trigger'
             request['triggerPx'] = self.price_to_precision(symbol, triggerPrice)
