@@ -3337,7 +3337,7 @@ export default class Exchange {
             // set booleans
             for (let j = 0; j < subTypes.length; j++) {
                 const subType = subTypes[j];
-                if (result[subType] === undefined) {
+                if (result[subType] === undefined && result['type'] !== 'spot') {
                     result[subType] = (this.safeString (result, 'subType') === subType);
                 }
             }
