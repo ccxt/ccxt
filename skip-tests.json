@@ -1796,6 +1796,27 @@
             "fetchTickers": "temporary issues"
         }
     },
+    "toobit": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "not provided",
+                "maker": "not provided",
+                "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "precision":"tmp",
+                "type":"tmp",
+                "limits":"tmp"
+            },
+            "fetchLastPrices": "tmp",
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "tmp"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
     "tokocrypto": {
         "httpsProxy": "http://188.245.226.105:3128",
         "skipMethods": {
