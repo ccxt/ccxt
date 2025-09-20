@@ -3,6 +3,27 @@
         "skip": "private endpoints, todo",
         "skipWs": "private endpoints, todo"
     },
+    "arkm": {
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "messed",
+                "taker": "tmp",
+                "maker": "tmp"
+            },
+            "fetchCurrencies": {
+                "deposit": "not provided",
+                "withdraw": "not provided",
+                "precision": "not provided",
+                "activeMajorCurrencies": "todo"
+            },
+            "ticker": {
+                "timestamp": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
+    },
     "apex": {
         "skipMethods": {
             "loadMarkets": {
