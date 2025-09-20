@@ -1535,6 +1535,8 @@ export default class bitget extends Exchange {
                 'networks': {
                     // 'TRX': 'TRX', // different code for mainnet
                     'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
                     // 'ETH': 'ETH', // different code for mainnet
                     'ERC20': 'ERC20',
                     'BEP20': 'BSC',
@@ -2991,6 +2993,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network code, i.e. 'ERC20', 'TRC20',
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
