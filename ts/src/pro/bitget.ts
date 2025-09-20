@@ -522,7 +522,7 @@ export default class bitget extends bitgetRest {
             args['topic'] = 'kline';
             args['symbol'] = market['id'];
             args['interval'] = interval;
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
             messageHash = 'kline:' + symbol;
         } else {
             args['channel'] = 'candle' + interval;
@@ -571,7 +571,7 @@ export default class bitget extends bitgetRest {
             args['topic'] = channel;
             args['symbol'] = market['id'];
             args['interval'] = interval;
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
             params['interval'] = interval;
             messageHash = channel + symbol;
         } else {
@@ -767,7 +767,7 @@ export default class bitget extends bitgetRest {
             args['topic'] = channel;
             args['symbol'] = market['id'];
             args['interval'] = this.safeString (params, 'interval', '1m');
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
             params = this.omit (params, 'interval');
         } else {
             args['channel'] = channel;
@@ -995,7 +995,7 @@ export default class bitget extends bitgetRest {
             messageHashes.push ('trade:' + symbol);
         }
         if (uta) {
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
         }
         const trades = await this.watchPublicMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
@@ -1267,7 +1267,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = 'default';
         } else {
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
         }
         const newPositions = await this.watchPrivate (messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
@@ -1576,7 +1576,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = instId;
         } else {
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
         }
         const orders = await this.watchPrivate (messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
@@ -2039,7 +2039,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = 'default';
         } else {
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
         }
         const trades = await this.watchPrivate (messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
@@ -2228,7 +2228,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['coin'] = 'default';
         } else {
-            params['uta'] = true;
+            params = this.extend (params, { 'uta': true });
         }
         const messageHash = 'balance:' + instType.toLowerCase ();
         return await this.watchPrivate (messageHash, messageHash, args, params);
