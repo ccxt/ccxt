@@ -1584,7 +1584,7 @@ func (this *Exchange) GetHttpAgentIfNeeded(url string) (interface{}, error) {
 	return nil, nil // no agent needed
 }
 
-func (this *Exchange) Ping(client *WSClient) interface{} {
+func (this *Exchange) Ping(client interface{}) interface{} {
 	return nil
 }
 
@@ -1653,7 +1653,7 @@ func (this *Exchange) Client(url interface{}) *WSClient {
 		this.streaming,
 		map[string]interface{}{
 			"Log":      this.Log,
-			"Ling":     this.Ping,
+			"Ping":     this.DerivedExchange.Ping,
 			"Verbose":  this.Verbose,
 			"Throttle": NewThrottler(this.TokenBucket),
 			"Options": map[string]interface{}{

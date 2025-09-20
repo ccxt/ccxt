@@ -306,6 +306,7 @@ type ICoreExchange interface {
 }
 
 type IDerivedExchange interface {
+	Ping(client interface{}) interface{}
 	HandleDeltas(orderbook interface{}, deltas interface{})
 	ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}
 	ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{}

@@ -309,14 +309,8 @@ func (this *Client) IsOpen() (interface{}, error) {
 	return nil, NotSupported(this.Url + " isOpen() not implemented yet")
 }
 
-func (this *Client) ResetConnection(err interface{}) {
-	this.ClearConnectionTimeout()
-	this.ClearPingInterval()
-	this.Reject(err)
-}
-
 func (this *Client) OnConnectionTimeout() {
-	if isOpen, _ := this.IsOpen(); isOpen == nil || isOpen == false {
+	if !this.IsConnected.(bool) {
 		err := RequestTimeout("Connection to " + this.Url + " failed due to a connection timeout")
 		this.OnError(err)
 		this.Connection.Close()
@@ -338,90 +332,6 @@ func (this *Client) ClearConnectionTimeout() {
 			timer.Stop()
 		}
 		this.ConnectionTimer = nil
-	}
-}
-
-func (this *Client) SetPingInterval() {
-	if this.KeepAlive.(int64) > 0 {
-		ticker := time.NewTicker(time.Duration(this.KeepAlive.(int64)) * time.Millisecond)
-		this.PingInterval = ticker
-		go func() {
-			defer ticker.Stop() // Ensure ticker is stopped when goroutine exits
-			for {
-				select {
-				case <-ticker.C:
-					this.OnPingInterval()
-				case <-this.Disconnected.(*Future).Await(): // Exit when client is disconnected
-					return
-				}
-			}
-		}()
-	}
-}
-
-func (this *Client) ClearPingInterval() {
-	if this.PingInterval != nil {
-		if ticker, ok := this.PingInterval.(*time.Ticker); ok {
-			ticker.Stop()
-		}
-		this.PingInterval = nil
-	}
-}
-
-func (this *Client) OnPingInterval() {
-	if this.KeepAlive.(int64) > 0 {
-		if isOpen, _ := this.IsOpen(); isOpen != nil && isOpen != false {
-			now := time.Now().UnixNano() / int64(time.Millisecond)
-			if this.LastPong == nil {
-				this.LastPong = now
-			}
-			lastPong := this.LastPong.(int64)
-			maxPingPongMisses := float64(2.0)
-			if this.MaxPingPongMisses != nil {
-				if misses, ok := this.MaxPingPongMisses.(float64); ok {
-					maxPingPongMisses = misses
-				}
-			}
-			if (lastPong + this.KeepAlive.(int64)*int64(maxPingPongMisses)) < now {
-				err := RequestTimeout("Connection to " + this.Url + " timed out due to a ping-pong keepalive missing on time")
-				this.OnError(err)
-			} else {
-				var message interface{}
-				if this.Ping != nil {
-					if pingFunc, ok := this.Ping.(func(*Client) interface{}); ok {
-						message = pingFunc(this)
-					}
-				}
-				if message != nil {
-					go func() {
-						future := this.Send(message)
-						if err := <-future; err != nil {
-							this.OnError(err)
-						}
-					}()
-				} else {
-					// In Go, we can ping directly on websocket connection
-					if this.Connection != nil {
-						this.Connection.WriteMessage(websocket.PingMessage, []byte{})
-					}
-				}
-			}
-		}
-	}
-}
-
-func (this *Client) OnOpen() {
-	if this.Verbose {
-		this.Log(time.Now(), "onOpen")
-	}
-	this.ConnectionEstablished = Milliseconds()
-	this.IsConnected = true
-	// Signal connected channel
-	this.Connected.(*Future).Resolve(true)
-	this.ClearConnectionTimeout()
-	this.SetPingInterval()
-	if this.OnConnectedCallback != nil {
-		this.OnConnectedCallback(this, nil)
 	}
 }
 
@@ -490,6 +400,10 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 	} else {
 		msgBytes, _ := json.Marshal(message)
 		msgStr = string(msgBytes)
+	}
+
+	if this.Verbose {
+		this.Log(time.Now(), "sending", msgStr)
 	}
 
 	future := NewFuture()
