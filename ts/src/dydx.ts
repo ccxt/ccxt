@@ -205,6 +205,7 @@ export default class dydx extends Exchange {
                 },
                 'nodeRpc': {
                     'get': {
+                        'abci_info': 1,
                         'block': 1,
                         'broadcast_tx_async': 1,
                         'broadcast_tx_sync': 1,
@@ -1384,16 +1385,20 @@ export default class dydx extends Exchange {
             }
             conditionalOrderTriggerSubticks = Precise.stringMul (conditionalOrderTriggerSubticks, priceScale);
         }
-        const goodTillBlock = this.safeInteger (params, 'goodTillBlock');
-        const goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
+        const latestBlockHeight = this.safeInteger (params, 'latestBlockHeight');
+        let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        let goodTillBlockTime = undefined;
+        const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds', 60); // default is 60 seconds
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
-                throw new ArgumentsRequired (this.id + ' goodTillBlock is required for short term order.');
+                // short term order
+                goodTillBlock = latestBlockHeight + 20;
             }
         } else {
-            if (goodTillBlockTime === undefined) {
-                throw new ArgumentsRequired ('goodTillBlockTime is required.');
+            if (goodTillBlockTimeInSeconds === undefined) {
+                throw new ArgumentsRequired ('goodTillBlockTimeInSeconds is required.');
             }
+            goodTillBlockTime = this.milliseconds () + goodTillBlockTimeInSeconds * 1000;
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
         const defaultClientOrderId = this.randNumber (10);
@@ -1425,8 +1430,29 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgPlaceOrder',
             'value': orderPayload,
         };
-        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'goodTillBlock', 'goodTillBlockTime', 'subaccountId' ]);
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
         return this.extend (signingPayload, params);
+    }
+
+    async fetchLatestBlockHeight (params = {}): Promise<int> {
+        const response = await this.nodeRpcGetAbciInfo (params);
+        //
+        // {
+        //     "jsonrpc": "2.0",
+        //     "id": -1,
+        //     "result": {
+        //         "response": {
+        //             "data": "dydxprotocol",
+        //             "version": "9.1.0-rc0",
+        //             "last_block_height": "49157714",
+        //             "last_block_app_hash": "9LHAcDDI5zmWiC6bGiiGtxuWPlKJV+/fTBZk/WQ/Y4U="
+        //         }
+        //     }
+        // }
+        //
+        const result = this.safeDict (response, 'result');
+        const info = this.safeDict (result, 'response');
+        return this.safeInteger (info, 'last_block_height');
     }
 
     /**
@@ -1454,6 +1480,8 @@ export default class dydx extends Exchange {
         await this.loadMarkets ();
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
+        const lastBlockHeight = await this.fetchLatestBlockHeight ();
+        params['latestBlockHeight'] = lastBlockHeight;
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', 'dydx-testnet-4', account, undefined);
         const request = {
@@ -1500,25 +1528,28 @@ export default class dydx extends Exchange {
         await this.loadMarkets ();
         const market: Market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const goodTillBlock = this.safeInteger (params, 'goodTillBlock');
-        const goodTillBlockTime = this.safeInteger (params, 'goodTillBlockTime');
+        let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        const goodTillBlockTimeInSeconds = this.safeInteger (params, 'goodTillBlockTimeInSeconds');
+        let goodTillBlockTime = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : undefined;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         const subaccountId = this.safeInteger (params, 'subaccountId', 0);
-        params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'subaccountId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new Error (this.id + ' invalid orderFlags (0, 64, 32).');
         }
         if (orderFlags > 0) {
-            if (goodTillBlockTime === undefined) {
-                throw new ArgumentsRequired (this.id + ' goodTillBlockTime is required for long term or conditional order.');
+            if (goodTillBlockTimeInSeconds === undefined) {
+                throw new ArgumentsRequired (this.id + ' goodTillBlockTimeInSeconds is required for long term or conditional order.');
             }
             if (goodTillBlock !== undefined && goodTillBlock > 0) {
                 throw new Error (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
+            goodTillBlockTime = this.milliseconds () + goodTillBlockTimeInSeconds * 1000;
         } else {
+            const latestBlockHeight = await this.fetchLatestBlockHeight ();
             if (goodTillBlock === undefined) {
-                throw new ArgumentsRequired (this.id + ' goodTillBlock is required for short term order.');
+                goodTillBlock = latestBlockHeight + 20;
             }
         }
         const credentials = this.retrieveCredentials ();
@@ -1583,9 +1614,10 @@ export default class dydx extends Exchange {
             throw new NotSupported (this.id + ' cancelOrders only support clientOrderIds.');
         }
         const subaccountId = this.safeInteger (params, 'subaccountId', 0);
-        const goodTillBlock = this.safeInteger (params, 'goodTillBlock');
+        let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         if (goodTillBlock === undefined) {
-            throw new ArgumentsRequired (this.id + ' goodTillBlock is required.');
+            const latestBlockHeight = await this.fetchLatestBlockHeight ();
+            goodTillBlock = latestBlockHeight + 20;
         }
         params = this.omit (params, [ 'clientOrderIds', 'goodTillBlock', 'subaccountId' ]);
         const credentials = this.retrieveCredentials ();
@@ -2317,10 +2349,13 @@ export default class dydx extends Exchange {
             errorCode = this.safeString (response, 'code');
         }
         if (errorCode) {
-            const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            throw new ExchangeError (feedback);
+            const errorCodeNum = this.parseToNumeric (errorCode);
+            if (errorCodeNum > 0) {
+                const feedback = this.id + ' ' + this.json (response);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+                throw new ExchangeError (feedback);
+            }
         }
         return undefined;
     }

@@ -55,6 +55,7 @@ interface Exchange {
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders (params?: {}): Promise<implicitReturnType>;
     indexerGetFillsParentSubaccount (params?: {}): Promise<implicitReturnType>;
     indexerGetHistoricalPnlParentSubaccount (params?: {}): Promise<implicitReturnType>;
+    nodeRpcGetAbciInfo (params?: {}): Promise<implicitReturnType>;
     nodeRpcGetBlock (params?: {}): Promise<implicitReturnType>;
     nodeRpcGetBroadcastTxAsync (params?: {}): Promise<implicitReturnType>;
     nodeRpcGetBroadcastTxSync (params?: {}): Promise<implicitReturnType>;
