@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.7.0'
+__version__ = '4.8.0'
 
 # ----------------------------------------------------------------------------
 
@@ -168,6 +168,7 @@ from ccxt.hyperliquid import hyperliquid                              # noqa: F4
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
 from ccxt.jibitex import jibitex                                      # noqa: F401
+from ccxt.kcex import kcex                                            # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
@@ -304,6 +305,7 @@ exchanges = [
     'independentreserve',
     'indodax',
     'jibitex',
+    'kcex',
     'kraken',
     'krakenfutures',
     'kucoin',

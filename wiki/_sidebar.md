@@ -87,6 +87,7 @@
 	- [independentreserve](exchanges/independentreserve.md)
 	- [indodax](exchanges/indodax.md)
 	- [jibitex()](exchanges/jibitex().md)
+	- [kcex()](exchanges/kcex().md)
 	- [kraken()](exchanges/kraken().md)
 	- [krakenfutures](exchanges/krakenfutures.md)
 	- [kucoin](exchanges/kucoin.md)

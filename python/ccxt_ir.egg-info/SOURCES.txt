@@ -90,6 +90,7 @@ ccxt/hyperliquid.py
 ccxt/independentreserve.py
 ccxt/indodax.py
 ccxt/jibitex.py
+ccxt/kcex.py
 ccxt/kraken.py
 ccxt/krakenfutures.py
 ccxt/kucoin.py
@@ -225,6 +226,7 @@ ccxt/abstract/hyperliquid.py
 ccxt/abstract/independentreserve.py
 ccxt/abstract/indodax.py
 ccxt/abstract/jibitex.py
+ccxt/abstract/kcex.py
 ccxt/abstract/kraken.py
 ccxt/abstract/krakenfutures.py
 ccxt/abstract/kucoin.py
@@ -360,6 +362,7 @@ ccxt/async_support/hyperliquid.py
 ccxt/async_support/independentreserve.py
 ccxt/async_support/indodax.py
 ccxt/async_support/jibitex.py
+ccxt/async_support/kcex.py
 ccxt/async_support/kraken.py
 ccxt/async_support/krakenfutures.py
 ccxt/async_support/kucoin.py
