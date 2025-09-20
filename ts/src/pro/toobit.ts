@@ -51,6 +51,9 @@ export default class toobit extends toobitRest {
                         '1w': '1w',
                         '1M': '1M',
                     },
+                    'watchOrderBook': {
+                        'channel': 'depth', // depth, diffDepth
+                    },
                 },
                 'listenKeyRefreshRate': 1200000, // 20 mins
             },
@@ -124,7 +127,8 @@ export default class toobit extends toobitRest {
             'trade': this.handleTrades,
             'kline': this.handleOHLCV,
             'realtimes': this.handleTickers,
-            'depth': this.handlePartialOrderBook,
+            'depth': this.handleOrderBookPartialSnapshot,
+            'diffDepth': this.handleOrderBook,
             'outboundAccountInfo': this.handleBalance,
             'outboundContractAccountInfo': this.handleBalance,
             'executionReport': this.handleOrder,
@@ -196,7 +200,7 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': 'trade',
@@ -286,7 +290,7 @@ export default class toobit extends toobitRest {
      */
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const messageHashes = [];
         const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
         const marketIds = [];
@@ -430,7 +434,7 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': 'realtimes',
@@ -541,7 +545,7 @@ export default class toobit extends toobitRest {
             subParams.push (rawHash);
         }
         const marketIds = this.marketIds (symbols);
-        const url = this.urls['api']['ws']['spot'] + '/quote/ws/v1';
+        const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const request: Dict = {
             'symbol': marketIds.join (','),
             'topic': channel,
@@ -551,7 +555,62 @@ export default class toobit extends toobitRest {
         return orderbook.limit ();
     }
 
-    handlePartialOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         symbol: 'DOGEUSDT',
+        //         symbolName: 'DOGEUSDT',
+        //         topic: 'depth',
+        //         params: { realtimeInterval: '24h' },
+        //         data: [
+        //             {
+        //             e: 301,
+        //             t: 1757304842860,
+        //             v: '9814355_1E-18',
+        //             b: [Array],
+        //             a: [Array],
+        //             o: 0
+        //             }
+        //         ],
+        //         f: false,
+        //         sendTime: 1757304843047,
+        //         shared: false
+        //     }
+        //
+        const isSnapshot = this.safeBool (message, 'f', false);
+        if (isSnapshot) {
+            this.setOrderBookSnapshot (client, message, 'diffDepth');
+            return;
+        }
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const messageHash = 'orderBook::' + symbol + '::' + 'diffDepth';
+            if (!(symbol in this.orderbooks)) {
+                const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+            const orderBook = this.orderbooks[symbol];
+            const timestamp = this.safeInteger (entry, 't');
+            const bids = this.safeList (entry, 'b', []);
+            const asks = this.safeList (entry, 'a', []);
+            this.handleDeltas (orderBook['asks'], asks);
+            this.handleDeltas (orderBook['bids'], bids);
+            orderBook['timestamp'] = timestamp;
+            this.orderbooks[symbol] = orderBook;
+            client.resolve (orderBook, messageHash);
+        }
+    }
+
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta);
+        bookside.storeArray (bidAsk);
+    }
+
+    handleOrderBookPartialSnapshot (client: Client, message) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -574,6 +633,10 @@ export default class toobit extends toobitRest {
         //         shared: false
         //     }
         //
+        this.setOrderBookSnapshot (client, message, 'depth');
+    }
+
+    setOrderBookSnapshot (client: Client, message, channel: string) {
         const data = this.safeList (message, 'data', []);
         if (data.length === 0) {
             return;
@@ -582,7 +645,7 @@ export default class toobit extends toobitRest {
             const entry = data[i];
             const marketId = this.safeString (entry, 's');
             const symbol = this.safeSymbol (marketId);
-            const messageHash = 'orderBook::' + symbol + '::depth';
+            const messageHash = 'orderBook::' + symbol + '::' + channel;
             if (!(symbol in this.orderbooks)) {
                 const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
