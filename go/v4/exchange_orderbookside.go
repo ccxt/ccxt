@@ -210,14 +210,6 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 				}
 				obs.Index = newIndex
 			}
-			if obs.Length > len(obs.Data)-1 {
-				newData := make([][]interface{}, len(obs.Data)*2)
-				copy(newData, obs.Data)
-				for i := len(obs.Data); i < len(newData); i++ {
-					newData[i] = []interface{}{}
-				}
-				obs.Data = newData
-			}
 		}
 	} else if obs.Index[index] == indexPrice {
 		// Remove element
