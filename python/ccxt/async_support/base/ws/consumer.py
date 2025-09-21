@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from collections import deque
 from ....base.types import Message, ConsumerFunction
 from ....base.errors import ConsumerFunctionError
