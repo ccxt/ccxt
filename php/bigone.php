@@ -21,7 +21,7 @@ class bigone extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
+                'swap' => true,
                 'future' => null, // has but unimplemented
                 'option' => false,
                 'cancelAllOrders' => true,

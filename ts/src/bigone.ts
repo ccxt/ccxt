@@ -27,7 +27,7 @@ export default class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': undefined, // has but unimplemented
                 'option': false,
                 'cancelAllOrders': true,

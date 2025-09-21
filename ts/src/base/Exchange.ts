@@ -1754,7 +1754,7 @@ export default class Exchange {
     // ########################################################################
 
     // ------------------------------------------------------------------------
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     describe (): any {
         return {
@@ -3443,6 +3443,14 @@ export default class Exchange {
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
+        // check marketHelperProps
+        const sourceExchangeHelpers = this.safeList (sourceExchange.options, 'marketHelperProps', []);
+        for (let i = 0; i < sourceExchangeHelpers.length; i++) {
+            const helper = sourceExchangeHelpers[i];
+            if (sourceExchange.options[helper] !== undefined) {
+                this.options[helper] = sourceExchange.options[helper];
+            }
+        }
         return this;
     }
 
@@ -7747,6 +7755,18 @@ export default class Exchange {
         }
         const values = Object.values (uniqueResult);
         return values as any;
+    }
+
+    removeKeysFromDict (dict:Dict, removeKeys: string[]) {
+        const keys = Object.keys (dict);
+        const newDict = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!this.inArray (key, removeKeys)) {
+                newDict[key] = dict[key];
+            }
+        }
+        return newDict;
     }
 
     handleUntilOption (key: string, request, params, multiplier = 1) {

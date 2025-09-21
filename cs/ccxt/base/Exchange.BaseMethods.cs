@@ -2043,6 +2043,16 @@ public partial class Exchange
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
+        // check marketHelperProps
+        object sourceExchangeHelpers = this.safeList(sourceExchange.options, "marketHelperProps", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(sourceExchangeHelpers)); postFixIncrement(ref i))
+        {
+            object helper = getValue(sourceExchangeHelpers, i);
+            if (isTrue(!isEqual(getValue(sourceExchange.options, helper), null)))
+            {
+                ((IDictionary<string,object>)this.options)[(string)helper] = getValue(sourceExchange.options, helper);
+            }
+        }
         return this;
     }
 
@@ -7513,6 +7523,21 @@ public partial class Exchange
         }
         object values = new List<object>(((IDictionary<string,object>)uniqueResult).Values);
         return ((object)values);
+    }
+
+    public virtual object removeKeysFromDict(object dict, object removeKeys)
+    {
+        object keys = new List<object>(((IDictionary<string,object>)dict).Keys);
+        object newDict = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            if (!isTrue(this.inArray(key, removeKeys)))
+            {
+                ((IDictionary<string,object>)newDict)[(string)key] = getValue(dict, key);
+            }
+        }
+        return newDict;
     }
 
     public virtual object handleUntilOption(object key, object request, object parameters, object multiplier = null)

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.4'
+__version__ = '4.5.5'
 
 # -----------------------------------------------------------------------------
 
@@ -1916,7 +1916,7 @@ class Exchange(object):
     # ########################################################################
     # ########################################################################
 
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     def describe(self) -> Any:
         return {
@@ -3343,6 +3343,12 @@ class Exchange(object):
         self.baseCurrencies = sourceExchange.baseCurrencies
         self.quoteCurrencies = sourceExchange.quoteCurrencies
         self.codes = sourceExchange.codes
+        # check marketHelperProps
+        sourceExchangeHelpers = self.safe_list(sourceExchange.options, 'marketHelperProps', [])
+        for i in range(0, len(sourceExchangeHelpers)):
+            helper = sourceExchangeHelpers[i]
+            if sourceExchange.options[helper] is not None:
+                self.options[helper] = sourceExchange.options[helper]
         return self
 
     def get_describe_for_extended_ws_exchange(self, currentRestInstance: Any, parentRestInstance: Any, wsBaseDescribe: dict):
@@ -6782,6 +6788,15 @@ class Exchange(object):
                 uniqueResult[id] = entry
         values = list(uniqueResult.values())
         return values
+
+    def remove_keys_from_dict(self, dict: dict, removeKeys: List[str]):
+        keys = list(dict.keys())
+        newDict = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if not self.in_array(key, removeKeys):
+                newDict[key] = dict[key]
+        return newDict
 
     def handle_until_option(self, key: str, request, params, multiplier=1):
         until = self.safe_integer_2(params, 'until', 'till')

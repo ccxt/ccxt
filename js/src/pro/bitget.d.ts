@@ -101,9 +101,11 @@ export default class bitget extends bitgetRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -113,9 +115,11 @@ export default class bitget extends bitgetRest {
      * @description unsubscribe from the orderbook channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
@@ -126,9 +130,11 @@ export default class bitget extends bitgetRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;

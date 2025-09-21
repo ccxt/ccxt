@@ -35,7 +35,7 @@ class bigone(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
+                'swap': True,
                 'future': None,  # has but unimplemented
                 'option': False,
                 'cancelAllOrders': True,

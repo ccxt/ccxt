@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.4';
+$version = '4.5.5';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.4';
+    const VERSION = '4.5.5';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -341,6 +341,7 @@ class Exchange {
         'alpaca',
         'apex',
         'ascendex',
+        'backpack',
         'bequant',
         'bigone',
         'binance',
@@ -433,7 +434,6 @@ class Exchange {
         'probit',
         'timex',
         'tokocrypto',
-        'tradeogre',
         'upbit',
         'wavesexchange',
         'whitebit',
@@ -4074,6 +4074,14 @@ class Exchange {
         $this->baseCurrencies = $sourceExchange->baseCurrencies;
         $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
         $this->codes = $sourceExchange->codes;
+        // check marketHelperProps
+        $sourceExchangeHelpers = $this->safe_list($sourceExchange->options, 'marketHelperProps', array());
+        for ($i = 0; $i < count($sourceExchangeHelpers); $i++) {
+            $helper = $sourceExchangeHelpers[$i];
+            if ($sourceExchange->options[$helper] !== null) {
+                $this->options[$helper] = $sourceExchange->options[$helper];
+            }
+        }
         return $this;
     }
 
@@ -8309,6 +8317,18 @@ class Exchange {
         }
         $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
         return $values;
+    }
+
+    public function remove_keys_from_dict(array $dict, array $removeKeys) {
+        $keys = is_array($dict) ? array_keys($dict) : array();
+        $newDict = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!$this->in_array($key, $removeKeys)) {
+                $newDict[$key] = $dict[$key];
+            }
+        }
+        return $newDict;
     }
 
     public function handle_until_option(string $key, $request, $params, $multiplier = 1) {

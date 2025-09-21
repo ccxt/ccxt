@@ -571,7 +571,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             market = data[i]
             id = self.safe_string(market, 'symbol')
             expiry = self.safe_integer(market, 'expireDate')
-            future = True if expiry else False
+            future = self.safe_string(market, 'nextFundingRateTime') is None
             swap = not future
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')

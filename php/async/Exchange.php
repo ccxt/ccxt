@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.4';
+$version = '4.5.5';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.4';
+    const VERSION = '4.5.5';
 
     public $browser;
     public $marketsLoading = null;
@@ -380,7 +380,7 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
     // ########################################################################
 
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     public function describe(): mixed {
         return array(
@@ -2066,6 +2066,14 @@ class Exchange extends \ccxt\Exchange {
         $this->baseCurrencies = $sourceExchange->baseCurrencies;
         $this->quoteCurrencies = $sourceExchange->quoteCurrencies;
         $this->codes = $sourceExchange->codes;
+        // check marketHelperProps
+        $sourceExchangeHelpers = $this->safe_list($sourceExchange->options, 'marketHelperProps', array());
+        for ($i = 0; $i < count($sourceExchangeHelpers); $i++) {
+            $helper = $sourceExchangeHelpers[$i];
+            if ($sourceExchange->options[$helper] !== null) {
+                $this->options[$helper] = $sourceExchange->options[$helper];
+            }
+        }
         return $this;
     }
 
@@ -6465,6 +6473,18 @@ class Exchange extends \ccxt\Exchange {
         }
         $values = is_array($uniqueResult) ? array_values($uniqueResult) : array();
         return $values;
+    }
+
+    public function remove_keys_from_dict(array $dict, array $removeKeys) {
+        $keys = is_array($dict) ? array_keys($dict) : array();
+        $newDict = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if (!$this->in_array($key, $removeKeys)) {
+                $newDict[$key] = $dict[$key];
+            }
+        }
+        return $newDict;
     }
 
     public function handle_until_option(string $key, $request, $params, $multiplier = 1) {

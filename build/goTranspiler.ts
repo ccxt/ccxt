@@ -152,6 +152,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "setSandboxMode": false,
     "safeCurrencyCode": false,
     "parseConversion": false,
+    "parseLastPrice": false,
     "sign": false
 }
 
@@ -1215,7 +1216,7 @@ ${constStatements.join('\n')}
         // @ts-expect-error
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow)
         const goExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
