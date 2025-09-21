@@ -11,6 +11,7 @@ export default {
   output: {
     path: outputDirectory,
     filename: 'ccxt.browser.js',
+	publicPath: '',
     library: {
       type: 'self', // we are targeting the browser (including webworkers)
       name: 'ccxt',
