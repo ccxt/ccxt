@@ -1468,7 +1468,7 @@ export default class upbit extends Exchange {
         //             "amount": "100000.0",
         //             "fee": "0.0"
         //         },
-        //         ...,
+        //         ...
         //     ]
         //
         return this.parseTransactions (response, currency, since, limit);
@@ -1555,7 +1555,7 @@ export default class upbit extends Exchange {
         //             "fee": "0.0",
         //             "krw_amount": "80420.0"
         //         },
-        //         ...,
+        //         ...
         //     ]
         //
         return this.parseTransactions (response, currency, since, limit);
