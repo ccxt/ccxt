@@ -25,7 +25,7 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
         // TODO: add payload test
     };
     try {
-        await exchange.subscribeTickers (argSymbols, consumer, true, argParams);
+        await exchange.subscribeTickers (argSymbols, consumer, argParams);
     } catch (e) {
         // for some exchanges, specifically watchTickers method not subscribe
         // to "all tickers" itself, and it requires symbols to be set

@@ -78,10 +78,12 @@ public class Stream : IBaseStream
         }
     }
 
-    public void subscribe(object topic2, object consumerFn2, object synchronous2 = null)
+    public void subscribe(object topic2, object consumerFn2, object params2 = null)
     {
-        var synchronous = synchronous2 as bool? ?? true;
         var topic = topic2 as String;
+        var paramsDict = params2 as Dictionary<string, object> ?? new Dictionary<string, object>();
+        var synchronous = paramsDict.ContainsKey("synchronous") ? (bool)paramsDict["synchronous"] : true;
+        var consumerMaxBacklogSize = paramsDict.ContainsKey("consumerMaxBacklogSize") ? (int)paramsDict["consumerMaxBacklogSize"] : 1000;
 
         // Check if consumerFn2 is already a ConsumerFunction
         ConsumerFunction consumerFn = consumerFn2 as ConsumerFunction;
@@ -102,7 +104,11 @@ public class Stream : IBaseStream
             Console.WriteLine("Consumer function is required");
             throw new Exception("Consumer function is required");
         }
-        var consumer = new Consumer(consumerFn, GetLastIndex(topic), new ConsumerOptions { synchronous = synchronous });
+        var consumer = new Consumer(consumerFn, GetLastIndex(topic), new ConsumerOptions 
+        { 
+            synchronous = synchronous,
+            maxBacklogSize = consumerMaxBacklogSize
+        });
 
         if (!consumers.ContainsKey(topic))
         {
@@ -112,7 +118,7 @@ public class Stream : IBaseStream
         consumers[topic].Add(consumer);
         if (this.verbose)
         {
-            Console.WriteLine($"Subscribed Consumer {consumerFn.Method.Name} to {topic}");
+            Console.WriteLine($"Subscribed Consumer {consumerFn.Method.Name} to {topic}, synchronous: {synchronous}, maxBacklogSize: {consumerMaxBacklogSize}");
         }
     }
 

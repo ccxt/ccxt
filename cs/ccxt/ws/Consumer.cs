@@ -32,16 +32,18 @@ namespace ccxt.pro
     public class ConsumerOptions
     {
         public bool synchronous { get; set; } = false;
+        public int maxBacklogSize { get; set; } = 1000;
     }
 
     public class Consumer
     {
-        private const int MAX_BACKLOG_SIZE = 10;  // Maximum number of messages in backlog
+        private const int DEFAULT_MAX_BACKLOG_SIZE = 1000;  // Default maximum number of messages in backlog
         
         public ConsumerFunction fn { get; private set; }
         public bool synchronous { get; private set; }
         public int currentIndex { get; private set; }
         public bool running { get; private set; }
+        public int maxBacklogSize { get; private set; }
         public Queue<Message> backlog { get; private set; }
 
         public Consumer(ConsumerFunction fn, int currentIndex = 0, ConsumerOptions options = null)
@@ -50,6 +52,7 @@ namespace ccxt.pro
             this.synchronous = options?.synchronous ?? false;
             this.currentIndex = currentIndex;
             this.running = false;
+            this.maxBacklogSize = options?.maxBacklogSize ?? DEFAULT_MAX_BACKLOG_SIZE;
             this.backlog = new Queue<Message>();
         }
 
@@ -61,7 +64,7 @@ namespace ccxt.pro
                 return;
             }
             backlog.Enqueue(message);
-            if (backlog.Count > MAX_BACKLOG_SIZE)
+            if (backlog.Count > maxBacklogSize)
             {
                 Console.WriteLine($"Warning: WebSocket consumer backlog is too large ({backlog.Count} messages). This might indicate a performance issue or message processing bottleneck. Dropping oldest message.");
                 backlog.Dequeue();

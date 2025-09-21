@@ -67,14 +67,20 @@ class Stream {
         $this->send_to_consumers($consumers, $message);
     }
 
-    public function subscribe($topic, callable $consumerFn, $synchronous = true) {
-        $consumer = new Consumer($consumerFn, $this->get_last_index($topic), ['synchronous' => $synchronous]);
+    public function subscribe($topic, callable $consumerFn, $params = []) {
+        $synchronous = $params['synchronous'] ?? true;
+        $consumerMaxBacklogSize = $params['consumerMaxBacklogSize'] ?? 1000;
+        
+        $consumer = new Consumer($consumerFn, $this->get_last_index($topic), [
+            'synchronous' => $synchronous,
+            'maxBacklogSize' => $consumerMaxBacklogSize
+        ]);
         if (!isset($this->consumers[$topic])) {
             $this->consumers[$topic] = [];
         }
         $this->consumers[$topic][] = $consumer;
         if ($this->verbose) {
-            print_r ("Subscribed function to topic: " . $topic . "\n");
+            print_r ("Subscribed function to topic: " . $topic . ", synchronous: " . ($synchronous ? 'true' : 'false') . ", maxBacklogSize: " . $consumerMaxBacklogSize . "\n");
         }
     }
 

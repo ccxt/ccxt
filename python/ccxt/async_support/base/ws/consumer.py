@@ -8,24 +8,24 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Consumer:
-    MAX_BACKLOG_SIZE = 10  # Maximum number of messages in backlog - higher number means less messages are dropped but can cause higher latency
+    DEFAULT_MAX_BACKLOG_SIZE = 1000  # Default maximum number of messages in backlog - higher number means less messages are dropped but can cause higher latency
 
-    def __init__(self, fn: ConsumerFunction, current_index: int = 0, options: Optional[Dict[str, Any]] = None):
+    def __init__(self, fn: ConsumerFunction, current_index: int = 0, options: Dict[str, Any] = None):
         if options is None:
             options = {}
         self.fn = fn
-        self.synchronous = options.get('synchronous', False)
+        self.synchronous = options.get('synchronous', True)
         self.current_index = current_index
         self.running = False
+        self.max_backlog_size = options.get('maxBacklogSize') or Consumer.DEFAULT_MAX_BACKLOG_SIZE
         self.backlog: deque[Message] = deque()
         self.tasks: List[asyncio.Task] = []
 
     def publish(self, message: Message) -> None:
-        if len(self.backlog) >= self.MAX_BACKLOG_SIZE:
-            # logger.warning(f"WebSocket consumer backlog is at maximum size ({self.MAX_BACKLOG_SIZE} messages). Replacing oldest message with newest to prioritize recent messages.")
-            # Remove the oldest message (first in the deque) and add the new one
-            self.backlog.popleft()
         self.backlog.append(message)
+        if len(self.backlog) > self.max_backlog_size:
+            logger.warning(f"WebSocket consumer backlog is too large ({len(self.backlog)} messages). This might indicate a performance issue or message processing bottleneck. Dropping oldest message.")
+            self.backlog.popleft()
         if self.running:
             return
         asyncio.ensure_future(self._run())

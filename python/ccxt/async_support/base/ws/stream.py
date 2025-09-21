@@ -49,19 +49,26 @@ class Stream:
         if self.verbose:
             print(f'Produced message for topic: {topic}. Total messages now: {len(messages)}.')
 
-    def subscribe(self, topic: Topic, consumer_fn: ConsumerFunction, synchronous: bool = True) -> None:
+    def subscribe(self, topic: Topic, consumer_fn: ConsumerFunction, params: Dict[str, Any] = None) -> None:
         """
         Subscribes a consumer function to a topic.
         :param Topic topic: The topic to subscribe to.
         :param ConsumerFunction consumer_fn: The consumer function to subscribe.
-        :param bool synchronous: Whether the consumer function should be called synchronously. Defaults to True.
+        :param Dict[str, Any] params: Optional parameters that may contain synchronous and consumerMaxBacklogSize.
         """
-        consumer = Consumer(consumer_fn, self.get_last_index(topic), {'synchronous': synchronous})
+        if params is None:
+            params = {}
+        synchronous = params.get('synchronous')
+        consumer_max_backlog_size = params.get('consumerMaxBacklogSize')
+        consumer = Consumer(consumer_fn, self.get_last_index(topic), {
+            'synchronous': synchronous,
+            'maxBacklogSize': consumer_max_backlog_size
+        })
         if topic not in self.consumers:
             self.consumers[topic] = []
         self.consumers[topic].append(consumer)
         if self.verbose:
-            print(f'Subscribed to topic: {topic}. Total consumers for topic now: {len(self.consumers[topic])}.')
+            print(f'Subscribed to topic: {topic}, synchronous: {synchronous}, maxBacklogSize: {consumer_max_backlog_size}. Total consumers for topic now: {len(self.consumers[topic])}.')
 
     def unsubscribe(self, topic: Topic, consumer_fn: ConsumerFunction) -> bool:
         """

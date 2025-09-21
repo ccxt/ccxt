@@ -2,6 +2,11 @@ import { sleep } from "../functions/time.js";
 import { Int, Message, Topic, ConsumerFunction, BaseStream, Dictionary } from "../types";
 import { Consumer } from "./Consumer.js";
 
+interface SubscribeParams {
+    synchronous?: boolean;
+    consumerMaxBacklogSize?: number;
+}
+
 export class Stream implements BaseStream {
     public maxMessagesPerTopic: Int;
 
@@ -67,10 +72,13 @@ export class Stream implements BaseStream {
      * Current index is the index of the last message consumed
      * @param topic - The topic to subscribe to.
      * @param consumerFn - The consumer function to handle incoming data.
-     * @param synchronous - Optional. Indicates whether the consumer function should be executed synchronously or asynchronously. Default is true.
+     * @param params - Optional. Parameters object that may contain synchronous and consumerMaxBacklogSize.
      */
-    subscribe (topic: Topic, consumerFn: ConsumerFunction, synchronous: boolean = true): void {
-        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous });
+    subscribe (topic: Topic, consumerFn: ConsumerFunction, params: SubscribeParams = {}): void {
+        const synchronous = params.synchronous ?? true;
+        const consumerMaxBacklogSize = params.consumerMaxBacklogSize;
+
+        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous, maxBacklogSize: consumerMaxBacklogSize });
 
         if (!this.consumers[topic]) {
             this.consumers[topic] = [];
@@ -78,7 +86,7 @@ export class Stream implements BaseStream {
 
         this.consumers[topic].push (consumer);
         if (this.verbose) {
-            console.log ('subscribed function to topic: ', topic, ' synchronous: ', synchronous);
+            console.log ('subscribed function to topic: ', topic, ' synchronous: ', synchronous, ' maxBacklogSize: ', consumerMaxBacklogSize);
         }
     }
 
@@ -163,3 +171,4 @@ export class Stream implements BaseStream {
 }
 
 export default Stream
+export { SubscribeParams }

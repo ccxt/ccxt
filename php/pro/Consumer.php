@@ -8,27 +8,30 @@ use ccxt\ConsumerFunctionError;
 
 class Consumer
 {
-    private const MAX_BACKLOG_SIZE = 100;  // Maximum number of messages in backlog
+    private const DEFAULT_MAX_BACKLOG_SIZE = 1000;  // Default maximum number of messages in backlog
     
     public $fn;
     public $synchronous;
     public $currentIndex;
     public $running = false;
+    public $maxBacklogSize;
     public $backlog = [];
 
     public function __construct(callable $fn, int $currentIndex = 0, array $options = [])
     {
         $this->fn = $fn;
-        $this->synchronous = $options['synchronous'] ?? false;
+        $this->synchronous = $options['synchronous'] ?? true;
         $this->currentIndex = $currentIndex;
         $this->running = false;
+        $this->maxBacklogSize = $options['maxBacklogSize'] ?? self::DEFAULT_MAX_BACKLOG_SIZE;
     }
 
     public function publish($message)
     {
         array_push($this->backlog, $message);
-        if (count($this->backlog) > self::MAX_BACKLOG_SIZE) {
-            error_log("Warning: WebSocket consumer backlog is too large (" . count($this->backlog) . " messages). This might indicate a performance issue or message processing bottleneck.");
+        if (count($this->backlog) > $this->maxBacklogSize) {
+            error_log("Warning: WebSocket consumer backlog is too large (" . count($this->backlog) . " messages). This might indicate a performance issue or message processing bottleneck. Dropping oldest message.");
+            array_shift($this->backlog);
         }
         $this->run();
     }
