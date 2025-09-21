@@ -620,6 +620,231 @@ var unsubscribed = exchange.stream.Unsubscribe(topic, callback);
 ```
 <!-- tabs:end -->
 
+### Unsubscribe Functions (Beta)
+Note: this feature is in beta and will appreciate any feedback.
+
+Unsubscribe functions provide a convenient way to remove specific consumer callbacks from WebSocket streams without having to directly interact with the internal stream object. These functions mirror the subscribe functions and allow you to cleanly remove individual consumers from topics.
+
+#### Key Concepts
+
+**Unsubscribing vs Closing Connections:**
+- **Unsubscribe functions**: Remove specific consumer callbacks from topics, but keep the WebSocket connection alive
+- **unWatch functions**: Close the entire WebSocket connection and stop all streaming for that data type
+
+**When to use each:**
+- Use **unsubscribe functions** when you want to stop receiving updates for a specific callback while keeping the connection open for other consumers
+- Use **unWatch functions** when you want to completely stop streaming a particular data type and close the WebSocket connection
+
+#### Available Unsubscribe Functions
+
+| Subscribe Function | Unsubscribe Function | Description |
+|-------------------|---------------------|-------------|
+| `subscribeLiquidations` | `unsubscribeLiquidations` | Unsubscribe from liquidation events for a specific symbol |
+| `subscribeLiquidationsForSymbols` | `unsubscribeLiquidationsForSymbols` | Unsubscribe from liquidation events for multiple symbols |
+| `subscribeTrades` | `unsubscribeTrades` | Unsubscribe from trade updates for a specific symbol |
+| `subscribeTradesForSymbols` | `unsubscribeTradesForSymbols` | Unsubscribe from trade updates for multiple symbols |
+| `subscribeMyTrades` | `unsubscribeMyTrades` | Unsubscribe from personal trade updates |
+| `subscribeMyTradesForSymbols` | `unsubscribeMyTradesForSymbols` | Unsubscribe from personal trade updates for multiple symbols |
+| `subscribeOrders` | `unsubscribeOrders` | Unsubscribe from order updates |
+| `subscribeOrdersForSymbols` | `unsubscribeOrdersForSymbols` | Unsubscribe from order updates for multiple symbols |
+| `subscribeOHLCV` | `unsubscribeOHLCV` | Unsubscribe from OHLCV updates for a specific symbol and timeframe |
+| `subscribeOHLCVForSymbols` | `unsubscribeOHLCVForSymbols` | Unsubscribe from OHLCV updates for multiple symbols and timeframes |
+| `subscribeOrderBook` | `unsubscribeOrderBook` | Unsubscribe from order book updates for a specific symbol |
+| `subscribeOrderBookForSymbols` | `unsubscribeOrderBookForSymbols` | Unsubscribe from order book updates for multiple symbols |
+| `subscribePosition` | `unsubscribePosition` | Unsubscribe from position updates for a specific symbol |
+| `subscribePositions` | `unsubscribePositions` | Unsubscribe from position updates |
+| `subscribePositionForSymbols` | `unsubscribePositionForSymbols` | Unsubscribe from position updates for multiple symbols |
+| `subscribeBalance` | `unsubscribeBalance` | Unsubscribe from balance updates |
+| `subscribeTicker` | `unsubscribeTicker` | Unsubscribe from ticker updates for a specific symbol |
+| `subscribeTickers` | `unsubscribeTickers` | Unsubscribe from ticker updates |
+| `subscribeRaw` | `unsubscribeRaw` | Unsubscribe from raw message updates |
+| `subscribeErrors` | `unsubscribeErrors` | Unsubscribe from error updates |
+
+#### Function Signatures
+
+Most unsubscribe functions follow this pattern:
+```typescript
+unsubscribeXXX(callback: ConsumerFunction, ...otherParams): boolean
+```
+
+**Parameters:**
+- `callback`: The consumer function that was originally subscribed
+- `...otherParams`: Additional parameters like symbol, symbols array, or timeframe (depending on the function)
+- **Returns**: `true` if the consumer was successfully unsubscribed, `false` if streaming is disabled or unsubscription failed
+
+#### Usage Examples
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+// Define callback functions
+const tickerCallback = (message) => {
+    console.log('Ticker update:', message.payload);
+};
+
+const tradeCallback = (message) => {
+    console.log('Trade update:', message.payload);
+};
+
+// Subscribe to multiple streams
+await exchange.subscribeTicker('BTC/USDT', tickerCallback);
+await exchange.subscribeTrades('BTC/USDT', tradeCallback);
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+const unsubscribed = exchange.unsubscribeTicker(tickerCallback, 'BTC/USDT');
+if (unsubscribed) {
+    console.log('Successfully unsubscribed from ticker updates');
+}
+
+// Unsubscribe from trades
+exchange.unsubscribeTrades(tradeCallback, 'BTC/USDT');
+
+// To completely stop ticker streaming and close the connection:
+await exchange.unWatchTicker('BTC/USDT');
+```
+
+#### **Python**
+```python
+# Define callback functions
+def ticker_callback(message):
+    print('Ticker update:', message.payload)
+
+def trade_callback(message):
+    print('Trade update:', message.payload)
+
+# Subscribe to multiple streams
+await exchange.subscribe_ticker('BTC/USDT', ticker_callback)
+await exchange.subscribe_trades('BTC/USDT', trade_callback)
+
+# Later, unsubscribe specific callbacks (WebSocket connection remains open)
+unsubscribed = exchange.unsubscribe_ticker(ticker_callback, 'BTC/USDT')
+if unsubscribed:
+    print('Successfully unsubscribed from ticker updates')
+
+# Unsubscribe from trades
+exchange.unsubscribe_trades(trade_callback, 'BTC/USDT')
+
+# To completely stop ticker streaming and close the connection:
+await exchange.un_watch_ticker('BTC/USDT')
+```
+
+#### **PHP**
+```php
+// Define callback functions
+function tickerCallback($message) {
+    echo 'Ticker update: ' . json_encode($message->payload) . PHP_EOL;
+}
+
+function tradeCallback($message) {
+    echo 'Trade update: ' . json_encode($message->payload) . PHP_EOL;
+}
+
+// Subscribe to multiple streams
+subscribeTicker('BTC/USDT', 'tickerCallback');
+subscribeTrades('BTC/USDT', 'tradeCallback');
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+$unsubscribed = unsubscribeTicker('tickerCallback', 'BTC/USDT');
+if ($unsubscribed) {
+    echo 'Successfully unsubscribed from ticker updates' . PHP_EOL;
+}
+
+// Unsubscribe from trades
+unsubscribeTrades('tradeCallback', 'BTC/USDT');
+
+// To completely stop ticker streaming and close the connection:
+unWatchTicker('BTC/USDT');
+```
+
+#### **C#**
+```csharp
+// Define callback functions
+public static void TickerCallback(Message message)
+{
+    Console.WriteLine($"Ticker update: {message.Payload}");
+}
+
+public static void TradeCallback(Message message)
+{
+    Console.WriteLine($"Trade update: {message.Payload}");
+}
+
+// Subscribe to multiple streams
+await SubscribeTicker("BTC/USDT", TickerCallback);
+await SubscribeTrades("BTC/USDT", TradeCallback);
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+bool unsubscribed = UnsubscribeTicker(TickerCallback, "BTC/USDT");
+if (unsubscribed)
+{
+    Console.WriteLine("Successfully unsubscribed from ticker updates");
+}
+
+// Unsubscribe from trades
+UnsubscribeTrades(TradeCallback, "BTC/USDT");
+
+// To completely stop ticker streaming and close the connection:
+await UnWatchTicker("BTC/USDT");
+```
+<!-- tabs:end -->
+
+#### Advanced Usage Examples
+
+**Multiple Symbol Subscriptions:**
+```javascript
+// Subscribe to multiple symbols
+const symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT'];
+await exchange.subscribeTradesForSymbols(symbols, tradeCallback);
+
+// Unsubscribe from all symbols at once
+exchange.unsubscribeTradesForSymbols(tradeCallback, symbols);
+
+// Or unsubscribe from specific symbols
+exchange.unsubscribeTrades(tradeCallback, 'BTC/USDT');
+```
+
+**OHLCV with Timeframes:**
+```javascript
+// Subscribe to OHLCV for multiple symbols and timeframes
+const subscriptions = [
+    ['BTC/USDT', '1m'],
+    ['ETH/USDT', '5m'],
+    ['LTC/USDT', '1h']
+];
+await exchange.subscribeOHLCVForSymbols(subscriptions, ohlcvCallback);
+
+// Unsubscribe from all OHLCV subscriptions
+exchange.unsubscribeOHLCVForSymbols(ohlcvCallback, subscriptions);
+```
+
+**Conditional Unsubscription:**
+```javascript
+// Subscribe to multiple streams
+await exchange.subscribeTicker('BTC/USDT', tickerCallback);
+await exchange.subscribeTrades('BTC/USDT', tradeCallback);
+await exchange.subscribeOrderBook('BTC/USDT', orderBookCallback);
+
+// Later, conditionally unsubscribe based on some logic
+if (someCondition) {
+    exchange.unsubscribeTicker(tickerCallback, 'BTC/USDT');
+    console.log('Stopped ticker updates but keeping trades and orderbook');
+}
+```
+
+#### Important Notes
+
+1. **WebSocket Connection Management**: Unsubscribe functions only remove consumer callbacks from topics. The WebSocket connection remains active and continues streaming data to other consumers.
+
+2. **Complete Stream Shutdown**: To completely stop streaming a data type and close the WebSocket connection, use the corresponding `unWatch` function (e.g., `unWatchTicker`, `unWatchTrades`).
+
+3. **Callback Matching**: The unsubscribe function must receive the exact same callback function reference that was used during subscription.
+
+4. **Return Values**: Unsubscribe functions return `true` on successful unsubscription and `false` if streaming is disabled or the callback wasn't found.
+
+5. **Error Handling**: If streaming is not enabled (`isStreamingEnabled()` returns false), unsubscribe functions will return `false` immediately.
+
+6. **Memory Management**: Properly unsubscribing from callbacks helps prevent memory leaks by removing references to consumer functions that are no longer needed.
+
 ### Core Functionality
 - Acts as a message broker that manages topics and their subscribers
 - Maintains message history for each topic

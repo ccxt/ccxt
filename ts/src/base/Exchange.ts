@@ -2690,6 +2690,22 @@ export default class Exchange {
         return await this.watchLiquidations (symbol, undefined, undefined, params);
     }
 
+    unsubscribeLiquidations (symbol: string, callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeLiquidations
+         * @description unsubscribe from the public liquidations of a trading pair
+         * @param {string} symbol unified CCXT market symbol
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        return stream.unsubscribe ('liquidations::' + symbol, callback);
+    }
+
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
     }
@@ -2720,6 +2736,29 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchLiquidationsForSymbols', [ symbols, undefined, undefined, params ]);
         return await this.watchTradesForSymbols (symbols, undefined, undefined, params);
+    }
+
+    unsubscribeLiquidationsForSymbols (symbols: string[], callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeLiquidationsForSymbols
+         * @description unsubscribe from the public liquidations of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        for (let i = 0; i < symbols.length; i++) {
+            stream.unsubscribe ('liquidations::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('liquidations', callback);
+        }
+        return true;
     }
 
     async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -2757,6 +2796,22 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchTrades', [ symbol, undefined, undefined, params ]);
         return await this.watchTrades (symbol, undefined, undefined, params);
+    }
+
+    unsubscribeTrades (symbol: string, callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeTrades
+         * @description unsubscribe from trades of a trading pair
+         * @param {string} symbol unified CCXT market symbol
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        return stream.unsubscribe ('trades::' + symbol, callback);
     }
 
     async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
@@ -2799,6 +2854,29 @@ export default class Exchange {
         return await this.watchTradesForSymbols (symbols, undefined, undefined, params);
     }
 
+    unsubscribeTradesForSymbols (symbols: string[], callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeTradesForSymbols
+         * @description unsubscribe from trades of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        for (let i = 0; i < symbols.length; i++) {
+            stream.unsubscribe ('trades::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('trades', callback);
+        }
+        return true;
+    }
+
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchTradesForSymbols() is not supported yet');
     }
@@ -2836,6 +2914,30 @@ export default class Exchange {
         return await this.watchMyTradesForSymbols (symbols, undefined, undefined, params);
     }
 
+    unsubscribeMyTradesForSymbols (symbols: string[], callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeMyTradesForSymbols
+         * @description unsubscribe from user trades of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('myTrades', callback);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                stream.unsubscribe ('myTrades::' + symbols[i], callback);
+            }
+        }
+        return true;
+    }
+
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
     }
@@ -2866,6 +2968,29 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchOrdersForSymbols', [ symbols, undefined, undefined, params ]);
         return await this.watchOrdersForSymbols (symbols, undefined, undefined, params);
+    }
+
+    unsubscribeOrdersForSymbols (symbols: string[], callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeOrdersForSymbols
+         * @description unsubscribe from orders of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        for (let i = 0; i < symbols.length; i++) {
+            stream.unsubscribe ('orders::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('orders', callback);
+        }
+        return true;
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
@@ -2899,6 +3024,30 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchOHLCVForSymbols', [ symbolsAndTimeframes, undefined, undefined, params ]);
         return await this.watchOHLCVForSymbols (symbolsAndTimeframes, undefined, undefined, params);
+    }
+
+    unsubscribeOHLCVForSymbols (symbolsAndTimeframes: string[][], callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeOHLCVForSymbols
+         * @description unsubscribe from OHLCV data of trading pairs and timeframes
+         * @param {string[][]} symbolsAndTimeframes array of [symbol, timeframe] pairs
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbol = this.symbol (symbolsAndTimeframes[i][0]);
+            const timeframe = symbolsAndTimeframes[i][1];
+            stream.unsubscribe ('ohlcvs::' + symbol + '::' + timeframe, callback);
+        }
+        if (this.isEmpty (symbolsAndTimeframes)) {
+            stream.unsubscribe ('ohlcvs', callback);
+        }
+        return true;
     }
 
     async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
@@ -2936,6 +3085,29 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchOrderBookForSymbols', [ symbols, undefined, params ]);
         return await this.watchOrderBookForSymbols (symbols, undefined, params);
+    }
+
+    unsubscribeOrderBookForSymbols (symbols: string[], callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeOrderBookForSymbols
+         * @description unsubscribe from order book data of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        for (let i = 0; i < symbols.length; i++) {
+            stream.unsubscribe ('orderbooks::' + symbols[i], callback);
+        }
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('orderbooks', callback);
+        }
+        return true;
     }
 
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
@@ -3008,6 +3180,18 @@ export default class Exchange {
             this.setupStream ();
         }
         return await this.subscribeOrderBookForSymbols ([ symbol ], callback, params);
+    }
+
+    unsubscribeOrderBook (symbol: string, callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeOrderBook
+         * @description unsubscribe from order book data of a trading pair
+         * @param {string} symbol unified CCXT market symbol
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        return this.unsubscribeOrderBookForSymbols ([ symbol ], callback);
     }
 
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
@@ -4619,6 +4803,24 @@ export default class Exchange {
         return await this.watchOHLCV (symbol, timeframe, undefined, undefined, params);
     }
 
+    unsubscribeOHLCV (symbol: string, callback: ConsumerFunction, timeframe = '1m'): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeOHLCV
+         * @description unsubscribe from OHLCV data of a trading pair and timeframe
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} timeframe the length of time each candle represents
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbol = this.symbol (symbol);
+        return stream.unsubscribe ('ohlcvs::' + symbol + '::' + timeframe, callback);
+    }
+
     convertTradingViewToOHLCV (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
         const result = [];
         const timestamps = this.safeList (ohlcvs, timestamp, []);
@@ -5527,6 +5729,23 @@ export default class Exchange {
         return await this.watchPosition (symbol, params);
     }
 
+    unsubscribePosition (symbol: string, callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribePosition
+         * @description unsubscribe from position data of a trading pair
+         * @param {string} symbol unified CCXT market symbol
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbol = this.symbol (symbol);
+        return stream.unsubscribe ('positions::' + symbol, callback);
+    }
+
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' watchPositions() is not supported yet');
     }
@@ -5547,12 +5766,48 @@ export default class Exchange {
         return await this.watchPositions (symbols, undefined, undefined, params);
     }
 
+    unsubscribePositions (callback: ConsumerFunction, symbols: string[] = undefined): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribePositions
+         * @description unsubscribe from position data of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('positions', callback);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                stream.unsubscribe ('positions::' + symbols[i], callback);
+            }
+        }
+        return true;
+    }
+
     async watchPositionForSymbols (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         return await this.watchPositions (symbols, since, limit, params);
     }
 
     async subscribePositionForSymbols (symbols: string[] = undefined, callback: ConsumerFunction = undefined, params: any = {}): Promise<any> {
         return await this.subscribePositions (symbols, callback, params);
+    }
+
+    unsubscribePositionForSymbols (callback: ConsumerFunction, symbols: string[] = undefined): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribePositionForSymbols
+         * @description unsubscribe from position data of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed from all symbols, false otherwise
+         */
+        return this.unsubscribePositions (callback, symbols);
     }
 
     async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
@@ -5754,6 +6009,21 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchBalance', [ params ]);
         return await this.watchBalance (params);
+    }
+
+    unsubscribeBalance (callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeBalance
+         * @description unsubscribe from balance updates
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        return stream.unsubscribe ('balances', callback);
     }
 
     async fetchPartialBalance (part, params = {}) {
@@ -6075,6 +6345,23 @@ export default class Exchange {
         return await this.watchTicker (symbol, params);
     }
 
+    unsubscribeTicker (symbol: string, callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeTicker
+         * @description unsubscribe from ticker data of a trading pair
+         * @param {string} symbol unified CCXT market symbol
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbol = this.symbol (symbol);
+        return stream.unsubscribe ('tickers::' + symbol, callback);
+    }
+
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchTickers() is not supported yet');
     }
@@ -6126,6 +6413,30 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchTickers', [ symbols, params ]);
         return await this.watchTickers (symbols, params);
+    }
+
+    unsubscribeTickers (callback: ConsumerFunction, symbols: string[] = undefined): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeTickers
+         * @description unsubscribe from ticker data of trading pairs
+         * @param {string[]} symbols unified CCXT market symbols
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbols = this.marketSymbols (symbols, undefined, true);
+        if (this.isEmpty (symbols)) {
+            stream.unsubscribe ('tickers', callback);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                stream.unsubscribe ('tickers::' + symbols[i], callback);
+            }
+        }
+        return true;
     }
 
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
@@ -6681,6 +6992,21 @@ export default class Exchange {
         stream.subscribe ('raw', callback, params);
     }
 
+    unsubscribeRaw (callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeRaw
+         * @description unsubscribe from raw messages
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        return stream.unsubscribe ('raw', callback);
+    }
+
     subscribeErrors (callback: ConsumerFunction, params: any = {}): void {
         /**
          * @method
@@ -6695,6 +7021,21 @@ export default class Exchange {
         }
         const stream = this.stream;
         stream.subscribe ('errors', callback, params);
+    }
+
+    unsubscribeErrors (callback: ConsumerFunction): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeErrors
+         * @description unsubscribe from error messages
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        return stream.unsubscribe ('errors', callback);
     }
 
     async subscribeOrders (symbol: string = undefined, callback: ConsumerFunction = undefined, params: any = {}): Promise<any> {
@@ -6722,6 +7063,27 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchOrders', [ symbol, undefined, undefined, params ]);
         return await this.watchOrders (symbol, undefined, undefined, params);
+    }
+
+    unsubscribeOrders (callback: ConsumerFunction, symbol: string = undefined): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeOrders
+         * @description unsubscribe from order data of a trading pair or all orders
+         * @param {string} symbol unified CCXT market symbol (optional, if undefined unsubscribes from all orders)
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbol = this.symbol (symbol);
+        if (symbol === undefined) {
+            return stream.unsubscribe ('orders', callback);
+        } else {
+            return stream.unsubscribe ('orders::' + symbol, callback);
+        }
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -6801,6 +7163,23 @@ export default class Exchange {
         }
         stream.addWatchFunction ('watchMyTrades', [ symbol, undefined, undefined, params ]);
         return await this.watchMyTrades (symbol, undefined, undefined, params);
+    }
+
+    unsubscribeMyTrades (callback: ConsumerFunction, symbol: string = undefined): boolean {
+        /**
+         * @method
+         * @name exchange#unsubscribeMyTrades
+         * @description unsubscribe from user trade data of a trading pair or all trades
+         * @param {string} symbol unified CCXT market symbol (optional, if undefined unsubscribes from all trades)
+         * @param {Function} callback Consumer function to unsubscribe
+         * @returns {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!this.isStreamingEnabled ()) {
+            return false;
+        }
+        const stream = this.stream;
+        symbol = this.symbol (symbol);
+        return stream.unsubscribe ('myTrades::' + symbol, callback);
     }
 
     async fetchGreeks (symbol: string, params = {}): Promise<Greeks> {
