@@ -52,15 +52,15 @@ async def example():
     await create_subscriptions()
 
     # subscribe synchronously to all tickers with a sync function
-    exchange.stream.subscribe('tickers', print_message, True)
+    exchange.stream.subscribe('tickers', print_message)
     # subscribe synchronously to check for errors
-    exchange.stream.subscribe('tickers', check_for_errors, True)
+    exchange.stream.subscribe('tickers', check_for_errors)
     # subscribe asynchronously to all tickers with a sync function
-    exchange.stream.subscribe('tickers', price_alert, False)
+    exchange.stream.subscribe('tickers', price_alert, {'synchronous': False})
     # subscribe synchronously to a single ticker with an async function
-    exchange.stream.subscribe('tickers.BTC/USDT', store_in_db, True)
+    exchange.stream.subscribe('tickers.BTC/USDT', store_in_db, {'synchronous': True})
     # subscribe to exchange wide errors
-    exchange.stream.subscribe('errors', check_for_errors, True)
+    exchange.stream.subscribe('errors', check_for_errors, {'synchronous': True})
 
     await exchange.sleep(10000)
     # get history length

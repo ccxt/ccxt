@@ -18,7 +18,8 @@ import ccxt.pro as ccxt  # noqa: E402
 def print_message(message):
     if message.error:
         print('Received error, should reconnect. Error: ', message.error)
-    print('Received message: ', ' from: ', message.metadata.topic, ' : ', str(message.payload), ' : index : ', message.metadata.index, ' : history.length ', len(message.metadata.history))
+    if message.payload is not None:
+        print('Received message: ', ' from: ', message.metadata.topic, ' : ', str(message.payload), ' : index : ', message.metadata.index, ' : history.length ', len(message.metadata.history))
 
 
 async def example():
@@ -30,23 +31,25 @@ async def example():
     # subscribe to errors and all incoming messages
     exchange.subscribe_errors(print_message)
     exchange.subscribe_raw(print_message)
-    # public subscriptions
-    await exchange.subscribe_ohlcv(symbol, '1m', print_message)
-    await exchange.subscribe_order_book(symbol, print_message)
-    await exchange.subscribe_ticker(symbol, print_message)
-    await exchange.subscribe_tickers(None, print_message)
-    await exchange.subscribe_trades(symbol, print_message)
+    try:
+        await exchange.subscribe_ohlcv(symbol, '1m', print_message)
+        await exchange.subscribe_order_book(symbol, print_message)
+        await exchange.subscribe_ticker(symbol, print_message)
+        await exchange.subscribe_tickers(None, print_message)
+        await exchange.subscribe_trades(symbol, print_message)
+    except Exception as e:
+        print('subscribe error:', e)
     # private subscriptions
     print('---- start private subscriptions asynchrounously -----')
-    await exchange.subscribe_balance(print_message)
-    await exchange.subscribe_my_trades(symbol, print_message)
-    await exchange.subscribe_orders(symbol, print_message)
-    await exchange.subscribe_position_for_symbols(None, print_message)
+    await exchange.subscribeBalance (printMessage);
+    await exchange.subscribeMyTrades (symbol, printMessage);
+    await exchange.subscribeOrders (symbol, printMessage);
+    await exchange.subscribePositionForSymbols (undefined, printMessage);
     await exchange.sleep(5000)
     print('---- create Market order -----')
-    res = await exchange.create_order(symbol, 'market', 'buy', 0.01)
-    print(res)
-    await exchange.sleep(5000)
+    const res = await exchange.createOrder (symbol, 'market', 'buy', 0.01);
+    print (res);
+    await exchange.close ();
     # subscribe to error?
     print('---- closing exchange -----')
     await exchange.close()

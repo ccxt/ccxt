@@ -30,22 +30,22 @@ async function checkForErrors (message: Message) {
 
 async function example () {
     // create ws subscriptions
-    await exchange.subscribeTickers (undefined, printMessage, true);
+    await exchange.subscribeTickers (undefined, printMessage);
 
     // subscribe synchronously to all tickers with a sync function
-    exchange.stream.subscribe ('tickers', printMessage, true);
+    exchange.stream.subscribe ('tickers', printMessage);
 
     // subscribe synchronously to check for errors
-    exchange.stream.subscribe ('tickers', checkForErrors, true);
+    exchange.stream.subscribe ('tickers', checkForErrors);
 
     // subscribe asynchronously to all tickers with a sync function
-    exchange.stream.subscribe ('tickers', priceAlert, false);
+    exchange.stream.subscribe ('tickers', priceAlert, { 'synchronous': false });
 
     // subscribe synchronously to a single ticker with an async function
-    exchange.stream.subscribe ('tickers.BTC/USDT', storeInDb, true);
+    exchange.stream.subscribe ('tickers.BTC/USDT', storeInDb);
 
     // subscribe to exchange wide errors
-    exchange.stream.subscribe ('errors', checkForErrors, true);
+    exchange.stream.subscribe ('errors', checkForErrors);
 
     await exchange.sleep (5000);
     // get history length
