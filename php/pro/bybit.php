@@ -346,6 +346,9 @@ class bybit extends \ccxt\async\bybit {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
+            }
             $orderRequest = $this->cancel_order_request($id, $symbol, $params);
             $url = $this->urls['api']['ws']['private']['trade'];
             Async\await($this->authenticate($url));

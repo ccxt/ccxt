@@ -157,8 +157,6 @@ export default class binance extends binanceRest {
                 'ws': {
                     'cost': 5,
                 },
-                // tracks User Data Stream websocket-api subscriptions per market scope
-                'userDataStream': this.createSafeDictionary (),
                 'tickerChannelsMap': {
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
@@ -2369,7 +2367,7 @@ export default class binance extends binanceRest {
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
-    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot', params = {}) {
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const client = this.client (url);
         const subscriptions = client.subscriptions;
@@ -2384,7 +2382,7 @@ export default class binance extends binanceRest {
         const message: Dict = {
             'id': messageHash,
             'method': 'userDataStream.subscribe.signature',
-            'params': this.signParams (params),
+            'params': this.signParams ({}),
         };
         const subscription: Dict = {
             'id': messageHash,
@@ -2609,7 +2607,7 @@ export default class binance extends binanceRest {
         }
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
-            await this.ensureUserDataStreamWsSubscribeSignature ('spot', params);
+            await this.ensureUserDataStreamWsSubscribeSignature ('spot');
             return;
         }
         let marginMode = undefined;
@@ -3120,6 +3118,14 @@ export default class binance extends binanceRest {
         //             ]
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
         //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
@@ -4839,6 +4845,7 @@ export default class binance extends binanceRest {
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
             'eventStreamTerminated': this.handleEventStreamTerminated,
+            'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {

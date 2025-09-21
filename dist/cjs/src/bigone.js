@@ -27,7 +27,7 @@ class bigone extends bigone$1["default"] {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': true,
                 'future': undefined,
                 'option': false,
                 'cancelAllOrders': true,

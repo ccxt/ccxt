@@ -1443,7 +1443,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch(), $this->test_defx(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -2077,6 +2077,25 @@ class testMainClass {
         }
         $broker_id = $request['order_tag'];
         assert($broker_id === $id, 'modetrade - id: ' . $id . ' different from  broker_id: ' . $broker_id);
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_backpack() {
+        $exchange = $this->init_offline_exchange('backpack');
+        $exchange->apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=';
+        $exchange->secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=';
+        $req_headers = null;
+        $id = '1400';
+        try {
+            $exchange->create_order('ETH/USDC', 'limit', 'buy', 1, 5000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['X-Broker-Id'] === $id, 'backpack - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

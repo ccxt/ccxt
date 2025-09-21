@@ -562,7 +562,7 @@ export default class kucoinfutures extends kucoin {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const expiry = this.safeInteger (market, 'expireDate');
-            const future = expiry ? true : false;
+            const future = this.safeString (market, 'nextFundingRateTime') === undefined;
             const swap = !future;
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');

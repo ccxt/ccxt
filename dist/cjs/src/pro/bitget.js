@@ -706,9 +706,11 @@ class bitget extends bitget$1["default"] {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
@@ -720,16 +722,18 @@ class bitget extends bitget$1["default"] {
      * @description unsubscribe from the orderbook channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
         let channel = 'books';
         const limit = this.safeInteger(params, 'limit');
-        if ((limit === 1) || (limit === 5) || (limit === 15)) {
+        if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
             params = this.omit(params, 'limit');
             channel += limit.toString();
         }
@@ -765,9 +769,11 @@ class bitget extends bitget$1["default"] {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
@@ -775,24 +781,31 @@ class bitget extends bitget$1["default"] {
         symbols = this.marketSymbols(symbols);
         let channel = 'books';
         let incrementalFeed = true;
-        if ((limit === 1) || (limit === 5) || (limit === 15)) {
+        if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
             channel += limit.toString();
             incrementalFeed = false;
         }
         const topics = [];
         const messageHashes = [];
+        let uta = undefined;
+        [uta, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'uta', false);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
             let instType = undefined;
-            [instType, params] = this.getInstType(market, false, params);
+            [instType, params] = this.getInstType(market, uta, params);
             const args = {
                 'instType': instType,
-                'channel': channel,
-                'instId': market['id'],
             };
+            const topicOrChannel = uta ? 'topic' : 'channel';
+            const symbolOrInstId = uta ? 'symbol' : 'instId';
+            args[topicOrChannel] = channel;
+            args[symbolOrInstId] = market['id'];
             topics.push(args);
             messageHashes.push('orderbook:' + symbol);
+        }
+        if (uta) {
+            params['uta'] = true;
         }
         const orderbook = await this.watchPublicMultiple(messageHashes, topics, params);
         if (incrementalFeed) {
@@ -833,11 +846,27 @@ class bitget extends bitget$1["default"] {
         //       ]
         //   }
         //
+        // {
+        //     "action": "snapshot",
+        //     "arg": { "instType": "usdt-futures", "topic": "books", "symbol": "BTCUSDT" },
+        //     "data": [
+        //         {
+        //             "a": [Array],
+        //             "b": [Array],
+        //             "checksum": 0,
+        //             "pseq": 0,
+        //             "seq": "1343064377779269632",
+        //             "ts": "1755937421270"
+        //         }
+        //     ],
+        //     "ts": 1755937421337
+        // }
+        //
         const arg = this.safeValue(message, 'arg');
-        const channel = this.safeString(arg, 'channel');
-        const instType = this.safeString(arg, 'instType');
-        const marketType = (instType === 'SPOT') ? 'spot' : 'contract';
-        const marketId = this.safeString(arg, 'instId');
+        const channel = this.safeString2(arg, 'channel', 'topic');
+        const instType = this.safeStringLower(arg, 'instType');
+        const marketType = (instType === 'spot') ? 'spot' : 'contract';
+        const marketId = this.safeString2(arg, 'instId', 'symbol');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -854,8 +883,8 @@ class bitget extends bitget$1["default"] {
                 this.orderbooks[symbol] = ob;
             }
             const storedOrderBook = this.orderbooks[symbol];
-            const asks = this.safeValue(rawOrderBook, 'asks', []);
-            const bids = this.safeValue(rawOrderBook, 'bids', []);
+            const asks = this.safeList2(rawOrderBook, 'asks', 'a', []);
+            const bids = this.safeList2(rawOrderBook, 'bids', 'b', []);
             this.handleDeltas(storedOrderBook['asks'], asks);
             this.handleDeltas(storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;

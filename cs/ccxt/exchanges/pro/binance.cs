@@ -3189,6 +3189,14 @@ public partial class binance : ccxt.binance
         //             ]
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
         //
         object wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
@@ -4924,6 +4932,7 @@ public partial class binance : ccxt.binance
             { "executionReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
             { "forceOrder", this.handleLiquidation },
+            { "externalLockUpdate", this.handleBalance },
         };
         object eventVar = this.safeString(message, "e");
         if (isTrue(((message is IList<object>) || (message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))

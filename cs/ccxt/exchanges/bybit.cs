@@ -3090,6 +3090,44 @@ public partial class bybit : Exchange
         //         "seq": 34771365464
         //     }
         //
+        // watchMyTrades execution
+        //
+        //     {
+        //         "category": "linear",
+        //         "symbol": "BTCUSDT",
+        //         "closedSize": "0",
+        //         "execFee": "0.0679239",
+        //         "execId": "135dbae5-cbed-5275-9290-3956bb2ed907",
+        //         "execPrice": "123498",
+        //         "execQty": "0.001",
+        //         "execType": "Trade",
+        //         "execValue": "123.498",
+        //         "feeRate": "0.00055",
+        //         "tradeIv": "",
+        //         "markIv": "",
+        //         "blockTradeId": "",
+        //         "markPrice": "122392",
+        //         "indexPrice": "",
+        //         "underlyingPrice": "",
+        //         "leavesQty": "0",
+        //         "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
+        //         "orderLinkId": "",
+        //         "orderPrice": "123615.9",
+        //         "orderQty": "0.001",
+        //         "orderType": "Market",
+        //         "stopOrderType": "UNKNOWN",
+        //         "side": "Buy",
+        //         "execTime": "1757837580469",
+        //         "isLeverage": "0",
+        //         "isMaker": false,
+        //         "seq": 9517074055,
+        //         "marketUnit": "",
+        //         "execPnl": "0",
+        //         "createType": "CreateByUser",
+        //         "extraFees": [],
+        //         "feeCoin": "USDT"
+        //  }
+        //
         object id = this.safeStringN(trade, new List<object>() {"execId", "id", "tradeId"});
         object marketId = this.safeString(trade, "symbol");
         object marketType = ((bool) isTrue((inOp(trade, "createType")))) ? "contract" : "spot";
@@ -3178,7 +3216,7 @@ public partial class bybit : Exchange
             }
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "currency", feeCurrencyCode },
+                { "currency", this.safeString(trade, "feeCoin", feeCurrencyCode) },
                 { "rate", feeRateString },
             };
         }
@@ -3786,48 +3824,56 @@ public partial class bybit : Exchange
         //
         // v5
         //     {
-        //         "orderId": "14bad3a1-6454-43d8-bcf2-5345896cf74d",
-        //         "orderLinkId": "YLxaWKMiHU",
-        //         "blockTradeId": "",
         //         "symbol": "BTCUSDT",
-        //         "price": "26864.40",
-        //         "qty": "0.003",
-        //         "side": "Buy",
-        //         "isLeverage": "",
-        //         "positionIdx": 1,
-        //         "orderStatus": "Cancelled",
+        //         "orderType": "Market",
+        //         "orderLinkId": "",
+        //         "slLimitPrice": "0",
+        //         "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         //         "cancelType": "UNKNOWN",
-        //         "rejectReason": "EC_PostOnlyWillTakeLiquidity",
-        //         "avgPrice": "0",
-        //         "leavesQty": "0.000",
-        //         "leavesValue": "0",
-        //         "cumExecQty": "0.000",
-        //         "cumExecValue": "0",
-        //         "cumExecFee": "0",
-        //         "timeInForce": "PostOnly",
-        //         "orderType": "Limit",
-        //         "stopOrderType": "UNKNOWN",
-        //         "orderIv": "",
-        //         "triggerPrice": "0.00",
-        //         "takeProfit": "0.00",
-        //         "stopLoss": "0.00",
-        //         "tpTriggerBy": "UNKNOWN",
-        //         "slTriggerBy": "UNKNOWN",
-        //         "triggerDirection": 0,
-        //         "triggerBy": "UNKNOWN",
-        //         "lastPriceOnCreated": "0.00",
-        //         "reduceOnly": false,
-        //         "closeOnTrigger": false,
-        //         "smpType": "None",
-        //         "smpGroup": 0,
-        //         "smpOrderId": "",
+        //         "avgPrice": "122529.9",
+        //         "stopOrderType": "",
+        //         "lastPriceOnCreated": "123747.9",
+        //         "orderStatus": "Filled",
+        //         "createType": "CreateByUser",
+        //         "takeProfit": "",
+        //         "cumExecValue": "122.5299",
         //         "tpslMode": "",
-        //         "tpLimitPrice": "",
-        //         "slLimitPrice": "",
+        //         "smpType": "None",
+        //         "triggerDirection": 0,
+        //         "blockTradeId": "",
+        //         "cumFeeDetail": {
+        //             "USDT": "0.06739145"
+        //         },
+        //         "rejectReason": "EC_NoError",
+        //         "isLeverage": "",
+        //         "price": "120518",
+        //         "orderIv": "",
+        //         "createdTime": "1757837618905",
+        //         "tpTriggerBy": "",
+        //         "positionIdx": 0,
+        //         "timeInForce": "IOC",
+        //         "leavesValue": "0",
+        //         "updatedTime": "1757837618909",
+        //         "side": "Sell",
+        //         "smpGroup": 0,
+        //         "triggerPrice": "",
+        //         "tpLimitPrice": "0",
+        //         "cumExecFee": "0.06739145",
+        //         "slTriggerBy": "",
+        //         "leavesQty": "0",
+        //         "closeOnTrigger": false,
+        //         "slippageToleranceType": "UNKNOWN",
         //         "placeType": "",
-        //         "createdTime": "1684476068369",
-        //         "updatedTime": "1684476068372"
+        //         "cumExecQty": "0.001",
+        //         "reduceOnly": true,
+        //         "qty": "0.001",
+        //         "stopLoss": "",
+        //         "smpOrderId": "",
+        //         "slippageTolerance": "0",
+        //         "triggerBy": "",
+        //         "extraFees": ""
         //     }
+        //
         // createOrders failed order
         //    {
         //        "category": "linear",
@@ -3889,38 +3935,14 @@ public partial class bybit : Exchange
         object status = this.parseOrderStatus(rawStatus);
         object side = this.safeStringLower(order, "side");
         object fee = null;
-        object feeCostString = this.safeString(order, "cumExecFee");
-        if (isTrue(!isEqual(feeCostString, null)))
+        object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new Dictionary<string, object>() {});
+        object feeCoins = new List<object>(((IDictionary<string,object>)cumFeeDetail).Keys);
+        object feeCoinId = this.safeString(feeCoins, 0);
+        if (isTrue(!isEqual(feeCoinId, null)))
         {
-            object feeCurrencyCode = null;
-            if (isTrue(getValue(market, "spot")))
-            {
-                if (isTrue(Precise.stringGt(feeCostString, "0")))
-                {
-                    if (isTrue(isEqual(side, "buy")))
-                    {
-                        feeCurrencyCode = getValue(market, "base");
-                    } else
-                    {
-                        feeCurrencyCode = getValue(market, "quote");
-                    }
-                } else
-                {
-                    if (isTrue(isEqual(side, "buy")))
-                    {
-                        feeCurrencyCode = getValue(market, "quote");
-                    } else
-                    {
-                        feeCurrencyCode = getValue(market, "base");
-                    }
-                }
-            } else
-            {
-                feeCurrencyCode = ((bool) isTrue(getValue(market, "inverse"))) ? getValue(market, "base") : getValue(market, "settle");
-            }
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(feeCostString) },
-                { "currency", feeCurrencyCode },
+                { "cost", this.safeNumber(cumFeeDetail, feeCoinId) },
+                { "currency", feeCoinId },
             };
         }
         object clientOrderId = this.safeString(order, "orderLinkId");
@@ -5568,49 +5590,63 @@ public partial class bybit : Exchange
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
+        //             "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
         //             "category": "linear",
         //             "list": [
         //                 {
         //                     "symbol": "BTCUSDT",
-        //                     "orderType": "Limit",
-        //                     "orderLinkId": "test-001",
-        //                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
-        //                     "cancelType": "CancelByUser",
-        //                     "avgPrice": "0",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "lastPriceOnCreated": "16656.5",
-        //                     "orderStatus": "Cancelled",
+        //                     "orderType": "Market",
+        //                     "orderLinkId": "",
+        //                     "slLimitPrice": "0",
+        //                     "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
+        //                     "cancelType": "UNKNOWN",
+        //                     "avgPrice": "122529.9",
+        //                     "stopOrderType": "",
+        //                     "lastPriceOnCreated": "123747.9",
+        //                     "orderStatus": "Filled",
+        //                     "createType": "CreateByUser",
         //                     "takeProfit": "",
-        //                     "cumExecValue": "0",
+        //                     "cumExecValue": "122.5299",
+        //                     "tpslMode": "",
+        //                     "smpType": "None",
         //                     "triggerDirection": 0,
         //                     "blockTradeId": "",
-        //                     "rejectReason": "EC_PerCancelRequest",
+        //                     "cumFeeDetail": {
+        //                         "USDT": "0.06739145"
+        //                     },
+        //                     "rejectReason": "EC_NoError",
         //                     "isLeverage": "",
-        //                     "price": "18000",
+        //                     "price": "120518",
         //                     "orderIv": "",
-        //                     "createdTime": "1672220109387",
-        //                     "tpTriggerBy": "UNKNOWN",
+        //                     "createdTime": "1757837618905",
+        //                     "tpTriggerBy": "",
         //                     "positionIdx": 0,
-        //                     "timeInForce": "GoodTillCancel",
+        //                     "timeInForce": "IOC",
         //                     "leavesValue": "0",
-        //                     "updatedTime": "1672220114123",
+        //                     "updatedTime": "1757837618909",
         //                     "side": "Sell",
+        //                     "smpGroup": 0,
         //                     "triggerPrice": "",
-        //                     "cumExecFee": "0",
-        //                     "slTriggerBy": "UNKNOWN",
+        //                     "tpLimitPrice": "0",
+        //                     "cumExecFee": "0.06739145",
+        //                     "slTriggerBy": "",
         //                     "leavesQty": "0",
         //                     "closeOnTrigger": false,
-        //                     "cumExecQty": "0",
-        //                     "reduceOnly": false,
-        //                     "qty": "0.1",
+        //                     "slippageToleranceType": "UNKNOWN",
+        //                     "placeType": "",
+        //                     "cumExecQty": "0.001",
+        //                     "reduceOnly": true,
+        //                     "qty": "0.001",
         //                     "stopLoss": "",
-        //                     "triggerBy": "UNKNOWN"
-        //                 }
+        //                     "smpOrderId": "",
+        //                     "slippageTolerance": "0",
+        //                     "triggerBy": "",
+        //                     "extraFees": ""
+        //                 },
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1672221263862
+        //         "time": 1758187806376
         //     }
         //
         object data = this.addPaginationCursorToResult(response);
@@ -5742,48 +5778,63 @@ public partial class bybit : Exchange
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
-        //             "category": "spot",
+        //             "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
+        //             "category": "linear",
         //             "list": [
         //                 {
-        //                     "symbol": "ETHUSDT",
-        //                     "orderType": "Limit",
-        //                     "orderLinkId": "1672217748277652",
-        //                     "orderId": "1321052653536515584",
+        //                     "symbol": "BTCUSDT",
+        //                     "orderType": "Market",
+        //                     "orderLinkId": "",
+        //                     "slLimitPrice": "0",
+        //                     "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         //                     "cancelType": "UNKNOWN",
-        //                     "avgPrice": "",
-        //                     "stopOrderType": "tpslOrder",
-        //                     "lastPriceOnCreated": "",
-        //                     "orderStatus": "Cancelled",
+        //                     "avgPrice": "122529.9",
+        //                     "stopOrderType": "",
+        //                     "lastPriceOnCreated": "123747.9",
+        //                     "orderStatus": "Filled",
+        //                     "createType": "CreateByUser",
         //                     "takeProfit": "",
-        //                     "cumExecValue": "0",
+        //                     "cumExecValue": "122.5299",
+        //                     "tpslMode": "",
+        //                     "smpType": "None",
         //                     "triggerDirection": 0,
-        //                     "isLeverage": "0",
-        //                     "rejectReason": "",
-        //                     "price": "1000",
+        //                     "blockTradeId": "",
+        //                     "cumFeeDetail": {
+        //                         "USDT": "0.06739145"
+        //                     },
+        //                     "rejectReason": "EC_NoError",
+        //                     "isLeverage": "",
+        //                     "price": "120518",
         //                     "orderIv": "",
-        //                     "createdTime": "1672217748287",
+        //                     "createdTime": "1757837618905",
         //                     "tpTriggerBy": "",
         //                     "positionIdx": 0,
-        //                     "timeInForce": "GTC",
-        //                     "leavesValue": "500",
-        //                     "updatedTime": "1672217748287",
-        //                     "side": "Buy",
-        //                     "triggerPrice": "1500",
-        //                     "cumExecFee": "0",
-        //                     "leavesQty": "0",
+        //                     "timeInForce": "IOC",
+        //                     "leavesValue": "0",
+        //                     "updatedTime": "1757837618909",
+        //                     "side": "Sell",
+        //                     "smpGroup": 0,
+        //                     "triggerPrice": "",
+        //                     "tpLimitPrice": "0",
+        //                     "cumExecFee": "0.06739145",
         //                     "slTriggerBy": "",
+        //                     "leavesQty": "0",
         //                     "closeOnTrigger": false,
-        //                     "cumExecQty": "0",
-        //                     "reduceOnly": false,
-        //                     "qty": "0.5",
+        //                     "slippageToleranceType": "UNKNOWN",
+        //                     "placeType": "",
+        //                     "cumExecQty": "0.001",
+        //                     "reduceOnly": true,
+        //                     "qty": "0.001",
         //                     "stopLoss": "",
-        //                     "triggerBy": "1192.5"
-        //                 }
+        //                     "smpOrderId": "",
+        //                     "slippageTolerance": "0",
+        //                     "triggerBy": "",
+        //                     "extraFees": ""
+        //                 },
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1672219526294
+        //         "time": 1758187806376
         //     }
         //
         object data = this.addPaginationCursorToResult(response);

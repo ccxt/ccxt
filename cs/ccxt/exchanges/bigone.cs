@@ -17,7 +17,7 @@ public partial class bigone : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", null },
+                { "swap", true },
                 { "future", null },
                 { "option", false },
                 { "cancelAllOrders", true },

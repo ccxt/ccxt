@@ -901,6 +901,7 @@ export default class Exchange {
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
     removeRepeatedTradesFromArray(input: any): any;
+    removeKeysFromDict(dict: Dict, removeKeys: string[]): {};
     handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;

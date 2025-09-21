@@ -1424,7 +1424,7 @@ class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
             'id': undefined,
@@ -3009,6 +3009,14 @@ class Exchange {
         this.baseCurrencies = sourceExchange.baseCurrencies;
         this.quoteCurrencies = sourceExchange.quoteCurrencies;
         this.codes = sourceExchange.codes;
+        // check marketHelperProps
+        const sourceExchangeHelpers = this.safeList(sourceExchange.options, 'marketHelperProps', []);
+        for (let i = 0; i < sourceExchangeHelpers.length; i++) {
+            const helper = sourceExchangeHelpers[i];
+            if (sourceExchange.options[helper] !== undefined) {
+                this.options[helper] = sourceExchange.options[helper];
+            }
+        }
         return this;
     }
     getDescribeForExtendedWsExchange(currentRestInstance, parentRestInstance, wsBaseDescribe) {
@@ -7097,6 +7105,17 @@ class Exchange {
         }
         const values = Object.values(uniqueResult);
         return values;
+    }
+    removeKeysFromDict(dict, removeKeys) {
+        const keys = Object.keys(dict);
+        const newDict = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!this.inArray(key, removeKeys)) {
+                newDict[key] = dict[key];
+            }
+        }
+        return newDict;
     }
     handleUntilOption(key, request, params, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');

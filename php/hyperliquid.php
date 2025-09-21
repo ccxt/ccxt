@@ -3590,6 +3590,9 @@ class hyperliquid extends Exchange {
         }
         $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
+            if ($since === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits requires $since while $until is set');
+            }
             $request['endTime'] = $until;
             $params = $this->omit($params, array( 'until' ));
         }

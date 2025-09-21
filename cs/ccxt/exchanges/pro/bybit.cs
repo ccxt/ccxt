@@ -347,6 +347,10 @@ public partial class bybit : ccxt.bybit
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrderWs() requires a symbol argument")) ;
+        }
         object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "trade");
         await this.authenticate(url);
