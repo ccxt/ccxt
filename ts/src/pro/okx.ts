@@ -197,7 +197,7 @@ export default class okx extends okxRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -207,7 +207,8 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const channel = this.safeString (params, 'channel', 'trades');
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -251,7 +252,8 @@ export default class okx extends okxRest {
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const channel = this.safeString (params, 'channel', 'trades');
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
