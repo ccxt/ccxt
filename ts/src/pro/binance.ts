@@ -2363,7 +2363,6 @@ export default class binance extends binanceRest {
     /**
      * Ensures a User Data Stream WebSocket subscription is active for the specified scope
      * @param marketType {string} only support on 'spot'
-     * @param params {object} extra parameters specific to the exchange API endpoint
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
