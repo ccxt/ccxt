@@ -364,6 +364,11 @@ export default class woo extends Exchange {
                     'TRX': 'TRC20',
                     'TRON': 'TRC20',
                 },
+                // override defaultNetworkCodePriorities for a specific currency
+                'defaultNetworkCodeForCurrencies': {
+                    // 'USDT': 'TRC20',
+                    // 'BTC': 'BTC',
+                },
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
@@ -2491,7 +2496,6 @@ export default class woo extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
-        networkCode = this.networkCodeProtocolCorrector (currency['code'], networkCode);
         const networkEntry = this.safeDict (currency['networks'], networkCode);
         if (networkEntry === undefined) {
             const supportedNetworks = Object.keys (currency['networks']);
@@ -4198,6 +4202,20 @@ export default class woo extends Exchange {
             };
         }
         return result;
+    }
+
+    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
+        const currencyItem = this.currency (code);
+        const networks = currencyItem['networks'];
+        const networkKeys = Object.keys (networks);
+        for (let i = 0; i < networkKeys.length; i++) {
+            const network = networkKeys[i];
+            if (network === 'ETH') {
+                return network;
+            }
+        }
+        // if it was not returned according to above options, then return the first network of currency
+        return this.safeValue (networkKeys, 0);
     }
 
     setSandboxMode (enable: boolean) {
