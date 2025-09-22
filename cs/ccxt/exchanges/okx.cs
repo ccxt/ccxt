@@ -1741,7 +1741,7 @@ public partial class okx : Exchange
         object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue(isSandboxMode)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
