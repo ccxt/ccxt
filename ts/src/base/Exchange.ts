@@ -3081,23 +3081,23 @@ export default class Exchange {
         };
     }
 
-    /**
-     * @method
-     * @name Exchange#networkCodeProtocolCorrector
-     * @description this method ensures that returned networkCode is in sutiable for given coin, e.g:
-     *   ----------------------------
-     *   | input          | returns |
-     *   ----------------------------
-     *   | USDC & ETH     | ERC20   |
-     *   | USDC & ERC20   | ERC20   |
-     *   | ETH & ETH      | ETH     |
-     *   | ETH & ERC20    | ETH     |
-     *   ----------------------------
-     * @param {string} currencyCode unified currency-code
-     * @param {string} networkCode unified network-code
-     * @returns {string} networkCode
-     */
     networkCodeProtocolCorrector (currencyCode: string, networkCode: string) {
+        /**
+         * @method
+         * @name Exchange#networkCodeProtocolCorrector
+         * @description this method ensures that returned networkCode is in sutiable for given coin, e.g:
+         *   ----------------------------
+         *   | input          | returns |
+         *   ----------------------------
+         *   | USDC & ETH     | ERC20   |
+         *   | USDC & ERC20   | ERC20   |
+         *   | ETH & ETH      | ETH     |
+         *   | ETH & ERC20    | ETH     |
+         *   ----------------------------
+         * @param {string} currencyCode unified currency-code
+         * @param {string} networkCode unified network-code
+         * @returns {string} networkCode
+         */
         const chainDescriptors = this.safeList (this.options, 'chainDescriptors', []);
         for (let i = 0; i < chainDescriptors.length; i++) {
             const entry = chainDescriptors[i];
