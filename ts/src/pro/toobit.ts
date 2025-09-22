@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -124,7 +124,8 @@ export default class toobit extends toobitRest {
         //
         const pingTimestamp = this.safeInteger (message, 'ping');
         if (pingTimestamp !== undefined) {
-            client.lastPong = pingTimestamp;
+            this.handleIncomingPing (client, pingTimestamp);
+            return;
         }
         const methods: Dict = {
             'trade': this.handleTrades,
@@ -153,6 +154,10 @@ export default class toobit extends toobitRest {
                 }
             }
         }
+    }
+
+    handleIncomingPing (client: Client, pingTimestamp: Int) {
+        client.lastPong = pingTimestamp;
     }
 
     /**
@@ -1125,6 +1130,7 @@ export default class toobit extends toobitRest {
             const delay = this.sum (listenKeyRefreshRate, 10000);
             if (time - lastAuthenticatedTime > delay) {
                 try {
+                    client.subscriptions[messageHash] = true;
                     const response = await this.privatePostApiV1UserDataStream (params);
                     this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
                     this.options['ws']['lastAuthenticatedTime'] = time;
@@ -1166,19 +1172,8 @@ export default class toobit extends toobitRest {
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        const clients = Object.values (this.clients);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
-        for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
-            const subscriptionKeys = Object.keys ((client as any).subscriptions);
-            for (let j = 0; j < subscriptionKeys.length; j++) {
-                const subscribeType = subscriptionKeys[j];
-                if (subscribeType === 'common') {
-                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                    return;
-                }
-            }
-        }
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3540000);
+        this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
     getUserStreamUrl () {
@@ -1195,7 +1190,8 @@ export default class toobit extends toobitRest {
         const code = this.safeString (message, 'code');
         if (code !== undefined) {
             const desc = this.safeString (message, 'desc');
-            throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + desc);
+            const msg = this.id + ' code: ' + code + ' message: ' + desc;
+            client.reject (new Error (msg));
         }
         return true;
     }
