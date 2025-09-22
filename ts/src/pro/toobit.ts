@@ -1,9 +1,9 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { ArgumentsRequired } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -116,10 +116,9 @@ export default class toobit extends toobitRest {
         //     ]
         //
         const topic = this.safeString (message, 'topic');
-        // const isSnapshot = this.safeBool (message, 'f');
-        // if (this.handleErrorMessage (client, message)) {
-        //     return;
-        // }
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         // if (event === 'pong') {
         //     client.lastPong = this.milliseconds ();
         // }
@@ -184,12 +183,7 @@ export default class toobit extends toobitRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
-        }
-        symbols = this.marketSymbols (symbols);
-        // const streamHash = 'multipleTrades' + '::' + symbols.join (',');
-        // const firstMarket = this.market (symbols[0]);
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -418,12 +412,7 @@ export default class toobit extends toobitRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTickers() requires a non-empty array of symbols');
-        }
-        symbols = this.marketSymbols (symbols);
-        // const streamHash = 'multipleTrades' + '::' + symbols.join (',');
-        // const firstMarket = this.market (symbols[0]);
+        symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -529,10 +518,7 @@ export default class toobit extends toobitRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
-        }
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'channel', 'depth');
         const messageHashes = [];
@@ -638,10 +624,11 @@ export default class toobit extends toobitRest {
 
     setOrderBookSnapshot (client: Client, message, channel: string) {
         const data = this.safeList (message, 'data', []);
-        if (data.length === 0) {
+        const length = data.length;
+        if (length === 0) {
             return;
         }
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 's');
             const symbol = this.safeSymbol (marketId);
@@ -1179,5 +1166,18 @@ export default class toobit extends toobitRest {
 
     getUserStreamUrl () {
         return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
+    }
+
+    handleErrorMessage (client: Client, message): Bool {
+        //
+        //    {
+        //        "T": "error",
+        //        "code": 400,
+        //        "msg": "invalid syntax"
+        //    }
+        //
+        const code = this.safeString (message, 'code');
+        const msg = this.safeValue (message, 'msg', {});
+        throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 }
