@@ -513,6 +513,7 @@ func (this *cryptocom) FetchCurrencies(optionalArgs ...interface{}) <-chan inter
 		_ = params
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		var skipFetchCurrencies interface{} = false
@@ -522,6 +523,7 @@ func (this *cryptocom) FetchCurrencies(optionalArgs ...interface{}) <-chan inter
 		if IsTrue(skipFetchCurrencies) {
 
 			// sub-accounts can't access this endpoint
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		var response interface{} = map[string]interface{}{}
@@ -539,6 +541,7 @@ func (this *cryptocom) FetchCurrencies(optionalArgs ...interface{}) <-chan inter
 
 								// sub-accounts can't access this endpoint
 								// {"code":"10001","msg":"SYS_ERROR"}
+								ch <- map[string]interface{}{}
 								return nil
 							}
 							panic(e)

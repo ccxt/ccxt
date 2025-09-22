@@ -1787,6 +1787,7 @@ func (this *okx) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{}
 		var isSandboxMode interface{} = this.SafeBool(this.Options, "sandboxMode", false)
 		if IsTrue(!IsTrue(this.CheckRequiredCredentials(false)) || IsTrue(isSandboxMode)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		//

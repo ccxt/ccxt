@@ -910,6 +910,7 @@ func (this *mexc) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{
 		_ = params
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 

@@ -806,7 +806,7 @@ public partial class okcoin : Exchange
             {
                 throw new ExchangeError ((string)add(this.id, " fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options[\"warnOnFetchCurrenciesWithoutAuthorization\"] = false to suppress this warning message.")) ;
             }
-            return null;
+            return new Dictionary<string, object>() {};
         } else
         {
             object response = await this.privateGetAssetCurrencies(parameters);

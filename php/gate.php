@@ -1870,7 +1870,7 @@ class gate extends Exchange {
         // sandbox/testnet only supports future markets
         $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
-            return null;
+            return array();
         }
         $response = $this->publicSpotGetCurrencies ($params);
         //

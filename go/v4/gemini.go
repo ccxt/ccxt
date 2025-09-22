@@ -393,6 +393,7 @@ func (this *gemini) FetchCurrenciesFromWeb(optionalArgs ...interface{}) <-chan i
 		PanicOnError(data)
 		if IsTrue(IsEqual(data, nil)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		//

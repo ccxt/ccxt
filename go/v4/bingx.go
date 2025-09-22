@@ -756,11 +756,13 @@ func (this *bingx) FetchCurrencies(optionalArgs ...interface{}) <-chan interface
 		_ = params
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		var isSandbox interface{} = this.SafeBool(this.Options, "sandboxMode", false)
 		if IsTrue(isSandbox) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 

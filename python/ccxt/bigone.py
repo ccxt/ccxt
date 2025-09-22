@@ -457,7 +457,7 @@ class bigone(Exchange, ImplicitAPI):
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', True)
         if data is None:
-            return None
+            return {}
         #
         # {
         #     "code": "0",

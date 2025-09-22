@@ -2746,6 +2746,7 @@ func (this *binance) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 		var fetchCurrenciesEnabled interface{} = this.SafeBool(this.Options, "fetchCurrencies")
 		if !IsTrue(fetchCurrenciesEnabled) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		// this endpoint requires authentication
@@ -2754,12 +2755,14 @@ func (this *binance) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 		// and fallback to generating the currencies from the markets
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		// sandbox/testnet does not support sapi endpoints
 		var apiBackup interface{} = this.SafeValue(this.Urls, "apiBackup")
 		if IsTrue(!IsEqual(apiBackup, nil)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		var promises interface{} = []interface{}{this.SapiGetCapitalConfigGetall(params)}
