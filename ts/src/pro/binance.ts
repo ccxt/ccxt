@@ -2360,6 +2360,237 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
 
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType === marketType) {
+            return;
+        }
+        client.subscriptions[marketType] = true;
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe.signature',
+            'params': this.signParams ({}),
+        };
+        const subscription: Dict = {
+            'id': messageHash,
+            'method': this.handleUserDataStreamSubscribe,
+            'subscription': marketType,
+        };
+        await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleUserDataStreamSubscribe (client: Client, message) {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {
+        //         "subscriptionId": 0
+        //     }
+        //   }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const result = this.safeDict (message, 'result', {});
+        const subscriptionId = this.safeInteger (result, 'subscriptionId');
+        if (subscriptionId === undefined) {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+        client.resolve (message, messageHash);
+    }
+
+    /**
+     * @method
+     * @name binance#unsubscribeUserDataStream
+     * @description unsubscribe from user data stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream#unsubscribe-from-user-data-stream
+     * @param {string} [marketType] the market type ('spot', 'future', 'delivery', 'margin')
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} unsubscribe result
+     */
+    async unsubscribeUserDataStream (marketType: string = 'spot', params = {}) {
+        if (marketType !== 'spot') {
+            throw new BadRequest (this.id + ' unsubscribeUserDataStream only supports spot market type');
+        }
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType !== marketType) {
+            return;
+        }
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.unsubscribe',
+        };
+        const subscription: Dict = {
+            'id': messageHash,
+            'method': this.handleUserDataStreamUnsubscribe,
+            'subscription': marketType,
+        };
+        await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleUserDataStreamUnsubscribe (client: Client, message) {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {}
+        //   }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        delete client.subscriptions[accountType];
+        client.resolve (message, messageHash);
+    }
+
+    /**
+     * @method
+     * @name binance#stopUserDataStream
+     * @description stop user data stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/close-user-data-stream-websocket-api
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/close-user-data-stream-websocket-api
+     * @param {string} [marketType] the market type ('spot', 'future', 'delivery', 'margin')
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.apiKey] API key (required if session is not authenticated via session.logon)
+     * @returns {Promise<any>} stop result
+     */
+    async stopUserDataStream (marketType: string = 'spot', params = {}) {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType !== marketType) {
+            return; // Already stopped or not started for this market type
+        }
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.stop',
+            'params': this.signParams (params),
+        };
+        const subscription: Dict = {
+            'id': messageHash,
+            'method': this.handleUserDataStreamStop,
+            'subscription': marketType,
+        };
+        await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleUserDataStreamStop (client: Client, message) {
+        //
+        //   {
+        //     "id": "819e1b1b-8c06-485b-a13e-131326c69599",
+        //     "status": 200,
+        //     "result": {},
+        //     "rateLimits": [
+        //       {
+        //         "rateLimitType": "REQUEST_WEIGHT",
+        //         "interval": "MINUTE",
+        //         "intervalNum": 1,
+        //         "limit": 2400,
+        //         "count": 2
+        //       }
+        //     ]
+        //   }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        delete client.subscriptions[accountType];
+        client.reject (message, accountType);
+        // TODO: reject all futures of watchBalance, watchOrders, watchMyTrades and watchPositions
+        // TODO: clean unsubscriptions
+        client.resolve (message, messageHash);
+    }
+
+    /**
+     * @method
+     * @name binance#checkAndCleanupUserDataStreams
+     * @description check if any user data streams are still subscribed and clean them up if not
+     * @param {string} [marketType] the market type ('spot', 'future', 'delivery', 'margin')
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} cleanup result
+     */
+    async checkAndCleanupUserDataStreams (marketType: string = 'spot', params = {}) {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType !== marketType) {
+            return; // No active subscription for this market type
+        }
+        // Check if any user data streams are still active
+        const activeUserDataStreams = this.getActiveUserDataStreams (client, marketType);
+        if (activeUserDataStreams.length === 0) {
+            // No active user data streams, clean up
+            if (marketType === 'spot') {
+                // For spot, unsubscribe from user data stream
+                await this.unsubscribeUserDataStream (marketType, params);
+            } else {
+                // For other types, stop the user data stream
+                await this.stopUserDataStream (marketType, params);
+            }
+        }
+        return activeUserDataStreams;
+    }
+
+    /**
+     * @method
+     * @name binance#getActiveUserDataStreams
+     * @description get list of active user data streams for a client
+     * @param {Client} client the WebSocket client
+     * @param {string} [marketType] the market type ('spot', 'future', 'delivery', 'margin')
+     * @returns {string[]} list of active user data stream message hashes
+     */
+    getActiveUserDataStreams (client: Client, marketType: string = 'spot'): string[] {
+        const activeStreams: string[] = [];
+        const subscriptions = client.subscriptions;
+        // Check for common user data stream subscriptions
+        const userDataStreamKeys = [
+            'balance',
+            'orders',
+            'myTrades',
+            'positions',
+        ];
+        const commonStreams = userDataStreamKeys.filter ((key) => {
+            const messageHash = marketType + ':' + key;
+            return subscriptions[messageHash] !== undefined;
+        }).map ((key) => marketType + ':' + key);
+        activeStreams.push (...commonStreams);
+        // Check for symbol-specific subscriptions
+        const symbolSpecificStreams = Object.keys (subscriptions).filter ((subscriptionKey) => subscriptionKey.includes (marketType + ':')
+            && (subscriptionKey.includes ('orders:')
+                || subscriptionKey.includes ('myTrades:')));
+        activeStreams.push (...symbolSpecificStreams);
+        return activeStreams;
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         let type = undefined;
@@ -2372,6 +2603,11 @@ export default class binance extends binanceRest {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
+        }
+        // For spot use WebSocket API signature subscription
+        if (type === 'spot') {
+            await this.ensureUserDataStreamWsSubscribeSignature ('spot');
+            return;
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
@@ -2491,7 +2727,7 @@ export default class binance extends binanceRest {
     }
 
     setBalanceCache (client: Client, type, isPortfolioMargin = false) {
-        if (type in client.subscriptions) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
@@ -2760,11 +2996,17 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let url = '';
         let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        if (type === 'spot') {
+            // route to WebSocket API connection where the user data stream is subscribed
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -2777,6 +3019,45 @@ export default class binance extends binanceRest {
         const messageHash = type + ':balance';
         const message = undefined;
         return await this.watch (url, messageHash, message, type);
+    }
+
+    /**
+     * @method
+     * @name binance#unWatchBalance
+     * @description stop watching balance updates
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} unsubscribe result
+     */
+    async unWatchBalance (params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        let type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('unWatchBalance', undefined, params);
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'unWatchBalance', 'papi', 'portfolioMargin', false);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        if (type === 'spot') {
+            // For spot, unsubscribe from user data stream
+            await this.unsubscribeUserDataStream (type, params);
+        } else {
+            // For other types, close the WebSocket connection
+            let url = '';
+            let urlType = type;
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            const client = this.client (url);
+            const messageHash = type + ':balance';
+            this.cleanUnsubscription (client, messageHash, messageHash);
+        }
+        // Check and cleanup user data streams if no active subscriptions remain
+        await this.checkAndCleanupUserDataStreams (type, params);
     }
 
     handleBalance (client: Client, message) {
@@ -2847,9 +3128,9 @@ export default class binance extends binanceRest {
         //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
@@ -2890,6 +3171,18 @@ export default class binance extends binanceRest {
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
+    }
+
+    getAccountTypeFromSubscriptions (subscriptions: string[]): string {
+        let accountType = '';
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery')) {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
     }
 
     getMarketType (method, market, params = {}) {
@@ -3498,10 +3791,16 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            // route orders to ws-api user data stream
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -3511,6 +3810,51 @@ export default class binance extends binanceRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name binance#unWatchOrders
+     * @description stop watching orders updates
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} unsubscribe result
+     */
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash += ':' + symbol;
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('unWatchOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('unWatchOrders', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        if (type === 'spot') {
+            // For spot, unsubscribe from user data stream
+            await this.unsubscribeUserDataStream (type, params);
+        } else {
+            // For other types, close the WebSocket connection
+            let isPortfolioMargin = undefined;
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'unWatchOrders', 'papi', 'portfolioMargin', false);
+            let urlType = type;
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            const client = this.client (url);
+            this.cleanUnsubscription (client, messageHash, messageHash);
+        }
+        // Check and cleanup user data streams if no active subscriptions remain
+        await this.checkAndCleanupUserDataStreams (type, params);
     }
 
     parseWsOrder (order, market = undefined) {
@@ -3816,6 +4160,49 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name binance#unWatchPositions
+     * @description stop watching positions updates
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} unsubscribe result
+     */
+    async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let market = undefined;
+        let messageHash = '';
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            market = this.getMarketFromSymbols (symbols);
+            messageHash = '::' + symbols.join (',');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('unWatchPositions', market, params);
+        if (type === 'spot' || type === 'margin') {
+            type = 'future';
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('unWatchPositions', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        messageHash = type + ':positions' + messageHash;
+        let isPortfolioMargin = undefined;
+        [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'unWatchPositions', 'papi', 'portfolioMargin', false);
+        let urlType = type;
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
+        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        const client = this.client (url);
+        this.cleanUnsubscription (client, messageHash, messageHash);
+        // Check and cleanup user data streams if no active subscriptions remain
+        await this.checkAndCleanupUserDataStreams (type, params);
+    }
+
     setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
         if (type === 'spot') {
             return;
@@ -3891,8 +4278,9 @@ export default class binance extends binanceRest {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -4172,10 +4560,15 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -4185,6 +4578,53 @@ export default class binance extends binanceRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name binance#unWatchMyTrades
+     * @description stop watching my trades updates
+     * @param {string} [symbol] unified market symbol of the market the trades were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Promise<any>} unsubscribe result
+     */
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let type = undefined;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('unWatchMyTrades', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('unWatchMyTrades', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
+        let messageHash = 'myTrades';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        if (type === 'spot') {
+            await this.unsubscribeUserDataStream (type, params);
+        } else {
+            // For other types, close the WebSocket connection
+            let isPortfolioMargin = undefined;
+            [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'unWatchMyTrades', 'papi', 'portfolioMargin', false);
+            let urlType = type;
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+            const client = this.client (url);
+            this.cleanUnsubscription (client, messageHash, messageHash);
+        }
+        // Check and cleanup user data streams if no active subscriptions remain
+        await this.checkAndCleanupUserDataStreams (type, params);
     }
 
     handleMyTrade (client: Client, message) {
@@ -4320,8 +4760,12 @@ export default class binance extends binanceRest {
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];
                 const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
                 if (id === subscriptionId) {
                     client.reject (e, subscriptionHash);
+                    if (subscription !== undefined) {
+                        delete client.subscriptions[subscription];
+                    }
                 }
             }
         }
@@ -4335,14 +4779,36 @@ export default class binance extends binanceRest {
         }
     }
 
+    handleEventStreamTerminated (client: Client, message) {
+        //
+        //    {
+        //        e: 'eventStreamTerminated',
+        //        E: 1757896885229
+        //    }
+        //
+        const event = this.safeString (message, 'e');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (event === 'eventStreamTerminated') {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+    }
+
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
+        const eventMsg = this.safeDict (message, 'event');
+        if (eventMsg !== undefined) {
+            message = eventMsg;
+        }
         const status = this.safeString (message, 'status');
         const error = this.safeValue (message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, message);
             return;
         }
+        // user subscription wraps message in subscriptionId and event
         const id = this.safeString (message, 'id');
         const subscriptions = this.safeValue (client.subscriptions, id);
         let method = this.safeValue (subscriptions, 'method');
@@ -4377,6 +4843,7 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            'eventStreamTerminated': this.handleEventStreamTerminated,
             'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString (message, 'e');
