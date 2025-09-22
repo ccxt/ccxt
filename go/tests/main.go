@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	RUN_BASE_TETS := base.GetCliArgValue("--baseTests")
-	if RUN_BASE_TETS {
+	RUN_BASE_TESTS := base.GetCliArgValue("--baseTests")
+	if RUN_BASE_TESTS {
 		base.BaseTestsInit()
 		fmt.Println("Base REST tests passed!")
 		return

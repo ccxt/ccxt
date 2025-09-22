@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gemini$1 = require('./abstract/gemini.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class gemini
  * @augments Exchange
  */
-class gemini extends gemini$1 {
+class gemini extends gemini$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'gemini',
@@ -261,7 +263,7 @@ class gemini extends gemini$1 {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -295,6 +297,7 @@ class gemini extends gemini$1 {
                         'quote': 'USD',
                     },
                 },
+                'brokenPairs': ['efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd'],
             },
             'features': {
                 'default': {
@@ -421,8 +424,6 @@ class gemini extends gemini$1 {
             let networkCode = undefined;
             if (networkId !== undefined) {
                 networkCode = this.networkIdToCode(networkId);
-            }
-            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': currency,
                     'id': networkId,
@@ -444,7 +445,7 @@ class gemini extends gemini$1 {
                     },
                 };
             }
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -466,7 +467,7 @@ class gemini extends gemini$1 {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -629,10 +630,10 @@ class gemini extends gemini$1 {
         //
         const result = [];
         const options = this.safeDict(this.options, 'fetchMarketsFromAPI', {});
-        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
         const marketIds = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (marketIdsRaw[i] !== bugSymbol) {
+            if (!this.inArray(marketIdsRaw[i], brokenPairs)) {
                 marketIds.push(marketIdsRaw[i]);
             }
         }
@@ -670,14 +671,16 @@ class gemini extends gemini$1 {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
                     const tradingPair = this.safeList(indexedTradingPairs, marketId.toUpperCase());
-                    if (tradingPair !== undefined) {
+                    if (tradingPair !== undefined && !this.inArray(tradingPair, brokenPairs)) {
                         result.push(this.parseMarket(tradingPair));
                     }
                 }
             }
             else {
                 for (let i = 0; i < marketIds.length; i++) {
-                    result.push(this.parseMarket(marketIds[i]));
+                    if (!this.inArray(marketIds[i], brokenPairs)) {
+                        result.push(this.parseMarket(marketIds[i]));
+                    }
                 }
             }
         }
@@ -693,8 +696,8 @@ class gemini extends gemini$1 {
         //
         //     [
         //         'BTCUSD',   // symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -713,7 +716,7 @@ class gemini extends gemini$1 {
         //         "wrap_enabled": false
         //         "product_type": "swap", // only in perps
         //         "contract_type": "linear", // only in perps
-        //         "contract_price_currency": "GUSD" // only in perps
+        //         "contract_price_currency": "GUSD"
         //     }
         //
         let marketId = undefined;
@@ -1063,7 +1066,9 @@ class gemini extends gemini$1 {
         //         },
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        const result = this.parseTickers(response, symbols);
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
+        return this.removeKeysFromDict(result, brokenPairs);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -2004,4 +2009,4 @@ class gemini extends gemini$1 {
     }
 }
 
-module.exports = gemini;
+exports["default"] = gemini;

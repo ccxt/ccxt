@@ -494,7 +494,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
@@ -528,11 +528,11 @@ class p2b extends \ccxt\async\p2b {
 
     public function on_error(Client $client, $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
-        $this->on_error($client, $error);
+        parent::on_error($client, $error);
     }
 
     public function on_close(Client $client, $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
-        $this->on_close($client, $error);
+        parent::on_close($client, $error);
     }
 }

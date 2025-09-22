@@ -30,6 +30,11 @@ const keysort = (x, out = {}) => {
     }
     return out;
 };
+const sort = (array) => {
+    const newArray = array.slice();
+    newArray.sort();
+    return newArray;
+};
 /*
     Accepts a map/array of objects and a key name to be used as an index:
     array = [
@@ -185,6 +190,7 @@ exports.merge = merge;
 exports.omit = omit;
 exports.ordered = ordered;
 exports.pluck = pluck;
+exports.sort = sort;
 exports.sortBy = sortBy;
 exports.sortBy2 = sortBy2;
 exports.sum = sum;

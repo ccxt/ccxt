@@ -101,6 +101,7 @@ def test_market(exchange, skipped_properties, method, market):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, market, 'symbol')
     log_text = test_shared_methods.log_template(exchange, method, market)
     # check taker/maker
+    # todo: check not all to be within 0-1.0
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'taker', '-100')
     test_shared_methods.assert_less(exchange, skipped_properties, method, market, 'taker', '100')
     test_shared_methods.assert_greater(exchange, skipped_properties, method, market, 'maker', '-100')
@@ -188,7 +189,7 @@ def test_market(exchange, skipped_properties, method, market):
             # if not option, then strike and optionType should be undefined
             assert market['strike'] is None, '"strike" must be undefined when "option" is false' + log_text
             assert market['optionType'] is None, '"optionType" must be undefined when "option" is false' + log_text
-    else:
+    elif spot:
         # otherwise, expiry needs to be undefined
         assert (market['expiry'] is None) and (market['expiryDatetime'] is None), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + log_text
     # check precisions

@@ -16,25 +16,32 @@
             "bookDigits": "8",
             "bookMultiplier": "100000000",
             "sentimentData": {
-                "sentiment": "43.95555555555555",
-                "interest": "0.9571265738324092"
+                "sentiment": "50.35444444444445",
+                "interest": "0.9811717053176572"
             },
-            "minQty": "0.0001"
+            "minQty": "0.00005"
         },
         "id": "BTC",
+        "numericId": null,
         "code": "BTC",
         "precision": 0.000001,
+        "type": "crypto",
         "name": "BTC",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 0.0001
+                "min": 0.00005,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "ETH": {
@@ -54,25 +61,32 @@
             "bookDigits": "6",
             "bookMultiplier": "1000000",
             "sentimentData": {
-                "sentiment": "50.96",
-                "interest": "0.694275377332791"
+                "sentiment": "46.21777777777777",
+                "interest": "0.854381778089728"
             },
             "minQty": "0.002"
         },
         "id": "ETH",
+        "numericId": null,
         "code": "ETH",
         "precision": 0.0001,
+        "type": "crypto",
         "name": "ETH",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 0.002
+                "min": 0.002,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USDT": {
@@ -83,6 +97,7 @@
             "canDeposit": true,
             "canWithdraw": true,
             "canTrade": true,
+            "notabeneDecimals": "6",
             "canMarket": true,
             "maxSwap": "500",
             "digits": "2",
@@ -90,31 +105,38 @@
             "bookDigits": "3",
             "bookMultiplier": "1000",
             "sentimentData": {
-                "sentiment": "47.96555555555556",
-                "interest": "1.153579676674365"
+                "sentiment": "49.41777777777777",
+                "interest": "1.0259279424741377"
             },
             "minQty": "5"
         },
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
         "precision": 0.01,
+        "type": "crypto",
         "name": "USDT",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 5
+                "min": 5,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USDC": {
         "info": {
             "symbol": "USDC",
-            "name": "USD Coin",
+            "name": "USDC",
             "color": "#2775CA",
             "type": "token",
             "canDeposit": true,
@@ -130,19 +152,26 @@
             "minQty": "6"
         },
         "id": "USDC",
+        "numericId": null,
         "code": "USDC",
         "precision": 0.01,
+        "type": "crypto",
         "name": "USDC",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 6
+                "min": 6,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "EUR": {
@@ -163,19 +192,26 @@
             "minQty": "5"
         },
         "id": "EUR",
+        "numericId": null,
         "code": "EUR",
         "precision": 0.01,
+        "type": "fiat",
         "name": "EUR",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 5
+                "min": 5,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "LTC": {
@@ -195,25 +231,32 @@
             "bookDigits": "6",
             "bookMultiplier": "1000000",
             "sentimentData": {
-                "sentiment": "47.42444444444445",
-                "interest": "1.1880197207179373"
+                "sentiment": "58.75777777777777",
+                "interest": "0.9192667337857687"
             },
-            "minQty": "0.08"
+            "minQty": "0.06"
         },
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
         "precision": 0.0001,
+        "type": "crypto",
         "name": "LTC",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 0.08
+                "min": 0.06,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "DOGE": {
@@ -225,6 +268,7 @@
             "canDeposit": true,
             "canWithdraw": true,
             "canTrade": true,
+            "notabeneDecimals": "8",
             "canMarket": true,
             "maxSwap": "500",
             "digits": "1",
@@ -232,25 +276,32 @@
             "bookDigits": "4",
             "bookMultiplier": "10000",
             "sentimentData": {
-                "sentiment": "45.43666666666666",
-                "interest": "0.859653679167736"
+                "sentiment": "55.96888888888889",
+                "interest": "0.9798765858788889"
             },
-            "minQty": "70"
+            "minQty": "20"
         },
         "id": "DOGE",
+        "numericId": null,
         "code": "DOGE",
         "precision": 0.1,
+        "type": "crypto",
         "name": "DOGE",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 70
+                "min": 20,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "ADA": {
@@ -271,25 +322,32 @@
             "bookDigits": "3",
             "bookMultiplier": "1000",
             "sentimentData": {
-                "sentiment": "48.04444444444444",
-                "interest": "0.9572167259467377"
+                "sentiment": "25.30111111111111",
+                "interest": "0.8757131927361556"
             },
-            "minQty": "10"
+            "minQty": "7"
         },
         "id": "ADA",
+        "numericId": null,
         "code": "ADA",
         "precision": 0.01,
+        "type": "crypto",
         "name": "ADA",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
             "amount": {
-                "min": 10
+                "min": 7,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     }
 }

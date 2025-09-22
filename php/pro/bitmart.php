@@ -234,7 +234,7 @@ class bitmart extends \ccxt\async\bitmart {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ),
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ),
@@ -1609,7 +1609,7 @@ class bitmart extends \ccxt\async\bitmart {
         $future->resolve (true);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    array( event => "error", $message => "Invalid sign", $errorCode => 30013 )
         //    array("event":"error","message":"Unrecognized request => array(\"event\":\"subscribe\",\"channel\":\"spot/depth:BTC-USDT\")","errorCode":30039)

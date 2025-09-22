@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchOrderBook(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchOrderBook(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "watchOrderBook";
         object now = exchange.milliseconds();
@@ -16,6 +16,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = ((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy();
@@ -26,13 +27,18 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
-            now = exchange.milliseconds();
-            testOrderBook(exchange, skippedProperties, method, response, symbol);
+            if (isTrue(isEqual(success, true)))
+            {
+                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+                assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
+                now = exchange.milliseconds();
+                testOrderBook(exchange, skippedProperties, method, response, symbol);
+            }
         }
+        return true;
     }
 
 }

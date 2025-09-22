@@ -10,10 +10,11 @@ namespace ccxt;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
 
 function test_fetch_tickers($exchange, $skipped_properties, $symbol) {
-    // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
-    // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
-    Promise\all([test_fetch_tickers_helper($exchange, $skipped_properties, null), test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol])]);
-    return true;
+    $without_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, null);
+    $with_symbol = test_fetch_tickers_helper($exchange, $skipped_properties, [$symbol]);
+    $results = Promise\all([$without_symbol, $with_symbol]);
+    test_fetch_tickers_amounts($exchange, $skipped_properties, $results[0]);
+    return $results;
 }
 
 
@@ -32,5 +33,26 @@ function test_fetch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
         $ticker = $values[$i];
         test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
     }
-    return true;
+    return $response;
+}
+
+
+function test_fetch_tickers_amounts($exchange, $skipped_properties, $tickers) {
+    $tickers_values = is_array($tickers) ? array_values($tickers) : array();
+    if (!(is_array($skipped_properties) && array_key_exists('checkActiveSymbols', $skipped_properties))) {
+        //
+        // ensure all "active" symbols have tickers
+        //
+        $non_inactive_markets = get_active_markets($exchange);
+        $not_inactive_symbols_length = count($non_inactive_markets);
+        $obtained_tickers_length = count($tickers_values);
+        $tolerance_coefficient = 0.01; // 1% tolerance, eg. when 100 active markets, we should have at least 99 tickers
+        assert($obtained_tickers_length >= $not_inactive_symbols_length * (1 - $tolerance_coefficient), $exchange->id . ' ' . 'fetchTickers' . ' must return tickers for all active markets. but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $not_inactive_symbols_length) . ' active markets');
+        //
+        // ensure tickers length is less than markets length
+        //
+        $all_markets = $exchange->markets;
+        $all_markets_length = count(is_array($all_markets) ? array_keys($all_markets) : array());
+        assert($obtained_tickers_length <= $all_markets_length, $exchange->id . ' ' . 'fetchTickers' . ' must return <= than all markets, but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $all_markets_length) . ' markets');
+    }
 }

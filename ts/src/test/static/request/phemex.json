@@ -5,6 +5,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.phemex.com/public/products",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "swap +buy +limit +triggerPrice +triggerDirection +reduceOnly",
@@ -493,6 +502,20 @@
         ],
     "fetchPositions": [
             {
+                "description": "fetchPosition with privateGetGAccountsPositions",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/g-accounts/positions?currency=USDT",
+                "input": [
+                    [
+                        "XRP/USDT:USDT"
+                    ],
+                    {
+                        "method": "privateGetAccountsPositions"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch btc positions",
                 "method": "fetchPositions",
                 "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",
@@ -576,9 +599,9 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch USDT deposit address",
+                "description": "fetch the USDT deposit address",
                 "method": "fetchDepositAddress",
-                "url": "https://api.phemex.com/phemex-user/wallets/v2/depositAddress?currency=USDT&chainName=ETH",
+                "url": "https://testnet-api.phemex.com/exchange/wallets/v2/depositAddress?currency=USDT&chainName=ETH",
                 "input": [
                     "USDT"
                 ]

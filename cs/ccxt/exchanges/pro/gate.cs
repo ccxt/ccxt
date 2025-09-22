@@ -402,6 +402,11 @@ public partial class gate : ccxt.gate
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -424,7 +429,7 @@ public partial class gate : ccxt.gate
         object payload = new List<object>() {marketId, interval};
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (isTrue(getValue(market, "contract")))
         {
@@ -1429,8 +1434,37 @@ public partial class gate : ccxt.gate
         {
             object rawPosition = getValue(data, i);
             object position = this.parsePosition(rawPosition);
-            ((IList<object>)newPositions).Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            object symbol = this.safeString(position, "symbol");
+            object side = this.safeString(position, "side");
+            // Control when position is closed no side is returned
+            if (isTrue(isEqual(side, null)))
+            {
+                object prevLongPosition = this.safeDict(cache, add(symbol, "long"));
+                if (isTrue(!isEqual(prevLongPosition, null)))
+                {
+                    ((IDictionary<string,object>)position)["side"] = getValue(prevLongPosition, "side");
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+                object prevShortPosition = this.safeDict(cache, add(symbol, "short"));
+                if (isTrue(!isEqual(prevShortPosition, null)))
+                {
+                    ((IDictionary<string,object>)position)["side"] = getValue(prevShortPosition, "side");
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+                // if no prev position is found, default to long
+                if (isTrue(isTrue(isEqual(prevLongPosition, null)) && isTrue(isEqual(prevShortPosition, null))))
+                {
+                    ((IDictionary<string,object>)position)["side"] = "long";
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+            } else
+            {
+                ((IList<object>)newPositions).Add(position);
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))

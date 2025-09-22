@@ -1,5 +1,5 @@
 import htxRest from '../htx.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class htx extends htxRest {
     describe(): any;
@@ -130,7 +130,7 @@ export default class htx extends htxRest {
     pong(client: any, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handleAuthenticate(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
     parseWsTrade(trade: any, market?: any): Trade;

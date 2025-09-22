@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -20,6 +21,7 @@ class upbit extends \ccxt\async\upbit {
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'watchOHLCV' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
@@ -217,6 +219,29 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
+    public function watch_ohlcv(string $symbol, $timeframe = '1s', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+             *
+             * @see https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+             * @see https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+             *
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {string} $timeframe specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+             * @param {int} [$since] the earliest time in ms to fetch orders for
+             * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {OHLCV[]} a list of ~@link https://docs.ccxt.com/#/?id=ohlcv-structure OHLCV structures~
+             */
+            if ($timeframe !== '1s') {
+                throw new NotSupported($this->id . ' watchOHLCV does not support' . $timeframe . ' candle.');
+            }
+            $timeFrameOHLCV = 'candle.' . $timeframe;
+            return Async\await($this->watch_public($symbol, $timeFrameOHLCV));
+        }) ();
+    }
+
     public function handle_ticker(Client $client, $message) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type => "ticker",
@@ -344,6 +369,27 @@ class upbit extends \ccxt\async\upbit {
         $marketId = $this->safe_string($message, 'code');
         $messageHash = 'trade:' . $marketId;
         $client->resolve ($stored, $messageHash);
+    }
+
+    public function handle_ohlcv(Client $client, $message) {
+        // {
+        //     type => 'candle.1s',
+        //     code => 'KRW-USDT',
+        //     candle_date_time_utc => '2025-04-22T09:50:34',
+        //     candle_date_time_kst => '2025-04-22T18:50:34',
+        //     opening_price => 1438,
+        //     high_price => 1438,
+        //     low_price => 1438,
+        //     trade_price => 1438,
+        //     candle_acc_trade_volume => 1145.8935,
+        //     candle_acc_trade_price => 1647794.853,
+        //     timestamp => 1745315434125,
+        //     stream_type => 'REALTIME'
+        //   }
+        $marketId = $this->safe_string($message, 'code');
+        $messageHash = 'candle.1s:' . $marketId;
+        $ohlcv = $this->parse_ohlcv($message);
+        $client->resolve ($ohlcv, $messageHash);
     }
 
     public function authenticate($params = array ()) {
@@ -679,6 +725,7 @@ class upbit extends \ccxt\async\upbit {
             'trade' => array($this, 'handle_trades'),
             'myOrder' => array($this, 'handle_my_order'),
             'myAsset' => array($this, 'handle_balance'),
+            'candle.1s' => array($this, 'handle_ohlcv'),
         );
         $methodName = $this->safe_string($message, 'type');
         $method = $this->safe_value($methods, $methodName);

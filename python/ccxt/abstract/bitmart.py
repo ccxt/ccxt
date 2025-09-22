@@ -61,6 +61,7 @@ class ImplicitAPI:
     private_get_contract_private_order = privateGetContractPrivateOrder = Entry('contract/private/order', 'private', 'GET', {'cost': 1.2})
     private_get_contract_private_order_history = privateGetContractPrivateOrderHistory = Entry('contract/private/order-history', 'private', 'GET', {'cost': 10})
     private_get_contract_private_position = privateGetContractPrivatePosition = Entry('contract/private/position', 'private', 'GET', {'cost': 10})
+    private_get_contract_private_position_v2 = privateGetContractPrivatePositionV2 = Entry('contract/private/position-v2', 'private', 'GET', {'cost': 10})
     private_get_contract_private_get_open_orders = privateGetContractPrivateGetOpenOrders = Entry('contract/private/get-open-orders', 'private', 'GET', {'cost': 1.2})
     private_get_contract_private_current_plan_order = privateGetContractPrivateCurrentPlanOrder = Entry('contract/private/current-plan-order', 'private', 'GET', {'cost': 1.2})
     private_get_contract_private_trades = privateGetContractPrivateTrades = Entry('contract/private/trades', 'private', 'GET', {'cost': 10})

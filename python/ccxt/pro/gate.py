@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Liquidation, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Market, MarketType, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -365,6 +365,13 @@ class gate(ccxt.async_support.gate):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+        https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+        https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+        https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+        https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -381,7 +388,7 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         payload = [marketId, interval]
         if limit is None:
-            limit = 100
+            limit = 100  # max 100 atm
         if market['contract']:
             stringLimit = str(limit)
             payload.append(stringLimit)
@@ -1175,8 +1182,28 @@ class gate(ccxt.async_support.gate):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            newPositions.append(position)
-            cache.append(position)
+            symbol = self.safe_string(position, 'symbol')
+            side = self.safe_string(position, 'side')
+            # Control when position is closed no side is returned
+            if side is None:
+                prevLongPosition = self.safe_dict(cache, symbol + 'long')
+                if prevLongPosition is not None:
+                    position['side'] = prevLongPosition['side']
+                    newPositions.append(position)
+                    cache.append(position)
+                prevShortPosition = self.safe_dict(cache, symbol + 'short')
+                if prevShortPosition is not None:
+                    position['side'] = prevShortPosition['side']
+                    newPositions.append(position)
+                    cache.append(position)
+                # if no prev position is found, default to long
+                if prevLongPosition is None and prevShortPosition is None:
+                    position['side'] = 'long'
+                    newPositions.append(position)
+                    cache.append(position)
+            else:
+                newPositions.append(position)
+                cache.append(position)
         messageHashes = self.find_message_hashes(client, type + ':positions::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -1312,7 +1339,7 @@ class gate(ccxt.async_support.gate):
         """
         return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
 
-    async def watch_my_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    async def watch_my_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the private liquidations of a trading pair
 
@@ -1466,7 +1493,7 @@ class gate(ccxt.async_support.gate):
             'datetime': self.iso8601(timestamp),
         })
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        "time": 1647274664,

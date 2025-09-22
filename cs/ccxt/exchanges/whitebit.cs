@@ -431,18 +431,69 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.v4PublicGetAssets(parameters);
         //
-        //      "BTC": {
-        //          "name": "Bitcoin",
-        //          "unified_cryptoasset_id": 1,
-        //          "can_withdraw": true,
-        //          "can_deposit": true,
-        //          "min_withdraw": "0.001",
-        //          "max_withdraw": "2",
-        //          "maker_fee": "0.1",
-        //          "taker_fee": "0.1",
-        //          "min_deposit": "0.0001",
-        //           "max_deposit": "0",
-        //       },
+        // {
+        //   BTC: {
+        //     name: "Bitcoin",
+        //     unified_cryptoasset_id: "1",
+        //     can_withdraw: true,
+        //     can_deposit: true,
+        //     min_withdraw: "0.0003",
+        //     max_withdraw: "0",
+        //     maker_fee: "0.1",
+        //     taker_fee: "0.1",
+        //     min_deposit: "0.0001",
+        //     max_deposit: "0",
+        //     networks: {
+        //         deposits: [ "BTC", ],
+        //         withdraws: [ "BTC", ],
+        //         default: "BTC",
+        //     },
+        //     confirmations: {
+        //         BTC: "2",
+        //     },
+        //     limits: {
+        //         deposit: {
+        //            BTC: { min: "0.0001", },
+        //         },
+        //         withdraw: {
+        //            BTC: { min: "0.0003", },
+        //         },
+        //     },
+        //     currency_precision: "8",
+        //     is_memo: false,
+        //   },
+        //   USD: {
+        //         name: "United States Dollar",
+        //         unified_cryptoasset_id: "6955",
+        //         can_withdraw: true,
+        //         can_deposit: true,
+        //         min_withdraw: "10",
+        //         max_withdraw: "10000",
+        //         maker_fee: "0.1",
+        //         taker_fee: "0.1",
+        //         min_deposit: "10",
+        //         max_deposit: "10000",
+        //         networks: {
+        //           deposits: [ "USD", ],
+        //           withdraws: [ "USD", ],
+        //           default: "USD",
+        //         },
+        //         providers: {
+        //           deposits: [ "ADVCASH", ],
+        //           withdraws: [ "ADVCASH", ],
+        //         },
+        //         limits: {
+        //           deposit: {
+        //             USD: {  max: "10000", min: "10", },
+        //           },
+        //           withdraw: {
+        //             USD: { max: "10000",  min: "10", },
+        //           },
+        //         },
+        //         currency_precision: "2",
+        //         is_memo: false,
+        //   }
+        // }
         //
         object ids = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
@@ -450,22 +501,53 @@ public partial class whitebit : Exchange
         {
             object id = getValue(ids, i);
             object currency = getValue(response, id);
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
-            object canDeposit = this.safeBool(currency, "can_deposit", true);
-            object canWithdraw = this.safeBool(currency, "can_withdraw", true);
-            object active = isTrue(canDeposit) && isTrue(canWithdraw);
+            // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object hasProvider = (inOp(currency, "providers"));
+            object networks = new Dictionary<string, object>() {};
+            object rawNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
+            object withdrawsNetworks = this.safeList(rawNetworks, "withdraws", new List<object>() {});
+            object networkLimits = this.safeDict(currency, "limits", new Dictionary<string, object>() {});
+            object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
+            object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
+            object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+            for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
+            {
+                object networkId = getValue(allNetworks, j);
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.inArray(networkId, depositsNetworks) },
+                    { "withdraw", this.inArray(networkId, withdrawsNetworks) },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(depositLimits, "min", null) },
+                            { "max", this.safeNumber(depositLimits, "max", null) },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(withdrawLimits, "min", null) },
+                            { "max", this.safeNumber(withdrawLimits, "max", null) },
+                        } },
+                    } },
+                };
+            }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "info", currency },
                 { "name", null },
-                { "active", active },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
+                { "active", null },
+                { "deposit", this.safeBool(currency, "can_deposit") },
+                { "withdraw", this.safeBool(currency, "can_withdraw") },
                 { "fee", null },
-                { "precision", null },
+                { "networks", null },
+                { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -475,8 +557,12 @@ public partial class whitebit : Exchange
                         { "min", this.safeNumber(currency, "min_withdraw") },
                         { "max", this.safeNumber(currency, "max_withdraw") },
                     } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(currency, "min_deposit") },
+                        { "max", this.safeNumber(currency, "max_deposit") },
+                    } },
                 } },
-            };
+            });
         }
         return result;
     }

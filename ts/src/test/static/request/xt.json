@@ -150,6 +150,20 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "swap open orders no symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=UNFINISHED",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://sapi.xt.com/v4/open-order?bizType=SPOT&symbol=ltc_usdt",
@@ -160,7 +174,7 @@
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=NEW&symbol=ltc_usdt",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=UNFINISHED&symbol=ltc_usdt",
                 "input": [
                     "LTC/USDT:USDT"
                 ]

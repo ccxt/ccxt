@@ -64,6 +64,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_market_index_components($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_public_market_data_history($params = array()) {
+        return $this->request('public/market-data-history', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_public_economic_calendar($params = array()) {
         return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -476,13 +479,16 @@ abstract class okx extends \ccxt\async\Exchange {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_account_spot_manual_borrow_repay($params = array()) {
-        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_account_set_auto_repay($params = array()) {
         return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_get_account_spot_borrow_repay_history($params = array()) {
         return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_move_positions_history($params = array()) {
+        return $this->request('account/move-positions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -853,6 +859,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_post_account_bills_history_archive($params = array()) {
         return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
     }
+    public function private_post_account_move_positions($params = array()) {
+        return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -1092,6 +1101,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function publicGetMarketIndexComponents($params = array()) {
         return $this->request('market/index-components', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetPublicMarketDataHistory($params = array()) {
+        return $this->request('public/market-data-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
     public function publicGetPublicEconomicCalendar($params = array()) {
         return $this->request('public/economic-calendar', 'public', 'GET', $params, null, null, array("cost" => 50));
@@ -1505,13 +1517,16 @@ abstract class okx extends \ccxt\async\Exchange {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetAccountSpotManualBorrowRepay($params = array()) {
-        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetAccountSetAutoRepay($params = array()) {
         return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privateGetAccountSpotBorrowRepayHistory($params = array()) {
         return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountMovePositionsHistory($params = array()) {
+        return $this->request('account/move-positions-history', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -1881,6 +1896,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privatePostAccountBillsHistoryArchive($params = array()) {
         return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
+    }
+    public function privatePostAccountMovePositions($params = array()) {
+        return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));

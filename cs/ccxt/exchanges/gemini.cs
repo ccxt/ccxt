@@ -237,7 +237,7 @@ public partial class gemini : Exchange
                 { "fetchMarketFromWebRetries", 10 },
                 { "fetchMarketsFromAPI", new Dictionary<string, object>() {
                     { "fetchDetailsForAllSymbols", false },
-                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH"} },
+                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH", "SOL", "USDC"} },
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "webApiEnable", true },
@@ -271,6 +271,7 @@ public partial class gemini : Exchange
                         { "quote", "USD" },
                     } },
                 } },
+                { "brokenPairs", new List<object>() {"efilusd", "maticrlusd", "maticusdc", "eurusdc", "maticgusd", "maticusd", "efilfil", "eurusd"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -406,9 +407,6 @@ public partial class gemini : Exchange
             if (isTrue(!isEqual(networkId, null)))
             {
                 networkCode = this.networkIdToCode(networkId);
-            }
-            if (isTrue(!isEqual(networkCode, null)))
-            {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", currency },
                     { "id", networkId },
@@ -430,7 +428,7 @@ public partial class gemini : Exchange
                     } },
                 };
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "info", currency },
                 { "id", id },
                 { "code", code },
@@ -452,7 +450,7 @@ public partial class gemini : Exchange
                     } },
                 } },
                 { "networks", networks },
-            };
+            });
         }
         return result;
     }
@@ -637,11 +635,11 @@ public partial class gemini : Exchange
         //
         object result = new List<object>() {};
         object options = this.safeDict(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
-        object bugSymbol = "efilfil"; // we skip this inexistent test symbol, which bugs other functions
+        object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         object marketIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIdsRaw)); postFixIncrement(ref i))
         {
-            if (isTrue(!isEqual(getValue(marketIdsRaw, i), bugSymbol)))
+            if (!isTrue(this.inArray(getValue(marketIdsRaw, i), brokenPairs)))
             {
                 ((IList<object>)marketIds).Add(getValue(marketIdsRaw, i));
             }
@@ -673,7 +671,7 @@ public partial class gemini : Exchange
                 {
                     object marketId = getValue(marketIds, i);
                     object tradingPair = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
-                    if (isTrue(!isEqual(tradingPair, null)))
+                    if (isTrue(isTrue(!isEqual(tradingPair, null)) && !isTrue(this.inArray(tradingPair, brokenPairs))))
                     {
                         ((IList<object>)result).Add(this.parseMarket(tradingPair));
                     }
@@ -682,7 +680,10 @@ public partial class gemini : Exchange
             {
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
-                    ((IList<object>)result).Add(this.parseMarket(getValue(marketIds, i)));
+                    if (!isTrue(this.inArray(getValue(marketIds, i), brokenPairs)))
+                    {
+                        ((IList<object>)result).Add(this.parseMarket(getValue(marketIds, i)));
+                    }
                 }
             }
         }
@@ -700,8 +701,8 @@ public partial class gemini : Exchange
         //
         //     [
         //         'BTCUSD',   // symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -720,7 +721,7 @@ public partial class gemini : Exchange
         //         "wrap_enabled": false
         //         "product_type": "swap", // only in perps
         //         "contract_type": "linear", // only in perps
-        //         "contract_price_currency": "GUSD" // only in perps
+        //         "contract_price_currency": "GUSD"
         //     }
         //
         object marketId = null;
@@ -1106,7 +1107,9 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        object result = this.parseTickers(response, symbols);
+        object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
+        return this.removeKeysFromDict(result, brokenPairs);
     }
 
     public override object parseTrade(object trade, object market = null)

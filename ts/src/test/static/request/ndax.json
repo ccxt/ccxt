@@ -4,6 +4,15 @@
     "accounts": [{"id": 187639}],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.ndax.io:8443/AP/GetProducts?omsId=1",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "spot fetchTrades",

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Any, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Position, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -911,48 +911,30 @@ class xt(Exchange, ImplicitAPI):
             entry = currenciesData[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            minPrecision = self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision')))
             networkEntry = self.safe_value(chainsDataIndexed, currencyId, {})
             rawNetworks = self.safe_value(networkEntry, 'supportChains', [])
             networks = {}
-            minWithdrawString = None
-            minWithdrawFeeString = None
-            active = False
-            deposit = False
-            withdraw = False
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
-                network = self.network_id_to_code(networkId)
-                depositEnabled = self.safe_value(rawNetwork, 'depositEnabled')
-                deposit = depositEnabled if (depositEnabled) else deposit
-                withdrawEnabled = self.safe_value(rawNetwork, 'withdrawEnabled')
-                withdraw = withdrawEnabled if (withdrawEnabled) else withdraw
-                networkActive = depositEnabled and withdrawEnabled
-                active = networkActive if (networkActive) else active
-                withdrawFeeString = self.safe_string(rawNetwork, 'withdrawFeeAmount')
-                if withdrawFeeString is not None:
-                    minWithdrawFeeString = withdrawFeeString if (minWithdrawFeeString is None) else Precise.string_min(withdrawFeeString, minWithdrawFeeString)
-                minNetworkWithdrawString = self.safe_string(rawNetwork, 'withdrawMinAmount')
-                if minNetworkWithdrawString is not None:
-                    minWithdrawString = minNetworkWithdrawString if (minWithdrawString is None) else Precise.string_min(minNetworkWithdrawString, minWithdrawString)
-                networks[network] = {
+                networkCode = self.network_id_to_code(networkId, code)
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'name': None,
-                    'active': networkActive,
-                    'fee': self.parse_number(withdrawFeeString),
-                    'precision': minPrecision,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFeeAmount'),
+                    'precision': None,
+                    'deposit': self.safe_bool(rawNetwork, 'depositEnabled'),
+                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnabled'),
                     'limits': {
                         'amount': {
                             'min': None,
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.parse_number(minNetworkWithdrawString),
+                            'min': self.safe_number(rawNetwork, 'withdrawMinAmount'),
                             'max': None,
                         },
                         'deposit': {
@@ -961,24 +943,31 @@ class xt(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            result[code] = {
+            typeRaw = self.safe_string(entry, 'type')
+            type: Str = None
+            if typeRaw == 'FT':
+                type = 'crypto'
+            else:
+                type = 'other'
+            result[code] = self.safe_currency_structure({
                 'info': entry,
                 'id': currencyId,
                 'code': code,
                 'name': self.safe_string(entry, 'fullName'),
-                'active': active,
-                'fee': self.parse_number(minWithdrawFeeString),
-                'precision': minPrecision,
-                'deposit': deposit,
-                'withdraw': withdraw,
+                'active': None,
+                'fee': None,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision'))),
+                'deposit': self.safe_string(entry, 'depositStatus') == '1',
+                'withdraw': self.safe_string(entry, 'withdrawStatus') == '1',
                 'networks': networks,
+                'type': type,
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minWithdrawString),
+                        'min': None,
                         'max': None,
                     },
                     'deposit': {
@@ -986,7 +975,7 @@ class xt(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
+            })
         return result
 
     def fetch_markets(self, params={}) -> List[Market]:
@@ -2842,18 +2831,22 @@ class xt(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        if limit is not None:
+            request['size'] = limit
+        if since is not None:
+            request['startTime'] = since
         type = None
         subType = None
         response = None
         type, params = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         subType, params = self.handle_sub_type_and_params('fetchOrdersByStatus', market, params)
-        trigger = self.safe_value(params, 'stop')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         if status == 'open':
             if trigger or stopLossTakeProfit:
                 request['state'] = 'NOT_TRIGGERED'
-            elif subType is not None:
-                request['state'] = 'NEW'
+            elif type == 'swap':
+                request['state'] = 'UNFINISHED'  # NEW & PARTIALLY_FILLED
         elif status == 'closed':
             if trigger or stopLossTakeProfit:
                 request['state'] = 'TRIGGERED'
@@ -2872,7 +2865,7 @@ class xt(Exchange, ImplicitAPI):
             if limit is not None:
                 request['size'] = limit
         if trigger:
-            params = self.omit(params, 'stop')
+            params = self.omit(params, ['stop', 'trigger'])
             if subType == 'inverse':
                 response = self.privateInverseGetFutureTradeV1EntrustPlanList(self.extend(request, params))
             else:
@@ -2897,6 +2890,7 @@ class xt(Exchange, ImplicitAPI):
                 if since is not None:
                     request['startTime'] = since
                 if limit is not None:
+                    request = self.omit(request, 'size')
                     request['limit'] = limit
                 response = self.privateSpotGetHistoryOrder(self.extend(request, params))
             else:
@@ -3079,9 +3073,12 @@ class xt(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        isSpotOpenOrders = ((status == 'open') and (subType is None))
-        data = self.safe_value(response, 'result', {})
-        orders = self.safe_value(response, 'result', []) if isSpotOpenOrders else self.safe_value(data, 'items', [])
+        orders = []
+        resultDict = self.safe_dict(response, 'result')
+        if resultDict is not None:
+            orders = self.safe_list(resultDict, 'items', [])
+        else:
+            orders = self.safe_list(response, 'result')
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}):
@@ -3783,7 +3780,7 @@ class xt(Exchange, ImplicitAPI):
         withdrawals = self.safe_value(data, 'items', [])
         return self.parse_transactions(withdrawals, currency, since, limit, params)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3913,7 +3910,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def set_leverage(self, leverage: Int, symbol: str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4197,11 +4194,16 @@ class xt(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
         :param dict params: extra parameters specific to the xt api endpoint
+        :param bool params['paginate']: True/false whether to use the pagination helper to aumatically paginate through the results
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'id', 'id', 1, 200)
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
@@ -4210,6 +4212,8 @@ class xt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
+        else:
+            request['limit'] = 200  # max
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchFundingRateHistory', market, params)
         response = None
@@ -4486,7 +4490,7 @@ class xt(Exchange, ImplicitAPI):
                 return self.parse_position(entry, marketInner)
         return None
 
-    def fetch_positions(self, symbols: List[str] = None, params={}):
+    def fetch_positions(self, symbols: List[str] = None, params={}) -> List[Position]:
         """
         fetch all open positions
 

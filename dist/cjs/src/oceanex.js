@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var oceanex$1 = require('./abstract/oceanex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var rsa = require('./base/functions/rsa.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class oceanex
  * @augments Exchange
  */
-class oceanex extends oceanex$1 {
+class oceanex extends oceanex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'oceanex',
@@ -1119,4 +1121,4 @@ class oceanex extends oceanex$1 {
     }
 }
 
-module.exports = oceanex;
+exports["default"] = oceanex;

@@ -5,7 +5,7 @@ import gateRest from '../gate.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import Precise from '../base/Precise.js';
 
@@ -371,6 +371,11 @@ export default class gate extends gateRest {
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -388,7 +393,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarket (market);
         const payload = [ marketId, interval ];
         if (limit === undefined) {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (market['contract']) {
             const stringLimit = limit.toString ();
@@ -1273,8 +1278,32 @@ export default class gate extends gateRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
-            newPositions.push (position);
-            cache.append (position);
+            const symbol = this.safeString (position, 'symbol');
+            const side = this.safeString (position, 'side');
+            // Control when position is closed no side is returned
+            if (side === undefined) {
+                const prevLongPosition = this.safeDict (cache, symbol + 'long');
+                if (prevLongPosition !== undefined) {
+                    position['side'] = prevLongPosition['side'];
+                    newPositions.push (position);
+                    cache.append (position);
+                }
+                const prevShortPosition = this.safeDict (cache, symbol + 'short');
+                if (prevShortPosition !== undefined) {
+                    position['side'] = prevShortPosition['side'];
+                    newPositions.push (position);
+                    cache.append (position);
+                }
+                // if no prev position is found, default to long
+                if (prevLongPosition === undefined && prevShortPosition === undefined) {
+                    position['side'] = 'long';
+                    newPositions.push (position);
+                    cache.append (position);
+                }
+            } else {
+                newPositions.push (position);
+                cache.append (position);
+            }
         }
         const messageHashes = this.findMessageHashes (client, type + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1440,7 +1469,7 @@ export default class gate extends gateRest {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const market = this.getMarketFromSymbols (symbols);
@@ -1590,7 +1619,7 @@ export default class gate extends gateRest {
         });
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "time": 1647274664,

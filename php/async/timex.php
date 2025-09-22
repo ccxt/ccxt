@@ -31,17 +31,27 @@ class timex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -52,21 +62,40 @@ class timex extends Exchange {
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
@@ -77,15 +106,21 @@ class timex extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true, // maker fee only
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
             ),
@@ -1478,11 +1513,6 @@ class timex extends Exchange {
         //
         $id = $this->safe_string($currency, 'symbol');
         $code = $this->safe_currency_code($id);
-        $name = $this->safe_string($currency, 'name');
-        $depositEnabled = $this->safe_value($currency, 'depositEnabled');
-        $withdrawEnabled = $this->safe_value($currency, 'withdrawalEnabled');
-        $isActive = $this->safe_value($currency, 'active');
-        $active = $depositEnabled && $withdrawEnabled && $isActive;
         // $fee = $this->safe_number($currency, 'withdrawalFee');
         $feeString = $this->safe_string($currency, 'withdrawalFee');
         $tradeDecimals = $this->safe_integer($currency, 'tradeDecimals');
@@ -1507,14 +1537,14 @@ class timex extends Exchange {
             'code' => $code,
             'info' => $currency,
             'type' => null,
-            'name' => $name,
-            'active' => $active,
-            'deposit' => $depositEnabled,
-            'withdraw' => $withdrawEnabled,
+            'name' => $this->safe_string($currency, 'name'),
+            'active' => $this->safe_bool($currency, 'active'),
+            'deposit' => $this->safe_bool($currency, 'depositEnabled'),
+            'withdraw' => $this->safe_bool($currency, 'withdrawalEnabled'),
             'fee' => $fee,
             'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals'))),
             'limits' => array(
-                'withdraw' => array( 'min' => $fee, 'max' => null ),
+                'withdraw' => array( 'min' => null, 'max' => null ),
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
             'networks' => array(),
@@ -1618,7 +1648,7 @@ class timex extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -1632,7 +1662,7 @@ class timex extends Exchange {
             'cost' => $cost,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
