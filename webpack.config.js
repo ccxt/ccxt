@@ -11,7 +11,6 @@ export default {
   output: {
     path: outputDirectory,
     filename: 'ccxt.browser.js',
-	publicPath: '',
     library: {
       type: 'self', // we are targeting the browser (including webworkers)
       name: 'ccxt',
@@ -44,11 +43,13 @@ export default {
     minimizer: [new TerserPlugin ({ extractComments: false })],
     usedExports: true, // these two lines line turns on tree shaking
     concatenateModules: false,
+    splitChunks: false,
   },
   performance: {
     hints: false,
   },
   plugins: [
     new webpack.IgnorePlugin({ resourceRegExp: /^protobufjs\/minimal$/ }),
+    new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
   ],
 }
