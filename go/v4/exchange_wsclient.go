@@ -85,6 +85,12 @@ func (this *WSClient) CreateConnection() error {
 	}
 	this.Connection = conn
 
+	// handle connection pong here:
+	this.Connection.SetPongHandler(func(string) error {
+		this.OnPong()
+		return nil
+	})
+
 	// Start event handling goroutines
 	go this.handleOpen()
 	go this.handleMessages()
@@ -123,6 +129,9 @@ func (this *WSClient) handleMessages() {
 		case websocket.PingMessage:
 			this.OnPing()
 			// Respond with pong
+			if this.Verbose {
+				this.Log(time.Now(), "sending connection ping")
+			}
 			this.Connection.WriteMessage(websocket.PongMessage, nil)
 		case websocket.PongMessage:
 			this.OnPong()
@@ -237,7 +246,11 @@ func (this *WSClient) OnPingInterval() {
 				} else {
 					// In Go, we can ping directly on websocket connection
 					if this.Connection != nil {
-						this.Connection.WriteMessage(websocket.PingMessage, []byte{})
+						// this.Connection.WriteMessage(websocket.PingMessage, []byte{})
+						if this.Verbose {
+							this.Log(time.Now(), "sending connection ping")
+						}
+						this.Connection.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second))
 					}
 				}
 			}

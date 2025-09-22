@@ -2388,7 +2388,7 @@ func convertNumbers(data interface{}) {
 }
 
 func throwDynamicException(exceptionType interface{}, message interface{}) {
-	
+	ThrowDynamicException(exceptionType, message)
 }
 
 func ThrowDynamicException(exceptionType interface{}, message interface{}) {
