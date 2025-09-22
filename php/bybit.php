@@ -1600,10 +1600,10 @@ class bybit extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         if ($this->options['enableDemoTrading']) {
-            return null;
+            return array();
         }
         $response = $this->privateGetV5AssetCoinQueryInfo ($params);
         //
