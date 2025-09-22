@@ -524,7 +524,7 @@ export default class coinsph extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetOpenapiWalletV1ConfigGetall(params);
         //

@@ -1601,10 +1601,10 @@ export default class bybit extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         if (this.options['enableDemoTrading']) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetV5AssetCoinQueryInfo(params);
         //
