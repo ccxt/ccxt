@@ -108,7 +108,7 @@ function helperTestNetworkIdToCode () {
             },
         },
     });
-    exchange.currencies = {}; // c# fix
+    exchange.currencies = exchange.mapToSafeMap ({}); // go fix + c# uninitialized prop fix
     //
     //
     // CASE #1 : with mainnet key
