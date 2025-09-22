@@ -3274,7 +3274,8 @@ class Exchange(object):
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
-        if currencies is not None:
+        numCurrencies = currencies if currencies else 0
+        if numCurrencies > 0:
             # currencies is always None when called in constructor but not when called from loadMarkets
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
         else:
@@ -5658,7 +5659,8 @@ class Exchange(object):
         return self.safe_string(self.commonCurrencies, code, code)
 
     def currency(self, code: str):
-        if self.currencies is None:
+        numCurrencies = self.currencies
+        if numCurrencies == 0:
             raise ExchangeError(self.id + ' currencies not loaded')
         if isinstance(code, str):
             if code in self.currencies:

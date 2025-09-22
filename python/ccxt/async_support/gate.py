@@ -1837,7 +1837,7 @@ class gate(Exchange, ImplicitAPI):
         # sandbox/testnet only supports future markets
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
-            return None
+            return {}
         response = await self.publicSpotGetCurrencies(params)
         #
         #    [

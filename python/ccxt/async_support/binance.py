@@ -2795,17 +2795,17 @@ class binance(Exchange, ImplicitAPI):
         """
         fetchCurrenciesEnabled = self.safe_bool(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
-            return None
+            return {}
         # self endpoint requires authentication
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
-            return None
+            return {}
         # sandbox/testnet does not support sapi endpoints
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
-            return None
+            return {}
         promises = [self.sapiGetCapitalConfigGetall(params)]
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
         if fetchMargins:
