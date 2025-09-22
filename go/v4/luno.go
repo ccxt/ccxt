@@ -305,6 +305,7 @@ func (this *luno) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{
 		_ = params
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 
