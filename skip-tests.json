@@ -1587,8 +1587,8 @@
     "oxfun": {
         "skip": "cloudflare captcha block",
         "skipWs": "same",
-        "httpsProxy": "http://188.34.194.190:8911",
-        "wsProxy": "http://188.34.194.190:8911",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
@@ -1705,7 +1705,7 @@
     "p2b": {
         "skip": "temp issues",
         "skipWs": "flaky",
-        "httpsProxy": "http://188.34.194.190:8911",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": "invalid URL",
             "fetchTrades": "requires order id"

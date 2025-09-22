@@ -142,7 +142,6 @@ import poloniex from  './src/poloniex.js'
 import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
-import tradeogre from  './src/tradeogre.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
 import whitebit from  './src/whitebit.js'
@@ -222,7 +221,6 @@ import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import probitPro from  './src/pro/probit.js'
-import tradeogrePro from  './src/pro/tradeogre.js'
 import upbitPro from  './src/pro/upbit.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
@@ -326,7 +324,6 @@ const exchanges = {
     'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
-    'tradeogre':              tradeogre,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
     'whitebit':               whitebit,
@@ -406,7 +403,6 @@ const pro = {
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'probit':                 probitPro,
-    'tradeogre':              tradeogrePro,
     'upbit':                  upbitPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
@@ -652,7 +648,6 @@ export {
     probit,
     timex,
     tokocrypto,
-    tradeogre,
     upbit,
     wavesexchange,
     whitebit,

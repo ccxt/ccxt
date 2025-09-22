@@ -380,7 +380,7 @@ class Exchange extends \ccxt\Exchange {
     // ########################################################################
     // ########################################################################
 
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     public function describe(): mixed {
         return array(
