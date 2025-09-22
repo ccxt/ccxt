@@ -1111,15 +1111,23 @@ export default class toobit extends toobitRest {
         });
     }
 
+    async triggerAuthentication (params) {
+        const time = this.milliseconds ();
+        this.options['ws']['authInProgress'] = true;
+        const response = await this.privatePostApiV1UserDataStream (params);
+        this.options['ws']['authInProgress'] = false;
+        this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
+        this.options['ws']['lastAuthenticatedTime'] = time;
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
-        if (time - lastAuthenticatedTime > delay) {
-            const response = await this.privatePostApiV1UserDataStream (params);
-            this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['ws']['lastAuthenticatedTime'] = time;
+        const authInProgress = this.safeBool (this.options['ws'], 'authInProgress', false);
+        if (!authInProgress && time - lastAuthenticatedTime > delay) {
+            await this.triggerAuthentication (params);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
@@ -1131,11 +1139,8 @@ export default class toobit extends toobitRest {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        const time = this.milliseconds ();
         try {
-            const response = await this.privatePostApiV1UserDataStream (params);
-            this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
-            this.options['ws']['lastAuthenticatedTime'] = time;
+            await this.triggerAuthentication (params);
         } catch (error) {
             const url = this.getUserStreamUrl ();
             const client = this.client (url);
