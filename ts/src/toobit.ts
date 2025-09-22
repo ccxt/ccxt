@@ -239,6 +239,27 @@ export default class toobit extends Exchange {
                     '-2014': PermissionDenied, // API-key format invalid.
                     '-2015': PermissionDenied, // Invalid API-key, IP, or permissions for action.
                     '-2016': BadRequest, // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                    // errors above 3xxx are from swap API
+                    '-3050': ExchangeError, // CREATE_API_KEY_EXCEED_LIMIT
+                    '-3101': OperationRejected, // open margin account error
+                    '-3102': OperationRejected, // get margin safety error
+                    '-3103': BadRequest, // risk config is not exit
+                    '-3105': OperationRejected, // token can not borrow
+                    '-3107': OperationRejected, // token can not withdraw
+                    '-3108': OperationRejected, // get token avail withdraw error
+                    '-3109': OperationRejected, // margin withdraw failed
+                    '-3110': InsufficientFunds, // margin avail withdraw not enough failed
+                    '-3116': OperationRejected, // repay fail
+                    '-3117': OperationRejected, // get margin all position fail
+                    '-3120': OperationRejected, // get repay order fail
+                    '-3124': OperationRejected, // Position and order data error
+                    '-3125': OperationRejected, // Position size cannot meet target leverage
+                    '-3126': OperationRejected, // Adjust leverage fail
+                    '-3127': OperationFailed, // Adjust leverage timeout
+                    '-3128': OperationRejected, // The margin mode cannot be changed while you have an open order/position
+                    '-3129': BadRequest, // cone futures change position type error
+                    '-3130': OperationRejected, // order margin insufficient
+                    '-3131': NotSupported, // Leverage reduction is not supported in Isolated Margin Mode with open positions.
                 },
                 'broad': {
                     'Unknown order sent': OrderNotFound,
