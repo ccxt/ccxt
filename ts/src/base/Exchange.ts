@@ -45,16 +45,13 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import totp from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
-import { SecureRandom } from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
+import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
-import { encodeAsAny } from '../static_dependencies/dydx-v4-client/registry';
-import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
-import { AuthInfo, Tx, TxBody, TxRaw, SignDoc } from '../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx';
-import { SignMode } from '../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { exportMnemonicAndPrivateKey } from '../static_dependencies/dydx-v4-client/onboarding.js';
 
 const {
     isNode,
@@ -171,10 +168,26 @@ const {
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
+let encodeAsAny = undefined;
+let AuthInfo = undefined;
+let Tx = undefined;
+let TxBody = undefined;
+let TxRaw = undefined;
+let SignDoc = undefined;
+let SignMode = undefined;
 (async () => {
     try {
         protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch {
+        encodeAsAny = await import ('../static_dependencies/dydx-v4-client/registry');
+        const dydxTxProto = await import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx');
+        AuthInfo = dydxTxProto.AuthInfo;
+        Tx = dydxTxProto.Tx;
+        TxBody = dydxTxProto.TxBody;
+        TxRaw = dydxTxProto.TxRaw;
+        SignDoc = dydxTxProto.SignDoc;
+        SignMode = await import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing');
+    } catch (e) {
+        console.log(e)
         // TODO: handle error
     }
 }) ();
@@ -1697,6 +1710,9 @@ export default class Exchange {
     }
 
     retrieveDydxCredentials (entropy: string) {
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
         const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
         return credentials;
     }
@@ -1705,10 +1721,13 @@ export default class Exchange {
         message,
         memo,
         sequence,
-        publicKey,
+        publicKey
     ): string {
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
         if (!publicKey) {
-            throw new Error('Public key cannot be undefined');
+            throw new Error ('Public key cannot be undefined');
         }
         const messages = [ message ];
         const encodedMessages = messages.map ((msg) => encodeAsAny (msg));
@@ -1726,7 +1745,7 @@ export default class Exchange {
                             'value': publicKey,
                         }),
                         'sequence': sequence,
-                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED } },
+                        'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_UNSPECIFIED }},
                     },
                 ],
             }),
@@ -1741,10 +1760,13 @@ export default class Exchange {
         chainId,
         account,
         authenticators,
-        fee = undefined,
+        fee = undefined
     ): [ string, Dict ] {
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
         if (!account.pub_key) {
-            throw new Error('Public key cannot be undefined');
+            throw new Error ('Public key cannot be undefined');
         }
         const messages = [ message ];
         const sequence = this.milliseconds ();
@@ -1759,7 +1781,7 @@ export default class Exchange {
             encodeAsAny ({
                 'typeUrl': '/dydxprotocol.accountplus.TxExtension',
                 'value': {
-                    selectedAuthenticators: authenticators ?? [],
+                    'selectedAuthenticators': authenticators ?? [],
                 },
             }),
         ];
@@ -1778,22 +1800,25 @@ export default class Exchange {
                         'value': account.pub_key,
                     }),
                     'sequence': sequence,
-                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT } },
+                    'modeInfo': { 'single': { 'mode': SignMode.SIGN_MODE_DIRECT }},
                 },
             ],
         })).finish ();
-        const signDoc = SignDoc.fromPartial({
+        const signDoc = SignDoc.fromPartial ({
             'accountNumber': account.account_number,
             'authInfoBytes': authInfoBytes,
             'bodyBytes': txBodyBytes,
             'chainId': chainId,
-        }) ;
+        });
         const signingHash = this.hash (SignDoc.encode (signDoc).finish (), sha256, 'hex');
         return [ signingHash, signDoc ];
     }
 
     encodeDydxTxRaw (signDoc: Dict, signature: string): string {
-        return '0x' + this.binaryToBase16 (TxRaw.encode (TxRaw.fromPartial({
+        if (!encodeAsAny) {
+            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
+        }
+        return '0x' + this.binaryToBase16 (TxRaw.encode (TxRaw.fromPartial ({
             'bodyBytes': signDoc.bodyBytes,
             'authInfoBytes': signDoc.authInfoBytes,
             'signatures': [ this.base16ToBinary (signature) ],
@@ -1802,7 +1827,6 @@ export default class Exchange {
 
     intToBase16 (elem): string {
         return elem.toString (16);
-
     }
 
     extendExchangeOptions (newOptions: Dict) {
