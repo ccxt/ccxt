@@ -10,8 +10,11 @@ package ccxt
 //
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"regexp"
 	"strings"
@@ -175,9 +178,9 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		"MaxPingPongMisses":     2.0,
 		"Connection":            nil,
 		"StartedConnecting":     false,
-		"Gunzip":                false,
-		"Inflate":               false,
-		"DecompressBinary":      true,
+		"gunzip":                false,
+		"inflate":               false,
+		"decompressBinary":      true,
 	}
 
 	// Apply config overrides if provided
@@ -217,13 +220,13 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 			return nil
 		}(),
 		ConnectionEstablished: finalConfig["ConnectionEstablished"],
-		Gunzip:                finalConfig["Gunzip"],
-		Inflate:               finalConfig["Inflate"],
+		Gunzip:                finalConfig["gunzip"],
+		Inflate:               finalConfig["inflate"],
 		Throttle:              finalConfig["Throttle"],
 		ReadLoopClosed:        make(chan struct{}),
 		Connected:             NewFuture(),
 		Disconnected:          NewFuture(),
-		DecompressBinary:      finalConfig["DecompressBinary"].(bool),
+		DecompressBinary:      finalConfig["decompressBinary"].(bool),
 	}
 
 	return c
@@ -437,6 +440,20 @@ func (this *Client) CloseConnection() (interface{}, error) {
 	return nil, NotSupported(this.Url + " close() not implemented yet")
 }
 
+func gunzipData(data []byte) ([]byte, error) {
+	r, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	var out bytes.Buffer
+	if _, err := io.Copy(&out, r); err != nil {
+		return nil, err
+	}
+	return out.Bytes(), nil
+}
+
 func (this *Client) OnMessage(messageEvent interface{}) {
 	// if we use onmessage we get MessageEvent objects
 	// MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
@@ -457,7 +474,8 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// Handle binary data
 		if this.Gunzip != nil && this.Gunzip.(bool) {
 			// Would need to implement gzip decompression
-			messageStr = string(bytes)
+			gunzipOut, _ := gunzipData(bytes)
+			messageStr = string(gunzipOut)
 		} else if this.Inflate != nil && this.Inflate.(bool) {
 			// Would need to implement zlib inflation
 			messageStr = string(bytes)
