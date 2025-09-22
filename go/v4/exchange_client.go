@@ -487,7 +487,12 @@ func (this *Client) OnMessage(messageEvent interface{}) {
 		// this.Log(time.Now(), "onMessage", util.inspect(message, false, null, true))
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
-	this.OnMessageCallback(this, parsedMessage)
+	if parsedMessage != nil {
+		this.OnMessageCallback(this, parsedMessage)
+	} else {
+		this.OnMessageCallback(this, messageStr)
+
+	}
 }
 
 func (this *Client) IsJsonEncodedObject(str string) bool {
