@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -119,9 +119,13 @@ export default class toobit extends toobitRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        // if (event === 'pong') {
-        //     client.lastPong = this.milliseconds ();
-        // }
+        //
+        // handle ping-pong: { ping: 1758540450000 }
+        //
+        const pingTimestamp = this.safeInteger (message, 'ping');
+        if (pingTimestamp !== undefined) {
+            client.lastPong = pingTimestamp;
+        }
         const methods: Dict = {
             'trade': this.handleTrades,
             'kline': this.handleOHLCV,
@@ -137,9 +141,6 @@ export default class toobit extends toobitRest {
         };
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
-            // if (isSnapshot) {
-            //     return; // todo
-            // }
             method.call (this, client, message);
         } else {
             // check private streams
@@ -1096,12 +1097,12 @@ export default class toobit extends toobitRest {
             'percentage': undefined,
             'contracts': undefined,
             'contractSize': undefined,
-            'markPrice': undefined,
+            'markPrice': this.safeString (position, 'mp'),
             'side': this.safeStringLower (position, 'S'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'maintenanceMargin': undefined,
+            'maintenanceMargin': this.safeString (position, 'mm'),
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,
             'initialMargin': this.omitZero (this.safeString (position, 'm')),
@@ -1111,25 +1112,34 @@ export default class toobit extends toobitRest {
         });
     }
 
-    async triggerAuthentication (params) {
-        const time = this.milliseconds ();
-        this.options['ws']['authInProgress'] = true;
-        const response = await this.privatePostApiV1UserDataStream (params);
-        this.options['ws']['authInProgress'] = false;
-        this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
-        this.options['ws']['lastAuthenticatedTime'] = time;
-    }
-
     async authenticate (params = {}) {
-        const time = this.milliseconds ();
-        const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
-        const delay = this.sum (listenKeyRefreshRate, 10000);
-        const authInProgress = this.safeBool (this.options['ws'], 'authInProgress', false);
-        if (!authInProgress && time - lastAuthenticatedTime > delay) {
-            await this.triggerAuthentication (params);
-            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+        const client = this.client (this.getUserStreamUrl ());
+        const messageHash = 'authenticated';
+        const future = client.future (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            this.checkRequiredCredentials ();
+            const time = this.milliseconds ();
+            const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
+            const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
+            const delay = this.sum (listenKeyRefreshRate, 10000);
+            if (time - lastAuthenticatedTime > delay) {
+                try {
+                    const response = await this.privatePostApiV1UserDataStream (params);
+                    this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
+                    this.options['ws']['lastAuthenticatedTime'] = time;
+                    future.resolve (true);
+                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                } catch (e) {
+                    const error = new AuthenticationError (this.id + ' ' + this.json (e));
+                    client.reject (error, messageHash);
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
+                    }
+                }
+            }
         }
+        return await future;
     }
 
     async keepAliveListenKey (params = {}) {
@@ -1140,7 +1150,9 @@ export default class toobit extends toobitRest {
             return;
         }
         try {
-            await this.triggerAuthentication (params);
+            const response = await this.privatePostApiV1UserDataStream (params);
+            this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['ws']['lastAuthenticatedTime'] = this.milliseconds ();
         } catch (error) {
             const url = this.getUserStreamUrl ();
             const client = this.client (url);
@@ -1176,13 +1188,15 @@ export default class toobit extends toobitRest {
     handleErrorMessage (client: Client, message): Bool {
         //
         //    {
-        //        "T": "error",
-        //        "code": 400,
-        //        "msg": "invalid syntax"
+        //        "code": '-100010',
+        //        "desc": "Invalid Symbols!"
         //    }
         //
         const code = this.safeString (message, 'code');
-        const msg = this.safeValue (message, 'msg', {});
-        throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
+        if (code !== undefined) {
+            const desc = this.safeString (message, 'desc');
+            throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + desc);
+        }
+        return true;
     }
 }
