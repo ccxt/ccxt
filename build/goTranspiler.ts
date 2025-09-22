@@ -531,7 +531,8 @@ class NewTranspiler {
             [/NewOrderBook/g, 'NewWsOrderBook'],
             [/NewNotSupported/g, 'NotSupported'],
             [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
-            [/GetDescribeForExtendedWsExchange\(&ccxt.(\w+){}, &ccxt.(\w+){}/g, 'GetDescribeForExtendedWsExchange(ccxt.New$1(nil), ccxt.New$2(nil)']
+            [/GetDescribeForExtendedWsExchange\(&ccxt.(\w+){}, &ccxt.(\w+){}/g, 'GetDescribeForExtendedWsExchange(ccxt.New$1(nil), ccxt.New$2(nil)'],
+            [/restInstance := &ccxt.(\w+){}/g, 'restInstance := ccxt.New$1(nil)'],
         ];
     }
 
