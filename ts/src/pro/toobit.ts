@@ -54,8 +54,8 @@ export default class toobit extends toobitRest {
                     'watchOrderBook': {
                         'channel': 'depth', // depth, diffDepth
                     },
+                    'listenKeyRefreshRate': 1200000, // 20 mins
                 },
-                'listenKeyRefreshRate': 1200000, // 20 mins
             },
             'streaming': {
                 'keepAlive': (60 - 1) * 5 * 1000, // every 5 minutes
@@ -122,9 +122,9 @@ export default class toobit extends toobitRest {
         //
         // handle ping-pong: { ping: 1758540450000 }
         //
-        const pingTimestamp = this.safeInteger (message, 'ping');
-        if (pingTimestamp !== undefined) {
-            this.handleIncomingPing (client, pingTimestamp);
+        const pongTimestamp = this.safeInteger (message, 'pong');
+        if (pongTimestamp !== undefined) {
+            this.handleIncomingPong (client, pongTimestamp);
             return;
         }
         const methods: Dict = {
@@ -156,8 +156,8 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleIncomingPing (client: Client, pingTimestamp: Int) {
-        client.lastPong = pingTimestamp;
+    handleIncomingPong (client: Client, pongTimestamp: Int) {
+        client.lastPong = pongTimestamp;
     }
 
     /**
@@ -1172,7 +1172,7 @@ export default class toobit extends toobitRest {
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3540000);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
 
@@ -1192,7 +1192,8 @@ export default class toobit extends toobitRest {
             const desc = this.safeString (message, 'desc');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
             client.reject (new Error (msg));
+            return true;
         }
-        return true;
+        return false;
     }
 }
