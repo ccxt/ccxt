@@ -413,14 +413,20 @@ func (this *Client) Send(message interface{}) <-chan interface{} {
 	go func() {
 		this.ConnectionMu.Lock()
 		// ? if (isNode)
-		err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
-		if err != nil {
+		if this.Connection == nil {
+			err := NetworkError("not connected to " + this.Url)
 			future.Reject(err)
-			ch <- err
 		} else {
-			future.Resolve(true)
-			ch <- true
+			err := this.Connection.WriteMessage(websocket.TextMessage, []byte(msgStr))
+			if err != nil {
+				future.Reject(err)
+				ch <- err
+			} else {
+				future.Resolve(true)
+				ch <- true
+			}
 		}
+
 		this.ConnectionMu.Unlock()
 	}()
 

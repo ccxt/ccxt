@@ -988,11 +988,10 @@ export default class apex extends apexRest {
     }
 
     ping (client: Client) {
-        const timeStamp = this.milliseconds ().toString ();
+        const timeStamp = this.milliseconds ();
         client.lastPong = timeStamp;
-        // server won't send a pong, so we set it here
         return {
-            'args': [ timeStamp ],
+            'args': [ timeStamp.toString () ],
             'op': 'ping',
         };
     }
