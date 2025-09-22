@@ -445,7 +445,7 @@ class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if ($data === null) {
-            return null;
+            return array();
         }
         //
         // {

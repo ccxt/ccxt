@@ -2806,19 +2806,19 @@ class binance extends Exchange {
              */
             $fetchCurrenciesEnabled = $this->safe_bool($this->options, 'fetchCurrencies');
             if (!$fetchCurrenciesEnabled) {
-                return null;
+                return array();
             }
             // this endpoint requires authentication
             // while fetchCurrencies is a public API method by design
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             if (!$this->check_required_credentials(false)) {
-                return null;
+                return array();
             }
             // sandbox/testnet does not support sapi endpoints
             $apiBackup = $this->safe_value($this->urls, 'apiBackup');
             if ($apiBackup !== null) {
-                return null;
+                return array();
             }
             $promises = array( $this->sapiGetCapitalConfigGetall ($params) );
             $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
