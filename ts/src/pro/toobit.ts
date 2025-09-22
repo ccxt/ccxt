@@ -1133,7 +1133,9 @@ export default class toobit extends toobitRest {
         }
         const time = this.milliseconds ();
         try {
-            await this.fapiPrivatePutListenKey (params);
+            const response = await this.privatePostApiV1UserDataStream (params);
+            this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['ws']['lastAuthenticatedTime'] = time;
         } catch (error) {
             const url = this.getUserStreamUrl ();
             const client = this.client (url);
@@ -1146,8 +1148,6 @@ export default class toobit extends toobitRest {
             this.options['ws']['lastAuthenticatedTime'] = 0;
             return;
         }
-        this.options['ws']['listenKey'] = listenKey;
-        this.options['ws']['lastAuthenticatedTime'] = time;
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values (this.clients);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
