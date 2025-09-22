@@ -1795,7 +1795,7 @@ class okx extends okx$1["default"] {
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
-            return undefined;
+            return {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns

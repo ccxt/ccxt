@@ -311,7 +311,7 @@ class luno extends luno$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetSendNetworks(params);
         //
