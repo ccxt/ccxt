@@ -1286,7 +1286,6 @@ export default class bybit extends Exchange {
         });
     }
 
-
     /**
      * @method
      * @name bybit#enableDemoTrading
