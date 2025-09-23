@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1137,8 +1137,8 @@ export default class toobit extends toobitRest {
                     future.resolve (true);
                     this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
                 } catch (e) {
-                    const error = new AuthenticationError (this.id + ' ' + this.json (e));
-                    client.reject (error, messageHash);
+                    const err = new AuthenticationError (this.id + ' ' + this.json (e));
+                    client.reject (err, messageHash);
                     if (messageHash in client.subscriptions) {
                         delete client.subscriptions[messageHash];
                     }
