@@ -1193,7 +1193,8 @@ export default class toobit extends toobitRest {
         if (code !== undefined) {
             const desc = this.safeString (message, 'desc');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
-            client.reject (new ExchangeError (msg));
+            const exception = new ExchangeError ((msg as string)); // c# fix
+            client.reject (exception);
             return true;
         }
         return false;
