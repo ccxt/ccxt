@@ -3365,7 +3365,11 @@ export default class Exchange {
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
         this.ids = Object.keys (marketsSortedById);
-        const numCurrencies = currencies ? Object.keys (currencies).length : 0;
+        let numCurrencies = 0;
+        if (currencies !== undefined) {
+            const keys = Object.keys (currencies);
+            numCurrencies = keys.length;
+        }
         if (numCurrencies > 0) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
@@ -6343,7 +6347,8 @@ export default class Exchange {
     }
 
     currency (code: string) {
-        const numCurrencies = Object.keys (this.currencies).length;
+        const keys = Object.keys (this.currencies);
+        const numCurrencies = keys.length;
         if (numCurrencies === 0) {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
