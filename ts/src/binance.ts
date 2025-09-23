@@ -2772,15 +2772,15 @@ export default class binance extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
+    /**
+     * @method
+     * @name binance#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+     * @see https://demo.binance.com/en/my/settings/api-management
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
     enableDemoTrading (enable: boolean) {
-        /**
-         * @method
-         * @name binance#enableDemoTrading
-         * @description enables or disables demo trading mode
-         * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
-         * @see https://demo.binance.com/en/my/settings/api-management
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
         if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
         }
