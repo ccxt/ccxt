@@ -2373,6 +2373,60 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
 
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType === marketType) {
+            return;
+        }
+        client.subscriptions[marketType] = true;
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe.signature',
+            'params': this.signParams ({}),
+        };
+        const subscription: Dict = {
+            'id': messageHash,
+            'method': this.handleUserDataStreamSubscribe,
+            'subscription': marketType,
+        };
+        await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleUserDataStreamSubscribe (client: Client, message) {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {
+        //         "subscriptionId": 0
+        //     }
+        //   }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const result = this.safeDict (message, 'result', {});
+        const subscriptionId = this.safeInteger (result, 'subscriptionId');
+        if (subscriptionId === undefined) {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+        client.resolve (message, messageHash);
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         let type = undefined;
@@ -2385,6 +2439,11 @@ export default class binance extends binanceRest {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
+        }
+        // For spot use WebSocket API signature subscription
+        if (type === 'spot') {
+            await this.ensureUserDataStreamWsSubscribeSignature ('spot');
+            return;
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
@@ -2504,7 +2563,7 @@ export default class binance extends binanceRest {
     }
 
     setBalanceCache (client: Client, type, isPortfolioMargin = false) {
-        if (type in client.subscriptions) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
@@ -2773,11 +2832,17 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let url = '';
         let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        if (type === 'spot') {
+            // route to WebSocket API connection where the user data stream is subscribed
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -2860,9 +2925,9 @@ export default class binance extends binanceRest {
     //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
@@ -2903,6 +2968,18 @@ export default class binance extends binanceRest {
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
+    }
+
+    getAccountTypeFromSubscriptions (subscriptions: string[]): string {
+        let accountType = '';
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery')) {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
     }
 
     getMarketType (method, market, params = {}) {
@@ -3511,10 +3588,16 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            // route orders to ws-api user data stream
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -3875,37 +3958,38 @@ export default class binance extends binanceRest {
     }
 
     handlePositions (client, message) {
-    //
-    //     {
-    //         e: 'ACCOUNT_UPDATE',
-    //         T: 1667881353112,
-    //         E: 1667881353115,
-    //         a: {
-    //             B: [{
-    //                 a: 'USDT',
-    //                 wb: '1127.95750089',
-    //                 cw: '1040.82091149',
-    //                 bc: '0'
-    //             }],
-    //             P: [{
-    //                 s: 'BTCUSDT',
-    //                 pa: '-0.089',
-    //                 ep: '19700.03933',
-    //                 cr: '-1260.24809979',
-    //                 up: '1.53058860',
-    //                 mt: 'isolated',
-    //                 iw: '87.13658940',
-    //                 ps: 'BOTH',
-    //                 ma: 'USDT'
-    //             }],
-    //             m: 'ORDER'
-    //         }
-    //     }
-    //
-    // each account is connected to a different endpoint
-    // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        //
+        //     {
+        //         e: 'ACCOUNT_UPDATE',
+        //         T: 1667881353112,
+        //         E: 1667881353115,
+        //         a: {
+        //             B: [{
+        //                 a: 'USDT',
+        //                 wb: '1127.95750089',
+        //                 cw: '1040.82091149',
+        //                 bc: '0'
+        //             }],
+        //             P: [{
+        //                 s: 'BTCUSDT',
+        //                 pa: '-0.089',
+        //                 ep: '19700.03933',
+        //                 cr: '-1260.24809979',
+        //                 up: '1.53058860',
+        //                 mt: 'isolated',
+        //                 iw: '87.13658940',
+        //                 ps: 'BOTH',
+        //                 ma: 'USDT'
+        //             }],
+        //             m: 'ORDER'
+        //         }
+        //     }
+        //
+        // each account is connected to a different endpoint
+        // and has exactly one subscriptionhash which is the account type
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -4185,10 +4269,15 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -4333,8 +4422,12 @@ export default class binance extends binanceRest {
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];
                 const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
                 if (id === subscriptionId) {
                     client.reject (e, subscriptionHash);
+                    if (subscription !== undefined) {
+                        delete client.subscriptions[subscription];
+                    }
                 }
             }
         }
@@ -4348,14 +4441,36 @@ export default class binance extends binanceRest {
         }
     }
 
+    handleEventStreamTerminated (client: Client, message) {
+        //
+        //    {
+        //        e: 'eventStreamTerminated',
+        //        E: 1757896885229
+        //    }
+        //
+        const event = this.safeString (message, 'e');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (event === 'eventStreamTerminated') {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+    }
+
     handleMessage (client: Client, message) {
-    // handle WebSocketAPI
+        // handle WebSocketAPI
+        const eventMsg = this.safeDict (message, 'event');
+        if (eventMsg !== undefined) {
+            message = eventMsg;
+        }
         const status = this.safeString (message, 'status');
         const error = this.safeValue (message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, message);
             return;
         }
+        // user subscription wraps message in subscriptionId and event
         const id = this.safeString (message, 'id');
         const subscriptions = this.safeValue (client.subscriptions, id);
         let method = this.safeValue (subscriptions, 'method');
@@ -4390,6 +4505,7 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            'eventStreamTerminated': this.handleEventStreamTerminated,
             'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString (message, 'e');

@@ -1594,9 +1594,9 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         if self.options['enableDemoTrading']:
-            return None
+            return {}
         response = self.privateGetV5AssetCoinQueryInfo(params)
         #
         #     {

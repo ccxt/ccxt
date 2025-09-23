@@ -35,7 +35,7 @@ class bigone(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
+                'swap': True,
                 'future': None,  # has but unimplemented
                 'option': False,
                 'cancelAllOrders': True,
@@ -458,7 +458,7 @@ class bigone(Exchange, ImplicitAPI):
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         data = await self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', True)
         if data is None:
-            return None
+            return {}
         #
         # {
         #     "code": "0",

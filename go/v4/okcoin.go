@@ -835,6 +835,7 @@ func (this *okcoin) FetchCurrencies(optionalArgs ...interface{}) <-chan interfac
 				panic(ExchangeError(Add(this.Id, " fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options[\"warnOnFetchCurrenciesWithoutAuthorization\"] = false to suppress this warning message.")))
 			}
 
+			ch <- map[string]interface{}{}
 			return nil
 		} else {
 

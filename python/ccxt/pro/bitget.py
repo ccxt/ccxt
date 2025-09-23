@@ -509,7 +509,7 @@ class bitget(ccxt.async_support.bitget):
             args['topic'] = 'kline'
             args['symbol'] = market['id']
             args['interval'] = interval
-            params['uta'] = True
+            params = self.extend(params, {'uta': True})
             messageHash = 'kline:' + symbol
         else:
             args['channel'] = 'candle' + interval
@@ -554,7 +554,7 @@ class bitget(ccxt.async_support.bitget):
             args['topic'] = channel
             args['symbol'] = market['id']
             args['interval'] = interval
-            params['uta'] = True
+            params = self.extend(params, {'uta': True})
             params['interval'] = interval
             messageHash = channel + symbol
         else:
@@ -743,7 +743,7 @@ class bitget(ccxt.async_support.bitget):
             args['topic'] = channel
             args['symbol'] = market['id']
             args['interval'] = self.safe_string(params, 'interval', '1m')
-            params['uta'] = True
+            params = self.extend(params, {'uta': True})
             params = self.omit(params, 'interval')
         else:
             args['channel'] = channel
@@ -974,7 +974,7 @@ class bitget(ccxt.async_support.bitget):
             topics.append(args)
             messageHashes.append('trade:' + symbol)
         if uta:
-            params['uta'] = True
+            params = self.extend(params, {'uta': True})
         trades = await self.watch_public_multiple(messageHashes, topics, params)
         if self.newUpdates:
             first = self.safe_value(trades, 0)
@@ -1199,12 +1199,14 @@ class bitget(ccxt.async_support.bitget):
         watch all open positions
 
         https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+        https://www.bitget.com/api-doc/uta/websocket/private/Positions-Channel
 
         :param str[]|None symbols: list of unified market symbols
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.instType]: one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
@@ -1212,16 +1214,25 @@ class bitget(ccxt.async_support.bitget):
         messageHash = ''
         subscriptionHash = 'positions'
         instType = 'USDT-FUTURES'
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchPositions', 'uta', False)
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
-            instType, params = self.get_inst_type(market, False, params)
+            instType, params = self.get_inst_type(market, uta, params)
+        if uta:
+            instType = 'UTA'
         messageHash = instType + ':positions' + messageHash
         args: dict = {
             'instType': instType,
-            'channel': 'positions',
-            'instId': 'default',
         }
+        topicOrChannel = 'topic' if uta else 'channel'
+        channel = 'position' if uta else 'positions'
+        args[topicOrChannel] = channel
+        if not uta:
+            args['instId'] = 'default'
+        else:
+            params = self.extend(params, {'uta': True})
         newPositions = await self.watch_private(messageHash, subscriptionHash, args, params)
         if self.newUpdates:
             return newPositions
@@ -1265,7 +1276,46 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701913043767
         #     }
         #
-        arg = self.safe_value(message, 'arg', {})
+        # uta
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "leverage": "20",
+        #                 "openFeeTotal": "",
+        #                 "mmr": "",
+        #                 "breakEvenPrice": "",
+        #                 "available": "0",
+        #                 "liqPrice": "",
+        #                 "marginMode": "crossed",
+        #                 "unrealisedPnl": "0",
+        #                 "markPrice": "94987.1",
+        #                 "createdTime": "1736378720620",
+        #                 "avgPrice": "0",
+        #                 "totalFundingFee": "0",
+        #                 "updatedTime": "1736378720620",
+        #                 "marginCoin": "USDT",
+        #                 "frozen": "0",
+        #                 "profitRate": "",
+        #                 "closeFeeTotal": "",
+        #                 "marginSize": "0",
+        #                 "curRealisedPnl": "0",
+        #                 "size": "0",
+        #                 "positionStatus": "ended",
+        #                 "posSide": "long",
+        #                 "holdMode": "hedge_mode"
+        #             }
+        #         ],
+        #         "arg": {
+        #             "instType": "UTA",
+        #             "topic": "position"
+        #         },
+        #         "action": "snapshot",
+        #         "ts": 1730711666652
+        #     }
+        #
+        arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string(arg, 'instType', '')
         if self.positions is None:
             self.positions = {}
@@ -1273,11 +1323,11 @@ class bitget(ccxt.async_support.bitget):
         if not (instType in self.positions) or (action == 'snapshot'):
             self.positions[instType] = ArrayCacheBySymbolBySide()
         cache = self.positions[instType]
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
-            marketId = self.safe_string(rawPosition, 'instId')
+            marketId = self.safe_string_2(rawPosition, 'instId', 'symbol')
             market = self.safe_market(marketId, None, None, 'contract')
             position = self.parse_ws_position(rawPosition, market)
             newPositions.append(position)
@@ -1319,16 +1369,45 @@ class bitget(ccxt.async_support.bitget):
         #         "autoMargin": "off"
         #     }
         #
-        marketId = self.safe_string(position, 'instId')
+        # uta
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "leverage": "20",
+        #         "openFeeTotal": "",
+        #         "mmr": "",
+        #         "breakEvenPrice": "",
+        #         "available": "0",
+        #         "liqPrice": "",
+        #         "marginMode": "crossed",
+        #         "unrealisedPnl": "0",
+        #         "markPrice": "94987.1",
+        #         "createdTime": "1736378720620",
+        #         "avgPrice": "0",
+        #         "totalFundingFee": "0",
+        #         "updatedTime": "1736378720620",
+        #         "marginCoin": "USDT",
+        #         "frozen": "0",
+        #         "profitRate": "",
+        #         "closeFeeTotal": "",
+        #         "marginSize": "0",
+        #         "curRealisedPnl": "0",
+        #         "size": "0",
+        #         "positionStatus": "ended",
+        #         "posSide": "long",
+        #         "holdMode": "hedge_mode"
+        #     }
+        #
+        marketId = self.safe_string_2(position, 'instId', 'symbol')
         marginModeId = self.safe_string(position, 'marginMode')
         marginMode = self.get_supported_mapping(marginModeId, {
             'crossed': 'cross',
             'isolated': 'isolated',
         })
-        hedgedId = self.safe_string(position, 'posMode')
+        hedgedId = self.safe_string_2(position, 'posMode', 'holdMode')
         hedged = True if (hedgedId == 'hedge_mode') else False
-        timestamp = self.safe_integer_2(position, 'uTime', 'cTime')
-        percentageDecimal = self.safe_string(position, 'unrealizedPLR')
+        timestamp = self.safe_integer_n(position, ['updatedTime', 'uTime', 'cTime', 'createdTime'])
+        percentageDecimal = self.safe_string_2(position, 'unrealizedPLR', 'profitRate')
         percentage = Precise.string_mul(percentageDecimal, '100')
         contractSize = None
         if market is not None:
@@ -1339,21 +1418,21 @@ class bitget(ccxt.async_support.bitget):
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'notional': None,
             'marginMode': marginMode,
-            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
-            'entryPrice': self.safe_number(position, 'openPriceAvg'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),
+            'liquidationPrice': self.safe_number_2(position, 'liquidationPrice', 'liqPrice'),
+            'entryPrice': self.safe_number_2(position, 'openPriceAvg', 'avgPrice'),
+            'unrealizedPnl': self.safe_number_2(position, 'unrealizedPL', 'unrealisedPnl'),
             'percentage': self.parse_number(percentage),
-            'contracts': self.safe_number(position, 'total'),
+            'contracts': self.safe_number_2(position, 'total', 'size'),
             'contractSize': contractSize,
-            'markPrice': None,
-            'side': self.safe_string(position, 'holdSide'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'side': self.safe_string_2(position, 'holdSide', 'posSide'),
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'maintenanceMargin': None,
-            'maintenanceMarginPercentage': self.safe_number(position, 'keepMarginRate'),
-            'collateral': None,
-            'initialMargin': None,
+            'maintenanceMarginPercentage': self.safe_number_2(position, 'keepMarginRate', 'mmr'),
+            'collateral': self.safe_number(position, 'available'),
+            'initialMargin': self.safe_number(position, 'marginSize'),
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': self.safe_number(position, 'marginRate'),
@@ -1368,6 +1447,7 @@ class bitget(ccxt.async_support.bitget):
         https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
         https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+        https://www.bitget.com/api-doc/uta/websocket/private/Order-Channel
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1377,6 +1457,7 @@ class bitget(ccxt.async_support.bitget):
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders]
         :param str [params.type]: 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1391,6 +1472,8 @@ class bitget(ccxt.async_support.bitget):
             symbol = market['symbol']
             marketId = market['id']
             messageHash = messageHash + ':' + symbol
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchOrders', 'uta', False)
         productType = self.safe_string(params, 'productType')
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
@@ -1410,7 +1493,7 @@ class bitget(ccxt.async_support.bitget):
         if market is None and type == 'spot':
             instType = 'SPOT'
         else:
-            instType, params = self.get_inst_type(market, False, params)
+            instType, params = self.get_inst_type(market, uta, params)
         if type == 'spot' and (symbol is not None):
             subscriptionHash = subscriptionHash + ':' + symbol
         if isTrigger:
@@ -1426,12 +1509,19 @@ class bitget(ccxt.async_support.bitget):
                 channel = 'orders-isolated'
             else:
                 channel = 'orders-crossed'
+        if uta:
+            instType = 'UTA'
+            channel = 'order'
         subscriptionHash = subscriptionHash + ':' + instType
         args: dict = {
             'instType': instType,
-            'channel': channel,
-            'instId': instId,
         }
+        topicOrChannel = 'topic' if uta else 'channel'
+        args[topicOrChannel] = channel
+        if not uta:
+            args['instId'] = instId
+        else:
+            params = self.extend(params, {'uta': True})
         orders = await self.watch_private(messageHash, subscriptionHash, args, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -1472,21 +1562,70 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701923982497
         #     }
         #
+        # uta
+        #
+        #     {
+        #         "action": "snapshot",
+        #         "arg": {
+        #             "instType": "UTA",
+        #             "topic": "order"
+        #         },
+        #         "data": [
+        #             {
+        #                 "category": "usdt-futures",
+        #                 "symbol": "BTCUSDT",
+        #                 "orderId": "xxx",
+        #                 "clientOid": "xxx",
+        #                 "price": "",
+        #                 "qty": "0.001",
+        #                 "amount": "1000",
+        #                 "holdMode": "hedge_mode",
+        #                 "holdSide": "long",
+        #                 "tradeSide": "open",
+        #                 "orderType": "market",
+        #                 "timeInForce": "gtc",
+        #                 "side": "buy",
+        #                 "marginMode": "crossed",
+        #                 "marginCoin": "USDT",
+        #                 "reduceOnly": "no",
+        #                 "cumExecQty": "0.001",
+        #                 "cumExecValue": "83.1315",
+        #                 "avgPrice": "83131.5",
+        #                 "totalProfit": "0",
+        #                 "orderStatus": "filled",
+        #                 "cancelReason": "",
+        #                 "leverage": "20",
+        #                 "feeDetail": [
+        #                     {
+        #                         "feeCoin": "USDT",
+        #                         "fee": "0.0332526"
+        #                     }
+        #                 ],
+        #                 "createdTime": "1742367838101",
+        #                 "updatedTime": "1742367838115",
+        #                 "stpMode": "none"
+        #             }
+        #         ],
+        #         "ts": 1742367838124
+        #     }
+        #
         arg = self.safe_dict(message, 'arg', {})
-        channel = self.safe_string(arg, 'channel')
-        instType = self.safe_string(arg, 'instType')
+        channel = self.safe_string_2(arg, 'channel', 'topic')
+        instType = self.safe_string_lower(arg, 'instType')
         argInstId = self.safe_string(arg, 'instId')
         marketType = None
-        if instType == 'SPOT':
+        if instType == 'spot':
             marketType = 'spot'
-        elif instType == 'MARGIN':
+        elif instType == 'margin':
             marketType = 'spot'
         else:
             marketType = 'contract'
-        isLinearSwap = (instType == 'USDT-FUTURES')
-        isInverseSwap = (instType == 'COIN-FUTURES')
-        isUSDCFutures = (instType == 'USDC-FUTURES')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        category = self.safe_string_lower(first, 'category', instType)
+        isLinearSwap = (category == 'usdt-futures')
+        isInverseSwap = (category == 'coin-futures')
+        isUSDCFutures = (category == 'usdc-futures')
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -1497,7 +1636,7 @@ class bitget(ccxt.async_support.bitget):
         marketSymbols: dict = {}
         for i in range(0, len(data)):
             order = data[i]
-            marketId = self.safe_string(order, 'instId', argInstId)
+            marketId = self.safe_string_2(order, 'instId', 'symbol', argInstId)
             market = self.safe_market(marketId, None, None, marketType)
             parsed = self.parse_ws_order(order, market)
             stored.append(parsed)
@@ -1638,13 +1777,55 @@ class bitget(ccxt.async_support.bitget):
         #         orderId: "1183419084588060673",
         #       }
         #
+        # uta
+        #
+        #     {
+        #         "category": "usdt-futures",
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "xxx",
+        #         "clientOid": "xxx",
+        #         "price": "",
+        #         "qty": "0.001",
+        #         "amount": "1000",
+        #         "holdMode": "hedge_mode",
+        #         "holdSide": "long",
+        #         "tradeSide": "open",
+        #         "orderType": "market",
+        #         "timeInForce": "gtc",
+        #         "side": "buy",
+        #         "marginMode": "crossed",
+        #         "marginCoin": "USDT",
+        #         "reduceOnly": "no",
+        #         "cumExecQty": "0.001",
+        #         "cumExecValue": "83.1315",
+        #         "avgPrice": "83131.5",
+        #         "totalProfit": "0",
+        #         "orderStatus": "filled",
+        #         "cancelReason": "",
+        #         "leverage": "20",
+        #         "feeDetail": [
+        #             {
+        #                 "feeCoin": "USDT",
+        #                 "fee": "0.0332526"
+        #             }
+        #         ],
+        #         "createdTime": "1742367838101",
+        #         "updatedTime": "1742367838115",
+        #         "stpMode": "none"
+        #     }
+        #
         isSpot = not ('posMode' in order)
         isMargin = ('loanType' in order)
-        marketId = self.safe_string(order, 'instId')
+        category = self.safe_string_lower(order, 'category')
+        if category == 'spot':
+            isSpot = True
+        if category == 'margin':
+            isMargin = True
+        marketId = self.safe_string_2(order, 'instId', 'symbol')
         market = self.safe_market(marketId, market)
-        timestamp = self.safe_integer(order, 'cTime')
+        timestamp = self.safe_integer_2(order, 'cTime', 'createdTime')
         symbol = market['symbol']
-        rawStatus = self.safe_string(order, 'status')
+        rawStatus = self.safe_string_2(order, 'status', 'orderStatus')
         orderFee = self.safe_value(order, 'feeDetail', [])
         fee = self.safe_value(orderFee, 0)
         feeAmount = self.safe_string(fee, 'fee')
@@ -1663,23 +1844,23 @@ class bitget(ccxt.async_support.bitget):
         elif isSpot and isTriggerOrder:
             # for spot trigger order, limit price is self
             price = self.safe_number(order, 'executePrice')
-        avgPrice = self.omit_zero(self.safe_string_2(order, 'priceAvg', 'fillPrice'))
+        avgPrice = self.omit_zero(self.safe_string_lower_n(order, ['priceAvg', 'fillPrice', 'avgPrice']))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        accBaseVolume = self.omit_zero(self.safe_string(order, 'accBaseVolume'))
-        newSizeValue = self.omit_zero(self.safe_string(order, 'newSize'))
+        accBaseVolume = self.omit_zero(self.safe_string_2(order, 'accBaseVolume', 'cumExecQty'))
+        newSizeValue = self.omit_zero(self.safe_string_2(order, 'newSize', 'cumExecValue'))
         isMarketOrder = (type == 'market')
         isBuy = (side == 'buy')
         totalAmount = None
         filledAmount = None
         cost = None
         remaining = None
-        totalFilled = self.safe_string(order, 'accBaseVolume')
+        totalFilled = self.safe_string_2(order, 'accBaseVolume', 'cumExecQty')
         if isSpot:
             if isMargin:
-                totalAmount = self.safe_string(order, 'baseSize')
-                totalFilled = self.safe_string(order, 'baseVolume')
-                cost = self.safe_string(order, 'fillTotalAmount')
+                totalAmount = self.safe_string_2(order, 'baseSize', 'qty')
+                totalFilled = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
+                cost = self.safe_string_2(order, 'fillTotalAmount', 'cumExecValue')
             else:
                 partialFillAmount = self.safe_string(order, 'baseVolume')
                 if partialFillAmount is not None:
@@ -1694,13 +1875,13 @@ class bitget(ccxt.async_support.bitget):
                         totalAmount = newSizeValue
                         # we don't have cost for market-sell order
                 else:
-                    totalAmount = self.safe_string(order, 'newSize')
+                    totalAmount = self.safe_string_2(order, 'newSize', 'qty')
                     # we don't have cost for limit order
         else:
             # baseVolume should not be used for "amount" for contracts !
-            filledAmount = self.safe_string(order, 'baseVolume')
-            totalAmount = self.safe_string(order, 'size')
-            cost = self.safe_string(order, 'fillNotionalUsd')
+            filledAmount = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
+            totalAmount = self.safe_string_2(order, 'size', 'qty')
+            cost = self.safe_string_2(order, 'fillNotionalUsd', 'cumExecValue')
         remaining = Precise.string_sub(totalAmount, totalFilled)
         return self.safe_order({
             'info': order,
@@ -1709,9 +1890,9 @@ class bitget(ccxt.async_support.bitget):
             'clientOrderId': self.safe_string(order, 'clientOid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': self.safe_integer(order, 'uTime'),
+            'lastTradeTimestamp': self.safe_integer_2(order, 'uTime', 'updatedTime'),
             'type': type,
-            'timeInForce': self.safe_string_upper(order, 'force'),
+            'timeInForce': self.safe_string_upper_2(order, 'force', 'timeInForce'),
             'postOnly': None,
             'side': side,
             'price': price,
@@ -1777,7 +1958,7 @@ class bitget(ccxt.async_support.bitget):
         if not uta:
             args['instId'] = 'default'
         else:
-            params['uta'] = True
+            params = self.extend(params, {'uta': True})
         trades = await self.watch_private(messageHash, subscriptionHash, args, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -1917,13 +2098,17 @@ class bitget(ccxt.async_support.bitget):
         https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
         https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
         https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+        https://www.bitget.com/api-doc/uta/websocket/private/Account-Channel
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :param str [params.instType]: one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin balances
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', False)
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         marginMode = None
@@ -1934,18 +2119,25 @@ class bitget(ccxt.async_support.bitget):
             instType = 'USDT-FUTURES'
         elif marginMode is not None:
             instType = 'MARGIN'
-            if marginMode == 'isolated':
-                channel = 'account-isolated'
-            else:
-                channel = 'account-crossed'
-        else:
+            if not uta:
+                if marginMode == 'isolated':
+                    channel = 'account-isolated'
+                else:
+                    channel = 'account-crossed'
+        elif not uta:
             instType = 'SPOT'
         instType, params = self.handle_option_and_params(params, 'watchBalance', 'instType', instType)
+        if uta:
+            instType = 'UTA'
         args: dict = {
             'instType': instType,
-            'channel': channel,
-            'coin': 'default',
         }
+        topicOrChannel = 'topic' if uta else 'channel'
+        args[topicOrChannel] = channel
+        if not uta:
+            args['coin'] = 'default'
+        else:
+            params = self.extend(params, {'uta': True})
         messageHash = 'balance:' + instType.lower()
         return await self.watch_private(messageHash, messageHash, args, params)
 
@@ -2008,24 +2200,70 @@ class bitget(ccxt.async_support.bitget):
         #         "ts": 1701933110544
         #     }
         #
+        # uta
+        #
+        #     {
+        #         "data": [{
+        #             "unrealisedPnL": "-10116.55",
+        #             "totalEquity": "4976919.05",
+        #             "positionMgnRatio": "0",
+        #             "mmr": "408.08",
+        #             "effEquity": "4847952.35",
+        #             "imr": "17795.97",
+        #             "mgnRatio": "0",
+        #             "coin": [{
+        #                 "debts": "0",
+        #                 "balance": "0.9992",
+        #                 "available": "0.9992",
+        #                 "borrow": "0",
+        #                 "locked": "0",
+        #                 "equity": "0.9992",
+        #                 "coin": "ETH",
+        #                 "usdValue": "2488.667472"
+        #             }]
+        #         }],
+        #         "arg": {
+        #             "instType": "UTA",
+        #             "topic": "account"
+        #         },
+        #         "action": "snapshot",
+        #         "ts": 1740546523244
+        #     }
+        #
+        arg = self.safe_dict(message, 'arg', {})
+        instType = self.safe_string_lower(arg, 'instType')
         data = self.safe_value(message, 'data', [])
         for i in range(0, len(data)):
             rawBalance = data[i]
-            currencyId = self.safe_string_2(rawBalance, 'coin', 'marginCoin')
-            code = self.safe_currency_code(currencyId)
-            account = self.balance[code] if (code in self.balance) else self.account()
-            borrow = self.safe_string(rawBalance, 'borrow')
-            if borrow is not None:
-                interest = self.safe_string(rawBalance, 'interest')
-                account['debt'] = Precise.string_add(borrow, interest)
-            freeQuery = 'maxTransferOut' if ('maxTransferOut' in rawBalance) else 'available'
-            account['free'] = self.safe_string(rawBalance, freeQuery)
-            account['total'] = self.safe_string(rawBalance, 'equity')
-            account['used'] = self.safe_string(rawBalance, 'frozen')
-            self.balance[code] = account
+            if instType == 'uta':
+                coins = self.safe_list(rawBalance, 'coin', [])
+                for j in range(0, len(coins)):
+                    entry = coins[j]
+                    currencyId = self.safe_string(entry, 'coin')
+                    code = self.safe_currency_code(currencyId)
+                    account = self.balance[code] if (code in self.balance) else self.account()
+                    borrow = self.safe_string(entry, 'borrow')
+                    debts = self.safe_string(entry, 'debts')
+                    if (borrow is not None) or (debts is not None):
+                        account['debt'] = Precise.string_add(borrow, debts)
+                    account['free'] = self.safe_string(entry, 'available')
+                    account['used'] = self.safe_string(entry, 'locked')
+                    account['total'] = self.safe_string(entry, 'balance')
+                    self.balance[code] = account
+            else:
+                currencyId = self.safe_string_2(rawBalance, 'coin', 'marginCoin')
+                code = self.safe_currency_code(currencyId)
+                account = self.balance[code] if (code in self.balance) else self.account()
+                borrow = self.safe_string(rawBalance, 'borrow')
+                if borrow is not None:
+                    interest = self.safe_string(rawBalance, 'interest')
+                    account['debt'] = Precise.string_add(borrow, interest)
+                freeQuery = 'maxTransferOut' if ('maxTransferOut' in rawBalance) else 'available'
+                account['free'] = self.safe_string(rawBalance, freeQuery)
+                account['total'] = self.safe_string(rawBalance, 'equity')
+                account['used'] = self.safe_string(rawBalance, 'frozen')
+                self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
-        arg = self.safe_value(message, 'arg')
-        instType = self.safe_string_lower(arg, 'instType')
         messageHash = 'balance:' + instType
         client.resolve(self.balance, messageHash)
 
@@ -2288,12 +2526,14 @@ class bitget(ccxt.async_support.bitget):
             'trade': self.handle_trades,
             'publicTrade': self.handle_trades,
             'fill': self.handle_my_trades,
+            'order': self.handle_order,
             'orders': self.handle_order,
             'ordersAlgo': self.handle_order,
             'orders-algo': self.handle_order,
             'orders-crossed': self.handle_order,
             'orders-isolated': self.handle_order,
             'account': self.handle_balance,
+            'position': self.handle_positions,
             'positions': self.handle_positions,
             'account-isolated': self.handle_balance,
             'account-crossed': self.handle_balance,

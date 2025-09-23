@@ -540,7 +540,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         response = await self.privateGetOpenapiWalletV1ConfigGetall(params)
         #
         #    [

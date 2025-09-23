@@ -2750,7 +2750,7 @@ public partial class binance : Exchange
         object fetchCurrenciesEnabled = this.safeBool(this.options, "fetchCurrencies");
         if (!isTrue(fetchCurrenciesEnabled))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
@@ -2758,13 +2758,13 @@ public partial class binance : Exchange
         // and fallback to generating the currencies from the markets
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         // sandbox/testnet does not support sapi endpoints
         object apiBackup = this.safeValue(this.urls, "apiBackup");
         if (isTrue(!isEqual(apiBackup, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters)};
         object fetchMargins = this.safeBool(this.options, "fetchMargins", false);

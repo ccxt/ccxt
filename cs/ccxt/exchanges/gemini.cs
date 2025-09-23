@@ -369,7 +369,7 @@ public partial class gemini : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>");
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         //    {

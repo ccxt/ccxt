@@ -24,7 +24,7 @@ func (this *bigone) Describe() interface{} {
 			"CORS":                           nil,
 			"spot":                           true,
 			"margin":                         false,
-			"swap":                           nil,
+			"swap":                           true,
 			"future":                         nil,
 			"option":                         false,
 			"cancelAllOrders":                true,
@@ -377,6 +377,7 @@ func (this *bigone) FetchCurrencies(optionalArgs ...interface{}) <-chan interfac
 		PanicOnError(data)
 		if IsTrue(IsEqual(data, nil)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		//

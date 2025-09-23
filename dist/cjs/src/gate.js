@@ -1874,7 +1874,7 @@ class gate extends gate$1["default"] {
         // sandbox/testnet only supports future markets
         const apiBackup = this.safeValue(this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
-            return undefined;
+            return {};
         }
         const response = await this.publicSpotGetCurrencies(params);
         //

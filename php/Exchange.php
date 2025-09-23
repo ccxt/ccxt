@@ -2398,7 +2398,7 @@ class Exchange {
     // ########################################################################
     // ########################################################################
 
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     public function describe(): mixed {
         return array(
@@ -3996,7 +3996,12 @@ class Exchange {
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
+        $numCurrencies = 0;
         if ($currencies !== null) {
+            $keys = is_array($currencies) ? array_keys($currencies) : array();
+            $numCurrencies = count($keys);
+        }
+        if ($numCurrencies > 0) {
             // $currencies is always null when called in constructor but not when called from loadMarkets
             $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
         } else {
@@ -6926,7 +6931,9 @@ class Exchange {
     }
 
     public function currency(string $code) {
-        if ($this->currencies === null) {
+        $keys = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        $numCurrencies = count($keys);
+        if ($numCurrencies === 0) {
             throw new ExchangeError($this->id . ' currencies not loaded');
         }
         if (gettype($code) === 'string') {

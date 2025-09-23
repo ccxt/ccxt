@@ -1574,11 +1574,11 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         if (isTrue(getValue(this.options, "enableDemoTrading")))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.privateGetV5AssetCoinQueryInfo(parameters);
         //

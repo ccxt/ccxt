@@ -1424,7 +1424,7 @@ class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
             'id': undefined,
@@ -2930,7 +2930,12 @@ class Exchange {
         const marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = Object.keys(marketsSortedBySymbol);
         this.ids = Object.keys(marketsSortedById);
+        let numCurrencies = 0;
         if (currencies !== undefined) {
+            const keys = Object.keys(currencies);
+            numCurrencies = keys.length;
+        }
+        if (numCurrencies > 0) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
         }
@@ -5758,7 +5763,9 @@ class Exchange {
         return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
-        if (this.currencies === undefined) {
+        const keys = Object.keys(this.currencies);
+        const numCurrencies = keys.length;
+        if (numCurrencies === 0) {
             throw new errors.ExchangeError(this.id + ' currencies not loaded');
         }
         if (typeof code === 'string') {
