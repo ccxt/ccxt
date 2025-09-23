@@ -6594,6 +6594,7 @@ public partial class binance : Exchange
         object isConditional = isTrue(isTrue(isTrue(isTriggerOrder) || isTrue(isTrailingPercentOrder)) || isTrue(isStopLoss)) || isTrue(isTakeProfit);
         object isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
         object isPriceMatch = !isEqual(priceMatch, null);
+        object priceRequiredForTrailing = true;
         object uppercaseType = ((string)type).ToUpper();
         object stopPrice = null;
         if (isTrue(isTrailingPercentOrder))
@@ -6608,22 +6609,37 @@ public partial class binance : Exchange
                 }
             } else
             {
-                if (isTrue(isMarketOrder))
+                if (isTrue(isTrue(isTrue(isTrue((!isEqual(uppercaseType, "STOP_LOSS"))) && isTrue((!isEqual(uppercaseType, "TAKE_PROFIT")))) && isTrue((!isEqual(uppercaseType, "STOP_LOSS_LIMIT")))) && isTrue((!isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
                 {
-                    throw new InvalidOrder ((string)add(add(add(add(add(this.id, " trailingPercent orders are not supported for "), symbol), " "), type), " orders")) ;
+                    object stopLossOrTakeProfit = this.safeString(parameters, "stopLossOrTakeProfit");
+                    parameters = this.omit(parameters, "stopLossOrTakeProfit");
+                    if (isTrue(isTrue((!isEqual(stopLossOrTakeProfit, "stopLoss"))) && isTrue((!isEqual(stopLossOrTakeProfit, "takeProfit")))))
+                    {
+                        throw new InvalidOrder ((string)add(add(this.id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                    }
+                    if (isTrue(isMarketOrder))
+                    {
+                        if (isTrue(isEqual(stopLossOrTakeProfit, "stopLoss")))
+                        {
+                            uppercaseType = "STOP_LOSS";
+                        } else if (isTrue(isEqual(stopLossOrTakeProfit, "takeProfit")))
+                        {
+                            uppercaseType = "TAKE_PROFIT";
+                        }
+                    } else
+                    {
+                        if (isTrue(isEqual(stopLossOrTakeProfit, "stopLoss")))
+                        {
+                            uppercaseType = "STOP_LOSS_LIMIT";
+                        } else if (isTrue(isEqual(stopLossOrTakeProfit, "takeProfit")))
+                        {
+                            uppercaseType = "TAKE_PROFIT_LIMIT";
+                        }
+                    }
                 }
-                object stopLossOrTakeProfit = this.safeString(parameters, "stopLossOrTakeProfit");
-                parameters = this.omit(parameters, "stopLossOrTakeProfit");
-                if (isTrue(isTrue(!isEqual(stopLossOrTakeProfit, "stopLoss")) && isTrue(!isEqual(stopLossOrTakeProfit, "takeProfit"))))
+                if (isTrue(isTrue((isEqual(uppercaseType, "STOP_LOSS"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT")))))
                 {
-                    throw new InvalidOrder ((string)add(add(this.id, symbol), " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
-                }
-                if (isTrue(isEqual(stopLossOrTakeProfit, "stopLoss")))
-                {
-                    uppercaseType = "STOP_LOSS_LIMIT";
-                } else if (isTrue(isEqual(stopLossOrTakeProfit, "takeProfit")))
-                {
-                    uppercaseType = "TAKE_PROFIT_LIMIT";
+                    priceRequiredForTrailing = false;
                 }
                 if (isTrue(!isEqual(trailingTriggerPrice, null)))
                 {
@@ -6797,7 +6813,7 @@ public partial class binance : Exchange
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (isTrue(isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse"))))
+            if (isTrue(isTrue((isTrue(getValue(market, "linear")) || isTrue(getValue(market, "inverse")))) && isTrue(priceRequiredForTrailing)))
             {
                 priceIsRequired = true;
             }
