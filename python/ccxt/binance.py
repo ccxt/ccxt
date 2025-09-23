@@ -6137,6 +6137,7 @@ class binance(Exchange, ImplicitAPI):
         isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
         isPriceMatch = priceMatch is not None
+        priceRequiredForTrailing = True
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
@@ -6146,16 +6147,23 @@ class binance(Exchange, ImplicitAPI):
                 if trailingTriggerPrice is not None:
                     request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
             else:
-                if isMarketOrder:
-                    raise InvalidOrder(self.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders')
-                stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
-                params = self.omit(params, 'stopLossOrTakeProfit')
-                if stopLossOrTakeProfit != 'stopLoss' and stopLossOrTakeProfit != 'takeProfit':
-                    raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
-                if stopLossOrTakeProfit == 'stopLoss':
-                    uppercaseType = 'STOP_LOSS_LIMIT'
-                elif stopLossOrTakeProfit == 'takeProfit':
-                    uppercaseType = 'TAKE_PROFIT_LIMIT'
+                if (uppercaseType != 'STOP_LOSS') and (uppercaseType != 'TAKE_PROFIT') and (uppercaseType != 'STOP_LOSS_LIMIT') and (uppercaseType != 'TAKE_PROFIT_LIMIT'):
+                    stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
+                    params = self.omit(params, 'stopLossOrTakeProfit')
+                    if (stopLossOrTakeProfit != 'stopLoss') and (stopLossOrTakeProfit != 'takeProfit'):
+                        raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
+                    if isMarketOrder:
+                        if stopLossOrTakeProfit == 'stopLoss':
+                            uppercaseType = 'STOP_LOSS'
+                        elif stopLossOrTakeProfit == 'takeProfit':
+                            uppercaseType = 'TAKE_PROFIT'
+                    else:
+                        if stopLossOrTakeProfit == 'stopLoss':
+                            uppercaseType = 'STOP_LOSS_LIMIT'
+                        elif stopLossOrTakeProfit == 'takeProfit':
+                            uppercaseType = 'TAKE_PROFIT_LIMIT'
+                if (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+                    priceRequiredForTrailing = False
                 if trailingTriggerPrice is not None:
                     stopPrice = self.price_to_precision(symbol, trailingTriggerPrice)
                 trailingPercentConverted = Precise.string_mul(trailingPercent, '100')
@@ -6271,7 +6279,7 @@ class binance(Exchange, ImplicitAPI):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             triggerPriceIsRequired = True
             quantityIsRequired = True
-            if market['linear'] or market['inverse']:
+            if (market['linear'] or market['inverse']) and priceRequiredForTrailing:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
