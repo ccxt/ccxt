@@ -1082,12 +1082,14 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 			if val.Kind() == reflect.Ptr {
 				val = val.Elem()
 			}
-			field := val.FieldByName(Capitalize(stringOrInt.(string)))
+			field := val.FieldByName(Capitalize(stringOrInt.(string))) // do remove reflection here??
 			if field.IsValid() && field.CanSet() {
-				// Convert value to the correct type
-				valueVal := reflect.ValueOf(value)
-				if valueVal.Type().ConvertibleTo(field.Type()) {
-					field.Set(valueVal.Convert(field.Type()))
+				if value != nil {
+					// Convert value to the correct type
+					valueVal := reflect.ValueOf(value)
+					if valueVal.Type().ConvertibleTo(field.Type()) {
+						field.Set(valueVal.Convert(field.Type()))
+					}
 				}
 			}
 		}
