@@ -6317,6 +6317,7 @@ class binance extends Exchange {
         $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
         $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
         $isPriceMatch = $priceMatch !== null;
+        $priceRequiredForTrailing = true;
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
@@ -6327,18 +6328,28 @@ class binance extends Exchange {
                     $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
                 }
             } else {
-                if ($isMarketOrder) {
-                    throw new InvalidOrder($this->id . ' $trailingPercent orders are not supported for ' . $symbol . ' ' . $type . ' orders');
+                if (($uppercaseType !== 'STOP_LOSS') && ($uppercaseType !== 'TAKE_PROFIT') && ($uppercaseType !== 'STOP_LOSS_LIMIT') && ($uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
+                    $stopLossOrTakeProfit = $this->safe_string($params, 'stopLossOrTakeProfit');
+                    $params = $this->omit($params, 'stopLossOrTakeProfit');
+                    if (($stopLossOrTakeProfit !== 'stopLoss') && ($stopLossOrTakeProfit !== 'takeProfit')) {
+                        throw new InvalidOrder($this->id . $symbol . ' $trailingPercent orders require a $stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                    }
+                    if ($isMarketOrder) {
+                        if ($stopLossOrTakeProfit === 'stopLoss') {
+                            $uppercaseType = 'STOP_LOSS';
+                        } elseif ($stopLossOrTakeProfit === 'takeProfit') {
+                            $uppercaseType = 'TAKE_PROFIT';
+                        }
+                    } else {
+                        if ($stopLossOrTakeProfit === 'stopLoss') {
+                            $uppercaseType = 'STOP_LOSS_LIMIT';
+                        } elseif ($stopLossOrTakeProfit === 'takeProfit') {
+                            $uppercaseType = 'TAKE_PROFIT_LIMIT';
+                        }
+                    }
                 }
-                $stopLossOrTakeProfit = $this->safe_string($params, 'stopLossOrTakeProfit');
-                $params = $this->omit($params, 'stopLossOrTakeProfit');
-                if ($stopLossOrTakeProfit !== 'stopLoss' && $stopLossOrTakeProfit !== 'takeProfit') {
-                    throw new InvalidOrder($this->id . $symbol . ' $trailingPercent orders require a $stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
-                }
-                if ($stopLossOrTakeProfit === 'stopLoss') {
-                    $uppercaseType = 'STOP_LOSS_LIMIT';
-                } elseif ($stopLossOrTakeProfit === 'takeProfit') {
-                    $uppercaseType = 'TAKE_PROFIT_LIMIT';
+                if (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
+                    $priceRequiredForTrailing = false;
                 }
                 if ($trailingTriggerPrice !== null) {
                     $stopPrice = $this->price_to_precision($symbol, $trailingTriggerPrice);
@@ -6476,7 +6487,7 @@ class binance extends Exchange {
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
-            if ($market['linear'] || $market['inverse']) {
+            if (($market['linear'] || $market['inverse']) && $priceRequiredForTrailing) {
                 $priceIsRequired = true;
             }
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
