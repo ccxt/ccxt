@@ -208,12 +208,12 @@ export default class binance extends Exchange {
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
                 'demo': {
-                    'dapiPublic': 'https://demo-dapi.binance.com/v1',
-                    'dapiPrivate': 'https://demo-dapi.binance.com/v1',
-                    'dapiPrivateV2': 'https://demo-dapi.binance.com/v2',
-                    'fapiPublic': 'https://demo-fapi.binance.com/v1',
-                    'fapiPublicV2': 'https://demo-fapi.binance.com/v2',
-                    'fapiPublicV3': 'https://demo-fapi.binance.com/v3',
+                    'dapiPublic': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3': 'https://demo-fapi.binance.com/fapi/v3',
                     'fapiPrivate': 'https://demo-fapi.binance.com/fapi/v1',
                     'fapiPrivateV2': 'https://demo-fapi.binance.com/fapi/v2',
                     'fapiPrivateV3': 'https://demo-fapi.binance.com/fapi/v3',
@@ -3095,10 +3095,12 @@ export default class binance extends Exchange {
             }
         }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
+        const isDemoEnv = demoMode || sandboxMode;
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
             const type = rawFetchMarkets[i];
-            if (type === 'option' && sandboxMode) {
+            if (type === 'option' && isDemoEnv) {
                 continue;
             }
             fetchMarkets.push (type);
@@ -3108,7 +3110,7 @@ export default class binance extends Exchange {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
-                if (fetchMargins && this.checkRequiredCredentials (false) && !sandboxMode) {
+                if (fetchMargins && this.checkRequiredCredentials (false) && !isDemoEnv) {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
