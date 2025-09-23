@@ -2884,7 +2884,7 @@ export default class binance extends Exchange {
             //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
             //                "addressRule": "",
             //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-            //                "withdrawFee": "0.002",
+            //                "withdrawFee": "0.003",
             //                "withdrawMin": "0.01",
             //                "withdrawMax": "10000000000",
             //                "minConfirm": "1",
