@@ -80,6 +80,19 @@ export default class binance extends binanceRest {
                         },
                     },
                 },
+                'demo': {
+                    'ws': {
+                        'spot': 'wss://demo-stream.binance.com/ws',
+                        'margin': 'wss://demo-stream.binance.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
+                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'ws-api': {
+                            'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
+                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                        },
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
