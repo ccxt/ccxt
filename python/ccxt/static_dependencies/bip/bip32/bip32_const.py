@@ -32,4 +32,4 @@ class Bip32Const:
     # Test net key net version (tpub / tprv)
     TEST_NET_KEY_NET_VERSIONS: Bip32KeyNetVersions = Bip32KeyNetVersions(b"\x04\x35\x87\xcf", b"\x04\x35\x83\x94")
     # Key net version for BIP32 Kholaw that uses 64-byte private keys (xpub / xprv)
-    KHOLAW_KEY_NET_VERSIONS: Bip32KeyNetVersions = Bip32KeyNetVersions(b"\x04\x88\xb2\x1e", b"\x0f\x43\x31\xd4")
+    # KHOLAW_KEY_NET_VERSIONS: Bip32KeyNetVersions = Bip32KeyNetVersions(b"\x04\x88\xb2\x1e", b"\x0f\x43\x31\xd4")

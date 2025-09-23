@@ -70,7 +70,8 @@ from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as Type
 
 # dydx
 try:
-    from ccxt.static_dependencies.bip import Bip39MnemonicGenerator, Bip39SeedGenerator, Bip44
+    from ccxt.static_dependencies.mnemonic import Mnemonic
+    from ccxt.static_dependencies.bip import Bip44
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
         AuthInfo,
@@ -1901,15 +1902,14 @@ class Exchange(object):
         return isinstance(message, bytes) or isinstance(message, bytearray)
 
     def retrieve_dydx_credentials(self, entropy):
-        if not encode_as_any:
-            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
-        mnemonic = Bip39MnemonicGenerator().FromEntropy(self.base16_to_binary(entropy))
-        seed = Bip39SeedGenerator(mnemonic.ToStr()).Generate()
+        mnemo = Mnemonic("english")
+        mnemonic = mnemo.to_mnemonic(self.base16_to_binary(entropy))
+        seed = mnemo.to_seed(mnemonic)
         keyPair = Bip44.FromSeed(seed).DeriveDefaultPath()
         privateKey = keyPair.PrivateKey().Raw().ToBytes()
         publicKey = keyPair.PublicKey().RawCompressed().ToBytes()
         return {
-            'mnemonic': mnemonic.ToStr(),
+            'mnemonic': mnemonic,
             'privateKey': privateKey,
             'publicKey': publicKey,
         }

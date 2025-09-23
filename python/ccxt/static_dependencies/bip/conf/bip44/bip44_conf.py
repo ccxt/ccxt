@@ -30,8 +30,9 @@ from ..addr import (
     XmrAddrEncoder, XrpAddrEncoder, XtzAddrEncoder, XtzAddrPrefixes, ZilAddrEncoder
 )
 from ..bip32 import (
-    Bip32Const, Bip32KeyNetVersions, Bip32KholawEd25519, Bip32Slip10Ed25519, Bip32Slip10Ed25519Blake2b,
+    Bip32Const, Bip32KeyNetVersions, Bip32Slip10Ed25519, Bip32Slip10Ed25519Blake2b,
     Bip32Slip10Nist256p1, Bip32Slip10Secp256k1
+    # Bip32KholawEd25519
 )
 # from  import (
 #     DER_PATH_HARDENED_FULL, DER_PATH_HARDENED_MID, DER_PATH_HARDENED_SHORT, DER_PATH_NON_HARDENED_FULL,
@@ -359,19 +360,19 @@ class Bip44Conf:
     )
 
     # Configuration for Cardano Byron (Icarus)
-    CardanoByronIcarus: BipCoinConf = BipCoinConf(
-        coin_names=CoinsConf.CardanoMainNet.CoinNames(),
-        coin_idx=Slip44.CARDANO,
-        is_testnet=False,
-        def_path=DER_PATH_NON_HARDENED_FULL,
-        key_net_ver=Bip32Const.KHOLAW_KEY_NET_VERSIONS,
-        wif_net_ver=None,
-        bip32_cls=CardanoIcarusBip32,
-        addr_cls=AdaByronIcarusAddrEncoder,
-        addr_params={
-            "chain_code": BipCoinFctCallsConf("ChainCode"),
-        },
-    )
+    # CardanoByronIcarus: BipCoinConf = BipCoinConf(
+    #     coin_names=CoinsConf.CardanoMainNet.CoinNames(),
+    #     coin_idx=Slip44.CARDANO,
+    #     is_testnet=False,
+    #     def_path=DER_PATH_NON_HARDENED_FULL,
+    #     key_net_ver=Bip32Const.KHOLAW_KEY_NET_VERSIONS,
+    #     wif_net_ver=None,
+    #     bip32_cls=CardanoIcarusBip32,
+    #     addr_cls=AdaByronIcarusAddrEncoder,
+    #     addr_params={
+    #         "chain_code": BipCoinFctCallsConf("ChainCode"),
+    #     },
+    # )
     # Configuration for Cardano Byron (Ledger)
     CardanoByronLedger: BipCoinConf = BipCoinConf(
         coin_names=CoinsConf.CardanoMainNet.CoinNames(),
