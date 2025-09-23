@@ -249,7 +249,9 @@ export default class toobit extends toobitRest {
         const data = this.safeList (message, 'data', []);
         const parsed = this.parseWsTrades (data);
         for (let i = 0; i < parsed.length; i++) {
-            stored.append (parsed[i]);
+            const trade = parsed[i];
+            trade['symbol'] = symbol;
+            stored.append (trade);
         }
         const messageHash = 'trade::' + symbol;
         client.resolve (stored, messageHash);
