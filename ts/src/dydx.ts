@@ -1400,7 +1400,7 @@ export default class dydx extends Exchange {
             if (goodTillBlockTimeInSeconds === undefined) {
                 throw new ArgumentsRequired ('goodTillBlockTimeInSeconds is required.');
             }
-            goodTillBlockTime = this.milliseconds () + goodTillBlockTimeInSeconds * 1000;
+            goodTillBlockTime = this.seconds () + goodTillBlockTimeInSeconds;
         }
         const sideNumber = (orderSide === 'BUY') ? 1 : 2;
         const defaultClientOrderId = this.randNumber (10);
@@ -1547,7 +1547,7 @@ export default class dydx extends Exchange {
             if (goodTillBlock !== undefined && goodTillBlock > 0) {
                 throw new Error (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
-            goodTillBlockTime = this.milliseconds () + goodTillBlockTimeInSeconds * 1000;
+            goodTillBlockTime = this.seconds () + goodTillBlockTimeInSeconds;
         } else {
             const latestBlockHeight = await this.fetchLatestBlockHeight ();
             if (goodTillBlock === undefined) {

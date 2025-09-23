@@ -1698,7 +1698,7 @@ export default class Exchange {
         TxBody = modules[1].TxBody;
         TxRaw = modules[1].TxRaw;
         SignDoc = modules[1].SignDoc;
-        SignMode = modules[2];
+        SignMode = modules[2].SignMode;
     }
 
     toDydxLong (numStr: string): object {
