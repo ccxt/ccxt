@@ -1049,7 +1049,7 @@ class mexc extends Exchange {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $response = $this->spotPrivateGetCapitalConfigGetall ($params);
         //

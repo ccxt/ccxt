@@ -734,12 +734,12 @@ public partial class bingx : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isSandbox))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
         //

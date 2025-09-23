@@ -396,7 +396,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', True, '="currencyData">', '</script>')
         if data is None:
-            return None
+            return {}
         #
         #    {
         #        "tradingPairs": [['BTCUSD', 2, 8, '0.00001', 10, True],  ...],

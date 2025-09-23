@@ -388,7 +388,7 @@ class gemini extends gemini$1["default"] {
     async fetchCurrenciesFromWeb(params = {}) {
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         //    {

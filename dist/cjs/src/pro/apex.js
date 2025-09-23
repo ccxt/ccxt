@@ -964,6 +964,7 @@ class apex extends apex$1["default"] {
     }
     ping(client) {
         const timeStamp = this.milliseconds().toString();
+        client.lastPong = timeStamp; // server won't send a pong, so we set it here
         return {
             'args': [timeStamp],
             'op': 'ping',

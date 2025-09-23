@@ -392,7 +392,7 @@ class gemini extends Exchange {
              */
             $data = Async\await($this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>'));
             if ($data === null) {
-                return null;
+                return array();
             }
             //
             //    {

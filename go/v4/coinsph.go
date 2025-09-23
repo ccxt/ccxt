@@ -511,6 +511,7 @@ func (this *coinsph) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
 		_ = params
 		if !IsTrue(this.CheckRequiredCredentials(false)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 

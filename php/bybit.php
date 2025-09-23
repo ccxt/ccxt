@@ -1283,7 +1283,9 @@ class bybit extends Exchange {
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
+         *
          * @see https://bybit-exchange.github.io/docs/v5/demo
+         *
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
         if ($this->isSandboxModeEnabled) {
@@ -1600,10 +1602,10 @@ class bybit extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         if ($this->options['enableDemoTrading']) {
-            return null;
+            return array();
         }
         $response = $this->privateGetV5AssetCoinQueryInfo ($params);
         //

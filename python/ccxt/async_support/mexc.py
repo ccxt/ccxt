@@ -1062,7 +1062,7 @@ class mexc(Exchange, ImplicitAPI):
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
-            return None
+            return {}
         response = await self.spotPrivateGetCapitalConfigGetall(params)
         #
         # {
