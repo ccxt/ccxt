@@ -80,19 +80,6 @@ export default class binance extends binanceRest {
                         },
                     },
                 },
-                'demo': {
-                    'ws': {
-                        'spot': 'wss://demo-stream.binance.com/ws',
-                        'margin': 'wss://demo-stream.binance.com/ws',
-                        'future': 'wss://fstream.binancefuture.com/ws',
-                        'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'ws-api': {
-                            'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
-                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
-                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
-                        },
-                    },
-                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
@@ -231,7 +218,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Liquidation[] > {
+    async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return await this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -247,7 +234,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise < Liquidation[] > {
+    async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         const subscriptionHashes = [];
         const messageHashes = [];
@@ -296,45 +283,45 @@ export default class binance extends binanceRest {
     }
 
     handleLiquidation (client: Client, message) {
-    //
-    // future
-    //    {
-    //        "e":"forceOrder",
-    //        "E":1698871323061,
-    //        "o":{
-    //           "s":"BTCUSDT",
-    //           "S":"BUY",
-    //           "o":"LIMIT",
-    //           "f":"IOC",
-    //           "q":"1.437",
-    //           "p":"35100.81",
-    //           "ap":"34959.70",
-    //           "X":"FILLED",
-    //           "l":"1.437",
-    //           "z":"1.437",
-    //           "T":1698871323059
-    //        }
-    //    }
-    // delivery
-    //    {
-    //        "e":"forceOrder",              // Event Type
-    //        "E": 1591154240950,            // Event Time
-    //        "o":{
-    //            "s":"BTCUSD_200925",       // Symbol
-    //            "ps": "BTCUSD",            // Pair
-    //            "S":"SELL",                // Side
-    //            "o":"LIMIT",               // Order Type
-    //            "f":"IOC",                 // Time in Force
-    //            "q":"1",                   // Original Quantity
-    //            "p":"9425.5",              // Price
-    //            "ap":"9496.5",             // Average Price
-    //            "X":"FILLED",              // Order Status
-    //            "l":"1",                   // Order Last Filled Quantity
-    //            "z":"1",                   // Order Filled Accumulated Quantity
-    //            "T": 1591154240949,        // Order Trade Time
-    //        }
-    //    }
-    //
+        //
+        // future
+        //    {
+        //        "e":"forceOrder",
+        //        "E":1698871323061,
+        //        "o":{
+        //           "s":"BTCUSDT",
+        //           "S":"BUY",
+        //           "o":"LIMIT",
+        //           "f":"IOC",
+        //           "q":"1.437",
+        //           "p":"35100.81",
+        //           "ap":"34959.70",
+        //           "X":"FILLED",
+        //           "l":"1.437",
+        //           "z":"1.437",
+        //           "T":1698871323059
+        //        }
+        //    }
+        // delivery
+        //    {
+        //        "e":"forceOrder",              // Event Type
+        //        "E": 1591154240950,            // Event Time
+        //        "o":{
+        //            "s":"BTCUSD_200925",       // Symbol
+        //            "ps": "BTCUSD",            // Pair
+        //            "S":"SELL",                // Side
+        //            "o":"LIMIT",               // Order Type
+        //            "f":"IOC",                 // Time in Force
+        //            "q":"1",                   // Original Quantity
+        //            "p":"9425.5",              // Price
+        //            "ap":"9496.5",             // Average Price
+        //            "X":"FILLED",              // Order Status
+        //            "l":"1",                   // Order Last Filled Quantity
+        //            "z":"1",                   // Order Filled Accumulated Quantity
+        //            "T": 1591154240949,        // Order Trade Time
+        //        }
+        //    }
+        //
         const rawLiquidation = this.safeValue (message, 'o', {});
         const marketId = this.safeString (rawLiquidation, 's');
         const market = this.safeMarket (marketId, undefined, '', 'contract');
@@ -352,80 +339,80 @@ export default class binance extends binanceRest {
     }
 
     parseWsLiquidation (liquidation, market = undefined) {
-    //
-    // future
-    //    {
-    //        "s":"BTCUSDT",
-    //        "S":"BUY",
-    //        "o":"LIMIT",
-    //        "f":"IOC",
-    //        "q":"1.437",
-    //        "p":"35100.81",
-    //        "ap":"34959.70",
-    //        "X":"FILLED",
-    //        "l":"1.437",
-    //        "z":"1.437",
-    //        "T":1698871323059
-    //    }
-    // delivery
-    //    {
-    //        "s":"BTCUSD_200925",       // Symbol
-    //        "ps": "BTCUSD",            // Pair
-    //        "S":"SELL",                // Side
-    //        "o":"LIMIT",               // Order Type
-    //        "f":"IOC",                 // Time in Force
-    //        "q":"1",                   // Original Quantity
-    //        "p":"9425.5",              // Price
-    //        "ap":"9496.5",             // Average Price
-    //        "X":"FILLED",              // Order Status
-    //        "l":"1",                   // Order Last Filled Quantity
-    //        "z":"1",                   // Order Filled Accumulated Quantity
-    //        "T": 1591154240949,        // Order Trade Time
-    //    }
-    // myLiquidation
-    //    {
-    //        "s":"BTCUSDT",              // Symbol
-    //        "c":"TEST",                 // Client Order Id
-    //          // special client order id:
-    //          // starts with "autoclose-": liquidation order
-    //          // "adl_autoclose": ADL auto close order
-    //          // "settlement_autoclose-": settlement order for delisting or delivery
-    //        "S":"SELL",                 // Side
-    //        "o":"TRAILING_STOP_MARKET", // Order Type
-    //        "f":"GTC",                  // Time in Force
-    //        "q":"0.001",                // Original Quantity
-    //        "p":"0",                    // Original Price
-    //        "ap":"0",                   // Average Price
-    //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
-    //        "x":"NEW",                  // Execution Type
-    //        "X":"NEW",                  // Order Status
-    //        "i":8886774,                // Order Id
-    //        "l":"0",                    // Order Last Filled Quantity
-    //        "z":"0",                    // Order Filled Accumulated Quantity
-    //        "L":"0",                    // Last Filled Price
-    //        "N":"USDT",                 // Commission Asset, will not push if no commission
-    //        "n":"0",                    // Commission, will not push if no commission
-    //        "T":1568879465650,          // Order Trade Time
-    //        "t":0,                      // Trade Id
-    //        "b":"0",                    // Bids Notional
-    //        "a":"9.91",                 // Ask Notional
-    //        "m":false,                  // Is this trade the maker side?
-    //        "R":false,                  // Is this reduce only
-    //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
-    //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
-    //        "ps":"LONG",                // Position Side
-    //        "cp":false,                 // If Close-All, pushed with conditional order
-    //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
-    //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
-    //        "pP": false,                // If price protection is turned on
-    //        "si": 0,                    // ignore
-    //        "ss": 0,                    // ignore
-    //        "rp":"0",                   // Realized Profit of the trade
-    //        "V":"EXPIRE_TAKER",         // STP mode
-    //        "pm":"OPPONENT",            // Price match mode
-    //        "gtd":0                     // TIF GTD order auto cancel time
-    //    }
-    //
+        //
+        // future
+        //    {
+        //        "s":"BTCUSDT",
+        //        "S":"BUY",
+        //        "o":"LIMIT",
+        //        "f":"IOC",
+        //        "q":"1.437",
+        //        "p":"35100.81",
+        //        "ap":"34959.70",
+        //        "X":"FILLED",
+        //        "l":"1.437",
+        //        "z":"1.437",
+        //        "T":1698871323059
+        //    }
+        // delivery
+        //    {
+        //        "s":"BTCUSD_200925",       // Symbol
+        //        "ps": "BTCUSD",            // Pair
+        //        "S":"SELL",                // Side
+        //        "o":"LIMIT",               // Order Type
+        //        "f":"IOC",                 // Time in Force
+        //        "q":"1",                   // Original Quantity
+        //        "p":"9425.5",              // Price
+        //        "ap":"9496.5",             // Average Price
+        //        "X":"FILLED",              // Order Status
+        //        "l":"1",                   // Order Last Filled Quantity
+        //        "z":"1",                   // Order Filled Accumulated Quantity
+        //        "T": 1591154240949,        // Order Trade Time
+        //    }
+        // myLiquidation
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
         const marketId = this.safeString (liquidation, 's');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (liquidation, 'T');
@@ -455,7 +442,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Liquidation[] > {
+    async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         return this.watchMyLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -471,7 +458,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise < Liquidation[] > {
+    async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols (symbols);
@@ -502,50 +489,50 @@ export default class binance extends binanceRest {
     }
 
     handleMyLiquidation (client: Client, message) {
-    //
-    //    {
-    //        "s":"BTCUSDT",              // Symbol
-    //        "c":"TEST",                 // Client Order Id
-    //          // special client order id:
-    //          // starts with "autoclose-": liquidation order
-    //          // "adl_autoclose": ADL auto close order
-    //          // "settlement_autoclose-": settlement order for delisting or delivery
-    //        "S":"SELL",                 // Side
-    //        "o":"TRAILING_STOP_MARKET", // Order Type
-    //        "f":"GTC",                  // Time in Force
-    //        "q":"0.001",                // Original Quantity
-    //        "p":"0",                    // Original Price
-    //        "ap":"0",                   // Average Price
-    //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
-    //        "x":"NEW",                  // Execution Type
-    //        "X":"NEW",                  // Order Status
-    //        "i":8886774,                // Order Id
-    //        "l":"0",                    // Order Last Filled Quantity
-    //        "z":"0",                    // Order Filled Accumulated Quantity
-    //        "L":"0",                    // Last Filled Price
-    //        "N":"USDT",                 // Commission Asset, will not push if no commission
-    //        "n":"0",                    // Commission, will not push if no commission
-    //        "T":1568879465650,          // Order Trade Time
-    //        "t":0,                      // Trade Id
-    //        "b":"0",                    // Bids Notional
-    //        "a":"9.91",                 // Ask Notional
-    //        "m":false,                  // Is this trade the maker side?
-    //        "R":false,                  // Is this reduce only
-    //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
-    //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
-    //        "ps":"LONG",                // Position Side
-    //        "cp":false,                 // If Close-All, pushed with conditional order
-    //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
-    //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
-    //        "pP": false,                // If price protection is turned on
-    //        "si": 0,                    // ignore
-    //        "ss": 0,                    // ignore
-    //        "rp":"0",                   // Realized Profit of the trade
-    //        "V":"EXPIRE_TAKER",         // STP mode
-    //        "pm":"OPPONENT",            // Price match mode
-    //        "gtd":0                     // TIF GTD order auto cancel time
-    //    }
-    //
+        //
+        //    {
+        //        "s":"BTCUSDT",              // Symbol
+        //        "c":"TEST",                 // Client Order Id
+        //          // special client order id:
+        //          // starts with "autoclose-": liquidation order
+        //          // "adl_autoclose": ADL auto close order
+        //          // "settlement_autoclose-": settlement order for delisting or delivery
+        //        "S":"SELL",                 // Side
+        //        "o":"TRAILING_STOP_MARKET", // Order Type
+        //        "f":"GTC",                  // Time in Force
+        //        "q":"0.001",                // Original Quantity
+        //        "p":"0",                    // Original Price
+        //        "ap":"0",                   // Average Price
+        //        "sp":"7103.04",             // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //        "x":"NEW",                  // Execution Type
+        //        "X":"NEW",                  // Order Status
+        //        "i":8886774,                // Order Id
+        //        "l":"0",                    // Order Last Filled Quantity
+        //        "z":"0",                    // Order Filled Accumulated Quantity
+        //        "L":"0",                    // Last Filled Price
+        //        "N":"USDT",                 // Commission Asset, will not push if no commission
+        //        "n":"0",                    // Commission, will not push if no commission
+        //        "T":1568879465650,          // Order Trade Time
+        //        "t":0,                      // Trade Id
+        //        "b":"0",                    // Bids Notional
+        //        "a":"9.91",                 // Ask Notional
+        //        "m":false,                  // Is this trade the maker side?
+        //        "R":false,                  // Is this reduce only
+        //        "wt":"CONTRACT_PRICE",      // Stop Price Working Type
+        //        "ot":"TRAILING_STOP_MARKET",// Original Order Type
+        //        "ps":"LONG",                // Position Side
+        //        "cp":false,                 // If Close-All, pushed with conditional order
+        //        "AP":"7476.89",             // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //        "cr":"5.0",                 // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //        "pP": false,                // If price protection is turned on
+        //        "si": 0,                    // ignore
+        //        "ss": 0,                    // ignore
+        //        "rp":"0",                   // Realized Profit of the trade
+        //        "V":"EXPIRE_TAKER",         // STP mode
+        //        "pm":"OPPONENT",            // Price match mode
+        //        "gtd":0                     // TIF GTD order auto cancel time
+        //    }
+        //
         const orderType = this.safeString (message, 'o');
         if (orderType !== 'LIQUIDATION') {
             return;
@@ -580,44 +567,44 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise < OrderBook > {
-    //
-    // todo add support for <levels>-snapshots (depth)
-    // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-    // valid <levels> are 5, 10, or 20
-    //
-    // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-    //
-    // notice the differences between trading futures and spot trading
-    // the algorithms use different urls in step 1
-    // delta caching and merging also differs in steps 4, 5, 6
-    //
-    // spot/margin
-    // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-    //
-    // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-    // 2. Buffer the events you receive from the stream.
-    // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-    // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-    // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-    // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-    // 7. The data in each event is the absolute quantity for a price level.
-    // 8. If the quantity is 0, remove the price level.
-    // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-    //
-    // futures
-    // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-    //
-    // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-    // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-    // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-    // 4. Drop any event where u is < lastUpdateId in the snapshot.
-    // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-    // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-    // 7. The data in each event is the absolute quantity for a price level.
-    // 8. If the quantity is 0, remove the price level.
-    // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-    //
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        //
+        // todo add support for <levels>-snapshots (depth)
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
+        // valid <levels> are 5, 10, or 20
+        //
+        // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+        //
+        // notice the differences between trading futures and spot trading
+        // the algorithms use different urls in step 1
+        // delta caching and merging also differs in steps 4, 5, 6
+        //
+        // spot/margin
+        // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+        // 2. Buffer the events you receive from the stream.
+        // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+        // 4. Drop any event where u is <= lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
+        // futures
+        // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+        //
+        // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+        // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+        // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
+        // 4. Drop any event where u is < lastUpdateId in the snapshot.
+        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+        // 7. The data in each event is the absolute quantity for a price level.
+        // 8. If the quantity is 0, remove the price level.
+        // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+        //
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
@@ -636,7 +623,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise < OrderBook > {
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
@@ -699,7 +686,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise < any > {
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
@@ -758,7 +745,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise < any > {
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
@@ -773,7 +760,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise < OrderBook > {
+    async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const payload: Dict = {
@@ -807,29 +794,29 @@ export default class binance extends binanceRest {
     }
 
     handleFetchOrderBook (client: Client, message) {
-    //
-    //    {
-    //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
-    //        "status":200,
-    //        "result":{
-    //            "lastUpdateId":1027024,
-    //            "E":1589436922972,
-    //            "T":1589436922959,
-    //            "bids":[
-    //               [
-    //                  "4.00000000",
-    //                  "431.00000000"
-    //               ]
-    //            ],
-    //            "asks":[
-    //               [
-    //                  "4.00000200",
-    //                  "12.00000000"
-    //               ]
-    //            ]
-    //        }
-    //    }
-    //
+        //
+        //    {
+        //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
+        //        "status":200,
+        //        "result":{
+        //            "lastUpdateId":1027024,
+        //            "E":1589436922972,
+        //            "T":1589436922959,
+        //            "bids":[
+        //               [
+        //                  "4.00000000",
+        //                  "431.00000000"
+        //               ]
+        //            ],
+        //            "asks":[
+        //               [
+        //                  "4.00000200",
+        //                  "12.00000000"
+        //               ]
+        //            ]
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeDict (message, 'result');
         const timestamp = this.safeInteger (result, 'T');
@@ -851,7 +838,7 @@ export default class binance extends binanceRest {
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (this.safeValue (this.orderbooks, symbol) === undefined) {
-            // if the orderbook is dropped before the snapshot is received
+                // if the orderbook is dropped before the snapshot is received
                 return;
             }
             const orderbook = this.orderbooks[symbol];
@@ -865,7 +852,7 @@ export default class binance extends binanceRest {
                 const u = this.safeInteger (messageItem, 'u');
                 const pu = this.safeInteger (messageItem, 'pu');
                 if (type === 'future') {
-                // 4. Drop any event where u is < lastUpdateId in the snapshot
+                    // 4. Drop any event where u is < lastUpdateId in the snapshot
                     if (u < orderbook['nonce']) {
                         continue;
                     }
@@ -874,7 +861,7 @@ export default class binance extends binanceRest {
                         this.handleOrderBookMessage (client, messageItem, orderbook);
                     }
                 } else {
-                // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    // 4. Drop any event where u is <= lastUpdateId in the snapshot
                     if (u <= orderbook['nonce']) {
                         continue;
                     }
@@ -916,24 +903,24 @@ export default class binance extends binanceRest {
     }
 
     handleOrderBook (client: Client, message) {
-    //
-    // initial snapshot is fetched with ccxt's fetchOrderBook
-    // the feed does not include a snapshot, just the deltas
-    //
-    //     {
-    //         "e": "depthUpdate", // Event type
-    //         "E": 1577554482280, // Event time
-    //         "s": "BNBBTC", // Symbol
-    //         "U": 157, // First update ID in event
-    //         "u": 160, // Final update ID in event
-    //         "b": [ // bids
-    //             [ "0.0024", "10" ], // price, size
-    //         ],
-    //         "a": [ // asks
-    //             [ "0.0026", "100" ], // price, size
-    //         ]
-    //     }
-    //
+        //
+        // initial snapshot is fetched with ccxt's fetchOrderBook
+        // the feed does not include a snapshot, just the deltas
+        //
+        //     {
+        //         "e": "depthUpdate", // Event type
+        //         "E": 1577554482280, // Event time
+        //         "s": "BNBBTC", // Symbol
+        //         "U": 157, // First update ID in event
+        //         "u": 160, // Final update ID in event
+        //         "b": [ // bids
+        //             [ "0.0024", "10" ], // price, size
+        //         ],
+        //         "a": [ // asks
+        //             [ "0.0026", "100" ], // price, size
+        //         ]
+        //     }
+        //
         const isSpot = (client.url.indexOf ('/stream') > -1);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
@@ -941,20 +928,20 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
-        //
-        // https://github.com/ccxt/ccxt/issues/6672
-        //
-        // Sometimes Binance sends the first delta before the subscription
-        // confirmation arrives. At that point the orderbook is not
-        // initialized yet and the snapshot has not been requested yet
-        // therefore it is safe to drop these premature messages.
-        //
+            //
+            // https://github.com/ccxt/ccxt/issues/6672
+            //
+            // Sometimes Binance sends the first delta before the subscription
+            // confirmation arrives. At that point the orderbook is not
+            // initialized yet and the snapshot has not been requested yet
+            // therefore it is safe to drop these premature messages.
+            //
             return;
         }
         const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (orderbook, 'nonce');
         if (nonce === undefined) {
-        // 2. Buffer the events you receive from the stream.
+            // 2. Buffer the events you receive from the stream.
             orderbook.cache.push (message);
         } else {
             try {
@@ -962,16 +949,16 @@ export default class binance extends binanceRest {
                 const u = this.safeInteger (message, 'u');
                 const pu = this.safeInteger (message, 'pu');
                 if (pu === undefined) {
-                // spot
-                // 4. Drop any event where u is <= lastUpdateId in the snapshot
+                    // spot
+                    // 4. Drop any event where u is <= lastUpdateId in the snapshot
                     if (u > orderbook['nonce']) {
                         const timestamp = this.safeInteger (orderbook, 'timestamp');
                         let conditional = undefined;
                         if (timestamp === undefined) {
-                        // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+                            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                             conditional = ((U - 1) <= orderbook['nonce']) && ((u - 1) >= orderbook['nonce']);
                         } else {
-                        // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+                            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
                             conditional = ((U - 1) === orderbook['nonce']);
                         }
                         if (conditional) {
@@ -982,17 +969,17 @@ export default class binance extends binanceRest {
                         } else {
                             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
                             if (checksum) {
-                            // todo: client.reject from handleOrderBookMessage properly
+                                // todo: client.reject from handleOrderBookMessage properly
                                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
                     }
                 } else {
-                // future
-                // 4. Drop any event where u is < lastUpdateId in the snapshot
+                    // future
+                    // 4. Drop any event where u is < lastUpdateId in the snapshot
                     if (u >= orderbook['nonce']) {
-                    // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-                    // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
+                        // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+                        // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U <= orderbook['nonce']) || (pu === orderbook['nonce'])) {
                             this.handleOrderBookMessage (client, message, orderbook);
                             if (nonce <= orderbook['nonce']) {
@@ -1001,7 +988,7 @@ export default class binance extends binanceRest {
                         } else {
                             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
                             if (checksum) {
-                            // todo: client.reject from handleOrderBookMessage properly
+                                // todo: client.reject from handleOrderBookMessage properly
                                 throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
@@ -1035,12 +1022,12 @@ export default class binance extends binanceRest {
     }
 
     handleSubscriptionStatus (client: Client, message) {
-    //
-    //     {
-    //         "result": null,
-    //         "id": 1574649734450
-    //     }
-    //
+        //
+        //     {
+        //         "result": null,
+        //         "id": 1574649734450
+        //     }
+        //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id, {});
@@ -1081,7 +1068,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise < Trade[] > {
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
@@ -1143,7 +1130,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise < any > {
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let streamHash = 'multipleTrades';
@@ -1206,7 +1193,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise < any > {
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
@@ -1226,116 +1213,116 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Trade[] > {
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     parseWsTrade (trade, market = undefined): Trade {
-    //
-    // public watchTrades
-    //
-    //     {
-    //         "e": "trade",       // event type
-    //         "E": 1579481530911, // event time
-    //         "s": "ETHBTC",      // symbol
-    //         "t": 158410082,     // trade id
-    //         "p": "0.01914100",  // price
-    //         "q": "0.00700000",  // quantity
-    //         "b": 586187049,     // buyer order id
-    //         "a": 586186710,     // seller order id
-    //         "T": 1579481530910, // trade time
-    //         "m": false,         // is the buyer the market maker
-    //         "M": true           // binance docs say it should be ignored
-    //     }
-    //
-    //     {
-    //        "e": "aggTrade",  // Event type
-    //        "E": 123456789,   // Event time
-    //        "s": "BNBBTC",    // Symbol
-    //        "a": 12345,       // Aggregate trade ID
-    //        "p": "0.001",     // Price
-    //        "q": "100",       // Quantity
-    //        "f": 100,         // First trade ID
-    //        "l": 105,         // Last trade ID
-    //        "T": 123456785,   // Trade time
-    //        "m": true,        // Is the buyer the market maker?
-    //        "M": true         // Ignore
-    //     }
-    //
-    // private watchMyTrades spot
-    //
-    //     {
-    //         "e": "executionReport",
-    //         "E": 1611063861489,
-    //         "s": "BNBUSDT",
-    //         "c": "m4M6AD5MF3b1ERe65l4SPq",
-    //         "S": "BUY",
-    //         "o": "MARKET",
-    //         "f": "GTC",
-    //         "q": "2.00000000",
-    //         "p": "0.00000000",
-    //         "P": "0.00000000",
-    //         "F": "0.00000000",
-    //         "g": -1,
-    //         "C": '',
-    //         "x": "TRADE",
-    //         "X": "PARTIALLY_FILLED",
-    //         "r": "NONE",
-    //         "i": 1296882607,
-    //         "l": "0.33200000",
-    //         "z": "0.33200000",
-    //         "L": "46.86600000",
-    //         "n": "0.00033200",
-    //         "N": "BNB",
-    //         "T": 1611063861488,
-    //         "t": 109747654,
-    //         "I": 2696953381,
-    //         "w": false,
-    //         "m": false,
-    //         "M": true,
-    //         "O": 1611063861488,
-    //         "Z": "15.55951200",
-    //         "Y": "15.55951200",
-    //         "Q": "0.00000000"
-    //     }
-    //
-    // private watchMyTrades future/delivery
-    //
-    //     {
-    //         "s": "BTCUSDT",
-    //         "c": "pb2jD6ZQHpfzSdUac8VqMK",
-    //         "S": "SELL",
-    //         "o": "MARKET",
-    //         "f": "GTC",
-    //         "q": "0.001",
-    //         "p": "0",
-    //         "ap": "33468.46000",
-    //         "sp": "0",
-    //         "x": "TRADE",
-    //         "X": "FILLED",
-    //         "i": 13351197194,
-    //         "l": "0.001",
-    //         "z": "0.001",
-    //         "L": "33468.46",
-    //         "n": "0.00027086",
-    //         "N": "BNB",
-    //         "T": 1612095165362,
-    //         "t": 458032604,
-    //         "b": "0",
-    //         "a": "0",
-    //         "m": false,
-    //         "R": false,
-    //         "wt": "CONTRACT_PRICE",
-    //         "ot": "MARKET",
-    //         "ps": "BOTH",
-    //         "cp": false,
-    //         "rp": "0.00335000",
-    //         "pP": false,
-    //         "si": 0,
-    //         "ss": 0
-    //     }
-    //
+        //
+        // public watchTrades
+        //
+        //     {
+        //         "e": "trade",       // event type
+        //         "E": 1579481530911, // event time
+        //         "s": "ETHBTC",      // symbol
+        //         "t": 158410082,     // trade id
+        //         "p": "0.01914100",  // price
+        //         "q": "0.00700000",  // quantity
+        //         "b": 586187049,     // buyer order id
+        //         "a": 586186710,     // seller order id
+        //         "T": 1579481530910, // trade time
+        //         "m": false,         // is the buyer the market maker
+        //         "M": true           // binance docs say it should be ignored
+        //     }
+        //
+        //     {
+        //        "e": "aggTrade",  // Event type
+        //        "E": 123456789,   // Event time
+        //        "s": "BNBBTC",    // Symbol
+        //        "a": 12345,       // Aggregate trade ID
+        //        "p": "0.001",     // Price
+        //        "q": "100",       // Quantity
+        //        "f": 100,         // First trade ID
+        //        "l": 105,         // Last trade ID
+        //        "T": 123456785,   // Trade time
+        //        "m": true,        // Is the buyer the market maker?
+        //        "M": true         // Ignore
+        //     }
+        //
+        // private watchMyTrades spot
+        //
+        //     {
+        //         "e": "executionReport",
+        //         "E": 1611063861489,
+        //         "s": "BNBUSDT",
+        //         "c": "m4M6AD5MF3b1ERe65l4SPq",
+        //         "S": "BUY",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "2.00000000",
+        //         "p": "0.00000000",
+        //         "P": "0.00000000",
+        //         "F": "0.00000000",
+        //         "g": -1,
+        //         "C": '',
+        //         "x": "TRADE",
+        //         "X": "PARTIALLY_FILLED",
+        //         "r": "NONE",
+        //         "i": 1296882607,
+        //         "l": "0.33200000",
+        //         "z": "0.33200000",
+        //         "L": "46.86600000",
+        //         "n": "0.00033200",
+        //         "N": "BNB",
+        //         "T": 1611063861488,
+        //         "t": 109747654,
+        //         "I": 2696953381,
+        //         "w": false,
+        //         "m": false,
+        //         "M": true,
+        //         "O": 1611063861488,
+        //         "Z": "15.55951200",
+        //         "Y": "15.55951200",
+        //         "Q": "0.00000000"
+        //     }
+        //
+        // private watchMyTrades future/delivery
+        //
+        //     {
+        //         "s": "BTCUSDT",
+        //         "c": "pb2jD6ZQHpfzSdUac8VqMK",
+        //         "S": "SELL",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "0.001",
+        //         "p": "0",
+        //         "ap": "33468.46000",
+        //         "sp": "0",
+        //         "x": "TRADE",
+        //         "X": "FILLED",
+        //         "i": 13351197194,
+        //         "l": "0.001",
+        //         "z": "0.001",
+        //         "L": "33468.46",
+        //         "n": "0.00027086",
+        //         "N": "BNB",
+        //         "T": 1612095165362,
+        //         "t": 458032604,
+        //         "b": "0",
+        //         "a": "0",
+        //         "m": false,
+        //         "R": false,
+        //         "wt": "CONTRACT_PRICE",
+        //         "ot": "MARKET",
+        //         "ps": "BOTH",
+        //         "cp": false,
+        //         "rp": "0.00335000",
+        //         "pP": false,
+        //         "si": 0,
+        //         "ss": 0
+        //     }
+        //
         const executionType = this.safeString (trade, 'x');
         const isTradeExecution = (executionType === 'TRADE');
         if (!isTradeExecution) {
@@ -1395,8 +1382,8 @@ export default class binance extends binanceRest {
     }
 
     handleTrade (client: Client, message) {
-    // the trade streams push raw trade information in real-time
-    // each trade has a unique buyer and seller
+        // the trade streams push raw trade information in real-time
+        // each trade has a unique buyer and seller
         const isSpot = (client.url.indexOf ('/stream') > -1);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
@@ -1429,7 +1416,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise < OHLCV[] > {
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1477,7 +1464,7 @@ export default class binance extends binanceRest {
             const market = this.market (symbolString);
             let marketId = market['lowercaseId'];
             if (klineType === 'indexPriceKline') {
-            // weird behavior for index price kline we can't use the perp suffix
+                // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
             }
             const shouldUseUTC8 = (isUtc8 && isSpot);
@@ -1517,7 +1504,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise < any > {
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         await this.loadMarkets ();
         let klineType = undefined;
         [ klineType, params ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
@@ -1586,7 +1573,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise < any > {
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1595,32 +1582,32 @@ export default class binance extends binanceRest {
     }
 
     handleOHLCV (client: Client, message) {
-    //
-    //     {
-    //         "e": "kline",
-    //         "E": 1579482921215,
-    //         "s": "ETHBTC",
-    //         "k": {
-    //             "t": 1579482900000,
-    //             "T": 1579482959999,
-    //             "s": "ETHBTC",
-    //             "i": "1m",
-    //             "f": 158411535,
-    //             "L": 158411550,
-    //             "o": "0.01913200",
-    //             "c": "0.01913500",
-    //             "h": "0.01913700",
-    //             "l": "0.01913200",
-    //             "v": "5.08400000",
-    //             "n": 16,
-    //             "x": false,
-    //             "q": "0.09728060",
-    //             "V": "3.30200000",
-    //             "Q": "0.06318500",
-    //             "B": "0"
-    //         }
-    //     }
-    //
+        //
+        //     {
+        //         "e": "kline",
+        //         "E": 1579482921215,
+        //         "s": "ETHBTC",
+        //         "k": {
+        //             "t": 1579482900000,
+        //             "T": 1579482959999,
+        //             "s": "ETHBTC",
+        //             "i": "1m",
+        //             "f": 158411535,
+        //             "L": 158411550,
+        //             "o": "0.01913200",
+        //             "c": "0.01913500",
+        //             "h": "0.01913700",
+        //             "l": "0.01913200",
+        //             "v": "5.08400000",
+        //             "n": 16,
+        //             "x": false,
+        //             "q": "0.09728060",
+        //             "V": "3.30200000",
+        //             "Q": "0.06318500",
+        //             "B": "0"
+        //         }
+        //     }
+        //
         let event = this.safeString (message, 'e');
         const eventMap: Dict = {
             'indexPrice_kline': 'indexPriceKline',
@@ -1630,7 +1617,7 @@ export default class binance extends binanceRest {
         const kline = this.safeValue (message, 'k');
         let marketId = this.safeString2 (kline, 's', 'ps');
         if (event === 'indexPriceKline') {
-        // indexPriceKline doesn't have the _PERP suffix
+            // indexPriceKline doesn't have the _PERP suffix
             marketId = this.safeString (message, 'ps');
         }
         const interval = this.safeString (kline, 'i');
@@ -1670,7 +1657,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.returnRateLimits] return the rate limits for the exchange
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchTickerWs (symbol: string, params = {}): Promise < Ticker > {
+    async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const payload: Dict = {
@@ -1717,7 +1704,7 @@ export default class binance extends binanceRest {
      * @param {string} params.timeZone default=0 (UTC)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise < OHLCV[] > {
+    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('fetchOHLCVWs', market, params);
@@ -1757,37 +1744,37 @@ export default class binance extends binanceRest {
     }
 
     handleFetchOHLCV (client: Client, message) {
-    //
-    //    {
-    //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
-    //        "status": 200,
-    //        "result": [
-    //            [
-    //                1655971200000,      // Kline open time
-    //                "0.01086000",       // Open price
-    //                "0.01086600",       // High price
-    //                "0.01083600",       // Low price
-    //                "0.01083800",       // Close price
-    //                "2290.53800000",    // Volume
-    //                1655974799999,      // Kline close time
-    //                "24.85074442",      // Quote asset volume
-    //                2283,               // Number of trades
-    //                "1171.64000000",    // Taker buy base asset volume
-    //                "12.71225884",      // Taker buy quote asset volume
-    //                "0"                 // Unused field, ignore
-    //            ]
-    //        ],
-    //        "rateLimits": [
-    //            {
-    //                "rateLimitType": "REQUEST_WEIGHT",
-    //                "interval": "MINUTE",
-    //                "intervalNum": 1,
-    //                "limit": 6000,
-    //                "count": 2
-    //            }
-    //        ]
-    //    }
-    //
+        //
+        //    {
+        //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
+        //        "status": 200,
+        //        "result": [
+        //            [
+        //                1655971200000,      // Kline open time
+        //                "0.01086000",       // Open price
+        //                "0.01086600",       // High price
+        //                "0.01083600",       // Low price
+        //                "0.01083800",       // Close price
+        //                "2290.53800000",    // Volume
+        //                1655974799999,      // Kline close time
+        //                "24.85074442",      // Quote asset volume
+        //                2283,               // Number of trades
+        //                "1171.64000000",    // Taker buy base asset volume
+        //                "12.71225884",      // Taker buy quote asset volume
+        //                "0"                 // Unused field, ignore
+        //            ]
+        //        ],
+        //        "rateLimits": [
+        //            {
+        //                "rateLimitType": "REQUEST_WEIGHT",
+        //                "interval": "MINUTE",
+        //                "intervalNum": 1,
+        //                "limit": 6000,
+        //                "count": 2
+        //            }
+        //        ]
+        //    }
+        //
         const result = this.safeList (message, 'result');
         const parsed = this.parseOHLCVs (result);
         // use a reverse lookup in a static map instead
@@ -1810,7 +1797,7 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] stream to use can be ticker or miniTicker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise < Ticker > {
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
@@ -1827,7 +1814,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchMarkPrice (symbol: string, params = {}): Promise < Ticker > {
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const tickers = await this.watchMarkPrices ([ symbol ], this.extend (params, { 'callerMethodName': 'watchMarkPrice' }));
@@ -1844,7 +1831,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise < Tickers > {
+    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         let channelName = undefined;
         // for now watchmarkPrice uses the same messageHash as watchTicker
         // so it's impossible to watch both at the same time
@@ -1871,7 +1858,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise < Tickers > {
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
@@ -1898,7 +1885,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise < any > {
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         let channelName = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
         if (channelName === 'bookTicker') {
@@ -1986,7 +1973,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise < any > {
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
         return await this.unWatchTickers ([ symbol ], params);
     }
 
@@ -2001,7 +1988,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise < Tickers > {
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, false, true);
         const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, params);
@@ -2090,74 +2077,74 @@ export default class binance extends binanceRest {
     }
 
     parseWsTicker (message, marketType) {
-    // markPrice
-    //   {
-    //       "e": "markPriceUpdate",   // Event type
-    //       "E": 1562305380000,       // Event time
-    //       "s": "BTCUSDT",           // Symbol
-    //       "p": "11794.15000000",    // Mark price
-    //       "i": "11784.62659091",    // Index price
-    //       "P": "11784.25641265",    // Estimated Settle Price, only useful in the last hour before the settlement starts
-    //       "r": "0.00038167",        // Funding rate
-    //       "T": 1562306400000        // Next funding time
-    //   }
-    //
-    // ticker
-    //     {
-    //         "e": "24hrTicker",      // event type
-    //         "E": 1579485598569,     // event time
-    //         "s": "ETHBTC",          // symbol
-    //         "p": "-0.00004000",     // price change
-    //         "P": "-0.209",          // price change percent
-    //         "w": "0.01920495",      // weighted average price
-    //         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
-    //         "c": "0.01912500",      // last (closing) price
-    //         "Q": "0.10400000",      // last quantity
-    //         "b": "0.01912200",      // best bid
-    //         "B": "4.10400000",      // best bid quantity
-    //         "a": "0.01912500",      // best ask
-    //         "A": "0.00100000",      // best ask quantity
-    //         "o": "0.01916500",      // open price
-    //         "h": "0.01956500",      // high price
-    //         "l": "0.01887700",      // low price
-    //         "v": "173518.11900000", // base volume
-    //         "q": "3332.40703994",   // quote volume
-    //         "O": 1579399197842,     // open time
-    //         "C": 1579485597842,     // close time
-    //         "F": 158251292,         // first trade id
-    //         "L": 158414513,         // last trade id
-    //         "n": 163222,            // total number of trades
-    //     }
-    //
-    // miniTicker
-    //     {
-    //         "e": "24hrMiniTicker",
-    //         "E": 1671617114585,
-    //         "s": "MOBBUSD",
-    //         "c": "0.95900000",
-    //         "o": "0.91200000",
-    //         "h": "1.04000000",
-    //         "l": "0.89400000",
-    //         "v": "2109995.32000000",
-    //         "q": "2019254.05788000"
-    //     }
-    // fetchTickerWs
-    //     {
-    //         "symbol":"BTCUSDT",
-    //         "price":"72606.70",
-    //         "time":1712526204284
-    //     }
-    // fetchTickerWs - ticker.book
-    //     {
-    //         "lastUpdateId":1027024,
-    //         "symbol":"BTCUSDT",
-    //         "bidPrice":"4.00000000",
-    //         "bidQty":"431.00000000",
-    //         "askPrice":"4.00000200",
-    //         "askQty":"9.00000000",
-    //         "time":1589437530011,
-    //      }
-    //
+        // markPrice
+        //   {
+        //       "e": "markPriceUpdate",   // Event type
+        //       "E": 1562305380000,       // Event time
+        //       "s": "BTCUSDT",           // Symbol
+        //       "p": "11794.15000000",    // Mark price
+        //       "i": "11784.62659091",    // Index price
+        //       "P": "11784.25641265",    // Estimated Settle Price, only useful in the last hour before the settlement starts
+        //       "r": "0.00038167",        // Funding rate
+        //       "T": 1562306400000        // Next funding time
+        //   }
+        //
+        // ticker
+        //     {
+        //         "e": "24hrTicker",      // event type
+        //         "E": 1579485598569,     // event time
+        //         "s": "ETHBTC",          // symbol
+        //         "p": "-0.00004000",     // price change
+        //         "P": "-0.209",          // price change percent
+        //         "w": "0.01920495",      // weighted average price
+        //         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
+        //         "c": "0.01912500",      // last (closing) price
+        //         "Q": "0.10400000",      // last quantity
+        //         "b": "0.01912200",      // best bid
+        //         "B": "4.10400000",      // best bid quantity
+        //         "a": "0.01912500",      // best ask
+        //         "A": "0.00100000",      // best ask quantity
+        //         "o": "0.01916500",      // open price
+        //         "h": "0.01956500",      // high price
+        //         "l": "0.01887700",      // low price
+        //         "v": "173518.11900000", // base volume
+        //         "q": "3332.40703994",   // quote volume
+        //         "O": 1579399197842,     // open time
+        //         "C": 1579485597842,     // close time
+        //         "F": 158251292,         // first trade id
+        //         "L": 158414513,         // last trade id
+        //         "n": 163222,            // total number of trades
+        //     }
+        //
+        // miniTicker
+        //     {
+        //         "e": "24hrMiniTicker",
+        //         "E": 1671617114585,
+        //         "s": "MOBBUSD",
+        //         "c": "0.95900000",
+        //         "o": "0.91200000",
+        //         "h": "1.04000000",
+        //         "l": "0.89400000",
+        //         "v": "2109995.32000000",
+        //         "q": "2019254.05788000"
+        //     }
+        // fetchTickerWs
+        //     {
+        //         "symbol":"BTCUSDT",
+        //         "price":"72606.70",
+        //         "time":1712526204284
+        //     }
+        // fetchTickerWs - ticker.book
+        //     {
+        //         "lastUpdateId":1027024,
+        //         "symbol":"BTCUSDT",
+        //         "bidPrice":"4.00000000",
+        //         "bidQty":"431.00000000",
+        //         "askPrice":"4.00000200",
+        //         "askQty":"9.00000000",
+        //         "time":1589437530011,
+        //      }
+        //
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let event = this.safeString (message, 'e', 'bookTicker');
@@ -2165,7 +2152,7 @@ export default class binance extends binanceRest {
             event = 'ticker';
         }
         if (event === 'markPriceUpdate') {
-        // handle this separately because some fields clash with the ticker fields
+            // handle this separately because some fields clash with the ticker fields
             return this.safeTicker ({
                 'symbol': symbol,
                 'timestamp': this.safeInteger (message, 'E'),
@@ -2177,10 +2164,10 @@ export default class binance extends binanceRest {
         }
         let timestamp = undefined;
         if (event === 'bookTicker') {
-        // take the event timestamp, if available, for spot tickers it is not
+            // take the event timestamp, if available, for spot tickers it is not
             timestamp = this.safeInteger2 (message, 'E', 'time');
         } else {
-        // take the timestamp of the closing price for candlestick streams
+            // take the timestamp of the closing price for candlestick streams
             timestamp = this.safeIntegerN (message, [ 'C', 'E', 'time' ]);
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -2210,32 +2197,32 @@ export default class binance extends binanceRest {
     }
 
     handleTickerWs (client: Client, message) {
-    //
-    // ticker.price
-    //    {
-    //        "id":"1",
-    //        "status":200,
-    //        "result":{
-    //            "symbol":"BTCUSDT",
-    //            "price":"73178.50",
-    //            "time":1712527052374
-    //        }
-    //    }
-    // ticker.book
-    //    {
-    //        "id":"9d32157c-a556-4d27-9866-66760a174b57",
-    //        "status":200,
-    //        "result":{
-    //            "lastUpdateId":1027024,
-    //            "symbol":"BTCUSDT",
-    //            "bidPrice":"4.00000000",
-    //            "bidQty":"431.00000000",
-    //            "askPrice":"4.00000200",
-    //            "askQty":"9.00000000",
-    //            "time":1589437530011   // Transaction time
-    //        }
-    //    }
-    //
+        //
+        // ticker.price
+        //    {
+        //        "id":"1",
+        //        "status":200,
+        //        "result":{
+        //            "symbol":"BTCUSDT",
+        //            "price":"73178.50",
+        //            "time":1712527052374
+        //        }
+        //    }
+        // ticker.book
+        //    {
+        //        "id":"9d32157c-a556-4d27-9866-66760a174b57",
+        //        "status":200,
+        //        "result":{
+        //            "lastUpdateId":1027024,
+        //            "symbol":"BTCUSDT",
+        //            "bidPrice":"4.00000000",
+        //            "bidQty":"431.00000000",
+        //            "askPrice":"4.00000200",
+        //            "askQty":"9.00000000",
+        //            "time":1589437530011   // Transaction time
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeValue (message, 'result', {});
         const ticker = this.parseWsTicker (result, 'future');
@@ -2243,51 +2230,51 @@ export default class binance extends binanceRest {
     }
 
     handleBidsAsks (client: Client, message) {
-    //
-    // arrives one symbol dict or array of symbol dicts
-    //
-    //     {
-    //         "u": 7488717758,
-    //         "s": "BTCUSDT",
-    //         "b": "28621.74000000",
-    //         "B": "1.43278800",
-    //         "a": "28621.75000000",
-    //         "A": "2.52500800"
-    //     }
-    //
+        //
+        // arrives one symbol dict or array of symbol dicts
+        //
+        //     {
+        //         "u": 7488717758,
+        //         "s": "BTCUSDT",
+        //         "b": "28621.74000000",
+        //         "B": "1.43278800",
+        //         "a": "28621.75000000",
+        //         "A": "2.52500800"
+        //     }
+        //
         this.handleTickersAndBidsAsks (client, message, 'bidasks');
     }
 
     handleTickers (client: Client, message) {
-    //
-    // arrives one symbol dict or array of symbol dicts
-    //
-    //     {
-    //         "e": "24hrTicker",      // event type
-    //         "E": 1579485598569,     // event time
-    //         "s": "ETHBTC",          // symbol
-    //         "p": "-0.00004000",     // price change
-    //         "P": "-0.209",          // price change percent
-    //         "w": "0.01920495",      // weighted average price
-    //         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
-    //         "c": "0.01912500",      // last (closing) price
-    //         "Q": "0.10400000",      // last quantity
-    //         "b": "0.01912200",      // best bid
-    //         "B": "4.10400000",      // best bid quantity
-    //         "a": "0.01912500",      // best ask
-    //         "A": "0.00100000",      // best ask quantity
-    //         "o": "0.01916500",      // open price
-    //         "h": "0.01956500",      // high price
-    //         "l": "0.01887700",      // low price
-    //         "v": "173518.11900000", // base volume
-    //         "q": "3332.40703994",   // quote volume
-    //         "O": 1579399197842,     // open time
-    //         "C": 1579485597842,     // close time
-    //         "F": 158251292,         // first trade id
-    //         "L": 158414513,         // last trade id
-    //         "n": 163222,            // total number of trades
-    //     }
-    //
+        //
+        // arrives one symbol dict or array of symbol dicts
+        //
+        //     {
+        //         "e": "24hrTicker",      // event type
+        //         "E": 1579485598569,     // event time
+        //         "s": "ETHBTC",          // symbol
+        //         "p": "-0.00004000",     // price change
+        //         "P": "-0.209",          // price change percent
+        //         "w": "0.01920495",      // weighted average price
+        //         "x": "0.01916500",      // the price of the first trade before the 24hr rolling window
+        //         "c": "0.01912500",      // last (closing) price
+        //         "Q": "0.10400000",      // last quantity
+        //         "b": "0.01912200",      // best bid
+        //         "B": "4.10400000",      // best bid quantity
+        //         "a": "0.01912500",      // best ask
+        //         "A": "0.00100000",      // best ask quantity
+        //         "o": "0.01916500",      // open price
+        //         "h": "0.01956500",      // high price
+        //         "l": "0.01887700",      // low price
+        //         "v": "173518.11900000", // base volume
+        //         "q": "3332.40703994",   // quote volume
+        //         "O": 1579399197842,     // open time
+        //         "C": 1579485597842,     // close time
+        //         "F": 158251292,         // first trade id
+        //         "L": 158414513,         // last trade id
+        //         "n": 163222,            // total number of trades
+        //     }
+        //
         this.handleTickersAndBidsAsks (client, message, 'tickers');
     }
 
@@ -2485,7 +2472,7 @@ export default class binance extends binanceRest {
     }
 
     async keepAliveListenKey (params = {}) {
-    // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
+        // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
         let isPortfolioMargin = undefined;
@@ -2500,7 +2487,7 @@ export default class binance extends binanceRest {
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
-        // A network error happened: we can't renew a listen key that does not exist.
+            // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
         const request: Dict = {};
@@ -2608,7 +2595,7 @@ export default class binance extends binanceRest {
      * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    async fetchBalanceWs (params = {}): Promise < Balances > {
+    async fetchBalanceWs (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const type = this.getMarketType ('fetchBalanceWs', undefined, params);
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
@@ -2636,15 +2623,15 @@ export default class binance extends binanceRest {
     }
 
     handleBalanceWs (client: Client, message) {
-    //
-    //
+        //
+        //
         const messageHash = this.safeString (message, 'id');
         let rawBalance = undefined;
         if (Array.isArray (message['result'])) {
-        // account.balance
+            // account.balance
             rawBalance = this.safeList (message, 'result', []);
         } else {
-        // account.status
+            // account.status
             const result = this.safeDict (message, 'result', {});
             rawBalance = this.safeList (result, 'assets', []);
         }
@@ -2653,52 +2640,52 @@ export default class binance extends binanceRest {
     }
 
     handleAccountStatusWs (client: Client, message) {
-    //
-    // spot
-    //    {
-    //        "id": "605a6d20-6588-4cb9-afa0-b0ab087507ba",
-    //        "status": 200,
-    //        "result": {
-    //            "makerCommission": 15,
-    //            "takerCommission": 15,
-    //            "buyerCommission": 0,
-    //            "sellerCommission": 0,
-    //            "canTrade": true,
-    //            "canWithdraw": true,
-    //            "canDeposit": true,
-    //            "commissionRates": {
-    //                "maker": "0.00150000",
-    //                "taker": "0.00150000",
-    //                "buyer": "0.00000000",
-    //                "seller": "0.00000000"
-    //            },
-    //            "brokered": false,
-    //            "requireSelfTradePrevention": false,
-    //            "updateTime": 1660801833000,
-    //            "accountType": "SPOT",
-    //            "balances": [{
-    //                    "asset": "BNB",
-    //                    "free": "0.00000000",
-    //                    "locked": "0.00000000"
-    //                },
-    //                {
-    //                    "asset": "BTC",
-    //                    "free": "1.3447112",
-    //                    "locked": "0.08600000"
-    //                },
-    //                {
-    //                    "asset": "USDT",
-    //                    "free": "1021.21000000",
-    //                    "locked": "0.00000000"
-    //                }
-    //            ],
-    //            "permissions": [
-    //                "SPOT"
-    //            ]
-    //        }
-    //    }
-    // swap
-    //
+        //
+        // spot
+        //    {
+        //        "id": "605a6d20-6588-4cb9-afa0-b0ab087507ba",
+        //        "status": 200,
+        //        "result": {
+        //            "makerCommission": 15,
+        //            "takerCommission": 15,
+        //            "buyerCommission": 0,
+        //            "sellerCommission": 0,
+        //            "canTrade": true,
+        //            "canWithdraw": true,
+        //            "canDeposit": true,
+        //            "commissionRates": {
+        //                "maker": "0.00150000",
+        //                "taker": "0.00150000",
+        //                "buyer": "0.00000000",
+        //                "seller": "0.00000000"
+        //            },
+        //            "brokered": false,
+        //            "requireSelfTradePrevention": false,
+        //            "updateTime": 1660801833000,
+        //            "accountType": "SPOT",
+        //            "balances": [{
+        //                    "asset": "BNB",
+        //                    "free": "0.00000000",
+        //                    "locked": "0.00000000"
+        //                },
+        //                {
+        //                    "asset": "BTC",
+        //                    "free": "1.3447112",
+        //                    "locked": "0.08600000"
+        //                },
+        //                {
+        //                    "asset": "USDT",
+        //                    "free": "1021.21000000",
+        //                    "locked": "0.00000000"
+        //                }
+        //            ],
+        //            "permissions": [
+        //                "SPOT"
+        //            ]
+        //        }
+        //    }
+        // swap
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeDict (message, 'result', {});
         const parsedBalances = this.parseBalanceCustom (result);
@@ -2714,7 +2701,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositionWs (symbol: string, params = {}): Promise < Position[] > {
+    async fetchPositionWs (symbol: string, params = {}): Promise<Position[]> {
         return await this.fetchPositionsWs ([ symbol ], params);
     }
 
@@ -2730,7 +2717,7 @@ export default class binance extends binanceRest {
      * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise < Position[] > {
+    async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         const payload: Dict = {};
         let market = undefined;
@@ -2767,36 +2754,36 @@ export default class binance extends binanceRest {
     }
 
     handlePositionsWs (client: Client, message) {
-    //
-    //    {
-    //        id: '1',
-    //        status: 200,
-    //        result: [
-    //            {
-    //                symbol: 'BTCUSDT',
-    //                positionAmt: '-0.014',
-    //                entryPrice: '42901.1',
-    //                breakEvenPrice: '30138.83333142',
-    //                markPrice: '71055.98470333',
-    //                unRealizedProfit: '-394.16838584',
-    //                liquidationPrice: '137032.02272908',
-    //                leverage: '123',
-    //                maxNotionalValue: '50000',
-    //                marginType: 'cross',
-    //                isolatedMargin: '0.00000000',
-    //                isAutoAddMargin: 'false',
-    //                positionSide: 'BOTH',
-    //                notional: '-994.78378584',
-    //                isolatedWallet: '0',
-    //                updateTime: 1708906343111,
-    //                isolated: false,
-    //                adlQuantile: 2
-    //            },
-    //            ...
-    //        ]
-    //    }
-    //
-    //
+        //
+        //    {
+        //        id: '1',
+        //        status: 200,
+        //        result: [
+        //            {
+        //                symbol: 'BTCUSDT',
+        //                positionAmt: '-0.014',
+        //                entryPrice: '42901.1',
+        //                breakEvenPrice: '30138.83333142',
+        //                markPrice: '71055.98470333',
+        //                unRealizedProfit: '-394.16838584',
+        //                liquidationPrice: '137032.02272908',
+        //                leverage: '123',
+        //                maxNotionalValue: '50000',
+        //                marginType: 'cross',
+        //                isolatedMargin: '0.00000000',
+        //                isAutoAddMargin: 'false',
+        //                positionSide: 'BOTH',
+        //                notional: '-994.78378584',
+        //                isolatedWallet: '0',
+        //                updateTime: 1708906343111,
+        //                isolated: false,
+        //                adlQuantile: 2
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeList (message, 'result', []);
         const positions = [];
@@ -2818,7 +2805,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise < Balances > {
+    async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         await this.authenticate (params);
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -2858,71 +2845,71 @@ export default class binance extends binanceRest {
     }
 
     handleBalance (client: Client, message) {
-    //
-    // sent upon a balance update not related to orders
-    //
-    //     {
-    //         "e": "balanceUpdate",
-    //         "E": 1629352505586,
-    //         "a": "IOTX",
-    //         "d": "0.43750000",
-    //         "T": 1629352505585
-    //     }
-    //
-    // sent upon creating or filling an order
-    //
-    //     {
-    //         "e": "outboundAccountPosition", // Event type
-    //         "E": 1564034571105,             // Event Time
-    //         "u": 1564034571073,             // Time of last account update
-    //         "B": [                          // Balances Array
-    //             {
-    //                 "a": "ETH",                 // Asset
-    //                 "f": "10000.000000",        // Free
-    //                 "l": "0.000000"             // Locked
-    //             }
-    //         ]
-    //     }
-    //
-    // future/delivery
-    //
-    //     {
-    //         "e": "ACCOUNT_UPDATE",            // Event Type
-    //         "E": 1564745798939,               // Event Time
-    //         "T": 1564745798938 ,              // Transaction
-    //         "i": "SfsR",                      // Account Alias
-    //         "a": {                            // Update Data
-    //             "m":"ORDER",                  // Event reason type
-    //             "B":[                         // Balances
-    //                 {
-    //                     "a":"BTC",                // Asset
-    //                     "wb":"122624.12345678",   // Wallet Balance
-    //                     "cw":"100.12345678"       // Cross Wallet Balance
-    //                 },
-    //             ],
-    //             "P":[
-    //                 {
-    //                     "s":"BTCUSD_200925",      // Symbol
-    //                     "pa":"0",                 // Position Amount
-    //                     "ep":"0.0",               // Entry Price
-    //                     "cr":"200",               // (Pre-fee) Accumulated Realized
-    //                     "up":"0",                 // Unrealized PnL
-    //                     "mt":"isolated",          // Margin Type
-    //                     "iw":"0.00000000",        // Isolated Wallet (if isolated position)
-    //                     "ps":"BOTH"               // Position Side
-    //                 },
-    //             ]
-    //         }
-    //     }
-    // externalLockUpdate
-    //    {
-    //        "e": "externalLockUpdate",  // Event Type
-    //        "E": 1581557507324,         // Event Time
-    //        "a": "NEO",                 // Asset
-    //        "d": "10.00000000",         // Delta
-    //        "T": 1581557507268          // Transaction Time
-    //    }
-    //
+        //
+        // sent upon a balance update not related to orders
+        //
+        //     {
+        //         "e": "balanceUpdate",
+        //         "E": 1629352505586,
+        //         "a": "IOTX",
+        //         "d": "0.43750000",
+        //         "T": 1629352505585
+        //     }
+        //
+        // sent upon creating or filling an order
+        //
+        //     {
+        //         "e": "outboundAccountPosition", // Event type
+        //         "E": 1564034571105,             // Event Time
+        //         "u": 1564034571073,             // Time of last account update
+        //         "B": [                          // Balances Array
+        //             {
+        //                 "a": "ETH",                 // Asset
+        //                 "f": "10000.000000",        // Free
+        //                 "l": "0.000000"             // Locked
+        //             }
+        //         ]
+        //     }
+        //
+        // future/delivery
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",            // Event Type
+        //         "E": 1564745798939,               // Event Time
+        //         "T": 1564745798938 ,              // Transaction
+        //         "i": "SfsR",                      // Account Alias
+        //         "a": {                            // Update Data
+        //             "m":"ORDER",                  // Event reason type
+        //             "B":[                         // Balances
+        //                 {
+        //                     "a":"BTC",                // Asset
+        //                     "wb":"122624.12345678",   // Wallet Balance
+        //                     "cw":"100.12345678"       // Cross Wallet Balance
+        //                 },
+        //             ],
+        //             "P":[
+        //                 {
+        //                     "s":"BTCUSD_200925",      // Symbol
+        //                     "pa":"0",                 // Position Amount
+        //                     "ep":"0.0",               // Entry Price
+        //                     "cr":"200",               // (Pre-fee) Accumulated Realized
+        //                     "up":"0",                 // Unrealized PnL
+        //                     "mt":"isolated",          // Margin Type
+        //                     "iw":"0.00000000",        // Isolated Wallet (if isolated position)
+        //                     "ps":"BOTH"               // Position Side
+        //                 },
+        //             ]
+        //         }
+        //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
+        //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
         const subscriptions = client.subscriptions;
@@ -3012,7 +2999,7 @@ export default class binance extends binanceRest {
      * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise < Order > {
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('createOrderWs', market, params);
@@ -3049,53 +3036,53 @@ export default class binance extends binanceRest {
     }
 
     handleOrderWs (client: Client, message) {
-    //
-    //    {
-    //        "id": 1,
-    //        "status": 200,
-    //        "result": {
-    //          "symbol": "BTCUSDT",
-    //          "orderId": 7663053,
-    //          "orderListId": -1,
-    //          "clientOrderId": "x-R4BD3S82d8959d0f5114499487a614",
-    //          "transactTime": 1687642291434,
-    //          "price": "25000.00000000",
-    //          "origQty": "0.00100000",
-    //          "executedQty": "0.00000000",
-    //          "cummulativeQuoteQty": "0.00000000",
-    //          "status": "NEW",
-    //          "timeInForce": "GTC",
-    //          "type": "LIMIT",
-    //          "side": "BUY",
-    //          "workingTime": 1687642291434,
-    //          "fills": [],
-    //          "selfTradePreventionMode": "NONE"
-    //        },
-    //        "rateLimits": [
-    //          {
-    //            "rateLimitType": "ORDERS",
-    //            "interval": "SECOND",
-    //            "intervalNum": 10,
-    //            "limit": 50,
-    //            "count": 1
-    //          },
-    //          {
-    //            "rateLimitType": "ORDERS",
-    //            "interval": "DAY",
-    //            "intervalNum": 1,
-    //            "limit": 160000,
-    //            "count": 1
-    //          },
-    //          {
-    //            "rateLimitType": "REQUEST_WEIGHT",
-    //            "interval": "MINUTE",
-    //            "intervalNum": 1,
-    //            "limit": 1200,
-    //            "count": 12
-    //          }
-    //        ]
-    //    }
-    //
+        //
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //          "symbol": "BTCUSDT",
+        //          "orderId": 7663053,
+        //          "orderListId": -1,
+        //          "clientOrderId": "x-R4BD3S82d8959d0f5114499487a614",
+        //          "transactTime": 1687642291434,
+        //          "price": "25000.00000000",
+        //          "origQty": "0.00100000",
+        //          "executedQty": "0.00000000",
+        //          "cummulativeQuoteQty": "0.00000000",
+        //          "status": "NEW",
+        //          "timeInForce": "GTC",
+        //          "type": "LIMIT",
+        //          "side": "BUY",
+        //          "workingTime": 1687642291434,
+        //          "fills": [],
+        //          "selfTradePreventionMode": "NONE"
+        //        },
+        //        "rateLimits": [
+        //          {
+        //            "rateLimitType": "ORDERS",
+        //            "interval": "SECOND",
+        //            "intervalNum": 10,
+        //            "limit": 50,
+        //            "count": 1
+        //          },
+        //          {
+        //            "rateLimitType": "ORDERS",
+        //            "interval": "DAY",
+        //            "intervalNum": 1,
+        //            "limit": 160000,
+        //            "count": 1
+        //          },
+        //          {
+        //            "rateLimitType": "REQUEST_WEIGHT",
+        //            "interval": "MINUTE",
+        //            "intervalNum": 1,
+        //            "limit": 1200,
+        //            "count": 12
+        //          }
+        //        ]
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeDict (message, 'result', {});
         const order = this.parseOrder (result);
@@ -3103,43 +3090,43 @@ export default class binance extends binanceRest {
     }
 
     handleOrdersWs (client: Client, message) {
-    //
-    //    {
-    //        "id": 1,
-    //        "status": 200,
-    //        "result": [{
-    //            "symbol": "BTCUSDT",
-    //            "orderId": 7665584,
-    //            "orderListId": -1,
-    //            "clientOrderId": "x-R4BD3S82b54769abdd3e4b57874c52",
-    //            "price": "26000.00000000",
-    //            "origQty": "0.00100000",
-    //            "executedQty": "0.00000000",
-    //            "cummulativeQuoteQty": "0.00000000",
-    //            "status": "NEW",
-    //            "timeInForce": "GTC",
-    //            "type": "LIMIT",
-    //            "side": "BUY",
-    //            "stopPrice": "0.00000000",
-    //            "icebergQty": "0.00000000",
-    //            "time": 1687642884646,
-    //            "updateTime": 1687642884646,
-    //            "isWorking": true,
-    //            "workingTime": 1687642884646,
-    //            "origQuoteOrderQty": "0.00000000",
-    //            "selfTradePreventionMode": "NONE"
-    //        },
-    //        ...
-    //        ],
-    //        "rateLimits": [{
-    //            "rateLimitType": "REQUEST_WEIGHT",
-    //            "interval": "MINUTE",
-    //            "intervalNum": 1,
-    //            "limit": 1200,
-    //            "count": 14
-    //        }]
-    //    }
-    //
+        //
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": [{
+        //            "symbol": "BTCUSDT",
+        //            "orderId": 7665584,
+        //            "orderListId": -1,
+        //            "clientOrderId": "x-R4BD3S82b54769abdd3e4b57874c52",
+        //            "price": "26000.00000000",
+        //            "origQty": "0.00100000",
+        //            "executedQty": "0.00000000",
+        //            "cummulativeQuoteQty": "0.00000000",
+        //            "status": "NEW",
+        //            "timeInForce": "GTC",
+        //            "type": "LIMIT",
+        //            "side": "BUY",
+        //            "stopPrice": "0.00000000",
+        //            "icebergQty": "0.00000000",
+        //            "time": 1687642884646,
+        //            "updateTime": 1687642884646,
+        //            "isWorking": true,
+        //            "workingTime": 1687642884646,
+        //            "origQuoteOrderQty": "0.00000000",
+        //            "selfTradePreventionMode": "NONE"
+        //        },
+        //        ...
+        //        ],
+        //        "rateLimits": [{
+        //            "rateLimitType": "REQUEST_WEIGHT",
+        //            "interval": "MINUTE",
+        //            "intervalNum": 1,
+        //            "limit": 1200,
+        //            "count": 14
+        //        }]
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeList (message, 'result', []);
         const orders = this.parseOrders (result);
@@ -3162,7 +3149,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise < Order > {
+    async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('editOrderWs', market, params);
@@ -3194,104 +3181,104 @@ export default class binance extends binanceRest {
     }
 
     handleEditOrderWs (client: Client, message) {
-    //
-    // spot
-    //    {
-    //        "id": 1,
-    //        "status": 200,
-    //        "result": {
-    //            "cancelResult": "SUCCESS",
-    //            "newOrderResult": "SUCCESS",
-    //            "cancelResponse": {
-    //                "symbol": "BTCUSDT",
-    //                "origClientOrderId": "x-R4BD3S82813c5d7ffa594104917de2",
-    //                "orderId": 7665177,
-    //                "orderListId": -1,
-    //                "clientOrderId": "mbrnbQsQhtCXCLY45d5q7S",
-    //                "price": "26000.00000000",
-    //                "origQty": "0.00100000",
-    //                "executedQty": "0.00000000",
-    //                "cummulativeQuoteQty": "0.00000000",
-    //                "status": "CANCELED",
-    //                "timeInForce": "GTC",
-    //                "type": "LIMIT",
-    //                "side": "BUY",
-    //                "selfTradePreventionMode": "NONE"
-    //            },
-    //            "newOrderResponse": {
-    //                "symbol": "BTCUSDT",
-    //                "orderId": 7665584,
-    //                "orderListId": -1,
-    //                "clientOrderId": "x-R4BD3S82b54769abdd3e4b57874c52",
-    //                "transactTime": 1687642884646,
-    //                "price": "26000.00000000",
-    //                "origQty": "0.00100000",
-    //                "executedQty": "0.00000000",
-    //                "cummulativeQuoteQty": "0.00000000",
-    //                "status": "NEW",
-    //                "timeInForce": "GTC",
-    //                "type": "LIMIT",
-    //                "side": "BUY",
-    //                "workingTime": 1687642884646,
-    //                "fills": [],
-    //                "selfTradePreventionMode": "NONE"
-    //            }
-    //        },
-    //        "rateLimits": [{
-    //                "rateLimitType": "ORDERS",
-    //                "interval": "SECOND",
-    //                "intervalNum": 10,
-    //                "limit": 50,
-    //                "count": 1
-    //            },
-    //            {
-    //                "rateLimitType": "ORDERS",
-    //                "interval": "DAY",
-    //                "intervalNum": 1,
-    //                "limit": 160000,
-    //                "count": 3
-    //            },
-    //            {
-    //                "rateLimitType": "REQUEST_WEIGHT",
-    //                "interval": "MINUTE",
-    //                "intervalNum": 1,
-    //                "limit": 1200,
-    //                "count": 12
-    //            }
-    //        ]
-    //    }
-    // swap
-    //    {
-    //        "id":"1",
-    //        "status":200,
-    //        "result":{
-    //            "orderId":667061487,
-    //            "symbol":"LTCUSDT",
-    //            "status":"NEW",
-    //            "clientOrderId":"x-xcKtGhcu91a74c818749ee42c0f70",
-    //            "price":"82.00",
-    //            "avgPrice":"0.00",
-    //            "origQty":"1.000",
-    //            "executedQty":"0.000",
-    //            "cumQty":"0.000",
-    //            "cumQuote":"0.00000",
-    //            "timeInForce":"GTC",
-    //            "type":"LIMIT",
-    //            "reduceOnly":false,
-    //            "closePosition":false,
-    //            "side":"BUY",
-    //            "positionSide":"BOTH",
-    //            "stopPrice":"0.00",
-    //            "workingType":"CONTRACT_PRICE",
-    //            "priceProtect":false,
-    //            "origType":"LIMIT",
-    //            "priceMatch":"NONE",
-    //            "selfTradePreventionMode":"NONE",
-    //            "goodTillDate":0,
-    //            "updateTime":1712918927511
-    //        }
-    //    }
-    //
+        //
+        // spot
+        //    {
+        //        "id": 1,
+        //        "status": 200,
+        //        "result": {
+        //            "cancelResult": "SUCCESS",
+        //            "newOrderResult": "SUCCESS",
+        //            "cancelResponse": {
+        //                "symbol": "BTCUSDT",
+        //                "origClientOrderId": "x-R4BD3S82813c5d7ffa594104917de2",
+        //                "orderId": 7665177,
+        //                "orderListId": -1,
+        //                "clientOrderId": "mbrnbQsQhtCXCLY45d5q7S",
+        //                "price": "26000.00000000",
+        //                "origQty": "0.00100000",
+        //                "executedQty": "0.00000000",
+        //                "cummulativeQuoteQty": "0.00000000",
+        //                "status": "CANCELED",
+        //                "timeInForce": "GTC",
+        //                "type": "LIMIT",
+        //                "side": "BUY",
+        //                "selfTradePreventionMode": "NONE"
+        //            },
+        //            "newOrderResponse": {
+        //                "symbol": "BTCUSDT",
+        //                "orderId": 7665584,
+        //                "orderListId": -1,
+        //                "clientOrderId": "x-R4BD3S82b54769abdd3e4b57874c52",
+        //                "transactTime": 1687642884646,
+        //                "price": "26000.00000000",
+        //                "origQty": "0.00100000",
+        //                "executedQty": "0.00000000",
+        //                "cummulativeQuoteQty": "0.00000000",
+        //                "status": "NEW",
+        //                "timeInForce": "GTC",
+        //                "type": "LIMIT",
+        //                "side": "BUY",
+        //                "workingTime": 1687642884646,
+        //                "fills": [],
+        //                "selfTradePreventionMode": "NONE"
+        //            }
+        //        },
+        //        "rateLimits": [{
+        //                "rateLimitType": "ORDERS",
+        //                "interval": "SECOND",
+        //                "intervalNum": 10,
+        //                "limit": 50,
+        //                "count": 1
+        //            },
+        //            {
+        //                "rateLimitType": "ORDERS",
+        //                "interval": "DAY",
+        //                "intervalNum": 1,
+        //                "limit": 160000,
+        //                "count": 3
+        //            },
+        //            {
+        //                "rateLimitType": "REQUEST_WEIGHT",
+        //                "interval": "MINUTE",
+        //                "intervalNum": 1,
+        //                "limit": 1200,
+        //                "count": 12
+        //            }
+        //        ]
+        //    }
+        // swap
+        //    {
+        //        "id":"1",
+        //        "status":200,
+        //        "result":{
+        //            "orderId":667061487,
+        //            "symbol":"LTCUSDT",
+        //            "status":"NEW",
+        //            "clientOrderId":"x-xcKtGhcu91a74c818749ee42c0f70",
+        //            "price":"82.00",
+        //            "avgPrice":"0.00",
+        //            "origQty":"1.000",
+        //            "executedQty":"0.000",
+        //            "cumQty":"0.000",
+        //            "cumQuote":"0.00000",
+        //            "timeInForce":"GTC",
+        //            "type":"LIMIT",
+        //            "reduceOnly":false,
+        //            "closePosition":false,
+        //            "side":"BUY",
+        //            "positionSide":"BOTH",
+        //            "stopPrice":"0.00",
+        //            "workingType":"CONTRACT_PRICE",
+        //            "priceProtect":false,
+        //            "origType":"LIMIT",
+        //            "priceMatch":"NONE",
+        //            "selfTradePreventionMode":"NONE",
+        //            "goodTillDate":0,
+        //            "updateTime":1712918927511
+        //        }
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeDict (message, 'result', {});
         const newSpotOrder = this.safeDict (result, 'newOrderResponse');
@@ -3317,7 +3304,7 @@ export default class binance extends binanceRest {
      * @param {string|undefined} [params.cancelRestrictions] Supported values: ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise < Order > {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelOrderWs requires a symbol');
@@ -3399,7 +3386,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise < Order > {
+    async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelOrderWs requires a symbol');
@@ -3450,7 +3437,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Order[] > {
+    async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' fetchOrdersWs requires a symbol');
@@ -3492,7 +3479,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Order[] > {
+    async fetchClosedOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const orders = await this.fetchOrdersWs (symbol, since, limit, params);
         const closedOrders = [];
         for (let i = 0; i < orders.length; i++) {
@@ -3515,7 +3502,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Order[] > {
+    async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchOpenOrdersWs', market, params);
@@ -3560,7 +3547,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Order[] > {
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         let messageHash = 'orders';
         let market = undefined;
@@ -3610,82 +3597,82 @@ export default class binance extends binanceRest {
     }
 
     parseWsOrder (order, market = undefined) {
-    //
-    // spot
-    //
-    //     {
-    //         "e": "executionReport",        // Event type
-    //         "E": 1499405658658,            // Event time
-    //         "s": "ETHBTC",                 // Symbol
-    //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
-    //         "S": "BUY",                    // Side
-    //         "o": "LIMIT",                  // Order type
-    //         "f": "GTC",                    // Time in force
-    //         "q": "1.00000000",             // Order quantity
-    //         "p": "0.10264410",             // Order price
-    //         "P": "0.00000000",             // Stop price
-    //         "F": "0.00000000",             // Iceberg quantity
-    //         "g": -1,                       // OrderListId
-    //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
-    //         "x": "NEW",                    // Current execution type
-    //         "X": "NEW",                    // Current order status
-    //         "r": "NONE",                   // Order reject reason; will be an error code.
-    //         "i": 4293153,                  // Order ID
-    //         "l": "0.00000000",             // Last executed quantity
-    //         "z": "0.00000000",             // Cumulative filled quantity
-    //         "L": "0.00000000",             // Last executed price
-    //         "n": "0",                      // Commission amount
-    //         "N": null,                     // Commission asset
-    //         "T": 1499405658657,            // Transaction time
-    //         "t": -1,                       // Trade ID
-    //         "I": 8641984,                  // Ignore
-    //         "w": true,                     // Is the order on the book?
-    //         "m": false,                    // Is this trade the maker side?
-    //         "M": false,                    // Ignore
-    //         "O": 1499405658657,            // Order creation time
-    //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
-    //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
-    //         "Q": "0.00000000"              // Quote Order Qty
-    //     }
-    //
-    // future
-    //
-    //     {
-    //         "s":"BTCUSDT",                 // Symbol
-    //         "c":"TEST",                    // Client Order Id
-    //                                        // special client order id:
-    //                                        // starts with "autoclose-": liquidation order
-    //                                        // "adl_autoclose": ADL auto close order
-    //         "S":"SELL",                    // Side
-    //         "o":"TRAILING_STOP_MARKET",    // Order Type
-    //         "f":"GTC",                     // Time in Force
-    //         "q":"0.001",                   // Original Quantity
-    //         "p":"0",                       // Original Price
-    //         "ap":"0",                      // Average Price
-    //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
-    //         "x":"NEW",                     // Execution Type
-    //         "X":"NEW",                     // Order Status
-    //         "i":8886774,                   // Order Id
-    //         "l":"0",                       // Order Last Filled Quantity
-    //         "z":"0",                       // Order Filled Accumulated Quantity
-    //         "L":"0",                       // Last Filled Price
-    //         "N":"USDT",                    // Commission Asset, will not push if no commission
-    //         "n":"0",                       // Commission, will not push if no commission
-    //         "T":1568879465651,             // Order Trade Time
-    //         "t":0,                         // Trade Id
-    //         "b":"0",                       // Bids Notional
-    //         "a":"9.91",                    // Ask Notional
-    //         "m":false,                     // Is this trade the maker side?
-    //         "R":false,                     // Is this reduce only
-    //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
-    //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
-    //         "ps":"LONG",                   // Position Side
-    //         "cp":false,                    // If Close-All, pushed with conditional order
-    //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
-    //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
-    //         "rp":"0"                       // Realized Profit of the trade
-    //     }
-    //
+        //
+        // spot
+        //
+        //     {
+        //         "e": "executionReport",        // Event type
+        //         "E": 1499405658658,            // Event time
+        //         "s": "ETHBTC",                 // Symbol
+        //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //         "S": "BUY",                    // Side
+        //         "o": "LIMIT",                  // Order type
+        //         "f": "GTC",                    // Time in force
+        //         "q": "1.00000000",             // Order quantity
+        //         "p": "0.10264410",             // Order price
+        //         "P": "0.00000000",             // Stop price
+        //         "F": "0.00000000",             // Iceberg quantity
+        //         "g": -1,                       // OrderListId
+        //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        //         "x": "NEW",                    // Current execution type
+        //         "X": "NEW",                    // Current order status
+        //         "r": "NONE",                   // Order reject reason; will be an error code.
+        //         "i": 4293153,                  // Order ID
+        //         "l": "0.00000000",             // Last executed quantity
+        //         "z": "0.00000000",             // Cumulative filled quantity
+        //         "L": "0.00000000",             // Last executed price
+        //         "n": "0",                      // Commission amount
+        //         "N": null,                     // Commission asset
+        //         "T": 1499405658657,            // Transaction time
+        //         "t": -1,                       // Trade ID
+        //         "I": 8641984,                  // Ignore
+        //         "w": true,                     // Is the order on the book?
+        //         "m": false,                    // Is this trade the maker side?
+        //         "M": false,                    // Ignore
+        //         "O": 1499405658657,            // Order creation time
+        //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //         "Q": "0.00000000"              // Quote Order Qty
+        //     }
+        //
+        // future
+        //
+        //     {
+        //         "s":"BTCUSDT",                 // Symbol
+        //         "c":"TEST",                    // Client Order Id
+        //                                        // special client order id:
+        //                                        // starts with "autoclose-": liquidation order
+        //                                        // "adl_autoclose": ADL auto close order
+        //         "S":"SELL",                    // Side
+        //         "o":"TRAILING_STOP_MARKET",    // Order Type
+        //         "f":"GTC",                     // Time in Force
+        //         "q":"0.001",                   // Original Quantity
+        //         "p":"0",                       // Original Price
+        //         "ap":"0",                      // Average Price
+        //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //         "x":"NEW",                     // Execution Type
+        //         "X":"NEW",                     // Order Status
+        //         "i":8886774,                   // Order Id
+        //         "l":"0",                       // Order Last Filled Quantity
+        //         "z":"0",                       // Order Filled Accumulated Quantity
+        //         "L":"0",                       // Last Filled Price
+        //         "N":"USDT",                    // Commission Asset, will not push if no commission
+        //         "n":"0",                       // Commission, will not push if no commission
+        //         "T":1568879465651,             // Order Trade Time
+        //         "t":0,                         // Trade Id
+        //         "b":"0",                       // Bids Notional
+        //         "a":"9.91",                    // Ask Notional
+        //         "m":false,                     // Is this trade the maker side?
+        //         "R":false,                     // Is this reduce only
+        //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        //         "ps":"LONG",                   // Position Side
+        //         "cp":false,                    // If Close-All, pushed with conditional order
+        //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //         "rp":"0"                       // Realized Profit of the trade
+        //     }
+        //
         const executionType = this.safeString (order, 'x');
         const orderId = this.safeString (order, 'i');
         const marketId = this.safeString (order, 's');
@@ -3729,7 +3716,7 @@ export default class binance extends binanceRest {
         const stopPrice = this.safeString2 (order, 'P', 'sp');
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
-        // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
         return this.safeOrder ({
@@ -3761,87 +3748,87 @@ export default class binance extends binanceRest {
     }
 
     handleOrderUpdate (client: Client, message) {
-    //
-    // spot
-    //
-    //     {
-    //         "e": "executionReport",        // Event type
-    //         "E": 1499405658658,            // Event time
-    //         "s": "ETHBTC",                 // Symbol
-    //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
-    //         "S": "BUY",                    // Side
-    //         "o": "LIMIT",                  // Order type
-    //         "f": "GTC",                    // Time in force
-    //         "q": "1.00000000",             // Order quantity
-    //         "p": "0.10264410",             // Order price
-    //         "P": "0.00000000",             // Stop price
-    //         "F": "0.00000000",             // Iceberg quantity
-    //         "g": -1,                       // OrderListId
-    //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
-    //         "x": "NEW",                    // Current execution type
-    //         "X": "NEW",                    // Current order status
-    //         "r": "NONE",                   // Order reject reason; will be an error code.
-    //         "i": 4293153,                  // Order ID
-    //         "l": "0.00000000",             // Last executed quantity
-    //         "z": "0.00000000",             // Cumulative filled quantity
-    //         "L": "0.00000000",             // Last executed price
-    //         "n": "0",                      // Commission amount
-    //         "N": null,                     // Commission asset
-    //         "T": 1499405658657,            // Transaction time
-    //         "t": -1,                       // Trade ID
-    //         "I": 8641984,                  // Ignore
-    //         "w": true,                     // Is the order on the book?
-    //         "m": false,                    // Is this trade the maker side?
-    //         "M": false,                    // Ignore
-    //         "O": 1499405658657,            // Order creation time
-    //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
-    //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
-    //         "Q": "0.00000000"              // Quote Order Qty
-    //     }
-    //
-    // future
-    //
-    //     {
-    //         "e":"ORDER_TRADE_UPDATE",           // Event Type
-    //         "E":1568879465651,                  // Event Time
-    //         "T":1568879465650,                  // Trasaction Time
-    //         "o": {
-    //             "s":"BTCUSDT",                  // Symbol
-    //             "c":"TEST",                     // Client Order Id
-    //                                             // special client order id:
-    //                                             // starts with "autoclose-": liquidation order
-    //                                             // "adl_autoclose": ADL auto close order
-    //             "S":"SELL",                     // Side
-    //             "o":"TRAILING_STOP_MARKET",     // Order Type
-    //             "f":"GTC",                      // Time in Force
-    //             "q":"0.001",                    // Original Quantity
-    //             "p":"0",                        // Original Price
-    //             "ap":"0",                       // Average Price
-    //             "sp":"7103.04",                 // Stop Price. Please ignore with TRAILING_STOP_MARKET order
-    //             "x":"NEW",                      // Execution Type
-    //             "X":"NEW",                      // Order Status
-    //             "i":8886774,                    // Order Id
-    //             "l":"0",                        // Order Last Filled Quantity
-    //             "z":"0",                        // Order Filled Accumulated Quantity
-    //             "L":"0",                        // Last Filled Price
-    //             "N":"USDT",                     // Commission Asset, will not push if no commission
-    //             "n":"0",                        // Commission, will not push if no commission
-    //             "T":1568879465651,              // Order Trade Time
-    //             "t":0,                          // Trade Id
-    //             "b":"0",                        // Bids Notional
-    //             "a":"9.91",                     // Ask Notional
-    //             "m":false,                      // Is this trade the maker side?
-    //             "R":false,                      // Is this reduce only
-    //             "wt":"CONTRACT_PRICE",          // Stop Price Working Type
-    //             "ot":"TRAILING_STOP_MARKET",    // Original Order Type
-    //             "ps":"LONG",                    // Position Side
-    //             "cp":false,                     // If Close-All, pushed with conditional order
-    //             "AP":"7476.89",                 // Activation Price, only puhed with TRAILING_STOP_MARKET order
-    //             "cr":"5.0",                     // Callback Rate, only puhed with TRAILING_STOP_MARKET order
-    //             "rp":"0"                        // Realized Profit of the trade
-    //         }
-    //     }
-    //
+        //
+        // spot
+        //
+        //     {
+        //         "e": "executionReport",        // Event type
+        //         "E": 1499405658658,            // Event time
+        //         "s": "ETHBTC",                 // Symbol
+        //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //         "S": "BUY",                    // Side
+        //         "o": "LIMIT",                  // Order type
+        //         "f": "GTC",                    // Time in force
+        //         "q": "1.00000000",             // Order quantity
+        //         "p": "0.10264410",             // Order price
+        //         "P": "0.00000000",             // Stop price
+        //         "F": "0.00000000",             // Iceberg quantity
+        //         "g": -1,                       // OrderListId
+        //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        //         "x": "NEW",                    // Current execution type
+        //         "X": "NEW",                    // Current order status
+        //         "r": "NONE",                   // Order reject reason; will be an error code.
+        //         "i": 4293153,                  // Order ID
+        //         "l": "0.00000000",             // Last executed quantity
+        //         "z": "0.00000000",             // Cumulative filled quantity
+        //         "L": "0.00000000",             // Last executed price
+        //         "n": "0",                      // Commission amount
+        //         "N": null,                     // Commission asset
+        //         "T": 1499405658657,            // Transaction time
+        //         "t": -1,                       // Trade ID
+        //         "I": 8641984,                  // Ignore
+        //         "w": true,                     // Is the order on the book?
+        //         "m": false,                    // Is this trade the maker side?
+        //         "M": false,                    // Ignore
+        //         "O": 1499405658657,            // Order creation time
+        //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //         "Q": "0.00000000"              // Quote Order Qty
+        //     }
+        //
+        // future
+        //
+        //     {
+        //         "e":"ORDER_TRADE_UPDATE",           // Event Type
+        //         "E":1568879465651,                  // Event Time
+        //         "T":1568879465650,                  // Trasaction Time
+        //         "o": {
+        //             "s":"BTCUSDT",                  // Symbol
+        //             "c":"TEST",                     // Client Order Id
+        //                                             // special client order id:
+        //                                             // starts with "autoclose-": liquidation order
+        //                                             // "adl_autoclose": ADL auto close order
+        //             "S":"SELL",                     // Side
+        //             "o":"TRAILING_STOP_MARKET",     // Order Type
+        //             "f":"GTC",                      // Time in Force
+        //             "q":"0.001",                    // Original Quantity
+        //             "p":"0",                        // Original Price
+        //             "ap":"0",                       // Average Price
+        //             "sp":"7103.04",                 // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //             "x":"NEW",                      // Execution Type
+        //             "X":"NEW",                      // Order Status
+        //             "i":8886774,                    // Order Id
+        //             "l":"0",                        // Order Last Filled Quantity
+        //             "z":"0",                        // Order Filled Accumulated Quantity
+        //             "L":"0",                        // Last Filled Price
+        //             "N":"USDT",                     // Commission Asset, will not push if no commission
+        //             "n":"0",                        // Commission, will not push if no commission
+        //             "T":1568879465651,              // Order Trade Time
+        //             "t":0,                          // Trade Id
+        //             "b":"0",                        // Bids Notional
+        //             "a":"9.91",                     // Ask Notional
+        //             "m":false,                      // Is this trade the maker side?
+        //             "R":false,                      // Is this reduce only
+        //             "wt":"CONTRACT_PRICE",          // Stop Price Working Type
+        //             "ot":"TRAILING_STOP_MARKET",    // Original Order Type
+        //             "ps":"LONG",                    // Position Side
+        //             "cp":false,                     // If Close-All, pushed with conditional order
+        //             "AP":"7476.89",                 // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //             "cr":"5.0",                     // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //             "rp":"0"                        // Realized Profit of the trade
+        //         }
+        //     }
+        //
         const e = this.safeString (message, 'e');
         if (e === 'ORDER_TRADE_UPDATE') {
             message = this.safeDict (message, 'o', message);
@@ -3862,7 +3849,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Position[] > {
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = '';
@@ -4024,18 +4011,18 @@ export default class binance extends binanceRest {
     }
 
     parseWsPosition (position, market = undefined) {
-    //
-    //     {
-    //         "s": "BTCUSDT", // Symbol
-    //         "pa": "0", // Position Amount
-    //         "ep": "0.00000", // Entry Price
-    //         "cr": "200", // (Pre-fee) Accumulated Realized
-    //         "up": "0", // Unrealized PnL
-    //         "mt": "isolated", // Margin Type
-    //         "iw": "0.00000000", // Isolated Wallet (if isolated position)
-    //         "ps": "BOTH" // Position Side
-    //     }
-    //
+        //
+        //     {
+        //         "s": "BTCUSDT", // Symbol
+        //         "pa": "0", // Position Amount
+        //         "ep": "0.00000", // Entry Price
+        //         "cr": "200", // (Pre-fee) Accumulated Realized
+        //         "up": "0", // Unrealized PnL
+        //         "mt": "isolated", // Margin Type
+        //         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        //         "ps": "BOTH" // Position Side
+        //     }
+        //
         const marketId = this.safeString (position, 's');
         const contracts = this.safeString (position, 'pa');
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'pa'));
@@ -4091,7 +4078,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] first trade Id to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Trade[] > {
+    async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' fetchMyTradesWs requires a symbol');
@@ -4146,7 +4133,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Trade[] > {
+    async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.getMarketType ('fetchTradesWs', market, params);
@@ -4178,51 +4165,51 @@ export default class binance extends binanceRest {
     }
 
     handleTradesWs (client: Client, message) {
-    //
-    // fetchMyTradesWs
-    //
-    //    {
-    //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
-    //        "status": 200,
-    //        "result": [
-    //            {
-    //                "symbol": "BTCUSDT",
-    //                "id": 1650422481,
-    //                "orderId": 12569099453,
-    //                "orderListId": -1,
-    //                "price": "23416.10000000",
-    //                "qty": "0.00635000",
-    //                "quoteQty": "148.69223500",
-    //                "commission": "0.00000000",
-    //                "commissionAsset": "BNB",
-    //                "time": 1660801715793,
-    //                "isBuyer": false,
-    //                "isMaker": true,
-    //                "isBestMatch": true
-    //            },
-    //            ...
-    //        ],
-    //    }
-    //
-    // fetchTradesWs
-    //
-    //    {
-    //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
-    //        "status": 200,
-    //        "result": [
-    //            {
-    //                "id": 0,
-    //                "price": "0.00005000",
-    //                "qty": "40.00000000",
-    //                "quoteQty": "0.00200000",
-    //                "time": 1500004800376,
-    //                "isBuyerMaker": true,
-    //                "isBestMatch": true
-    //            }
-    //            ...
-    //        ],
-    //    }
-    //
+        //
+        // fetchMyTradesWs
+        //
+        //    {
+        //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        //        "status": 200,
+        //        "result": [
+        //            {
+        //                "symbol": "BTCUSDT",
+        //                "id": 1650422481,
+        //                "orderId": 12569099453,
+        //                "orderListId": -1,
+        //                "price": "23416.10000000",
+        //                "qty": "0.00635000",
+        //                "quoteQty": "148.69223500",
+        //                "commission": "0.00000000",
+        //                "commissionAsset": "BNB",
+        //                "time": 1660801715793,
+        //                "isBuyer": false,
+        //                "isMaker": true,
+        //                "isBestMatch": true
+        //            },
+        //            ...
+        //        ],
+        //    }
+        //
+        // fetchTradesWs
+        //
+        //    {
+        //        "id": "f4ce6a53-a29d-4f70-823b-4ab59391d6e8",
+        //        "status": 200,
+        //        "result": [
+        //            {
+        //                "id": 0,
+        //                "price": "0.00005000",
+        //                "qty": "40.00000000",
+        //                "quoteQty": "0.00200000",
+        //                "time": 1500004800376,
+        //                "isBuyerMaker": true,
+        //                "isBestMatch": true
+        //            }
+        //            ...
+        //        ],
+        //    }
+        //
         const messageHash = this.safeString (message, 'id');
         const result = this.safeList (message, 'result', []);
         const trades = this.parseTrades (result);
@@ -4240,7 +4227,7 @@ export default class binance extends binanceRest {
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise < Trade[] > {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let type = undefined;
         let market = undefined;
@@ -4304,7 +4291,7 @@ export default class binance extends binanceRest {
                     const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
                     const order = this.safeValue (orders, orderId);
                     if (order !== undefined) {
-                    // accumulate order fees
+                        // accumulate order fees
                         const fees = this.safeValue (order, 'fees');
                         const fee = this.safeValue (order, 'fee');
                         if (!this.isEmpty (fees)) {
@@ -4338,8 +4325,8 @@ export default class binance extends binanceRest {
                         const orderTrades = this.safeList (order, 'trades', []);
                         orderTrades.push (trade);
                         order['trades'] = orderTrades;
-                    // don't append twice cause it breaks newUpdates mode
-                    // this order already exists in the cache
+                        // don't append twice cause it breaks newUpdates mode
+                        // this order already exists in the cache
                     }
                 }
             }
@@ -4397,15 +4384,15 @@ export default class binance extends binanceRest {
     }
 
     handleWsError (client: Client, message) {
-    //
-    //    {
-    //        "error": {
-    //            "code": 2,
-    //            "msg": "Invalid request: invalid stream"
-    //        },
-    //        "id": 1
-    //    }
-    //
+        //
+        //    {
+        //        "error": {
+        //            "code": 2,
+        //            "msg": "Invalid request: invalid stream"
+        //        },
+        //        "id": 1
+        //    }
+        //
         const id = this.safeString (message, 'id');
         let rejected = false;
         const error = this.safeDict (message, 'error', {});
