@@ -59,6 +59,7 @@ interface CLIOptions {
     refreshMarkets?: boolean;
     testnet?: boolean;
     sandbox?: boolean;
+    demo?: boolean;
     signIn?: boolean;
     spot?: boolean;
     swap?: boolean;
