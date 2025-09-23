@@ -3367,7 +3367,7 @@ export default class Exchange {
         this.ids = Object.keys (marketsSortedById);
         let numCurrencies = 0;
         if (currencies !== undefined) {
-            numCurrencies = Object.keys (currencies).length;
+            numCurrencies = (Object.keys (currencies)).length;
         }
         if (numCurrencies > 0) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
