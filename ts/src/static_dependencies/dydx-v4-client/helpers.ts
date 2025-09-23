@@ -7,8 +7,8 @@
 import _m0 from "protobufjs/minimal";
 import long from './long.cjs';
 
-const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
 // @ts-ignore
+const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
 if (_m0.util.Long !== Long) {
     _m0.util.Long = (Long as any);
     _m0.configure();

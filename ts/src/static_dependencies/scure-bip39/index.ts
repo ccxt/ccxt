@@ -38,11 +38,10 @@ function aentropy(ent: Uint8Array) {
  * generateMnemonic(wordlist, 128)
  * // 'legal winner thank year wave sausage worth useful legal winner thank yellow'
  */
-export function generateMnemonic(wordlist: string[], strength: number = 128): string {
-  anumber(strength);
-  if (strength % 32 !== 0 || strength > 256) throw new TypeError('Invalid entropy');
-  return entropyToMnemonic(randomBytes(strength / 8), wordlist);
-}
+// export function generateMnemonic(wordlist: string[], strength: number = 128): string {
+//   if (strength % 32 !== 0 || strength > 256) throw new TypeError('Invalid entropy');
+//   return entropyToMnemonic(randomBytes(strength / 8), wordlist);
+// }
 
 const calcChecksum = (entropy: Uint8Array) => {
   // Checksum is ent.length/4 bits long

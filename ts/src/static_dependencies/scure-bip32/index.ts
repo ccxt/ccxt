@@ -283,13 +283,13 @@ export class HDKey {
     if (!this.privateKey) {
       throw new Error('No privateKey set!');
     }
-    abytes(hash, 32);
+    abytes(hash);
     return secp.sign(hash, this.privKey!).toCompactRawBytes();
   }
 
   public verify(hash: Uint8Array, signature: Uint8Array): boolean {
-    abytes(hash, 32);
-    abytes(signature, 64);
+    abytes(hash);
+    abytes(signature);
     if (!this.publicKey) {
       throw new Error('No publicKey set!');
     }
@@ -321,7 +321,7 @@ export class HDKey {
     if (!this.chainCode) {
       throw new Error('No chainCode set');
     }
-    abytes(key, 33);
+    abytes(key);
     // version(4) || depth(1) || fingerprint(4) || index(4) || chain(32) || key(33)
     return concatBytes(
       toU32(version),

@@ -1690,7 +1690,7 @@ export default class Exchange {
         const modules = await Promise.all ([
             import ('../static_dependencies/dydx-v4-client/registry.js'),
             import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js'),
-            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js')
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js'),
         ]);
         encodeAsAny = modules[0].encodeAsAny;
         AuthInfo = modules[1].AuthInfo;
