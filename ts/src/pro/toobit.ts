@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -303,7 +303,7 @@ export default class toobit extends toobitRest {
             const unfiedTimeframe = this.safeString (data, 1, '1m');
             const rawTimeframe = this.safeString (timeframes, unfiedTimeframe, unfiedTimeframe);
             if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
-                throw new Error (this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
+                throw new NotSupported (this.id + ' watchOHLCVForSymbols() only supports a single timeframe for all symbols');
             } else {
                 selectedTimeframe = rawTimeframe;
             }
@@ -1191,7 +1191,7 @@ export default class toobit extends toobitRest {
         if (code !== undefined) {
             const desc = this.safeString (message, 'desc');
             const msg = this.id + ' code: ' + code + ' message: ' + desc;
-            client.reject (new Error (msg));
+            client.reject (new ExchangeError (msg));
             return true;
         }
         return false;
