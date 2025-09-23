@@ -212,6 +212,20 @@ class binance extends Exchange {
                     'private' => 'https://testnet.binance.vision/api/v3',
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
+                'demo' => array(
+                    'dapiPublic' => 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate' => 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2' => 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic' => 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2' => 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3' => 'https://demo-fapi.binance.com/fapi/v3',
+                    'fapiPrivate' => 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2' => 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3' => 'https://demo-fapi.binance.com/fapi/v3',
+                    'public' => 'https://demo-api.binance.com/api/v3',
+                    'private' => 'https://demo-api.binance.com/api/v3',
+                    'v1' => 'https://demo-api.binance.com/api/v1',
+                ),
                 'api' => array(
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'sapiV2' => 'https://api.binance.com/sapi/v2',
@@ -2763,6 +2777,29 @@ class binance extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
+    public function enable_demo_trading(bool $enable) {
+        /**
+         * enables or disables demo trading mode
+         *
+         * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+         * @see https://demo.binance.com/en/my/settings/api-management
+         *
+         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
+         */
+        if ($this->isSandboxModeEnabled) {
+            throw new NotSupported($this->id . ' demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if ($enable) {
+            $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
+            $this->urls['api'] = $this->urls['demo'];
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+            $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
+            $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
+            $this->urls = $newUrls;
+        }
+        $this->options['enableDemoTrading'] = $enable;
+    }
+
     public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -2818,6 +2855,10 @@ class binance extends Exchange {
             // sandbox/testnet does not support sapi endpoints
             $apiBackup = $this->safe_value($this->urls, 'apiBackup');
             if ($apiBackup !== null) {
+                return array();
+            }
+            // demotrading does not support sapi endpoints
+            if ($this->safe_bool($this->options, 'enableDemoTrading', false)) {
                 return array();
             }
             $promises = array( $this->sapiGetCapitalConfigGetall ($params) );
@@ -3064,10 +3105,12 @@ class binance extends Exchange {
                 }
             }
             $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
+            $isDemoEnv = $demoMode || $sandboxMode;
             $fetchMarkets = array();
             for ($i = 0; $i < count($rawFetchMarkets); $i++) {
                 $type = $rawFetchMarkets[$i];
-                if ($type === 'option' && $sandboxMode) {
+                if ($type === 'option' && $isDemoEnv) {
                     continue;
                 }
                 $fetchMarkets[] = $type;
@@ -3077,7 +3120,7 @@ class binance extends Exchange {
                 $marketType = $fetchMarkets[$i];
                 if ($marketType === 'spot') {
                     $promisesRaw[] = $this->publicGetExchangeInfo ($params);
-                    if ($fetchMargins && $this->check_required_credentials(false) && !$sandboxMode) {
+                    if ($fetchMargins && $this->check_required_credentials(false) && !$isDemoEnv) {
                         $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
                         $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
                     }
