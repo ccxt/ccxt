@@ -2782,7 +2782,7 @@ export default class binance extends Exchange {
      */
     enableDemoTrading (enable: boolean) {
         if (this.isSandboxModeEnabled) {
-            throw new NotSupported (this.id + ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+            throw new NotSupported (this.id + ' demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
         }
         if (enable) {
             this.urls['apiBackupDemoTrading'] = this.urls['api'];
