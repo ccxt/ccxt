@@ -1862,7 +1862,7 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': None,
+            'baseVolume': self.safe_number_2(ticker, 'a', 'q'),
             'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
             'info': ticker,
         }, market)

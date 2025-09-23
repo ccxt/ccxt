@@ -1893,7 +1893,7 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => null,
+            'baseVolume' => $this->safe_number_2($ticker, 'a', 'q'),
             'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
             'info' => $ticker,
         ), $market);

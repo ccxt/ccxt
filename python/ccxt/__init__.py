@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.8.0'
+__version__ = '4.9.0'
 
 # ----------------------------------------------------------------------------
 
@@ -117,6 +117,7 @@ from ccxt.bitso import bitso                                          # noqa: F4
 from ccxt.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.bitteam import bitteam                                      # noqa: F401
 from ccxt.bittrade import bittrade                                    # noqa: F401
+from ccxt.bitunix import bitunix                                      # noqa: F401
 from ccxt.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.blofin import blofin                                        # noqa: F401
@@ -254,6 +255,7 @@ exchanges = [
     'bitstamp',
     'bitteam',
     'bittrade',
+    'bitunix',
     'bitvavo',
     'blockchaincom',
     'blofin',

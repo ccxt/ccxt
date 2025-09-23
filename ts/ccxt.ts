@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.8.0';
+const version = '4.9.0';
 
 (Exchange as any).ccxtVersion = version
 
@@ -79,6 +79,7 @@ import bitso from  './src/bitso.js'
 import bitstamp from  './src/bitstamp.js'
 import bitteam from  './src/bitteam.js'
 import bittrade from  './src/bittrade.js'
+import bitunix from  './src/bitunix.js'
 import bitvavo from  './src/bitvavo.js'
 import blockchaincom from  './src/blockchaincom.js'
 import blofin from  './src/blofin.js'
@@ -291,6 +292,7 @@ const exchanges = {
     'bitstamp':               bitstamp,
     'bitteam':                bitteam,
     'bittrade':               bittrade,
+    'bitunix':                bitunix,
     'bitvavo':                bitvavo,
     'blockchaincom':          blockchaincom,
     'blofin':                 blofin,
@@ -646,6 +648,7 @@ export {
     bitstamp,
     bitteam,
     bittrade,
+    bitunix,
     bitvavo,
     blockchaincom,
     blofin,

@@ -1,0 +1,331 @@
+
+//  ---------------------------------------------------------------------------
+
+import Exchange from './abstract/bitunix.js';
+import { Market, Strings, Ticker, Tickers } from './base/types.js';
+
+//  ---------------------------------------------------------------------------
+
+/**
+ * @class bitunix
+ * @augments Exchange
+ * @description Set rateLimit to 1000 if fully verified
+ */
+export default class bitunix extends Exchange {
+    describe () : any {
+        return this.deepExtend (super.describe (), {
+            'id': 'bitunix',
+            'name': 'bitunix',
+            'countries': [ 'IR' ],
+            'rateLimit': 1000,
+            'version': '1',
+            'certified': false,
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': true,
+                'option': false,
+                'addMargin': false,
+                'cancelAllOrders': false,
+                'cancelOrder': false,
+                'cancelOrders': false,
+                'createDepositAddress': false,
+                'createOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'editOrder': false,
+                'fetchBalance': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchL2OrderBook': false,
+                'fetchL3OrderBook': false,
+                'fetchLedger': false,
+                'fetchLedgerEntry': false,
+                'fetchLeverageTiers': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMyTrades': false,
+                'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': true,
+                'fetchOrders': false,
+                'fetchOrderTrades': 'emulated',
+                'fetchPositions': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': false,
+                'fetchTrades': false,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchWithdrawals': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'transfer': false,
+                'withdraw': false,
+            },
+            'comment': 'This comment is optional',
+            'urls': {
+                'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/bitunix/64x64.png',
+                'api': {
+                    'market': 'https://openapi.bitunix.com/',
+                    'tickers': 'https://api.bitunix.com/',
+                },
+                'www': 'https://www.bitunix.com/',
+                'doc': [
+                    'https://openapidoc.bitunix.com/',
+                ],
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '3h': '180',
+                '4h': '240',
+                '12h': '720',
+                '1d': '1D',
+                '1w': '1W',
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'api/spot/v1/common/coin_pair/list/': 1,
+                        'web/api/v1/common/tickers/': 1,
+                    },
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
+                },
+            },
+        });
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name bitunix#fetchMarkets
+         * @description retrieves data on all markets for bitunix
+         * @see https://api-docs.bitunix.ir/#be8d9c51a2
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetApiSpotV1CommonCoinPairList (params);
+        const markets = this.safeList (response, 'data');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = this.parseMarket (markets[i]);
+            result.push (market);
+        }
+        return result;
+    }
+
+    parseMarket (market): Market {
+        //       {
+        // id: 1,
+        // symbol: "btcusdt",
+        // base: "BTC",
+        // baseIcon: "https://img.bitunix.com/config/kv/228408.png",
+        // quote: "USDT",
+        // quoteIcon: "https://img.bitunix.com/config/coin/USDT.png",
+        // basePrecision: 5,
+        // quotePrecision: 2,
+        // minPrice: "10.0000000000000000",
+        // minVolume: "0.0000500000000000",
+        // maxAmount: "500000.0000000000000000",
+        // minAmount: "0.0000000000000000",
+        // maxLimitOrderAmount: "1500000.0000000000000000",
+        // maxMarketOrderAmount: "2000000.0000000000000000",
+        // maxSlippage: "0.0500",
+        // premiumFactor: "0.0500",
+        // minBuyPriceOffset: "-0.8000",
+        // maxSellPriceOffset: "50.0000",
+        // isOpen: 1,
+        // isHot: 1,
+        // isRecommend: 1,
+        // isShow: 1,
+        // tradeArea: "USDT",
+        // sort: 1,
+        // openTime: null,
+        // ctime: "2023-05-12T18:03:08Z",
+        // precisions: [
+        // "0.0100000000000000",
+        // "0.1000000000000000",
+        // "1.0000000000000000",
+        // "10.0000000000000000",
+        // "100.0000000000000000"
+        // ]
+        // }
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const id = (base + quote);
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bitunix#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://api-docs.bitunix.ir/#be8d9c51a2
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+        }
+        const response = await this.publicGetWebApiV1CommonTickers ();
+        const markets = this.safeList (response, 'data');
+        const result = {};
+        for (let i = 0; i < markets.length; i++) {
+            const ticker = this.parseTicker (markets[i]);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name bitunix#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api-docs.bitunix.ir/#be8d9c51a2
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.fetchTickers ([ symbol ]);
+        return ticker[symbol];
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //        {
+        // symbol: "BTCUSDT",
+        // base: "BTC",
+        // quote: "USDT",
+        // close: "112832.34",
+        // rose24h: "0.2276416293",
+        // volume: "228310106.7861019"
+        // },
+        const marketType = 'spot';
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
+        const last = this.safeFloat (ticker, 'close', 0);
+        const change = this.safeFloat (ticker, 'rose24h', 0);
+        const quoteVolume = this.safeFloat (ticker, 'volume', 0);
+        let baseVolume = 0;
+        if (last !== 0) {
+            baseVolume = quoteVolume / last;
+        }
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': change,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api']['market'] + '/' + path;
+        if (path === 'web/api/v1/common/tickers/') {
+            url = this.urls['api']['tickers'] + '/' + path;
+        }
+        headers = { 'Content-Type': 'application/json' };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}
