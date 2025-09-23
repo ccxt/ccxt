@@ -763,6 +763,9 @@ export default class mexc extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',
