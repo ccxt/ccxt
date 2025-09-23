@@ -1996,7 +1996,8 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
-                "precision":"not provided"
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 65
             },
             "fetchTrades": {
                 "side": "not provided"
