@@ -510,7 +510,7 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const orderbook = await this.publicGetApiDepthPair (this.extend (request, params));
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'buy', 'sell');
@@ -571,7 +571,7 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const response = await this.publicGetApiTickerPair (this.extend (request, params));
         //
@@ -658,7 +658,7 @@ export default class indodax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const response = await this.publicGetApiTradesPair (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -707,7 +707,7 @@ export default class indodax extends Exchange {
         const request: Dict = {
             'to': until,
             'tf': selectedTimeframe,
-            'symbol': market['base'] + market['quote'],
+            'symbol': market['id'],
         };
         if (limit === undefined) {
             limit = 1000;
