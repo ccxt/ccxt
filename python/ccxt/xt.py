@@ -1609,7 +1609,7 @@ class xt(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = self.publicInverseGetFutureMarketV1PublicQAggTicker(self.extend(request, params))
         else:
-            response = self.publicSpotGetTicker24h(self.extend(request, params))
+            response = self.publicSpotGetTicker(self.extend(request, params))
         #
         # spot
         #

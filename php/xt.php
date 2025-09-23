@@ -1629,7 +1629,7 @@ class xt extends Exchange {
         } elseif ($market['inverse']) {
             $response = $this->publicInverseGetFutureMarketV1PublicQAggTicker ($this->extend($request, $params));
         } else {
-            $response = $this->publicSpotGetTicker24h ($this->extend($request, $params));
+            $response = $this->publicSpotGetTicker ($this->extend($request, $params));
         }
         //
         // spot

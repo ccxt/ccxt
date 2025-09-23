@@ -1654,7 +1654,7 @@ class xt extends Exchange {
             } elseif ($market['inverse']) {
                 $response = Async\await($this->publicInverseGetFutureMarketV1PublicQAggTicker ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicSpotGetTicker24h ($this->extend($request, $params)));
+                $response = Async\await($this->publicSpotGetTicker ($this->extend($request, $params)));
             }
             //
             // spot

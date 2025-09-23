@@ -1635,7 +1635,7 @@ export default class xt extends Exchange {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTicker(this.extend(request, params));
         }
         else {
-            response = await this.publicSpotGetTicker24h(this.extend(request, params));
+            response = await this.publicSpotGetTicker(this.extend(request, params));
         }
         //
         // spot
