@@ -228,6 +228,20 @@ class binance(Exchange, ImplicitAPI):
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
+                'demo': {
+                    'dapiPublic': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'fapiPrivate': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'public': 'https://demo-api.binance.com/api/v3',
+                    'private': 'https://demo-api.binance.com/api/v3',
+                    'v1': 'https://demo-api.binance.com/api/v1',
+                },
                 'api': {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
@@ -2756,6 +2770,26 @@ class binance(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+
+        https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+        https://demo.binance.com/en/my/settings/api-management
+
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.isSandboxModeEnabled:
+            raise NotSupported(self.id + ' demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences')
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demo']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
+
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -2804,6 +2838,9 @@ class binance(Exchange, ImplicitAPI):
         # sandbox/testnet does not support sapi endpoints
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
+            return {}
+        # demotrading does not support sapi endpoints
+        if self.safe_bool(self.options, 'enableDemoTrading', False):
             return {}
         promises = [self.sapiGetCapitalConfigGetall(params)]
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
@@ -3035,10 +3072,12 @@ class binance(Exchange, ImplicitAPI):
             if not self.in_array('option', rawFetchMarkets):
                 rawFetchMarkets.append('option')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
+        isDemoEnv = demoMode or sandboxMode
         fetchMarkets = []
         for i in range(0, len(rawFetchMarkets)):
             type = rawFetchMarkets[i]
-            if type == 'option' and sandboxMode:
+            if type == 'option' and isDemoEnv:
                 continue
             fetchMarkets.append(type)
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
@@ -3046,7 +3085,7 @@ class binance(Exchange, ImplicitAPI):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
                 promisesRaw.append(self.publicGetExchangeInfo(params))
-                if fetchMargins and self.check_required_credentials(False) and not sandboxMode:
+                if fetchMargins and self.check_required_credentials(False) and not isDemoEnv:
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
             elif marketType == 'linear':
