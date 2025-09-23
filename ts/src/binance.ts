@@ -207,6 +207,20 @@ export default class binance extends Exchange {
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
+                'demo': {
+                    'dapiPublic': 'https://demo-dapi.binance.com/v1',
+                    'dapiPrivate': 'https://demo-dapi.binance.com/v1',
+                    'dapiPrivateV2': 'https://demo-dapi.binance.com/v2',
+                    'fapiPublic': 'https://demo-fapi.binance.com/v1',
+                    'fapiPublicV2': 'https://demo-fapi.binance.com/v2',
+                    'fapiPublicV3': 'https://demo-fapi.binance.com/v3',
+                    'fapiPrivate': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'public': 'https://demo-api.binance.com/api/v3',
+                    'private': 'https://demo-api.binance.com/api/v3',
+                    'v1': 'https://demo-api.binance.com/api/v1',
+                },
                 'api': {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
@@ -2756,6 +2770,29 @@ export default class binance extends Exchange {
 
     nonce () {
         return this.milliseconds () - this.options['timeDifference'];
+    }
+
+    enableDemoTrading (enable: boolean) {
+        /**
+         * @method
+         * @name binance#enableDemoTrading
+         * @description enables or disables demo trading mode
+         * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+         * @see https://demo.binance.com/en/my/settings/api-management
+         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+         */
+        if (this.isSandboxModeEnabled) {
+            throw new NotSupported (this.id + ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demo'];
+        } else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'] as any;
+            const newUrls = this.omit (this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
     }
 
     /**
