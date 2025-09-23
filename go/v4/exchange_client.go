@@ -105,10 +105,12 @@ func (this *Client) Future(messageHash interface{}) <-chan interface{} {
 
 func (this *Client) NewFuture(messageHash interface{}) *Future {
 	hash, _ := messageHash.(string)
+	this.FuturesMu.Lock()
 	if _, ok := this.Futures[hash]; !ok {
 		this.Futures[hash] = NewFuture()
 	}
 	future := this.Futures[hash]
+	this.FuturesMu.Unlock()
 	if err, ok := this.Rejections[hash]; ok {
 		future.(*Future).Reject(err.(error))
 		delete(this.Rejections, hash)
