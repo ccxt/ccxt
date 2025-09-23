@@ -3996,7 +3996,11 @@ class Exchange {
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
-        $numCurrencies = $currencies ? $currencies : 0;
+        $numCurrencies = 0;
+        if ($currencies !== null) {
+            $keys = is_array($currencies) ? array_keys($currencies) : array();
+            $numCurrencies = count($keys);
+        }
         if ($numCurrencies > 0) {
             // $currencies is always null when called in constructor but not when called from loadMarkets
             $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
@@ -6927,7 +6931,8 @@ class Exchange {
     }
 
     public function currency(string $code) {
-        $numCurrencies = $this->currencies;
+        $keys = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        $numCurrencies = count($keys);
         if ($numCurrencies === 0) {
             throw new ExchangeError($this->id . ' currencies not loaded');
         }
