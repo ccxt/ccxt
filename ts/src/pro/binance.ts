@@ -192,6 +192,10 @@ export default class binance extends binanceRest {
         return newValue;
     }
 
+    isSpotUrl (client: Client) {
+        return (client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('demo-stream') > -1);
+    }
+
     stream (type: Str, subscriptionHash: Str, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeDict (this.options, 'streamBySubscriptionsHash', this.createSafeDictionary ());
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
@@ -934,7 +938,7 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1397,7 +1401,7 @@ export default class binance extends binanceRest {
     handleTrade (client: Client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1644,7 +1648,7 @@ export default class binance extends binanceRest {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
@@ -2292,7 +2296,7 @@ export default class binance extends binanceRest {
     }
 
     handleTickersAndBidsAsks (client: Client, message, methodType) {
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
         let channelName = undefined;
