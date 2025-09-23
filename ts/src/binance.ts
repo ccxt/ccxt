@@ -2849,6 +2849,10 @@ export default class binance extends Exchange {
         if (apiBackup !== undefined) {
             return {};
         }
+        // demotrading does not support sapi endpoints
+        if (this.safeBool (this.options, 'enableDemoTrading', false)) {
+            return {};
+        }
         const promises = [ this.sapiGetCapitalConfigGetall (params) ];
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
         if (fetchMargins) {
