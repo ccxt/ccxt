@@ -5,12 +5,12 @@
 */
 
 import _m0 from "protobufjs/minimal";
-import Long from './long.js';
+import long from './long.cjs';
 
+const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
 // @ts-ignore
 if (_m0.util.Long !== Long) {
     _m0.util.Long = (Long as any);
-
     _m0.configure();
 }
 

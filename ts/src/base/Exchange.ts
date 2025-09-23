@@ -178,16 +178,7 @@ let SignMode = undefined;
 (async () => {
     try {
         protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-        encodeAsAny = await import ('../static_dependencies/dydx-v4-client/registry');
-        const dydxTxProto = await import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx');
-        AuthInfo = dydxTxProto.AuthInfo;
-        Tx = dydxTxProto.Tx;
-        TxBody = dydxTxProto.TxBody;
-        TxRaw = dydxTxProto.TxRaw;
-        SignDoc = dydxTxProto.SignDoc;
-        SignMode = await import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing');
     } catch (e) {
-        console.log(e)
         // TODO: handle error
     }
 }) ();
@@ -1694,6 +1685,22 @@ export default class Exchange {
         return zkSign;
     }
 
+    async loadDydxProtos () {
+        // load dydx protos
+        const modules = await Promise.all ([
+            import ('../static_dependencies/dydx-v4-client/registry.js'),
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js'),
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js')
+        ]);
+        encodeAsAny = modules[0].encodeAsAny;
+        AuthInfo = modules[1].AuthInfo;
+        Tx = modules[1].Tx;
+        TxBody = modules[1].TxBody;
+        TxRaw = modules[1].TxRaw;
+        SignDoc = modules[1].SignDoc;
+        SignMode = modules[2];
+    }
+
     toDydxLong (numStr: string): object {
         // see: https://github.com/dcodeIO/long.js/blob/main/index.js
         const TWO_PWR_32_DBL = '4294967296'; // 2 ** 32
@@ -1710,9 +1717,6 @@ export default class Exchange {
     }
 
     retrieveDydxCredentials (entropy: string) {
-        if (!encodeAsAny) {
-            throw new NotSupported (this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
-        }
         const credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
         return credentials;
     }

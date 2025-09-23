@@ -1914,6 +1914,9 @@ class Exchange(object):
             'publicKey': publicKey,
         }
 
+    def load_dydx_protos(self):
+        return
+
     def to_dydx_long(self, num):
         return num
 

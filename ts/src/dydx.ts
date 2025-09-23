@@ -1274,6 +1274,8 @@ export default class dydx extends Exchange {
     }
 
     async fetchDydxAccount (params: Dict = undefined) {
+        // required in js
+        await this.loadDydxProtos ();
         const dydxAccount = this.safeDict (this.options, 'dydxAccount');
         if (dydxAccount !== undefined) {
             return dydxAccount;
