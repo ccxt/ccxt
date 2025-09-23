@@ -194,6 +194,20 @@ public partial class binance : Exchange
                     { "private", "https://testnet.binance.vision/api/v3" },
                     { "v1", "https://testnet.binance.vision/api/v1" },
                 } },
+                { "demo", new Dictionary<string, object>() {
+                    { "dapiPublic", "https://demo-dapi.binance.com/dapi/v1" },
+                    { "dapiPrivate", "https://demo-dapi.binance.com/dapi/v1" },
+                    { "dapiPrivateV2", "https://demo-dapi.binance.com/dapi/v2" },
+                    { "fapiPublic", "https://demo-fapi.binance.com/fapi/v1" },
+                    { "fapiPublicV2", "https://demo-fapi.binance.com/fapi/v2" },
+                    { "fapiPublicV3", "https://demo-fapi.binance.com/fapi/v3" },
+                    { "fapiPrivate", "https://demo-fapi.binance.com/fapi/v1" },
+                    { "fapiPrivateV2", "https://demo-fapi.binance.com/fapi/v2" },
+                    { "fapiPrivateV3", "https://demo-fapi.binance.com/fapi/v3" },
+                    { "public", "https://demo-api.binance.com/api/v3" },
+                    { "private", "https://demo-api.binance.com/api/v3" },
+                    { "v1", "https://demo-api.binance.com/api/v1" },
+                } },
                 { "api", new Dictionary<string, object>() {
                     { "sapi", "https://api.binance.com/sapi/v1" },
                     { "sapiV2", "https://api.binance.com/sapi/v2" },
@@ -2702,6 +2716,33 @@ public partial class binance : Exchange
 
     /**
      * @method
+     * @name binance#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+     * @see https://demo.binance.com/en/my/settings/api-management
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    public override void enableDemoTrading(object enable)
+    {
+        if (isTrue(this.isSandboxModeEnabled))
+        {
+            throw new NotSupported ((string)add(this.id, " demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
+        }
+        if (isTrue(enable))
+        {
+            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = getValue(this.urls, "api");
+            ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "demo");
+        } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
+        {
+            ((IDictionary<string,object>)this.urls)["api"] = ((object)getValue(this.urls, "apiBackupDemoTrading"));
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            this.urls = newUrls;
+        }
+        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+    }
+
+    /**
+     * @method
      * @name binance#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
@@ -2763,6 +2804,11 @@ public partial class binance : Exchange
         // sandbox/testnet does not support sapi endpoints
         object apiBackup = this.safeValue(this.urls, "apiBackup");
         if (isTrue(!isEqual(apiBackup, null)))
+        {
+            return new Dictionary<string, object>() {};
+        }
+        // demotrading does not support sapi endpoints
+        if (isTrue(this.safeBool(this.options, "enableDemoTrading", false)))
         {
             return new Dictionary<string, object>() {};
         }
@@ -3023,11 +3069,13 @@ public partial class binance : Exchange
             }
         }
         object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+        object isDemoEnv = isTrue(demoMode) || isTrue(sandboxMode);
         object fetchMarkets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawFetchMarkets)); postFixIncrement(ref i))
         {
             object type = getValue(rawFetchMarkets, i);
-            if (isTrue(isTrue(isEqual(type, "option")) && isTrue(sandboxMode)))
+            if (isTrue(isTrue(isEqual(type, "option")) && isTrue(isDemoEnv)))
             {
                 continue;
             }
@@ -3040,7 +3088,7 @@ public partial class binance : Exchange
             if (isTrue(isEqual(marketType, "spot")))
             {
                 ((IList<object>)promisesRaw).Add(this.publicGetExchangeInfo(parameters));
-                if (isTrue(isTrue(isTrue(fetchMargins) && isTrue(this.checkRequiredCredentials(false))) && !isTrue(sandboxMode)))
+                if (isTrue(isTrue(isTrue(fetchMargins) && isTrue(this.checkRequiredCredentials(false))) && !isTrue(isDemoEnv)))
                 {
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginAllPairs(parameters));
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginIsolatedAllPairs(parameters));
