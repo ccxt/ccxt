@@ -1953,7 +1953,12 @@ public partial class Exchange
         object marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new List<object>(((IDictionary<string,object>)marketsSortedBySymbol).Keys);
         this.ids = new List<object>(((IDictionary<string,object>)marketsSortedById).Keys);
-        object numCurrencies = ((bool) isTrue(currencies)) ? getArrayLength(new List<object>(((IDictionary<string,object>)currencies).Keys)) : 0;
+        object numCurrencies = 0;
+        if (isTrue(!isEqual(currencies, null)))
+        {
+            object keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
+            numCurrencies = getArrayLength(keys);
+        }
         if (isTrue(isGreaterThan(numCurrencies, 0)))
         {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
@@ -5701,7 +5706,8 @@ public partial class Exchange
 
     public virtual object currency(object code)
     {
-        object numCurrencies = getArrayLength(new List<object>(((IDictionary<string,object>)this.currencies).Keys));
+        object keys = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        object numCurrencies = getArrayLength(keys);
         if (isTrue(isEqual(numCurrencies, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
