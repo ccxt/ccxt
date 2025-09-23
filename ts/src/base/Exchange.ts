@@ -3397,7 +3397,8 @@ export default class Exchange {
         this.ids = Object.keys (marketsSortedById);
         let numCurrencies = 0;
         if (currencies !== undefined) {
-            numCurrencies = Object.keys (currencies).length;
+            const keys = Object.keys (currencies);
+            numCurrencies = keys.length;
         }
         if (numCurrencies > 0) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
@@ -6368,7 +6369,8 @@ export default class Exchange {
     }
 
     currency (code: string) {
-        const numCurrencies = Object.keys (this.currencies).length;
+        const keys = Object.keys (this.currencies);
+        const numCurrencies = keys.length;
         if (numCurrencies === 0) {
             throw new ExchangeError (this.id + ' currencies not loaded');
         }
