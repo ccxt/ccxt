@@ -1216,14 +1216,15 @@ func (this *bybit) Describe() interface{} {
 		},
 	})
 }
+
+/**
+ * @method
+ * @name bybit#enableDemoTrading
+ * @description enables or disables demo trading mode
+ * @see https://bybit-exchange.github.io/docs/v5/demo
+ * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+ */
 func (this *bybit) EnableDemoTrading(enable interface{}) {
-	/**
-	 * @method
-	 * @name bybit#enableDemoTrading
-	 * @description enables or disables demo trading mode
-	 * @see https://bybit-exchange.github.io/docs/v5/demo
-	 * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-	 */
 	if IsTrue(this.IsSandboxModeEnabled) {
 		panic(NotSupported(Add(this.Id, " demo trading does not support in sandbox environment")))
 	}

@@ -6,6 +6,13 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  */
 export default class bybit extends Exchange {
     describe(): any;
+    /**
+     * @method
+     * @name bybit#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://bybit-exchange.github.io/docs/v5/demo
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
     enableDemoTrading(enable: boolean): void;
     nonce(): number;
     addPaginationCursorToResult(response: any): any[];

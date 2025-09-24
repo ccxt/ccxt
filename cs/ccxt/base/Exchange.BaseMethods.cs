@@ -883,6 +883,31 @@ public partial class Exchange
         }
     }
 
+    /**
+     * @method
+     * @name Exchange#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    public virtual void enableDemoTrading(object enable)
+    {
+        if (isTrue(this.isSandboxModeEnabled))
+        {
+            throw new NotSupported ((string)add(this.id, " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
+        }
+        if (isTrue(enable))
+        {
+            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = getValue(this.urls, "api");
+            ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "demo");
+        } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
+        {
+            ((IDictionary<string,object>)this.urls)["api"] = ((object)getValue(this.urls, "apiBackupDemoTrading"));
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            this.urls = newUrls;
+        }
+        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+    }
+
     public virtual object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";

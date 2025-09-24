@@ -81,6 +81,19 @@ class binance extends \ccxt\async\binance {
                         ),
                     ),
                 ),
+                'demo' => array(
+                    'ws' => array(
+                        'spot' => 'wss://demo-stream.binance.com/ws',
+                        'margin' => 'wss://demo-stream.binance.com/ws',
+                        'future' => 'wss://fstream.binancefuture.com/ws',
+                        'delivery' => 'wss://dstream.binancefuture.com/ws',
+                        'ws-api' => array(
+                            'spot' => 'wss://demo-ws-api.binance.com/ws-api/v3',
+                            'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery' => 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                        ),
+                    ),
+                ),
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://stream.binance.com:9443/ws',
@@ -178,6 +191,10 @@ class binance extends \ccxt\async\binance {
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
         return $newValue;
+    }
+
+    public function is_spot_url(Client $client) {
+        return (mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, 'demo-stream') > -1);
     }
 
     public function stream(?string $type, ?string $subscriptionHash, $numSubscriptions = 1) {
@@ -940,7 +957,7 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $isSpot = (mb_strpos($client->url, '/stream') > -1);
+        $isSpot = $this->is_spot_url($client);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -1411,7 +1428,7 @@ class binance extends \ccxt\async\binance {
     public function handle_trade(Client $client, $message) {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
-        $isSpot = (mb_strpos($client->url, '/stream') > -1);
+        $isSpot = $this->is_spot_url($client);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $marketId = $this->safe_string($message, 's');
         $market = $this->safe_market($marketId, null, null, $marketType);
@@ -1666,7 +1683,7 @@ class binance extends \ccxt\async\binance {
             $this->safe_float($kline, 'c'),
             $this->safe_float($kline, 'v'),
         );
-        $isSpot = (mb_strpos($client->url, '/stream') > -1);
+        $isSpot = $this->is_spot_url($client);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
@@ -2332,7 +2349,7 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_tickers_and_bids_asks(Client $client, $message, $methodType) {
-        $isSpot = (mb_strpos($client->url, '/stream') > -1);
+        $isSpot = $this->is_spot_url($client);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $isBidAsk = ($methodType === 'bidasks');
         $channelName = null;
