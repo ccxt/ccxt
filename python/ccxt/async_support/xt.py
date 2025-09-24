@@ -1610,7 +1610,7 @@ class xt(Exchange, ImplicitAPI):
         elif market['inverse']:
             response = await self.publicInverseGetFutureMarketV1PublicQAggTicker(self.extend(request, params))
         else:
-            response = await self.publicSpotGetTicker24h(self.extend(request, params))
+            response = await self.publicSpotGetTicker(self.extend(request, params))
         #
         # spot
         #
@@ -1862,7 +1862,7 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': None,
+            'baseVolume': self.safe_number_2(ticker, 'a', 'q'),
             'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
             'info': ticker,
         }, market)

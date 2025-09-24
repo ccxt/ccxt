@@ -1634,7 +1634,7 @@ class xt extends xt$1["default"] {
             response = await this.publicInverseGetFutureMarketV1PublicQAggTicker(this.extend(request, params));
         }
         else {
-            response = await this.publicSpotGetTicker24h(this.extend(request, params));
+            response = await this.publicSpotGetTicker(this.extend(request, params));
         }
         //
         // spot
@@ -1897,7 +1897,7 @@ class xt extends xt$1["default"] {
             'change': this.safeNumber(ticker, 'cv'),
             'percentage': this.parseNumber(percentage),
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': this.safeNumber2(ticker, 'a', 'q'),
             'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),
             'info': ticker,
         }, market);

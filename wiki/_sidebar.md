@@ -40,6 +40,7 @@
 	- [bitstamp](exchanges/bitstamp.md)
 	- [bitteam](exchanges/bitteam.md)
 	- [bittrade](exchanges/bittrade.md)
+	- [bitunix()](exchanges/bitunix().md)
 	- [bitvavo](exchanges/bitvavo.md)
 	- [blockchaincom](exchanges/blockchaincom.md)
 	- [blofin](exchanges/blofin.md)
