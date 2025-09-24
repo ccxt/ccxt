@@ -128,7 +128,7 @@ export default class lbank extends Exchange {
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
                             'assetConfigs': 2.5,
-                            'withdrawConfigs': 2.5,
+                            'withdrawConfigs': 2.5 * 1.5,
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
                             'ticker': 2.5,
@@ -672,7 +672,7 @@ export default class lbank extends Exchange {
                 'active': true,
                 'contract': true,
                 'linear': true,
-                'inverse': undefined,
+                'inverse': false,
                 'contractSize': this.safeNumber(market, 'volumeMultiple'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -975,7 +975,7 @@ export default class lbank extends Exchange {
         if (market['swap']) {
             return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
         }
-        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0);
+        return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks');
     }
     parseTrade(trade, market = undefined) {
         //

@@ -35,13 +35,13 @@ type Exchange struct {
 	Has                    map[string]interface{}
 	Api                    map[string]interface{}
 	TransformedApi         map[string]interface{}
-	Markets                map[string]interface{}
+	Markets                *sync.Map
 	Markets_by_id          *sync.Map
 	Currencies_by_id       *sync.Map
-	Currencies             map[string]interface{}
+	Currencies             *sync.Map
 	RequiredCredentials    map[string]interface{}
 	HttpExceptions         map[string]interface{}
-	MarketsById            map[string]interface{}
+	MarketsById            *sync.Map
 	Timeframes             map[string]interface{}
 	Features               map[string]interface{}
 	Exceptions             map[string]interface{}
@@ -60,8 +60,8 @@ type Exchange struct {
 	EnableRateLimit        bool
 	Url                    string
 	Hostname               string
-	BaseCurrencies         map[string]interface{}
-	QuoteCurrencies        map[string]interface{}
+	BaseCurrencies         *sync.Map
+	QuoteCurrencies        *sync.Map
 	ReloadingMarkets       bool
 	MarketsLoading         bool
 	Symbols                []string
@@ -71,7 +71,7 @@ type Exchange struct {
 	PrecisionMode          int
 	Limits                 map[string]interface{}
 	Fees                   map[string]interface{}
-	CurrenciesById         map[string]interface{}
+	CurrenciesById         *sync.Map
 	ReduceFees             bool
 
 	AccountsById interface{}
@@ -87,6 +87,7 @@ type Exchange struct {
 	Last_request_url         interface{}
 	LastRequestUrl           interface{}
 	Headers                  interface{}
+	ReturnResponseHeaders    bool
 
 	// type check this
 	Number interface{}
@@ -138,10 +139,12 @@ type Exchange struct {
 	Twofa interface{}
 
 	// WS
+	Clients    interface{}
 	Ohlcvs     interface{}
 	Trades     interface{}
 	Tickers    interface{}
 	Orders     interface{}
+	Positions  interface{}
 	MyTrades   interface{}
 	Orderbooks interface{}
 
@@ -175,6 +178,9 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// this = &Exchange{}
 	if this.Options == nil {
 		this.Options = &sync.Map{} // by default sync.map is nil
+	}
+	if this.MarketsMutex == nil {
+		this.MarketsMutex = &sync.Mutex{}
 	}
 	describeValues := this.Describe()
 	if userConfig == nil {
@@ -224,7 +230,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 	// to do
 }
 
-func NewExchange() IExchange {
+func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
 	exchange.Init(map[string]interface{}{})
 	return exchange
@@ -320,8 +326,8 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		params := GetArg(params, 1, map[string]interface{}{})
 		this.WarmUpCache()
 		if !reload {
-			if len(this.Markets) > 0 {
-				if this.Markets_by_id == nil && len(this.Markets) > 0 {
+			if this.Markets != nil {
+				if this.Markets_by_id == nil {
 					// Only lock when writing
 					this.MarketsMutex.Lock()
 					result := this.SetMarkets(this.Markets, nil)
@@ -445,7 +451,7 @@ func Unique(obj interface{}) []string {
 
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
-	fmt.Println(args)
+	fmt.Println(args...)
 }
 
 func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) <-chan interface{} {
@@ -1033,28 +1039,46 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 }
 
 func (this *Exchange) GetMarket(symbol string) MarketInterface {
-	market := this.Markets[symbol]
+	// market := this.Markets[symbol]
+	market, ok := this.Markets.Load(symbol)
+	if !ok {
+		return NewMarketInterface(nil)
+	}
 	return NewMarketInterface(market)
 }
 
 func (this *Exchange) GetMarketsList() []MarketInterface {
 	var markets []MarketInterface
-	for _, market := range this.Markets {
-		markets = append(markets, NewMarketInterface(market))
-	}
+	// for _, market := range this.Markets {
+	// 	markets = append(markets, NewMarketInterface(market))
+	// }
+	this.Markets.Range(func(key, value interface{}) bool {
+		markets = append(markets, NewMarketInterface(value))
+		return true
+
+	})
 	return markets
 }
 
-func (this *Exchange) GetCurrency(currency string) Currency {
-	market := this.Currencies[currency]
-	return NewCurrency(market)
+func (this *Exchange) GetCurrency(currencyId string) Currency {
+	// market := this.Currencies[currency]
+	currency, ok := this.Currencies.Load(currencyId)
+	if !ok {
+		return NewCurrency(nil)
+	}
+	return NewCurrency(currency)
 }
 
 func (this *Exchange) GetCurrenciesList() []Currency {
 	var currencies []Currency
-	for _, currency := range this.Currencies {
-		currencies = append(currencies, NewCurrency(currency))
-	}
+	// for _, currency := range this.Currencies {
+	// 	currencies = append(currencies, NewCurrency(currency))
+	// }
+	// }
+	this.Currencies.Range(func(key, value interface{}) bool {
+		currencies = append(currencies, NewCurrency(value))
+		return true
+	})
 	return currencies
 }
 
@@ -1212,8 +1236,8 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
-	extended := this.Extend(this.SyncMapToMap(this.Options), options)
-	this.Options = this.MapToSyncMap(extended)
+	extended := this.Extend(this.SafeMapToMap(this.Options), options)
+	this.Options = this.MapToSafeMap(extended)
 }
 
 // func (this *Exchange) Init(userConfig map[string]interface{}) {
@@ -1273,4 +1297,20 @@ func (this *Exchange) UpdateProxySettings() {
 
 		this.httpClient.Transport = proxyTransport
 	}
+}
+
+func (this *Exchange) callEndpointAsync(endpointName string, args ...interface{}) <-chan interface{} {
+	parameters := GetArg(args, 0, nil)
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+		ch <- (<-this.callEndpoint(endpointName, parameters))
+		PanicOnError(ch)
+	}()
+	return ch
 }

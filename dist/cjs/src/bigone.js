@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bigone$1 = require('./abstract/bigone.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -13,7 +15,7 @@ var Precise = require('./base/Precise.js');
  * @class bigone
  * @augments Exchange
  */
-class bigone extends bigone$1 {
+class bigone extends bigone$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bigone',
@@ -25,7 +27,7 @@ class bigone extends bigone$1 {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': true,
                 'future': undefined,
                 'option': false,
                 'cancelAllOrders': true,
@@ -449,7 +451,7 @@ class bigone extends bigone$1 {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         // {
@@ -2336,4 +2338,4 @@ class bigone extends bigone$1 {
     }
 }
 
-module.exports = bigone;
+exports["default"] = bigone;

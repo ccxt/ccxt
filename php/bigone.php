@@ -21,7 +21,7 @@ class bigone extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
+                'swap' => true,
                 'future' => null, // has but unimplemented
                 'option' => false,
                 'cancelAllOrders' => true,
@@ -445,7 +445,7 @@ class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if ($data === null) {
-            return null;
+            return array();
         }
         //
         // {
@@ -2262,7 +2262,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

@@ -114,7 +114,7 @@ public partial class lbank : Exchange
                             { "accuracy", 2.5 },
                             { "usdToCny", 2.5 },
                             { "assetConfigs", 2.5 },
-                            { "withdrawConfigs", 2.5 },
+                            { "withdrawConfigs", multiply(2.5, 1.5) },
                             { "timestamp", 2.5 },
                             { "ticker/24hr", 2.5 },
                             { "ticker", 2.5 },
@@ -652,7 +652,7 @@ public partial class lbank : Exchange
                 { "active", true },
                 { "contract", true },
                 { "linear", true },
-                { "inverse", null },
+                { "inverse", false },
                 { "contractSize", this.safeNumber(market, "volumeMultiple") },
                 { "expiry", null },
                 { "expiryDatetime", null },
@@ -977,7 +977,7 @@ public partial class lbank : Exchange
         {
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
         }
-        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 1, 0);
+        return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks");
     }
 
     public override object parseTrade(object trade, object market = null)

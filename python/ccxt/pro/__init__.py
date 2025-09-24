@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.91'
+__version__ = '4.5.5'
 
 # ----------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ from ccxt.base.errors import NoChange                                 # noqa: F4
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
+from ccxt.base.errors import RestrictedLocation                       # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -59,6 +60,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
+from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
 from ccxt.pro.binancecoinm import binancecoinm                            # noqa: F401
@@ -122,9 +124,7 @@ from ccxt.pro.paradex import paradex                                      # noqa
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
-from ccxt.pro.tradeogre import tradeogre                                  # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
-from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
 from ccxt.pro.woofipro import woofipro                                    # noqa: F401
@@ -134,6 +134,7 @@ exchanges = [
     'alpaca',
     'apex',
     'ascendex',
+    'backpack',
     'bequant',
     'binance',
     'binancecoinm',
@@ -197,9 +198,7 @@ exchanges = [
     'phemex',
     'poloniex',
     'probit',
-    'tradeogre',
     'upbit',
-    'vertex',
     'whitebit',
     'woo',
     'woofipro',

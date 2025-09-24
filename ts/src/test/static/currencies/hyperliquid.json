@@ -15,7 +15,7 @@
             "szDecimals": "5",
             "name": "BTC",
             "maxLeverage": "40",
-            "marginTableId": "40"
+            "marginTableId": "56"
         },
         "id": 0,
         "numericId": null,

@@ -351,13 +351,13 @@
                         "ask": 67643.2,
                         "askVolume": null,
                         "vwap": null,
-                        "open": null,
+                        "open": 69378.60345932095,
                         "close": 66821.1,
                         "last": 66821.1,
                         "previousClose": null,
-                        "change": null,
+                        "change": -2557.503459320948,
                         "percentage": -3.6863,
-                        "average": null,
+                        "average": 68099.8,
                         "baseVolume": null,
                         "quoteVolume": 2611476.262600002,
                         "markPrice":  67307.7225876,
@@ -418,13 +418,13 @@
                     "ask": 67643.2,
                     "askVolume": null,
                     "vwap": null,
-                    "open": null,
+                    "open": 69378.60345932095,
                     "close": 66821.1,
                     "last": 66821.1,
                     "previousClose": null,
-                    "change": null,
+                    "change": -2557.503459320948,
                     "percentage": -3.6863,
-                    "average": null,
+                    "average": 68099.8,
                     "baseVolume": null,
                     "quoteVolume": 2611476.262600002,
                     "markPrice":  67275.25940213,
@@ -1181,6 +1181,101 @@
                     "price_change_rate_24h": "0.054437",
                     "future_funding_rate": "0.0001"
                   }
+                }
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetchAllGreeks for one symbol",
+                "method": "fetchAllGreeks",
+                "input": [
+                    [
+                        "BTC/USD:USDC-117000-P"
+                    ]
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-117000-P",
+                            "mark_price": "20378.94685157",
+                            "mark_iv": "0.64591348",
+                            "delta": "-0.97602971",
+                            "greeks": {
+                                "delta": "-0.9760297124412576",
+                                "gamma": "0.0000039412321637780925",
+                                "vega": "877.2565462234215",
+                                "rho": "-1688.6610360292025",
+                                "vanna": "0.11651469982270668",
+                                "volga": "3206.912103083585"
+                            },
+                            "last_traded_price": "23803.8",
+                            "bid": "19983.6",
+                            "bid_iv": "0.05",
+                            "ask": "20720.6",
+                            "ask_iv": "0.92369485",
+                            "last_iv": "2.011102",
+                            "volume_24h": "0",
+                            "total_volume": "67457.37678577028",
+                            "created_at": "1751591486857",
+                            "underlying_price": "109612.80138166",
+                            "open_interest": "0.004",
+                            "funding_rate": "-0.00007535135212018912",
+                            "price_change_rate_24h": "-0.03102",
+                            "future_funding_rate": "0.00007516"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:USDC-117000-P": {
+                        "symbol": "BTC/USD:USDC-117000-P",
+                        "timestamp": 1751591486857,
+                        "datetime": "2025-07-04T01:11:26.857Z",
+                        "delta": -0.9760297124412576,
+                        "gamma": 0.0000039412321637780925,
+                        "theta": null,
+                        "vega": 877.2565462234215,
+                        "rho": -1688.6610360292025,
+                        "vanna": 0.11651469982270668,
+                        "volga": 3206.912103083585,
+                        "bidSize": null,
+                        "askSize": null,
+                        "bidImpliedVolatility": 0.05,
+                        "askImpliedVolatility": 0.92369485,
+                        "markImpliedVolatility": 0.64591348,
+                        "bidPrice": 19983.6,
+                        "askPrice": 20720.6,
+                        "markPrice": 20378.94685157,
+                        "lastPrice": 23803.8,
+                        "underlyingPrice": 109612.80138166,
+                        "info": {
+                            "symbol": "BTC-USD-117000-P",
+                            "mark_price": "20378.94685157",
+                            "mark_iv": "0.64591348",
+                            "delta": "-0.97602971",
+                            "greeks": {
+                                "delta": "-0.9760297124412576",
+                                "gamma": "0.0000039412321637780925",
+                                "vega": "877.2565462234215",
+                                "rho": "-1688.6610360292025",
+                                "vanna": "0.11651469982270668",
+                                "volga": "3206.912103083585"
+                            },
+                            "last_traded_price": "23803.8",
+                            "bid": "19983.6",
+                            "bid_iv": "0.05",
+                            "ask": "20720.6",
+                            "ask_iv": "0.92369485",
+                            "last_iv": "2.011102",
+                            "volume_24h": "0",
+                            "total_volume": "67457.37678577028",
+                            "created_at": "1751591486857",
+                            "underlying_price": "109612.80138166",
+                            "open_interest": "0.004",
+                            "funding_rate": "-0.00007535135212018912",
+                            "price_change_rate_24h": "-0.03102",
+                            "future_funding_rate": "0.00007516"
+                        }
+                    }
                 }
             }
         ]

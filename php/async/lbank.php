@@ -128,7 +128,7 @@ class lbank extends Exchange {
                             'accuracy' => 2.5,
                             'usdToCny' => 2.5,
                             'assetConfigs' => 2.5,
-                            'withdrawConfigs' => 2.5,
+                            'withdrawConfigs' => 2.5 * 1.5, // frequently rate-limits, so increase this endpoint RL
                             'timestamp' => 2.5,
                             'ticker/24hr' => 2.5,
                             'ticker' => 2.5,
@@ -683,7 +683,7 @@ class lbank extends Exchange {
                     'active' => true,
                     'contract' => true,
                     'linear' => true,
-                    'inverse' => null,
+                    'inverse' => false,
                     'contractSize' => $this->safe_number($market, 'volumeMultiple'),
                     'expiry' => null,
                     'expiryDatetime' => null,
@@ -994,7 +994,7 @@ class lbank extends Exchange {
             if ($market['swap']) {
                 return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'volume');
             }
-            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 1, 0);
+            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks');
         }) ();
     }
 
@@ -2386,7 +2386,7 @@ class lbank extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -1551,7 +1551,7 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         try
         {
@@ -1569,6 +1569,7 @@ public partial class cex : ccxt.cex
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
+                return true;
             } else
             {
                 throw error;

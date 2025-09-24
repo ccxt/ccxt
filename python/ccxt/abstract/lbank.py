@@ -6,7 +6,7 @@ class ImplicitAPI:
     spot_public_get_accuracy = spotPublicGetAccuracy = Entry('accuracy', ['spot', 'public'], 'GET', {'cost': 2.5})
     spot_public_get_usdtocny = spotPublicGetUsdToCny = Entry('usdToCny', ['spot', 'public'], 'GET', {'cost': 2.5})
     spot_public_get_assetconfigs = spotPublicGetAssetConfigs = Entry('assetConfigs', ['spot', 'public'], 'GET', {'cost': 2.5})
-    spot_public_get_withdrawconfigs = spotPublicGetWithdrawConfigs = Entry('withdrawConfigs', ['spot', 'public'], 'GET', {'cost': 2.5})
+    spot_public_get_withdrawconfigs = spotPublicGetWithdrawConfigs = Entry('withdrawConfigs', ['spot', 'public'], 'GET', {'cost': 3.75})
     spot_public_get_timestamp = spotPublicGetTimestamp = Entry('timestamp', ['spot', 'public'], 'GET', {'cost': 2.5})
     spot_public_get_ticker_24hr = spotPublicGetTicker24hr = Entry('ticker/24hr', ['spot', 'public'], 'GET', {'cost': 2.5})
     spot_public_get_ticker = spotPublicGetTicker = Entry('ticker', ['spot', 'public'], 'GET', {'cost': 2.5})

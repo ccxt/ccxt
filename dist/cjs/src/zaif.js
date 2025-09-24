@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var zaif$1 = require('./abstract/zaif.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class zaif
  * @augments Exchange
  */
-class zaif extends zaif$1 {
+class zaif extends zaif$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'zaif',
@@ -817,4 +819,4 @@ class zaif extends zaif$1 {
     }
 }
 
-module.exports = zaif;
+exports["default"] = zaif;

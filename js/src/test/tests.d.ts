@@ -43,7 +43,8 @@ declare class testMainClass {
     testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
     runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
-    checkConstructor(exchange: any): void;
+    checkConstructor(exchange: Exchange): void;
+    testReturnResponseHeaders(exchange: Exchange): Promise<boolean>;
     startTest(exchange: any, symbol: any): Promise<boolean>;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: any): void;
     loadMarketsFromFile(id: string): any;
@@ -83,13 +84,11 @@ declare class testMainClass {
     testBingx(): Promise<boolean>;
     testPhemex(): Promise<boolean>;
     testBlofin(): Promise<boolean>;
-    testHyperliquid(): Promise<boolean>;
     testCoinbaseinternational(): Promise<boolean>;
     testCoinbaseAdvanced(): Promise<boolean>;
     testWoofiPro(): Promise<boolean>;
     testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
-    testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
     testCoincatch(): Promise<boolean>;
@@ -97,5 +96,6 @@ declare class testMainClass {
     testCryptomus(): Promise<boolean>;
     testDerive(): Promise<boolean>;
     testModeTrade(): Promise<boolean>;
+    testBackpack(): Promise<boolean>;
 }
 export default testMainClass;

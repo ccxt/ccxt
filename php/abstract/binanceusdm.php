@@ -667,6 +667,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapi_get_portfolio_pmloan_history($params = array()) {
         return $this->request('portfolio/pmloan-history', 'sapi', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function sapi_get_portfolio_earn_asset_balance($params = array()) {
+        return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1093,6 +1096,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapi_post_portfolio_redeem($params = array()) {
         return $this->request('portfolio/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function sapi_post_portfolio_earn_asset_transfer($params = array()) {
+        return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -1506,6 +1512,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapipublic_get_convert_exchangeinfo($params = array()) {
         return $this->request('convert/exchangeInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function fapipublic_get_insurancebalance($params = array()) {
+        return $this->request('insuranceBalance', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapidata_get_delivery_price($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -2956,6 +2965,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapiGetPortfolioPmloanHistory($params = array()) {
         return $this->request('portfolio/pmloan-history', 'sapi', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function sapiGetPortfolioEarnAssetBalance($params = array()) {
+        return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3382,6 +3394,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapiPostPortfolioRedeem($params = array()) {
         return $this->request('portfolio/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function sapiPostPortfolioEarnAssetTransfer($params = array()) {
+        return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -3795,6 +3810,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiPublicGetConvertExchangeInfo($params = array()) {
         return $this->request('convert/exchangeInfo', 'fapiPublic', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function fapiPublicGetInsuranceBalance($params = array()) {
+        return $this->request('insuranceBalance', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiDataGetDeliveryPrice($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));

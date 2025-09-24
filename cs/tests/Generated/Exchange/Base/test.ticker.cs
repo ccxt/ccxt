@@ -42,18 +42,17 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
-        //
+        // check market
         object market = null;
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(isTrue(!isEqual(symbolForMarket, null)) && isTrue((inOp(exchange.markets, symbolForMarket)))))
         {
             market = exchange.market(symbolForMarket);
         }
-        object exchangeHasIndexMarkets = exchange.safeBool(exchange.has, "index", false);
-        object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        object valuesShouldBePositive = isTrue(isStandardMarket) || isTrue((isTrue(isEqual(market, null)) && !isTrue(exchangeHasIndexMarkets)));
-        if (isTrue(valuesShouldBePositive))
+        object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
+        if (isTrue(isTrue(valuesShouldBePositive) && !isTrue((inOp(skippedProperties, "positiveValues")))))
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "high", "0");
@@ -69,15 +68,25 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0");
+        //
+        // close price
+        //
         object lastString = exchange.safeString(entry, "last");
         object closeString = exchange.safeString(entry, "close");
         assert(isTrue((isTrue((isEqual(closeString, null))) && isTrue((isEqual(lastString, null))))) || isTrue(Precise.stringEq(lastString, closeString)), add("`last` != `close`", logText));
-        object baseVolume = exchange.safeString(entry, "baseVolume");
-        object quoteVolume = exchange.safeString(entry, "quoteVolume");
-        object high = exchange.safeString(entry, "high");
-        object low = exchange.safeString(entry, "low");
+        object openPrice = exchange.safeString(entry, "open");
+        //
+        // base & quote volumes
+        //
+        object baseVolume = exchange.omitZero(exchange.safeString(entry, "baseVolume"));
+        object quoteVolume = exchange.omitZero(exchange.safeString(entry, "quoteVolume"));
+        object high = exchange.omitZero(exchange.safeString(entry, "high"));
+        object low = exchange.omitZero(exchange.safeString(entry, "low"));
+        object open = exchange.omitZero(exchange.safeString(entry, "open"));
+        object close = exchange.omitZero(exchange.safeString(entry, "close"));
         if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
+            // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
             if (isTrue(isTrue(isTrue(isTrue((!isEqual(baseVolume, null))) && isTrue((!isEqual(quoteVolume, null)))) && isTrue((!isEqual(high, null)))) && isTrue((!isEqual(low, null)))))
             {
                 object baseLow = Precise.stringMul(baseVolume, low);
@@ -103,6 +112,23 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringLe(quoteVolume, baseHigh), add("quoteVolume should be <= baseVolume * high", logText));
             }
         }
+        // open and close should be between High & Low
+        if (isTrue(isTrue(isTrue(!isEqual(high, null)) && isTrue(!isEqual(low, null))) && !isTrue((inOp(skippedProperties, "compareOHLC")))))
+        {
+            if (isTrue(!isEqual(open, null)))
+            {
+                assert(Precise.stringGe(open, low), add("open should be >= low", logText));
+                assert(Precise.stringLe(open, high), add("open should be <= high", logText));
+            }
+            if (isTrue(!isEqual(close, null)))
+            {
+                assert(Precise.stringGe(close, low), add("close should be >= low", logText));
+                assert(Precise.stringLe(close, high), add("close should be <= high", logText));
+            }
+        }
+        //
+        // vwap
+        //
         object vwap = exchange.safeString(entry, "vwap");
         if (isTrue(!isEqual(vwap, null)))
         {
@@ -127,6 +153,58 @@ public partial class testMainClass : BaseTest
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
         }
+        object percentage = exchange.safeString(entry, "percentage");
+        object change = exchange.safeString(entry, "change");
+        if (!isTrue((inOp(skippedProperties, "maxIncrease"))))
+        {
+            //
+            // percentage
+            //
+            object maxIncrease = "100"; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+            if (isTrue(!isEqual(percentage, null)))
+            {
+                // - should be above -100 and below MAX
+                assert(Precise.stringGe(percentage, "-100"), add("percentage should be above -100% ", logText));
+                assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), add(add(add("percentage should be below ", maxIncrease), "00% "), logText));
+            }
+            //
+            // change
+            //
+            object approxValue = exchange.safeStringN(entry, new List<object>() {"open", "close", "average", "bid", "ask", "vwap", "previousClose"});
+            if (isTrue(!isEqual(change, null)))
+            {
+                // - should be between -price & +price*100
+                assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), add("change should be above -price ", logText));
+                assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), add(add(add("change should be below ", maxIncrease), "x price "), logText));
+            }
+        }
+        //
+        // ensure all expected values are defined
+        //
+        if (isTrue(!isEqual(lastString, null)))
+        {
+            if (isTrue(!isEqual(percentage, null)))
+            {
+                // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
+                assert(isTrue(!isEqual(openPrice, null)) && isTrue(!isEqual(change, null)), add("open & change should be defined if last & percentage are defined", logText)); // todo : add average price too
+            } else if (isTrue(!isEqual(change, null)))
+            {
+                // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
+                assert(isTrue(!isEqual(openPrice, null)) && isTrue(!isEqual(percentage, null)), add("open & percentage should be defined if last & change are defined", logText)); // todo : add average price too
+            }
+        } else if (isTrue(!isEqual(openPrice, null)))
+        {
+            if (isTrue(!isEqual(percentage, null)))
+            {
+                // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
+                assert(isTrue(!isEqual(lastString, null)) && isTrue(!isEqual(change, null)), add("last & change should be defined if open & percentage are defined", logText)); // todo : add average price too
+            } else if (isTrue(!isEqual(change, null)))
+            {
+                // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
+                assert(isTrue(!isEqual(lastString, null)) && isTrue(!isEqual(percentage, null)), add("last & percentage should be defined if open & change are defined", logText)); // todo : add average price too
+            }
+        }
+        //
         // todo: rethink about this
         // else {
         //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);

@@ -50,6 +50,7 @@ class Client(object):
     connecting = False
     asyncio_loop: BaseEventLoop = None
     ping_looper = None
+    decompressBinary = True  # decompress binary messages by default
 
     def __init__(self, url, on_message_callback, on_error_callback, on_close_callback, on_connected_callback, config={}):
         defaults = {
@@ -134,9 +135,12 @@ class Client(object):
                     error = NetworkError(str(exception))
                     if self.verbose:
                         self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
-                    self.reset(error)
+                    self.reject(error)
 
             task.add_done_callback(after_interrupt)
+        else:
+            # connection got terminated after the connection was made and before the receive loop ran
+            self.on_close(1006)
 
     async def open(self, session, backoff_delay=0):
         # exponential backoff for consequent connections if necessary
@@ -215,7 +219,8 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
-            data = data.decode()
+            if self.decompressBinary:
+                data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):

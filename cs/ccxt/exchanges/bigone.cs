@@ -17,7 +17,7 @@ public partial class bigone : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", null },
+                { "swap", true },
                 { "future", null },
                 { "option", false },
                 { "cancelAllOrders", true },
@@ -364,7 +364,7 @@ public partial class bigone : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetV3Assets", true);
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // {
