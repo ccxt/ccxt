@@ -23,6 +23,7 @@ const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
 const exchangeIds = exchanges.ids;
 const exchangeIdsWs = exchanges.ws;
+let transpiledExchanges = exchangeIds;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -503,8 +504,8 @@ class NewTranspiler {
             [/<-spawaned/g, '<-spawaned.(<-chan interface{})'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
-            [/([a-z]+)\.GetLimit/g, '$1.(GetsLimit).GetLimit'],
-            [/order.Limit([^"])/g, 'orderbooks.(GetsLimit).Limit$1'],
+            [/([a-z]+)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
+            [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
             [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
             [/(?:&)?(storedOrderBook|orderbook)\.Cache/g, '$1.(OrderBookInterface).GetCache()'],
@@ -543,7 +544,7 @@ class NewTranspiler {
             const extendedExchanges: { [key: string]: string } = {};
             const tsFolder = './ts/src';
 
-            allExchanges['ids'].forEach((exchangeName: string) => {
+            exchangeIds.forEach((exchangeName: string) => {
                 const filePath = `${tsFolder}/${exchangeName}.ts`;
                 const content = fs.readFileSync(filePath, 'utf8');
 
@@ -601,7 +602,7 @@ class NewTranspiler {
     getTranspilerConfig(isWrapper: boolean = false) {
         const classNameMap = {};
         if (!isWrapper) {
-            allExchanges['ids'].forEach((exchangeName: string) => {
+            exchangeIds.forEach((exchangeName: string) => {
                 classNameMap[exchangeName] = capitalize(exchangeName) + 'Core';
                 classNameMap[`${exchangeName}Rest`] = capitalize(exchangeName) + 'Core';
             });
@@ -1809,6 +1810,12 @@ type IExchange interface {
         } else {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
         }
+        
+        // Only process exchanges that are in transpiledExchanges
+        exchanges = exchanges.filter (file => {
+            const exchangeName = basename (file, pattern);
+            return transpiledExchanges.includes (exchangeName);
+        });
 
         // exchanges = ['bitmart.ts']
         // transpile using webworker
@@ -2444,6 +2451,10 @@ if (isMainEntry(import.meta.url)) {
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
     const child = process.argv.includes ('--child');
+    const exchange = process.argv.includes ('--exchange');
+    if (exchange) {
+        transpiledExchanges = [ exchange ];
+    }
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi');
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     if (!child && !multiprocess) {
