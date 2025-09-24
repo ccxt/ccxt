@@ -621,7 +621,17 @@ export default class indodax extends Exchange {
         //
         const response = await this.publicGetApiTickerAll (params);
         const tickers = this.safeDict (response, 'tickers', {});
-        return this.parseTickers (tickers, symbols);
+        const keys = Object.keys (tickers);
+        const parsedTickers = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const rawTicker = tickers[key];
+            const marketId = key.replace ('_', '');
+            const market = this.safeMarket (marketId);
+            const parsed = this.parseTicker (rawTicker, market);
+            parsedTickers[marketId] = parsed;
+        }
+        return this.filterByArray (parsedTickers, 'symbol', symbols);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
