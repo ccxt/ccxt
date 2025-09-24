@@ -28,10 +28,7 @@ export default class lbank extends lbankRest {
             },
             'urls': {
                 'api': {
-                    'ws': {
-                        'spot': 'wss://www.lbkex.net/ws/V2/',
-                        'contract': 'wss://lbkperpws.lbank.com/ws',
-                    },
+                    'ws': 'wss://www.lbkex.net/ws/V2/',
                 },
             },
             'options': {
@@ -79,8 +76,7 @@ export default class lbank extends lbankRest {
     async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const watchOHLCVOptions = this.safeValue (this.options, 'watchOHLCV', {});
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
@@ -121,8 +117,7 @@ export default class lbank extends lbankRest {
         const timeframes = this.safeValue (watchOHLCVOptions, 'timeframes', {});
         const timeframeId = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId;
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'action': 'subscribe',
             'subscribe': 'kbar',
@@ -254,8 +249,7 @@ export default class lbank extends lbankRest {
     async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const messageHash = 'fetchTicker:' + market['symbol'];
         const message: Dict = {
             'action': 'request',
@@ -279,8 +273,7 @@ export default class lbank extends lbankRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const message: Dict = {
             'action': 'subscribe',
@@ -388,8 +381,7 @@ export default class lbank extends lbankRest {
     async fetchTradesWs (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const messageHash = 'fetchTrades:' + market['symbol'];
         if (limit === undefined) {
             limit = 10;
@@ -419,8 +411,7 @@ export default class lbank extends lbankRest {
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const messageHash = 'trades:' + market['symbol'];
         const message: Dict = {
             'action': 'subscribe',
@@ -540,7 +531,7 @@ export default class lbank extends lbankRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const key = await this.authenticate (params);
-        const url = this.urls['api']['ws']['spot'];
+        const url = this.urls['api']['ws'];
         let messageHash = undefined;
         let pair = 'all';
         if (symbol === undefined) {
@@ -704,7 +695,7 @@ export default class lbank extends lbankRest {
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const key = await this.authenticate (params);
-        const url = this.urls['api']['ws']['spot'];
+        const url = this.urls['api']['ws'];
         const messageHash = 'balance';
         const message: Dict = {
             'action': 'subscribe',
@@ -761,8 +752,7 @@ export default class lbank extends lbankRest {
     async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const messageHash = 'fetchOrderbook:' + market['symbol'];
         if (limit === undefined) {
             limit = 100;
@@ -791,8 +781,7 @@ export default class lbank extends lbankRest {
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = market['spot'] ? 'spot': 'contract';
-        const url = this.urls['api']['ws'][marketType];
+        const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + market['symbol'];
         params = this.omit (params, 'aggregation');
         if (limit === undefined) {
@@ -941,7 +930,7 @@ export default class lbank extends lbankRest {
     async authenticate (params = {}) {
         // when we implement more private streams, we need to refactor the authentication
         // to be concurent-safe and respect the same authentication token
-        const url = this.urls['api']['ws']['spot'];
+        const url = this.urls['api']['ws'];
         const client = this.client (url);
         const now = this.milliseconds ();
         const messageHash = 'authenticated';
