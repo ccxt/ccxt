@@ -661,6 +661,9 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,

@@ -210,6 +210,9 @@ class okcoin extends okcoin$1["default"] {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,

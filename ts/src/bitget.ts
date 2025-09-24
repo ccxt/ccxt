@@ -1326,6 +1326,8 @@ export default class bitget extends Exchange {
                     '43025': InvalidOrder, // Plan order does not exist
                     '43115': OnMaintenance, // {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
+                    '40774': InvalidOrder, // {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '45122': InvalidOrder, // {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol, // invalid trading pair
@@ -5202,6 +5204,14 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'orderType': type,
         };
+        let hedged = undefined;
+        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        // backward compatibility for `oneWayMode`
+        let oneWayMode = undefined;
+        [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
+        if (oneWayMode !== undefined) {
+            hedged = !oneWayMode;
+        }
         const isMarketOrder = type === 'market';
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue (params, 'stopLossPrice');
@@ -5290,7 +5300,11 @@ export default class bitget extends Exchange {
                 if (!isMarketOrder) {
                     throw new ExchangeError (this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
                 }
-                request['holdSide'] = (side === 'buy') ? 'long' : 'short';
+                if (hedged) {
+                    request['holdSide'] = (side === 'sell') ? 'long' : 'short';
+                } else {
+                    request['holdSide'] = (side === 'sell') ? 'buy' : 'sell';
+                }
                 if (isStopLossTriggerOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopLossTriggerPrice);
                     request['planType'] = 'pos_loss';
@@ -5314,14 +5328,6 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                let hedged = undefined;
-                [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
-                // backward compatibility for `oneWayMode`
-                let oneWayMode = undefined;
-                [ oneWayMode, params ] = this.handleParamBool (params, 'oneWayMode');
-                if (oneWayMode !== undefined) {
-                    hedged = !oneWayMode;
-                }
                 let requestSide = side;
                 if (reduceOnly) {
                     if (!hedged) {

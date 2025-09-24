@@ -1165,6 +1165,9 @@ public partial class bybit : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
@@ -1210,15 +1213,15 @@ public partial class bybit : Exchange
         });
     }
 
-    public virtual void enableDemoTrading(object enable)
+    /**
+     * @method
+     * @name bybit#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://bybit-exchange.github.io/docs/v5/demo
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    public override void enableDemoTrading(object enable)
     {
-        /**
-         * @method
-         * @name bybit#enableDemoTrading
-         * @description enables or disables demo trading mode
-         * @see https://bybit-exchange.github.io/docs/v5/demo
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
         if (isTrue(this.isSandboxModeEnabled))
         {
             throw new NotSupported ((string)add(this.id, " demo trading does not support in sandbox environment")) ;

@@ -775,6 +775,9 @@ class mexc(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',

@@ -72,11 +72,14 @@
         }
     },
     "binance": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
+            },
+            "fetchCurrencies": {
+                "precision": "temp issues fro fiat"
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
@@ -97,7 +100,7 @@
         }
     },
     "binancecoinm": {
-        "httpsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
@@ -108,8 +111,8 @@
         }
     },
     "binanceusdm": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchLedger": {
                 "account": "empty",
@@ -555,8 +558,8 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temp skip"
@@ -582,6 +585,12 @@
             "fetchBorrowRate": "does not work with unified account",
             "orderBook": {
                 "compareToNextItem": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3794"
+            },
+            "watchOrderBook": {
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:623"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     },
@@ -1113,16 +1122,24 @@
                 "activeMajorCurrencies": "todo"
             },
             "watchOrderBook": {
-                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833"
+                "nonce": "missing https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L4833",
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:661"
+            },
+            "watchOrderBookForSymbols": {
+                "nonce": "same",
+                "spread": "same"
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5654"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
     "hashkey": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -1797,7 +1814,7 @@
         }
     },
     "tokocrypto": {
-        "httpsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
@@ -1815,12 +1832,15 @@
             "orderBook": {
                 "compareToZero":"some of them mare zero",
                 "compareToNextItem": "several rows are same zero"
+            },
+            "fetchOrderBooks": {
+                "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
             }
         }
     },
     "vertex": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipPhpAsync": "for some reason it shows invalid headers - https://app.travis-ci.com/github/ccxt/ccxt/builds/272619476#L4519 but cant reproduce locally",
         "skipCSharp": "same as above",
         "skipMethods": {
@@ -1993,7 +2013,8 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
-                "precision":"not provided"
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 65
             },
             "fetchTrades": {
                 "side": "not provided"

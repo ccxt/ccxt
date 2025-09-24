@@ -1257,6 +1257,9 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'triggerPriceType': None,
                         'triggerDirection': False,
@@ -1304,7 +1307,9 @@ class bybit(Exchange, ImplicitAPI):
     def enable_demo_trading(self, enable: bool):
         """
         enables or disables demo trading mode
+
         https://bybit-exchange.github.io/docs/v5/demo
+
         :param boolean [enable]: True if demo trading should be enabled, False otherwise
         """
         if self.isSandboxModeEnabled:

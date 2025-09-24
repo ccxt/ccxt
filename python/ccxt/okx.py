@@ -1323,6 +1323,9 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'swap': {
                     'linear': {

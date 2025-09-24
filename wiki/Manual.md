@@ -4722,6 +4722,7 @@ We have different classification of trigger orders:
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
+* To ensure exchange supports this functionality, check `exchange.features` or use helper method `exchange.featureValue('BTC/USDT', 'createOrder', 'triggerPrice')`.
 * Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
 
 <!-- tabs:start -->
@@ -4762,6 +4763,8 @@ Note, you can also add `reduceOnly: true` param to the trigger order (with a pos
 ##### Stop Loss Orders
 
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the stop loss triggerPrice), and also automatically implemented `triggerDirection` on behalf of user, so instead of regular Trigger Order, you can use this as an alternative.
+
+* To ensure exchange supports this functionality, check `exchange.features` or use helper method `exchange.featureValue('BTC/USDT', 'createOrder', 'stopLossPrice')`.
 
 Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
@@ -4929,12 +4932,13 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
 
-* By default stopLoss and takeProfit orders will be the same magnitude as primary order but in the opposite direction.
+* By default stopLoss and takeProfit order amounts will be the same as primary order but in the opposite direction.
 * Attached trigger orders are conditional on the primary order being executed.
-* Not supported by all exchanges.
-* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
-
-*Note: This is still under unification and is work in progress*
+* Not supported by all exchanges. To check whether stop-loss is supported, use such approach:
+```
+exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss') // if stopLoss supported
+exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+```
 
 <!-- tabs:start -->
 #### **Javascript**

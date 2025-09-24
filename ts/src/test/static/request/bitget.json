@@ -7,6 +7,92 @@
     ],
     "outputType": "json",
     "methods": {
+        "createTakeProfitOrder": [
+            {
+                "description": "place tk order on a short position in one-way  mode",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    60
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"sell\",\"triggerPrice\":\"60\",\"planType\":\"pos_profit\"}"
+            },
+            {
+                "description": "place tk  order on a short  position in hedged mode",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    50,
+                    {
+                        "hedged": true,
+                        "takeProfitPrice": 50
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"short\",\"triggerPrice\":\"50\",\"planType\":\"pos_profit\"}"
+            },
+            {
+                "description": "place tk  order on a long position in hedged mode",
+                "method": "createTakeProfitOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    130,
+                    {
+                        "hedged": true,
+                        "takeProfitPrice": 130
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"long\",\"triggerPrice\":\"130\",\"planType\":\"pos_profit\"}"
+            }
+        ],
+        "createStopLossOrder": [
+            {
+                "description": "place sl  order on a long position in one-way  mode",
+                "method": "createStopLossOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    60
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"buy\",\"triggerPrice\":\"60\",\"planType\":\"pos_loss\"}"
+            },
+            {
+                "description": "place sl order on a long position in hedged mode",
+                "method": "createStopLossOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-tpsl-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    60,
+                    {
+                        "hedged": true,
+                        "stopLossPrice": 60
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"triggerType\":\"mark_price\",\"holdSide\":\"long\",\"triggerPrice\":\"60\",\"planType\":\"pos_loss\"}"
+            }
+        ],
         "withdraw": [
             {
                 "description": "with_precision",
@@ -34,6 +120,22 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "open short position in hedged mode",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v2/mix/order/place-order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"orderType\":\"market\",\"force\":\"GTC\",\"marginCoin\":\"USDT\",\"size\":\"0.1\",\"productType\":\"USDT-FUTURES\",\"marginMode\":\"crossed\",\"tradeSide\":\"Open\",\"side\":\"sell\"}"
+            },
             {
                 "description": "Spot limit buy",
                 "method": "createOrder",

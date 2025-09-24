@@ -679,6 +679,9 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'triggerPriceType': None,
                         'attachedStopLossTakeProfit': None,
