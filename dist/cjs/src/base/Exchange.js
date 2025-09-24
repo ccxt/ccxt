@@ -2647,6 +2647,97 @@ class Exchange {
         }
         return featuresObj;
     }
+    featureValue(symbol, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+        /**
+         * @method
+         * @name exchange#featureValue
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [symbol] unified symbol
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        const market = this.market(symbol);
+        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue);
+    }
+    featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+        /**
+         * @method
+         * @name exchange#featureValueByType
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [marketType] supported only: "spot", "swap", "future"
+         * @param {string} [subType] supported only: "linear", "inverse"
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        // if exchange does not yet have features manually implemented
+        if (this.features === undefined) {
+            return defaultValue;
+        }
+        // if marketType (e.g. 'option') does not exist in features
+        if (!(marketType in this.features)) {
+            return defaultValue; // unsupported marketType, check "exchange.features" for details
+        }
+        // if marketType dict undefined
+        if (this.features[marketType] === undefined) {
+            return defaultValue;
+        }
+        let methodsContainer = this.features[marketType];
+        if (subType === undefined) {
+            if (marketType !== 'spot') {
+                return defaultValue; // subType is required for non-spot markets
+            }
+        }
+        else {
+            if (!(subType in this.features[marketType])) {
+                return defaultValue; // unsupported subType, check "exchange.features" for details
+            }
+            // if subType dict undefined
+            if (this.features[marketType][subType] === undefined) {
+                return defaultValue;
+            }
+            methodsContainer = this.features[marketType][subType];
+        }
+        // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        if (methodName === undefined) {
+            return methodsContainer;
+        }
+        if (!(methodName in methodsContainer)) {
+            return defaultValue; // unsupported method, check "exchange.features" for details');
+        }
+        const methodDict = methodsContainer[methodName];
+        if (methodDict === undefined) {
+            return defaultValue;
+        }
+        // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
+        if (paramName === undefined) {
+            return methodDict;
+        }
+        if (!(paramName in methodDict)) {
+            return defaultValue; // unsupported paramName, check "exchange.features" for details');
+        }
+        const dictionary = this.safeDict(methodDict, paramName);
+        if (dictionary === undefined) {
+            // if the value is not dictionary but a scalar value (or undefined), return as is
+            return methodDict[paramName];
+        }
+        else {
+            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (subParamName === undefined) {
+                return methodDict[paramName];
+            }
+            // throw an exception for unsupported subParamName
+            if (!(subParamName in methodDict[paramName])) {
+                return defaultValue; // unsupported subParamName, check "exchange.features" for details
+            }
+            return methodDict[paramName][subParamName];
+        }
+    }
     orderbookChecksumMessage(symbol) {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
