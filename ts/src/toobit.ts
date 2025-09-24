@@ -320,6 +320,7 @@ export default class toobit extends Exchange {
                 },
                 'networksById': {
                     'ETH': 'ERC20',
+                    'ERC20': 'ERC20',
                 },
             },
             'features': {
