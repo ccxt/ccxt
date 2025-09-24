@@ -368,7 +368,7 @@ export default class indodax extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString (market, 'ticker_id');
+            const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'traded_currency');
             const quoteId = this.safeString (market, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
