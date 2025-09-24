@@ -10,6 +10,7 @@ public partial class okcoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +44,7 @@ public partial class okcoin
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -76,6 +78,7 @@ public partial class okcoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -95,6 +98,7 @@ public partial class okcoin
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -128,6 +132,7 @@ public partial class okcoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -154,6 +159,7 @@ public partial class okcoin
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

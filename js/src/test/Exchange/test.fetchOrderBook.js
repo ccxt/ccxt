@@ -9,5 +9,6 @@ async function testFetchOrderBook(exchange, skippedProperties, symbol) {
     const method = 'fetchOrderBook';
     const orderbook = await exchange.fetchOrderBook(symbol);
     testOrderBook(exchange, skippedProperties, method, orderbook, symbol);
+    return true;
 }
 export default testFetchOrderBook;

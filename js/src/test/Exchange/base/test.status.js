@@ -4,14 +4,16 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
+import assert from 'assert';
 function testStatus(exchange, skippedProperties, method, entry, now) {
-    const format = {
-        'info': {},
-        'status': 'ok',
-        'updated': 1650000000000,
-        'eta': 1660000000000,
-        'url': 'https://example.com', // a link to a Git
-    };
+    assert(true, 'testStatus');
+    // const format = {
+    //     'info': { },
+    //     'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
+    //     'updated': 1650000000000, // integer, last updated timestamp in milliseconds if updated via the API
+    //     'eta': 1660000000000, // when the maintenance or outage is expected to end
+    //     'url': 'https://example.com', // a link to a Git
+    // };
     // todo: after status object is changed in base
     // if (exchange.has['fetchStatus'] && exchange.has['fetchTime']) {
     //     const emptyAllowedFor = [ 'url', 'eta', 'updated' ];

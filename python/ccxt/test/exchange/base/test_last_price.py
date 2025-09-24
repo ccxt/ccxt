@@ -23,7 +23,7 @@ def test_last_price(exchange, skipped_properties, method, entry, symbol):
         'price': exchange.parse_number('1.234'),
         'side': 'buy',
     }
-    empty_allowed_for = ['timestamp', 'datetime', 'side']
+    empty_allowed_for = ['timestamp', 'datetime', 'side', 'price']  # binance sometimes provides empty prices for old pairs
     test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, entry)
     #

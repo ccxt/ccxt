@@ -76,6 +76,9 @@ abstract class bitstamp extends \ccxt\Exchange {
     public function private_post_crypto_transactions($params = array()) {
         return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_open_order($params = array()) {
+        return $this->request('open_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_open_orders_all($params = array()) {
         return $this->request('open_orders/all/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -837,6 +840,9 @@ abstract class bitstamp extends \ccxt\Exchange {
     }
     public function privatePostCryptoTransactions($params = array()) {
         return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenOrder($params = array()) {
+        return $this->request('open_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenOrdersAll($params = array()) {
         return $this->request('open_orders/all/', 'private', 'POST', $params, null, null, array("cost" => 1));

@@ -11,12 +11,12 @@ use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class poloniex extends \ccxt\async\poloniex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -25,6 +25,7 @@ class poloniex extends \ccxt\async\poloniex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchBalance' => true,
                 'watchStatus' => false,
                 'watchOrders' => true,
@@ -86,7 +87,9 @@ class poloniex extends \ccxt\async\poloniex {
             /**
              * @ignore
              * authenticates the user to access private web socket channels
-             * @see https://docs.poloniex.com/#authenticated-channels-market-data-authentication
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/authentication
+             *
              * @return {array} response from exchange
              */
             $this->check_required_credentials();
@@ -144,8 +147,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
+             * @param {string} $messageHash unique identifier for the message
              * @param {boolean} $isPrivate true for the authenticated $url, false for the public $url
-             * @param {string[]|null} $symbols CCXT market $symbols
+             * @param {string[]} [$symbols] CCXT market $symbols
              * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
@@ -178,7 +182,6 @@ class poloniex extends \ccxt\async\poloniex {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
-             * @param {string[]|null} symbols CCXT market symbols
              * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
@@ -196,24 +199,26 @@ class poloniex extends \ccxt\async\poloniex {
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-create-order
-             * create a trade order
-             * @param {string} $symbol unified $symbol of the $market to create an order in
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#create-$order
+             *
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
              * @param {string} [$params->clientOrderId] Maximum 64-character length.*
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} [$params->amount] quote units for the order
-             * @param {boolean} [$params->allowBorrow] allow order to be placed by borrowing funds (Default => false)
-             * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker order will be canceled when self-trade happens
+             * @param {string} [$params->amount] quote units for the $order
+             * @param {boolean} [$params->allowBorrow] allow $order to be placed by borrowing funds (Default => false)
+             * @param {string} [$params->stpMode] self-trade prevention, defaults to expire_taker, none => enable self-trade; expire_taker => taker $order will be canceled when self-trade happens
              * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
-             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
+             * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -239,7 +244,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy $orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend (quote quantity) in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -256,34 +261,42 @@ class poloniex extends \ccxt\async\poloniex {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            return Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
+            $orders = Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
+            $order = $this->safe_dict($orders, 0);
+            return $order;
         }) ();
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
-             * cancel multiple orders
-             * @param {string} $id order $id
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-$orders
+             *
+             * cancel multiple $orders
+             * @param {string} $id $order $id
              * @param {string} [$symbol] unified market $symbol
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
-             * @param {string} [$params->clientOrderId] client order $id
-             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
+             * @param {string} [$params->clientOrderId] client $order $id
+             * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
              */
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
                 $clientOrderIds = $this->safe_value($params, 'clientOrderId', array());
                 $params['clientOrderIds'] = $this->array_concat($clientOrderIds, array( $clientOrderId ));
             }
-            return Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
+            $orders = Async\await($this->cancel_orders_ws(array( $id ), $symbol, $params));
+            $order = $this->safe_dict($orders, 0);
+            return $order;
         }) ();
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
-             * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-multiple-orders
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#cancel-multiple-orders
+             *
              * cancel multiple orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
@@ -303,7 +316,9 @@ class poloniex extends \ccxt\async\poloniex {
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://docs.poloniex.com/#authenticated-channels-trade-requests-cancel-all-orders
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+             *
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
@@ -342,7 +357,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             * @see https://docs.poloniex.com/#public-channels-market-data-candlesticks
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -368,7 +385,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://docs.poloniex.com/#public-channels-market-data-ticker
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -384,8 +403,10 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://docs.poloniex.com/#public-channels-market-data-ticker
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+             *
+             * @param {string[]} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -403,20 +424,57 @@ class poloniex extends \ccxt\async\poloniex {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @see https://docs.poloniex.com/#public-channels-market-data-$trades
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * get the list of most recent trades for a particular $symbol
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#$trades
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
             $name = 'trades';
-            $trades = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
+            $url = $this->urls['api']['ws']['public'];
+            $marketIds = $this->market_ids($symbols);
+            $subscribe = array(
+                'event' => 'subscribe',
+                'channel' => array(
+                    $name,
+                ),
+                'symbols' => $marketIds,
+            );
+            $request = $this->extend($subscribe, $params);
+            $messageHashes = array();
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $messageHashes[] = $name . '::' . $symbols[$i];
+                }
+            }
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -426,7 +484,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://docs.poloniex.com/#public-channels-market-data-book-level-2
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniex watchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -445,7 +505,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @see https://docs.poloniex.com/#authenticated-channels-market-data-$orders
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/order
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] not used by poloniex watchOrders
              * @param {int} [$limit] not used by poloniex watchOrders
@@ -471,7 +533,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user using orders stream
-             * @see https://docs.poloniex.com/#authenticated-channels-market-data-orders
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/order
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] not used by poloniex watchMyTrades
              * @param {int} [$limit] not used by poloniex watchMyTrades
@@ -498,7 +562,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
-             * @see https://docs.poloniex.com/#authenticated-channels-market-data-balances
+             *
+             * @see https://api-docs.poloniex.com/spot/websocket/balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1210,14 +1276,7 @@ class poloniex extends \ccxt\async\poloniex {
         if ($type === 'auth') {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {
-            $data = $this->safe_value($message, 'data');
-            $item = $this->safe_value($data, 0);
-            $orderId = $this->safe_string($item, 'orderId');
-            if ($orderId === '0') {
-                $this->handle_error_message($client, $item);
-            } else {
-                $this->handle_order_request($client, $message);
-            }
+            $this->handle_order_request($client, $message);
         } else {
             $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
@@ -1227,7 +1286,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        $message => 'Invalid channel value ["ordersss"]',
@@ -1245,12 +1304,43 @@ class poloniex extends \ccxt\async\poloniex {
         //       "event" => "error",
         //       "message" => "Platform in maintenance mode"
         //    }
+        //    {
+        //       "id":"1722386782048",
+        //       "data":array(
+        //          {
+        //             "orderId":0,
+        //             "clientOrderId":null,
+        //             "message":"available insufficient",
+        //             "code":21721
+        //          }
+        //       )
+        //    }
         //
+        $id = $this->safe_string($message, 'id');
         $event = $this->safe_string($message, 'event');
-        $orderId = $this->safe_string($message, 'orderId');
+        $data = $this->safe_list($message, 'data');
+        $first = $this->safe_dict($data, 0);
+        $orderId = $this->safe_string($first, 'orderId');
         if (($event === 'error') || ($orderId === '0')) {
-            $error = $this->safe_string($message, 'message');
-            throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
+            try {
+                $error = $this->safe_string($first, 'message');
+                $code = $this->safe_string($first, 'code');
+                $feedback = $this->id . ' ' . $this->json($message);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+                throw new ExchangeError($feedback);
+            } catch (Exception $e) {
+                if ($e instanceof AuthenticationError) {
+                    $messageHash = 'authenticated';
+                    $client->reject ($e, $messageHash);
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        unset($client->subscriptions[$messageHash]);
+                    }
+                } else {
+                    $client->reject ($e, $id);
+                }
+                return true;
+            }
         }
         return false;
     }

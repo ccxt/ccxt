@@ -21,3 +21,4 @@ async def test_fetch_borrow_interest(exchange, skipped_properties, code, symbol)
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, borrow_interest, code)
     for i in range(0, len(borrow_interest)):
         test_borrow_interest(exchange, skipped_properties, method, borrow_interest[i], code, symbol)
+    return True

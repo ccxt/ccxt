@@ -49,6 +49,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     public function private_post_addexport($params = array()) {
         return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
+    public function private_post_amendorder($params = array()) {
+        return $this->request('AmendOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
+    }
     public function private_post_balance($params = array()) {
         return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));
     }
@@ -207,6 +210,9 @@ abstract class kraken extends \ccxt\async\Exchange {
     }
     public function privatePostAddExport($params = array()) {
         return $this->request('AddExport', 'private', 'POST', $params, null, null, array("cost" => 3));
+    }
+    public function privatePostAmendOrder($params = array()) {
+        return $this->request('AmendOrder', 'private', 'POST', $params, null, null, array("cost" => 0));
     }
     public function privatePostBalance($params = array()) {
         return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));

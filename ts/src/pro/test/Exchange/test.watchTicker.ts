@@ -2,13 +2,15 @@
 import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchTicker (exchange, skippedProperties, symbol) {
+async function testWatchTicker (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchTicker';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchTicker (symbol);
         } catch (e) {
@@ -16,12 +18,16 @@ async function testWatchTicker (exchange, skippedProperties, symbol) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
-        now = exchange.milliseconds ();
-        testTicker (exchange, skippedProperties, method, response, symbol);
+        if (success === true) {
+            assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            testTicker (exchange, skippedProperties, method, response, symbol);
+        }
     }
+    return true;
 }
 
 export default testWatchTicker;

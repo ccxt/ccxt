@@ -10,6 +10,7 @@ public partial class hollaex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#sending-receiving-messages"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -36,6 +37,7 @@ public partial class hollaex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#sending-receiving-messages"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -69,6 +71,7 @@ public partial class hollaex
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#sending-receiving-messages"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -102,6 +105,7 @@ public partial class hollaex
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#sending-receiving-messages"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -135,6 +139,7 @@ public partial class hollaex
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://apidocs.hollaex.com/#sending-receiving-messages"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

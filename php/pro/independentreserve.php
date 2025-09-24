@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class independentreserve extends \ccxt\async\independentreserve {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -21,6 +21,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => false,
                 'watchOrderBook' => true,

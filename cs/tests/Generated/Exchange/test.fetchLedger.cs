@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchLedger(Exchange exchange, object skippedProperties, object code)
+    async static public Task<object> testFetchLedger(Exchange exchange, object skippedProperties, object code)
     {
         object method = "fetchLedger";
         object items = await exchange.fetchLedger(code);
@@ -18,6 +18,7 @@ public partial class testMainClass : BaseTest
             testLedgerEntry(exchange, skippedProperties, method, getValue(items, i), code, now);
         }
         testSharedMethods.assertTimestampOrder(exchange, method, code, items);
+        return true;
     }
 
 }

@@ -25,11 +25,13 @@ function test_fetch_positions($exchange, $skipped_properties, $symbol) {
         // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
         $positions_for_symbol = Async\await($exchange->fetch_positions([$symbol]));
-        assert(gettype($positions_for_symbol) === 'array' && array_keys($positions_for_symbol) === array_keys(array_keys($positions_for_symbol)), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions_for_symbol));
+        assert(gettype($positions_for_symbol) === 'array' && array_is_list($positions_for_symbol), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($positions_for_symbol));
         $positions_for_symbol_length = count($positions_for_symbol);
         assert($positions_for_symbol_length <= 4, $exchange->id . ' ' . $method . ' positions length for particular symbol should be less than 4, returned ' . $exchange->json($positions_for_symbol));
         for ($i = 0; $i < count($positions_for_symbol); $i++) {
             test_position($exchange, $skipped_properties, $method, $positions_for_symbol[$i], $symbol, $now);
         }
+        // testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
+        return true;
     }) ();
 }

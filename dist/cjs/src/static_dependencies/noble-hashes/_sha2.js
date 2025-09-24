@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _assert = require('./_assert.js');
 var utils = require('./utils.js');
 
+// ----------------------------------------------------------------------------
 // Polyfill for Safari 14
 function setBigUint64(view, byteOffset, value, isLE) {
     if (typeof view.setBigUint64 === 'function')
@@ -104,7 +105,7 @@ class SHA2 extends utils.Hash {
         return res;
     }
     _cloneInto(to) {
-        to || (to = new this.constructor());
+        to ||= new this.constructor();
         to.set(...this.get());
         const { blockLen, buffer, length, finished, destroyed, pos } = this;
         to.length = length;

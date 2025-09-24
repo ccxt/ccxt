@@ -20,5 +20,6 @@ function test_fetch_open_interest_history($exchange, $skipped_properties, $symbo
         for ($i = 0; $i < count($open_interest_history); $i++) {
             test_open_interest($exchange, $skipped_properties, $method, $open_interest_history[$i]);
         }
+        return true;
     }) ();
 }

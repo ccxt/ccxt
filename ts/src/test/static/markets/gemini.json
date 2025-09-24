@@ -1,212 +1,462 @@
 {
     "BTC/USD": {
         "id": "btcusd",
+        "lowercaseId": null,
         "symbol": "BTC/USD",
         "base": "BTC",
         "quote": "USD",
-        "baseId": "btc",
-        "quoteId": "usd",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
-            "price": 0.01
+            "price": 0.01,
+            "amount": 1e-8
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {},
-            "leverage": {}
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "info": "<td>btcusd</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 USD</td>\n</tr>",
-        "taker": 0.004,
-        "maker": 0.002
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": [
+            "BTCUSD",
+            2,
+            8,
+            "0.00001",
+            10,
+            true
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/EUR": {
         "id": "btceur",
+        "lowercaseId": null,
         "symbol": "BTC/EUR",
         "base": "BTC",
         "quote": "EUR",
-        "baseId": "btc",
-        "quoteId": "eur",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "EUR",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
-            "price": 0.01
+            "price": 0.01,
+            "amount": 1e-8
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {},
-            "leverage": {}
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "info": "<td>btceur</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 EUR</td>\n</tr>",
-        "taker": 0.004,
-        "maker": 0.002
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": [
+            "BTCEUR",
+            2,
+            8,
+            "0.00001",
+            10,
+            true
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "LTC/USD": {
         "id": "ltcusd",
+        "lowercaseId": null,
         "symbol": "LTC/USD",
         "base": "LTC",
         "quote": "USD",
-        "baseId": "ltc",
-        "quoteId": "usd",
+        "settle": null,
+        "baseId": "LTC",
+        "quoteId": "USD",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.00001,
-            "price": 0.01
+            "price": 0.01,
+            "amount": 0.00001
         },
         "limits": {
-            "amount": {
-                "min": 0.01
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {},
-            "leverage": {}
+            "amount": {
+                "min": 0.01,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "info": "<td>ltcusd</td>\n<td>0.01 LTC (1e-2)</td>\n<td>0.00001 LTC (1e-5)</td>\n<td>0.01 USD</td>\n</tr>",
-        "taker": 0.004,
-        "maker": 0.002
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": [
+            "LTCUSD",
+            2,
+            5,
+            "0.01",
+            7,
+            true
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USD": {
         "id": "ethusd",
+        "lowercaseId": null,
         "symbol": "ETH/USD",
         "base": "ETH",
         "quote": "USD",
-        "baseId": "eth",
-        "quoteId": "usd",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.000001,
-            "price": 0.01
+            "price": 0.01,
+            "amount": 0.000001
         },
         "limits": {
-            "amount": {
-                "min": 0.001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {},
-            "leverage": {}
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "info": "<td>ethusd</td>\n<td>0.001 ETH (1e-3)</td>\n<td>0.000001 ETH (1e-6)</td>\n<td>0.01 USD</td>\n</tr>",
-        "taker": 0.004,
-        "maker": 0.002
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": [
+            "ETHUSD",
+            2,
+            6,
+            "0.001",
+            8,
+            true
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USDT": {
         "id": "btcusdt",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
-        "baseId": "btc",
-        "quoteId": "usdt",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1e-8,
-            "price": 0.01
+            "price": 0.01,
+            "amount": 1e-8
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {},
-            "leverage": {}
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "info": "<td>btcusdt</td>\n<td>0.00001 BTC (1e-5)</td>\n<td>0.00000001 BTC (1e-8)</td>\n<td>0.01 USDT (1e-2)</td>\n</tr>",
-        "taker": 0.004,
-        "maker": 0.002
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": [
+            "BTCUSDT",
+            2,
+            8,
+            "0.00001",
+            10,
+            true
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USDT": {
         "id": "ethusdt",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
-        "baseId": "eth",
-        "quoteId": "usdt",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.004,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.000001,
-            "price": 0.01
+            "price": 0.01,
+            "amount": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
-        "info": "<td>ethusdt</td>\n<td>0.001 ETH (1e-3)</td>\n<td>0.000001 ETH (1e-6)</td>\n<td>0.01 USDT (1e-2)</td>\n</tr>"
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": [
+            "ETHUSDT",
+            2,
+            6,
+            "0.001",
+            8,
+            true
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "USDC/USD": {
         "id": "usdcusd",
+        "lowercaseId": null,
         "symbol": "USDC/USD",
         "base": "USDC",
         "quote": "USD",
+        "settle": null,
         "baseId": "USDC",
         "quoteId": "USD",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.004,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 0.00001,
             "amount": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.1
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": [
             "USDCUSD",
             5,
@@ -214,10 +464,13 @@
             "0.1",
             8,
             true
-        ]
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/GUSD:GUSD": {
         "id": "btcgusdperp",
+        "lowercaseId": null,
         "symbol": "BTC/GUSD:GUSD",
         "base": "BTC",
         "quote": "GUSD",
@@ -231,6 +484,8 @@
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
         "inverse": false,
@@ -238,18 +493,37 @@
         "taker": 0.004,
         "maker": 0.002,
         "contractSize": 0.1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 0.1,
             "amount": 0.0001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.0001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": [
             "BTCGUSDPERP",
             1,
@@ -257,36 +531,66 @@
             "0.0001",
             4,
             true
-        ]
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "SOL/BTC": {
         "id": "solbtc",
+        "lowercaseId": null,
         "symbol": "SOL/BTC",
         "base": "SOL",
         "quote": "BTC",
+        "settle": null,
         "baseId": "SOL",
         "quoteId": "BTC",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.004,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 1e-7,
             "amount": 0.000001
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": [
             "SOLBTC",
             7,
@@ -294,36 +598,66 @@
             "0.001",
             8,
             true
-        ]
+        ],
+        "tierBased": null,
+        "percentage": null
     },
     "PAXG/USD": {
         "id": "paxgusd",
+        "lowercaseId": null,
         "symbol": "PAXG/USD",
         "base": "PAXG",
         "quote": "USD",
+        "settle": null,
         "baseId": "PAXG",
         "quoteId": "USD",
+        "settleId": null,
         "type": "spot",
         "spot": true,
         "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.004,
         "maker": 0.002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "price": 0.01,
             "amount": 1e-8
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "min": 0.0001
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
-            "cost": {}
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": [
             "PAXGUSD",
             2,
@@ -331,6 +665,8 @@
             "0.0001",
             10,
             true
-        ]
+        ],
+        "tierBased": null,
+        "percentage": null
     }
 }

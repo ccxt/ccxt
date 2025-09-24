@@ -17,6 +17,7 @@ public partial class okcoin : ccxt.okcoin
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
             } },
@@ -64,18 +65,19 @@ public partial class okcoin : ccxt.okcoin
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
+    /**
+     * @method
+     * @name okcoin#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -87,18 +89,19 @@ public partial class okcoin : ccxt.okcoin
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name okcoin#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -184,16 +187,17 @@ public partial class okcoin : ccxt.okcoin
         }
     }
 
+    /**
+     * @method
+     * @name okcoin#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.subscribe("ticker", symbol, parameters);
     }
@@ -274,19 +278,20 @@ public partial class okcoin : ccxt.okcoin
         return message;
     }
 
+    /**
+     * @method
+     * @name okcoin#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -350,17 +355,18 @@ public partial class okcoin : ccxt.okcoin
         }
     }
 
+    /**
+     * @method
+     * @name okcoin#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         object depth = this.safeString(options, "depth", "depth_l2_tbt");
@@ -528,21 +534,22 @@ public partial class okcoin : ccxt.okcoin
         return await (future as Exchange.Future);
     }
 
+    /**
+     * @method
+     * @name okcoin#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name okcoin#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object defaultType = this.safeString2(this.options, "watchBalance", "defaultType");
         object type = this.safeString(parameters, "type", defaultType);
         if (isTrue(isEqual(type, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of \'spot\', \'margin\', \'futures\', \'swap\')")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')")) ;
         }
         // const query = this.omit (params, 'type');
         object negotiation = await this.authenticate();
@@ -556,7 +563,7 @@ public partial class okcoin : ccxt.okcoin
         object type = this.safeString(parameters, "type", defaultType);
         if (isTrue(isEqual(type, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of \'spot\', \'margin\', \'futures\', \'swap\')")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')")) ;
         }
         await this.loadMarkets();
         object currencyId = this.safeString(parameters, "currency");
@@ -574,19 +581,19 @@ public partial class okcoin : ccxt.okcoin
         {
             if (isTrue(currencyUndefined))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a \'currency\' (id) or a unified \'code\' parameter for "), type), " accounts")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a 'currency' (id) or a unified 'code' parameter for "), type), " accounts")) ;
             }
         } else if (isTrue(isTrue(isTrue((isEqual(type, "margin"))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "option")))))
         {
             if (isTrue(marketUndefined))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a \'instrument_id\' (id) or a unified \'symbol\' parameter for "), type), " accounts")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for "), type), " accounts")) ;
             }
         } else if (isTrue(isEqual(type, "futures")))
         {
             if (isTrue(isTrue(currencyUndefined) && isTrue(marketUndefined)))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a \'currency\' (id), or unified \'code\', or \'instrument_id\' (id), or unified \'symbol\' parameter for "), type), " accounts")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for "), type), " accounts")) ;
             }
         }
         object suffix = null;
@@ -727,7 +734,7 @@ public partial class okcoin : ccxt.okcoin
                 object method = "login";
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                 }
                 return false;
             }

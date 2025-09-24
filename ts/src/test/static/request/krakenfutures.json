@@ -306,6 +306,14 @@
                   }
                 ]
               }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "fetchLeverageTiers",
+                "method": "fetchLeverageTiers",
+                "url": "https://futures.kraken.com/derivatives/api/v3/instruments",
+                "input": []
+            }
         ]
     }
 }

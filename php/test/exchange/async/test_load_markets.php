@@ -16,7 +16,7 @@ function test_load_markets($exchange, $skipped_properties) {
         $method = 'loadMarkets';
         $markets = Async\await($exchange->load_markets());
         assert(is_array($exchange->markets), '.markets is not an object');
-        assert(gettype($exchange->symbols) === 'array' && array_keys($exchange->symbols) === array_keys(array_keys($exchange->symbols)), '.symbols is not an array');
+        assert(gettype($exchange->symbols) === 'array' && array_is_list($exchange->symbols), '.symbols is not an array');
         $symbols_length = count($exchange->symbols);
         $market_keys = is_array($exchange->markets) ? array_keys($exchange->markets) : array();
         $market_keys_length = count($market_keys);
@@ -27,5 +27,6 @@ function test_load_markets($exchange, $skipped_properties) {
         for ($i = 0; $i < count($market_values); $i++) {
             test_market($exchange, $skipped_properties, $method, $market_values[$i]);
         }
+        return true;
     }) ();
 }

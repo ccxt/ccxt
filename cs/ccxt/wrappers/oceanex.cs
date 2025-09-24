@@ -114,11 +114,11 @@ public partial class oceanex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol.</returns>
-    public async Task<Dictionary<string, OrderBook>> FetchOrderBooks(List<String> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<OrderBooks> FetchOrderBooks(List<String> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
-        return ((Dictionary<string, OrderBook>)res);
+        return new OrderBooks(res);
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -461,5 +461,25 @@ public partial class oceanex
     {
         var res = await this.cancelAllOrders(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetch the deposit addresses for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api.oceanex.pro/doc/v1/#deposit-addresses-post"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network.</returns>
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
 }

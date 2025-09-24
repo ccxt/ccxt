@@ -48,10 +48,6 @@
                     ]
                 },
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
-                    "tag": null,
-                    "network": "TRC20",
                     "info": {
                         "code": "0",
                         "message": "",
@@ -75,7 +71,11 @@
                                 "memo": ""
                             }
                         ]
-                    }
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                    "tag": null
                 }
             }
         ],
@@ -122,7 +122,7 @@
                             "inserted_at": "2024-03-13T11:01:00.792Z",
                             "created_at": "2024-03-13T11:01:00.792Z"
                         },
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -177,6 +177,8 @@
                     "average": 72766.39,
                     "baseVolume": 7094.1242,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "asset_pair_name": "BTC-USDT",
                         "bid": {
@@ -288,6 +290,8 @@
                         "average": 64362.215,
                         "baseVolume": 2567.460773,
                         "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "asset_pair_name": "BTC-USDT",
                             "bid": {

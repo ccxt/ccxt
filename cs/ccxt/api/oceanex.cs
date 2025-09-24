@@ -101,4 +101,29 @@ public partial class oceanex : Exchange
         return await this.callAsync ("privatePostOrdersClear",parameters);
     }
 
+    public async Task<object> privatePostWithdrawsSpecialNew (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdrawsSpecialNew",parameters);
+    }
+
+    public async Task<object> privatePostDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddress",parameters);
+    }
+
+    public async Task<object> privatePostDepositAddresses (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddresses",parameters);
+    }
+
+    public async Task<object> privatePostDepositHistory (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositHistory",parameters);
+    }
+
+    public async Task<object> privatePostWithdrawHistory (object parameters = null)
+    {
+        return await this.callAsync ("privatePostWithdrawHistory",parameters);
+    }
+
 }

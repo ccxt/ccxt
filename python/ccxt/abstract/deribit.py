@@ -59,6 +59,7 @@ class ImplicitAPI:
     private_get_enable_api_key = privateGetEnableApiKey = Entry('enable_api_key', 'private', 'GET', {'cost': 1})
     private_get_get_access_log = privateGetGetAccessLog = Entry('get_access_log', 'private', 'GET', {'cost': 1})
     private_get_get_account_summary = privateGetGetAccountSummary = Entry('get_account_summary', 'private', 'GET', {'cost': 1})
+    private_get_get_account_summaries = privateGetGetAccountSummaries = Entry('get_account_summaries', 'private', 'GET', {'cost': 1})
     private_get_get_affiliate_program_info = privateGetGetAffiliateProgramInfo = Entry('get_affiliate_program_info', 'private', 'GET', {'cost': 1})
     private_get_get_email_language = privateGetGetEmailLanguage = Entry('get_email_language', 'private', 'GET', {'cost': 1})
     private_get_get_new_announcements = privateGetGetNewAnnouncements = Entry('get_new_announcements', 'private', 'GET', {'cost': 1})

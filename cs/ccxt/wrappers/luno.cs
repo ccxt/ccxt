@@ -114,7 +114,7 @@ public partial class luno
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<List<Order>> FetchOrdersByState(object state = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOrdersByState(string state, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -427,17 +427,23 @@ public partial class luno
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<Dictionary<string, object>> FetchLedgerByEntries(string code = null, object entry = null, object limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, object limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedgerByEntries(code, entry, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
-    /// fetch the history of changes, actions done by the user or operations that altered balance of the user
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.luno.com/en/developers/api#tag/Accounts/operation/ListTransactions"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -447,7 +453,7 @@ public partial class luno
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : max number of ledger entrys to return, default is undefined
+    /// int : max number of ledger entries to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -458,12 +464,70 @@ public partial class luno
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+    }
+    /// <summary>
+    /// create a currency deposit address
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : an optional name for the new address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.account_id</term>
+    /// <description>
+    /// int : an optional account id for the new address
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.address</term>
+    /// <description>
+    /// string : a specific cryptocurrency address to retrieve
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
+        return new DepositAddress(res);
     }
 }

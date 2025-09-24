@@ -18,5 +18,6 @@ async function testFetchMarginModes(exchange, skippedProperties, symbol) {
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);
         testMarginMode(exchange, skippedProperties, method, marginMode);
     }
+    return true;
 }
 export default testFetchMarginModes;
