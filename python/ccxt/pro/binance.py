@@ -2190,6 +2190,58 @@ class binance(ccxt.async_support.binance):
         extendedParams['signature'] = signature
         return extendedParams
 
+    async def ensure_user_data_stream_ws_subscribe_signature(self, marketType: str = 'spot'):
+        """
+ Ensures a User Data Stream WebSocket subscription is active for the specified scope
+ @param marketType {string} only support on 'spot'
+
+        {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+
+        :returns: Promise<number> The subscription ID for the user data stream
+        """
+        url = self.urls['api']['ws']['ws-api'][marketType]
+        client = self.client(url)
+        subscriptions = client.subscriptions
+        subscriptionsKeys = list(subscriptions.keys())
+        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        if accountType == marketType:
+            return
+        client.subscriptions[marketType] = True
+        requestId = self.request_id(url)
+        messageHash = str(requestId)
+        message: dict = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe.signature',
+            'params': self.sign_params({}),
+        }
+        subscription: dict = {
+            'id': messageHash,
+            'method': self.handle_user_data_stream_subscribe,
+            'subscription': marketType,
+        }
+        await self.watch(url, messageHash, message, messageHash, subscription)
+
+    def handle_user_data_stream_subscribe(self, client: Client, message):
+        #
+        #   {
+        #     "id": 1,
+        #     "status": 200,
+        #     "result": {
+        #         "subscriptionId": 0
+        #     }
+        #   }
+        #
+        messageHash = self.safe_string(message, 'id')
+        subscriptions = client.subscriptions
+        subscriptionsKeys = list(subscriptions.keys())
+        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        result = self.safe_dict(message, 'result', {})
+        subscriptionId = self.safe_integer(result, 'subscriptionId')
+        if subscriptionId is None:
+            del client.subscriptions[accountType]
+            client.reject(message, accountType)
+        client.resolve(message, messageHash)
+
     async def authenticate(self, params={}):
         time = self.milliseconds()
         type = None
@@ -2202,6 +2254,10 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        # For spot use WebSocket API signature subscription
+        if type == 'spot':
+            await self.ensure_user_data_stream_ws_subscribe_signature('spot')
+            return
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('authenticate', params)
         isIsolatedMargin = (marginMode == 'isolated')
@@ -2305,7 +2361,7 @@ class binance(ccxt.async_support.binance):
                     return
 
     def set_balance_cache(self, client: Client, type, isPortfolioMargin=False):
-        if type in client.subscriptions:
+        if (type in client.subscriptions) and (type in self.balance):
             return
         options = self.safe_value(self.options, 'watchBalance')
         fetchBalanceSnapshot = self.safe_bool(options, 'fetchBalanceSnapshot', False)
@@ -2552,10 +2608,15 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        url = ''
         urlType = type
-        if isPortfolioMargin:
-            urlType = 'papi'
-        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+        if type == 'spot':
+            # route to WebSocket API connection where the user data stream is subscribed
+            url = self.urls['api']['ws']['ws-api'][type]
+        else:
+            if isPortfolioMargin:
+                urlType = 'papi'
+            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
@@ -2636,9 +2697,9 @@ class binance(ccxt.async_support.binance):
         #
         wallet = self.safe_string(self.options, 'wallet', 'wb')  # cw for cross wallet
         # each account is connected to a different endpoint
-        # and has exactly one subscriptionhash which is the account type
-        subscriptions = list(client.subscriptions.keys())
-        accountType = subscriptions[0]
+        subscriptions = client.subscriptions
+        subscriptionsKeys = list(subscriptions.keys())
+        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
         messageHash = accountType + ':balance'
         if self.balance[accountType] is None:
             self.balance[accountType] = {}
@@ -2674,6 +2735,15 @@ class binance(ccxt.async_support.binance):
         self.balance[accountType]['datetime'] = self.iso8601(timestamp)
         self.balance[accountType] = self.safe_balance(self.balance[accountType])
         client.resolve(self.balance[accountType], messageHash)
+
+    def get_account_type_from_subscriptions(self, subscriptions: List[str]) -> str:
+        accountType = ''
+        for i in range(0, len(subscriptions)):
+            subscription = subscriptions[i]
+            if (subscription == 'spot') or (subscription == 'margin') or (subscription == 'future') or (subscription == 'delivery'):
+                accountType = subscription
+                break
+        return accountType
 
     def get_market_type(self, method, market, params={}):
         type = None
@@ -3247,9 +3317,14 @@ class binance(ccxt.async_support.binance):
             urlType = 'spot'  # spot-margin shares the same stream spot
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchOrders', 'papi', 'portfolioMargin', False)
-        if isPortfolioMargin:
-            urlType = 'papi'
-        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+        url = ''
+        if type == 'spot':
+            # route orders to ws-api user data stream
+            url = self.urls['api']['ws']['ws-api'][type]
+        else:
+            if isPortfolioMargin:
+                urlType = 'papi'
+            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
@@ -3610,8 +3685,9 @@ class binance(ccxt.async_support.binance):
         #
         # each account is connected to a different endpoint
         # and has exactly one subscriptionhash which is the account type
-        subscriptions = list(client.subscriptions.keys())
-        accountType = subscriptions[0]
+        subscriptions = client.subscriptions
+        subscriptionsKeys = list(subscriptions.keys())
+        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
         if self.positions is None:
             self.positions = {}
         if not (accountType in self.positions):
@@ -3865,9 +3941,13 @@ class binance(ccxt.async_support.binance):
             urlType = 'spot'  # spot-margin shares the same stream spot
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchMyTrades', 'papi', 'portfolioMargin', False)
-        if isPortfolioMargin:
-            urlType = 'papi'
-        url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
+        url = ''
+        if type == 'spot':
+            url = self.urls['api']['ws']['ws-api'][type]
+        else:
+            if isPortfolioMargin:
+                urlType = 'papi'
+            url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, None, isPortfolioMargin)
@@ -3991,8 +4071,11 @@ class binance(ccxt.async_support.binance):
             for i in range(0, len(subscriptionKeys)):
                 subscriptionHash = subscriptionKeys[i]
                 subscriptionId = self.safe_string(client.subscriptions[subscriptionHash], 'id')
+                subscription = self.safe_string(client.subscriptions[subscriptionHash], 'subscription')
                 if id == subscriptionId:
                     client.reject(e, subscriptionHash)
+                    if subscription is not None:
+                        del client.subscriptions[subscription]
         if not rejected:
             client.reject(message, id)
         # reset connection if 5xx error
@@ -4000,13 +4083,32 @@ class binance(ccxt.async_support.binance):
         if (codeString is not None) and (codeString[0] == '5'):
             client.reset(message)
 
+    def handle_event_stream_terminated(self, client: Client, message):
+        #
+        #    {
+        #        e: 'eventStreamTerminated',
+        #        E: 1757896885229
+        #    }
+        #
+        event = self.safe_string(message, 'e')
+        subscriptions = client.subscriptions
+        subscriptionsKeys = list(subscriptions.keys())
+        accountType = self.get_account_type_from_subscriptions(subscriptionsKeys)
+        if event == 'eventStreamTerminated':
+            del client.subscriptions[accountType]
+            client.reject(message, accountType)
+
     def handle_message(self, client: Client, message):
         # handle WebSocketAPI
+        eventMsg = self.safe_dict(message, 'event')
+        if eventMsg is not None:
+            message = eventMsg
         status = self.safe_string(message, 'status')
         error = self.safe_value(message, 'error')
         if (error is not None) or (status is not None and status != '200'):
             self.handle_ws_error(client, message)
             return
+        # user subscription wraps message in subscriptionId and event
         id = self.safe_string(message, 'id')
         subscriptions = self.safe_value(client.subscriptions, id)
         method = self.safe_value(subscriptions, 'method')
@@ -4040,6 +4142,7 @@ class binance(ccxt.async_support.binance):
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
             'forceOrder': self.handle_liquidation,
+            'eventStreamTerminated': self.handle_event_stream_terminated,
             'externalLockUpdate': self.handle_balance,
         }
         event = self.safe_string(message, 'e')
