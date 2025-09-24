@@ -1346,6 +1346,8 @@ class bitget(Exchange, ImplicitAPI):
                     '43025': InvalidOrder,  # Plan order does not exist
                     '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
+                    '40774': InvalidOrder,  # {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '45122': InvalidOrder,  # {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol,  # invalid trading pair
@@ -5047,6 +5049,13 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'orderType': type,
         }
+        hedged = None
+        hedged, params = self.handle_param_bool(params, 'hedged', False)
+        # backward compatibility for `oneWayMode`
+        oneWayMode = None
+        oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
+        if oneWayMode is not None:
+            hedged = not oneWayMode
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
@@ -5124,7 +5133,10 @@ class bitget(Exchange, ImplicitAPI):
             elif isStopLossOrTakeProfitTrigger:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
+                if hedged:
+                    request['holdSide'] = 'long' if (side == 'sell') else 'short'
+                else:
+                    request['holdSide'] = 'buy' if (side == 'sell') else 'sell'
                 if isStopLossTriggerOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     request['planType'] = 'pos_loss'
@@ -5143,13 +5155,6 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                hedged = None
-                hedged, params = self.handle_param_bool(params, 'hedged', False)
-                # backward compatibility for `oneWayMode`
-                oneWayMode = None
-                oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
-                if oneWayMode is not None:
-                    hedged = not oneWayMode
                 requestSide = side
                 if reduceOnly:
                     if not hedged:
