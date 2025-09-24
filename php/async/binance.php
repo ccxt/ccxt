@@ -11867,7 +11867,7 @@ class binance extends Exchange {
         //         "asset" => "USDT",
         //         "amount" => "-0.16518203",
         //         "type" => "FEE",
-        //         "createDate" => 1676621042489
+        //         "createDate" => 167662104241
         //     }
         //
         // futures (fapi, dapi, papi)
