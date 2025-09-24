@@ -625,7 +625,7 @@ export default class upbit extends Exchange {
      * @see https://global-docs.upbit.com/reference/order-book-list
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-     * @param {int} [limit] not used by upbit fetchOrderBooks ()
+     * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
      */
@@ -640,6 +640,7 @@ export default class upbit extends Exchange {
         }
         const request: Dict = {
             'markets': ids,
+            'count': limit,
         };
         const response = await this.publicGetOrderbook (this.extend (request, params));
         //
