@@ -236,33 +236,9 @@ export default class dydx extends Exchange {
                 'privateKey': false,
             },
             'options': {
-                'timeDifference': 0, // the difference between system clock and exchange clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'chainName': 'dydx-mainnet-1',
+                'chainId': 1,
                 'sandboxMode': false,
-                'createMarketBuyOrderRequiresPrice': true,
-                // these network aliases require manual mapping here
-                'network-aliases-for-tokens': {
-                    'HT': 'ERC20',
-                    'OMG': 'ERC20',
-                    'UATOM': 'ATOM',
-                    'ZRX': 'ZRX',
-                },
-                'networks': {
-                    'TRX': 'TRON',
-                    'TRC20': 'TRON',
-                    'ERC20': 'ETH',
-                    'BEP20': 'BSC',
-                    'ARB': 'Arbitrum',
-                },
-                'networksById': {
-                    'TRX': 'TRC20',
-                    'TRON': 'TRC20',
-                },
-                // override defaultNetworkCodePriorities for a specific currency
-                'defaultNetworkCodeForCurrencies': {
-                    // 'USDT': 'TRC20',
-                    // 'BTC': 'BTC',
-                },
                 'defaultFeeDenom': 'uusdc',
                 'defaultFeeMultiplier': '1.6',
                 'feeDenom': {
@@ -270,7 +246,7 @@ export default class dydx extends Exchange {
                     'USDC_GAS_DENOM': 'uusdc',
                     'USDC_DECIMALS': 6,
                     'USDC_GAS_PRICE': '0.025',
-                    'CHAINTOKEN_DENOM': 'adv4tnt',
+                    'CHAINTOKEN_DENOM': 'adydx',
                     'CHAINTOKEN_DECIMALS': 18,
                     'CHAINTOKEN_GAS_PRICE': '25000000000',
                 },
@@ -279,7 +255,7 @@ export default class dydx extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
-                        'marginMode': true,
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -297,12 +273,12 @@ export default class dydx extends Exchange {
                             'GTD': true,
                         },
                         'hedged': false,
-                        'trailing': true,
+                        'trailing': false,
                         'leverage': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
-                        'iceberg': true, // todo implement
+                        'iceberg': false,
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
@@ -347,9 +323,6 @@ export default class dydx extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
-                },
-                'spot': {
-                    'extends': 'default',
                 },
                 'forSwap': {
                     'extends': 'default',
@@ -1238,7 +1211,7 @@ export default class dydx extends Exchange {
 
     signOnboardingAction (): object {
         const message = { 'action': 'dYdX Chain Onboarding' };
-        const chainId = 11155111; // TODO: chainid for production
+        const chainId = this.options['chainId'];
         const domain: Dict = {
             'chainId': chainId,
             'name': 'dYdX Chain',
@@ -1485,7 +1458,8 @@ export default class dydx extends Exchange {
         const lastBlockHeight = await this.fetchLatestBlockHeight ();
         params['latestBlockHeight'] = lastBlockHeight;
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
-        const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', 'dydx-testnet-4', account, undefined);
+        const chainName = this.options['chainName'];
+        const signedTx = this.signDydxTx (credentials['privateKey'], orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1573,7 +1547,8 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgCancelOrder',
             'value': cancelPayload,
         };
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined);
+        const chainName = this.options['chainName'];
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1639,7 +1614,8 @@ export default class dydx extends Exchange {
             'typeUrl': '/dydxprotocol.clob.MsgBatchCancel',
             'value': cancelPayload,
         };
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined);
+        const chainName = this.options['chainName'];
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1911,7 +1887,8 @@ export default class dydx extends Exchange {
             };
         }
         const txFee = await this.estimateTxFee (signingPayload, '', account);
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', 'dydx-testnet-4', account, undefined, txFee);
+        const chainName = this.options['chainName'];
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2097,7 +2074,8 @@ export default class dydx extends Exchange {
             'value': payload,
         };
         const txFee = await this.estimateTxFee (signingPayload, tag, account);
-        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, 'dydx-testnet-4', account, undefined, txFee);
+        const chainName = this.options['chainName'];
+        const signedTx = this.signDydxTx (credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2364,6 +2342,9 @@ export default class dydx extends Exchange {
 
     setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
-        this.options['sandboxMode'] = enable;
+        // rewrite testnet parameters
+        this.options['chainName'] = 'dydx-testnet-4';
+        this.options['chainId'] = 11155111;
+        this.options['feeDenom']['CHAINTOKEN_DENOM'] = 'adv4tnt';
     }
 }
