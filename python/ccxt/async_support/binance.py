@@ -1428,6 +1428,9 @@ class binance(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': True,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': True,
                         'triggerPrice': True,
