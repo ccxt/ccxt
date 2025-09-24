@@ -1406,6 +1406,9 @@ class binance extends binance$1["default"] {
             'features': {
                 'spot': {
                     'sandbox': true,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,

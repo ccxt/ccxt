@@ -1407,6 +1407,9 @@ export default class binance extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': true,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
