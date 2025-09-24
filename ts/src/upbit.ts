@@ -130,7 +130,8 @@ export default class upbit extends Exchange {
                         'ticker': 2,
                         'ticker/all': 2,
                         'orderbook': 2,
-                        'orderbook/supported_levels': 2, // Upbit KR only
+                        'orderbook/instruments': 2,
+                        'orderbook/supported_levels': 2, // Upbit KR only, deprecatd
                     },
                 },
                 'private': {
