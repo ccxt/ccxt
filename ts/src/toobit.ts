@@ -318,6 +318,9 @@ export default class toobit extends Exchange {
                     'ONE': 'ONE',
                     // 'CHZ2': 'CHZ2',
                 },
+                'networksById': {
+                    'ETH': 'ERC20',
+                },
             },
             'features': {
                 'spot': {
