@@ -2782,7 +2782,7 @@ class binance extends binance$1["default"] {
      */
     enableDemoTrading(enable) {
         if (this.isSandboxModeEnabled) {
-            throw new errors.NotSupported(this.id + ' demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+            throw new errors.NotSupported(this.id + ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
         }
         if (enable) {
             this.urls['apiBackupDemoTrading'] = this.urls['api'];
