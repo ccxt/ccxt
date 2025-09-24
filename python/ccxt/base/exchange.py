@@ -1945,13 +1945,13 @@ class Exchange(object):
             ],
             fee={},
         )
-        tx = Tx(body=body, auth_info=auth_info, signatures=[ b'' ])
+        tx = Tx(body=body, auth_info=auth_info, signatures=[b''])
         return self.binary_to_base64(tx.SerializeToString())
 
     def encode_dydx_tx_for_signing(self, message, memo, chainId, account, authenticators, fee=None):
         if not encode_as_any:
             raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
-        if fee == None:
+        if fee is None:
             fee = {
                 'amount': [],
                 'gasLimit': 1000000,
@@ -1986,7 +1986,7 @@ class Exchange(object):
                     mode_info=ModeInfo(single=ModeInfo.Single(mode=SignMode.SIGN_MODE_DIRECT))
                 )
             ],
-            fee=Fee(amount=fee['amount'],gas_limit=fee['gasLimit']),
+            fee=Fee(amount=fee['amount'], gas_limit=fee['gasLimit']),
         )
         signDoc = SignDoc(
             account_number=self.parse_to_int(account['account_number']),
@@ -1994,8 +1994,8 @@ class Exchange(object):
             body_bytes=body.SerializeToString(),
             chain_id=chainId,
         )
-        signingHash = self.hash (signDoc.SerializeToString(), 'sha256', 'hex')
-        return [ signingHash, signDoc ]
+        signingHash = self.hash(signDoc.SerializeToString(), 'sha256', 'hex')
+        return [signingHash, signDoc]
 
     def encode_dydx_tx_raw(self, signDoc, signature):
         if not encode_as_any:
@@ -2003,7 +2003,7 @@ class Exchange(object):
         tx = TxRaw(
             auth_info_bytes=signDoc.auth_info_bytes,
             body_bytes=signDoc.body_bytes,
-            signatures=[ self.base16ToBinary(signature) ],
+            signatures=[self.base16ToBinary(signature)],
         )
         return '0x' + self.binary_to_base16(tx.SerializeToString())
 
