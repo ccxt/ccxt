@@ -1131,6 +1131,9 @@
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5654"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -2010,7 +2013,8 @@
                 "maker": "is undefined"
             },
             "fetchCurrencies": {
-                "precision":"not provided"
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 65
             },
             "fetchTrades": {
                 "side": "not provided"
