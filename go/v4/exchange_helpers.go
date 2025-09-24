@@ -17,6 +17,9 @@ import (
 	"time"
 )
 
+// serialize writes in AddElementToObject to avoid concurrent map writes in hot WS paths
+var addElementMu sync.Mutex
+
 func UnWrapType(value interface{}) interface{} {
 	// converts from wrapped types to basic types
 	// like OrderBook, Ticker, Trade, etc to map[string]interface{} or []interface{}
@@ -1013,7 +1016,9 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		}
 	case map[string]interface{}:
 		if key, ok := stringOrInt.(string); ok {
+			addElementMu.Lock()
 			obj[key] = value
+			addElementMu.Unlock()
 			// return nil
 		} else {
 			// return fmt.Errorf("invalid key type for map: expected string")
@@ -1028,11 +1033,15 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 	case map[string]map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(map[string]*ArrayCacheByTimestamp); ok {
+				addElementMu.Lock()
 				obj[key] = v
+				addElementMu.Unlock()
 			} else if _, ok := value.(map[string]interface{}); ok {
 				// assume we want a new map[string]*ArrayCacheByTimestamp
 				cache := make(map[string]*ArrayCacheByTimestamp)
+				addElementMu.Lock()
 				obj[key] = cache
+				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]map[string]*ArrayCacheByTimestamp")
 			}
@@ -1040,7 +1049,9 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 	case map[string]*ArrayCacheByTimestamp:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheByTimestamp); ok {
+				addElementMu.Lock()
 				obj[key] = v
+				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheByTimestamp")
 			}
@@ -1048,7 +1059,9 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 	case map[string]*ArrayCache:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCache); ok {
+				addElementMu.Lock()
 				obj[key] = v
+				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCache")
 			}
@@ -1056,7 +1069,9 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 	case map[string]*ArrayCacheBySymbolById:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheBySymbolById); ok {
+				addElementMu.Lock()
 				obj[key] = v
+				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolById")
 			}
@@ -1064,7 +1079,9 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 	case map[string]*ArrayCacheBySymbolBySide:
 		if key, ok := stringOrInt.(string); ok {
 			if v, ok := value.(*ArrayCacheBySymbolBySide); ok {
+				addElementMu.Lock()
 				obj[key] = v
+				addElementMu.Unlock()
 			} else {
 				// return fmt.Errorf("value type mismatch for map[string]*ArrayCacheBySymbolBySide")
 			}
