@@ -1131,6 +1131,9 @@
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L5654"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
