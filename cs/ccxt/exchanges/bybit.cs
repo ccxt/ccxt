@@ -1165,6 +1165,9 @@ public partial class bybit : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "triggerPriceType", null },
                         { "triggerDirection", false },

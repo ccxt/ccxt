@@ -1428,6 +1428,9 @@ public partial class binance : Exchange
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", true },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "triggerPrice", true },

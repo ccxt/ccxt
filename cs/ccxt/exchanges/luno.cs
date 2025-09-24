@@ -204,6 +204,9 @@ public partial class luno : Exchange
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", false },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "triggerPrice", true },

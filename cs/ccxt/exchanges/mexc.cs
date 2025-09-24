@@ -570,6 +570,9 @@ public partial class mexc : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "forDerivs", new Dictionary<string, object>() {
                     { "extends", "default" },
