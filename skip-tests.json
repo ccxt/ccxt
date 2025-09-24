@@ -72,8 +72,8 @@
         }
     },
     "binance": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. binance does not have currency code BCC"
@@ -100,7 +100,7 @@
         }
     },
     "binancecoinm": {
-        "httpsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
@@ -111,8 +111,8 @@
         }
     },
     "binanceusdm": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchLedger": {
                 "account": "empty",
@@ -558,8 +558,8 @@
         }
     },
     "bybit": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temp skip"
@@ -1138,8 +1138,8 @@
         }
     },
     "hashkey": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -1814,7 +1814,7 @@
         }
     },
     "tokocrypto": {
-        "httpsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6195"
@@ -1839,8 +1839,8 @@
         }
     },
     "vertex": {
-        "httpsProxy": "http://188.245.226.105:3128",
-        "wsProxy": "http://188.245.226.105:3128",
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipPhpAsync": "for some reason it shows invalid headers - https://app.travis-ci.com/github/ccxt/ccxt/builds/272619476#L4519 but cant reproduce locally",
         "skipCSharp": "same as above",
         "skipMethods": {
