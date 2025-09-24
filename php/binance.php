@@ -1398,6 +1398,9 @@ class binance extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => true,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => true,

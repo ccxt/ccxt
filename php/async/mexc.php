@@ -769,6 +769,9 @@ class mexc extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'forDerivs' => array(
                     'extends' => 'default',

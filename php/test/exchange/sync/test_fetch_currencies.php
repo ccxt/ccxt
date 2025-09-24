@@ -16,8 +16,11 @@ function test_fetch_currencies($exchange, $skipped_properties) {
     $num_inactive_currencies = 0;
     $max_inactive_currencies_percentage = $exchange->safe_integer($skipped_properties, 'maxInactiveCurrenciesPercentage', 50); // no more than X% currencies should be inactive
     $required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC'];
-    // todo: remove undefined check
-    if ($currencies !== null) {
+    $features = $exchange->features;
+    $features_spot = $exchange->safe_dict($features, 'spot', array());
+    $fetch_currencies = $exchange->safe_dict($features_spot, 'fetchCurrencies', array());
+    $is_fetch_currencies_private = $exchange->safe_value($fetch_currencies, 'private', false);
+    if (!$is_fetch_currencies_private) {
         $values = is_array($currencies) ? array_values($currencies) : array();
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $values);
         $currencies_length = count($values);
