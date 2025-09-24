@@ -8,13 +8,11 @@ import _m0 from "protobufjs/minimal";
 import long from './long.cjs';
 
 // @ts-ignore
-const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
+export const Long = (long !== undefined && long.default !== undefined) ? long.default : long;
 if (_m0.util.Long !== Long) {
     _m0.util.Long = (Long as any);
     _m0.configure();
 }
-
-export { Long };
 
 declare var self: any | undefined;
 declare var window: any | undefined;
