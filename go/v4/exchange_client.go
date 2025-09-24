@@ -91,10 +91,12 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 	}
 
 	// Send to Future channel for ongoing updates (non-blocking)
+	this.FuturesMu.Lock()
 	if fut, exists := this.Futures[hash]; exists {
 		fut.(*Future).Resolve(data)
 		delete(this.Futures, hash)
 	}
+	this.FuturesMu.Unlock()
 	return data
 }
 
@@ -120,11 +122,13 @@ func (this *Client) NewFuture(messageHash interface{}) *Future {
 
 // Reject rejects specific future or all
 func (this *Client) Reject(err interface{}, messageHash ...interface{}) {
+	this.FuturesMu.Lock()
 	if len(messageHash) == 0 {
 		for hash := range this.Futures {
 			this.Futures[hash].(*Future).Reject(err.(error))
 			delete(this.Futures, hash)
 		}
+		this.FuturesMu.Unlock()
 		return
 	}
 	hash := messageHash[0]
@@ -132,6 +136,7 @@ func (this *Client) Reject(err interface{}, messageHash ...interface{}) {
 		fut.(*Future).Reject(err.(error))
 		delete(this.Futures, hash.(string))
 	}
+	this.FuturesMu.Unlock()
 }
 
 // Close terminates the underlying websocket connection (if any)
