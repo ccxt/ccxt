@@ -3753,9 +3753,9 @@
                         "fee": 0.0006,
                         "fees": {},
                         "networks": {
-                            "ETH": {
+                            "ERC20": {
                                 "id": "ETH",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "margin": null,
                                 "deposit": true,
                                 "withdraw": true,
