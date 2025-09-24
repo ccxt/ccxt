@@ -2704,7 +2704,7 @@ func (this *binance) Nonce() interface{} {
  */
 func (this *binance) EnableDemoTrading(enable interface{}) {
 	if IsTrue(this.IsSandboxModeEnabled) {
-		panic(NotSupported(Add(this.Id, " demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")))
+		panic(NotSupported(Add(this.Id, " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")))
 	}
 	if IsTrue(enable) {
 		AddElementToObject(this.Urls, "apiBackupDemoTrading", GetValue(this.Urls, "api"))
