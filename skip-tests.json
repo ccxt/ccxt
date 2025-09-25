@@ -52,6 +52,30 @@
             }
         }
     },
+    "backpack": {
+        "skipMethods": {
+            "loadMarkets": {
+                "taker": "is undefined",
+                "maker": "is undefined"
+            },
+            "fetchCurrencies": {
+                "precision":"not provided",
+                "maxInactiveCurrenciesPercentage": 65
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "watchTrades": {
+                "timestampSort": "confirmed that exchange's engine has an issue: https://github.com/ccxt/ccxt/actions/runs/17983223256/job/51155199567?pr=25258#step:11:1120"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same as above"
+            }
+        }
+    },
     "bequant": {
         "skipMethods": {
             "loadMarkets": {
@@ -608,7 +632,8 @@
             "ticker": {
                 "spread": "broken bid-ask",
                 "baseVolume": "negative value",
-                "compareQuoteVolumeBaseVolume":"todo"
+                "compareQuoteVolumeBaseVolume":"todo",
+                "compareOHLC": "open below low https://github.com/ccxt/ccxt/actions/runs/17983223201/job/51154949662?pr=25258#step:9:228"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
@@ -2003,24 +2028,6 @@
             },
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
-            }
-        }
-    },
-    "backpack": {
-        "skipMethods": {
-            "loadMarkets": {
-                "taker": "is undefined",
-                "maker": "is undefined"
-            },
-            "fetchCurrencies": {
-                "precision":"not provided",
-                "maxInactiveCurrenciesPercentage": 65
-            },
-            "fetchTrades": {
-                "side": "not provided"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     }
