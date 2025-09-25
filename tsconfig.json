@@ -108,6 +108,7 @@
   ],
   "exclude": [
     "node_modules",
-    "./ts/src/static_dependencies/**/*.cjs"
+    "./ts/src/static_dependencies/**/*.cjs",
+    "./ts/src/static_dependencies/dydx-v4-client/**/*.ts"
   ]
 }
