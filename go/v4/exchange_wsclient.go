@@ -70,7 +70,7 @@ func (this *WSClient) CreateConnection() error {
 	dialer := websocket.Dialer{
 		Proxy:             proxy,
 		HandshakeTimeout:  10 * time.Second,
-		EnableCompression: true,
+		EnableCompression: false,
 	}
 
 	// Set up headers for protocols

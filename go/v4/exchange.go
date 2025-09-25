@@ -1743,12 +1743,10 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	//                             subscribe -----→ receive
 	//
 	futures := make([]*Future, len(messageHashes))
-	client.FuturesMu.Lock()
 	for i, messageHash := range messageHashes {
 		futures[i] = client.NewFuture(messageHash)
 	}
 	future := FutureRace(futures)
-	client.FuturesMu.Unlock()
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	missingSubscriptions := []string{}
