@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -32,6 +33,8 @@ type WSClient struct {
 	Options           interface{}
 	StartedConnecting bool
 	ProxyUrl          string
+
+	PingMu sync.RWMutex
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
@@ -85,7 +88,7 @@ func (this *WSClient) CreateConnection() error {
 	}
 	this.Connection = conn
 
-	// handle connection pong here:
+	//handle connection pong here:
 	this.Connection.SetPongHandler(func(string) error {
 		this.OnPong()
 		return nil
@@ -207,11 +210,14 @@ func (this *WSClient) ClearPingInterval() {
 }
 
 func (this *WSClient) OnPingInterval() {
+	this.PingMu.Lock()
 	if this.KeepAlive.(int64) > 0 {
 		if this.IsConnected.(bool) == true {
 			now := time.Now().UnixNano() / int64(time.Millisecond)
+			this.PongSetMu.Lock()
 			if this.LastPong == nil {
 				this.LastPong = now
+				this.PongSetMu.Unlock()
 			}
 			lastPong := this.LastPong.(int64)
 			maxPingPongMisses := float64(2.0)
@@ -256,6 +262,7 @@ func (this *WSClient) OnPingInterval() {
 			}
 		}
 	}
+	this.PingMu.Unlock()
 }
 
 func (this *WSClient) OnOpen() {

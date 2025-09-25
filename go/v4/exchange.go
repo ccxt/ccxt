@@ -1458,7 +1458,9 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
+	client.ConnectMu.Lock()
 	connected, err := client.Connect(backoffDelay)
+	client.ConnectMu.Unlock()
 	if err != nil {
 		delete(client.Subscriptions, subscribeHash.(string))
 		future.Reject(err)
