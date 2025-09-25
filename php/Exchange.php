@@ -434,6 +434,7 @@ class Exchange {
         'probit',
         'timex',
         'tokocrypto',
+        'toobit',
         'upbit',
         'wavesexchange',
         'whitebit',
