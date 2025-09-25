@@ -1234,8 +1234,20 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
-func (this *Exchange) LoadDydxProtos () interface{} {
-	return nil
+func (this *Exchange) LoadDydxProtos () <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+	}()
+	return ch
 }
 
 func (this *Exchange) ToDydxLong (numStr interface{}) interface{} {
