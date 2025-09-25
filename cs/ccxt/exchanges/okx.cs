@@ -647,6 +647,7 @@ public partial class okx : Exchange
                     { "51031", typeof(InvalidOrder) },
                     { "51046", typeof(InvalidOrder) },
                     { "51047", typeof(InvalidOrder) },
+                    { "51051", typeof(InvalidOrder) },
                     { "51072", typeof(InvalidOrder) },
                     { "51073", typeof(InvalidOrder) },
                     { "51074", typeof(InvalidOrder) },
@@ -3256,7 +3257,9 @@ public partial class okx : Exchange
             {
                 ((IDictionary<string,object>)request)["attachAlgoOrds"] = new List<object>() {attachAlgoOrd};
             }
-        } else if (isTrue(trigger))
+        }
+        // algo order details
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger";
             ((IDictionary<string,object>)request)["triggerPx"] = this.priceToPrecision(symbol, triggerPrice);
