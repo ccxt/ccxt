@@ -22,8 +22,11 @@ def test_fetch_currencies(exchange, skipped_properties):
     num_inactive_currencies = 0
     max_inactive_currencies_percentage = exchange.safe_integer(skipped_properties, 'maxInactiveCurrenciesPercentage', 50)  # no more than X% currencies should be inactive
     required_active_currencies = ['BTC', 'ETH', 'USDT', 'USDC']
-    # todo: remove undefined check
-    if currencies is not None:
+    features = exchange.features
+    features_spot = exchange.safe_dict(features, 'spot', {})
+    fetch_currencies = exchange.safe_dict(features_spot, 'fetchCurrencies', {})
+    is_fetch_currencies_private = exchange.safe_value(fetch_currencies, 'private', False)
+    if not is_fetch_currencies_private:
         values = list(currencies.values())
         test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, values)
         currencies_length = len(values)

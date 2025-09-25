@@ -1299,6 +1299,9 @@ export default class okx extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1801,7 +1804,7 @@ export default class okx extends Exchange {
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials (false) || isSandboxMode) {
-            return undefined;
+            return {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns

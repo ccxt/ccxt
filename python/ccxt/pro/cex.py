@@ -988,6 +988,7 @@ class cex(ccxt.async_support.cex):
         if incrementalId != storedOrderBook['nonce'] + 1:
             del client.subscriptions[messageHash]
             client.reject(self.id + ' watchOrderBook() skipped a message', messageHash)
+            return
         timestamp = self.safe_integer(data, 'time')
         asks = self.safe_value(data, 'asks', [])
         bids = self.safe_value(data, 'bids', [])

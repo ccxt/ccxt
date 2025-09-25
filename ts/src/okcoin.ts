@@ -210,6 +210,9 @@ export default class okcoin extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -828,7 +831,7 @@ export default class okcoin extends Exchange {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new ExchangeError (this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
-            return undefined;
+            return {};
         } else {
             const response = await this.privateGetAssetCurrencies (params);
             const data = this.safeList (response, 'data', []);

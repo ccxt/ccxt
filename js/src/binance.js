@@ -208,6 +208,20 @@ export default class binance extends Exchange {
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
+                'demo': {
+                    'dapiPublic': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'fapiPrivate': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'public': 'https://demo-api.binance.com/api/v3',
+                    'private': 'https://demo-api.binance.com/api/v3',
+                    'v1': 'https://demo-api.binance.com/api/v1',
+                },
                 'api': {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
@@ -1393,6 +1407,9 @@ export default class binance extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': true,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -2761,6 +2778,29 @@ export default class binance extends Exchange {
     }
     /**
      * @method
+     * @name binance#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+     * @see https://demo.binance.com/en/my/settings/api-management
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    enableDemoTrading(enable) {
+        if (this.isSandboxModeEnabled) {
+            throw new NotSupported(this.id + ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demo'];
+        }
+        else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'];
+            const newUrls = this.omit(this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
+    }
+    /**
+     * @method
      * @name binance#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
@@ -2800,19 +2840,23 @@ export default class binance extends Exchange {
     async fetchCurrencies(params = {}) {
         const fetchCurrenciesEnabled = this.safeBool(this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
-            return undefined;
+            return {};
         }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         // sandbox/testnet does not support sapi endpoints
         const apiBackup = this.safeValue(this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
-            return undefined;
+            return {};
+        }
+        // demotrading does not support sapi endpoints
+        if (this.safeBool(this.options, 'enableDemoTrading', false)) {
+            return {};
         }
         const promises = [this.sapiGetCapitalConfigGetall(params)];
         const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
@@ -2886,7 +2930,7 @@ export default class binance extends Exchange {
             //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
             //                "addressRule": "",
             //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-            //                "withdrawFee": "0.002",
+            //                "withdrawFee": "0.003",
             //                "withdrawMin": "0.01",
             //                "withdrawMax": "10000000000",
             //                "minConfirm": "1",
@@ -3057,10 +3101,12 @@ export default class binance extends Exchange {
             }
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const demoMode = this.safeBool(this.options, 'enableDemoTrading', false);
+        const isDemoEnv = demoMode || sandboxMode;
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
             const type = rawFetchMarkets[i];
-            if (type === 'option' && sandboxMode) {
+            if (type === 'option' && isDemoEnv) {
                 continue;
             }
             fetchMarkets.push(type);
@@ -3070,7 +3116,7 @@ export default class binance extends Exchange {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push(this.publicGetExchangeInfo(params));
-                if (fetchMargins && this.checkRequiredCredentials(false) && !sandboxMode) {
+                if (fetchMargins && this.checkRequiredCredentials(false) && !isDemoEnv) {
                     promisesRaw.push(this.sapiGetMarginAllPairs(params));
                     promisesRaw.push(this.sapiGetMarginIsolatedAllPairs(params));
                 }
@@ -6401,6 +6447,7 @@ export default class binance extends Exchange {
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         const isPriceMatch = priceMatch !== undefined;
+        let priceRequiredForTrailing = true;
         let uppercaseType = type.toUpperCase();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
@@ -6412,19 +6459,31 @@ export default class binance extends Exchange {
                 }
             }
             else {
-                if (isMarketOrder) {
-                    throw new InvalidOrder(this.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders');
+                if ((uppercaseType !== 'STOP_LOSS') && (uppercaseType !== 'TAKE_PROFIT') && (uppercaseType !== 'STOP_LOSS_LIMIT') && (uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
+                    const stopLossOrTakeProfit = this.safeString(params, 'stopLossOrTakeProfit');
+                    params = this.omit(params, 'stopLossOrTakeProfit');
+                    if ((stopLossOrTakeProfit !== 'stopLoss') && (stopLossOrTakeProfit !== 'takeProfit')) {
+                        throw new InvalidOrder(this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                    }
+                    if (isMarketOrder) {
+                        if (stopLossOrTakeProfit === 'stopLoss') {
+                            uppercaseType = 'STOP_LOSS';
+                        }
+                        else if (stopLossOrTakeProfit === 'takeProfit') {
+                            uppercaseType = 'TAKE_PROFIT';
+                        }
+                    }
+                    else {
+                        if (stopLossOrTakeProfit === 'stopLoss') {
+                            uppercaseType = 'STOP_LOSS_LIMIT';
+                        }
+                        else if (stopLossOrTakeProfit === 'takeProfit') {
+                            uppercaseType = 'TAKE_PROFIT_LIMIT';
+                        }
+                    }
                 }
-                const stopLossOrTakeProfit = this.safeString(params, 'stopLossOrTakeProfit');
-                params = this.omit(params, 'stopLossOrTakeProfit');
-                if (stopLossOrTakeProfit !== 'stopLoss' && stopLossOrTakeProfit !== 'takeProfit') {
-                    throw new InvalidOrder(this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
-                }
-                if (stopLossOrTakeProfit === 'stopLoss') {
-                    uppercaseType = 'STOP_LOSS_LIMIT';
-                }
-                else if (stopLossOrTakeProfit === 'takeProfit') {
-                    uppercaseType = 'TAKE_PROFIT_LIMIT';
+                if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+                    priceRequiredForTrailing = false;
                 }
                 if (trailingTriggerPrice !== undefined) {
                     stopPrice = this.priceToPrecision(symbol, trailingTriggerPrice);
@@ -6578,7 +6637,7 @@ export default class binance extends Exchange {
         else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
+            if ((market['linear'] || market['inverse']) && priceRequiredForTrailing) {
                 priceIsRequired = true;
             }
         }
@@ -11867,7 +11926,7 @@ export default class binance extends Exchange {
         //         "asset": "USDT",
         //         "amount": "-0.16518203",
         //         "type": "FEE",
-        //         "createDate": 1676621042489
+        //         "createDate": 167662104241
         //     }
         //
         // futures (fapi, dapi, papi)

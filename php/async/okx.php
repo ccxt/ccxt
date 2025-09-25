@@ -1305,6 +1305,9 @@ class okx extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'swap' => array(
                     'linear' => array(
@@ -1818,7 +1821,7 @@ class okx extends Exchange {
             // and fallback to generating the currencies from the markets
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$this->check_required_credentials(false) || $isSandboxMode) {
-                return null;
+                return array();
             }
             //
             // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns

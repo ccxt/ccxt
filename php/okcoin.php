@@ -205,6 +205,9 @@ class okcoin extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => true,
@@ -819,7 +822,7 @@ class okcoin extends Exchange {
             if ($this->options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new ExchangeError($this->id . ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
-            return null;
+            return array();
         } else {
             $response = $this->privateGetAssetCurrencies ($params);
             $data = $this->safe_list($response, 'data', array());

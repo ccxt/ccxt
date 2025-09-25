@@ -235,6 +235,7 @@ class independentreserve extends \ccxt\async\independentreserve {
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
+                return;
             }
         }
         if ($receivedSnapshot) {

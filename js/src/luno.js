@@ -226,6 +226,9 @@ export default class luno extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
@@ -312,7 +315,7 @@ export default class luno extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetSendNetworks(params);
         //
