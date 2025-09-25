@@ -1147,6 +1147,10 @@ func (this *okx) PrivatePostAccountMovePositions(args ...interface{}) <-chan int
 	return this.callEndpointAsync("privatePostAccountMovePositions", args...)
 }
 
+func (this *okx) PrivatePostAccountSetSettleCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetSettleCurrency", args...)
+}
+
 func (this *okx) PrivatePostUsersSubaccountModifyApikey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUsersSubaccountModifyApikey", args...)
 }
