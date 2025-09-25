@@ -1250,8 +1250,7 @@ func (this *Excahnge) EncodeDydxTxForSimulation (
 	message interface{},
 	memo interface{},
 	sequence interface{},
-	publicKey interface{}
-) {
+	publicKey interface{}) {
 	return nil
 }
 
@@ -1261,8 +1260,7 @@ func (this *Excahnge) EncodeDydxTxForSigning (
 	chainId interface{},
 	account interface{},
 	authenticators interface{},
-	fee interface{}
-) {
+	fee interface{}) {
 	return nil
 }
 
