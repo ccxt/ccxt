@@ -18,7 +18,7 @@
  * @version 1.7.0
  */
 /*! scure-bip32 - MIT License (c) 2022 Patricio Palladino, Paul Miller (paulmillr.com) */
-import { mod } from '../noble-curves/abstract/modular';
+import { mod } from '../noble-curves/abstract/modular.js';
 import { secp256k1 as secp } from '../noble-curves/secp256k1.js';
 import { hmac } from '../noble-hashes/hmac.js';
 import { ripemd160 } from '../noble-hashes/ripemd160.js';
@@ -32,7 +32,7 @@ import {
   hexToBytes,
   utf8ToBytes,
 } from '../noble-hashes/utils.js';
-import { base58 as base58check } from '../scure-base';
+import { base58 as base58check } from '../scure-base/index.js';
 
 const Point = secp.ProjectivePoint;
 

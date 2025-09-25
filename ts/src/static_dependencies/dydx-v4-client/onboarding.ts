@@ -1,6 +1,6 @@
-import { HDKey } from '../scure-bip32';
-import { entropyToMnemonic, mnemonicToSeedSync } from '../scure-bip39';
-import { wordlist } from '../scure-bip39/wordlists/english';
+import { HDKey } from '../scure-bip32/index.js';
+import { entropyToMnemonic, mnemonicToSeedSync } from '../scure-bip39/index.js';
+import { wordlist } from '../scure-bip39/wordlists/english.js';
 
 /**
  * @description Get Mnemonic and priv/pub keys from privateKeyBytes and BIP44 HD path
