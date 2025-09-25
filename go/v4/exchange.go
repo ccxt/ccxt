@@ -1258,7 +1258,7 @@ func (this *Exchange) RetrieveDydxCredentials (entropy interface{}) interface{} 
 	return nil
 }
 
-func (this *Excahnge) EncodeDydxTxForSimulation (
+func (this *Exchange) EncodeDydxTxForSimulation (
 	message interface{},
 	memo interface{},
 	sequence interface{},
@@ -1266,7 +1266,7 @@ func (this *Excahnge) EncodeDydxTxForSimulation (
 	return nil
 }
 
-func (this *Excahnge) EncodeDydxTxForSigning (
+func (this *Exchange) EncodeDydxTxForSigning (
 	message interface{},
 	memo interface{},
 	chainId interface{},
