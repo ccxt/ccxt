@@ -1,6 +1,9 @@
 {
     "exchange": "dydx",
     "skipKeys": [],
+    "disabledPHP": true,
+    "disabledCS": true,
+    "disabledGO": true,
     "outputType": "json",
     "methods": {
         "fetchTime": [
