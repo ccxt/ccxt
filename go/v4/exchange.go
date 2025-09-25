@@ -1276,7 +1276,7 @@ func (this *Exchange) EncodeDydxTxForSigning (
 	return nil
 }
 
-func (this *Exchange) EncodeDydxTxRaw (signDoc interface{}, signature interface{}) {
+func (this *Exchange) EncodeDydxTxRaw (signDoc interface{}, signature interface{}) interface{} {
 	return nil
 }
 
