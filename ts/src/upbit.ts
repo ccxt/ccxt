@@ -200,7 +200,7 @@ export default class upbit extends Exchange {
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
-                            'PO': false,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -1183,12 +1183,16 @@ export default class upbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const customType = this.safeString2 (params, 'ordType', 'ord_type');
+        const postOnly = this.isPostOnly (type === 'market', false, params);
+        const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         let orderSide = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
@@ -1223,7 +1227,6 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const customType = this.safeString2 (params, 'ordType', 'ord_type');
         if (customType === 'best') {
             params = this.omit (params, [ 'ordType', 'ord_type' ]);
             request['ord_type'] = 'best';
@@ -1237,22 +1240,24 @@ export default class upbit extends Exchange {
                 request['volume'] = this.amountToPrecision (symbol, amount);
             }
         }
-        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
         }
-        if (request['ord_type'] !== 'market' && request['ord_type'] !== 'price') {
-            const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
-            params = this.omit (params, [ 'timeInForce' ]);
-            if (timeInForce !== undefined) {
+        if (postOnly) {
+            if (request['ord_type'] !== 'limit') {
+                throw new InvalidOrder (this.id + ' postOnly orders are only supported for limit orders');
+            }
+            request['time_in_force'] = 'post_only';
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'ioc' || timeInForce === 'fok') {
                 request['time_in_force'] = timeInForce;
-            } else {
-                if (request['ord_type'] === 'best') {
-                    throw new ArgumentsRequired (this.id + ' the best type order in createOrder() is required timeInForce.');
-                }
             }
         }
-        params = this.omit (params, [ 'clientOrderId', 'cost' ]);
+        if (request['ord_type'] === 'best' && timeInForce === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for best type orders');
+        }
+        params = this.omit (params, [ 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost' ]);
         const response = await this.privatePostOrders (this.extend (request, params));
         //
         //     {
@@ -1331,7 +1336,7 @@ export default class upbit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
-     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
      * @param {string} [params.newClientOrderId] the order ID that the user can define.
      * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1340,6 +1345,10 @@ export default class upbit extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const prevClientOrderId = this.safeString (params, 'clientOrderId');
+        const customType = this.safeString2 (params, 'newOrdType', 'new_ord_type');
+        const clientOrderId = this.safeString (params, 'newClientOrderId');
+        const postOnly = this.isPostOnly (type === 'market', false, params);
+        const timeInForce = this.safeStringLower2 (params, 'newTimeInForce', 'new_time_in_force');
         params = this.omit (params, 'clientOrderId');
         if (id !== undefined) {
             request['prev_order_uuid'] = id;
@@ -1370,7 +1379,6 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' editOrder() supports only limit or market types in the type argument.');
         }
-        const customType = this.safeString2 (params, 'newOrdType', 'new_ord_type');
         if (customType === 'best') {
             params = this.omit (params, [ 'newOrdType', 'new_ord_type' ]);
             request['new_ord_type'] = 'best';
@@ -1384,22 +1392,24 @@ export default class upbit extends Exchange {
                 request['new_volume'] = this.amountToPrecision (symbol, amount);
             }
         }
-        const clientOrderId = this.safeString (params, 'newClientOrderId');
         if (clientOrderId !== undefined) {
             request['new_identifier'] = clientOrderId;
         }
-        if (request['new_ord_type'] !== 'market' && request['new_ord_type'] !== 'price') {
-            const timeInForce = this.safeStringLower2 (params, 'newTimeInForce', 'new_time_in_force');
-            params = this.omit (params, [ 'newTimeInForce', 'new_time_in_force' ]);
-            if (timeInForce !== undefined) {
+        if (postOnly) {
+            if (request['new_ord_type'] !== 'limit') {
+                throw new InvalidOrder (this.id + ' postOnly orders are only supported for limit orders');
+            }
+            request['new_time_in_force'] = 'post_only';
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'ioc' || timeInForce === 'fok') {
                 request['new_time_in_force'] = timeInForce;
-            } else {
-                if (request['new_ord_type'] === 'best') {
-                    throw new ArgumentsRequired (this.id + ' the best type order is required timeInForce.');
-                }
             }
         }
-        params = this.omit (params, [ 'newClientOrderId', 'cost' ]);
+        if (request['new_ord_type'] === 'best' && timeInForce === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a timeInForce parameter for best type orders');
+        }
+        params = this.omit (params, [ 'newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost' ]);
         // console.log ('check the each request params: ', request);
         const response = await this.privatePostOrdersCancelAndNew (this.extend (request, params));
         //   {
