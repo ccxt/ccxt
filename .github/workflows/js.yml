@@ -179,6 +179,9 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: 🔎 Check Runner IP
+        run: curl https://api.ipify.org
+        continue-on-error: true
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --js
