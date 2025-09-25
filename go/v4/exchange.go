@@ -1462,8 +1462,10 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	connected, err := client.Connect(backoffDelay)
 	client.ConnectMu.Unlock()
 	if err != nil {
+		client.SubscriptionsMu.Lock()
 		delete(client.Subscriptions, subscribeHash.(string))
 		future.Reject(err)
+		client.SubscriptionsMu.Unlock()
 		return future.Await()
 	}
 	// the following is executed only if the catch-clause does not
