@@ -72,7 +72,10 @@ export default class toobit extends Exchange {
                     'https://toobit-docs.github.io/apidocs/spot/v1/en/',
                     'https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/',
                 ],
-                'referral': undefined,
+                'referral': {
+                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
+                    'discount': 0.1,
+                },
                 'fees': 'https://www.toobit.com/fee',
             },
             'api': {
