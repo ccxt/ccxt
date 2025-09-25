@@ -883,6 +883,7 @@ class mexc extends mexc$1["default"] {
         catch (e) {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
+            return;
         }
         client.resolve(storedOrderBook, messageHash);
     }
