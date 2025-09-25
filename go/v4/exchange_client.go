@@ -330,7 +330,9 @@ func (this *Client) OnConnectionTimeout() {
 	if !this.IsConnected.(bool) {
 		err := RequestTimeout("Connection to " + this.Url + " failed due to a connection timeout")
 		this.OnError(err)
-		this.Connection.Close()
+		if this.Connection != nil {
+			this.Connection.Close()
+		}
 		// ? this.Connection.Close(1006)
 	}
 }
