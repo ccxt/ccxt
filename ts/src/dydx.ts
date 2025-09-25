@@ -1599,15 +1599,16 @@ export default class dydx extends Exchange {
         params = this.omit (params, [ 'clientOrderIds', 'goodTillBlock', 'subaccountId' ]);
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
+        const cancelOrders = {
+            'clientIds': clientOrderIds,
+            'clobPairId': market['info']['clobPairId'],
+        };
         const cancelPayload = {
             'subaccountId': {
                 'owner': this.walletAddress,
                 'number': subaccountId,
             },
-            'shortTermCancels': [ {
-                'clientIds': clientOrderIds,
-                'clobPairId': market['info']['clobPairId'],
-            } ],
+            'shortTermCancels': [ cancelOrders ],
             'goodTilBlock': goodTillBlock,
         };
         const signingPayload = {
@@ -1804,11 +1805,12 @@ export default class dydx extends Exchange {
         if (feeAmount.indexOf ('.') >= 0) {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }
+        const feeObj = {
+            'amount': feeAmount,
+            'denom': denom,
+        };
         return {
-            'amount': [ {
-                'amount': feeAmount,
-                'denom': denom,
-            } ],
+            'amount': [ feeObj ],
             'gasLimit': gasLimit,
         };
     }
