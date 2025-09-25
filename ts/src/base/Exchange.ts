@@ -1688,11 +1688,12 @@ export default class Exchange {
 
     async loadDydxProtos () {
         // load dydx protos
-        const modules = await Promise.all ([
-            import ('../static_dependencies/dydx-v4-client/registry.js'),
-            import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js'),
-            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js'),
-        ]);
+        const tasks = [
+            import ('../static_dependencies/dydx-v4-client/registry.js') as Promise<any>,
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/v1beta1/tx.js') as Promise<any>,
+            import ('../static_dependencies/dydx-v4-client/cosmos/tx/signing/v1beta1/signing.js') as Promise<any>,
+        ];
+        const modules = await Promise.all (tasks);
         encodeAsAny = modules[0].encodeAsAny;
         AuthInfo = modules[1].AuthInfo;
         Tx = modules[1].Tx;
