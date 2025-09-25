@@ -1234,15 +1234,15 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
-func (this *Exchange) LoadDydxProtos () {
+func (this *Exchange) LoadDydxProtos () interface{} {
 	return nil
 }
 
-func (this *Exchange) ToDydxLong (numStr interface{}) {
+func (this *Exchange) ToDydxLong (numStr interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) RetrieveDydxCredentials (entropy interface{}) {
+func (this *Exchange) RetrieveDydxCredentials (entropy interface{}) interface{} {
 	return nil
 }
 
@@ -1250,7 +1250,7 @@ func (this *Excahnge) EncodeDydxTxForSimulation (
 	message interface{},
 	memo interface{},
 	sequence interface{},
-	publicKey interface{}) {
+	publicKey interface{}) interface{} {
 	return nil
 }
 
@@ -1260,7 +1260,7 @@ func (this *Excahnge) EncodeDydxTxForSigning (
 	chainId interface{},
 	account interface{},
 	authenticators interface{},
-	fee interface{}) {
+	fee interface{}) interface{} {
 	return nil
 }
 
