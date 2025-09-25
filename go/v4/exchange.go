@@ -1234,6 +1234,42 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 	return ch
 }
 
+func (this *Exchange) LoadDydxProtos () {
+	return nil
+}
+
+func (this *Exchange) ToDydxLong (numStr interface{}) {
+	return nil
+}
+
+func (this *Exchange) RetrieveDydxCredentials (entropy interface{}) {
+	return nil
+}
+
+func (this *Excahnge) EncodeDydxTxForSimulation (
+	message interface{},
+	memo interface{},
+	sequence interface{},
+	publicKey interface{}
+) {
+	return nil
+}
+
+func (this *Excahnge) EncodeDydxTxForSigning (
+	message interface{},
+	memo interface{},
+	chainId interface{},
+	account interface{},
+	authenticators interface{},
+	fee interface{}
+) {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxRaw (signDoc interface{}, signature interface{}) {
+	return nil
+}
+
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
 	options := options2.(map[string]interface{})
 	extended := this.Extend(this.SafeMapToMap(this.Options), options)

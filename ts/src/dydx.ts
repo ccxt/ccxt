@@ -1434,7 +1434,6 @@ export default class dydx extends Exchange {
      * @method
      * @name dydx#createOrder
      * @description create a trade order
-     * @see
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
