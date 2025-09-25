@@ -1,0 +1,36 @@
+# Este fluxo de trabalho executará testes usando o nó e, em segurança, publicará um pacote no GitHub Pacotes quando uma versão para criada
+# Para mais informações veja: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+nome: nome: Pacote Node.js
+
+em:
+ liberal:
+ tipos: [ tipos: [criado]]
+
+empregadores:
+ construir:
+ continua correndo:  executar: ubuntu-mais recente
+ etapas:
+      - usos:  - usos: ações/checkout@v4
+      - usos:  - usos: ações/setup-node@v4
+ com:
+ versão do nó: 20
+      - corretor:  - executor: npm ci
+      - corretor:  - executor: teste npm
+
+ publicar-gpr:
+ necessidades:  necessidades: construir
+ continua correndo:  executar: ubuntu-mais recente
+ permissões:
+ conteúdo:  conteúdo: ler
+ Pacotes:  Pacotes: escrivão
+ etapas:
+      - usos:  - usos: ações/checkout@v4
+      - usos:  - usos: ações/setup-node@v4
+ com:
+ versão do nó: 20
+ url de registro:  url de registro: https://npm.pkg.github.com/://npm.pkg.github.com/
+      - corretor:  - executor: npm ci
+      - corretor:  - executor: npm publicar
+ ambiente:
+ NODE_AUTH_TOKEN:  NODE_AUTH_TOKEN: ${{segredos.GITHUB_TOKEN}}{{segredos.GITHUB_TOKEN}}
