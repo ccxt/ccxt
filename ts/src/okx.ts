@@ -689,6 +689,7 @@ export default class okx extends Exchange {
                     '51031': InvalidOrder, // This order price is not within the closing price range
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
+                    '51051': InvalidOrder, // Your SL price should be lower than the primary order price
                     '51072': InvalidOrder, // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder, // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder, // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
@@ -3149,7 +3150,9 @@ export default class okx extends Exchange {
             if (attachOrdLen > 0) {
                 request['attachAlgoOrds'] = [ attachAlgoOrd ];
             }
-        } else if (trigger) {
+        }
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);
