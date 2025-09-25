@@ -763,6 +763,9 @@ class mexc extends mexc$1["default"] {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',

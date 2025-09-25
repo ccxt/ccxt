@@ -3710,6 +3710,93 @@ class Exchange {
         return $featuresObj;
     }
 
+    public function feature_value(string $symbol, ?string $methodName = null, ?string $paramName = null, ?string $subParamName = null, mixed $defaultValue = null) {
+        /**
+         * this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [$symbol] unified $symbol
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$paramName] unified param value (check docs for supported param names)
+         * @param {string} [$subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {array} [$defaultValue] return default value if no result found
+         * @return {array} returns feature value
+         */
+        $market = $this->market($symbol);
+        return $this->feature_value_by_type($market['type'], $market['subType'], $methodName, $paramName, $subParamName, $defaultValue);
+    }
+
+    public function feature_value_by_type(string $marketType, ?string $subType, ?string $methodName = null, ?string $paramName = null, ?string $subParamName = null, mixed $defaultValue = null) {
+        /**
+         * this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [$marketType] supported only => "spot", "swap", "future"
+         * @param {string} [$subType] supported only => "linear", "inverse"
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$paramName] unified param value (check docs for supported param names)
+         * @param {string} [$subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {array} [$defaultValue] return default value if no result found
+         * @return {array} returns feature value
+         */
+        // if exchange does not yet have features manually implemented
+        if ($this->features === null) {
+            return $defaultValue;
+        }
+        // if $marketType (e.g. 'option') does not exist in features
+        if (!(is_array($this->features) && array_key_exists($marketType, $this->features))) {
+            return $defaultValue; // unsupported $marketType, check "exchange.features" for details
+        }
+        // if $marketType dict null
+        if ($this->features[$marketType] === null) {
+            return $defaultValue;
+        }
+        $methodsContainer = $this->features[$marketType];
+        if ($subType === null) {
+            if ($marketType !== 'spot') {
+                return $defaultValue; // $subType is required for non-spot markets
+            }
+        } else {
+            if (!(is_array($this->features[$marketType]) && array_key_exists($subType, $this->features[$marketType]))) {
+                return $defaultValue; // unsupported $subType, check "exchange.features" for details
+            }
+            // if $subType dict null
+            if ($this->features[$marketType][$subType] === null) {
+                return $defaultValue;
+            }
+            $methodsContainer = $this->features[$marketType][$subType];
+        }
+        // if user wanted only $marketType and didn't provide $methodName, eg => featureIsSupported('spot')
+        if ($methodName === null) {
+            return $methodsContainer;
+        }
+        if (!(is_array($methodsContainer) && array_key_exists($methodName, $methodsContainer))) {
+            return $defaultValue; // unsupported method, check "exchange.features" for details');
+        }
+        $methodDict = $methodsContainer[$methodName];
+        if ($methodDict === null) {
+            return $defaultValue;
+        }
+        // if user wanted only method and didn't provide `$paramName`, eg => featureIsSupported('swap', 'linear', 'createOrder')
+        if ($paramName === null) {
+            return $methodDict;
+        }
+        if (!(is_array($methodDict) && array_key_exists($paramName, $methodDict))) {
+            return $defaultValue; // unsupported $paramName, check "exchange.features" for details');
+        }
+        $dictionary = $this->safe_dict($methodDict, $paramName);
+        if ($dictionary === null) {
+            // if the value is not $dictionary but a scalar value (or null), return
+            return $methodDict[$paramName];
+        } else {
+            // return, when calling without `$subParamName` eg => featureValueByType('spot', null, 'createOrder', 'stopLoss')
+            if ($subParamName === null) {
+                return $methodDict[$paramName];
+            }
+            // throw an exception for unsupported $subParamName
+            if (!(is_array($methodDict[$paramName]) && array_key_exists($subParamName, $methodDict[$paramName]))) {
+                return $defaultValue; // unsupported $subParamName, check "exchange.features" for details
+            }
+            return $methodDict[$paramName][$subParamName];
+        }
+    }
+
     public function orderbook_checksum_message(?string $symbol) {
         return $symbol . '  = false';
     }

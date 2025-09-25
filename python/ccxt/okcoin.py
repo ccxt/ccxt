@@ -229,6 +229,9 @@ class okcoin(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': True,
                         'triggerPrice': True,

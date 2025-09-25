@@ -1428,6 +1428,9 @@ public partial class binance : Exchange
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", true },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "triggerPrice", true },
@@ -2726,7 +2729,7 @@ public partial class binance : Exchange
     {
         if (isTrue(this.isSandboxModeEnabled))
         {
-            throw new NotSupported ((string)add(this.id, " demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
+            throw new NotSupported ((string)add(this.id, " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
         }
         if (isTrue(enable))
         {
@@ -12396,7 +12399,7 @@ public partial class binance : Exchange
         //         "asset": "USDT",
         //         "amount": "-0.16518203",
         //         "type": "FEE",
-        //         "createDate": 1676621042489
+        //         "createDate": 167662104241
         //     }
         //
         // futures (fapi, dapi, papi)

@@ -1245,6 +1245,9 @@ class bybit extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'triggerDirection' => false,

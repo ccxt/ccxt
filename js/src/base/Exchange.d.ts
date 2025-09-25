@@ -535,6 +535,8 @@ export default class Exchange {
     initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: any, marketType: Str, subType?: Str): any;
+    featureValue(symbol: string, methodName?: Str, paramName?: Str, subParamName?: Str, defaultValue?: any): any;
+    featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, subParamName?: Str, defaultValue?: any): any;
     orderbookChecksumMessage(symbol: Str): string;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {

@@ -1251,7 +1251,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract']) {
-            throw new BadRequest (this.id + ' fetchTrades () can only fetch trades for spot markets');
+            throw new NotSupported (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request: Dict = {
             'asset_pair_name': market['id'],
@@ -1320,7 +1320,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract']) {
-            throw new BadRequest (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new NotSupported (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger (params, 'until');
         const untilIsDefined = (until !== undefined);

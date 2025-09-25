@@ -1428,6 +1428,9 @@ class binance(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': True,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': True,
                         'triggerPrice': True,
@@ -2781,7 +2784,7 @@ class binance(Exchange, ImplicitAPI):
         :param boolean [enable]: True if demo trading should be enabled, False otherwise
         """
         if self.isSandboxModeEnabled:
-            raise NotSupported(self.id + ' demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences')
+            raise NotSupported(self.id + ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences')
         if enable:
             self.urls['apiBackupDemoTrading'] = self.urls['api']
             self.urls['api'] = self.urls['demo']
@@ -11129,7 +11132,7 @@ class binance(Exchange, ImplicitAPI):
         #         "asset": "USDT",
         #         "amount": "-0.16518203",
         #         "type": "FEE",
-        #         "createDate": 1676621042489
+        #         "createDate": 167662104241
         #     }
         #
         # futures(fapi, dapi, papi)

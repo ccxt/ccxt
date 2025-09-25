@@ -226,6 +226,9 @@ class luno(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': False,
                         'triggerPrice': True,  # todo

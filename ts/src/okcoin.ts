@@ -210,6 +210,9 @@ export default class okcoin extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,

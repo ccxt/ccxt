@@ -1398,6 +1398,9 @@ class binance extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => true,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => true,
@@ -2774,7 +2777,7 @@ class binance extends Exchange {
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
         if ($this->isSandboxModeEnabled) {
-            throw new NotSupported($this->id . ' demo trading is not sin sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+            throw new NotSupported($this->id . ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
         }
         if ($enable) {
             $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
@@ -11722,7 +11725,7 @@ class binance extends Exchange {
         //         "asset" => "USDT",
         //         "amount" => "-0.16518203",
         //         "type" => "FEE",
-        //         "createDate" => 1676621042489
+        //         "createDate" => 167662104241
         //     }
         //
         // futures (fapi, dapi, papi)

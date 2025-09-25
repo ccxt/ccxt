@@ -438,6 +438,9 @@ class cryptocom extends cryptocom$1["default"] {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
