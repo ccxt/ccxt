@@ -30,17 +30,6 @@ func bisectLeft(array []float64, x float64) int {
 	return low
 }
 
-func pricesEqual(a, b float64) bool {
-	if a == b {
-		return true
-	}
-	diff := a - b
-	if diff < 0 {
-		diff = -diff
-	}
-	return diff < 1e-9
-}
-
 const SIZE = 1024
 
 var SEED []float64
@@ -169,10 +158,6 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]interface{})
-	// Guard against malformed deltas – match other langs by failing fast
-	if isInterface && len(deltaInterface) < 2 {
-		panic(fmt.Sprintf("OrderBookSide.StoreArray: malformed delta, need at least [price, size], got %v", delta))
-	}
 	var price float64
 	var size float64
 	if isArray {
@@ -194,54 +179,20 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 		indexPrice = price
 	}
 
-	// Bisect within the used range, like TS copyWithin semantics
-	maxSearch := obs.Length
-	if maxSearch > len(obs.Index) {
-		maxSearch = len(obs.Index)
-	}
-	var index int
-	if maxSearch > 0 {
-		index = bisectLeft(obs.Index[:maxSearch], indexPrice)
-	} else {
-		index = 0
-	}
+	index := bisectLeft(obs.Index, indexPrice)
 
 	if size != 0 {
-		// If bisect landed after an equal price, step back to update existing level
-		if index > 0 && index <= obs.Length && obs.Index[index-1] == indexPrice {
-			index = index - 1
-		}
-		if index < obs.Length && obs.Index[index] == indexPrice {
-			if index >= len(obs.Data) {
-				// grow Data slice to accommodate index
-				growBy := (index + 1) - len(obs.Data)
-				if growBy > 0 {
-					obs.Data = append(obs.Data, make([][]interface{}, growBy)...)
-				}
-			}
-			if len(obs.Data[index]) >= 2 {
-				obs.Data[index][1] = size
-			} else {
-				obs.Data[index] = []interface{}{price, size}
-			}
+		if obs.Index[index] == indexPrice {
+			obs.Data[index][1] = size
 		} else {
-			oldLen := obs.Length
-			// ensure Data length is in sync with Length before shifting
-			if len(obs.Data) < oldLen {
-				obs.Data = append(obs.Data, make([][]interface{}, oldLen-len(obs.Data))...)
-			}
-			obs.Length = oldLen + 1
-			// Shift within used window [0:oldLen)
-			if index < oldLen {
-				copy(obs.Index[index+1:oldLen+1], obs.Index[index:oldLen])
-			}
+			obs.Length++
+			// copyWithin equivalent
+			copy(obs.Index[index+1:], obs.Index[index:])
 			obs.Index[index] = indexPrice
 
-			// Data shift within used window
+			// Insert into Data array - ensure it grows with Length
 			obs.Data = append(obs.Data, nil)
-			if index < oldLen {
-				copy(obs.Data[index+1:oldLen+1], obs.Data[index:oldLen])
-			}
+			copy(obs.Data[index+1:], obs.Data[index:obs.Len()-1])
 			if isArray {
 				obs.Data[index] = []interface{}{deltaArray[0], deltaArray[1]}
 			} else if isOB {
@@ -250,7 +201,7 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 				obs.Data[index] = deltaInterface
 			}
 
-			// grow Index capacity if needed (rare large books)
+			// In the rare case of very large orderbooks being sent
 			if obs.Length > len(obs.Index)-1 {
 				newIndex := make([]float64, len(obs.Index)*2)
 				copy(newIndex, obs.Index)
@@ -260,34 +211,14 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 				obs.Index = newIndex
 			}
 		}
-	} else if index < obs.Length && obs.Index[index] == indexPrice {
-		// Remove all duplicates of this price within the used window
-		oldLen := obs.Length
-		// ensure Data length is in sync with Length before shifting
-		if len(obs.Data) < oldLen {
-			obs.Data = append(obs.Data, make([][]interface{}, oldLen-len(obs.Data))...)
-		}
-		// collapse any consecutive equals starting at index
-		j := index
-		for j < oldLen && obs.Index[j] == indexPrice {
-			j++
-		}
-		// shift left the tail [j:oldLen)
-		if index < oldLen {
-			copy(obs.Index[index:oldLen-(j-index)], obs.Index[j:oldLen])
-			copy(obs.Data[index:oldLen-(j-index)], obs.Data[j:oldLen])
-		}
-		// fill sentinels / nils at the end
-		for k := oldLen - (j - index); k < oldLen; k++ {
-			if k >= 0 && k < len(obs.Index) {
-				obs.Index[k] = math.MaxFloat64
-			}
-			if k >= 0 && k < len(obs.Data) {
-				obs.Data[k] = nil
-			}
-		}
-		obs.Data = obs.Data[:oldLen-(j-index)]
-		obs.Length = oldLen - (j - index)
+	} else if obs.Index[index] == indexPrice {
+		// Remove element
+		copy(obs.Index[index:], obs.Index[index+1:])
+		obs.Index[obs.Length-1] = math.MaxFloat64
+
+		copy(obs.Data[index:], obs.Data[index+1:])
+		obs.Data = obs.Data[:obs.Length-1]
+		obs.Length--
 	}
 }
 
@@ -321,16 +252,10 @@ func (obs *OrderBookSide) Limit() {
 	if obs.Length > obs.Depth {
 		for i := obs.Depth; i < obs.Length; i++ {
 			obs.Index[i] = math.MaxFloat64
+			// obs.Length--
 		}
-		// Clear refs in the used window [Depth, oldLen) to aid GC; then reslice to protect any len(Data) iterations
-		oldLen := obs.Length
-		for i := obs.Depth; i < oldLen; i++ {
-			obs.Data[i] = nil
-			// All operations should use obs.Length as the used window (TS uses this.length), In this file we already gate shifts and comparisons by obs.Length, so keeping len(obs.Data) larger is safe
-			// Nilling helps GC drop references without forcing a reslice/realloc, which can be better for performance in long-lived books
-		}
-		if len(obs.Data) > obs.Depth {
-			// Use the optimized pattern to avoid touching beyond the used window
+		// Ensure Data array is synchronized with new Length
+		if obs.Length > obs.Depth {
 			obs.Data = obs.Data[:obs.Depth]
 		}
 		obs.Length = obs.Depth
