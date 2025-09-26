@@ -6250,9 +6250,9 @@ export default class bybit extends Exchange {
         let accountType = undefined;
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
-        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType', 'UTA');
-        if (isUta && accountType === 'SPOT') {
-            accountType = 'UTA';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
+        if (accountType === undefined) {
+            accountType = isUta ? 'UTA' : 'SPOT';
         }
         await this.loadMarkets ();
         this.checkAddress (address);
