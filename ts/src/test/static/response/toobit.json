@@ -3372,6 +3372,7 @@
             {
                 "description": "fetchMarkets no args",
                 "method": "fetchMarkets",
+                "disabledGO": true,
                 "input": [],
                 "httpResponse": {
                     "timezone": "UTC",
