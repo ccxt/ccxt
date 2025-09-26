@@ -210,7 +210,7 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 		Subscriptions:       finalConfig["Subscriptions"].(map[string]interface{}), // map[string]chan interface{}
 		Rejections:          finalConfig["Rejections"].(map[string]interface{}),
 		Verbose:             finalConfig["Verbose"].(bool),
-		KeepAlive:           int64(finalConfig["keepAlive"].(int)),
+		KeepAlive:           ParseInt(finalConfig["keepAlive"]),
 		MaxPingPongMisses:   finalConfig["MaxPingPongMisses"],
 		IsConnected:         finalConfig["IsConnected"],
 		OnConnectedCallback: onConnectedCallback,
