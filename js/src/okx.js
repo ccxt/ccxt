@@ -691,6 +691,7 @@ export default class okx extends Exchange {
                     '51031': InvalidOrder,
                     '51046': InvalidOrder,
                     '51047': InvalidOrder,
+                    '51051': InvalidOrder,
                     '51072': InvalidOrder,
                     '51073': InvalidOrder,
                     '51074': InvalidOrder,
@@ -3189,7 +3190,8 @@ export default class okx extends Exchange {
                 request['attachAlgoOrds'] = [attachAlgoOrd];
             }
         }
-        else if (trigger) {
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);

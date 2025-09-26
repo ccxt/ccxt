@@ -690,6 +690,7 @@ class okx extends okx$1["default"] {
                     '51031': errors.InvalidOrder,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
+                    '51051': errors.InvalidOrder,
                     '51072': errors.InvalidOrder,
                     '51073': errors.InvalidOrder,
                     '51074': errors.InvalidOrder,
@@ -3188,7 +3189,8 @@ class okx extends okx$1["default"] {
                 request['attachAlgoOrds'] = [attachAlgoOrd];
             }
         }
-        else if (trigger) {
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);
