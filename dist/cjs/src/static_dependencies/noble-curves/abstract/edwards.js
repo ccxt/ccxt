@@ -6,7 +6,7 @@ var modular = require('./modular.js');
 var utils = require('./utils.js');
 var curve = require('./curve.js');
 
-// ----------------------------------------------------------------------------
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 // Be friendly to bad ECMAScript parsers by not using bigint literals like 123n
 const _0n = BigInt(0);
 const _1n = BigInt(1);

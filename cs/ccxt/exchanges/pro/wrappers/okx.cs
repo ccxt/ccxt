@@ -10,6 +10,8 @@ public partial class okx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +45,8 @@ public partial class okx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -60,6 +64,12 @@ public partial class okx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.channel</term>
+    /// <description>
+    /// string : the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
     /// </description>
     /// </item>
     /// </list>

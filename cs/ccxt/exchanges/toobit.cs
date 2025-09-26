@@ -397,7 +397,7 @@ public partial class toobit : Exchange
     public async override Task<object> fetchStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "commonGetApiV1Ping", new object[] { parameters }));
+        object response = await this.commonGetApiV1Ping(parameters);
         return new Dictionary<string, object>() {
             { "status", "ok" },
             { "updated", null },
@@ -418,7 +418,7 @@ public partial class toobit : Exchange
     public async override Task<object> fetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "commonGetApiV1Time", new object[] { parameters }));
+        object response = await this.commonGetApiV1Time(parameters);
         //
         //     {
         //         "serverTime": 1699827319559
@@ -437,7 +437,7 @@ public partial class toobit : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "commonGetApiV1ExchangeInfo", new object[] { parameters }));
+        object response = await this.commonGetApiV1ExchangeInfo(parameters);
         ((IDictionary<string,object>)this.options)["exchangeInfo"] = response; // we store it in options for later use in fetchMarkets
         //
         //    {
@@ -655,7 +655,7 @@ public partial class toobit : Exchange
             ((IDictionary<string,object>)this.options)["exchangeInfo"] = null; // reset it to avoid using old cached data
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "commonGetApiV1ExchangeInfo", new object[] { parameters }));
+            response = await this.commonGetApiV1ExchangeInfo(parameters);
         }
         //
         //    {
@@ -897,7 +897,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1Depth", new object[] { this.extend(request, parameters) }));
+        object response = await this.commonGetQuoteV1Depth(this.extend(request, parameters));
         //
         //    {
         //        "t": "1755593995237",
@@ -953,7 +953,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1Trades", new object[] { this.extend(request, parameters) }));
+        object response = await this.commonGetQuoteV1Trades(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1122,13 +1122,13 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)endpointparametersVariable)[1];
         if (isTrue(isEqual(endpoint, "index")))
         {
-            response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1IndexKlines", new object[] { this.extend(request, parameters) }));
+            response = await this.commonGetQuoteV1IndexKlines(this.extend(request, parameters));
         } else if (isTrue(isEqual(endpoint, "mark")))
         {
-            response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1MarkPriceKlines", new object[] { this.extend(request, parameters) }));
+            response = await this.commonGetQuoteV1MarkPriceKlines(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1Klines", new object[] { this.extend(request, parameters) }));
+            response = await this.commonGetQuoteV1Klines(this.extend(request, parameters));
         }
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
@@ -1172,10 +1172,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1Ticker24hr", new object[] { this.extend(request, parameters) }));
+            response = await this.commonGetQuoteV1Ticker24hr(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1ContractTicker24hr", new object[] { this.extend(request, parameters) }));
+            response = await this.commonGetQuoteV1ContractTicker24hr(this.extend(request, parameters));
         }
         //
         //    [
@@ -1251,7 +1251,7 @@ public partial class toobit : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
         }
-        object response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1TickerPrice", new object[] { this.extend(request, parameters) }));
+        object response = await this.commonGetQuoteV1TickerPrice(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1302,7 +1302,7 @@ public partial class toobit : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
         }
-        object response = await ((Task<object>)callDynamically(this, "commonGetQuoteV1TickerBookTicker", new object[] { this.extend(request, parameters) }));
+        object response = await this.commonGetQuoteV1TickerBookTicker(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1368,7 +1368,7 @@ public partial class toobit : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
         }
-        object response = await ((Task<object>)callDynamically(this, "commonGetApiV1FuturesFundingRate", new object[] { this.extend(request, parameters) }));
+        object response = await this.commonGetApiV1FuturesFundingRate(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1441,7 +1441,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "commonGetApiV1FuturesHistoryFundingRate", new object[] { this.extend(request, parameters) }));
+        object response = await this.commonGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1487,10 +1487,10 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(this.inArray(marketType, new List<object>() {"swap", "future"})))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesBalance", new object[] {  }));
+            response = await this.privateGetApiV1FuturesBalance();
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1Account", new object[] {  }));
+            response = await this.privateGetApiV1Account();
         }
         return this.parseBalance(response);
     }
@@ -1542,13 +1542,13 @@ public partial class toobit : Exchange
             var requestparametersVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             request = ((IList<object>)requestparametersVariable)[0];
             parameters = ((IList<object>)requestparametersVariable)[1];
-            response = await ((Task<object>)callDynamically(this, "privatePostApiV1SpotOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privatePostApiV1SpotOrder(this.extend(request, parameters));
         } else
         {
             var requestparametersVariable = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
             request = ((IList<object>)requestparametersVariable)[0];
             parameters = ((IList<object>)requestparametersVariable)[1];
-            response = await ((Task<object>)callDynamically(this, "privatePostApiV1FuturesOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privatePostApiV1FuturesOrder(this.extend(request, parameters));
         }
         //
         //     {
@@ -1873,10 +1873,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateDeleteApiV1SpotOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateDeleteApiV1SpotOrder(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateDeleteApiV1FuturesOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateDeleteApiV1FuturesOrder(this.extend(request, parameters));
         }
         // response same as in `createOrder`
         object status = this.parseOrderStatus(this.safeString(response, "status"));
@@ -1919,10 +1919,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateDeleteApiV1SpotOpenOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateDeleteApiV1FuturesBatchOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters));
         }
         return new List<object> {this.safeOrder(new Dictionary<string, object>() {
     { "info", response },
@@ -1964,10 +1964,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateDeleteApiV1SpotCancelOrderByIds", new object[] { this.extend(request, parameters) }));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateDeleteApiV1FuturesCancelOrderByIds", new object[] { this.extend(request, parameters) }));
+            response = await this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request, parameters));
         }
         object result = this.safeList(response, "result", new List<object>() {});
         return this.parseOrders(result, market);
@@ -1999,10 +1999,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1SpotOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1SpotOrder(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesOrder", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1FuturesOrder(this.extend(request, parameters));
         }
         //
         //    {
@@ -2069,10 +2069,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1SpotOpenOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesOpenOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1FuturesOpenOrders(this.extend(request, parameters));
         }
         return this.parseOrders(response, market, since, limit);
     }
@@ -2117,7 +2117,7 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1SpotTradeOrders", new object[] { request }));
+            response = await this.privateGetApiV1SpotTradeOrders(request);
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
@@ -2165,7 +2165,7 @@ public partial class toobit : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesHistoryOrders", new object[] { request }));
+            response = await this.privateGetApiV1FuturesHistoryOrders(request);
         }
         object ordersList = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -2219,10 +2219,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1AccountTrades", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1AccountTrades(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesUserTrades", new object[] { request }));
+            response = await this.privateGetApiV1FuturesUserTrades(request);
         }
         return this.parseTrades(response, market, since, limit);
     }
@@ -2253,7 +2253,7 @@ public partial class toobit : Exchange
             { "fromAccountType", fromId },
             { "toAccountType", toId },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostApiV1SubAccountTransfer", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostApiV1SubAccountTransfer(this.extend(request, parameters));
         //
         //    {
         //     "code": 200, // 200 = success
@@ -2326,10 +2326,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1AccountBalanceFlow", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesBalanceFlow", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1FuturesBalanceFlow(this.extend(request, parameters));
         }
         //
         // both answers are same format
@@ -2428,7 +2428,7 @@ public partial class toobit : Exchange
             object request = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
             };
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesCommissionRate", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1FuturesCommissionRate(this.extend(request, parameters));
         }
         //
         // {
@@ -2518,10 +2518,10 @@ public partial class toobit : Exchange
         object response = null;
         if (isTrue(isEqual(type, "deposits")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1AccountDepositOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "withdrawals")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateGetApiV1AccountWithdrawOrders", new object[] { this.extend(request, parameters) }));
+            response = await this.privateGetApiV1AccountWithdrawOrders(this.extend(request, parameters));
         }
         return this.parseTransactions(response, currency, since, limit, parameters);
     }
@@ -2647,7 +2647,7 @@ public partial class toobit : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
         }
         ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode);
-        object response = await ((Task<object>)callDynamically(this, "privateGetApiV1AccountDepositAddress", new object[] { this.extend(request, paramsOmitted) }));
+        object response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted));
         //
         //     {
         //         "canDeposit":false,//Is it possible to recharge
@@ -2711,7 +2711,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["addressExt"] = tag;
         }
-        object response = await ((Task<object>)callDynamically(this, "privatePostApiV1AccountWithdraw", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostApiV1AccountWithdraw(this.extend(request, parameters));
         //
         // {
         //     "status": 0,
@@ -2752,7 +2752,7 @@ public partial class toobit : Exchange
             { "symbol", getValue(market, "id") },
             { "marginType", marginMode },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostApiV1FuturesMarginType", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostApiV1FuturesMarginType(this.extend(request, parameters));
         //
         // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
         //
@@ -2782,7 +2782,7 @@ public partial class toobit : Exchange
             { "symbol", getValue(market, "id") },
             { "leverage", leverage },
         };
-        object response = await ((Task<object>)callDynamically(this, "privatePostApiV1FuturesLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.privatePostApiV1FuturesLeverage(this.extend(request, parameters));
         //
         // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
         //
@@ -2806,7 +2806,7 @@ public partial class toobit : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesAccountLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetApiV1FuturesAccountLeverage(this.extend(request, parameters));
         //
         // [
         //     {
@@ -2864,7 +2864,7 @@ public partial class toobit : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
         }
-        object response = await ((Task<object>)callDynamically(this, "privateGetApiV1FuturesPositions", new object[] { this.extend(request, parameters) }));
+        object response = await this.privateGetApiV1FuturesPositions(this.extend(request, parameters));
         //
         //    [
         //        {
