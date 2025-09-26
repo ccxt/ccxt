@@ -763,6 +763,9 @@ class mexc extends mexc$1["default"] {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',
@@ -1053,7 +1056,7 @@ class mexc extends mexc$1["default"] {
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //

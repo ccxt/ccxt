@@ -369,7 +369,7 @@ public partial class gemini : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>");
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         //    {
@@ -1527,7 +1527,7 @@ public partial class gemini : Exchange
         //          "is_hidden":false,
         //          "was_forced":false,
         //          "executed_amount":"0",
-        //          "client_order_id":"1650398445709",
+        //          "client_order_id":"1650398445701",
         //          "options":[],
         //          "price":"2000.00",
         //          "original_amount":"0.01",

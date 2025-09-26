@@ -72,7 +72,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Instantiation](#instantiation)
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
-<!--- init list -->The CCXT library currently supports the following 102 cryptocurrency exchange markets and trading APIs:
+<!--- init list -->The CCXT library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
 
 |logo                                                                                                                                                                                           |id                     |name                                                                                     |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                           |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -169,6 +169,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                          | probit                | [ProBit](https://www.probit.com/r/34608773)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                  | timex                 | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://plasma-relay-backend.timex.io/swagger-ui/index.html)                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                 | tokocrypto            | [Tokocrypto](https://tokocrypto.com)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
+| [![toobit](https://github.com/user-attachments/assets/3fc13870-5406-431b-8be0-2aab69c4f225)](https://www.toobit.com/en-US/r?i=IFFPy0)                                                         | toobit                | [Toobit](https://www.toobit.com/en-US/r?i=IFFPy0)                                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://toobit-docs.github.io/apidocs/spot/v1/en/)                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![upbit](https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg)](https://upbit.com)                                                            | upbit                 | [Upbit](https://upbit.com)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![wavesexchange](https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg)](https://wx.network)                                                   | wavesexchange         | [Waves.Exchange](https://wx.network)                                                    | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.wx.network)                                                            | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             |                                                                              |
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)          | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -4722,6 +4723,7 @@ We have different classification of trigger orders:
 
 Traditional "stop" order (which you might see across exchanges' websites) is now called "trigger" order across CCXT library. Implemented by adding a `triggerPrice` parameter. They are independent basic trigger orders that can open or close a position.
 
+* To ensure exchange supports this functionality, check `exchange.features` or use helper method `exchange.featureValue('BTC/USDT', 'createOrder', 'triggerPrice')`.
 * Typically, it is activated when price of the underlying asset/contract crosses the `triggerPrice` from **any direction**. However, some exchanges' API require to set `triggerDirection` too, which triggers order depending whether price is above or below `triggerPrice`. For example, if you want to trigger  limit order (buy 0.1 `ETH` at limit price `1500`) once pair price crosses `1700`:
 
 <!-- tabs:start -->
@@ -4762,6 +4764,8 @@ Note, you can also add `reduceOnly: true` param to the trigger order (with a pos
 ##### Stop Loss Orders
 
 The same as Trigger Orders, but the direction matters. Implemented by specifying a `stopLossPrice` parameter (for the stop loss triggerPrice), and also automatically implemented `triggerDirection` on behalf of user, so instead of regular Trigger Order, you can use this as an alternative.
+
+* To ensure exchange supports this functionality, check `exchange.features` or use helper method `exchange.featureValue('BTC/USDT', 'createOrder', 'stopLossPrice')`.
 
 Suppose you entered a long position (you bought) at 1000 and want to protect yourself from losses from a possible price drop below 700. You would place a stop loss order with triggerPrice at 700. For that stop loss order either you would specify a limit price or it will be executed at market price.
 
@@ -4929,12 +4933,13 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 **Take Profit** / **Stop Loss** Orders which are tied to a position-opening primary order. Implemented by supplying a dictionary parameters for `stopLoss` and `takeProfit` describing each respectively.
 
-* By default stopLoss and takeProfit orders will be the same magnitude as primary order but in the opposite direction.
+* By default stopLoss and takeProfit order amounts will be the same as primary order but in the opposite direction.
 * Attached trigger orders are conditional on the primary order being executed.
-* Not supported by all exchanges.
-* Both `stopLoss` and `takeProfit` or either can be supplied, this depends on exchange.
-
-*Note: This is still under unification and is work in progress*
+* Not supported by all exchanges. To check whether stop-loss is supported, use such approach:
+```
+exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss') // if stopLoss supported
+exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+```
 
 <!-- tabs:start -->
 #### **Javascript**

@@ -434,6 +434,9 @@ class cryptocom extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'swap' => array(
                     'linear' => array(
@@ -529,13 +532,13 @@ class cryptocom extends Exchange {
          */
         // this endpoint requires authentication
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $skipFetchCurrencies = false;
         list($skipFetchCurrencies, $params) = $this->handle_option_and_params($params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if ($skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
-            return null;
+            return array();
         }
         $response = array();
         try {
@@ -544,7 +547,7 @@ class cryptocom extends Exchange {
             if ($e instanceof ExchangeError) {
                 // sub-accounts can't access this endpoint
                 // array("code":"10001","msg":"SYS_ERROR")
-                return null;
+                return array();
             }
             throw $e;
             // do nothing

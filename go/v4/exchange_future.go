@@ -108,7 +108,7 @@ func (f *Future) Await() <-chan interface{} {
 	go func() {
 		// defer close(ch)
 
-		// f.mu.Lock()
+		f.mu.Lock()
 		if f.resolved {
 			for true {
 				// Already resolved, return cached value immediately
@@ -121,7 +121,7 @@ func (f *Future) Await() <-chan interface{} {
 				// return
 			}
 		}
-		// f.mu.Unlock()
+		f.mu.Unlock()
 
 		// // Not resolved yet, wait for it
 		// select {

@@ -570,6 +570,9 @@ public partial class mexc : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "forDerivs", new Dictionary<string, object>() {
                     { "extends", "default" },
@@ -874,7 +877,7 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.spotPrivateGetCapitalConfigGetall(parameters);
         //

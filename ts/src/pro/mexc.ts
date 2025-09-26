@@ -879,6 +879,7 @@ export default class mexc extends mexcRest {
         }
         const storedOrderBook = this.orderbooks[symbol];
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        let shouldReturn = false;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 25);
@@ -896,6 +897,11 @@ export default class mexc extends mexcRest {
         } catch (e) {
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
+            // return;
+            shouldReturn = true;
+        }
+        if (shouldReturn) {
+            return; // go requirement
         }
         client.resolve (storedOrderBook, messageHash);
     }

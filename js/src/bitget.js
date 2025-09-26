@@ -1327,6 +1327,8 @@ export default class bitget extends Exchange {
                     '43025': InvalidOrder,
                     '43115': OnMaintenance,
                     '45110': InvalidOrder,
+                    '40774': InvalidOrder,
+                    '45122': InvalidOrder,
                     // spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol,
@@ -5248,6 +5250,14 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'orderType': type,
         };
+        let hedged = undefined;
+        [hedged, params] = this.handleParamBool(params, 'hedged', false);
+        // backward compatibility for `oneWayMode`
+        let oneWayMode = undefined;
+        [oneWayMode, params] = this.handleParamBool(params, 'oneWayMode');
+        if (oneWayMode !== undefined) {
+            hedged = !oneWayMode;
+        }
         const isMarketOrder = type === 'market';
         const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
@@ -5341,7 +5351,12 @@ export default class bitget extends Exchange {
                 if (!isMarketOrder) {
                     throw new ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
                 }
-                request['holdSide'] = (side === 'buy') ? 'long' : 'short';
+                if (hedged) {
+                    request['holdSide'] = (side === 'sell') ? 'long' : 'short';
+                }
+                else {
+                    request['holdSide'] = (side === 'sell') ? 'buy' : 'sell';
+                }
                 if (isStopLossTriggerOrder) {
                     request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                     request['planType'] = 'pos_loss';
@@ -5367,14 +5382,6 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                let hedged = undefined;
-                [hedged, params] = this.handleParamBool(params, 'hedged', false);
-                // backward compatibility for `oneWayMode`
-                let oneWayMode = undefined;
-                [oneWayMode, params] = this.handleParamBool(params, 'oneWayMode');
-                if (oneWayMode !== undefined) {
-                    hedged = !oneWayMode;
-                }
                 let requestSide = side;
                 if (reduceOnly) {
                     if (!hedged) {

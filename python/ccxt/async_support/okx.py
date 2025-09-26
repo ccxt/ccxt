@@ -1324,6 +1324,9 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1794,7 +1797,7 @@ class okx(Exchange, ImplicitAPI):
         # and fallback to generating the currencies from the markets
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if not self.check_required_credentials(False) or isSandboxMode:
-            return None
+            return {}
         #
         # has['fetchCurrencies'] is currently set to True, but an unauthorized request returns
         #

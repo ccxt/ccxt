@@ -1286,6 +1286,8 @@ public partial class bitget : Exchange
                     { "43025", typeof(InvalidOrder) },
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
+                    { "40774", typeof(InvalidOrder) },
+                    { "45122", typeof(InvalidOrder) },
                     { "invalid sign", typeof(AuthenticationError) },
                     { "invalid currency", typeof(BadSymbol) },
                     { "invalid symbol", typeof(BadSymbol) },
@@ -5503,6 +5505,19 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "orderType", type },
         };
+        object hedged = null;
+        var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+        hedged = ((IList<object>)hedgedparametersVariable)[0];
+        parameters = ((IList<object>)hedgedparametersVariable)[1];
+        // backward compatibility for `oneWayMode`
+        object oneWayMode = null;
+        var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
+        oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
+        parameters = ((IList<object>)oneWayModeparametersVariable)[1];
+        if (isTrue(!isEqual(oneWayMode, null)))
+        {
+            hedged = !isTrue(oneWayMode);
+        }
         object isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
         object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
@@ -5613,7 +5628,13 @@ public partial class bitget : Exchange
                 {
                     throw new ExchangeError ((string)add(this.id, " createOrder() bitget stopLoss or takeProfit orders must be market orders")) ;
                 }
-                ((IDictionary<string,object>)request)["holdSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
+                if (isTrue(hedged))
+                {
+                    ((IDictionary<string,object>)request)["holdSide"] = ((bool) isTrue((isEqual(side, "sell")))) ? "long" : "short";
+                } else
+                {
+                    ((IDictionary<string,object>)request)["holdSide"] = ((bool) isTrue((isEqual(side, "sell")))) ? "buy" : "sell";
+                }
                 if (isTrue(isStopLossTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -5644,19 +5665,6 @@ public partial class bitget : Exchange
                 }
                 object marginModeRequest = ((bool) isTrue((isEqual(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((IDictionary<string,object>)request)["marginMode"] = marginModeRequest;
-                object hedged = null;
-                var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
-                hedged = ((IList<object>)hedgedparametersVariable)[0];
-                parameters = ((IList<object>)hedgedparametersVariable)[1];
-                // backward compatibility for `oneWayMode`
-                object oneWayMode = null;
-                var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
-                oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
-                parameters = ((IList<object>)oneWayModeparametersVariable)[1];
-                if (isTrue(!isEqual(oneWayMode, null)))
-                {
-                    hedged = !isTrue(oneWayMode);
-                }
                 object requestSide = side;
                 if (isTrue(reduceOnly))
                 {

@@ -333,6 +333,9 @@ class coinsph extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true,
@@ -530,7 +533,7 @@ class coinsph extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             if (!$this->check_required_credentials(false)) {
-                return null;
+                return array();
             }
             $response = Async\await($this->privateGetOpenapiWalletV1ConfigGetall ($params));
             //

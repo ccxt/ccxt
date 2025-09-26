@@ -229,6 +229,9 @@ class okcoin(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': True,
                         'triggerPrice': True,
@@ -837,7 +840,7 @@ class okcoin(Exchange, ImplicitAPI):
         if not self.check_required_credentials(False):
             if self.options['warnOnFetchCurrenciesWithoutAuthorization']:
                 raise ExchangeError(self.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = False to suppress self warning message.')
-            return None
+            return {}
         else:
             response = self.privateGetAssetCurrencies(params)
             data = self.safe_list(response, 'data', [])

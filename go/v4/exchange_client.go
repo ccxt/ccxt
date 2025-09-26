@@ -53,8 +53,11 @@ type Client struct {
 	Connection   *websocket.Conn
 	ConnectionMu sync.Mutex // protects conn writes
 
+	PongSetMu sync.RWMutex // protects LastPong set
+
 	Subscriptions   map[string]interface{} // map[string]chan interface{}
 	SubscriptionsMu sync.RWMutex
+	ConnectMu       sync.RWMutex // protects Connect calls
 	ReadLoopClosed  chan struct{}
 
 	Error error // last error, nil if connection considered healthy
@@ -285,6 +288,8 @@ func NewClient(url string, onMessageCallback func(client interface{}, err interf
 
 // updates the LastPong timestamp and optionally logs the event when the client is running in verbose mode
 func (this *Client) OnPong() {
+	this.PongSetMu.Lock()
+	defer this.PongSetMu.Unlock()
 	this.LastPong = time.Now().UnixMilli()
 	if this.Verbose {
 		log.Println(time.Now(), "onPong")
@@ -325,7 +330,9 @@ func (this *Client) OnConnectionTimeout() {
 	if !this.IsConnected.(bool) {
 		err := RequestTimeout("Connection to " + this.Url + " failed due to a connection timeout")
 		this.OnError(err)
-		this.Connection.Close()
+		if this.Connection != nil {
+			this.Connection.Close()
+		}
 		// ? this.Connection.Close(1006)
 	}
 }
@@ -552,6 +559,8 @@ func (this *Client) GetLastPong() interface{} {
 	return this.LastPong
 }
 func (this *Client) SetLastPong(lastPong interface{}) {
+	this.PongSetMu.Lock()
+	defer this.PongSetMu.Unlock()
 	this.LastPong = lastPong
 }
 func (this *Client) SetKeepAlive(keepAlive interface{}) {
