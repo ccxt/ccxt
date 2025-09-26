@@ -259,6 +259,19 @@
             }
         }
     },
+    "bitflex": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+	    "fetchTrades": {
+                "side": "side is undefined"
+            },
+	    "ticker": {
+                "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270053001#L3338"
+            }
+        }
+    },
     "bitflyer": {
         "skipMethods": {
             "loadMarkets": {
