@@ -1317,7 +1317,7 @@ export default class dydx extends Exchange {
         let orderFlag = undefined;
         let timeInForceNumber = undefined;
         if (timeInForce === 'FOK') {
-            throw new Error (this.id + ' timeInForce fok has been deprecated');
+            throw new InvalidOrder (this.id + ' timeInForce fok has been deprecated');
         }
         if (orderType === 'MARKET') {
             // short-term
@@ -1344,7 +1344,7 @@ export default class dydx extends Exchange {
                 if (timeInForce === 'IOC') {
                     timeInForceNumber = 1;
                 } else {
-                    throw new Error ('unexpected code path: timeInForce');
+                    throw new InvalidOrder ('unexpected code path: timeInForce');
                 }
             }
         }
@@ -1511,14 +1511,14 @@ export default class dydx extends Exchange {
         const subaccountId = this.safeInteger (params, 'subaccountId', 0);
         params = this.omit (params, [ 'clientOrderId', 'orderFlags', 'goodTillBlock', 'goodTillBlockTime', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
-            throw new Error (this.id + ' invalid orderFlags (0, 64, 32).');
+            throw new InvalidOrder (this.id + ' invalid orderFlags (0, 64, 32).');
         }
         if (orderFlags > 0) {
             if (goodTillBlockTimeInSeconds === undefined) {
                 throw new ArgumentsRequired (this.id + ' goodTillBlockTimeInSeconds is required for long term or conditional order.');
             }
             if (goodTillBlock !== undefined && goodTillBlock > 0) {
-                throw new Error (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
+                throw new InvalidOrder (this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds () + goodTillBlockTimeInSeconds;
         } else {
@@ -1781,11 +1781,11 @@ export default class dydx extends Exchange {
         //
         const gasInfo = this.safeDict (response, 'gas_info');
         if (gasInfo === undefined) {
-            throw new Error (this.id + ' failed to simulate transaction.');
+            throw new ExchangeError (this.id + ' failed to simulate transaction.');
         }
         const gasUsed = this.safeString (gasInfo, 'gas_used');
         if (gasUsed === undefined) {
-            throw new Error (this.id + ' failed to simulate transaction.');
+            throw new ExchangeError (this.id + ' failed to simulate transaction.');
         }
         const defaultFeeDenom = this.safeString (this.options, 'defaultFeeDenom');
         const defaultFeeMultiplier = this.safeString (this.options, 'defaultFeeMultiplier');
