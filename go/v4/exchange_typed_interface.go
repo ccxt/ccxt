@@ -429,6 +429,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "tokocrypto":
 		itf := NewTokocrypto(options)
 		return itf
+	case "toobit":
+		itf := NewToobit(options)
+		return itf
 	case "upbit":
 		itf := NewUpbit(options)
 		return itf

@@ -451,7 +451,7 @@ class bigone extends bigone$1["default"] {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         // {
@@ -1256,7 +1256,7 @@ class bigone extends bigone$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['contract']) {
-            throw new errors.BadRequest(this.id + ' fetchTrades () can only fetch trades for spot markets');
+            throw new errors.NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
             'asset_pair_name': market['id'],
@@ -1323,7 +1323,7 @@ class bigone extends bigone$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['contract']) {
-            throw new errors.BadRequest(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new errors.NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
         const untilIsDefined = (until !== undefined);

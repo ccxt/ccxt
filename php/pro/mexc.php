@@ -917,6 +917,7 @@ class mexc extends \ccxt\async\mexc {
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($e, $messageHash);
+            return;
         }
         $client->resolve ($storedOrderBook, $messageHash);
     }

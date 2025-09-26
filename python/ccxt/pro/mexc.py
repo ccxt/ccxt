@@ -858,6 +858,7 @@ class mexc(ccxt.async_support.mexc):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+            return
         client.resolve(storedOrderBook, messageHash)
 
     def handle_bookside_delta(self, bookside, bidasks):

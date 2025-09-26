@@ -508,6 +508,7 @@ export default class okx extends Exchange {
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,
                         'account/move-positions': 10,
+                        'account/set-settle-currency': 1,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -829,6 +830,9 @@ export default class okx extends Exchange {
                     '54008': InvalidOrder,
                     '54009': InvalidOrder,
                     '54011': InvalidOrder,
+                    '54072': ExchangeError,
+                    '54073': BadRequest,
+                    '54074': ExchangeError,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,
                     '55101': InvalidOrder,
@@ -934,6 +938,9 @@ export default class okx extends Exchange {
                     '59519': ExchangeError,
                     '59642': BadRequest,
                     '59643': ExchangeError,
+                    '59683': ExchangeError,
+                    '59684': BadRequest,
+                    '59686': BadRequest,
                     // WebSocket error Codes from 60000-63999
                     '60001': AuthenticationError,
                     '60002': AuthenticationError,
@@ -1300,6 +1307,9 @@ export default class okx extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1507,14 +1517,33 @@ export default class okx extends Exchange {
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -1796,7 +1825,7 @@ export default class okx extends Exchange {
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
-            return undefined;
+            return {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns

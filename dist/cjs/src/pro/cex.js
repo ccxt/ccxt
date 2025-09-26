@@ -1023,6 +1023,7 @@ class cex extends cex$1["default"] {
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
             client.reject(this.id + ' watchOrderBook() skipped a message', messageHash);
+            return;
         }
         const timestamp = this.safeInteger(data, 'time');
         const asks = this.safeValue(data, 'asks', []);

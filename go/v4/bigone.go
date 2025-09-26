@@ -377,6 +377,7 @@ func (this *bigone) FetchCurrencies(optionalArgs ...interface{}) <-chan interfac
 		PanicOnError(data)
 		if IsTrue(IsEqual(data, nil)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 		//
@@ -1267,7 +1268,7 @@ func (this *bigone) FetchTrades(symbol interface{}, optionalArgs ...interface{})
 		PanicOnError(retRes12508)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
-			panic(BadRequest(Add(this.Id, " fetchTrades () can only fetch trades for spot markets")))
+			panic(NotSupported(Add(this.Id, " fetchTrades () can only fetch trades for spot markets")))
 		}
 		var request interface{} = map[string]interface{}{
 			"asset_pair_name": GetValue(market, "id"),
@@ -1351,7 +1352,7 @@ func (this *bigone) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
 		PanicOnError(retRes13198)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "contract")) {
-			panic(BadRequest(Add(this.Id, " fetchOHLCV () can only fetch ohlcvs for spot markets")))
+			panic(NotSupported(Add(this.Id, " fetchOHLCV () can only fetch ohlcvs for spot markets")))
 		}
 		var until interface{} = this.SafeInteger(params, "until")
 		var untilIsDefined interface{} = (!IsEqual(until, nil))

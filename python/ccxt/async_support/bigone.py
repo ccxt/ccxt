@@ -458,7 +458,7 @@ class bigone(Exchange, ImplicitAPI):
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         data = await self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', True)
         if data is None:
-            return None
+            return {}
         #
         # {
         #     "code": "0",
@@ -1221,7 +1221,7 @@ class bigone(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         if market['contract']:
-            raise BadRequest(self.id + ' fetchTrades() can only fetch trades for spot markets')
+            raise NotSupported(self.id + ' fetchTrades() can only fetch trades for spot markets')
         request: dict = {
             'asset_pair_name': market['id'],
         }
@@ -1287,7 +1287,7 @@ class bigone(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         if market['contract']:
-            raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
+            raise NotSupported(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
         sinceIsDefined = (since is not None)

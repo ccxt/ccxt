@@ -392,7 +392,7 @@ class gemini extends Exchange {
              */
             $data = Async\await($this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>'));
             if ($data === null) {
-                return null;
+                return array();
             }
             //
             //    {
@@ -1499,7 +1499,7 @@ class gemini extends Exchange {
             //          "is_hidden":false,
             //          "was_forced":false,
             //          "executed_amount":"0",
-            //          "client_order_id":"1650398445709",
+            //          "client_order_id":"1650398445701",
             //          "options":array(),
             //          "price":"2000.00",
             //          "original_amount":"0.01",

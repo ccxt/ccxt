@@ -429,7 +429,7 @@ export default class kraken extends Exchange {
      * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
+     * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}

@@ -82,6 +82,19 @@ class binance(ccxt.async_support.binance):
                         },
                     },
                 },
+                'demo': {
+                    'ws': {
+                        'spot': 'wss://demo-stream.binance.com/ws',
+                        'margin': 'wss://demo-stream.binance.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
+                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'ws-api': {
+                            'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
+                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                        },
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
@@ -178,6 +191,9 @@ class binance(ccxt.async_support.binance):
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
+
+    def is_spot_url(self, client: Client):
+        return(client.url.find('/stream') > -1) or (client.url.find('demo-stream') > -1)
 
     def stream(self, type: Str, subscriptionHash: Str, numSubscriptions=1):
         streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', self.create_safe_dictionary())
@@ -870,7 +886,7 @@ class binance(ccxt.async_support.binance):
         #         ]
         #     }
         #
-        isSpot = (client.url.find('/stream') > -1)
+        isSpot = self.is_spot_url(client)
         marketType = 'spot' if (isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -1290,7 +1306,7 @@ class binance(ccxt.async_support.binance):
     def handle_trade(self, client: Client, message):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
-        isSpot = (client.url.find('/stream') > -1)
+        isSpot = self.is_spot_url(client)
         marketType = 'spot' if (isSpot) else 'contract'
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
@@ -1523,7 +1539,7 @@ class binance(ccxt.async_support.binance):
             self.safe_float(kline, 'c'),
             self.safe_float(kline, 'v'),
         ]
-        isSpot = (client.url.find('/stream') > -1)
+        isSpot = self.is_spot_url(client)
         marketType = 'spot' if (isSpot) else 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
@@ -2123,7 +2139,7 @@ class binance(ccxt.async_support.binance):
         self.handle_tickers_and_bids_asks(client, message, 'tickers')
 
     def handle_tickers_and_bids_asks(self, client: Client, message, methodType):
-        isSpot = (client.url.find('/stream') > -1)
+        isSpot = self.is_spot_url(client)
         marketType = 'spot' if (isSpot) else 'contract'
         isBidAsk = (methodType == 'bidasks')
         channelName = None

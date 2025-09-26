@@ -80,6 +80,19 @@ export default class binance extends binanceRest {
                         },
                     },
                 },
+                'demo': {
+                    'ws': {
+                        'spot': 'wss://demo-stream.binance.com/ws',
+                        'margin': 'wss://demo-stream.binance.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
+                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'ws-api': {
+                            'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
+                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                        },
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
@@ -177,6 +190,10 @@ export default class binance extends binanceRest {
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
+    }
+
+    isSpotUrl (client: Client) {
+        return (client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('demo-stream') > -1);
     }
 
     stream (type: Str, subscriptionHash: Str, numSubscriptions = 1) {
@@ -921,7 +938,7 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1384,7 +1401,7 @@ export default class binance extends binanceRest {
     handleTrade (client: Client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1631,7 +1648,7 @@ export default class binance extends binanceRest {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
@@ -2279,7 +2296,7 @@ export default class binance extends binanceRest {
     }
 
     handleTickersAndBidsAsks (client: Client, message, methodType) {
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
         let channelName = undefined;

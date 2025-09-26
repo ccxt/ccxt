@@ -1242,6 +1242,9 @@ export default class bybit extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
@@ -1286,14 +1289,14 @@ export default class bybit extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name bybit#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://bybit-exchange.github.io/docs/v5/demo
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
     enableDemoTrading(enable) {
-        /**
-         * @method
-         * @name bybit#enableDemoTrading
-         * @description enables or disables demo trading mode
-         * @see https://bybit-exchange.github.io/docs/v5/demo
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
         if (this.isSandboxModeEnabled) {
             throw new NotSupported(this.id + ' demo trading does not support in sandbox environment');
         }
@@ -1601,10 +1604,10 @@ export default class bybit extends Exchange {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         if (this.options['enableDemoTrading']) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetV5AssetCoinQueryInfo(params);
         //

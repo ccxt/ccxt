@@ -1958,6 +1958,7 @@ func (this *gate) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{
 		var apiBackup interface{} = this.SafeValue(this.Urls, "apiBackup")
 		if IsTrue(!IsEqual(apiBackup, nil)) {
 
+			ch <- map[string]interface{}{}
 			return nil
 		}
 

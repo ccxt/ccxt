@@ -474,6 +474,7 @@ public partial class okx : Exchange
                         { "account/fixed-loan/repay-borrowing-order", 5 },
                         { "account/bills-history-archive", 72000 },
                         { "account/move-positions", 10 },
+                        { "account/set-settle-currency", 1 },
                         { "users/subaccount/modify-apikey", 10 },
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
@@ -646,6 +647,7 @@ public partial class okx : Exchange
                     { "51031", typeof(InvalidOrder) },
                     { "51046", typeof(InvalidOrder) },
                     { "51047", typeof(InvalidOrder) },
+                    { "51051", typeof(InvalidOrder) },
                     { "51072", typeof(InvalidOrder) },
                     { "51073", typeof(InvalidOrder) },
                     { "51074", typeof(InvalidOrder) },
@@ -783,6 +785,9 @@ public partial class okx : Exchange
                     { "54008", typeof(InvalidOrder) },
                     { "54009", typeof(InvalidOrder) },
                     { "54011", typeof(InvalidOrder) },
+                    { "54072", typeof(ExchangeError) },
+                    { "54073", typeof(BadRequest) },
+                    { "54074", typeof(ExchangeError) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
@@ -885,6 +890,9 @@ public partial class okx : Exchange
                     { "59519", typeof(ExchangeError) },
                     { "59642", typeof(BadRequest) },
                     { "59643", typeof(ExchangeError) },
+                    { "59683", typeof(ExchangeError) },
+                    { "59684", typeof(BadRequest) },
+                    { "59686", typeof(BadRequest) },
                     { "60001", typeof(AuthenticationError) },
                     { "60002", typeof(AuthenticationError) },
                     { "60003", typeof(AuthenticationError) },
@@ -1194,6 +1202,9 @@ public partial class okx : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
@@ -1423,14 +1434,33 @@ public partial class okx : Exchange
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -1741,7 +1771,7 @@ public partial class okx : Exchange
         object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue(isSandboxMode)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -3227,7 +3257,9 @@ public partial class okx : Exchange
             {
                 ((IDictionary<string,object>)request)["attachAlgoOrds"] = new List<object>() {attachAlgoOrd};
             }
-        } else if (isTrue(trigger))
+        }
+        // algo order details
+        if (isTrue(trigger))
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger";
             ((IDictionary<string,object>)request)["triggerPx"] = this.priceToPrecision(symbol, triggerPrice);

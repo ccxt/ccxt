@@ -397,7 +397,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         data = await self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', True, '="currencyData">', '</script>')
         if data is None:
-            return None
+            return {}
         #
         #    {
         #        "tradingPairs": [['BTCUSD', 2, 8, '0.00001', 10, True],  ...],
@@ -1412,7 +1412,7 @@ class gemini(Exchange, ImplicitAPI):
         #          "is_hidden":false,
         #          "was_forced":false,
         #          "executed_amount":"0",
-        #          "client_order_id":"1650398445709",
+        #          "client_order_id":"1650398445701",
         #          "options":[],
         #          "price":"2000.00",
         #          "original_amount":"0.01",

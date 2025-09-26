@@ -507,6 +507,7 @@ export default class okx extends Exchange {
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000, // 12 req/day
                         'account/move-positions': 10,
+                        'account/set-settle-currency': 1,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -664,7 +665,7 @@ export default class okx extends Exchange {
                     '51005': InvalidOrder, // Order amount exceeds the limit
                     '51006': InvalidOrder, // Order price out of the limit
                     '51007': InvalidOrder, // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
-                    '51008': InsufficientFunds, // Order placement failed due to insufficient balance
+                    '51008': InsufficientFunds, // Order placement failed due to insufficient balance or margin
                     '51009': AccountSuspended, // Order placement function is blocked by the platform
                     '51010': AccountNotEnabled, // Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":""}],"msg":"Operation failed."}
                     '51011': InvalidOrder, // Duplicated order ID
@@ -689,6 +690,7 @@ export default class okx extends Exchange {
                     '51031': InvalidOrder, // This order price is not within the closing price range
                     '51046': InvalidOrder, // The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder, // The stop loss trigger price must be lower than the order price
+                    '51051': InvalidOrder, // Your SL price should be lower than the primary order price
                     '51072': InvalidOrder, // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder, // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder, // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
@@ -804,7 +806,7 @@ export default class okx extends Exchange {
                     '51410': CancelPending, // Cancellation failed as the order is already under cancelling status
                     '51500': ExchangeError, // Either order price or amount is required
                     '51501': ExchangeError, // Maximum {0} orders can be modified
-                    '51502': InsufficientFunds, // Order modification failed for insufficient margin
+                    '51502': InsufficientFunds, // Order modification failed for insufficient margin or balance
                     '51503': ExchangeError, // Order modification failed as the order does not exist
                     '51506': ExchangeError, // Order modification unavailable for the order type
                     '51508': ExchangeError, // Orders are not allowed to be modified during the call auction
@@ -828,6 +830,9 @@ export default class okx extends Exchange {
                     '54008': InvalidOrder, // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009': InvalidOrder, // The range of {param0} should be [{param1}, {param2}].
                     '54011': InvalidOrder, // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54072': ExchangeError, // This contract is currently view-only and not tradable.
+                    '54073': BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
+                    '54074': ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
@@ -933,6 +938,9 @@ export default class okx extends Exchange {
                     '59519': ExchangeError, // You can’t use this function/feature while it's frozen, due to: {freezereason}
                     '59642': BadRequest, // Lead and copy traders can only use margin-free or single-currency margin account modes
                     '59643': ExchangeError, // Couldn’t switch account modes as you’re currently copying spot trades
+                    '59683': ExchangeError, // Set this crypto as your collateral crypto before selecting it as your settlement currency.
+                    '59684': BadRequest, // Borrowing isn’t supported for this currency.
+                    '59686': BadRequest, // This crypto can’t be set as a settlement currency.
                     // WebSocket error Codes from 60000-63999
                     '60001': AuthenticationError, // "OK_ACCESS_KEY" can not be empty
                     '60002': AuthenticationError, // "OK_ACCESS_SIGN" can not be empty
@@ -1299,6 +1307,9 @@ export default class okx extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1509,14 +1520,33 @@ export default class okx extends Exchange {
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -1801,7 +1831,7 @@ export default class okx extends Exchange {
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials (false) || isSandboxMode) {
-            return undefined;
+            return {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -3146,7 +3176,9 @@ export default class okx extends Exchange {
             if (attachOrdLen > 0) {
                 request['attachAlgoOrds'] = [ attachAlgoOrd ];
             }
-        } else if (trigger) {
+        }
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision (symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision (symbol, price);

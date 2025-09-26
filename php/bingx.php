@@ -661,6 +661,9 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,
@@ -734,11 +737,11 @@ class bingx extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox) {
-            return null;
+            return array();
         }
         $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
         //
