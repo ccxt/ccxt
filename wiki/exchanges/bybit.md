@@ -1218,6 +1218,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountType | <code>string</code> | No | 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only) |
 
 
 ```javascript
