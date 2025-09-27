@@ -1,5 +1,5 @@
 import p2bRest from '../p2b.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker, Strings, Tickers } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class p2b extends p2bRest {
     describe(): any;
@@ -92,7 +92,7 @@ export default class p2b extends p2bRest {
     handleTicker(client: Client, message: any): any;
     handleOrderBook(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     ping(client: Client): {
         method: string;
         params: any[];

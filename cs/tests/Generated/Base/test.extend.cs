@@ -58,9 +58,6 @@ public partial class BaseTest
             // extend
             object extended = exchange.extend(obj1, obj2);
             tbfeCheckExtended(extended, true);
-            // deepExtend
-            object deepExtended = exchange.deepExtend(obj1, obj2);
-            tbfeCheckExtended(extended, true);
         }
         public void tbfeCheckExtended(object extended, object hasSub)
         {

@@ -280,7 +280,7 @@ public partial class defx : ccxt.defx
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -457,7 +457,7 @@ public partial class defx : ccxt.defx
 
     /**
      * @method
-     * @name defx#unWatchTradesForSymbols
+     * @name defx#unWatchTrades
      * @description unWatches from the stream channel
      * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
      * @param {string} symbol unified symbol of the market to fetch trades for

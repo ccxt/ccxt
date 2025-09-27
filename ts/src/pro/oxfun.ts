@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class oxfun extends oxfunRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -970,7 +970,7 @@ export default class oxfun extends oxfunRest {
             const method = this.safeString (message, 'event');
             const stringMsg = this.json (message);
             const code = this.safeInteger (message, 'code');
-            this.handleErrors (code, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors (code, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const data = this.safeValue (message, 'data', {});
         const order = this.parseOrder (data);
@@ -1009,7 +1009,7 @@ export default class oxfun extends oxfunRest {
 
     /**
      * @method
-     * @name okx#cancelOrdersWs
+     * @name oxfun#cancelOrdersWs
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
      * @description cancel multiple orders
      * @param {string[]} ids order ids

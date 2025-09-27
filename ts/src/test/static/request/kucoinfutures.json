@@ -9,6 +9,38 @@
     "methods": {
         "createOrder": [
             {
+                "description": "create isolated order by using the unified syntax",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{\"clientOid\":\"1728bf29-96fd-487c-99b8-61cfe44f309e\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"ISOLATED\",\"size\":1}"
+            },
+            {
+                "description": "create cross order by using the unified syntax",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"clientOid\":\"ec64526a-cb92-4eca-9fda-1efb64d1fe09\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"leverage\":1,\"marginMode\":\"CROSS\",\"size\":1}"
+            },
+            {
                 "description": "Swap market buy",
                 "method": "createOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders",
@@ -150,11 +182,28 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"dab82652-e3a0-44b7-a118-b37a54233141\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":1,\"valueQty\":\"25\",\"price\":\"25000\"}"
+            },
+            {
+                "description": "hedged createOrder with positionSide LONG and leverage param",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    105000,
+                    {
+                        "hedged": true,
+                        "leverage": 50
+                    }
+                ],
+                "output": "{\"clientOid\":\"f08f5172-6275-470d-b096-4eab1206d9ff\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":50,\"size\":1,\"price\":\"105000\",\"positionSide\":\"LONG\"}"
             }
         ],
         "createOrders": [
             {
-                "description": "Swap market buy",
+                "description": "Swap market buy orders",
                 "method": "createOrders",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/multi",
                 "input": [
@@ -485,6 +534,15 @@
         ],
         "fetchTicker": [
             {
+                "description": "fetch ticker of a market with expiry",
+                "method": "fetchTicker",
+                "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=OMNIUSDTM",
+                "input": [
+                    "OMNI/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "Swap ticker",
                 "method": "fetchTicker",
                 "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDTM",
@@ -771,6 +829,17 @@
                   "swap"
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"TRADE\"}"
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "set the hedged mode to false (one-way mode)",
+                "method": "setPositionMode",
+                "url": "https://api-futures.kucoin.com/api/v2/position/switchPositionMode",
+                "input": [
+                    false
+                ],
+                "output": "{\"positionMode\":\"0\"}"
             }
         ]
     }

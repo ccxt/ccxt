@@ -10,7 +10,7 @@ use ccxt\async\abstract\myokx as okx;
 
 class myokx extends okx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myokx',
             'name' => 'MyOKX (EEA)',
@@ -31,6 +31,24 @@ class myokx extends okx {
                 ),
                 'test' => array(
                     'rest' => 'https://{hostname}',
+                ),
+            ),
+            'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+            ),
+            'features' => array(
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
         ));

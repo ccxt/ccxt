@@ -12,13 +12,14 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_liquidation.php';
 function test_fetch_liquidations($exchange, $skipped_properties, $code) {
     $method = 'fetchLiquidations';
     if (!$exchange->has['fetchLiquidations']) {
-        return;
+        return true;
     }
     $items = $exchange->fetch_liquidations($code);
     assert(gettype($items) === 'array' && array_is_list($items), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
-    $now = $exchange->milliseconds();
+    // const now = exchange.milliseconds ();
     for ($i = 0; $i < count($items); $i++) {
         test_liquidation($exchange, $skipped_properties, $method, $items[$i], $code);
     }
     assert_timestamp_order($exchange, $method, $code, $items);
+    return true;
 }

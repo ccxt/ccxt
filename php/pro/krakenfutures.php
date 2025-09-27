@@ -10,12 +10,12 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class krakenfutures extends \ccxt\async\krakenfutures {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -238,7 +238,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }) ();
     }
 
-    public function watch_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -522,7 +522,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //            array(
         //                "feed" => "trade",
         //                "product_id" => "PI_XBTUSD",
-        //                "uid" => "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //                "uid" => "caa9c653-420b-4c24-a9f2-462a054d86f1",
         //                "side" => "sell",
         //                "type" => "fill",
         //                "seq" => 655508,
@@ -1562,7 +1562,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $messageHash;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        event => 'alert',
@@ -1574,6 +1574,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             throw new ExchangeError($this->id . ' ' . $errMsg);
         } catch (Exception $error) {
             $client->reject ($error);
+            return false;
         }
     }
 

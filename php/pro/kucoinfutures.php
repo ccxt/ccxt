@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class kucoinfutures extends \ccxt\async\kucoinfutures {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -1309,7 +1309,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        "id" => "64d8732c856851144bded10d",
@@ -1326,7 +1326,8 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
             }
             $this->options['urls'][$type] = null;
         }
-        $this->handle_errors(null, null, $client->url, null, null, $data, $message, null, null);
+        $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), array());
+        return true;
     }
 
     public function handle_subscription_status(Client $client, $message) {

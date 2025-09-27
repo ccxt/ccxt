@@ -5,11 +5,12 @@
 
 from ccxt.async_support.binance import binance
 from ccxt.abstract.binanceus import ImplicitAPI
+from ccxt.base.types import Any
 
 
 class binanceus(binance, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(binanceus, self).describe(), {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -42,7 +43,9 @@ class binanceus(binance, ImplicitAPI):
                 },
             },
             'options': {
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
                 'defaultType': 'spot',
                 'fetchMargins': False,
                 'quoteOrderQty': False,
@@ -207,6 +210,16 @@ class binanceus(binance, ImplicitAPI):
                     'post': {
                         'sub-account/transfer': 1,
                     },
+                },
+            },
+            'features': {
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
         })

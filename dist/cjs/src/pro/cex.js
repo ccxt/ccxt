@@ -1,14 +1,16 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cex$1 = require('../cex.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var errors = require('../base/errors.js');
 var Precise = require('../base/Precise.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class cex extends cex$1 {
+class cex extends cex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1021,6 +1023,7 @@ class cex extends cex$1 {
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
             client.reject(this.id + ' watchOrderBook() skipped a message', messageHash);
+            return;
         }
         const timestamp = this.safeInteger(data, 'time');
         const asks = this.safeValue(data, 'asks', []);
@@ -1229,7 +1232,7 @@ class cex extends cex$1 {
      */
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + 'fetchOpenOrdersWs requires a symbol.');
+            throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrdersWs requires a symbol.');
         }
         await this.loadMarkets();
         await this.authenticate();
@@ -1448,6 +1451,7 @@ class cex extends cex$1 {
             const future = this.safeValue(client['futures'], messageHash);
             if (future !== undefined) {
                 client.reject(error, messageHash);
+                return true;
             }
             else {
                 throw error;
@@ -1530,4 +1534,4 @@ class cex extends cex$1 {
     }
 }
 
-module.exports = cex;
+exports["default"] = cex;

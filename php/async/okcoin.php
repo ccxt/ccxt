@@ -13,12 +13,12 @@ use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class okcoin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'okcoin',
             'name' => 'OKCoin',
@@ -40,6 +40,10 @@ class okcoin extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
                 'fetchBalance' => true,
@@ -204,6 +208,90 @@ class okcoin extends Exchange {
                         // sub-account
                         'asset/subaccount/transfer' => 10,
                     ),
+                ),
+            ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerDirection' => true, // todo
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => false,
+                            'index' => false,
+                        ),
+                        'stopLossPrice' => true, // todo revise trigger
+                        'takeProfitPrice' => true, // todo revise trigger
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => false,
+                                'index' => false,
+                            ),
+                            'price' => true,
+                        ),
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => true, // todo
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => true,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => null, // todo
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90,
+                        'untilDays' => 90, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => true, // todo
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 90, // todo
+                        'daysBackCanceled' => 1 / 12, // todo => possible more with history endpoint
+                        'untilDays' => 90, // todo
+                        'trigger' => true,
+                        'trailing' => true,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
                 ),
             ),
             'fees' => array(
@@ -607,21 +695,29 @@ class okcoin extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
+             * fetches the current integer $timestamp in milliseconds from the exchange server
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetPublicTime ($params));
             //
-            //     {
-            //         "iso" => "2015-01-07T23:47:25.201Z",
-            //         "epoch" => 1420674445.201
-            //     }
+            // {
+            //     "code" => "0",
+            //     "data":
+            //         array(
+            //             {
+            //                 "ts" => "1737379360033"
+            //             }
+            //         ),
+            //     "msg" => ""
+            // }
             //
-            return $this->parse8601($this->safe_string($response, 'iso'));
+            $data = $this->safe_list($response, 'data');
+            $timestamp = $this->safe_dict($data, 0);
+            return $this->safe_integer($timestamp, 'ts');
         }) ();
     }
 
@@ -739,51 +835,33 @@ class okcoin extends Exchange {
                 if ($this->options['warnOnFetchCurrenciesWithoutAuthorization']) {
                     throw new ExchangeError($this->id . ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
                 }
-                return null;
+                return array();
             } else {
                 $response = Async\await($this->privateGetAssetCurrencies ($params));
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
                 $result = array();
                 $dataByCurrencyId = $this->group_by($data, 'ccy');
                 $currencyIds = is_array($dataByCurrencyId) ? array_keys($dataByCurrencyId) : array();
                 for ($i = 0; $i < count($currencyIds); $i++) {
                     $currencyId = $currencyIds[$i];
-                    $currency = $this->safe_currency($currencyId);
-                    $code = $currency['code'];
+                    $code = $this->safe_currency_code($currencyId);
                     $chains = $dataByCurrencyId[$currencyId];
                     $networks = array();
-                    $currencyActive = false;
-                    $depositEnabled = false;
-                    $withdrawEnabled = false;
-                    $maxPrecision = null;
                     for ($j = 0; $j < count($chains); $j++) {
                         $chain = $chains[$j];
-                        $canDeposit = $this->safe_value($chain, 'canDep');
-                        $depositEnabled = ($canDeposit) ? $canDeposit : $depositEnabled;
-                        $canWithdraw = $this->safe_value($chain, 'canWd');
-                        $withdrawEnabled = ($canWithdraw) ? $canWithdraw : $withdrawEnabled;
-                        $canInternal = $this->safe_value($chain, 'canInternal');
-                        $active = ($canDeposit && $canWithdraw && $canInternal) ? true : false;
-                        $currencyActive = ($active) ? $active : $currencyActive;
                         $networkId = $this->safe_string($chain, 'chain');
                         if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                             $parts = explode('-', $networkId);
                             $chainPart = $this->safe_string($parts, 1, $networkId);
                             $networkCode = $this->network_id_to_code($chainPart);
-                            $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
-                            if ($maxPrecision === null) {
-                                $maxPrecision = $precision;
-                            } else {
-                                $maxPrecision = Precise::string_min($maxPrecision, $precision);
-                            }
                             $networks[$networkCode] = array(
                                 'id' => $networkId,
                                 'network' => $networkCode,
-                                'active' => $active,
-                                'deposit' => $canDeposit,
-                                'withdraw' => $canWithdraw,
+                                'active' => null,
+                                'deposit' => $this->safe_bool($chain, 'canDep'),
+                                'withdraw' => $this->safe_bool($chain, 'canWd'),
                                 'fee' => $this->safe_number($chain, 'minFee'),
-                                'precision' => $this->parse_number($precision),
+                                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'wdTickSz'))),
                                 'limits' => array(
                                     'withdraw' => array(
                                         'min' => $this->safe_number($chain, 'minWd'),
@@ -795,16 +873,16 @@ class okcoin extends Exchange {
                         }
                     }
                     $firstChain = $this->safe_value($chains, 0);
-                    $result[$code] = array(
+                    $result[$code] = $this->safe_currency_structure(array(
                         'info' => $chains,
                         'code' => $code,
                         'id' => $currencyId,
                         'name' => $this->safe_string($firstChain, 'name'),
-                        'active' => $currencyActive,
-                        'deposit' => $depositEnabled,
-                        'withdraw' => $withdrawEnabled,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
                         'fee' => null,
-                        'precision' => $this->parse_number($maxPrecision),
+                        'precision' => null,
                         'limits' => array(
                             'amount' => array(
                                 'min' => null,
@@ -812,7 +890,7 @@ class okcoin extends Exchange {
                             ),
                         ),
                         'networks' => $networks,
-                    );
+                    ));
                 }
                 return $result;
             }
@@ -1529,7 +1607,7 @@ class okcoin extends Exchange {
             if ($stopLossDefined) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"] for a stop loss order');
                 }
                 $request['slTriggerPx'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
@@ -1541,7 +1619,7 @@ class okcoin extends Exchange {
                         throw new InvalidOrder($this->id . ' createOrder() $params["stopLoss"]["type"] must be either "limit" or "market"');
                     } elseif ($stopLossLimitOrderType) {
                         if ($stopLossLimitPrice === null) {
-                            throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] or $params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] for a stop loss limit order');
                         } else {
                             $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
                         }
@@ -1656,7 +1734,7 @@ class okcoin extends Exchange {
             $advanced = $this->safe_value($params, 'advanced');
             if ($trigger || $advanced) {
                 $orderInner = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
-                return $this->safe_value($orderInner, 0);
+                return $this->safe_dict($orderInner, 0);
             }
             $market = $this->market($symbol);
             $request = array(
@@ -2484,7 +2562,7 @@ class okcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              *

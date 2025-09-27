@@ -21,6 +21,12 @@ public partial class BaseTest
                 } },
                 { "str", "heLlo" },
                 { "strNumber", "3" },
+                { "zeroNumeric", 0 },
+                { "zeroString", "0" },
+                { "undefined", null },
+                { "emptyString", "" },
+                { "floatNumeric", 0.123 },
+                { "floatString", "0.123" },
             };
             object inputList = new List<object>() {"Hi", 2};
             object compareDict = new Dictionary<string, object>() {
@@ -227,6 +233,10 @@ public partial class BaseTest
             Assert(isEqual(exchange.safeNumber(inputDict, "f"), exchange.parseNumber(0.123)));
             Assert(isEqual(exchange.safeNumber(inputDict, "strNumber"), exchange.parseNumber(3)));
             Assert(isEqual(exchange.safeNumber(inputList, 1), exchange.parseNumber(2)));
+            Assert(isEqual(exchange.safeNumber(inputList, "bool"), null));
+            Assert(isEqual(exchange.safeNumber(inputList, "list"), null));
+            Assert(isEqual(exchange.safeNumber(inputList, "dict"), null));
+            Assert(isEqual(exchange.safeNumber(inputList, "str"), null));
             // safeNumber2
             Assert(isEqual(exchange.safeNumber2(inputDict, "a", "i"), exchange.parseNumber(1)));
             Assert(isEqual(exchange.safeNumber2(inputDict, "a", "f"), exchange.parseNumber(0.123)));
@@ -246,5 +256,12 @@ public partial class BaseTest
             // safeBoolN
             Assert(isEqual(exchange.safeBoolN(inputDict, new List<object>() {"a", "b", "bool"}), true));
             Assert(isEqual(exchange.safeBoolN(inputList, new List<object>() {3, 2, 1}), null));
+            // safeNumberOmitZero
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "zeroNumeric"), null));
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "zeroString"), null));
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "undefined"), null));
+            Assert(isEqual(exchange.safeNumberOmitZero(inputDict, "emptyString"), null));
+            Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatNumeric"), null));
+            Assert(!isEqual(exchange.safeNumberOmitZero(inputDict, "floatString"), null));
         }
 }

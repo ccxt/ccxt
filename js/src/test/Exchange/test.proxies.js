@@ -24,6 +24,7 @@ async function testProxyUrl(exchange, skippedProperties) {
     assert(response === proxyServerIp, exchange.id + ' ' + method + ' test failed. Returned response is ' + response + ' while it should be "' + proxyServerIp + '"');
     // reset the instance property
     testSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+    return true;
 }
 async function testHttpProxy(exchange, skippedProperties) {
     const method = 'httpProxy';

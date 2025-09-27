@@ -10,7 +10,7 @@ use ccxt\abstract\bitmex as Exchange;
 
 class bitmex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmex',
             'name' => 'BitMEX',
@@ -86,6 +86,7 @@ class bitmex extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'index' => true,
                 'reduceMargin' => null,
                 'sandbox' => true,
                 'setLeverage' => true,
@@ -271,104 +272,111 @@ class bitmex extends Exchange {
                     'SOL' => 'sol',
                     'ADA' => 'ada',
                 ),
-                'features' => array(
-                    'default' => array(
-                        'sandbox' => true,
-                        'createOrder' => array(
-                            'marginMode' => true,
-                            'triggerPrice' => true,
-                            'triggerPriceType' => array(
-                                'last' => true,
-                                'mark' => true,
-                            ),
-                            'triggerDirection' => true,
-                            'stopLossPrice' => false,
-                            'takeProfitPrice' => false,
-                            'attachedStopLossTakeProfit' => null,
-                            'timeInForce' => array(
-                                'IOC' => true,
-                                'FOK' => true,
-                                'PO' => true,
-                                'GTD' => false,
-                            ),
-                            'hedged' => false,
-                            'trailing' => true,
-                            'marketBuyRequiresPrice' => false,
-                            'marketBuyByCost' => false,
-                            'leverage' => false,
-                            'selfTradePrevention' => false,
-                            'iceberg' => true, // todo
+            ),
+            'features' => array(
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
                         ),
-                        'createOrders' => null,
-                        'fetchMyTrades' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'daysBack' => null,
-                            'untilDays' => 1000000,
+                        'triggerDirection' => true,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
                         ),
-                        'fetchOrder' => array(
-                            'marginMode' => false,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchOpenOrders' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchOrders' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'daysBack' => null,
-                            'untilDays' => 1000000,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchClosedOrders' => array(
-                            'marginMode' => false,
-                            'limit' => 500,
-                            'daysBack' => null,
-                            'daysBackCanceled' => null,
-                            'untilDays' => 1000000,
-                            'trigger' => false,
-                            'trailing' => false,
-                        ),
-                        'fetchOHLCV' => array(
-                            'limit' => 10000,
+                        'hedged' => false,
+                        'trailing' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        // exchange-supported features
+                        // 'selfTradePrevention' => true,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 1000000,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 1000000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 1000000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 10000,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPriceType' => array(
+                            'index' => false,
                         ),
                     ),
-                    'spot' => array(
-                        'extends' => 'default',
-                        'createOrder' => array(
-                            'triggerPriceType' => array(
-                                'index' => false,
-                            ),
+                ),
+                'derivatives' => array(
+                    'extends' => 'default',
+                    'createOrder' => array(
+                        'triggerPriceType' => array(
+                            'index' => true,
                         ),
                     ),
-                    'forDeriv' => array(
-                        'extends' => 'default',
-                        'createOrder' => array(
-                            'triggerPriceType' => array(
-                                'index' => true,
-                            ),
-                        ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'derivatives',
                     ),
-                    'swap' => array(
-                        'linear' => array(
-                            'extends' => 'forDeriv',
-                        ),
-                        'inverse' => array(
-                            'extends' => 'forDeriv',
-                        ),
+                    'inverse' => array(
+                        'extends' => 'derivatives',
                     ),
-                    'future' => array(
-                        'linear' => array(
-                            'extends' => 'forDeriv',
-                        ),
-                        'inverse' => array(
-                            'extends' => 'forDeriv',
-                        ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'derivatives',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'derivatives',
                     ),
                 ),
             ),
@@ -406,8 +414,8 @@ class bitmex extends Exchange {
         //            // "mediumPrecision" => "8",
         //            // "shorterPrecision" => "4",
         //            // "symbol" => "₿",
-        //            // "weight" => "1",
         //            // "tickLog" => "0",
+        //            // "weight" => "1",
         //            "enabled" => true,
         //            "isMarginCurrency" => true,
         //            "minDepositAmount" => "10000",
@@ -485,6 +493,7 @@ class bitmex extends Exchange {
             $maxWithdrawal = $this->parse_number(Precise::string_mul($maxWithdrawalString, $precisionString));
             $minDepositString = $this->safe_string($currency, 'minDepositAmount');
             $minDeposit = $this->parse_number(Precise::string_mul($minDepositString, $precisionString));
+            $isCrypto = $this->safe_string($currency, 'currencyType') === 'Crypto';
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
@@ -510,6 +519,7 @@ class bitmex extends Exchange {
                     ),
                 ),
                 'networks' => $networks,
+                'type' => $isCrypto ? 'crypto' : 'other',
             );
         }
         return $result;
@@ -724,7 +734,7 @@ class bitmex extends Exchange {
         $isQuanto = $this->safe_value($market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         $linear = $contract ? (!$isInverse && !$isQuanto) : null;
         $status = $this->safe_string($market, 'state');
-        $active = $status !== 'Unlisted';
+        $active = $status === 'Open'; // Open, Settled, Unlisted
         $expiry = null;
         $expiryDatetime = null;
         $symbol = null;
@@ -739,9 +749,9 @@ class bitmex extends Exchange {
                 $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
                 $contractSize = $this->parse_number($multiplierString);
             }
-            if ($future) {
-                $expiryDatetime = $this->safe_string($market, 'expiry');
-                $expiry = $this->parse8601($expiryDatetime);
+            $expiryDatetime = $this->safe_string($market, 'expiry');
+            $expiry = $this->parse8601($expiryDatetime);
+            if ($expiry !== null) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
         } else {
@@ -754,6 +764,12 @@ class bitmex extends Exchange {
         $maxOrderQty = $this->safe_number($market, 'maxOrderQty');
         $initMargin = $this->safe_string($market, 'initMargin', '1');
         $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+        // subtype should be null for $spot markets
+        if ($spot) {
+            $isInverse = null;
+            $isQuanto = null;
+            $linear = null;
+        }
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -803,7 +819,7 @@ class bitmex extends Exchange {
                     'max' => $positionIsQuote ? $maxOrderQty : null,
                 ),
             ),
-            'created' => $this->parse8601($this->safe_string($market, 'listing')),
+            'created' => null, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info' => $market,
         );
     }
@@ -972,7 +988,8 @@ class bitmex extends Exchange {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null $price in the orderbook
             if ($price !== null) {
-                $result[$side][] = array( $price, $amount );
+                $resultSide = $result[$side];
+                $resultSide[] = array( $price, $amount );
             }
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -1985,7 +2002,7 @@ class bitmex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
-         * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'above' or 'below'
+         * @param {array} [$params->triggerDirection] the direction whenever the trigger happens with relation to $price - 'ascending' or 'descending'
          * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
@@ -2014,7 +2031,7 @@ class bitmex extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         if ($isTriggerOrder || $isTrailingAmountOrder) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
-            $triggerAbove = ($triggerDirection === 'above');
+            $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
             if (($type === 'limit') || ($type === 'market')) {
                 $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
             }
@@ -2068,7 +2085,7 @@ class bitmex extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         if ($isTrailingAmountOrder) {
             $triggerDirection = $this->safe_string($params, 'triggerDirection');
-            $triggerAbove = ($triggerDirection === 'above');
+            $triggerAbove = (($triggerDirection === 'ascending') || ($triggerDirection === 'above'));
             if (($type === 'limit') || ($type === 'market')) {
                 $this->check_required_argument('createOrder', $triggerDirection, 'triggerDirection', array( 'above', 'below' ));
             }
@@ -2286,7 +2303,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *
@@ -2546,7 +2563,7 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -2739,7 +2756,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -3019,6 +3036,7 @@ class bitmex extends Exchange {
             'contracts' => null,
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
+            'side' => $this->safe_string_lower($liquidation, 'side'),
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => null,

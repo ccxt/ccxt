@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchPositions(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchPositions";
         object now = exchange.milliseconds();
@@ -28,6 +28,8 @@ public partial class testMainClass : BaseTest
         {
             testPosition(exchange, skippedProperties, method, getValue(positionsForSymbol, i), symbol, now);
         }
+        // testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
+        return true;
     }
 
 }

@@ -1111,6 +1111,7 @@ public partial class cex : ccxt.cex
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(add(this.id, " watchOrderBook() skipped a message"), messageHash);
+            return;
         }
         object timestamp = this.safeInteger(data, "time");
         object asks = this.safeValue(data, "asks", new List<object>() {});
@@ -1333,7 +1334,7 @@ public partial class cex : ccxt.cex
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, "fetchOpenOrdersWs requires a symbol.")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrdersWs requires a symbol.")) ;
         }
         await this.loadMarkets();
         await this.authenticate();
@@ -1551,7 +1552,7 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         try
         {
@@ -1569,6 +1570,7 @@ public partial class cex : ccxt.cex
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
+                return true;
             } else
             {
                 throw error;

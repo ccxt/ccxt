@@ -60,9 +60,6 @@ function test_extend() {
     // extend
     $extended = $exchange->extend($obj1, $obj2);
     tbfe_check_extended($extended, true);
-    // deepExtend
-    $deep_extended = $exchange->deep_extend($obj1, $obj2);
-    tbfe_check_extended($extended, true);
 }
 
 

@@ -1,5 +1,5 @@
 import bitstampRest from '../bitstamp.js';
-import type { Int, Str, OrderBook, Order, Trade } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitstamp extends bitstampRest {
     describe(): any;
@@ -46,7 +46,7 @@ export default class bitstamp extends bitstampRest {
     handleOrderBookSubscription(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleSubject(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): any;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     authenticate(params?: {}): Promise<void>;
     subscribePrivate(subscription: any, messageHash: any, params?: {}): Promise<any>;

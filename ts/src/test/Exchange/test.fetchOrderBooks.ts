@@ -13,6 +13,7 @@ async function testFetchOrderBooks (exchange: Exchange, skippedProperties: objec
         const symbolInner = orderBookKeys[i];
         testOrderBook (exchange, skippedProperties, method, orderBooks[symbolInner], symbolInner);
     }
+    return true;
 }
 
 export default testFetchOrderBooks;

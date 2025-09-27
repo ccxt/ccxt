@@ -23,5 +23,6 @@ function test_fetch_orders($exchange, $skipped_properties, $symbol) {
             test_order($exchange, $skipped_properties, $method, $orders[$i], $symbol, $now);
         }
         assert_timestamp_order($exchange, $method, $symbol, $orders);
+        return true;
     }) ();
 }

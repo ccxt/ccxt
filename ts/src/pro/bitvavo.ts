@@ -5,13 +5,13 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class bitvavo extends bitvavoRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -179,7 +179,7 @@ export default class bitvavo extends bitvavoRest {
 
     /**
      * @method
-     * @name mexc#watchBidsAsks
+     * @name bitvavo#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -1384,7 +1384,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -1407,14 +1407,16 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors (code, error, client.url, '', {}, error, message, {}, {});
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);
         }
         if (!rejected) {
             client.reject (message, messageHash);
+            return true;
         }
+        return undefined;
     }
 
     handleMessage (client: Client, message) {

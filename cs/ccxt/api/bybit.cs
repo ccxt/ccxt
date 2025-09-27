@@ -241,6 +241,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("publicGetV5SpotMarginTradeData",parameters);
     }
 
+    public async Task<object> publicGetV5SpotMarginTradeCollateral (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5SpotMarginTradeCollateral",parameters);
+    }
+
     public async Task<object> publicGetV5SpotCrossMarginTradeData (object parameters = null)
     {
         return await this.callAsync ("publicGetV5SpotCrossMarginTradeData",parameters);
@@ -274,6 +279,11 @@ public partial class bybit : Exchange
     public async Task<object> publicGetV5InsLoanEnsureTokensConvert (object parameters = null)
     {
         return await this.callAsync ("publicGetV5InsLoanEnsureTokensConvert",parameters);
+    }
+
+    public async Task<object> publicGetV5EarnProduct (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV5EarnProduct",parameters);
     }
 
     public async Task<object> privateGetV5MarketInstrumentsInfo (object parameters = null)
@@ -671,6 +681,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5AccountMmpState",parameters);
     }
 
+    public async Task<object> privateGetV5AccountWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AccountWithdrawal",parameters);
+    }
+
     public async Task<object> privateGetV5AssetExchangeQueryCoinList (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetExchangeQueryCoinList",parameters);
@@ -949,6 +964,16 @@ public partial class bybit : Exchange
     public async Task<object> privateGetV5BrokerAssetQuerySubMemberDepositRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5BrokerAssetQuerySubMemberDepositRecord",parameters);
+    }
+
+    public async Task<object> privateGetV5EarnOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5EarnOrder",parameters);
+    }
+
+    public async Task<object> privateGetV5EarnPosition (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5EarnPosition",parameters);
     }
 
     public async Task<object> privatePostSpotV3PrivateOrder (object parameters = null)
@@ -1524,6 +1549,11 @@ public partial class bybit : Exchange
     public async Task<object> privatePostV5BrokerAwardDistributionRecord (object parameters = null)
     {
         return await this.callAsync ("privatePostV5BrokerAwardDistributionRecord",parameters);
+    }
+
+    public async Task<object> privatePostV5EarnPlaceOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5EarnPlaceOrder",parameters);
     }
 
 }

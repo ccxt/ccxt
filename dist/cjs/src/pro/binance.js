@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance$1 = require('../binance.js');
 var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
@@ -11,7 +13,7 @@ var ed25519 = require('../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class binance extends binance$1 {
+class binance extends binance$1["default"] {
     describe() {
         const superDescribe = super.describe();
         return this.deepExtend(superDescribe, this.describeData());
@@ -65,13 +67,27 @@ class binance extends binance$1 {
             'urls': {
                 'test': {
                     'ws': {
-                        'spot': 'wss://testnet.binance.vision/ws',
-                        'margin': 'wss://testnet.binance.vision/ws',
+                        'spot': 'wss://stream.testnet.binance.vision/ws',
+                        'margin': 'wss://stream.testnet.binance.vision/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'ws-api': {
-                            'spot': 'wss://testnet.binance.vision/ws-api/v3',
+                            'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                        },
+                    },
+                },
+                'demo': {
+                    'ws': {
+                        'spot': 'wss://demo-stream.binance.com/ws',
+                        'margin': 'wss://demo-stream.binance.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
+                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'ws-api': {
+                            'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
+                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
                         },
                     },
                 },
@@ -84,6 +100,7 @@ class binance extends binance$1 {
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
+                            'delivery': 'wss://ws-dapi.binance.com/ws-dapi/v1',
                         },
                         'papi': 'wss://fstream.binance.com/pm/ws',
                     },
@@ -171,6 +188,9 @@ class binance extends binance$1 {
         this.options['requestId'][url] = newValue;
         return newValue;
     }
+    isSpotUrl(client) {
+        return (client.url.indexOf('/stream') > -1) || (client.url.indexOf('demo-stream') > -1);
+    }
     stream(type, subscriptionHash, numSubscriptions = 1) {
         const streamBySubscriptionsHash = this.safeDict(this.options, 'streamBySubscriptionsHash', this.createSafeDictionary());
         let stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
@@ -224,7 +244,7 @@ class binance extends binance$1 {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const subscriptionHashes = [];
         const messageHashes = [];
@@ -246,7 +266,7 @@ class binance extends binance$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new errors.BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
+            throw new errors.BadRequest(this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
@@ -412,6 +432,7 @@ class binance extends binance$1 {
             'contracts': this.safeNumber(liquidation, 'l'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'ap'),
+            'side': this.safeStringLower(liquidation, 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -541,13 +562,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#watchOrderBook
-     * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -596,13 +617,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#watchOrderBookForSymbols
-     * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -659,13 +680,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#unWatchOrderBookForSymbols
-     * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
@@ -717,13 +738,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#unWatchOrderBook
-     * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
@@ -735,7 +756,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchOrderBookWs
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#order-book
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -825,6 +846,7 @@ class binance extends binance$1 {
             orderbook.reset(snapshot);
             // unroll the accumulated deltas
             const messages = orderbook.cache;
+            orderbook.cache = [];
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const U = this.safeInteger(messageItem, 'U');
@@ -898,10 +920,8 @@ class binance extends binance$1 {
         //         ]
         //     }
         //
-        const isTestnetSpot = client.url.indexOf('testnet') > 0;
-        const isSpotMainNet = client.url.indexOf('/stream.binance.') > 0;
-        const isSpot = isTestnetSpot || isSpotMainNet;
-        const marketType = isSpot ? 'spot' : 'contract';
+        const isSpot = this.isSpotUrl(client);
+        const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1038,10 +1058,10 @@ class binance extends binance$1 {
      * @method
      * @name binance#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1101,10 +1121,10 @@ class binance extends binance$1 {
      * @method
      * @name binance#unWatchTradesForSymbols
      * @description unsubscribes from the trades channel
-     * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
@@ -1163,10 +1183,10 @@ class binance extends binance$1 {
      * @method
      * @name binance#unWatchTrades
      * @description unsubscribes from the trades channel
-     * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
@@ -1180,10 +1200,10 @@ class binance extends binance$1 {
      * @method
      * @name binance#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#aggregate-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Aggregate-Trade-Streams
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1360,7 +1380,7 @@ class binance extends binance$1 {
     handleTrade(client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const isSpot = ((client.url.indexOf('wss://stream.binance.com') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = this.isSpotUrl(client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1380,9 +1400,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1403,9 +1423,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -1469,9 +1489,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
@@ -1536,9 +1556,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1602,7 +1622,7 @@ class binance extends binance$1 {
             this.safeFloat(kline, 'c'),
             this.safeFloat(kline, 'v'),
         ];
-        const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = this.isSpotUrl(client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
@@ -1661,7 +1681,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchOHLCVWs
      * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
      * @param {string} symbol unified symbol of the market to query OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} since timestamp in ms of the earliest candle to fetch
@@ -1752,13 +1772,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#watchTicker
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.name] stream to use can be ticker or miniTicker
@@ -1773,8 +1793,8 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#watchMarkPrice
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
      * @description watches a mark price for a specific market
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -1789,8 +1809,8 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#watchMarkPrices
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
      * @description watches the mark price for all markets
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -1811,13 +1831,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#watchTickers
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1837,13 +1857,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#unWatchTickers
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1926,13 +1946,13 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#unWatchTicker
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
-     * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
-     * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#all-market-mini-tickers-stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Mini-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-Ticker-Streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1944,9 +1964,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2244,7 +2264,7 @@ class binance extends binance$1 {
         this.handleTickersAndBidsAsks(client, message, 'tickers');
     }
     handleTickersAndBidsAsks(client, message, methodType) {
-        const isSpot = ((client.url.indexOf('/stream') > -1) || (client.url.indexOf('/testnet.binance') > -1));
+        const isSpot = this.isSpotUrl(client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
         let channelName = undefined;
@@ -2327,6 +2347,58 @@ class binance extends binance$1 {
         extendedParams['signature'] = signature;
         return extendedParams;
     }
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    async ensureUserDataStreamWsSubscribeSignature(marketType = 'spot') {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client(url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        if (accountType === marketType) {
+            return;
+        }
+        client.subscriptions[marketType] = true;
+        const requestId = this.requestId(url);
+        const messageHash = requestId.toString();
+        const message = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe.signature',
+            'params': this.signParams({}),
+        };
+        const subscription = {
+            'id': messageHash,
+            'method': this.handleUserDataStreamSubscribe,
+            'subscription': marketType,
+        };
+        await this.watch(url, messageHash, message, messageHash, subscription);
+    }
+    handleUserDataStreamSubscribe(client, message) {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {
+        //         "subscriptionId": 0
+        //     }
+        //   }
+        //
+        const messageHash = this.safeString(message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        const result = this.safeDict(message, 'result', {});
+        const subscriptionId = this.safeInteger(result, 'subscriptionId');
+        if (subscriptionId === undefined) {
+            delete client.subscriptions[accountType];
+            client.reject(message, accountType);
+        }
+        client.resolve(message, messageHash);
+    }
     async authenticate(params = {}) {
         const time = this.milliseconds();
         let type = undefined;
@@ -2340,6 +2412,11 @@ class binance extends binance$1 {
         }
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
+        }
+        // For spot use WebSocket API signature subscription
+        if (type === 'spot') {
+            await this.ensureUserDataStreamWsSubscribeSignature('spot');
+            return;
         }
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('authenticate', params);
@@ -2355,6 +2432,7 @@ class binance extends binance$1 {
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey(params);
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 response = await this.fapiPrivatePostListenKey(params);
@@ -2410,6 +2488,7 @@ class binance extends binance$1 {
         try {
             if (isPortfolioMargin) {
                 await this.papiPutListenKey(this.extend(request, params));
+                params = this.extend(params, { 'portfolioMargin': true });
             }
             else if (type === 'future') {
                 await this.fapiPrivatePutListenKey(this.extend(request, params));
@@ -2466,7 +2545,7 @@ class binance extends binance$1 {
         }
     }
     setBalanceCache(client, type, isPortfolioMargin = false) {
-        if (type in client.subscriptions) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
         const options = this.safeValue(this.options, 'watchBalance');
@@ -2501,7 +2580,8 @@ class binance extends binance$1 {
      * @name binance#fetchBalanceWs
      * @description fetch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-information-user_data
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/websocket-api
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
      * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -2512,7 +2592,7 @@ class binance extends binance$1 {
     async fetchBalanceWs(params = {}) {
         await this.loadMarkets();
         const type = this.getMarketType('fetchBalanceWs', undefined, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new errors.BadRequest(this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
@@ -2607,8 +2687,8 @@ class binance extends binance$1 {
     /**
      * @method
      * @name binance#fetchPositionWs
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
      * @description fetch data on an open position
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -2621,6 +2701,7 @@ class binance extends binance$1 {
      * @name binance#fetchPositionsWs
      * @description fetch all open positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Position-Information
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2629,17 +2710,23 @@ class binance extends binance$1 {
      */
     async fetchPositionsWs(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, 'swap', true, true, true);
-        const url = this.urls['api']['ws']['ws-api']['future'];
-        const requestId = this.requestId(url);
-        const messageHash = requestId.toString();
         const payload = {};
+        let market = undefined;
+        symbols = this.marketSymbols(symbols, 'swap', true, true, true);
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
-                payload['symbol'] = this.marketId(symbols[0]);
+                market = this.market(symbols[0]);
+                payload['symbol'] = market['id'];
             }
         }
+        const type = this.getMarketType('fetchPositionsWs', market, params);
+        if (type !== 'future' && type !== 'delivery') {
+            throw new errors.BadRequest(this.id + ' fetchPositionsWs only supports swap markets');
+        }
+        const url = this.urls['api']['ws']['ws-api'][type];
+        const requestId = this.requestId(url);
+        const messageHash = requestId.toString();
         let returnRateLimits = false;
         [returnRateLimits, params] = this.handleOptionAndParams(params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
@@ -2722,11 +2809,18 @@ class binance extends binance$1 {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
+        let url = '';
         let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        if (type === 'spot') {
+            // route to WebSocket API connection where the user data stream is subscribed
+            url = this.urls['api']['ws']['ws-api'][type];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, undefined, isPortfolioMargin);
@@ -2797,12 +2891,20 @@ class binance extends binance$1 {
         //             ]
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
         //
         const wallet = this.safeString(this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys(client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
@@ -2846,6 +2948,17 @@ class binance extends binance$1 {
         this.balance[accountType] = this.safeBalance(this.balance[accountType]);
         client.resolve(this.balance[accountType], messageHash);
     }
+    getAccountTypeFromSubscriptions(subscriptions) {
+        let accountType = '';
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery')) {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
+    }
     getMarketType(method, market, params = {}) {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams(method, market, params);
@@ -2863,8 +2976,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#createOrderWs
      * @description create a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#place-new-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2879,7 +2993,7 @@ class binance extends binance$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.getMarketType('createOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new errors.BadRequest(this.id + ' createOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
@@ -3011,8 +3125,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#editOrderWs
      * @description edit a trade order
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-and-replace-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Modify-Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -3026,17 +3141,18 @@ class binance extends binance$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const marketType = this.getMarketType('editOrderWs', market, params);
-        if (marketType !== 'spot' && marketType !== 'future') {
+        if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new errors.BadRequest(this.id + ' editOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const requestId = this.requestId(url);
         const messageHash = requestId.toString();
+        const isSwap = (marketType === 'future' || marketType === 'delivery');
         let payload = undefined;
         if (marketType === 'spot') {
             payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, params);
         }
-        else if (marketType === 'future') {
+        else if (isSwap) {
             payload = this.editContractOrderRequest(id, symbol, type, side, amount, price, params);
         }
         let returnRateLimits = false;
@@ -3044,7 +3160,7 @@ class binance extends binance$1 {
         payload['returnRateLimits'] = returnRateLimits;
         const message = {
             'id': messageHash,
-            'method': (marketType === 'future') ? 'order.modify' : 'order.cancelReplace',
+            'method': (isSwap) ? 'order.modify' : 'order.cancelReplace',
             'params': this.signParams(this.extend(payload, params)),
         };
         const subscription = {
@@ -3167,8 +3283,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#cancelOrderWs
      * @description cancel multiple orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-order-trade
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Cancel-Order
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3213,7 +3330,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#cancelAllOrdersWs
      * @description cancel all open orders in a market
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#cancel-open-orders-trade
      * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3222,8 +3339,8 @@ class binance extends binance$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const type = this.getMarketType('cancelAllOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new errors.BadRequest(this.id + ' cancelAllOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId(url);
@@ -3236,7 +3353,7 @@ class binance extends binance$1 {
         };
         const message = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': this.signParams(this.extend(payload, params)),
         };
         const subscription = {
@@ -3248,8 +3365,9 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchOrderWs
      * @description fetches information on an order made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/websocket-api/Query-Order
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3262,7 +3380,7 @@ class binance extends binance$1 {
         }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchOrderWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
+        if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new errors.BadRequest(this.id + ' fetchOrderWs only supports spot or swap markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
@@ -3295,7 +3413,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchOrdersWs
      * @description fetches information on multiple orders made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#order-lists
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int|undefined} [since] the earliest time in ms to fetch orders for
      * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -3340,7 +3458,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchClosedOrdersWs
      * @description fetch closed orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#order-lists
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -3362,7 +3480,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchOpenOrdersWs
      * @description fetch all unfilled currently open orders
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-orders-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/trading-requests#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
      * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
@@ -3442,10 +3560,17 @@ class binance extends binance$1 {
         }
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            // route orders to ws-api user data stream
+            url = this.urls['api']['ws']['ws-api'][type];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, undefined, isPortfolioMargin);
@@ -3832,8 +3957,9 @@ class binance extends binance$1 {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys(client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -3925,7 +4051,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchMyTradesWs
      * @description fetch all trades made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/account-requests#account-trade-history-user_data
      * @param {string} symbol unified market symbol
      * @param {int|undefined} [since] the earliest time in ms to fetch trades for
      * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
@@ -3961,7 +4087,7 @@ class binance extends binance$1 {
         }
         const fromId = this.safeInteger(params, 'fromId');
         if (fromId !== undefined && since !== undefined) {
-            throw new errors.BadRequest(this.id + 'fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
+            throw new errors.BadRequest(this.id + ' fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time');
         }
         const message = {
             'id': messageHash,
@@ -3978,7 +4104,7 @@ class binance extends binance$1 {
      * @method
      * @name binance#fetchTradesWs
      * @description fetch all trades made by the user
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-trades
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#recent-trades
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
@@ -3988,11 +4114,8 @@ class binance extends binance$1 {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTradesWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTradesWs(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        if (symbol === undefined) {
-            throw new errors.BadRequest(this.id + ' fetchTradesWs () requires a symbol argument');
-        }
         const market = this.market(symbol);
         const type = this.getMarketType('fetchTradesWs', market, params);
         if (type !== 'spot' && type !== 'future') {
@@ -4113,10 +4236,16 @@ class binance extends binance$1 {
         }
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            url = this.urls['api']['ws']['ws-api'][type];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
+        }
         const client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, undefined, isPortfolioMargin);
@@ -4251,7 +4380,7 @@ class binance extends binance$1 {
         const code = this.safeInteger(error, 'code');
         const msg = this.safeString(error, 'msg');
         try {
-            this.handleErrors(code, msg, client.url, undefined, undefined, this.json(error), error, undefined, undefined);
+            this.handleErrors(code, msg, client.url, '', {}, this.json(error), error, {}, {});
         }
         catch (e) {
             rejected = true;
@@ -4262,8 +4391,12 @@ class binance extends binance$1 {
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];
                 const subscriptionId = this.safeString(client.subscriptions[subscriptionHash], 'id');
+                const subscription = this.safeString(client.subscriptions[subscriptionHash], 'subscription');
                 if (id === subscriptionId) {
                     client.reject(e, subscriptionHash);
+                    if (subscription !== undefined) {
+                        delete client.subscriptions[subscription];
+                    }
                 }
             }
         }
@@ -4271,18 +4404,40 @@ class binance extends binance$1 {
             client.reject(message, id);
         }
         // reset connection if 5xx error
-        if (this.safeString(code, 0) === '5') {
+        const codeString = this.safeString(error, 'code');
+        if ((codeString !== undefined) && (codeString[0] === '5')) {
             client.reset(message);
+        }
+    }
+    handleEventStreamTerminated(client, message) {
+        //
+        //    {
+        //        e: 'eventStreamTerminated',
+        //        E: 1757896885229
+        //    }
+        //
+        const event = this.safeString(message, 'e');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        if (event === 'eventStreamTerminated') {
+            delete client.subscriptions[accountType];
+            client.reject(message, accountType);
         }
     }
     handleMessage(client, message) {
         // handle WebSocketAPI
+        const eventMsg = this.safeDict(message, 'event');
+        if (eventMsg !== undefined) {
+            message = eventMsg;
+        }
         const status = this.safeString(message, 'status');
         const error = this.safeValue(message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError(client, message);
             return;
         }
+        // user subscription wraps message in subscriptionId and event
         const id = this.safeString(message, 'id');
         const subscriptions = this.safeValue(client.subscriptions, id);
         let method = this.safeValue(subscriptions, 'method');
@@ -4317,6 +4472,8 @@ class binance extends binance$1 {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            'eventStreamTerminated': this.handleEventStreamTerminated,
+            'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString(message, 'e');
         if (Array.isArray(message)) {
@@ -4351,4 +4508,4 @@ class binance extends binance$1 {
     }
 }
 
-module.exports = binance;
+exports["default"] = binance;

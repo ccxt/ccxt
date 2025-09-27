@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var digifinex$1 = require('./abstract/digifinex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class digifinex
  * @augments Exchange
  */
-class digifinex extends digifinex$1 {
+class digifinex extends digifinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'digifinex',
@@ -234,6 +236,112 @@ class digifinex extends digifinex$1 {
                     },
                 },
             },
+            'features': {
+                'default': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': false,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                        'marketType': true,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 30,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 500,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'forDerivatives': {
+                    'extends': 'default',
+                    'createOrders': {
+                        'max': 20,
+                        'marginMode': false,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000, // todo
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'daysBack': 100000, // todo
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': true,
@@ -340,6 +448,16 @@ class digifinex extends digifinex$1 {
                     'TRX': 'TRC20',
                     'VECHAIN': 'Vechain', // VET
                 },
+                'networksById': {
+                    'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'Polygon': 'POLYGON',
+                    'Crypto.com': 'CRONOS',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -369,6 +487,7 @@ class digifinex extends digifinex$1 {
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             },
@@ -379,6 +498,7 @@ class digifinex extends digifinex$1 {
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             },
@@ -389,6 +509,7 @@ class digifinex extends digifinex$1 {
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
         //                 "currency":"DGF13",
+        //                 "withdraw_fee_currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             },
@@ -396,127 +517,46 @@ class digifinex extends digifinex$1 {
         //         "code":200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
+        const groupedById = this.groupBy(data, 'currency');
+        const keys = Object.keys(groupedById);
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const currency = data[i];
-            const id = this.safeString(currency, 'currency');
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const networkEntries = groupedById[id];
             const code = this.safeCurrencyCode(id);
-            const depositStatus = this.safeInteger(currency, 'deposit_status', 1);
-            const withdrawStatus = this.safeInteger(currency, 'withdraw_status', 1);
-            const deposit = depositStatus > 0;
-            const withdraw = withdrawStatus > 0;
-            const active = deposit && withdraw;
-            const feeString = this.safeString(currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            const minWithdrawString = this.safeString(currency, 'min_withdraw_amount');
-            const minDepositString = this.safeString(currency, 'min_deposit_amount');
-            const minDeposit = this.parseNumber(minDepositString);
-            const minWithdraw = this.parseNumber(minWithdrawString);
-            const fee = this.parseNumber(feeString);
-            // define precision with temporary way
-            const minFoundPrecision = Precise["default"].stringMin(feeString, Precise["default"].stringMin(minDepositString, minWithdrawString));
-            const precision = this.parseNumber(minFoundPrecision);
-            const networkId = this.safeString(currency, 'chain');
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId);
-            }
-            const network = {
-                'info': currency,
-                'id': networkId,
-                'network': networkCode,
-                'active': active,
-                'fee': fee,
-                'precision': precision,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': undefined,
-                    },
-                },
-            };
-            if (code in result) {
-                if (Array.isArray(result[code]['info'])) {
-                    result[code]['info'].push(currency);
-                }
-                else {
-                    result[code]['info'] = [result[code]['info'], currency];
-                }
-                if (withdraw) {
-                    result[code]['withdraw'] = true;
-                    result[code]['limits']['withdraw']['min'] = Math.min(result[code]['limits']['withdraw']['min'], minWithdraw);
-                }
-                if (deposit) {
-                    result[code]['deposit'] = true;
-                    result[code]['limits']['deposit']['min'] = Math.min(result[code]['limits']['deposit']['min'], minDeposit);
-                }
-                if (active) {
-                    result[code]['active'] = true;
-                }
-            }
-            else {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': currency,
-                    'type': undefined,
-                    'name': undefined,
-                    'active': active,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'fee': this.parseNumber(feeString),
+            const networks = {};
+            for (let j = 0; j < networkEntries.length; j++) {
+                const networkEntry = networkEntries[j];
+                const networkId = this.safeString(networkEntry, 'chain');
+                const networkCode = this.networkIdToCode(networkId);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
                     'precision': undefined,
                     'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
                         'withdraw': {
-                            'min': minWithdraw,
+                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': minDeposit,
+                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
                             'max': undefined,
                         },
                     },
-                    'networks': {},
+                    'info': networkEntry,
                 };
             }
-            if (networkId !== undefined) {
-                result[code]['networks'][networkId] = network;
-            }
-            else {
-                result[code]['active'] = active;
-                result[code]['fee'] = this.parseNumber(feeString);
-                result[code]['deposit'] = deposit;
-                result[code]['withdraw'] = withdraw;
-                result[code]['limits'] = {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': undefined,
-                    },
-                };
-            }
-            result[code]['precision'] = (result[code]['precision'] === undefined) ? precision : Math.max(result[code]['precision'], precision);
+            result[code] = this.safeCurrencyStructure({
+                'id': id,
+                'code': code,
+                'info': networkEntries,
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -1501,6 +1541,7 @@ class digifinex extends digifinex$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1517,22 +1558,38 @@ class digifinex extends digifinex$1 {
             response = await this.publicSwapGetPublicCandles(this.extend(request, params));
         }
         else {
+            const until = this.safeInteger(params, 'until');
             request['symbol'] = market['id'];
             request['period'] = this.safeString(this.timeframes, timeframe, timeframe);
-            if (since !== undefined) {
-                const startTime = this.parseToInt(since / 1000);
-                request['start_time'] = startTime;
-                if (limit !== undefined) {
-                    const duration = this.parseTimeframe(timeframe);
-                    request['end_time'] = this.sum(startTime, limit * duration);
+            let startTime = since;
+            const duration = this.parseTimeframe(timeframe);
+            if (startTime === undefined) {
+                if ((limit !== undefined) || (until !== undefined)) {
+                    const endTime = (until !== undefined) ? until : this.milliseconds();
+                    const startLimit = (limit !== undefined) ? limit : 200;
+                    startTime = endTime - (startLimit * duration * 1000);
                 }
             }
-            else if (limit !== undefined) {
-                const endTime = this.seconds();
-                const duration = this.parseTimeframe(timeframe);
-                const auxLimit = limit; // in c# -limit is mutating the arg
-                request['start_time'] = this.sum(endTime, -auxLimit * duration);
+            if (startTime !== undefined) {
+                startTime = this.parseToInt(startTime / 1000);
+                request['start_time'] = startTime;
+                if ((limit !== undefined) || (until !== undefined)) {
+                    if (until !== undefined) {
+                        const endByUntil = this.parseToInt(until / 1000);
+                        if (limit !== undefined) {
+                            const endByLimit = this.sum(startTime, limit * duration);
+                            request['end_time'] = Math.min(endByLimit, endByUntil);
+                        }
+                        else {
+                            request['end_time'] = endByUntil;
+                        }
+                    }
+                    else {
+                        request['end_time'] = this.sum(startTime, limit * duration);
+                    }
+                }
             }
+            params = this.omit(params, 'until');
             response = await this.publicSpotGetKline(this.extend(request, params));
         }
         //
@@ -4105,7 +4162,8 @@ class digifinex extends digifinex$1 {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
                     depositWithdrawFees[code]['info'] = [];
                 }
-                depositWithdrawFees[code]['info'].push(entry);
+                const depositWithdrawInfo = depositWithdrawFees[code]['info'];
+                depositWithdrawInfo.push(entry);
                 const networkId = this.safeString(entry, 'chain');
                 const withdrawFee = this.safeValue(entry, 'min_withdraw_fee');
                 const withdrawResult = {
@@ -4393,4 +4451,4 @@ class digifinex extends digifinex$1 {
     }
 }
 
-module.exports = digifinex;
+exports["default"] = digifinex;

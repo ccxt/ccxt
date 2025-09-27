@@ -22,6 +22,9 @@ public partial class onetrading : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
@@ -34,9 +37,14 @@ public partial class onetrading : Exchange
                 { "createStopMarketOrder", false },
                 { "createStopOrder", true },
                 { "fetchAccounts", false },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -48,21 +56,41 @@ public partial class onetrading : Exchange
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
@@ -75,6 +103,7 @@ public partial class onetrading : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -86,9 +115,13 @@ public partial class onetrading : Exchange
                 { "fetchTransactions", false },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
                 { "setMargin", false },
                 { "setMarginMode", false },
@@ -224,7 +257,9 @@ public partial class onetrading : Exchange
                     { "CF_RATELIMIT", typeof(DDoSProtection) },
                     { "INTERNAL_SERVER_ERROR", typeof(ExchangeError) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Order not found.", typeof(OrderNotFound) },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "MIOTA", "IOTA" },
@@ -234,6 +269,76 @@ public partial class onetrading : Exchange
                     { "method", "fetchPrivateTradingFees" },
                 } },
                 { "fiat", new List<object>() {"EUR", "CHF"} },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", divide(1, 12) },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 5000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
         });
     }
@@ -274,9 +379,12 @@ public partial class onetrading : Exchange
         //
         //     [
         //         {
-        //             "code":"BEST",
-        //             "precision":8
-        //         }
+        //             "code": "USDT",
+        //             "precision": 6,
+        //             "unified_cryptoasset_id": 825,
+        //             "name": "Tether USDt",
+        //             "collateral_percentage": 0
+        //         },
         //     ]
         //
         object result = new Dictionary<string, object>() {};
@@ -285,10 +393,10 @@ public partial class onetrading : Exchange
             object currency = getValue(response, i);
             object id = this.safeString(currency, "code");
             object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
-                { "name", null },
+                { "name", this.safeString(currency, "name") },
                 { "info", currency },
                 { "active", null },
                 { "fee", null },
@@ -306,7 +414,7 @@ public partial class onetrading : Exchange
                     } },
                 } },
                 { "networks", new Dictionary<string, object>() {} },
-            };
+            });
         }
         return result;
     }
@@ -340,34 +448,81 @@ public partial class onetrading : Exchange
 
     public override object parseMarket(object market)
     {
-        object baseAsset = this.safeValue(market, "base", new Dictionary<string, object>() {});
-        object quoteAsset = this.safeValue(market, "quote", new Dictionary<string, object>() {});
+        //
+        //   {
+        //      "base":{
+        //         "code":"BTC",
+        //         "precision":"5"
+        //      },
+        //      "quote":{
+        //         "code":"USDC",
+        //         "precision":"2"
+        //      },
+        //      "amount_precision":"5",
+        //      "market_precision":"2",
+        //      "min_size":"10.0",
+        //      "min_price":"1000",
+        //      "max_price":"10000000",
+        //      "id":"BTC_USDC",
+        //      "type":"SPOT",
+        //      "state":"ACTIVE"
+        //   }
+        //
+        //
+        //  {
+        //      "base": {
+        //          "code": "BTC",
+        //          "precision": 5
+        //      },
+        //      "quote": {
+        //          "code": "EUR",
+        //          "precision": 2
+        //      },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_EUR_P",
+        //      "type": "PERP",
+        //      "state": "ACTIVE"
+        //  }
+        //
+        object baseAsset = this.safeDict(market, "base", new Dictionary<string, object>() {});
+        object quoteAsset = this.safeDict(market, "quote", new Dictionary<string, object>() {});
         object baseId = this.safeString(baseAsset, "code");
         object quoteId = this.safeString(quoteAsset, "code");
-        object id = add(add(baseId, "_"), quoteId);
+        object id = this.safeString(market, "id");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
+        object type = this.safeString(market, "type");
+        object isPerp = isEqual(type, "PERP");
+        object symbol = add(add(bs, "/"), quote);
+        if (isTrue(isPerp))
+        {
+            symbol = add(add(symbol, ":"), quote);
+        }
         return new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", null },
+            { "settle", ((bool) isTrue(isPerp)) ? quote : null },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", null },
-            { "type", "spot" },
-            { "spot", true },
+            { "settleId", ((bool) isTrue(isPerp)) ? quoteId : null },
+            { "type", ((bool) isTrue(isPerp)) ? "swap" : "spot" },
+            { "spot", !isTrue(isPerp) },
             { "margin", false },
-            { "swap", false },
+            { "swap", isPerp },
             { "future", false },
             { "option", false },
             { "active", (isEqual(state, "ACTIVE")) },
-            { "contract", false },
-            { "linear", null },
-            { "inverse", null },
-            { "contractSize", null },
+            { "contract", isPerp },
+            { "linear", ((bool) isTrue(isPerp)) ? true : null },
+            { "inverse", ((bool) isTrue(isPerp)) ? false : null },
+            { "contractSize", ((bool) isTrue(isPerp)) ? this.parseNumber("1") : null },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -406,6 +561,7 @@ public partial class onetrading : Exchange
      * @see https://docs.onetrading.com/#fee-groups
      * @see https://docs.onetrading.com/#fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -436,40 +592,69 @@ public partial class onetrading : Exchange
         await this.loadMarkets();
         object response = await this.publicGetFees(parameters);
         //
-        //     [
-        //         {
-        //             "fee_group_id":"default",
-        //             "display_text":"The standard fee plan.",
-        //             "fee_tiers":[
-        //                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
-        //                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
-        //                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
-        //                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
-        //                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
-        //                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
-        //                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
-        //             ],
-        //             "fee_discount_rate":"25.0",
-        //             "minimum_price_value":"0.12"
-        //         }
-        //     ]
+        // [
+        //     {
+        //         'fee_group_id': 'SPOT',
+        //         'display_text': 'The fee plan for spot trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        //     {
+        //         'fee_group_id': 'FUTURES',
+        //         'display_text': 'The fee plan for futures trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        // ];
         //
-        object first = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object feeTiers = this.safeValue(first, "fee_tiers");
-        object tiers = this.parseFeeTiers(feeTiers);
-        object firstTier = this.safeValue(feeTiers, 0, new Dictionary<string, object>() {});
+        object spotFees = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        object futuresFees = this.safeDict(response, 1, new Dictionary<string, object>() {});
+        object spotFeeTiers = this.safeList(spotFees, "fee_tiers", new List<object>() {});
+        object futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new List<object>() {});
+        object spotTiers = this.parseFeeTiers(spotFeeTiers);
+        object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
+        object firstSpotTier = this.safeDict(spotTiers, 0, new Dictionary<string, object>() {});
+        object firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object tierObject = ((bool) isTrue((getValue(market, "spot")))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
-                { "info", first },
+                { "info", spotFees },
                 { "symbol", symbol },
-                { "maker", this.safeNumber(firstTier, "maker_fee") },
-                { "taker", this.safeNumber(firstTier, "taker_fee") },
+                { "maker", this.safeNumber(tierObject, "maker_fee") },
+                { "taker", this.safeNumber(tierObject, "taker_fee") },
                 { "percentage", true },
                 { "tierBased", true },
-                { "tiers", tiers },
+                { "tiers", spotTiers },
             };
         }
         return result;
@@ -481,37 +666,56 @@ public partial class onetrading : Exchange
         await this.loadMarkets();
         object response = await this.privateGetAccountFees(parameters);
         //
-        //     {
-        //         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
-        //         "running_trading_volume": "0.0",
-        //         "fee_group_id": "default",
-        //         "collect_fees_in_best": false,
-        //         "fee_discount_rate": "25.0",
-        //         "minimum_price_value": "0.12",
-        //         "fee_tiers": [
-        //             { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" },
-        //             { "volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1" },
-        //             { "volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1" },
-        //             { "volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09" },
-        //             { "volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08" },
-        //             { "volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07" },
-        //             { "volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06" },
-        //             { "volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05" }
-        //         ],
-        //         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
-        //     }
+        // {
+        //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+        //    "running_volumes":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       }
+        //    ],
+        //    "active_fee_tiers":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       }
+        //    ]
+        // }
         //
-        object activeFeeTier = this.safeValue(response, "active_fee_tier", new Dictionary<string, object>() {});
-        object makerFee = this.safeString(activeFeeTier, "maker_fee");
-        object takerFee = this.safeString(activeFeeTier, "taker_fee");
-        makerFee = Precise.stringDiv(makerFee, "100");
-        takerFee = Precise.stringDiv(takerFee, "100");
-        object feeTiers = this.safeValue(response, "fee_tiers");
+        object activeFeeTier = this.safeList(response, "active_fee_tiers");
+        object spotFees = this.safeDict(activeFeeTier, 0, new Dictionary<string, object>() {});
+        object futuresFees = this.safeDict(activeFeeTier, 1, new Dictionary<string, object>() {});
+        object spotMakerFee = this.safeString(spotFees, "maker_fee");
+        object spotTakerFee = this.safeString(spotFees, "taker_fee");
+        spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
+        spotTakerFee = Precise.stringDiv(spotTakerFee, "100");
+        // const feeTiers = this.safeValue (response, 'fee_tiers');
+        object futuresMakerFee = this.safeString(futuresFees, "maker_fee");
+        object futuresTakerFee = this.safeString(futuresFees, "taker_fee");
+        futuresMakerFee = Precise.stringDiv(futuresMakerFee, "100");
+        futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
         object result = new Dictionary<string, object>() {};
-        object tiers = this.parseFeeTiers(feeTiers);
+        // const tiers = this.parseFeeTiers (feeTiers);
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object makerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotMakerFee : futuresMakerFee;
+            object takerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -519,7 +723,7 @@ public partial class onetrading : Exchange
                 { "taker", this.parseNumber(takerFee) },
                 { "percentage", true },
                 { "tierBased", true },
-                { "tiers", tiers },
+                { "tiers", null },
             };
         }
         return result;
@@ -1006,6 +1210,7 @@ public partial class onetrading : Exchange
             { "CLOSED", "canceled" },
             { "FAILED", "failed" },
             { "STOP_TRIGGERED", "triggered" },
+            { "DONE", "closed" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1102,7 +1307,7 @@ public partial class onetrading : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
-            { "type", type },
+            { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "side", side },
@@ -1116,6 +1321,14 @@ public partial class onetrading : Exchange
             { "status", status },
             { "trades", rawTrades },
         }, market);
+    }
+
+    public virtual object parseOrderType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "booked", "limit" },
+        };
+        return this.safeString(types, type, type);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -1135,7 +1348,7 @@ public partial class onetrading : Exchange
      * @description create a trade order
      * @see https://docs.onetrading.com/#create-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -1184,6 +1397,9 @@ public partial class onetrading : Exchange
             ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         }
+        object timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
+        parameters = this.omit(parameters, "timeInForce");
+        ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
         object response = await this.privatePostAccountOrders(this.extend(request, parameters));
         //
         //     {
@@ -1229,11 +1445,18 @@ public partial class onetrading : Exchange
         {
             ((IDictionary<string,object>)request)["order_id"] = id;
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "privateDeleteAccountOrdersOrderId")))
+        {
+            response = await this.privateDeleteAccountOrdersOrderId(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateDeleteAccountOrdersClientClientId(this.extend(request, parameters));
+        }
         //
         // responds with an empty body
         //
-        return response;
+        return this.parseOrder(response);
     }
 
     /**
@@ -1261,7 +1484,9 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

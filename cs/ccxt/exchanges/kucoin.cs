@@ -705,7 +705,7 @@ public partial class kucoin : Exchange
                     { "TLOS", "tlos" },
                     { "CFX", "cfx" },
                     { "ACA", "aca" },
-                    { "OP", "optimism" },
+                    { "OPTIMISM", "optimism" },
                     { "ONT", "ont" },
                     { "GLMR", "glmr" },
                     { "CSPR", "cspr" },
@@ -822,6 +822,7 @@ public partial class kucoin : Exchange
                     { "CS", "cs" },
                     { "ORAI", "orai" },
                     { "BASE", "base" },
+                    { "TARA", "tara" },
                 } },
                 { "marginModes", new Dictionary<string, object>() {
                     { "cross", "MARGIN_TRADE" },
@@ -862,17 +863,20 @@ public partial class kucoin : Exchange
                         { "limit", null },
                         { "daysBack", null },
                         { "untilDays", 7 },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", true },
                         { "limit", 500 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
@@ -883,6 +887,7 @@ public partial class kucoin : Exchange
                         { "untilDays", 7 },
                         { "trigger", true },
                         { "trailing", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 1500 },
@@ -1127,8 +1132,9 @@ public partial class kucoin : Exchange
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @returns {any} ignore
      */
-    public async virtual Task loadMigrationStatus(object force = null)
+    public async virtual Task<object> loadMigrationStatus(object force = null)
     {
         force ??= false;
         if (isTrue(isTrue(!isTrue((inOp(this.options, "hf"))) || isTrue((isEqual(getValue(this.options, "hf"), null)))) || isTrue(force)))
@@ -1136,6 +1142,7 @@ public partial class kucoin : Exchange
             object result = await this.privateGetHfAccountsOpened();
             ((IDictionary<string,object>)this.options)["hf"] = this.safeBool(result, "data");
         }
+        return true;
     }
 
     public virtual object handleHfAndParams(object parameters = null)
@@ -1169,8 +1176,7 @@ public partial class kucoin : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object promises = new List<object>() {};
-        ((IList<object>)promises).Add(this.publicGetCurrencies(parameters));
+        object response = await this.publicGetCurrencies(parameters);
         //
         //    {
         //        "code":"200000",
@@ -1196,135 +1202,78 @@ public partial class kucoin : Exchange
         //                    "isDepositEnabled":false,
         //                    "confirms":12,
         //                    "preConfirms":12,
+        //                    "withdrawPrecision": 8,
+        //                    "maxWithdraw": null,
+        //                    "maxDeposit": null,
+        //                    "needTag": false,
         //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         //                    "depositFeeRate": "0.001", // present for some currencies/networks
         //                 }
         //              ]
         //           },
-        //    }
-        //
-        ((IList<object>)promises).Add(this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetCurrencyCurrencyChainInfo", true));
-        //
-        //    {
-        //        "success": true,
-        //        "code": "200",
-        //        "msg": "success",
-        //        "retry": false,
-        //        "data": [
-        //            {
-        //                "status": "enabled",
-        //                "currency": "BTC",
-        //                "isChainEnabled": "true",
-        //                "chain": "btc",
-        //                "chainName": "BTC",
-        //                "chainFullName": "Bitcoin",
-        //                "walletPrecision": "8",
-        //                "isDepositEnabled": "true",
-        //                "depositMinSize": "0.00005",
-        //                "confirmationCount": "2",
-        //                "isWithdrawEnabled": "true",
-        //                "withdrawMinSize": "0.001",
-        //                "withdrawMinFee": "0.0005",
-        //                "withdrawFeeRate": "0",
-        //                "depositDisabledTip": "Wallet Maintenance",
-        //                "preDepositTipEnabled": "true",
-        //                "preDepositTip": "Do not transfer from ETH network directly",
-        //                "withdrawDisabledTip": "",
-        //                "preWithdrawTipEnabled": "false",
-        //                "preWithdrawTip": "",
-        //                "orgAddress": "",
-        //                "userAddressName": "Memo",
-        //            },
         //        ]
         //    }
         //
-        object responses = await promiseAll(promises);
-        object currenciesResponse = this.safeDict(responses, 0, new Dictionary<string, object>() {});
-        object currenciesData = this.safeList(currenciesResponse, "data", new List<object>() {});
-        object additionalResponse = this.safeDict(responses, 1, new Dictionary<string, object>() {});
-        object additionalData = this.safeList(additionalResponse, "data", new List<object>() {});
-        object additionalDataGrouped = this.groupBy(additionalData, "currency");
+        object currenciesData = this.safeList(response, "data", new List<object>() {});
+        object brokenCurrencies = this.safeList(this.options, "brokenCurrencies", new List<object>() {"00", "OPEN_ERROR", "HUF", "BDT"});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
             object entry = getValue(currenciesData, i);
             object id = this.safeString(entry, "currency");
-            object name = this.safeString(entry, "fullName");
+            if (isTrue(this.inArray(id, brokenCurrencies)))
+            {
+                continue;
+            }
             object code = this.safeCurrencyCode(id);
-            object isWithdrawEnabled = null;
-            object isDepositEnabled = null;
             object networks = new Dictionary<string, object>() {};
             object chains = this.safeList(entry, "chains", new List<object>() {});
-            object extraChainsData = this.indexBy(this.safeList(additionalDataGrouped, id, new List<object>() {}), "chain");
-            object rawPrecision = this.safeString(entry, "precision");
-            object precision = this.parseNumber(this.parsePrecision(rawPrecision));
             object chainsLength = getArrayLength(chains);
-            if (!isTrue(chainsLength))
-            {
-                // https://t.me/KuCoin_API/173118
-                isWithdrawEnabled = false;
-                isDepositEnabled = false;
-            }
             for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object chainId = this.safeString(chain, "chainId");
                 object networkCode = this.networkIdToCode(chainId, code);
-                object chainWithdrawEnabled = this.safeBool(chain, "isWithdrawEnabled", false);
-                if (isTrue(isEqual(isWithdrawEnabled, null)))
-                {
-                    isWithdrawEnabled = chainWithdrawEnabled;
-                } else
-                {
-                    isWithdrawEnabled = isTrue(isWithdrawEnabled) || isTrue(chainWithdrawEnabled);
-                }
-                object chainDepositEnabled = this.safeBool(chain, "isDepositEnabled", false);
-                if (isTrue(isEqual(isDepositEnabled, null)))
-                {
-                    isDepositEnabled = chainDepositEnabled;
-                } else
-                {
-                    isDepositEnabled = isTrue(isDepositEnabled) || isTrue(chainDepositEnabled);
-                }
-                object chainExtraData = this.safeDict(extraChainsData, chainId, new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", chain },
                     { "id", chainId },
                     { "name", this.safeString(chain, "chainName") },
                     { "code", networkCode },
-                    { "active", isTrue(chainWithdrawEnabled) && isTrue(chainDepositEnabled) },
+                    { "active", null },
                     { "fee", this.safeNumber(chain, "withdrawalMinFee") },
-                    { "deposit", chainDepositEnabled },
-                    { "withdraw", chainWithdrawEnabled },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chainExtraData, "walletPrecision"))) },
+                    { "deposit", this.safeBool(chain, "isDepositEnabled") },
+                    { "withdraw", this.safeBool(chain, "isWithdrawEnabled") },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", this.safeNumber(chain, "withdrawalMinSize") },
-                            { "max", null },
+                            { "max", this.safeNumber(chain, "maxWithdraw") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
                             { "min", this.safeNumber(chain, "depositMinSize") },
-                            { "max", null },
+                            { "max", this.safeNumber(chain, "maxDeposit") },
                         } },
                     } },
                 };
             }
             // kucoin has determined 'fiat' currencies with below logic
-            object isFiat = isTrue((isEqual(rawPrecision, "2"))) && isTrue((isEqual(chainsLength, 0)));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            object rawPrecision = this.safeString(entry, "precision");
+            object precision = this.parseNumber(this.parsePrecision(rawPrecision));
+            object isFiat = isEqual(chainsLength, 0);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "name", name },
+                { "name", this.safeString(entry, "fullName") },
                 { "code", code },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "precision", precision },
                 { "info", entry },
-                { "active", (isTrue(isDepositEnabled) || isTrue(isWithdrawEnabled)) },
-                { "deposit", isDepositEnabled },
-                { "withdraw", isWithdrawEnabled },
-                { "fee", null },
-                { "limits", this.limits },
                 { "networks", networks },
-            };
+                { "deposit", null },
+                { "withdraw", null },
+                { "active", null },
+                { "fee", null },
+                { "limits", null },
+            });
         }
         return result;
     }
@@ -1486,6 +1435,39 @@ public partial class kucoin : Exchange
         //        "chain": "ERC20"
         //    }
         //
+        if (isTrue(inOp(fee, "chains")))
+        {
+            // if data obtained through `currencies` endpoint
+            object resultNew = new Dictionary<string, object>() {
+                { "info", fee },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", false },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+                { "networks", new Dictionary<string, object>() {} },
+            };
+            object chains = this.safeList(fee, "chains", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
+            {
+                object chain = getValue(chains, i);
+                object networkCodeNew = this.networkIdToCode(this.safeString(chain, "chainId"), this.safeString(currency, "code"));
+                ((IDictionary<string,object>)getValue(resultNew, "networks"))[(string)networkCodeNew] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", this.safeNumber(chain, "withdrawMinFee") },
+                        { "percentage", false },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
+            return resultNew;
+        }
         object minWithdrawFee = this.safeNumber(fee, "withdrawMinFee");
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -2238,7 +2220,7 @@ public partial class kucoin : Exchange
         object req = new Dictionary<string, object>() {
             { "cost", cost },
         };
-        return await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters));
+        return await this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters));
     }
 
     /**
@@ -2651,7 +2633,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool(parameters, "stop", false);
+        object trigger = this.safeBool2(parameters, "trigger", "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -2689,7 +2671,9 @@ public partial class kucoin : Exchange
         {
             response = await this.privateDeleteOrders(this.extend(request, query));
         }
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -3250,10 +3234,6 @@ public partial class kucoin : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["pageSize"] = limit;
-        }
         object method = getValue(this.options, "fetchMyTradesMethod");
         object parseResponseData = false;
         object response = null;
@@ -3263,6 +3243,10 @@ public partial class kucoin : Exchange
         if (isTrue(hf))
         {
             // does not return trades earlier than 2019-02-18T00:00:00Z
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
             if (isTrue(!isEqual(since, null)))
             {
                 // only returns trades up to one week after the since param
@@ -4168,7 +4152,11 @@ public partial class kucoin : Exchange
                 }
             }
         }
-        object returnType = ((bool) isTrue(isolated)) ? result : this.safeBalance(result);
+        object returnType = result;
+        if (!isTrue(isolated))
+        {
+            returnType = this.safeBalance(result);
+        }
         return returnType;
     }
 
@@ -4974,7 +4962,8 @@ public partial class kucoin : Exchange
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
                 object borrowRateStructure = this.parseBorrowRate(item);
-                ((IList<object>)getValue(borrowRateHistories, code)).Add(borrowRateStructure);
+                object borrowRateHistoriesCode = getValue(borrowRateHistories, code);
+                ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
         }
         object keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);

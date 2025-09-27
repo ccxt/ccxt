@@ -21,17 +21,27 @@ public partial class timex : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createOrder", true },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
                 { "editOrder", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -42,21 +52,40 @@ public partial class timex : Exchange
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
@@ -67,15 +96,21 @@ public partial class timex : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
             } },
@@ -188,6 +223,76 @@ public partial class timex : Exchange
                 } },
                 { "defaultSort", "timestamp,asc" },
                 { "defaultSortOrders", "createdAt,asc" },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", false },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
         });
     }
@@ -607,6 +712,7 @@ public partial class timex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -621,6 +727,7 @@ public partial class timex : Exchange
         };
         // if since and limit are not specified
         object duration = this.parseTimeframe(timeframe);
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(isEqual(limit, null)))
         {
             limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
@@ -628,13 +735,25 @@ public partial class timex : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
-            ((IDictionary<string,object>)request)["till"] = this.iso8601(this.sum(since, multiply(multiply(this.sum(limit, 1), duration), 1000)));
+            if (isTrue(isEqual(until, null)))
+            {
+                ((IDictionary<string,object>)request)["till"] = this.iso8601(this.sum(since, multiply(multiply(this.sum(limit, 1), duration), 1000)));
+            } else
+            {
+                ((IDictionary<string,object>)request)["till"] = this.iso8601(until);
+            }
+        } else if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["till"] = this.iso8601(until);
+            object fromTimestamp = subtract(until, multiply(multiply(this.sum(limit, 1), duration), 1000));
+            ((IDictionary<string,object>)request)["from"] = this.iso8601(fromTimestamp);
         } else
         {
             object now = this.milliseconds();
             ((IDictionary<string,object>)request)["till"] = this.iso8601(now);
-            ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(subtract(now, multiply(multiply(limit, duration), 1000)), 1));
+            ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(subtract(now, multiply(multiply(this.sum(limit, 1), duration), 1000)), 1));
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetCandles(this.extend(request, parameters));
         //
         //     [
@@ -1329,11 +1448,6 @@ public partial class timex : Exchange
         //
         object id = this.safeString(currency, "symbol");
         object code = this.safeCurrencyCode(id);
-        object name = this.safeString(currency, "name");
-        object depositEnabled = this.safeValue(currency, "depositEnabled");
-        object withdrawEnabled = this.safeValue(currency, "withdrawalEnabled");
-        object isActive = this.safeValue(currency, "active");
-        object active = isTrue(isTrue(depositEnabled) && isTrue(withdrawEnabled)) && isTrue(isActive);
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         object feeString = this.safeString(currency, "withdrawalFee");
         object tradeDecimals = this.safeInteger(currency, "tradeDecimals");
@@ -1362,15 +1476,15 @@ public partial class timex : Exchange
             { "code", code },
             { "info", currency },
             { "type", null },
-            { "name", name },
-            { "active", active },
-            { "deposit", depositEnabled },
-            { "withdraw", withdrawEnabled },
+            { "name", this.safeString(currency, "name") },
+            { "active", this.safeBool(currency, "active") },
+            { "deposit", this.safeBool(currency, "depositEnabled") },
+            { "withdraw", this.safeBool(currency, "withdrawalEnabled") },
             { "fee", fee },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
             { "limits", new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", fee },
+                    { "min", null },
                     { "max", null },
                 } },
                 { "amount", new Dictionary<string, object>() {
@@ -1483,7 +1597,7 @@ public partial class timex : Exchange
                 { "currency", feeCurrency },
             };
         }
-        return new Dictionary<string, object>() {
+        return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
             { "timestamp", timestamp },
@@ -1497,7 +1611,7 @@ public partial class timex : Exchange
             { "cost", cost },
             { "takerOrMaker", takerOrMaker },
             { "fee", fee },
-        };
+        });
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

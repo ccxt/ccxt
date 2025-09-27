@@ -2,6 +2,272 @@
   "exchange": "xt",
   "skipKeys": [],
   "methods": {
+    "fetchOpenOrders": [
+      {
+        "description": "swap open orders no symbol",
+        "method": "fetchOpenOrders",
+        "input": [
+          null,
+          null,
+          null,
+          {
+            "type": "swap"
+          }
+        ],
+        "httpResponse": {
+          "returnCode": "0",
+          "msgInfo": "success",
+          "error": null,
+          "result": {
+            "page": null,
+            "ps": null,
+            "total": "1",
+            "items": [
+              {
+                "orderId": "497979918306034304",
+                "clientOrderId": null,
+                "symbol": "ltc_usdt",
+                "contractSize": "0.100000000000000000",
+                "orderType": "LIMIT",
+                "orderSide": "BUY",
+                "positionSide": "LONG",
+                "positionType": "CROSSED",
+                "timeInForce": "GTC",
+                "closePosition": false,
+                "price": "50",
+                "origQty": "1",
+                "avgPrice": "0",
+                "executedQty": "0",
+                "marginFrozen": "0.14585715",
+                "remark": null,
+                "sourceId": null,
+                "sourceType": "DEFAULT",
+                "forceClose": false,
+                "leverage": "35",
+                "openPrice": null,
+                "closeProfit": null,
+                "state": "NEW",
+                "createdTime": "1748429664543",
+                "updatedTime": "1748429664613",
+                "welfareAccount": false,
+                "triggerPriceType": null,
+                "triggerProfitPrice": null,
+                "profitDelegateOrderType": null,
+                "profitDelegateTimeInForce": null,
+                "profitDelegatePrice": null,
+                "triggerStopPrice": null,
+                "stopDelegateOrderType": null,
+                "stopDelegateTimeInForce": null,
+                "stopDelegatePrice": null,
+                "markPrice": "96.12",
+                "profit": false
+              }
+            ]
+          }
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "orderId": "497979918306034304",
+              "clientOrderId": null,
+              "symbol": "ltc_usdt",
+              "contractSize": "0.100000000000000000",
+              "orderType": "LIMIT",
+              "orderSide": "BUY",
+              "positionSide": "LONG",
+              "positionType": "CROSSED",
+              "timeInForce": "GTC",
+              "closePosition": false,
+              "price": "50",
+              "origQty": "1",
+              "avgPrice": "0",
+              "executedQty": "0",
+              "marginFrozen": "0.14585715",
+              "remark": null,
+              "sourceId": null,
+              "sourceType": "DEFAULT",
+              "forceClose": false,
+              "leverage": "35",
+              "openPrice": null,
+              "closeProfit": null,
+              "state": "NEW",
+              "createdTime": "1748429664543",
+              "updatedTime": "1748429664613",
+              "welfareAccount": false,
+              "triggerPriceType": null,
+              "triggerProfitPrice": null,
+              "profitDelegateOrderType": null,
+              "profitDelegateTimeInForce": null,
+              "profitDelegatePrice": null,
+              "triggerStopPrice": null,
+              "stopDelegateOrderType": null,
+              "stopDelegateTimeInForce": null,
+              "stopDelegatePrice": null,
+              "markPrice": "96.12",
+              "profit": false
+            },
+            "id": "497979918306034304",
+            "clientOrderId": null,
+            "timestamp": 1748429664543,
+            "datetime": "2025-05-28T10:54:24.543Z",
+            "lastTradeTimestamp": 1748429664613,
+            "lastUpdateTimestamp": 1748429664613,
+            "symbol": "LTC/USDT:USDT",
+            "type": "limit",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "side": "buy",
+            "price": 50,
+            "triggerPrice": null,
+            "stopLoss": null,
+            "takeProfit": null,
+            "amount": 0.1,
+            "filled": 0,
+            "remaining": 0.1,
+            "cost": 0,
+            "average": null,
+            "status": "open",
+            "fee": {
+              "currency": null,
+              "cost": null
+            },
+            "trades": [],
+            "fees": [
+              {
+                "currency": null,
+                "cost": null
+              }
+            ],
+            "reduceOnly": null,
+            "stopPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      },
+      {
+        "description": "spot open orders",
+        "method": "fetchOpenOrders",
+        "input": [],
+        "httpResponse": {
+          "rc": "0",
+          "mc": "SUCCESS",
+          "ma": [],
+          "result": [
+            {
+              "symbol": "ltc_usdt",
+              "orderId": "497979342666793344",
+              "clientOrderId": null,
+              "baseCurrency": "ltc",
+              "quoteCurrency": "usdt",
+              "side": "BUY",
+              "type": "LIMIT",
+              "timeInForce": "GTC",
+              "price": "50.00",
+              "origQty": "0.100",
+              "origQuoteQty": "5.00",
+              "executedQty": "0.000",
+              "leavingQty": "0.100",
+              "tradeBase": "0.000",
+              "tradeQuote": "0.00",
+              "avgPrice": null,
+              "fee": null,
+              "feeCurrency": null,
+              "nftId": null,
+              "symbolType": "normal",
+              "deductServices": [],
+              "origRestFee": null,
+              "origFeeCurrency": null,
+              "platFormCurrencyFee": null,
+              "platFormCurrency": null,
+              "couponAmount": null,
+              "couponCurrency": null,
+              "couponDeductFee": null,
+              "closed": false,
+              "state": "NEW",
+              "time": "1748429527300",
+              "updatedTime": null,
+              "ip": "149.88.20.80"
+            }
+          ]
+        },
+        "parsedResponse": [
+          {
+            "info": {
+              "symbol": "ltc_usdt",
+              "orderId": "497979342666793344",
+              "clientOrderId": null,
+              "baseCurrency": "ltc",
+              "quoteCurrency": "usdt",
+              "side": "BUY",
+              "type": "LIMIT",
+              "timeInForce": "GTC",
+              "price": "50.00",
+              "origQty": "0.100",
+              "origQuoteQty": "5.00",
+              "executedQty": "0.000",
+              "leavingQty": "0.100",
+              "tradeBase": "0.000",
+              "tradeQuote": "0.00",
+              "avgPrice": null,
+              "fee": null,
+              "feeCurrency": null,
+              "nftId": null,
+              "symbolType": "normal",
+              "deductServices": [],
+              "origRestFee": null,
+              "origFeeCurrency": null,
+              "platFormCurrencyFee": null,
+              "platFormCurrency": null,
+              "couponAmount": null,
+              "couponCurrency": null,
+              "couponDeductFee": null,
+              "closed": false,
+              "state": "NEW",
+              "time": "1748429527300",
+              "updatedTime": null,
+              "ip": "149.88.20.80"
+            },
+            "id": "497979342666793344",
+            "clientOrderId": null,
+            "timestamp": 1748429527300,
+            "datetime": "2025-05-28T10:52:07.300Z",
+            "lastTradeTimestamp": null,
+            "lastUpdateTimestamp": null,
+            "symbol": "LTC/USDT",
+            "type": "limit",
+            "timeInForce": "GTC",
+            "postOnly": false,
+            "side": "buy",
+            "price": 50,
+            "triggerPrice": null,
+            "stopLoss": null,
+            "takeProfit": null,
+            "amount": 0.1,
+            "filled": 0,
+            "remaining": 0.1,
+            "cost": 0,
+            "average": null,
+            "status": "open",
+            "fee": {
+              "currency": null,
+              "cost": null
+            },
+            "trades": [],
+            "fees": [
+              {
+                "currency": null,
+                "cost": null
+              }
+            ],
+            "reduceOnly": null,
+            "stopPrice": null,
+            "takeProfitPrice": null,
+            "stopLossPrice": null
+          }
+        ]
+      }
+    ],
     "fetchMyTrades": [
       {
         "description": "spot trades",
@@ -592,6 +858,241 @@
             "fees": []
           }
         ]
+      }
+    ],
+    "editOrder": [
+      {
+        "description": "linear swap edit an order",
+        "method": "editOrder",
+        "input": [
+          "483869393976071040",
+          "BTC/USDT:USDT",
+          "limit",
+          "buy",
+          2,
+          54000
+        ],
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"483870626049393728"},
+        "parsedResponse": {
+          "info": {
+            "returnCode": 0,
+            "msgInfo": "success",
+            "error": null,
+            "result": "483870626049393728"
+          },
+          "id": "483870626049393728",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      },
+      {
+        "description": "spot edit an order",
+        "method": "editOrder",
+        "input": [
+          "484203027161892224",
+          "BTC/USDT",
+          "limit",
+          "buy",
+          0.002,
+          52000
+        ],
+        "httpResponse": {"rc":0,"mc":"SUCCESS","ma":[],"result":{"orderId":"484203027161892224","modifyId":"484205800137559104","clientModifyId":null}},
+        "parsedResponse": {
+          "info": {
+            "orderId": "484203027161892224",
+            "modifyId": "484205800137559104",
+            "clientModifyId": null
+          },
+          "id": "484203027161892224",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      },
+      {
+        "description": "swap edit a stopLoss order",
+        "method": "editOrder",
+        "input": [
+          "484221817085868800",
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          2,
+          null,
+          {
+            "stopLoss": 68000
+          }
+        ],
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"484221817085868800"},
+        "parsedResponse": {
+          "info": {
+            "returnCode": 0,
+            "msgInfo": "success",
+            "error": null,
+            "result": "484221817085868800"
+          },
+          "id": "484221817085868800",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
+      },
+      {
+        "description": "swap edit a takeProfit order",
+        "method": "editOrder",
+        "input": [
+          "484222823387497216",
+          "BTC/USDT:USDT",
+          "limit",
+          "sell",
+          2,
+          null,
+          {
+            "takeProfit": 98000
+          }
+        ],
+        "httpResponse": {"returnCode":0,"msgInfo":"success","error":null,"result":"484222823387497216"},
+        "parsedResponse": {
+          "info": {
+            "returnCode": 0,
+            "msgInfo": "success",
+            "error": null,
+            "result": "484222823387497216"
+          },
+          "id": "484222823387497216",
+          "clientOrderId": null,
+          "timestamp": null,
+          "datetime": null,
+          "lastTradeTimestamp": null,
+          "lastUpdateTimestamp": null,
+          "symbol": "BTC/USDT:USDT",
+          "type": null,
+          "timeInForce": null,
+          "postOnly": null,
+          "side": null,
+          "price": null,
+          "triggerPrice": null,
+          "stopLoss": null,
+          "takeProfit": null,
+          "amount": null,
+          "filled": null,
+          "remaining": null,
+          "cost": null,
+          "average": null,
+          "status": null,
+          "fee": {
+            "currency": null,
+            "cost": null
+          },
+          "trades": [],
+          "fees": [
+            {
+              "currency": null,
+              "cost": null
+            }
+          ],
+          "reduceOnly": null,
+          "stopPrice": null,
+          "takeProfitPrice": null,
+          "stopLossPrice": null
+        }
       }
     ]
   }

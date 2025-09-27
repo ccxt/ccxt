@@ -13,5 +13,6 @@ async function testFetchMarketLeverageTiers(exchange, skippedProperties, symbol)
     for (let j = 0; j < tiers.length; j++) {
         testLeverageTier(exchange, skippedProperties, method, tiers[j]);
     }
+    return true;
 }
 export default testFetchMarketLeverageTiers;

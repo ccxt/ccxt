@@ -33,7 +33,7 @@ export default class gemini extends geminiRest {
     handleTradesForMultidata(client: Client, trades: any, timestamp: Int): void;
     /**
      * @method
-     * @name gemini#fetchOHLCV
+     * @name gemini#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.gemini.com/websocket-api/#candles-data-feed
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -79,7 +79,7 @@ export default class gemini extends geminiRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int): void;
-    helperForWatchMultipleConstruct(itemHashName: string, symbols: string[], params?: {}): Promise<any>;
+    helperForWatchMultipleConstruct(itemHashName: string, symbols?: string[], params?: {}): Promise<any>;
     handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int): void;
     handleL2Updates(client: Client, message: any): void;
     /**

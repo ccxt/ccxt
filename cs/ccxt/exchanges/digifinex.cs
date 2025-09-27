@@ -131,6 +131,112 @@ public partial class digifinex : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", false },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", false },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "selfTradePrevention", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 30 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "marketType", true },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 30 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 500 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                        { "marginMode", false },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "daysBack", 100000 },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 100 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+            } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
@@ -237,6 +343,16 @@ public partial class digifinex : Exchange
                     { "TRX", "TRC20" },
                     { "VECHAIN", "Vechain" },
                 } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TRC20", "TRC20" },
+                    { "TRX", "TRC20" },
+                    { "BEP20", "BEP20" },
+                    { "BSC", "BEP20" },
+                    { "ERC20", "ERC20" },
+                    { "ETH", "ERC20" },
+                    { "Polygon", "POLYGON" },
+                    { "Crypto.com", "CRONOS" },
+                } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "BHT", "Black House Test" },
@@ -269,6 +385,7 @@ public partial class digifinex : Exchange
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":5,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":0,
         //                 "chain":"OMNI"
         //             },
@@ -279,6 +396,7 @@ public partial class digifinex : Exchange
         //                 "min_withdraw_amount":10,
         //                 "min_withdraw_fee":3,
         //                 "currency":"USDT",
+        //                 "withdraw_fee_currency":"USDT",
         //                 "withdraw_status":1,
         //                 "chain":"ERC20"
         //             },
@@ -289,6 +407,7 @@ public partial class digifinex : Exchange
         //                 "min_withdraw_amount":0,
         //                 "min_withdraw_fee":0,
         //                 "currency":"DGF13",
+        //                 "withdraw_fee_currency":"DGF13",
         //                 "withdraw_status":0,
         //                 "chain":""
         //             },
@@ -296,135 +415,48 @@ public partial class digifinex : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
+        object groupedById = this.groupBy(data, "currency");
+        object keys = new List<object>(((IDictionary<string,object>)groupedById).Keys);
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object currency = getValue(data, i);
-            object id = this.safeString(currency, "currency");
+            object id = getValue(keys, i);
+            object networkEntries = getValue(groupedById, id);
             object code = this.safeCurrencyCode(id);
-            object depositStatus = this.safeInteger(currency, "deposit_status", 1);
-            object withdrawStatus = this.safeInteger(currency, "withdraw_status", 1);
-            object deposit = isGreaterThan(depositStatus, 0);
-            object withdraw = isGreaterThan(withdrawStatus, 0);
-            object active = isTrue(deposit) && isTrue(withdraw);
-            object feeString = this.safeString(currency, "min_withdraw_fee"); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            object minWithdrawString = this.safeString(currency, "min_withdraw_amount");
-            object minDepositString = this.safeString(currency, "min_deposit_amount");
-            object minDeposit = this.parseNumber(minDepositString);
-            object minWithdraw = this.parseNumber(minWithdrawString);
-            object fee = this.parseNumber(feeString);
-            // define precision with temporary way
-            object minFoundPrecision = Precise.stringMin(feeString, Precise.stringMin(minDepositString, minWithdrawString));
-            object precision = this.parseNumber(minFoundPrecision);
-            object networkId = this.safeString(currency, "chain");
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
-                networkCode = this.networkIdToCode(networkId);
-            }
-            object network = new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", active },
-                { "fee", fee },
-                { "precision", precision },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
-                        { "max", null },
-                    } },
-                } },
-            };
-            if (isTrue(inOp(result, code)))
-            {
-                if (isTrue(((getValue(getValue(result, code), "info") is IList<object>) || (getValue(getValue(result, code), "info").GetType().IsGenericType && getValue(getValue(result, code), "info").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-                {
-                    ((IList<object>)getValue(getValue(result, code), "info")).Add(currency);
-                } else
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["info"] = new List<object>() {getValue(getValue(result, code), "info"), currency};
-                }
-                if (isTrue(withdraw))
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["withdraw"] = true;
-                    ((IDictionary<string,object>)getValue(getValue(getValue(result, code), "limits"), "withdraw"))["min"] = mathMin(getValue(getValue(getValue(getValue(result, code), "limits"), "withdraw"), "min"), minWithdraw);
-                }
-                if (isTrue(deposit))
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["deposit"] = true;
-                    ((IDictionary<string,object>)getValue(getValue(getValue(result, code), "limits"), "deposit"))["min"] = mathMin(getValue(getValue(getValue(getValue(result, code), "limits"), "deposit"), "min"), minDeposit);
-                }
-                if (isTrue(active))
-                {
-                    ((IDictionary<string,object>)getValue(result, code))["active"] = true;
-                }
-            } else
-            {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", id },
-                    { "code", code },
-                    { "info", currency },
-                    { "type", null },
-                    { "name", null },
-                    { "active", active },
-                    { "deposit", deposit },
-                    { "withdraw", withdraw },
-                    { "fee", this.parseNumber(feeString) },
+                object networkEntry = getValue(networkEntries, j);
+                object networkId = this.safeString(networkEntry, "chain");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeInteger(networkEntry, "deposit_status"), 1) },
+                    { "withdraw", isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1) },
+                    { "fee", this.safeNumber(networkEntry, "min_withdraw_fee") },
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdraw },
+                            { "min", this.safeNumber(networkEntry, "min_withdraw_amount") },
                             { "max", null },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", minDeposit },
+                            { "min", this.safeNumber(networkEntry, "min_deposit_amount") },
                             { "max", null },
                         } },
                     } },
-                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", networkEntry },
                 };
             }
-            if (isTrue(!isEqual(networkId, null)))
-            {
-                ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkId] = network;
-            } else
-            {
-                ((IDictionary<string,object>)getValue(result, code))["active"] = active;
-                ((IDictionary<string,object>)getValue(result, code))["fee"] = this.parseNumber(feeString);
-                ((IDictionary<string,object>)getValue(result, code))["deposit"] = deposit;
-                ((IDictionary<string,object>)getValue(result, code))["withdraw"] = withdraw;
-                ((IDictionary<string,object>)getValue(result, code))["limits"] = new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
-                        { "max", null },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)getValue(result, code))["precision"] = ((bool) isTrue((isEqual(getValue(getValue(result, code), "precision"), null)))) ? precision : mathMax(getValue(getValue(result, code), "precision"), precision);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", id },
+                { "code", code },
+                { "info", networkEntries },
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -1478,6 +1510,7 @@ public partial class digifinex : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1499,24 +1532,44 @@ public partial class digifinex : Exchange
             response = await this.publicSwapGetPublicCandles(this.extend(request, parameters));
         } else
         {
+            object until = this.safeInteger(parameters, "until");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["period"] = this.safeString(this.timeframes, timeframe, timeframe);
-            if (isTrue(!isEqual(since, null)))
+            object startTime = since;
+            object duration = this.parseTimeframe(timeframe);
+            if (isTrue(isEqual(startTime, null)))
             {
-                object startTime = this.parseToInt(divide(since, 1000));
-                ((IDictionary<string,object>)request)["start_time"] = startTime;
-                if (isTrue(!isEqual(limit, null)))
+                if (isTrue(isTrue((!isEqual(limit, null))) || isTrue((!isEqual(until, null)))))
                 {
-                    object duration = this.parseTimeframe(timeframe);
-                    ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, multiply(limit, duration));
+                    object endTime = ((bool) isTrue((!isEqual(until, null)))) ? until : this.milliseconds();
+                    object startLimit = ((bool) isTrue((!isEqual(limit, null)))) ? limit : 200;
+                    startTime = subtract(endTime, (multiply(multiply(startLimit, duration), 1000)));
                 }
-            } else if (isTrue(!isEqual(limit, null)))
-            {
-                object endTime = this.seconds();
-                object duration = this.parseTimeframe(timeframe);
-                object auxLimit = limit; // in c# -limit is mutating the arg
-                ((IDictionary<string,object>)request)["start_time"] = this.sum(endTime, multiply(prefixUnaryNeg(ref auxLimit), duration));
             }
+            if (isTrue(!isEqual(startTime, null)))
+            {
+                startTime = this.parseToInt(divide(startTime, 1000));
+                ((IDictionary<string,object>)request)["start_time"] = startTime;
+                if (isTrue(isTrue((!isEqual(limit, null))) || isTrue((!isEqual(until, null)))))
+                {
+                    if (isTrue(!isEqual(until, null)))
+                    {
+                        object endByUntil = this.parseToInt(divide(until, 1000));
+                        if (isTrue(!isEqual(limit, null)))
+                        {
+                            object endByLimit = this.sum(startTime, multiply(limit, duration));
+                            ((IDictionary<string,object>)request)["end_time"] = mathMin(endByLimit, endByUntil);
+                        } else
+                        {
+                            ((IDictionary<string,object>)request)["end_time"] = endByUntil;
+                        }
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["end_time"] = this.sum(startTime, multiply(limit, duration));
+                    }
+                }
+            }
+            parameters = this.omit(parameters, "until");
             response = await this.publicSpotGetKline(this.extend(request, parameters));
         }
         //
@@ -4375,7 +4428,8 @@ public partial class digifinex : Exchange
                     ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
                     ((IDictionary<string,object>)getValue(depositWithdrawFees, code))["info"] = new List<object>() {};
                 }
-                ((IList<object>)getValue(getValue(depositWithdrawFees, code), "info")).Add(entry);
+                object depositWithdrawInfo = getValue(getValue(depositWithdrawFees, code), "info");
+                ((IList<object>)depositWithdrawInfo).Add(entry);
                 object networkId = this.safeString(entry, "chain");
                 object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
                 object withdrawResult = new Dictionary<string, object>() {

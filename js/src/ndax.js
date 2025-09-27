@@ -32,6 +32,9 @@ export default class ndax extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'closeAllPositions': false,
@@ -44,6 +47,7 @@ export default class ndax extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchAccounts': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -74,12 +78,15 @@ export default class ndax extends Exchange {
                 'fetchLeverages': false,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
                 'fetchMarkPrices': false,
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
@@ -87,6 +94,7 @@ export default class ndax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
                 'fetchOption': false,
                 'fetchOptionChain': false,
@@ -261,6 +269,81 @@ export default class ndax extends Exchange {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false,
+                            'index': false,
+                            // bid & ask
+                        },
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -380,45 +463,45 @@ export default class ndax extends Exchange {
         };
         const response = await this.publicGetGetProducts(this.extend(request, params));
         //
-        //     [
-        //         {
-        //             "OMSId":1,
-        //             "ProductId":1,
-        //             "Product":"BTC",
-        //             "ProductFullName":"Bitcoin",
-        //             "ProductType":"CryptoCurrency",
-        //             "DecimalPlaces":8,
-        //             "TickSize":0.0000000100000000000000000000,
-        //             "NoFees":false,
-        //             "IsDisabled":false,
-        //             "MarginEnabled":false
-        //         },
-        //     ]
+        //    [
+        //        {
+        //            "OMSId": "1",
+        //            "ProductId": "1",
+        //            "Product": "BTC",
+        //            "ProductFullName": "Bitcoin",
+        //            "MasterDataUniqueProductSymbol": "",
+        //            "ProductType": "CryptoCurrency",
+        //            "DecimalPlaces": "8",
+        //            "TickSize": "0.0000000100000000000000000000",
+        //            "DepositEnabled": true,
+        //            "WithdrawEnabled": true,
+        //            "NoFees": false,
+        //            "IsDisabled": false,
+        //            "MarginEnabled": false
+        //        },
+        //        ...
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString(currency, 'ProductId');
-            const name = this.safeString(currency, 'ProductFullName');
+            const code = this.safeCurrencyCode(this.safeString(currency, 'Product'));
             const ProductType = this.safeString(currency, 'ProductType');
             let type = (ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
             if (ProductType === 'Unknown') {
                 // such currency is just a blanket entry
                 type = 'other';
             }
-            const code = this.safeCurrencyCode(this.safeString(currency, 'Product'));
-            const isDisabled = this.safeValue(currency, 'IsDisabled');
-            const active = !isDisabled;
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
-                'name': name,
+                'name': this.safeString(currency, 'ProductFullName'),
                 'code': code,
                 'type': type,
                 'precision': this.safeNumber(currency, 'TickSize'),
                 'info': currency,
-                'active': active,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'active': !this.safeBool(currency, 'IsDisabled'),
+                'deposit': this.safeBool(currency, 'DepositEnabled'),
+                'withdraw': this.safeBool(currency, 'WithdrawEnabled'),
                 'fee': undefined,
                 'limits': {
                     'amount': {
@@ -431,7 +514,8 @@ export default class ndax extends Exchange {
                     },
                 },
                 'networks': {},
-            };
+                'margin': this.safeBool(currency, 'MarginEnabled'),
+            });
         }
         return result;
     }
@@ -586,7 +670,8 @@ export default class ndax extends Exchange {
             const bidask = this.parseBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
             const side = levelSide ? asksKey : bidsKey;
-            result[side].push(bidask);
+            const resultSide = result[side];
+            resultSide.push(bidask);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);

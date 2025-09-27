@@ -10,12 +10,12 @@ use ccxt\async\abstract\ndax as Exchange;
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class ndax extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'ndax',
             'name' => 'NDAX',
@@ -30,6 +30,9 @@ class ndax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
@@ -42,6 +45,7 @@ class ndax extends Exchange {
                 'createStopOrder' => true,
                 'editOrder' => true,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRate' => false,
@@ -72,12 +76,15 @@ class ndax extends Exchange {
                 'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
                 'fetchMarkPrices' => false,
                 'fetchMyLiquidations' => false,
                 'fetchMySettlementHistory' => false,
@@ -85,6 +92,7 @@ class ndax extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
@@ -259,6 +267,81 @@ class ndax extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => false,
+                            'index' => false,
+                            // bid & ask
+                        ),
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        // todo
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => true, // todo
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100, // todo
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => null,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'fees' => array(
                 'trading' => array(
                     'tierBased' => false,
@@ -383,45 +466,45 @@ class ndax extends Exchange {
             );
             $response = Async\await($this->publicGetGetProducts ($this->extend($request, $params)));
             //
-            //     array(
-            //         array(
-            //             "OMSId":1,
-            //             "ProductId":1,
-            //             "Product":"BTC",
-            //             "ProductFullName":"Bitcoin",
-            //             "ProductType":"CryptoCurrency",
-            //             "DecimalPlaces":8,
-            //             "TickSize":0.0000000100000000000000000000,
-            //             "NoFees":false,
-            //             "IsDisabled":false,
-            //             "MarginEnabled":false
-            //         ),
-            //     )
+            //    [
+            //        array(
+            //            "OMSId" => "1",
+            //            "ProductId" => "1",
+            //            "Product" => "BTC",
+            //            "ProductFullName" => "Bitcoin",
+            //            "MasterDataUniqueProductSymbol" => "",
+            //            "ProductType" => "CryptoCurrency",
+            //            "DecimalPlaces" => "8",
+            //            "TickSize" => "0.0000000100000000000000000000",
+            //            "DepositEnabled" => true,
+            //            "WithdrawEnabled" => true,
+            //            "NoFees" => false,
+            //            "IsDisabled" => false,
+            //            "MarginEnabled" => false
+            //        ),
+            //        ...
             //
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'ProductId');
-                $name = $this->safe_string($currency, 'ProductFullName');
+                $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
                 $ProductType = $this->safe_string($currency, 'ProductType');
                 $type = ($ProductType === 'NationalCurrency') ? 'fiat' : 'crypto';
                 if ($ProductType === 'Unknown') {
                     // such $currency is just a blanket entry
                     $type = 'other';
                 }
-                $code = $this->safe_currency_code($this->safe_string($currency, 'Product'));
-                $isDisabled = $this->safe_value($currency, 'IsDisabled');
-                $active = !$isDisabled;
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
-                    'name' => $name,
+                    'name' => $this->safe_string($currency, 'ProductFullName'),
                     'code' => $code,
                     'type' => $type,
                     'precision' => $this->safe_number($currency, 'TickSize'),
                     'info' => $currency,
-                    'active' => $active,
-                    'deposit' => null,
-                    'withdraw' => null,
+                    'active' => !$this->safe_bool($currency, 'IsDisabled'),
+                    'deposit' => $this->safe_bool($currency, 'DepositEnabled'),
+                    'withdraw' => $this->safe_bool($currency, 'WithdrawEnabled'),
                     'fee' => null,
                     'limits' => array(
                         'amount' => array(
@@ -434,7 +517,8 @@ class ndax extends Exchange {
                         ),
                     ),
                     'networks' => array(),
-                );
+                    'margin' => $this->safe_bool($currency, 'MarginEnabled'),
+                ));
             }
             return $result;
         }) ();
@@ -593,7 +677,8 @@ class ndax extends Exchange {
             $bidask = $this->parse_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
             $side = $levelSide ? $asksKey : $bidsKey;
-            $result[$side][] = $bidask;
+            $resultSide = $result[$side];
+            $resultSide[] = $bidask;
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
         $result['asks'] = $this->sort_by($result['asks'], 0);
@@ -2118,7 +2203,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
@@ -2400,7 +2485,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

@@ -5,7 +5,7 @@ export declare type Strings = string[] | undefined;
 export declare type Num = number | undefined;
 export declare type Bool = boolean | undefined;
 export declare type IndexType = number | string;
-export declare type OrderSide = 'buy' | 'sell' | string;
+export declare type OrderSide = 'buy' | 'sell' | string | undefined;
 export declare type OrderType = 'limit' | 'market' | string;
 export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export declare type SubType = 'linear' | 'inverse' | undefined;
@@ -45,8 +45,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;
@@ -140,6 +140,8 @@ export interface OrderBook {
     nonce: Int;
     symbol: Str;
 }
+export interface OrderBooks extends Dictionary<OrderBook> {
+}
 export interface Ticker {
     symbol: string;
     info: any;
@@ -210,9 +212,7 @@ export interface CurrencyInterface {
             max?: Num;
         };
     };
-    networks: {
-        string: any;
-    };
+    networks: Dictionary<any>;
     info: any;
 }
 export interface Balance {
@@ -249,12 +249,6 @@ export interface DepositAddress {
 export interface WithdrawalResponse {
     info: any;
     id: string;
-}
-export interface DepositAddressResponse {
-    currency: Str;
-    address: string;
-    info: any;
-    tag?: Str;
 }
 export interface FundingRate {
     symbol: string;
@@ -413,6 +407,7 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    side?: OrderSide;
 }
 export interface OrderRequest {
     symbol: string;
@@ -450,6 +445,9 @@ export interface Greeks {
     theta: number;
     vega: number;
     rho: number;
+    vanna?: number;
+    volga?: number;
+    charm?: number;
     bidSize: number;
     askSize: number;
     bidImpliedVolatility: number;
@@ -540,9 +538,9 @@ export interface MarginModes extends Dictionary<MarginMode> {
 }
 export interface OptionChain extends Dictionary<Option> {
 }
-export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRate> {
 }
-export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRate> {
 }
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
@@ -553,3 +551,34 @@ export declare type OHLCVC = [Num, Num, Num, Num, Num, Num, Num];
 export declare type implicitReturnType = any;
 export declare type Market = MarketInterface | undefined;
 export declare type Currency = CurrencyInterface | undefined;
+interface BaseConstructorArgs {
+    apiKey?: string;
+    secret?: string;
+    password?: string;
+    privateKey?: string;
+    walletAddress?: string;
+    uid?: string;
+    verbose?: boolean;
+    sandbox?: boolean;
+    testnet?: boolean;
+    options?: Dict;
+    enableRateLimit?: boolean;
+    httpsProxy?: string;
+    socksProxy?: string;
+    wssProxy?: string;
+    proxy?: string;
+    rateLimit?: number;
+    commonCurrencies?: Dict;
+    userAgent?: string;
+    userAgents?: Dict;
+    timeout?: number;
+    markets?: Dict;
+    currencies?: Dict;
+    hostname?: string;
+    urls?: Dict;
+    headers?: Dict;
+}
+export declare type ConstructorArgs = Partial<BaseConstructorArgs> & {
+    [key: string]: any;
+};
+export {};

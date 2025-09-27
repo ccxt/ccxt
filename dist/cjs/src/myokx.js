@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var okx = require('./okx.js');
 
+// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-class myokx extends okx {
+class myokx extends okx["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'myokx',
@@ -28,8 +30,26 @@ class myokx extends okx {
                     'rest': 'https://{hostname}',
                 },
             },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+            },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 }
 
-module.exports = myokx;
+exports["default"] = myokx;

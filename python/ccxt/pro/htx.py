@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -21,7 +21,7 @@ from ccxt.base.errors import ChecksumError
 
 class htx(ccxt.async_support.htx):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(htx, self).describe(), {
             'has': {
                 'ws': True,
@@ -1811,7 +1811,7 @@ class htx(ccxt.async_support.htx):
         promise = client.futures['auth']
         promise.resolve(message)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "action": "sub",
@@ -1875,7 +1875,7 @@ class htx(ccxt.async_support.htx):
                     return False
                 else:
                     client.reject(e)
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):

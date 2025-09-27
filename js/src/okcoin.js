@@ -38,6 +38,10 @@ export default class okcoin extends Exchange {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchBalance': true,
@@ -202,6 +206,90 @@ export default class okcoin extends Exchange {
                         // sub-account
                         'asset/subaccount/transfer': 10,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerDirection': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': false,
+                            'index': false,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'price': true,
+                        },
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': true,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': true, // todo
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'daysBackCanceled': 1 / 12,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': true,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100, // 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'fees': {
@@ -614,12 +702,20 @@ export default class okcoin extends Exchange {
     async fetchTime(params = {}) {
         const response = await this.publicGetPublicTime(params);
         //
-        //     {
-        //         "iso": "2015-01-07T23:47:25.201Z",
-        //         "epoch": 1420674445.201
-        //     }
+        // {
+        //     "code": "0",
+        //     "data":
+        //         [
+        //             {
+        //                 "ts": "1737379360033"
+        //             }
+        //         ],
+        //     "msg": ""
+        // }
         //
-        return this.parse8601(this.safeString(response, 'iso'));
+        const data = this.safeList(response, 'data');
+        const timestamp = this.safeDict(data, 0);
+        return this.safeInteger(timestamp, 'ts');
     }
     /**
      * @method
@@ -732,53 +828,34 @@ export default class okcoin extends Exchange {
             if (this.options['warnOnFetchCurrenciesWithoutAuthorization']) {
                 throw new ExchangeError(this.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = false to suppress this warning message.');
             }
-            return undefined;
+            return {};
         }
         else {
             const response = await this.privateGetAssetCurrencies(params);
-            const data = this.safeValue(response, 'data', []);
+            const data = this.safeList(response, 'data', []);
             const result = {};
             const dataByCurrencyId = this.groupBy(data, 'ccy');
             const currencyIds = Object.keys(dataByCurrencyId);
             for (let i = 0; i < currencyIds.length; i++) {
                 const currencyId = currencyIds[i];
-                const currency = this.safeCurrency(currencyId);
-                const code = currency['code'];
+                const code = this.safeCurrencyCode(currencyId);
                 const chains = dataByCurrencyId[currencyId];
                 const networks = {};
-                let currencyActive = false;
-                let depositEnabled = false;
-                let withdrawEnabled = false;
-                let maxPrecision = undefined;
                 for (let j = 0; j < chains.length; j++) {
                     const chain = chains[j];
-                    const canDeposit = this.safeValue(chain, 'canDep');
-                    depositEnabled = (canDeposit) ? canDeposit : depositEnabled;
-                    const canWithdraw = this.safeValue(chain, 'canWd');
-                    withdrawEnabled = (canWithdraw) ? canWithdraw : withdrawEnabled;
-                    const canInternal = this.safeValue(chain, 'canInternal');
-                    const active = (canDeposit && canWithdraw && canInternal) ? true : false;
-                    currencyActive = (active) ? active : currencyActive;
                     const networkId = this.safeString(chain, 'chain');
                     if ((networkId !== undefined) && (networkId.indexOf('-') >= 0)) {
                         const parts = networkId.split('-');
                         const chainPart = this.safeString(parts, 1, networkId);
                         const networkCode = this.networkIdToCode(chainPart);
-                        const precision = this.parsePrecision(this.safeString(chain, 'wdTickSz'));
-                        if (maxPrecision === undefined) {
-                            maxPrecision = precision;
-                        }
-                        else {
-                            maxPrecision = Precise.stringMin(maxPrecision, precision);
-                        }
                         networks[networkCode] = {
                             'id': networkId,
                             'network': networkCode,
-                            'active': active,
-                            'deposit': canDeposit,
-                            'withdraw': canWithdraw,
+                            'active': undefined,
+                            'deposit': this.safeBool(chain, 'canDep'),
+                            'withdraw': this.safeBool(chain, 'canWd'),
                             'fee': this.safeNumber(chain, 'minFee'),
-                            'precision': this.parseNumber(precision),
+                            'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'wdTickSz'))),
                             'limits': {
                                 'withdraw': {
                                     'min': this.safeNumber(chain, 'minWd'),
@@ -790,16 +867,16 @@ export default class okcoin extends Exchange {
                     }
                 }
                 const firstChain = this.safeValue(chains, 0);
-                result[code] = {
+                result[code] = this.safeCurrencyStructure({
                     'info': chains,
                     'code': code,
                     'id': currencyId,
                     'name': this.safeString(firstChain, 'name'),
-                    'active': currencyActive,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
                     'fee': undefined,
-                    'precision': this.parseNumber(maxPrecision),
+                    'precision': undefined,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -807,7 +884,7 @@ export default class okcoin extends Exchange {
                         },
                     },
                     'networks': networks,
-                };
+                });
             }
             return result;
         }
@@ -1513,7 +1590,7 @@ export default class okcoin extends Exchange {
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
-                    throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
+                    throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                 }
                 request['slTriggerPx'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
@@ -1526,7 +1603,7 @@ export default class okcoin extends Exchange {
                     }
                     else if (stopLossLimitOrderType) {
                         if (stopLossLimitPrice === undefined) {
-                            throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
+                            throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] for a stop loss limit order');
                         }
                         else {
                             request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);
@@ -1651,7 +1728,7 @@ export default class okcoin extends Exchange {
         const advanced = this.safeValue(params, 'advanced');
         if (trigger || advanced) {
             const orderInner = await this.cancelOrders([id], symbol, params);
-            return this.safeValue(orderInner, 0);
+            return this.safeDict(orderInner, 0);
         }
         const market = this.market(symbol);
         const request = {

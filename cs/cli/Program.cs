@@ -1,4 +1,5 @@
 ﻿namespace Example;
+
 using ccxt;
 using System;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ public static class Program
     {
         public bool Verbose { get; set; }
         public bool Sandbox { get; set; }
+        public bool Demo { get; set; }
     }
     public static string exchangesPath = System.AppDomain.CurrentDomain.BaseDirectory + "../../../../.." + "/exchanges.json"; // when using debugguer
 
@@ -33,6 +35,10 @@ public static class Program
         {
             instance.setSandboxMode(true);
         }
+        if (args.Contains("--demo"))
+        {
+            instance.enableDemoTrading(true);
+        }
     }
 
     public static void SetCredentials(Exchange instance)
@@ -43,6 +49,11 @@ public static class Program
             if (File.Exists("keys.local.json"))
             {
                 var jsonText = File.ReadAllText("keys.local.json");
+                localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
+            }
+            if (File.Exists("./../../keys.local.json"))
+            {
+                var jsonText = File.ReadAllText("./../../keys.local.json");
                 localKeys = JsonConvert.DeserializeObject<JObject>(jsonText);
             }
         }
@@ -78,10 +89,9 @@ public static class Program
                 {
                     var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
                     credentialValue = Environment.GetEnvironmentVariable(parsedKey);
-                    if (credentialValue.StartsWith("-----BEGIN"))
+                    if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
                     {
                         credentialValue = credentialValue.Replace("\\n", "\n");
-
                     }
                 }
 
@@ -97,13 +107,16 @@ public static class Program
 
     public static void Main(string[] args)
     {
-        if (File.Exists(exchangesPath)) {
+        if (File.Exists(exchangesPath))
+        {
             var file = File.ReadAllText(exchangesPath);
             var converted = (dict)JsonHelper.Deserialize(file);
             var ids = (list)converted["ids"];
             List<string> strings = ids.Select(s => (string)s).ToList();
             exchangesId = strings;
-        } else {
+        }
+        else
+        {
             exchangesId = null;
         }
 

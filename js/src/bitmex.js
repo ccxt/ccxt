@@ -93,6 +93,7 @@ export default class bitmex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'index': true,
                 'reduceMargin': undefined,
                 'sandbox': true,
                 'setLeverage': true,
@@ -278,104 +279,111 @@ export default class bitmex extends Exchange {
                     'SOL': 'sol',
                     'ADA': 'ada',
                 },
-                'features': {
-                    'default': {
-                        'sandbox': true,
-                        'createOrder': {
-                            'marginMode': true,
-                            'triggerPrice': true,
-                            'triggerPriceType': {
-                                'last': true,
-                                'mark': true,
-                            },
-                            'triggerDirection': true,
-                            'stopLossPrice': false,
-                            'takeProfitPrice': false,
-                            'attachedStopLossTakeProfit': undefined,
-                            'timeInForce': {
-                                'IOC': true,
-                                'FOK': true,
-                                'PO': true,
-                                'GTD': false,
-                            },
-                            'hedged': false,
-                            'trailing': true,
-                            'marketBuyRequiresPrice': false,
-                            'marketBuyByCost': false,
-                            'leverage': false,
-                            'selfTradePrevention': false,
-                            'iceberg': true, // todo
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
                         },
-                        'createOrders': undefined,
-                        'fetchMyTrades': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBack': undefined,
-                            'untilDays': 1000000,
+                        'triggerDirection': true,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
                         },
-                        'fetchOrder': {
-                            'marginMode': false,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchOpenOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBack': undefined,
-                            'untilDays': 1000000,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchClosedOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBack': undefined,
-                            'daysBackCanceled': undefined,
-                            'untilDays': 1000000,
-                            'trigger': false,
-                            'trailing': false,
-                        },
-                        'fetchOHLCV': {
-                            'limit': 10000,
+                        'hedged': false,
+                        'trailing': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 1000000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 1000000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 1000000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 10000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': false,
                         },
                     },
-                    'spot': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': false,
-                            },
+                },
+                'derivatives': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPriceType': {
+                            'index': true,
                         },
                     },
-                    'forDeriv': {
-                        'extends': 'default',
-                        'createOrder': {
-                            'triggerPriceType': {
-                                'index': true,
-                            },
-                        },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'derivatives',
                     },
-                    'swap': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
-                    'future': {
-                        'linear': {
-                            'extends': 'forDeriv',
-                        },
-                        'inverse': {
-                            'extends': 'forDeriv',
-                        },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'derivatives',
+                    },
+                    'inverse': {
+                        'extends': 'derivatives',
                     },
                 },
             },
@@ -412,8 +420,8 @@ export default class bitmex extends Exchange {
         //            // "mediumPrecision": "8",
         //            // "shorterPrecision": "4",
         //            // "symbol": "₿",
-        //            // "weight": "1",
         //            // "tickLog": "0",
+        //            // "weight": "1",
         //            "enabled": true,
         //            "isMarginCurrency": true,
         //            "minDepositAmount": "10000",
@@ -491,6 +499,7 @@ export default class bitmex extends Exchange {
             const maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
             const minDepositString = this.safeString(currency, 'minDepositAmount');
             const minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+            const isCrypto = this.safeString(currency, 'currencyType') === 'Crypto';
             result[code] = {
                 'id': id,
                 'code': code,
@@ -516,6 +525,7 @@ export default class bitmex extends Exchange {
                     },
                 },
                 'networks': networks,
+                'type': isCrypto ? 'crypto' : 'other',
             };
         }
         return result;
@@ -724,11 +734,11 @@ export default class bitmex extends Exchange {
         const quote = this.safeCurrencyCode(quoteId);
         const contract = swap || future;
         let contractSize = undefined;
-        const isInverse = this.safeValue(market, 'isInverse'); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        const isQuanto = this.safeValue(market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        const linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let isInverse = this.safeValue(market, 'isInverse'); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        let isQuanto = this.safeValue(market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        let linear = contract ? (!isInverse && !isQuanto) : undefined;
         const status = this.safeString(market, 'state');
-        const active = status !== 'Unlisted';
+        const active = status === 'Open'; // Open, Settled, Unlisted
         let expiry = undefined;
         let expiryDatetime = undefined;
         let symbol = undefined;
@@ -745,9 +755,9 @@ export default class bitmex extends Exchange {
                 const multiplierString = Precise.stringAbs(this.safeString(market, 'multiplier'));
                 contractSize = this.parseNumber(multiplierString);
             }
-            if (future) {
-                expiryDatetime = this.safeString(market, 'expiry');
-                expiry = this.parse8601(expiryDatetime);
+            expiryDatetime = this.safeString(market, 'expiry');
+            expiry = this.parse8601(expiryDatetime);
+            if (expiry !== undefined) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
         }
@@ -761,6 +771,12 @@ export default class bitmex extends Exchange {
         const maxOrderQty = this.safeNumber(market, 'maxOrderQty');
         const initMargin = this.safeString(market, 'initMargin', '1');
         const maxLeverage = this.parseNumber(Precise.stringDiv('1', initMargin));
+        // subtype should be undefined for spot markets
+        if (spot) {
+            isInverse = undefined;
+            isQuanto = undefined;
+            linear = undefined;
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -810,7 +826,7 @@ export default class bitmex extends Exchange {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': this.parse8601(this.safeString(market, 'listing')),
+            'created': undefined,
             'info': market,
         };
     }
@@ -976,7 +992,8 @@ export default class bitmex extends Exchange {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
             if (price !== undefined) {
-                result[side].push([price, amount]);
+                const resultSide = result[side];
+                resultSide.push([price, amount]);
             }
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
@@ -1973,7 +1990,7 @@ export default class bitmex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -2003,7 +2020,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below']);
             }
@@ -2060,7 +2077,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString(params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument('createOrder', triggerDirection, 'triggerDirection', ['above', 'below']);
             }
@@ -3000,6 +3017,7 @@ export default class bitmex extends Exchange {
             'contracts': undefined,
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),
+            'side': this.safeStringLower(liquidation, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': undefined,

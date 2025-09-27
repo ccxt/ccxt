@@ -656,12 +656,12 @@ public partial class hollaex : ccxt.hollaex
     public override void onError(WebSocketClient client, object error)
     {
         ((IDictionary<string,object>)this.options)["ws-expires"] = null;
-        this.onError(client as WebSocketClient, error);
+        base.onError(client as WebSocketClient, error);
     }
 
     public override void onClose(WebSocketClient client, object error)
     {
         ((IDictionary<string,object>)this.options)["ws-expires"] = null;
-        this.onClose(client as WebSocketClient, error);
+        base.onClose(client as WebSocketClient, error);
     }
 }

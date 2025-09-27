@@ -1,5 +1,5 @@
 import coincatchRest from '../coincatch.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coincatch extends coincatchRest {
     describe(): any;
@@ -98,7 +98,7 @@ export default class coincatch extends coincatchRest {
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
      * @method
-     * @name coincatch#watchOrderBook
+     * @name coincatch#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param symbols
@@ -125,7 +125,7 @@ export default class coincatch extends coincatchRest {
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
-     * @name coincatch#watchTrades
+     * @name coincatch#watchTradesForSymbols
      * @description watches information on multiple trades made in a market
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
      * @param symbols
@@ -194,7 +194,7 @@ export default class coincatch extends coincatchRest {
     getPrivateInstType(market: Market): "umcbl" | "dmcbl";
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: any): Position;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;

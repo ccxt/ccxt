@@ -9,7 +9,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
  * @augments Exchange
  */
 export default class timex extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'timex',
             'name': 'TimeX',
@@ -24,17 +24,27 @@ export default class timex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -45,21 +55,40 @@ export default class timex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -70,15 +99,21 @@ export default class timex extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
             },
@@ -266,6 +301,77 @@ export default class timex extends Exchange {
                 'defaultSort': 'timestamp,asc',
                 'defaultSortOrders': 'createdAt,asc',
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        // todo
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': false,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined, // todo
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100, // todo
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
 
@@ -276,7 +382,7 @@ export default class timex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.tradingviewGetTime (params);
         //
         //     1708682617
@@ -663,6 +769,7 @@ export default class timex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -674,17 +781,27 @@ export default class timex extends Exchange {
         };
         // if since and limit are not specified
         const duration = this.parseTimeframe (timeframe);
+        const until = this.safeInteger (params, 'until');
         if (limit === undefined) {
             limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
         }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
-            request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
+            if (until === undefined) {
+                request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
+            } else {
+                request['till'] = this.iso8601 (until);
+            }
+        } else if (until !== undefined) {
+            request['till'] = this.iso8601 (until);
+            const fromTimestamp = until - this.sum (limit, 1) * duration * 1000;
+            request['from'] = this.iso8601 (fromTimestamp);
         } else {
             const now = this.milliseconds ();
             request['till'] = this.iso8601 (now);
-            request['from'] = this.iso8601 (now - limit * duration * 1000 - 1);
+            request['from'] = this.iso8601 (now - this.sum (limit, 1) * duration * 1000 - 1);
         }
+        params = this.omit (params, 'until');
         const response = await this.publicGetCandles (this.extend (request, params));
         //
         //     [
@@ -884,7 +1001,7 @@ export default class timex extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0);
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**
@@ -1351,11 +1468,6 @@ export default class timex extends Exchange {
         //
         const id = this.safeString (currency, 'symbol');
         const code = this.safeCurrencyCode (id);
-        const name = this.safeString (currency, 'name');
-        const depositEnabled = this.safeValue (currency, 'depositEnabled');
-        const withdrawEnabled = this.safeValue (currency, 'withdrawalEnabled');
-        const isActive = this.safeValue (currency, 'active');
-        const active = depositEnabled && withdrawEnabled && isActive;
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
@@ -1380,14 +1492,14 @@ export default class timex extends Exchange {
             'code': code,
             'info': currency,
             'type': undefined,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': this.safeString (currency, 'name'),
+            'active': this.safeBool (currency, 'active'),
+            'deposit': this.safeBool (currency, 'depositEnabled'),
+            'withdraw': this.safeBool (currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
             'limits': {
-                'withdraw': { 'min': fee, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
@@ -1491,7 +1603,7 @@ export default class timex extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -1505,7 +1617,7 @@ export default class timex extends Exchange {
             'cost': cost,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
-        };
+        });
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

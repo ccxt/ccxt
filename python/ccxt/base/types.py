@@ -190,6 +190,7 @@ class Liquidation(TypedDict):
     price: Num
     baseValue: Num
     quoteValue: Num
+    side: OrderSide
 
 
 class FundingHistory(TypedDict):
@@ -278,7 +279,7 @@ class Ticker(TypedDict):
 
 Tickers = Dict[str, Ticker]
 
-
+OrderBooks = Dict[str, OrderBook]
 class MarginMode(TypedDict):
     info: Dict[str, Any]
     symbol: Str
@@ -308,6 +309,9 @@ class Greeks(TypedDict):
     theta: Num
     vega: Num
     rho: Num
+    vanna: Num
+    volga: Num
+    charm: Num
     bidSize: Num
     askSize: Num
     bidImpliedVolatility: Num
@@ -575,3 +579,32 @@ LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
+
+class ConstructorArgs(TypedDict, total=False):
+    apiKey: str
+    secret: str
+    passphrase: str
+    password: str
+    privateKey: str
+    walletAddress: str
+    uid: str
+    verbose: bool
+    testnet: bool
+    sandbox: bool  # redudant but kept for backwards compatibility
+    options: Dict[str, Any]
+    enableRateLimit: bool
+    httpsProxy: str
+    socksProxy: str
+    wssProxy: str
+    proxy: str
+    rateLimit: Num
+    commonCurrencies: Dict[str, Any]
+    userAgent: str
+    userAgents: Dict[str, Any]
+    timeout: Num
+    markets: Dict[str, Any]
+    currencies: Dict[str, Any]
+    hostname: str
+    urls: Dict[str, Any]
+    headers: Dict[str, Any]
+    session: Any

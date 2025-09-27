@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Strings, Tickers } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -28,7 +28,7 @@ export default class bitvavo extends bitvavoRest {
     handleTicker(client: Client, message: any): void;
     /**
      * @method
-     * @name mexc#watchBidsAsks
+     * @name bitvavo#watchBidsAsks
      * @description watches best bid & ask for symbols
      * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
@@ -316,6 +316,6 @@ export default class bitvavo extends bitvavoRest {
     handleSubscriptionStatus(client: Client, message: any): any;
     authenticate(params?: {}): Promise<any>;
     handleAuthenticationMessage(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

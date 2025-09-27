@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinbase$1 = require('./abstract/coinbase.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,14 +15,14 @@ var rsa = require('./base/functions/rsa.js');
  * @class coinbase
  * @augments Exchange
  */
-class coinbase extends coinbase$1 {
+class coinbase extends coinbase$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbase',
             'name': 'Coinbase Advanced',
             'countries': ['US'],
             'pro': true,
-            'certified': true,
+            'certified': false,
             // rate-limits:
             // ADVANCED API: https://docs.cloud.coinbase.com/advanced-trade/docs/rest-api-rate-limits
             // - max 30 req/second for private data, 10 req/s for public data
@@ -40,6 +42,9 @@ class coinbase extends coinbase$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'closeAllPositions': false,
@@ -54,6 +59,8 @@ class coinbase extends coinbase$1 {
                 'createMarketSellOrder': true,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -64,8 +71,12 @@ class coinbase extends coinbase$1 {
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchConvertQuote': true,
@@ -83,42 +94,69 @@ class coinbase extends coinbase$1 {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchL2OrderBook': false,
                 'fetchLedger': true,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
                 'fetchMyBuys': true,
+                'fetchMyLiquidations': false,
                 'fetchMySells': true,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
                 'fetchTradingFees': true,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'withdraw': true,
@@ -322,11 +360,14 @@ class coinbase extends coinbase$1 {
                     'rate_limit_exceeded': errors.RateLimitExceeded,
                     'internal_server_error': errors.ExchangeError,
                     'UNSUPPORTED_ORDER_CONFIGURATION': errors.BadRequest,
-                    'INSUFFICIENT_FUND': errors.BadRequest,
+                    'INSUFFICIENT_FUND': errors.InsufficientFunds,
                     'PERMISSION_DENIED': errors.PermissionDenied,
                     'INVALID_ARGUMENT': errors.BadRequest,
+                    'PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE': errors.InvalidOrder,
+                    'PREVIEW_INSUFFICIENT_FUND': errors.InsufficientFunds,
                 },
                 'broad': {
+                    'Insufficient balance in source account': errors.InsufficientFunds,
                     'request timestamp expired': errors.InvalidNonce,
                     'order with this orderID was not found': errors.OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
@@ -367,6 +408,8 @@ class coinbase extends coinbase$1 {
                 'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true,
                 'fetchMarkets': 'fetchMarketsV3',
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
                 'fetchTicker': 'fetchTickerV3',
                 'fetchTickers': 'fetchTickersV3',
                 'fetchAccounts': 'fetchAccountsV3',
@@ -405,17 +448,20 @@ class coinbase extends coinbase$1 {
                         'limit': 3000,
                         'daysBack': undefined,
                         'untilDays': 10000,
+                        'symbolRequired': false,
                     },
                     'fetchOrder': {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': undefined,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOrders': {
                         'marginMode': false,
@@ -424,6 +470,7 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchClosedOrders': {
                         'marginMode': false,
@@ -433,9 +480,10 @@ class coinbase extends coinbase$1 {
                         'untilDays': 10000,
                         'trigger': false,
                         'trailing': false,
+                        'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 350,
+                        'limit': 300,
                     },
                 },
                 'spot': {
@@ -747,7 +795,7 @@ class coinbase extends coinbase$1 {
             }
         }
         if (accountId === undefined) {
-            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code, specify an `account_id` extra param');
+            throw new errors.ExchangeError(this.id + ' createDepositAddress() could not find the account with matching currency code ' + code + ', specify an `account_id` extra param to target specific wallet');
         }
         const request = {
             'account_id': accountId,
@@ -796,6 +844,7 @@ class coinbase extends coinbase$1 {
             'currency': code,
             'tag': tag,
             'address': address,
+            'network': undefined,
             'info': response,
         };
     }
@@ -1275,6 +1324,9 @@ class coinbase extends coinbase$1 {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference();
+        }
         const method = this.safeString(this.options, 'fetchMarkets', 'fetchMarketsV3');
         if (method === 'fetchMarketsV3') {
             return await this.fetchMarketsV3(params);
@@ -1300,7 +1352,7 @@ class coinbase extends coinbase$1 {
                     const quoteCurrency = data[j];
                     const quoteId = this.safeString(quoteCurrency, 'id');
                     const quote = this.safeCurrencyCode(quoteId);
-                    result.push({
+                    result.push(this.safeMarketStructure({
                         'id': baseId + '-' + quoteId,
                         'symbol': base + '/' + quote,
                         'base': base,
@@ -1347,7 +1399,7 @@ class coinbase extends coinbase$1 {
                             },
                         },
                         'info': quoteCurrency,
-                    });
+                    }));
                 }
             }
         }
@@ -1440,10 +1492,6 @@ class coinbase extends coinbase$1 {
                 this.v3PublicGetBrokerageMarketProducts(this.extend(params, { 'product_type': 'FUTURE' })),
                 this.v3PublicGetBrokerageMarketProducts(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' })),
             ];
-            if (this.checkRequiredCredentials(false)) {
-                unresolvedContractPromises.push(this.extend(params, { 'product_type': 'FUTURE' }));
-                unresolvedContractPromises.push(this.extend(params, { 'product_type': 'FUTURE', 'contract_expiry_type': 'PERPETUAL' }));
-            }
         }
         catch (e) {
             unresolvedContractPromises = []; // the sync version of ccxt won't have the promise.all line so the request is made here. Some users can't access perpetual products
@@ -1460,8 +1508,8 @@ class coinbase extends coinbase$1 {
         const fees = this.safeDict(promises, 1, {});
         const expiringFutures = this.safeDict(contractPromises, 0, {});
         const perpetualFutures = this.safeDict(contractPromises, 1, {});
-        const expiringFees = this.safeDict(contractPromises, 2, {});
-        const perpetualFees = this.safeDict(contractPromises, 3, {});
+        const expiringFees = this.safeDict(contractPromises, 0, {});
+        const perpetualFees = this.safeDict(contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -1497,7 +1545,21 @@ class coinbase extends coinbase$1 {
         for (let i = 0; i < perpetualData.length; i++) {
             result.push(this.parseContractMarket(perpetualData[i], perpetualFeeTier));
         }
-        return result;
+        const newMarkets = [];
+        for (let i = 0; i < result.length; i++) {
+            const market = result[i];
+            const info = this.safeValue(market, 'info', {});
+            const realMarketIds = this.safeList(info, 'alias_to', []);
+            const length = realMarketIds.length;
+            if (length > 0) {
+                market['alias'] = realMarketIds[0];
+            }
+            else {
+                market['alias'] = undefined;
+            }
+            newMarkets.push(market);
+        }
+        return newMarkets;
     }
     parseSpotMarket(market, feeTier) {
         //
@@ -1848,45 +1910,46 @@ class coinbase extends coinbase$1 {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const response = await this.fetchCurrenciesFromCache(params);
-        const currencies = this.safeList(response, 'currencies', []);
+        const promises = [
+            this.v2PublicGetCurrencies(params),
+            this.v2PublicGetCurrenciesCrypto(params),
+            this.v2PublicGetExchangeRates(params),
+        ];
+        const promisesResult = await Promise.all(promises);
+        const fiatResponse = this.safeDict(promisesResult, 0, {});
         //
-        // fiat
+        //    [
+        //        "data": [
+        //            {
+        //                id: 'IMP',
+        //                name: 'Isle of Man Pound',
+        //                min_size: '0.01'
+        //            },
+        //        ...
         //
-        //    {
-        //        id: 'IMP',
-        //        name: 'Isle of Man Pound',
-        //        min_size: '0.01'
-        //    },
+        const cryptoResponse = this.safeDict(promisesResult, 1, {});
         //
-        // crypto
+        //     [
+        //        "data": [
+        //           {
+        //              asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
+        //              code: 'AERO',
+        //              name: 'Aerodrome Finance',
+        //              color: '#0433FF',
+        //              sort_index: '340',
+        //              exponent: '8',
+        //              type: 'crypto',
+        //              address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
+        //           },
+        //          ...
         //
-        //    {
-        //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
-        //        code: 'AERO',
-        //        name: 'Aerodrome Finance',
-        //        color: '#0433FF',
-        //        sort_index: '340',
-        //        exponent: '8',
-        //        type: 'crypto',
-        //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
-        //    }
-        //
-        //
-        //     {
-        //         "data":{
-        //             "currency":"USD",
-        //             "rates":{
-        //                 "AED":"3.67",
-        //                 "AFN":"78.21",
-        //                 "ALL":"110.42",
-        //                 "AMD":"474.18",
-        //                 "ANG":"1.75",
-        //                 ...
-        //             },
-        //         }
-        //     }
-        //
+        const ratesResponse = this.safeDict(promisesResult, 2, {});
+        const fiatData = this.safeList(fiatResponse, 'data', []);
+        const cryptoData = this.safeList(cryptoResponse, 'data', []);
+        const ratesData = this.safeDict(ratesResponse, 'data', {});
+        const rates = this.safeDict(ratesData, 'rates', {});
+        const ratesIds = Object.keys(rates);
+        const currencies = this.arrayConcat(fiatData, cryptoData);
         const result = {};
         const networks = {};
         const networksById = {};
@@ -1898,17 +1961,19 @@ class coinbase extends coinbase$1 {
             const name = this.safeString(currency, 'name');
             this.options['networks'][code] = name.toLowerCase();
             this.options['networksById'][code] = name.toLowerCase();
-            result[code] = {
+            const type = (assetId !== undefined) ? 'crypto' : 'fiat';
+            result[code] = this.safeCurrencyStructure({
                 'info': currency,
                 'id': id,
                 'code': code,
-                'type': (assetId !== undefined) ? 'crypto' : 'fiat',
-                'name': this.safeString(currency, 'name'),
+                'type': type,
+                'name': name,
                 'active': true,
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
                 'precision': undefined,
+                'networks': {},
                 'limits': {
                     'amount': {
                         'min': this.safeNumber(currency, 'min_size'),
@@ -1919,11 +1984,25 @@ class coinbase extends coinbase$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
             if (assetId !== undefined) {
                 const lowerCaseName = name.toLowerCase();
                 networks[code] = lowerCaseName;
                 networksById[lowerCaseName] = code;
+            }
+        }
+        // we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
+        for (let i = 0; i < ratesIds.length; i++) {
+            const currencyId = ratesIds[i];
+            const code = this.safeCurrencyCode(currencyId);
+            if (!(code in result)) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': {},
+                    'id': currencyId,
+                    'code': code,
+                    'type': 'crypto',
+                    'networks': {}, // todo
+                });
             }
         }
         this.options['networks'] = this.extend(networks, this.options['networks']);
@@ -2169,34 +2248,44 @@ class coinbase extends coinbase$1 {
         // fetchTickersV3
         //
         //     [
-        //         {
-        //             "product_id": "TONE-USD",
-        //             "price": "0.01523",
-        //             "price_percentage_change_24h": "1.94109772423025",
-        //             "volume_24h": "19773129",
-        //             "volume_percentage_change_24h": "437.0170530929949",
-        //             "base_increment": "1",
-        //             "quote_increment": "0.00001",
-        //             "quote_min_size": "1",
-        //             "quote_max_size": "10000000",
-        //             "base_min_size": "26.7187147229469674",
-        //             "base_max_size": "267187147.2294696735908216",
-        //             "base_name": "TE-FOOD",
-        //             "quote_name": "US Dollar",
-        //             "watched": false,
-        //             "is_disabled": false,
-        //             "new": false,
-        //             "status": "online",
-        //             "cancel_only": false,
-        //             "limit_only": false,
-        //             "post_only": false,
-        //             "trading_disabled": false,
-        //             "auction_mode": false,
-        //             "product_type": "SPOT",
-        //             "quote_currency_id": "USD",
-        //             "base_currency_id": "TONE",
-        //             "fcm_trading_session_details": null,
-        //             "mid_market_price": ""
+        //        {
+        //            "product_id": "ETH-USD",
+        //            "price": "4471.59",
+        //            "price_percentage_change_24h": "0.14243387238731",
+        //            "volume_24h": "87329.92990204",
+        //            "volume_percentage_change_24h": "-60.7789801794578",
+        //            "base_increment": "0.00000001",
+        //            "quote_increment": "0.01",
+        //            "quote_min_size": "1",
+        //            "quote_max_size": "150000000",
+        //            "base_min_size": "0.00000001",
+        //            "base_max_size": "42000",
+        //            "base_name": "Ethereum",
+        //            "quote_name": "US Dollar",
+        //            "watched": false,
+        //            "is_disabled": false,
+        //            "new": false,
+        //            "status": "online",
+        //            "cancel_only": false,
+        //            "limit_only": false,
+        //            "post_only": false,
+        //            "trading_disabled": false,
+        //            "auction_mode": false,
+        //            "product_type": "SPOT",
+        //            "quote_currency_id": "USD",
+        //            "base_currency_id": "ETH",
+        //            "fcm_trading_session_details": null,
+        //            "mid_market_price": "",
+        //            "alias": "",
+        //            "alias_to": [ "ETH-USDC" ],
+        //            "base_display_symbol": "ETH",
+        //            "quote_display_symbol": "USD",
+        //            "view_only": false,
+        //            "price_increment": "0.01",
+        //            "display_name": "ETH-USD",
+        //            "product_venue": "CBE",
+        //            "approximate_quote_24h_volume": "390503641.25",
+        //            "new_at": "2023-01-01T00:00:00Z"
         //         },
         //         ...
         //     ]
@@ -2227,16 +2316,19 @@ class coinbase extends coinbase$1 {
         if (('bids' in ticker)) {
             const bids = this.safeList(ticker, 'bids', []);
             const asks = this.safeList(ticker, 'asks', []);
-            bid = this.safeNumber(bids[0], 'price');
-            bidVolume = this.safeNumber(bids[0], 'size');
-            ask = this.safeNumber(asks[0], 'price');
-            askVolume = this.safeNumber(asks[0], 'size');
+            const firstBid = this.safeDict(bids, 0, {});
+            const firstAsk = this.safeDict(asks, 0, {});
+            bid = this.safeNumber(firstBid, 'price');
+            bidVolume = this.safeNumber(firstBid, 'size');
+            ask = this.safeNumber(firstAsk, 'price');
+            askVolume = this.safeNumber(firstAsk, 'size');
         }
         const marketId = this.safeString(ticker, 'product_id');
+        market = this.safeMarket(marketId, market);
         const last = this.safeNumber(ticker, 'price');
         const datetime = this.safeString(ticker, 'time');
         return this.safeTicker({
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': market['symbol'],
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'bid': bid,
@@ -2253,8 +2345,8 @@ class coinbase extends coinbase$1 {
             'change': undefined,
             'percentage': this.safeNumber(ticker, 'price_percentage_change_24h'),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'baseVolume': this.safeNumber(ticker, 'volume_24h'),
+            'quoteVolume': this.safeNumber(ticker, 'approximate_quote_24h_volume'),
             'info': ticker,
         }, market);
     }
@@ -2353,7 +2445,7 @@ class coinbase extends coinbase$1 {
         //             "ending_before":null,
         //             "starting_after":null,
         //             "previous_ending_before":null,
-        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578b",
+        //             "next_starting_after":"6b17acd6-2e68-5eb0-9f45-72d67cef578a",
         //             "limit":100,
         //             "order":"desc",
         //             "previous_uri":null,
@@ -2447,7 +2539,7 @@ class coinbase extends coinbase$1 {
         [request, params] = await this.prepareAccountRequestWithCurrencyCode(code, limit, params);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
-        // eg: instance.last_json_response.pagination.next_starting_after
+        // eg: instance.last_http_response -> pagination.next_starting_after
         const response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
         const ledger = this.parseLedger(response['data'], currency, since, limit);
         const length = ledger.length;
@@ -4103,7 +4195,7 @@ class coinbase extends coinbase$1 {
         await this.loadMarkets();
         const currency = this.currency(code);
         let request = undefined;
-        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code']);
+        [request, params] = await this.prepareAccountRequestWithCurrencyCode(currency['code'], undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, params));
         //
         //    {
@@ -4213,12 +4305,15 @@ class coinbase extends coinbase$1 {
         const networkId = this.safeString(depositAddress, 'network');
         const code = this.safeCurrencyCode(undefined, currency);
         const addressLabel = this.safeString(depositAddress, 'address_label');
-        const splitAddressLabel = addressLabel.split(' ');
-        const marketId = this.safeString(splitAddressLabel, 0);
+        let currencyId = undefined;
+        if (addressLabel !== undefined) {
+            const splitAddressLabel = addressLabel.split(' ');
+            currencyId = this.safeString(splitAddressLabel, 0);
+        }
         const addressInfo = this.safeDict(depositAddress, 'address_info');
         return {
             'info': depositAddress,
-            'currency': this.safeCurrencyCode(marketId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currency),
             'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
@@ -4254,6 +4349,7 @@ class coinbase extends coinbase$1 {
             'amount': this.numberToString(amount),
             'currency': code.toUpperCase(),
             'payment_method': id,
+            'commit': true, // otheriwse the deposit does not go through
         };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, params));
         //
@@ -4292,7 +4388,8 @@ class coinbase extends coinbase$1 {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        const data = this.safeDict2(response, 'data', 'transfer', {});
         return this.parseTransaction(data);
     }
     /**
@@ -4360,7 +4457,8 @@ class coinbase extends coinbase$1 {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
+        // https://github.com/ccxt/ccxt/issues/25484
+        const data = this.safeDict2(response, 'data', 'transfer', {});
         return this.parseTransaction(data);
     }
     /**
@@ -4551,7 +4649,7 @@ class coinbase extends coinbase$1 {
      * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
-     * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+     * @see https://docs.cdp.coinbase.com/coinbase-app/trade/reference/retailbrokerageapi_closeposition
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
      * @param {object} [params] extra parameters specific to the coinbase api endpoint
@@ -4562,9 +4660,6 @@ class coinbase extends coinbase$1 {
     async closePosition(symbol, side = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['future']) {
-            throw new errors.NotSupported(this.id + ' closePosition() only supported for futures markets');
-        }
         const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         params = this.omit(params, 'clientOrderId');
         const request = {
@@ -4854,8 +4949,74 @@ class coinbase extends coinbase$1 {
         }
         return result;
     }
-    createAuthToken(seconds, method = undefined, url = undefined) {
-        // it may not work for v2
+    /**
+     * @method
+     * @name coinbase#fetchPortfolioDetails
+     * @description Fetch details for a specific portfolio by UUID
+     * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+     * @param {string} portfolioUuid The unique identifier of the portfolio to fetch
+     * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
+     * @returns {any[]} An account structure <https://docs.ccxt.com/#/?id=account-structure>
+     */
+    async fetchPortfolioDetails(portfolioUuid, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'portfolio_uuid': portfolioUuid,
+        };
+        const response = await this.v3PrivateGetBrokeragePortfoliosPortfolioUuid(this.extend(request, params));
+        const result = this.parsePortfolioDetails(response);
+        return result;
+    }
+    parsePortfolioDetails(portfolioData) {
+        const breakdown = portfolioData['breakdown'];
+        const portfolioInfo = this.safeDict(breakdown, 'portfolio', {});
+        const portfolioName = this.safeString(portfolioInfo, 'name', 'Unknown');
+        const portfolioUuid = this.safeString(portfolioInfo, 'uuid', '');
+        const spotPositions = this.safeList(breakdown, 'spot_positions', []);
+        const parsedPositions = [];
+        for (let i = 0; i < spotPositions.length; i++) {
+            const position = spotPositions[i];
+            const currencyCode = this.safeString(position, 'asset', 'Unknown');
+            const availableBalanceStr = this.safeString(position, 'available_to_trade_fiat', '0');
+            const availableBalance = this.parseNumber(availableBalanceStr);
+            const totalBalanceFiatStr = this.safeString(position, 'total_balance_fiat', '0');
+            const totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
+            const holdAmount = totalBalanceFiat - availableBalance;
+            const costBasisDict = this.safeDict(position, 'cost_basis', {});
+            const costBasisStr = this.safeString(costBasisDict, 'value', '0');
+            const averageEntryPriceDict = this.safeDict(position, 'average_entry_price', {});
+            const averageEntryPriceStr = this.safeString(averageEntryPriceDict, 'value', '0');
+            const positionData = {
+                'currency': currencyCode,
+                'available_balance': availableBalance,
+                'hold_amount': holdAmount > 0 ? holdAmount : 0,
+                'wallet_name': portfolioName,
+                'account_id': portfolioUuid,
+                'account_uuid': this.safeString(position, 'account_uuid', ''),
+                'total_balance_fiat': totalBalanceFiat,
+                'total_balance_crypto': this.parseNumber(this.safeString(position, 'total_balance_crypto', '0')),
+                'available_to_trade_fiat': this.parseNumber(this.safeString(position, 'available_to_trade_fiat', '0')),
+                'available_to_trade_crypto': this.parseNumber(this.safeString(position, 'available_to_trade_crypto', '0')),
+                'available_to_transfer_fiat': this.parseNumber(this.safeString(position, 'available_to_transfer_fiat', '0')),
+                'available_to_transfer_crypto': this.parseNumber(this.safeString(position, 'available_to_trade_crypto', '0')),
+                'allocation': this.parseNumber(this.safeString(position, 'allocation', '0')),
+                'cost_basis': this.parseNumber(costBasisStr),
+                'cost_basis_currency': this.safeString(costBasisDict, 'currency', 'USD'),
+                'is_cash': this.safeBool(position, 'is_cash', false),
+                'average_entry_price': this.parseNumber(averageEntryPriceStr),
+                'average_entry_price_currency': this.safeString(averageEntryPriceDict, 'currency', 'USD'),
+                'asset_uuid': this.safeString(position, 'asset_uuid', ''),
+                'unrealized_pnl': this.parseNumber(this.safeString(position, 'unrealized_pnl', '0')),
+                'asset_color': this.safeString(position, 'asset_color', ''),
+                'account_type': this.safeString(position, 'account_type', ''),
+            };
+            parsedPositions.push(positionData);
+        }
+        return parsedPositions;
+    }
+    createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
         if (url !== undefined) {
             uri = method + ' ' + url.replace('https://', '');
@@ -4866,20 +5027,38 @@ class coinbase extends coinbase$1 {
                 uri = uri.slice(0, quesPos);
             }
         }
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         const nonce = this.randomBytes(16);
+        const aud = useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
+        const iss = useEddsa ? 'cdp' : 'coinbase-cloud';
         const request = {
-            'aud': ['retail_rest_api_proxy'],
-            'iss': 'coinbase-cloud',
+            'aud': [aud],
+            'iss': iss,
             'nbf': seconds,
             'exp': seconds + 120,
             'sub': this.apiKey,
             'iat': seconds,
         };
         if (uri !== undefined) {
-            request['uri'] = uri;
+            if (!useEddsa) {
+                request['uri'] = uri;
+            }
+            else {
+                request['uris'] = [uri];
+            }
         }
-        const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
-        return token;
+        if (useEddsa) {
+            const byteArray = this.base64ToBinary(this.secret);
+            const seed = this.arraySlice(byteArray, 0, 32);
+            return rsa.jwt(request, seed, sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+        }
+        else {
+            // ecdsa with p256
+            return rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        }
+    }
+    nonce() {
+        return this.milliseconds() - this.options['timeDifference'];
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = api[0];
@@ -4926,8 +5105,10 @@ class coinbase extends coinbase$1 {
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
-                if (isCloudAPiKey) {
-                    if (this.apiKey.startsWith('-----BEGIN')) {
+                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+                const isV2CloudAPiKey = this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
+                if (isCloudAPiKey || isV2CloudAPiKey) {
+                    if (isCloudAPiKey && this.apiKey.startsWith('-----BEGIN')) {
                         throw new errors.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
                     // // it may not work for v2
@@ -4948,12 +5129,14 @@ class coinbase extends coinbase$1 {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = this.createAuthToken(seconds, method, url);
+                    const token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 }
                 else {
-                    const timestampString = this.seconds().toString();
+                    const nonce = this.nonce();
+                    const timestamp = this.parseToInt(nonce / 1000);
+                    const timestampString = timestamp.toString();
                     const auth = timestampString + method + savedPath + payload;
                     const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
                     headers = {
@@ -4996,12 +5179,38 @@ class coinbase extends coinbase$1 {
         //        }
         //      ]
         //    }
+        // or
+        // {
+        //     "success": false,
+        //     "error_response": {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
         //
         let errorCode = this.safeString(response, 'error');
         if (errorCode !== undefined) {
-            const errorMessage = this.safeString(response, 'error_description');
+            const errorMessage = this.safeString2(response, 'error_description', 'error');
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+            throw new errors.ExchangeError(feedback);
+        }
+        const errorResponse = this.safeDict(response, 'error_response');
+        if (errorResponse !== undefined) {
+            const errorMessageInner = this.safeString2(errorResponse, 'preview_failure_reason', 'preview_failure_reason');
+            this.throwExactlyMatchedException(this.exceptions['exact'], errorMessageInner, feedback);
+            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessageInner, feedback);
             throw new errors.ExchangeError(feedback);
         }
         const errors$1 = this.safeList(response, 'errors');
@@ -5027,4 +5236,4 @@ class coinbase extends coinbase$1 {
     }
 }
 
-module.exports = coinbase;
+exports["default"] = coinbase;

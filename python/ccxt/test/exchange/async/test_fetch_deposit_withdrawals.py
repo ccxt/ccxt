@@ -15,7 +15,7 @@ sys.path.append(root)
 from ccxt.test.exchange.base import test_deposit_withdrawal  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-async def test_fetch_deposits_withdrawals(exchange, skipped_properties, code):
+async def test_fetch_deposit_withdrawals(exchange, skipped_properties, code):
     method = 'fetchTransactions'
     transactions = await exchange.fetch_transactions(code)
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, transactions, code)
@@ -23,3 +23,4 @@ async def test_fetch_deposits_withdrawals(exchange, skipped_properties, code):
     for i in range(0, len(transactions)):
         test_deposit_withdrawal(exchange, skipped_properties, method, transactions[i], code, now)
     test_shared_methods.assert_timestamp_order(exchange, method, code, transactions)
+    return True

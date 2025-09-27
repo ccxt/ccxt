@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -24,14 +24,13 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class gate(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(gate, self).describe(), {
             'id': 'gate',
             'name': 'Gate.io',
@@ -73,14 +72,24 @@ class gate(Exchange, ImplicitAPI):
                 },
                 'test': {
                     'public': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                     'private': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                 },
                 'referral': {
@@ -127,7 +136,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
-                'fetchDepositAddressesByNetwork': False,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -666,6 +675,8 @@ class gate(Exchange, ImplicitAPI):
                 'X-Gate-Channel-Id': 'ccxt',
             },
             'options': {
+                'timeDifference': 0,  # the difference between system clock and exchange clock
+                'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'sandboxMode': False,
                 'unifiedAccount': None,
                 'createOrder': {
@@ -673,23 +684,75 @@ class gate(Exchange, ImplicitAPI):
                 },
                 'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
-                    'LINEA': 'LINEAETH',
-                    'KON': 'KONET',
-                    'AVAXC': 'AVAX_C',
-                    'BEP20': 'BSC',
-                    'EOS': 'EOS',
+                    'BTC': 'BTC',
+                    'BRC20': 'BTCBRC',  # for eg: ORDI, RATS, ...
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'GATECHAIN': 'GTEVM',
-                    'HRC20': 'HT',
-                    'KUSAMA': 'KSMSM',
-                    'NEAR': 'NEAR',
-                    'OKC': 'OKT',
-                    'OPTIMISM': 'OPETH',
-                    'POLKADOT': 'DOTSM',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'LUNA': 'LUNC',
+                    'HECO': 'HT',
+                    'HRC20': 'HT',
+                    'BSC': 'BSC',
+                    'BEP20': 'BSC',
+                    'SOL': 'SOL',
+                    'MATIC': 'MATIC',
+                    'OPTIMISM': 'OPETH',
+                    'ADA': 'ADA',  # CARDANO
+                    'AVAXC': 'AVAX_C',
+                    'NEAR': 'NEAR',
+                    'ARBONE': 'ARBEVM',
                     'BASE': 'BASEEVM',
-                    'BRC20': 'BTCBRC',
+                    'SUI': 'SUI',
+                    'CRONOS': 'CRO',
+                    'CRO': 'CRO',
+                    'APT': 'APT',
+                    'SCROLL': 'SCROLLETH',
+                    'TAIKO': 'TAIKOETH',
+                    'HYPE': 'HYPE',
+                    'ALGO': 'ALGO',
+                    # KAVA: ['KAVA', 'KAVAEVM']
+                    # SEI: ['SEI', 'SEIEVM']
+                    'LINEA': 'LINEAETH',
+                    'BLAST': 'BLASTETH',
+                    'XLM': 'XLM',
+                    'RSK': 'RBTC',
+                    'TON': 'TON',
+                    'MNT': 'MNT',
+                    # 'RUNE': 'BTCRUNES', probably, cant verify atm
+                    'CELO': 'CELO',
+                    'HBAR': 'HBAR',
+                    # 'FTM': SONIC REBRAND, todo
+                    'ZKSERA': 'ZKSERA',
+                    'KLAY': 'KLAY',
+                    'EOS': 'EOS',
+                    'ACA': 'ACA',
+                    # TLOS: ['TLOS', 'TLOSEVM']
+                    # ASTR: ['ASTR', 'ASTREVM']
+                    # CFX: ['CFX', 'CFXEVM']
+                    'XTZ': 'XTZ',
+                    'EGLD': 'EGLD',
+                    'GLMR': 'GLMR',
+                    'AURORA': 'AURORAEVM',
+                    # others
+                    'KON': 'KONET',
+                    'GATECHAIN': 'GTEVM',
+                    'KUSAMA': 'KSMSM',
+                    'OKC': 'OKT',
+                    'POLKADOT': 'DOTSM',  # todo: DOT for main DOT
+                    'LUNA': 'LUNC',
+                },
+                'networksById': {
+                    'OPETH': 'OP',
+                    'ETH': 'ERC20',  # for GOlang
+                    'ERC20': 'ERC20',
+                    'TRX': 'TRC20',
+                    'TRC20': 'TRC20',
+                    'HT': 'HRC20',
+                    'HECO': 'HRC20',
+                    'BSC': 'BEP20',
+                    'BEP20': 'BEP20',
+                    'POLYGON': 'MATIC',
+                    'POL': 'MATIC',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -711,6 +774,9 @@ class gate(Exchange, ImplicitAPI):
                     'delivery': 'delivery',
                     'option': 'options',
                     'options': 'options',
+                },
+                'fetchMarkets': {
+                    'types': ['spot', 'swap', 'future', 'option'],
                 },
                 'swap': {
                     'fetchMarkets': {
@@ -735,7 +801,6 @@ class gate(Exchange, ImplicitAPI):
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
-                            'GTC': True,
                             'IOC': True,
                             'FOK': True,
                             'PO': True,
@@ -757,17 +822,20 @@ class gate(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 30,
+                        'symbolRequired': False,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'trigger': True,
                         'trailing': False,
                         'limit': 100,
+                        'symbolRequired': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -778,6 +846,7 @@ class gate(Exchange, ImplicitAPI):
                         'untilDays': 30,
                         'daysBack': None,
                         'daysBackCanceled': None,
+                        'symbolRequired': False,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
@@ -1074,7 +1143,7 @@ class gate(Exchange, ImplicitAPI):
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privateUnifiedPutUnifiedMode(params)
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1174,21 +1243,28 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        rawPromises = [
-            self.fetch_contract_markets(params),
-            self.fetch_option_markets(params),
-        ]
-        if not sandboxMode:
-            # gate does not have a sandbox for spot markets
-            mainnetOnly = [self.fetch_spot_markets(params)]
-            rawPromises = self.array_concat(rawPromises, mainnetOnly)
-        promises = await asyncio.gather(*rawPromises)
-        spotMarkets = self.safe_value(promises, 0, [])
-        contractMarkets = self.safe_value(promises, 1, [])
-        optionMarkets = self.safe_value(promises, 2, [])
-        markets = self.array_concat(spotMarkets, contractMarkets)
-        return self.array_concat(markets, optionMarkets)
+        if self.options['adjustForTimeDifference']:
+            await self.load_time_difference()
+        if self.check_required_credentials(False):
+            await self.load_unified_status()
+        rawPromises = []
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        types = self.safe_list(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option'])
+        for i in range(0, len(types)):
+            marketType = types[i]
+            if marketType == 'spot':
+                # if not sandboxMode:
+                # gate doesn't have a sandbox for spot markets
+                rawPromises.append(self.fetch_spot_markets(params))
+                # }
+            elif marketType == 'swap':
+                rawPromises.append(self.fetch_swap_markets(params))
+            elif marketType == 'future':
+                rawPromises.append(self.fetch_future_markets(params))
+            elif marketType == 'option':
+                rawPromises.append(self.fetch_option_markets(params))
+        results = await asyncio.gather(*rawPromises)
+        return self.arrays_concat(results)
 
     async def fetch_spot_markets(self, params={}):
         marginPromise = self.publicMarginGetCurrencyPairs(params)
@@ -1202,17 +1278,21 @@ class gate(Exchange, ImplicitAPI):
         #         {
         #             "id": "QTUM_ETH",
         #             "base": "QTUM",
+        #             "base_name": "Quantum",
         #             "quote": "ETH",
+        #             "quote_name": "Ethereum",
         #             "fee": "0.2",
         #             "min_base_amount": "0.01",
         #             "min_quote_amount": "0.001",
+        #             "max_quote_amount": "50000",
         #             "amount_precision": 3,
         #             "precision": 6,
         #             "trade_status": "tradable",
-        #             "sell_start": 0,
-        #             "buy_start": 0
+        #             "sell_start": 1607313600,
+        #             "buy_start": 1700492400,
+        #             "type": "normal",
+        #             "trade_url": "https://www.gate.io/trade/QTUM_ETH",
         #         }
-        #     ]
         #
         #  Margin
         #
@@ -1243,6 +1323,8 @@ class gate(Exchange, ImplicitAPI):
             tradeStatus = self.safe_string(market, 'trade_status')
             leverage = self.safe_number(market, 'leverage')
             margin = leverage is not None
+            buyStart = self.safe_integer_product(spotMarket, 'buy_start', 1000)  # buy_start is the trading start time, while sell_start is offline orders start time
+            createdTs = buyStart if (buyStart != 0) else None
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1292,15 +1374,16 @@ class gate(Exchange, ImplicitAPI):
                         'max': self.safe_number(market, 'max_quote_amount') if margin else None,
                     },
                 },
-                'created': None,
+                'created': createdTs,
                 'info': market,
             })
         return result
 
-    async def fetch_contract_markets(self, params={}):
+    async def fetch_swap_markets(self, params={}):
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
-        futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
+        if self.options['sandboxMode']:
+            swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
             request: dict = {
@@ -1310,6 +1393,13 @@ class gate(Exchange, ImplicitAPI):
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
+        return result
+
+    async def fetch_future_markets(self, params={}):
+        if self.options['sandboxMode']:
+            return []  # right now sandbox does not have inverse swaps
+        result = []
+        futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(futureSettlementCurrencies)):
             settleId = futureSettlementCurrencies[c]
             request: dict = {
@@ -1357,6 +1447,7 @@ class gate(Exchange, ImplicitAPI):
         #        "funding_next_apply": 1610035200,
         #        "short_users": 977,
         #        "config_change_time": 1609899548,
+        #        "create_time": 1609800048,
         #        "trade_size": 28530850594,
         #        "position_size": 5223816,
         #        "long_users": 455,
@@ -1435,6 +1526,10 @@ class gate(Exchange, ImplicitAPI):
         takerPercent = self.safe_string(market, 'taker_fee_rate')
         makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
         isLinear = quote == settle
+        contractSize = self.safe_string(market, 'quanto_multiplier')
+        # exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
+        if contractSize == '0':
+            contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         return {
             'id': id,
             'symbol': symbol,
@@ -1456,7 +1551,7 @@ class gate(Exchange, ImplicitAPI):
             'inverse': not isLinear,
             'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
             'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
-            'contractSize': self.safe_number(market, 'quanto_multiplier'),
+            'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
             'strike': None,
@@ -1483,7 +1578,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': None,
                 },
             },
-            'created': None,
+            'created': self.safe_integer_product(market, 'create_time', 1000),
             'info': market,
         }
 
@@ -1580,7 +1675,7 @@ class gate(Exchange, ImplicitAPI):
                     'contractSize': self.parse_number('1'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
-                    'strike': strike,
+                    'strike': self.parse_number(strike),
                     'optionType': optionType,
                     'precision': {
                         'amount': self.parse_number('1'),  # all options have self step size
@@ -1742,85 +1837,71 @@ class gate(Exchange, ImplicitAPI):
         # sandbox/testnet only supports future markets
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
-            return None
-        if self.check_required_credentials(False):
-            await self.load_unified_status()
+            return {}
         response = await self.publicSpotGetCurrencies(params)
         #
-        #    {
-        #        "currency": "BCN",
-        #        "delisted": False,
-        #        "withdraw_disabled": True,
-        #        "withdraw_delayed": False,
-        #        "deposit_disabled": True,
-        #        "trade_disabled": False
-        #    }
+        #    [
+        #      {
+        #         "currency": "USDT",
+        #         "name": "Tether",
+        #         "delisted": False,
+        #         "withdraw_disabled": False,
+        #         "withdraw_delayed": False,
+        #         "deposit_disabled": False,
+        #         "trade_disabled": False,
+        #         "fixed_rate": "",
+        #         "chain": "ETH",
+        #         "chains": [
+        #           {
+        #             "name": "ETH",
+        #             "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        #             "withdraw_disabled": False,
+        #             "withdraw_delayed": False,
+        #             "deposit_disabled": False
+        #           },
+        #           {
+        #             "name": "ARBEVM",
+        #             "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        #             "withdraw_disabled": False,
+        #             "withdraw_delayed": False,
+        #             "deposit_disabled": False
+        #           },
+        #           {
+        #             "name": "BSC",
+        #             "addr": "0x55d398326f99059fF775485246999027B3197955",
+        #             "withdraw_disabled": False,
+        #             "withdraw_delayed": False,
+        #             "deposit_disabled": False
+        #           },
+        #         ]
+        #       },
+        #    ]
         #
-        #    {
-        #        "currency":"USDT_ETH",
-        #        "delisted":false,
-        #        "withdraw_disabled":false,
-        #        "withdraw_delayed":false,
-        #        "deposit_disabled":false,
-        #        "trade_disabled":false,
-        #        "chain":"ETH"
-        #    }
-        #
+        indexedCurrencies = self.index_by(response, 'currency')
         result: dict = {}
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
-            currencyIdLower = self.safe_string_lower(entry, 'currency')
-            parts = currencyId.split('_')
-            currency = parts[0]
-            code = self.safe_currency_code(currency)
-            networkId = self.safe_string(entry, 'chain')
-            networkCode = None
-            if networkId is not None:
-                networkCode = self.network_id_to_code(networkId, code)
-            delisted = self.safe_value(entry, 'delisted')
-            withdrawDisabled = self.safe_bool(entry, 'withdraw_disabled', False)
-            depositDisabled = self.safe_bool(entry, 'deposit_disabled', False)
-            tradeDisabled = self.safe_bool(entry, 'trade_disabled', False)
-            withdrawEnabled = not withdrawDisabled
-            depositEnabled = not depositDisabled
-            tradeEnabled = not tradeDisabled
-            listed = not delisted
-            active = listed and tradeEnabled and withdrawEnabled and depositEnabled
-            if self.safe_value(result, code) is None:
-                result[code] = {
-                    'id': code.lower(),
-                    'code': code,
-                    'info': None,
-                    'name': None,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': None,
-                    'fees': [],
-                    'precision': self.parse_number('1e-4'),
-                    'limits': self.limits,
-                    'networks': {},
-                }
-            depositAvailable = self.safe_value(result[code], 'deposit')
-            depositAvailable = depositEnabled if (depositEnabled) else depositAvailable
-            withdrawAvailable = self.safe_value(result[code], 'withdraw')
-            withdrawAvailable = withdrawEnabled if (withdrawEnabled) else withdrawAvailable
-            networks = self.safe_value(result[code], 'networks', {})
-            if networkCode is not None:
+            code = self.safe_currency_code(currencyId)
+            # check leveraged tokens(e.g. BTC3S, ETH5L)
+            type = 'leveraged' if self.is_leveraged_currency(currencyId, True, indexedCurrencies) else 'crypto'
+            chains = self.safe_list(entry, 'chains', [])
+            networks = {}
+            for j in range(0, len(chains)):
+                chain = chains[j]
+                networkId = self.safe_string(chain, 'name')
+                networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
-                    'info': entry,
+                    'info': chain,
                     'id': networkId,
                     'network': networkCode,
-                    'currencyId': currencyId,
-                    'lowerCaseCurrencyId': currencyIdLower,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
+                    'active': None,
+                    'deposit': not self.safe_bool(chain, 'deposit_disabled'),
+                    'withdraw': not self.safe_bool(chain, 'withdraw_disabled'),
                     'fee': None,
-                    'precision': self.parse_number('1e-4'),
+                    'precision': self.parse_number('0.0001'),  # temporary safe default, because no value provided from API,
                     'limits': {
-                        'amount': {
+                        'deposit': {
                             'min': None,
                             'max': None,
                         },
@@ -1828,19 +1909,21 @@ class gate(Exchange, ImplicitAPI):
                             'min': None,
                             'max': None,
                         },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
                     },
                 }
-            result[code]['networks'] = networks
-            info = self.safe_value(result[code], 'info', [])
-            info.append(entry)
-            result[code]['info'] = info
-            result[code]['active'] = depositAvailable and withdrawAvailable
-            result[code]['deposit'] = depositAvailable
-            result[code]['withdraw'] = withdrawAvailable
+            result[code] = self.safe_currency_structure({
+                'id': currencyId,
+                'code': code,
+                'name': self.safe_string(entry, 'name'),
+                'type': type,
+                'active': not self.safe_bool(entry, 'delisted'),
+                'deposit': not self.safe_bool(entry, 'deposit_disabled'),
+                'withdraw': not self.safe_bool(entry, 'withdraw_disabled'),
+                'fee': None,
+                'networks': networks,
+                'precision': self.parse_number('0.0001'),
+                'info': entry,
+            })
         return result
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
@@ -1917,7 +2000,11 @@ class gate(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request, query = self.prepare_request(None, 'swap', params)
+        market = None
+        if symbols is not None:
+            firstSymbol = self.safe_string(symbols, 0)
+            market = self.market(firstSymbol)
+        request, query = self.prepare_request(market, 'swap', params)
         response = await self.publicFuturesGetSettleContracts(self.extend(request, query))
         #
         #    [
@@ -1963,8 +2050,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result = self.parse_funding_rates(response)
-        return self.filter_by_array(result, 'symbol', symbols)
+        return self.parse_funding_rates(response, symbols)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
@@ -2086,6 +2172,25 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+        """
+        fetch a dictionary of addresses for a currency, indexed by network
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the api endpoint
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateWalletGetDepositAddress(self.extend(request, params))
+        chains = self.safe_value(response, 'multichain_addresses', [])
+        currencyId = self.safe_string(response, 'currency')
+        currency = self.safe_currency(currencyId, currency)
+        parsed = self.parse_deposit_addresses(chains, None, False)
+        return self.index_by(parsed, 'network')
+
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
@@ -2098,65 +2203,30 @@ class gate(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
-        currency = self.currency(code)
-        rawNetwork = self.safe_string_upper(params, 'network')
-        params = self.omit(params, 'network')
-        request: dict = {
-            'currency': currency['id'],  # todo: currencies have network-junctions
-        }
-        response = await self.privateWalletGetDepositAddress(self.extend(request, params))
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        chainsIndexedById = await self.fetch_deposit_addresses_by_network(code, params)
+        selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
+        return chainsIndexedById[selectedNetworkIdOrCode]
+
+    def parse_deposit_address(self, depositAddress, currency=None):
         #
-        #    {
-        #        "currency": "XRP",
-        #        "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d 391331007",
-        #        "multichain_addresses": [
-        #            {
-        #                "chain": "XRP",
-        #                "address": "rHcFoo6a9qT5NHiVn1THQRhsEGcxtYCV4d",
-        #                "payment_id": "391331007",
-        #                "payment_name": "Tag",
-        #                "obtain_failed": 0
-        #            }
-        #        ]
-        #    }
+        #     {
+        #         chain: "BTC",
+        #         address: "1Nxu.......Ys",
+        #         payment_id: "",
+        #         payment_name: "",
+        #         obtain_failed: "0",
+        #     }
         #
-        currencyId = self.safe_string(response, 'currency')
-        code = self.safe_currency_code(currencyId)
-        networkId = self.network_code_to_id(rawNetwork, code)
-        network = None
-        tag = None
-        address = None
-        if networkId is not None:
-            addresses = self.safe_value(response, 'multichain_addresses')
-            for i in range(0, len(addresses)):
-                entry = addresses[i]
-                entryNetwork = self.safe_string(entry, 'chain')
-                if networkId == entryNetwork:
-                    obtainFailed = self.safe_integer(entry, 'obtain_failed')
-                    if obtainFailed:
-                        break
-                    address = self.safe_string(entry, 'address')
-                    tag = self.safe_string(entry, 'payment_id')
-                    network = self.network_id_to_code(networkId, code)
-                    break
-        else:
-            addressField = self.safe_string(response, 'address')
-            if addressField is not None:
-                if addressField.find('New address is being generated for you, please wait') >= 0:
-                    raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
-                if addressField.find(' ') >= 0:
-                    splitted = addressField.split(' ')
-                    address = splitted[0]
-                    tag = splitted[1]
-                else:
-                    address = addressField
+        address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
-            'info': response,
-            'currency': code,
-            'network': network,
+            'info': depositAddress,
+            'currency': self.safe_string(currency, 'code'),
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(depositAddress, 'payment_id'),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
         }
 
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -2378,7 +2448,8 @@ class gate(Exchange, ImplicitAPI):
             chainKeys = list(withdrawFixOnChains.keys())
             for i in range(0, len(chainKeys)):
                 chainKey = chainKeys[i]
-                result['networks'][chainKey] = {
+                networkCode = self.network_id_to_code(chainKey, self.safe_string(fee, 'currency'))
+                result['networks'][networkCode] = {
                     'withdraw': {
                         'fee': self.parse_number(withdrawFixOnChains[chainKey]),
                         'percentage': False,
@@ -2496,7 +2567,11 @@ class gate(Exchange, ImplicitAPI):
         #
         request, query = self.prepare_request(market, market['type'], params)
         if limit is not None:
-            request['limit'] = limit  # default 10, max 100
+            if market['spot']:
+                limit = min(limit, 1000)
+            else:
+                limit = min(limit, 300)
+            request['limit'] = limit
         request['with_id'] = True
         response = None
         if market['spot'] or market['margin']:
@@ -2786,6 +2861,14 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
+
+        https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+        https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+        https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+        https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+        https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-account-information
+
         :param dict [params]: exchange specific parameters
         :param str [params.type]: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3026,7 +3109,7 @@ class gate(Exchange, ImplicitAPI):
         result: dict = {
             'info': response,
         }
-        isolated = marginMode == 'margin'
+        isolated = marginMode == 'margin' and type == 'spot'
         data = response
         if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []
@@ -3519,6 +3602,7 @@ class gate(Exchange, ImplicitAPI):
         #
         # public
         #
+        #  spot:
         #     {
         #         "id": "1334253759",
         #         "create_time": "1626342738",
@@ -3528,6 +3612,18 @@ class gate(Exchange, ImplicitAPI):
         #         "amount": "0.0022",
         #         "price": "32452.16"
         #     }
+        #
+        #  swap:
+        #
+        #    {
+        #        "id": "442288327",
+        #        "contract": "BTC_USDT",
+        #        "create_time": "1739814676.707",
+        #        "create_time_ms": "1739814676.707",
+        #        "size": "-105",
+        #        "price": "95594.8"
+        #    }
+        #
         #
         # public ws
         #
@@ -3605,8 +3701,14 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         id = self.safe_string_2(trade, 'id', 'trade_id')
-        timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
-        timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
+        timestamp: Int = None
+        msString = self.safe_string(trade, 'create_time_ms')
+        if msString is not None:
+            msString = Precise.string_mul(msString, '1000')
+            msString = msString[0:13]
+            timestamp = self.parse_to_int(msString)
+        else:
+            timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
         marketType = 'contract' if ('contract' in trade) else 'spot'
         market = self.safe_market(marketId, market, '_', marketType)
@@ -3687,7 +3789,7 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = await self.privateWalletGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
@@ -3721,11 +3823,11 @@ class gate(Exchange, ImplicitAPI):
             start = self.parse_to_int(since / 1000)
             request['from'] = start
             request['to'] = self.sum(start, 30 * 24 * 60 * 60)
-        request, params = self.handle_until_option('to', request, params)
+        request, params = self.handle_until_option('to', request, params, 0.001)
         response = await self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3749,14 +3851,10 @@ class gate(Exchange, ImplicitAPI):
         }
         if tag is not None:
             request['memo'] = tag
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
-        if network is not None:
-            request['chain'] = network
-            params = self.omit(params, 'network')
-        else:
-            request['chain'] = currency['id']  # todo: currencies have network-junctions
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode)
         response = await self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
@@ -5397,7 +5495,7 @@ class gate(Exchange, ImplicitAPI):
             'info': transfer,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -5685,7 +5783,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}):
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -6279,6 +6377,9 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
+    def nonce(self):
+        return self.milliseconds() - self.options['timeDifference']
+
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
@@ -6326,6 +6427,9 @@ class gate(Exchange, ImplicitAPI):
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
                     queryString = self.urlencode(query)
+                    # https://github.com/ccxt/ccxt/issues/25570
+                    if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
+                        queryString = queryString.replace('%2C', ',')
                     url += '?' + queryString
                 if method == 'PATCH':
                     body = self.json(query)
@@ -6338,7 +6442,8 @@ class gate(Exchange, ImplicitAPI):
                 body = self.json(query)
             bodyPayload = '' if (body is None) else body
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
-            timestamp = self.seconds()
+            nonce = self.nonce()
+            timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
             payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
@@ -7143,12 +7248,27 @@ class gate(Exchange, ImplicitAPI):
         quoteValueString = self.safe_string(liquidation, 'pnl')
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
+        # --- derive side ---
+        # 1) options payload has explicit 'side': 'long' | 'short'
+        optPos = self.safe_string_lower(liquidation, 'side')
+        side: Str = None
+        if optPos == 'long':
+            side = 'buy'
+        elif optPos == 'short':
+            side = 'sell'
+        else:
+            if size is not None:  # 2) futures/perpetual(and fallback for options): infer from size
+                if Precise.string_gt(size, '0'):
+                    side = 'buy'
+                elif Precise.string_lt(size, '0'):
+                    side = 'sell'
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
             'contractSize': self.parse_number(contractSizeString),
             'price': self.parse_number(priceString),
+            'side': side,
             'baseValue': self.parse_number(baseValueString),
             'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
             'timestamp': timestamp,

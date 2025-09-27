@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bybitRest from '../bybit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -41,6 +41,17 @@ export default class bybit extends bybitRest {
                 'watchTrades': true,
                 'watchPositions': true,
                 'watchTradesForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
+                'unWatchMyTrades': true,
+                'unWatchOrders': true,
+                'unWatchPositions': true,
             },
             'urls': {
                 'api': {
@@ -321,6 +332,9 @@ export default class bybit extends bybitRest {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
+        }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate(url);
@@ -435,13 +449,13 @@ export default class bybit extends bybitRest {
      * @description unWatches a price ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async unWatchTicker(symbols, params = {}) {
+    async unWatchTicker(symbol, params = {}) {
         await this.loadMarkets();
-        return await this.unWatchTickers([symbols], params);
+        return await this.unWatchTickers([symbol], params);
     }
     handleTicker(client, message) {
         //
@@ -783,7 +797,7 @@ export default class bybit extends bybitRest {
         }
         const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
-            const parsed = this.parseWsOHLCV(data[i]);
+            const parsed = this.parseWsOHLCV(data[i], market);
             stored.append(parsed);
         }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -806,13 +820,14 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
+        const volumeIndex = (market['inverse']) ? 'turnover' : 'volume';
         return [
             this.safeInteger(ohlcv, 'start'),
             this.safeNumber(ohlcv, 'open'),
             this.safeNumber(ohlcv, 'high'),
             this.safeNumber(ohlcv, 'low'),
             this.safeNumber(ohlcv, 'close'),
-            this.safeNumber2(ohlcv, 'volume', 'turnover'),
+            this.safeNumber(ohlcv, volumeIndex),
         ];
     }
     /**
@@ -830,7 +845,7 @@ export default class bybit extends bybitRest {
     }
     /**
      * @method
-     * @name bybit#watchOrderBook
+     * @name bybit#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified array of symbols
@@ -850,13 +865,19 @@ export default class bybit extends bybitRest {
         const market = this.market(symbols[0]);
         if (limit === undefined) {
             limit = (market['spot']) ? 50 : 500;
+            if (market['option']) {
+                limit = 100;
+            }
         }
         else {
-            if (!market['spot']) {
-                // bybit only support limit 1, 50, 200, 500 for contract
-                if ((limit !== 1) && (limit !== 50) && (limit !== 200) && (limit !== 500)) {
-                    throw new BadRequest(this.id + ' watchOrderBookForSymbols() can only use limit 1, 50, 200 and 500.');
-                }
+            const limits = {
+                'spot': [1, 50, 200, 1000],
+                'option': [25, 100],
+                'default': [1, 50, 200, 500, 1000],
+            };
+            const selectedLimits = this.safeList2(limits, market['type'], 'default');
+            if (!this.inArray(limit, selectedLimits)) {
+                throw new BadRequest(this.id + ' watchOrderBookForSymbols(): for ' + market['type'] + ' markets limit can be one of: ' + this.json(selectedLimits));
             }
         }
         const topics = [];
@@ -1226,11 +1247,13 @@ export default class bybit extends bybitRest {
      * @name bybit#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1248,7 +1271,12 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        const topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let executionFast = false;
+        [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
+        if (executionFast) {
+            topic = 'execution.fast';
+        }
         const trades = await this.watchTopics(url, [messageHash], [topic], params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
@@ -1260,19 +1288,20 @@ export default class bybit extends bybitRest {
      * @name bybit#unWatchMyTrades
      * @description unWatches information on multiple trades made by the user
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/fast-execution
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.unifiedMargin] use unified margin account
+     * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
         const method = 'watchMyTrades';
         const messageHash = 'unsubscribe:myTrades';
-        let subHash = 'myTrades';
+        const subHash = 'myTrades';
         await this.loadMarkets();
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            subHash += ':' + symbol;
+            throw new NotSupported(this.id + ' unWatchMyTrades() does not support a symbol parameter, you must unwatch all my trades');
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
@@ -1281,7 +1310,12 @@ export default class bybit extends bybitRest {
             'unified': 'execution',
             'usdc': 'user.openapi.perp.trade',
         };
-        const topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let topic = this.safeValue(topicByMarket, this.getPrivateType(url));
+        let executionFast = false;
+        [executionFast, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'executionFast', false);
+        if (executionFast) {
+            topic = 'execution.fast';
+        }
         return await this.unWatchTopics(url, 'myTrades', [], [messageHash], [subHash], [topic], params);
     }
     handleMyTrades(client, message) {
@@ -1347,8 +1381,31 @@ export default class bybit extends bybitRest {
         //         ]
         //     }
         //
+        // execution.fast
+        //
+        //     {
+        //         "topic": "execution.fast",
+        //         "creationTime": 1757405601981,
+        //         "data": [
+        //             {
+        //                 "category": "linear",
+        //                 "symbol": "BTCUSDT",
+        //                 "execId": "ffcac6ac-7571-536d-a28a-847dd7d08a0f",
+        //                 "execPrice": "112529.6",
+        //                 "execQty": "0.001",
+        //                 "orderId": "6e25ab73-7a55-4ae7-adc2-8ea95f167c85",
+        //                 "isMaker": false,
+        //                 "orderLinkId": "test-00001",
+        //                 "side": "Buy",
+        //                 "execTime": "1757405601977",
+        //                 "seq": 9515624038
+        //             }
+        //         ]
+        //     }
+        //
         const topic = this.safeString(message, 'topic');
         const spot = topic === 'ticketInfo';
+        const executionFast = topic === 'execution.fast';
         let data = this.safeValue(message, 'data', []);
         if (!Array.isArray(data)) {
             data = this.safeValue(data, 'result', []);
@@ -1363,12 +1420,15 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
-            if (spot) {
+            if (spot && !executionFast) {
                 parsed = this.parseWsTrade(rawTrade);
             }
             else {
                 // filter unified trades
-                const execType = this.safeString(rawTrade, 'execType', '');
+                let execType = this.safeString(rawTrade, 'execType', '');
+                if (executionFast) {
+                    execType = 'Trade';
+                }
                 if (!this.inArray(execType, filterExecTypes)) {
                     continue;
                 }
@@ -1545,6 +1605,28 @@ export default class bybit extends bybitRest {
     }
     /**
      * @method
+     * @name bybit#unWatchPositions
+     * @description unWatches all open positions
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} status of the unwatch request
+     */
+    async unWatchPositions(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const method = 'watchPositions';
+        const messageHash = 'unsubscribe:positions';
+        const subHash = 'positions';
+        if (!this.isEmpty(symbols)) {
+            throw new NotSupported(this.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders');
+        }
+        const url = await this.getUrlByMarketType(undefined, true, method, params);
+        await this.authenticate(url);
+        const topics = ['position'];
+        return await this.unWatchTopics(url, 'positions', symbols, [messageHash], [subHash], topics, params);
+    }
+    /**
+     * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
@@ -1552,6 +1634,7 @@ export default class bybit extends bybitRest {
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+     * @param {string} [params.method] exchange specific method, supported: liquidation, allLiquidation
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     async watchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
@@ -1560,8 +1643,10 @@ export default class bybit extends bybitRest {
         symbol = market['symbol'];
         const url = await this.getUrlByMarketType(symbol, false, 'watchLiquidations', params);
         params = this.cleanParams(params);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'liquidation');
         const messageHash = 'liquidations::' + symbol;
-        const topic = 'liquidation.' + market['id'];
+        const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
         if (this.newUpdates) {
             return newLiquidation;
@@ -1570,53 +1655,98 @@ export default class bybit extends bybitRest {
     }
     handleLiquidation(client, message) {
         //
-        //   {
-        //       "data": {
-        //           "price": "0.03803",
-        //           "side": "Buy",
-        //           "size": "1637",
-        //           "symbol": "GALAUSDT",
-        //           "updatedTime": 1673251091822
-        //       },
-        //       "topic": "liquidation.GALAUSDT",
-        //       "ts": 1673251091822,
-        //       "type": "snapshot"
-        //   }
+        //     {
+        //         "data": {
+        //             "price": "0.03803",
+        //             "side": "Buy",
+        //             "size": "1637",
+        //             "symbol": "GALAUSDT",
+        //             "updatedTime": 1673251091822
+        //         },
+        //         "topic": "liquidation.GALAUSDT",
+        //         "ts": 1673251091822,
+        //         "type": "snapshot"
+        //     }
         //
-        const rawLiquidation = this.safeDict(message, 'data', {});
-        const marketId = this.safeString(rawLiquidation, 'symbol');
-        const market = this.safeMarket(marketId, undefined, '', 'contract');
-        const symbol = market['symbol'];
-        const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        let liquidations = this.safeValue(this.liquidations, symbol);
-        if (liquidations === undefined) {
-            const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-            liquidations = new ArrayCache(limit);
+        //     {
+        //         "topic": "allLiquidation.ROSEUSDT",
+        //         "type": "snapshot",
+        //         "ts": 1739502303204,
+        //         "data": [
+        //             {
+        //                 "T": 1739502302929,
+        //                 "s": "ROSEUSDT",
+        //                 "S": "Sell",
+        //                 "v": "20000",
+        //                 "p": "0.04499"
+        //             }
+        //         ]
+        //     }
+        //
+        if (Array.isArray(message['data'])) {
+            const rawLiquidations = this.safeList(message, 'data', []);
+            for (let i = 0; i < rawLiquidations.length; i++) {
+                const rawLiquidation = rawLiquidations[i];
+                const marketId = this.safeString(rawLiquidation, 's');
+                const market = this.safeMarket(marketId, undefined, '', 'contract');
+                const symbol = market['symbol'];
+                const liquidation = this.parseWsLiquidation(rawLiquidation, market);
+                let liquidations = this.safeValue(this.liquidations, symbol);
+                if (liquidations === undefined) {
+                    const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                    liquidations = new ArrayCache(limit);
+                }
+                liquidations.append(liquidation);
+                this.liquidations[symbol] = liquidations;
+                client.resolve([liquidation], 'liquidations');
+                client.resolve([liquidation], 'liquidations::' + symbol);
+            }
         }
-        liquidations.append(liquidation);
-        this.liquidations[symbol] = liquidations;
-        client.resolve([liquidation], 'liquidations');
-        client.resolve([liquidation], 'liquidations::' + symbol);
+        else {
+            const rawLiquidation = this.safeDict(message, 'data', {});
+            const marketId = this.safeString(rawLiquidation, 'symbol');
+            const market = this.safeMarket(marketId, undefined, '', 'contract');
+            const symbol = market['symbol'];
+            const liquidation = this.parseWsLiquidation(rawLiquidation, market);
+            let liquidations = this.safeValue(this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                liquidations = new ArrayCache(limit);
+            }
+            liquidations.append(liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve([liquidation], 'liquidations');
+            client.resolve([liquidation], 'liquidations::' + symbol);
+        }
     }
     parseWsLiquidation(liquidation, market = undefined) {
         //
-        //    {
-        //        "price": "0.03803",
-        //        "side": "Buy",
-        //        "size": "1637",
-        //        "symbol": "GALAUSDT",
-        //        "updatedTime": 1673251091822
-        //    }
+        //     {
+        //         "price": "0.03803",
+        //         "side": "Buy",
+        //         "size": "1637",
+        //         "symbol": "GALAUSDT",
+        //         "updatedTime": 1673251091822
+        //     }
         //
-        const marketId = this.safeString(liquidation, 'symbol');
+        //     {
+        //         "T": 1739502302929,
+        //         "s": "ROSEUSDT",
+        //         "S": "Sell",
+        //         "v": "20000",
+        //         "p": "0.04499"
+        //     }
+        //
+        const marketId = this.safeString2(liquidation, 'symbol', 's');
         market = this.safeMarket(marketId, market, '', 'contract');
-        const timestamp = this.safeInteger(liquidation, 'updatedTime');
+        const timestamp = this.safeInteger2(liquidation, 'updatedTime', 'T');
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
-            'contracts': this.safeNumber(liquidation, 'size'),
+            'contracts': this.safeNumber2(liquidation, 'size', 'v'),
             'contractSize': this.safeNumber(market, 'contractSize'),
-            'price': this.safeNumber(liquidation, 'price'),
+            'price': this.safeNumber2(liquidation, 'price', 'p'),
+            'side': this.safeStringLower(liquidation, 'side', 'S'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -1670,10 +1800,9 @@ export default class bybit extends bybitRest {
         await this.loadMarkets();
         const method = 'watchOrders';
         const messageHash = 'unsubscribe:orders';
-        let subHash = 'orders';
+        const subHash = 'orders';
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            subHash += ':' + symbol;
+            throw new NotSupported(this.id + ' unWatchOrders() does not support a symbol parameter, you must unwatch all orders');
         }
         const url = await this.getUrlByMarketType(symbol, true, method, params);
         await this.authenticate(url);
@@ -1809,13 +1938,12 @@ export default class bybit extends bybitRest {
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            let parsed = undefined;
-            if (isSpot) {
-                parsed = this.parseWsSpotOrder(rawOrders[i]);
-            }
-            else {
-                parsed = this.parseOrder(rawOrders[i]);
-            }
+            const parsed = this.parseOrder(rawOrders[i]);
+            // if (isSpot) {
+            //     parsed = this.parseWsSpotOrder (rawOrders[i]);
+            // } else {
+            //     parsed = this.parseOrder (rawOrders[i]);
+            // }
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append(parsed);
@@ -1827,142 +1955,6 @@ export default class bybit extends bybitRest {
         }
         const messageHash = 'orders';
         client.resolve(orders, messageHash);
-    }
-    parseWsSpotOrder(order, market = undefined) {
-        //
-        //    {
-        //        "e": "executionReport",
-        //        "E": "1653297251061", // timestamp
-        //        "s": "LTCUSDT", // symbol
-        //        "c": "1653297250740", // user id
-        //        "S": "SELL", // side
-        //        "o": "MARKET_OF_BASE", // order type
-        //        "f": "GTC", // time in force
-        //        "q": "0.16233", // quantity
-        //        "p": "0", // price
-        //        "X": "NEW", // status
-        //        "i": "1162336018974750208", // order id
-        //        "M": "0",
-        //        "l": "0", // last filled
-        //        "z": "0", // total filled
-        //        "L": "0", // last traded price
-        //        "n": "0", // trading fee
-        //        "N": '', // fee asset
-        //        "u": true,
-        //        "w": true,
-        //        "m": false, // is limit_maker
-        //        "O": "1653297251042", // order creation
-        //        "Z": "0", // total filled
-        //        "A": "0", // account id
-        //        "C": false, // is close
-        //        "v": "0", // leverage
-        //        "d": "NO_LIQ"
-        //    }
-        // v5
-        //    {
-        //        "category":"spot",
-        //        "symbol":"LTCUSDT",
-        //        "orderId":"1474764674982492160",
-        //        "orderLinkId":"1690541649154749",
-        //        "blockTradeId":"",
-        //        "side":"Buy",
-        //        "positionIdx":0,
-        //        "orderStatus":"Cancelled",
-        //        "cancelType":"UNKNOWN",
-        //        "rejectReason":"EC_NoError",
-        //        "timeInForce":"GTC",
-        //        "isLeverage":"0",
-        //        "price":"0",
-        //        "qty":"5.00000",
-        //        "avgPrice":"0",
-        //        "leavesQty":"0.00000",
-        //        "leavesValue":"5.0000000",
-        //        "cumExecQty":"0.00000",
-        //        "cumExecValue":"0.0000000",
-        //        "cumExecFee":"",
-        //        "orderType":"Market",
-        //        "stopOrderType":"",
-        //        "orderIv":"",
-        //        "triggerPrice":"0.000",
-        //        "takeProfit":"",
-        //        "stopLoss":"",
-        //        "triggerBy":"",
-        //        "tpTriggerBy":"",
-        //        "slTriggerBy":"",
-        //        "triggerDirection":0,
-        //        "placeType":"",
-        //        "lastPriceOnCreated":"0.000",
-        //        "closeOnTrigger":false,
-        //        "reduceOnly":false,
-        //        "smpGroup":0,
-        //        "smpType":"None",
-        //        "smpOrderId":"",
-        //        "createdTime":"1690541649160",
-        //        "updatedTime":"1690541649168"
-        //     }
-        //
-        const id = this.safeString2(order, 'i', 'orderId');
-        const marketId = this.safeString2(order, 's', 'symbol');
-        const symbol = this.safeSymbol(marketId, market, undefined, 'spot');
-        const timestamp = this.safeInteger2(order, 'O', 'createdTime');
-        let price = this.safeString2(order, 'p', 'price');
-        if (price === '0') {
-            price = undefined; // market orders
-        }
-        const filled = this.safeString2(order, 'z', 'cumExecQty');
-        const status = this.parseOrderStatus(this.safeString2(order, 'X', 'orderStatus'));
-        const side = this.safeStringLower2(order, 'S', 'side');
-        const lastTradeTimestamp = this.safeString2(order, 'E', 'updatedTime');
-        const timeInForce = this.safeString2(order, 'f', 'timeInForce');
-        let amount = undefined;
-        const cost = this.safeString2(order, 'Z', 'cumExecValue');
-        let type = this.safeStringLower2(order, 'o', 'orderType');
-        if ((type !== undefined) && (type.indexOf('market') >= 0)) {
-            type = 'market';
-        }
-        if (type === 'market' && side === 'buy') {
-            amount = filled;
-        }
-        else {
-            amount = this.safeString2(order, 'orderQty', 'qty');
-        }
-        let fee = undefined;
-        const feeCost = this.safeString2(order, 'n', 'cumExecFee');
-        if (feeCost !== undefined && feeCost !== '0') {
-            const feeCurrencyId = this.safeString(order, 'N');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrencyCode,
-            };
-        }
-        const triggerPrice = this.omitZero(this.safeString(order, 'triggerPrice'));
-        return this.safeOrder({
-            'info': order,
-            'id': id,
-            'clientOrderId': this.safeString2(order, 'c', 'orderLinkId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'stopPrice': triggerPrice,
-            'triggerPrice': triggerPrice,
-            'takeProfitPrice': this.safeString(order, 'takeProfit'),
-            'stopLossPrice': this.safeString(order, 'stopLoss'),
-            'reduceOnly': this.safeValue(order, 'reduceOnly'),
-            'amount': amount,
-            'cost': cost,
-            'average': this.safeString(order, 'avgPrice'),
-            'filled': filled,
-            'remaining': undefined,
-            'status': status,
-            'fee': fee,
-        }, market);
     }
     /**
      * @method
@@ -2392,12 +2384,13 @@ export default class bybit extends bybitRest {
         }
     }
     handleMessage(client, message) {
+        const topic = this.safeString2(message, 'topic', 'op', '');
         if (this.handleErrorMessage(client, message)) {
             return;
         }
         // contract pong
         const ret_msg = this.safeString(message, 'ret_msg');
-        if (ret_msg === 'pong') {
+        if ((ret_msg === 'pong') || (topic === 'pong')) {
             this.handlePong(client, message);
             return;
         }
@@ -2409,11 +2402,10 @@ export default class bybit extends bybitRest {
         }
         // pong
         const event = this.safeString(message, 'event');
-        if (event === 'sub') {
+        if (event === 'sub' || (topic === 'subscribe')) {
             this.handleSubscriptionStatus(client, message);
             return;
         }
-        const topic = this.safeString2(message, 'topic', 'op', '');
         const methods = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
@@ -2426,10 +2418,12 @@ export default class bybit extends bybitRest {
             'wallet': this.handleBalance,
             'outboundAccountInfo': this.handleBalance,
             'execution': this.handleMyTrades,
+            'execution.fast': this.handleMyTrades,
             'ticketInfo': this.handleMyTrades,
             'user.openapi.perp.trade': this.handleMyTrades,
             'position': this.handlePositions,
             'liquidation': this.handleLiquidation,
+            'allLiquidation': this.handleLiquidation,
             'pong': this.handlePong,
             'order.create': this.handleOrderWs,
             'order.amend': this.handleOrderWs,
@@ -2474,6 +2468,14 @@ export default class bybit extends bybitRest {
         //
         //   { pong: 1653296711335 }
         //
+        //
+        //   {
+        //       "req_id": "2",
+        //       "op": "pong",
+        //       "args": [ "1757405570352" ],
+        //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
+        //   }
+        //
         client.lastPong = this.safeInteger(message, 'pong');
         return message;
     }
@@ -2491,6 +2493,13 @@ export default class bybit extends bybitRest {
         //        "retMsg":"OK",
         //        "op":"auth",
         //        "connId":"cojifin88smerbj9t560-404"
+        //    }
+        //
+        //    {
+        //        "success": true,
+        //        "ret_msg": "",
+        //        "op": "auth",
+        //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
         const success = this.safeValue(message, 'success');
@@ -2558,7 +2567,8 @@ export default class bybit extends bybitRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    this.cleanUnsubscription(client, subHash, unsubHash);
+                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
+                    this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }
                 this.cleanCache(subscription);
             }

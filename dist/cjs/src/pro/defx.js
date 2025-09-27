@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var defx$1 = require('../defx.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class defx extends defx$1 {
+class defx extends defx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -396,7 +398,7 @@ class defx extends defx$1 {
     }
     /**
      * @method
-     * @name defx#unWatchTradesForSymbols
+     * @name defx#unWatchTrades
      * @description unWatches from the stream channel
      * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -861,4 +863,4 @@ class defx extends defx$1 {
     }
 }
 
-module.exports = defx;
+exports["default"] = defx;

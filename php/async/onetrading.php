@@ -12,12 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class onetrading extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'onetrading',
             'name' => 'One Trading',
@@ -34,6 +34,9 @@ class onetrading extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -46,9 +49,14 @@ class onetrading extends Exchange {
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -60,21 +68,41 @@ class onetrading extends Exchange {
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -87,6 +115,7 @@ class onetrading extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -98,9 +127,13 @@ class onetrading extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -281,6 +314,7 @@ class onetrading extends Exchange {
                     'INTERNAL_SERVER_ERROR' => '\\ccxt\\ExchangeError',
                 ),
                 'broad' => array(
+                    'Order not found.' => '\\ccxt\\OrderNotFound',
                 ),
             ),
             'commonCurrencies' => array(
@@ -293,10 +327,80 @@ class onetrading extends Exchange {
                 ),
                 'fiat' => array( 'EUR', 'CHF' ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => false,
+                        'triggerDirection' => false,
+                        'triggerPriceType' => null,
+                        'stopLossPrice' => false,
+                        'takeProfitPrice' => false,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'untilDays' => 100000, // todo
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null, // todo
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBack' => 100000, // todo
+                        'daysBackCanceled' => 1 / 12, // todo
+                        'untilDays' => 100000, // todo
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 5000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -330,10 +434,13 @@ class onetrading extends Exchange {
             $response = Async\await($this->publicGetCurrencies ($params));
             //
             //     array(
-            //         {
-            //             "code":"BEST",
-            //             "precision":8
-            //         }
+            //         array(
+            //             "code" => "USDT",
+            //             "precision" => 6,
+            //             "unified_cryptoasset_id" => 825,
+            //             "name" => "Tether USDt",
+            //             "collateral_percentage" => 0
+            //         ),
             //     )
             //
             $result = array();
@@ -341,11 +448,11 @@ class onetrading extends Exchange {
                 $currency = $response[$i];
                 $id = $this->safe_string($currency, 'code');
                 $code = $this->safe_currency_code($id);
-                $result[$code] = array(
+                $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
                     'code' => $code,
-                    'name' => null,
-                    'info' => $currency, // the original payload
+                    'name' => $this->safe_string($currency, 'name'),
+                    'info' => $currency,
                     'active' => null,
                     'fee' => null,
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
@@ -356,7 +463,7 @@ class onetrading extends Exchange {
                         'withdraw' => array( 'min' => null, 'max' => null ),
                     ),
                     'networks' => array(),
-                );
+                ));
             }
             return $result;
         }) ();
@@ -390,34 +497,80 @@ class onetrading extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        $baseAsset = $this->safe_value($market, 'base', array());
-        $quoteAsset = $this->safe_value($market, 'quote', array());
+        //
+        //   {
+        //      "base":array(
+        //         "code":"BTC",
+        //         "precision":"5"
+        //      ),
+        //      "quote":array(
+        //         "code":"USDC",
+        //         "precision":"2"
+        //      ),
+        //      "amount_precision":"5",
+        //      "market_precision":"2",
+        //      "min_size":"10.0",
+        //      "min_price":"1000",
+        //      "max_price":"10000000",
+        //      "id":"BTC_USDC",
+        //      "type":"SPOT",
+        //      "state":"ACTIVE"
+        //   }
+        //
+        //
+        //  {
+        //      "base" => array(
+        //          "code" => "BTC",
+        //          "precision" => 5
+        //      ),
+        //      "quote" => array(
+        //          "code" => "EUR",
+        //          "precision" => 2
+        //      ),
+        //      "amount_precision" => 5,
+        //      "market_precision" => 2,
+        //      "min_size" => "10.0",
+        //      "min_price" => "1000",
+        //      "max_price" => "10000000",
+        //      "id" => "BTC_EUR_P",
+        //      "type" => "PERP",
+        //      "state" => "ACTIVE"
+        //  }
+        //
+        $baseAsset = $this->safe_dict($market, 'base', array());
+        $quoteAsset = $this->safe_dict($market, 'quote', array());
         $baseId = $this->safe_string($baseAsset, 'code');
         $quoteId = $this->safe_string($quoteAsset, 'code');
-        $id = $baseId . '_' . $quoteId;
+        $id = $this->safe_string($market, 'id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $state = $this->safe_string($market, 'state');
+        $type = $this->safe_string($market, 'type');
+        $isPerp = $type === 'PERP';
+        $symbol = $base . '/' . $quote;
+        if ($isPerp) {
+            $symbol = $symbol . ':' . $quote;
+        }
         return array(
             'id' => $id,
-            'symbol' => $base . '/' . $quote,
+            'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
-            'settle' => null,
+            'settle' => $isPerp ? $quote : null,
             'baseId' => $baseId,
             'quoteId' => $quoteId,
-            'settleId' => null,
-            'type' => 'spot',
-            'spot' => true,
+            'settleId' => $isPerp ? $quoteId : null,
+            'type' => $isPerp ? 'swap' : 'spot',
+            'spot' => !$isPerp,
             'margin' => false,
-            'swap' => false,
+            'swap' => $isPerp,
             'future' => false,
             'option' => false,
             'active' => ($state === 'ACTIVE'),
-            'contract' => false,
-            'linear' => null,
-            'inverse' => null,
-            'contractSize' => null,
+            'contract' => $isPerp,
+            'linear' => $isPerp ? true : null,
+            'inverse' => $isPerp ? false : null,
+            'contractSize' => $isPerp ? $this->parse_number('1') : null,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -458,6 +611,7 @@ class onetrading extends Exchange {
              * @see https://docs.onetrading.com/#fees
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] fetchPrivateTradingFees or fetchPublicTradingFees
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
             $method = $this->safe_string($params, 'method');
@@ -481,39 +635,68 @@ class onetrading extends Exchange {
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetFees ($params));
             //
+            // array(
             //     array(
-            //         {
-            //             "fee_group_id":"default",
-            //             "display_text":"The standard fee plan.",
-            //             "fee_tiers":array(
-            //                 array("volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"),
-            //                 array("volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"),
-            //                 array("volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"),
-            //                 array("volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"),
-            //                 array("volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"),
-            //                 array("volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"),
-            //                 array("volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065")
+            //         'fee_group_id' => 'SPOT',
+            //         'display_text' => 'The fee plan for spot trading.',
+            //         'volume_currency' => 'EUR',
+            //         'fee_tiers' => array(
+            //             array(
+            //                 'volume' => '0',
+            //                 'fee_group_id' => 'SPOT',
+            //                 'maker_fee' => '0.1000',
+            //                 'taker_fee' => '0.2000',
             //             ),
-            //             "fee_discount_rate":"25.0",
-            //             "minimum_price_value":"0.12"
-            //         }
-            //     )
+            //             array(
+            //                 'volume' => '10000',
+            //                 'fee_group_id' => 'SPOT',
+            //                 'maker_fee' => '0.0400',
+            //                 'taker_fee' => '0.0800',
+            //             ),
+            //         ),
+            //     ),
+            //     array(
+            //         'fee_group_id' => 'FUTURES',
+            //         'display_text' => 'The fee plan for futures trading.',
+            //         'volume_currency' => 'EUR',
+            //         'fee_tiers' => array(
+            //             array(
+            //                 'volume' => '0',
+            //                 'fee_group_id' => 'FUTURES',
+            //                 'maker_fee' => '0.1000',
+            //                 'taker_fee' => '0.2000',
+            //             ),
+            //             array(
+            //                 'volume' => '10000',
+            //                 'fee_group_id' => 'FUTURES',
+            //                 'maker_fee' => '0.0400',
+            //                 'taker_fee' => '0.0800',
+            //             ),
+            //         ),
+            //     ),
+            // );
             //
-            $first = $this->safe_value($response, 0, array());
-            $feeTiers = $this->safe_value($first, 'fee_tiers');
-            $tiers = $this->parse_fee_tiers($feeTiers);
-            $firstTier = $this->safe_value($feeTiers, 0, array());
+            $spotFees = $this->safe_dict($response, 0, array());
+            $futuresFees = $this->safe_dict($response, 1, array());
+            $spotFeeTiers = $this->safe_list($spotFees, 'fee_tiers', array());
+            $futuresFeeTiers = $this->safe_list($futuresFees, 'fee_tiers', array());
+            $spotTiers = $this->parse_fee_tiers($spotFeeTiers);
+            $futuresTiers = $this->parse_fee_tiers($futuresFeeTiers);
+            $firstSpotTier = $this->safe_dict($spotTiers, 0, array());
+            $firstFuturesTier = $this->safe_dict($futuresTiers, 0, array());
             $result = array();
             for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
+                $market = $this->market($symbol);
+                $tierObject = ($market['spot']) ? $firstSpotTier : $firstFuturesTier;
                 $result[$symbol] = array(
-                    'info' => $first,
+                    'info' => $spotFees,
                     'symbol' => $symbol,
-                    'maker' => $this->safe_number($firstTier, 'maker_fee'),
-                    'taker' => $this->safe_number($firstTier, 'taker_fee'),
+                    'maker' => $this->safe_number($tierObject, 'maker_fee'),
+                    'taker' => $this->safe_number($tierObject, 'taker_fee'),
                     'percentage' => true,
                     'tierBased' => true,
-                    'tiers' => $tiers,
+                    'tiers' => $spotTiers,
                 );
             }
             return $result;
@@ -525,36 +708,55 @@ class onetrading extends Exchange {
             Async\await($this->load_markets());
             $response = Async\await($this->privateGetAccountFees ($params));
             //
-            //     {
-            //         "account_id" => "ed524d00-820a-11e9-8f1e-69602df16d85",
-            //         "running_trading_volume" => "0.0",
-            //         "fee_group_id" => "default",
-            //         "collect_fees_in_best" => false,
-            //         "fee_discount_rate" => "25.0",
-            //         "minimum_price_value" => "0.12",
-            //         "fee_tiers" => array(
-            //             array( "volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" ),
-            //             array( "volume" => "100.0", "fee_group_id" => "default", "maker_fee" => "0.09", "taker_fee" => "0.1" ),
-            //             array( "volume" => "250.0", "fee_group_id" => "default", "maker_fee" => "0.08", "taker_fee" => "0.1" ),
-            //             array( "volume" => "1000.0", "fee_group_id" => "default", "maker_fee" => "0.07", "taker_fee" => "0.09" ),
-            //             array( "volume" => "5000.0", "fee_group_id" => "default", "maker_fee" => "0.06", "taker_fee" => "0.08" ),
-            //             array( "volume" => "10000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.07" ),
-            //             array( "volume" => "20000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.06" ),
-            //             array( "volume" => "50000.0", "fee_group_id" => "default", "maker_fee" => "0.05", "taker_fee" => "0.05" )
-            //         ),
-            //         "active_fee_tier" => array( "volume" => "0.0", "fee_group_id" => "default", "maker_fee" => "0.1", "taker_fee" => "0.1" )
-            //     }
+            // {
+            //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+            //    "running_volumes":array(
+            //       array(
+            //          "fee_group_id":"SPOT",
+            //          "volume":"0",
+            //          "currency":"EUR"
+            //       ),
+            //       {
+            //          "fee_group_id":"FUTURES",
+            //          "volume":"0",
+            //          "currency":"EUR"
+            //       }
+            //    ),
+            //    "active_fee_tiers":array(
+            //       array(
+            //          "fee_group_id":"SPOT",
+            //          "volume":"0",
+            //          "maker_fee":"0.1000",
+            //          "taker_fee":"0.2000"
+            //       ),
+            //       {
+            //          "fee_group_id":"FUTURES",
+            //          "volume":"0",
+            //          "maker_fee":"0.1000",
+            //          "taker_fee":"0.2000"
+            //       }
+            //    )
+            // }
             //
-            $activeFeeTier = $this->safe_value($response, 'active_fee_tier', array());
-            $makerFee = $this->safe_string($activeFeeTier, 'maker_fee');
-            $takerFee = $this->safe_string($activeFeeTier, 'taker_fee');
-            $makerFee = Precise::string_div($makerFee, '100');
-            $takerFee = Precise::string_div($takerFee, '100');
-            $feeTiers = $this->safe_value($response, 'fee_tiers');
+            $activeFeeTier = $this->safe_list($response, 'active_fee_tiers');
+            $spotFees = $this->safe_dict($activeFeeTier, 0, array());
+            $futuresFees = $this->safe_dict($activeFeeTier, 1, array());
+            $spotMakerFee = $this->safe_string($spotFees, 'maker_fee');
+            $spotTakerFee = $this->safe_string($spotFees, 'taker_fee');
+            $spotMakerFee = Precise::string_div($spotMakerFee, '100');
+            $spotTakerFee = Precise::string_div($spotTakerFee, '100');
+            // $feeTiers = $this->safe_value($response, 'fee_tiers');
+            $futuresMakerFee = $this->safe_string($futuresFees, 'maker_fee');
+            $futuresTakerFee = $this->safe_string($futuresFees, 'taker_fee');
+            $futuresMakerFee = Precise::string_div($futuresMakerFee, '100');
+            $futuresTakerFee = Precise::string_div($futuresTakerFee, '100');
             $result = array();
-            $tiers = $this->parse_fee_tiers($feeTiers);
+            // $tiers = $this->parse_fee_tiers($feeTiers);
             for ($i = 0; $i < count($this->symbols); $i++) {
                 $symbol = $this->symbols[$i];
+                $market = $this->market($symbol);
+                $makerFee = ($market['spot']) ? $spotMakerFee : $futuresMakerFee;
+                $takerFee = ($market['spot']) ? $spotTakerFee : $futuresTakerFee;
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
@@ -562,7 +764,7 @@ class onetrading extends Exchange {
                     'taker' => $this->parse_number($takerFee),
                     'percentage' => true,
                     'tierBased' => true,
-                    'tiers' => $tiers,
+                    'tiers' => null,
                 );
             }
             return $result;
@@ -1045,6 +1247,7 @@ class onetrading extends Exchange {
             'CLOSED' => 'canceled',
             'FAILED' => 'failed',
             'STOP_TRIGGERED' => 'triggered',
+            'DONE' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1140,7 +1343,7 @@ class onetrading extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => $type,
+            'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'side' => $side,
@@ -1155,6 +1358,13 @@ class onetrading extends Exchange {
             // 'fee' => null,
             'trades' => $rawTrades,
         ), $market);
+    }
+
+    public function parse_order_type(?string $type) {
+        $types = array(
+            'booked' => 'limit',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function parse_time_in_force(?string $timeInForce) {
@@ -1175,7 +1385,7 @@ class onetrading extends Exchange {
              * @see https://docs.onetrading.com/#create-order
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
@@ -1221,6 +1431,9 @@ class onetrading extends Exchange {
                 $request['client_id'] = $clientOrderId;
                 $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             }
+            $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
+            $params = $this->omit($params, 'timeInForce');
+            $request['time_in_force'] = $timeInForce;
             $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
             //
             //     {
@@ -1264,11 +1477,16 @@ class onetrading extends Exchange {
             } else {
                 $request['order_id'] = $id;
             }
-            $response = Async\await($this->$method ($this->extend($request, $params)));
+            $response = null;
+            if ($method === 'privateDeleteAccountOrdersOrderId') {
+                $response = Async\await($this->privateDeleteAccountOrdersOrderId ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privateDeleteAccountOrdersClientClientId ($this->extend($request, $params)));
+            }
             //
             // responds with an empty body
             //
-            return $response;
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1295,7 +1513,7 @@ class onetrading extends Exchange {
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     )
             //
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 

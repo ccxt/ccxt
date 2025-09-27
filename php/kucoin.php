@@ -10,7 +10,7 @@ use ccxt\abstract\kucoin as Exchange;
 
 class kucoin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoin',
             'name' => 'KuCoin',
@@ -789,7 +789,7 @@ class kucoin extends Exchange {
                     'TLOS' => 'tlos', // tlosevm is different
                     'CFX' => 'cfx',
                     'ACA' => 'aca',
-                    'OP' => 'optimism',
+                    'OPTIMISM' => 'optimism',
                     'ONT' => 'ont',
                     'GLMR' => 'glmr',
                     'CSPR' => 'cspr',
@@ -909,6 +909,7 @@ class kucoin extends Exchange {
                     'CS' => 'cs',
                     'ORAI' => 'orai',
                     'BASE' => 'base',
+                    'TARA' => 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON' => 'bcd',
                     // 'BITCOINGOLD' => 'btg',
@@ -1017,17 +1018,20 @@ class kucoin extends Exchange {
                         'limit' => null,
                         'daysBack' => null,
                         'untilDays' => 7, // per  implementation comments
+                        'symbolRequired' => true,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => true,
                         'limit' => 500,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -1038,6 +1042,7 @@ class kucoin extends Exchange {
                         'untilDays' => 7,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 1500,
@@ -1059,7 +1064,7 @@ class kucoin extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -1313,11 +1318,13 @@ class kucoin extends Exchange {
          *
          * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
          *
+         * @return {any} ignore
          */
         if (!(is_array($this->options) && array_key_exists('hf', $this->options)) || ($this->options['hf'] === null) || $force) {
             $result = $this->privateGetHfAccountsOpened ();
             $this->options['hf'] = $this->safe_bool($result, 'data');
         }
+        return true;
     }
 
     public function handle_hf_and_params($params = array ()) {
@@ -1344,8 +1351,7 @@ class kucoin extends Exchange {
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $promises = array();
-        $promises[] = $this->publicGetCurrencies ($params);
+        $response = $this->publicGetCurrencies ($params);
         //
         //    {
         //        "code":"200000",
@@ -1359,7 +1365,7 @@ class kucoin extends Exchange {
         //              "contractAddress":null,
         //              "isMarginEnabled":false,
         //              "isDebitEnabled":false,
-        //              "chains":[
+        //              "chains":array(
         //                 array(
         //                    "chainName":"ERC20",
         //                    "chainId" => "eth"
@@ -1371,128 +1377,75 @@ class kucoin extends Exchange {
         //                    "isDepositEnabled":false,
         //                    "confirms":12,
         //                    "preConfirms":12,
+        //                    "withdrawPrecision" => 8,
+        //                    "maxWithdraw" => null,
+        //                    "maxDeposit" => null,
+        //                    "needTag" => false,
         //                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         //                    "depositFeeRate" => "0.001", // present for some currencies/networks
         //                 }
         //              )
         //           ),
-        //    }
-        //
-        $promises[] = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', true);
-        //
-        //    {
-        //        "success" => true,
-        //        "code" => "200",
-        //        "msg" => "success",
-        //        "retry" => false,
-        //        "data" => array(
-        //            array(
-        //                "status" => "enabled",
-        //                "currency" => "BTC",
-        //                "isChainEnabled" => "true",
-        //                "chain" => "btc",
-        //                "chainName" => "BTC",
-        //                "chainFullName" => "Bitcoin",
-        //                "walletPrecision" => "8",
-        //                "isDepositEnabled" => "true",
-        //                "depositMinSize" => "0.00005",
-        //                "confirmationCount" => "2",
-        //                "isWithdrawEnabled" => "true",
-        //                "withdrawMinSize" => "0.001",
-        //                "withdrawMinFee" => "0.0005",
-        //                "withdrawFeeRate" => "0",
-        //                "depositDisabledTip" => "Wallet Maintenance",
-        //                "preDepositTipEnabled" => "true",
-        //                "preDepositTip" => "Do not transfer from ETH network directly",
-        //                "withdrawDisabledTip" => "",
-        //                "preWithdrawTipEnabled" => "false",
-        //                "preWithdrawTip" => "",
-        //                "orgAddress" => "",
-        //                "userAddressName" => "Memo",
-        //            ),
         //        )
         //    }
         //
-        $responses = $promises;
-        $currenciesResponse = $this->safe_dict($responses, 0, array());
-        $currenciesData = $this->safe_list($currenciesResponse, 'data', array());
-        $additionalResponse = $this->safe_dict($responses, 1, array());
-        $additionalData = $this->safe_list($additionalResponse, 'data', array());
-        $additionalDataGrouped = $this->group_by($additionalData, 'currency');
+        $currenciesData = $this->safe_list($response, 'data', array());
+        $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
             $entry = $currenciesData[$i];
             $id = $this->safe_string($entry, 'currency');
-            $name = $this->safe_string($entry, 'fullName');
+            if ($this->in_array($id, $brokenCurrencies)) {
+                continue; // skip buggy entries => https://t.me/KuCoin_API/217798
+            }
             $code = $this->safe_currency_code($id);
-            $isWithdrawEnabled = null;
-            $isDepositEnabled = null;
             $networks = array();
             $chains = $this->safe_list($entry, 'chains', array());
-            $extraChainsData = $this->index_by($this->safe_list($additionalDataGrouped, $id, array()), 'chain');
-            $rawPrecision = $this->safe_string($entry, 'precision');
-            $precision = $this->parse_number($this->parse_precision($rawPrecision));
             $chainsLength = count($chains);
-            if (!$chainsLength) {
-                // https://t.me/KuCoin_API/173118
-                $isWithdrawEnabled = false;
-                $isDepositEnabled = false;
-            }
             for ($j = 0; $j < $chainsLength; $j++) {
                 $chain = $chains[$j];
                 $chainId = $this->safe_string($chain, 'chainId');
                 $networkCode = $this->network_id_to_code($chainId, $code);
-                $chainWithdrawEnabled = $this->safe_bool($chain, 'isWithdrawEnabled', false);
-                if ($isWithdrawEnabled === null) {
-                    $isWithdrawEnabled = $chainWithdrawEnabled;
-                } else {
-                    $isWithdrawEnabled = $isWithdrawEnabled || $chainWithdrawEnabled;
-                }
-                $chainDepositEnabled = $this->safe_bool($chain, 'isDepositEnabled', false);
-                if ($isDepositEnabled === null) {
-                    $isDepositEnabled = $chainDepositEnabled;
-                } else {
-                    $isDepositEnabled = $isDepositEnabled || $chainDepositEnabled;
-                }
-                $chainExtraData = $this->safe_dict($extraChainsData, $chainId, array());
                 $networks[$networkCode] = array(
                     'info' => $chain,
                     'id' => $chainId,
                     'name' => $this->safe_string($chain, 'chainName'),
                     'code' => $networkCode,
-                    'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                    'active' => null,
                     'fee' => $this->safe_number($chain, 'withdrawalMinFee'),
-                    'deposit' => $chainDepositEnabled,
-                    'withdraw' => $chainWithdrawEnabled,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chainExtraData, 'walletPrecision'))),
+                    'deposit' => $this->safe_bool($chain, 'isDepositEnabled'),
+                    'withdraw' => $this->safe_bool($chain, 'isWithdrawEnabled'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision'))),
                     'limits' => array(
                         'withdraw' => array(
                             'min' => $this->safe_number($chain, 'withdrawalMinSize'),
-                            'max' => null,
+                            'max' => $this->safe_number($chain, 'maxWithdraw'),
                         ),
                         'deposit' => array(
                             'min' => $this->safe_number($chain, 'depositMinSize'),
-                            'max' => null,
+                            'max' => $this->safe_number($chain, 'maxDeposit'),
                         ),
                     ),
                 );
             }
             // kucoin has determined 'fiat' currencies with below logic
-            $isFiat = ($rawPrecision === '2') && ($chainsLength === 0);
-            $result[$code] = array(
+            $rawPrecision = $this->safe_string($entry, 'precision');
+            $precision = $this->parse_number($this->parse_precision($rawPrecision));
+            $isFiat = $chainsLength === 0;
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
-                'name' => $name,
+                'name' => $this->safe_string($entry, 'fullName'),
                 'code' => $code,
                 'type' => $isFiat ? 'fiat' : 'crypto',
                 'precision' => $precision,
                 'info' => $entry,
-                'active' => ($isDepositEnabled || $isWithdrawEnabled),
-                'deposit' => $isDepositEnabled,
-                'withdraw' => $isWithdrawEnabled,
-                'fee' => null,
-                'limits' => $this->limits,
                 'networks' => $networks,
-            );
+                'deposit' => null,
+                'withdraw' => null,
+                'active' => null,
+                'fee' => null,
+                'limits' => null,
+            ));
         }
         return $result;
     }
@@ -1640,6 +1593,37 @@ class kucoin extends Exchange {
         //        "chain" => "ERC20"
         //    }
         //
+        if (is_array($fee) && array_key_exists('chains', $fee)) {
+            // if data obtained through `currencies` endpoint
+            $resultNew = array(
+                'info' => $fee,
+                'withdraw' => array(
+                    'fee' => null,
+                    'percentage' => false,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+                'networks' => array(),
+            );
+            $chains = $this->safe_list($fee, 'chains', array());
+            for ($i = 0; $i < count($chains); $i++) {
+                $chain = $chains[$i];
+                $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
+                $resultNew['networks'][$networkCodeNew] = array(
+                    'withdraw' => array(
+                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'percentage' => false,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
+            return $resultNew;
+        }
         $minWithdrawFee = $this->safe_number($fee, 'withdrawMinFee');
         $result = array(
             'info' => $fee,
@@ -1994,7 +1978,7 @@ class kucoin extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          *
          * @see https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
@@ -2329,7 +2313,7 @@ class kucoin extends Exchange {
         $req = array(
             'cost' => $cost,
         );
-        return $this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params));
+        return $this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params));
     }
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
@@ -2712,7 +2696,7 @@ class kucoin extends Exchange {
          */
         $this->load_markets();
         $request = array();
-        $trigger = $this->safe_bool($params, 'stop', false);
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
         $params = $this->omit($params, 'stop');
@@ -2738,7 +2722,7 @@ class kucoin extends Exchange {
         } else {
             $response = $this->privateDeleteOrders ($this->extend($request, $query));
         }
-        return $response;
+        return array( $this->safe_order(array( 'info' => $response )) );
     }
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3232,15 +3216,15 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
-        }
         $method = $this->options['fetchMyTradesMethod'];
         $parseResponseData = false;
         $response = null;
         list($request, $params) = $this->handle_until_option('endAt', $request, $params);
         if ($hf) {
             // does not return $trades earlier than 2019-02-18T00:00:00Z
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
             if ($since !== null) {
                 // only returns $trades up to one week after the $since param
                 $request['startAt'] = $since;
@@ -3527,7 +3511,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -4061,7 +4045,10 @@ class kucoin extends Exchange {
                 }
             }
         }
-        $returnType = $isolated ? $result : $this->safe_balance($result);
+        $returnType = $result;
+        if (!$isolated) {
+            $returnType = $this->safe_balance($result);
+        }
         return $returnType;
     }
 
@@ -4815,7 +4802,8 @@ class kucoin extends Exchange {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
-                $borrowRateHistories[$code][] = $borrowRateStructure;
+                $borrowRateHistoriesCode = $borrowRateHistories[$code];
+                $borrowRateHistoriesCode[] = $borrowRateStructure;
             }
         }
         $keys = is_array($borrowRateHistories) ? array_keys($borrowRateHistories) : array();
@@ -5028,7 +5016,7 @@ class kucoin extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

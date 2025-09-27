@@ -18,3 +18,4 @@ def test_fetch_margin_mode(exchange, skipped_properties, symbol):
     method = 'fetchMarginMode'
     margin_mode = exchange.fetch_margin_mode(symbol)
     test_margin_mode(exchange, skipped_properties, method, margin_mode)
+    return True

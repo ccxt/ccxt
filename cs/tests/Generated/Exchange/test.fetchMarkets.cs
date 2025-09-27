@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchMarkets(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchMarkets(Exchange exchange, object skippedProperties)
     {
         object method = "fetchMarkets";
         object markets = await exchange.fetchMarkets();
@@ -18,6 +18,27 @@ public partial class testMainClass : BaseTest
         {
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
         }
+        detectMarketConflicts(exchange, markets);
+        return true;
+    }
+    public static object detectMarketConflicts(Exchange exchange, object marketValues)
+    {
+        // detect if there are markets with different ids for the same symbol
+        object ids = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
+        {
+            object market = getValue(marketValues, i);
+            object symbol = getValue(market, "symbol");
+            if (!isTrue((inOp(ids, symbol))))
+            {
+                ((IDictionary<string,object>)ids)[(string)symbol] = getValue(market, "id");
+            } else
+            {
+                object isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));
+                assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), getValue(ids, symbol)), " "), getValue(market, "id")));
+            }
+        }
+        return true;
     }
 
 }

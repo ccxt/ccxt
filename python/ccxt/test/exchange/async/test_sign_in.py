@@ -18,3 +18,4 @@ async def test_sign_in(exchange, skipped_properties):
     method = 'signIn'
     if exchange.has[method]:
         await exchange.sign_in()
+    return True

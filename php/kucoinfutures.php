@@ -10,7 +10,7 @@ use ccxt\abstract\kucoinfutures as kucoin;
 
 class kucoinfutures extends kucoin {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
             'name' => 'KuCoin Futures',
@@ -100,6 +100,7 @@ class kucoinfutures extends kucoin {
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
                 'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => null,
             ),
@@ -194,6 +195,7 @@ class kucoinfutures extends kucoin {
                         'sub/api-key/update' => 1,
                         'changeCrossUserLeverage' => 1,
                         'position/changeMarginMode' => 1,
+                        'position/switchPositionMode' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -224,7 +226,7 @@ class kucoinfutures extends kucoin {
                     '429' => '\\ccxt\\RateLimitExceeded', // Too Many Requests -- Access limit breached
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '503' => '\\ccxt\\ExchangeNotAvailable', // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
-                    '100001' => '\\ccxt\\InvalidOrder',     // array("code":"100001","msg":"Unavailable to enable both \"postOnly\" and \"hidden\"")
+                    '100001' => '\\ccxt\\OrderNotFound',     // array("msg":"error.getOrder.orderNotExist","code":"100001")
                     '100004' => '\\ccxt\\BadRequest',       // array("code":"100004","msg":"Order is in not cancelable state")
                     '101030' => '\\ccxt\\PermissionDenied', // array("code":"101030","msg":"You haven't yet enabled the margin trading")
                     '200004' => '\\ccxt\\InsufficientFunds',
@@ -244,6 +246,7 @@ class kucoinfutures extends kucoin {
                     '411100' => '\\ccxt\\AccountSuspended', // User is frozen -- Please contact us via support center
                     '500000' => '\\ccxt\\ExchangeNotAvailable', // Internal Server Error -- We had a problem with our server. Try again later.
                     '300009' => '\\ccxt\\InvalidOrder', // array("msg":"No open positions to close.","code":"300009")
+                    '330008' => '\\ccxt\\InsufficientFunds', // array("msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008")
                 ),
                 'broad' => array(
                     'Position does not exist' => '\\ccxt\\OrderNotFound', // array( "code":"200000", "msg":"Position does not exist" )
@@ -337,6 +340,7 @@ class kucoinfutures extends kucoin {
                             'transfer-out' => 'v2',
                             'changeCrossUserLeverage' => 'v2',
                             'position/changeMarginMode' => 'v2',
+                            'position/switchPositionMode' => 'v2',
                         ),
                     ),
                     'futuresPublic' => array(
@@ -396,17 +400,20 @@ class kucoinfutures extends kucoin {
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 7,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrder' => array(
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
                         'limit' => 1000,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
@@ -417,6 +424,7 @@ class kucoinfutures extends kucoin {
                         'untilDays' => null,
                         'trigger' => true,
                         'trailing' => false,
+                        'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
                         'limit' => 500,
@@ -461,7 +469,7 @@ class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $status = $this->safe_string($data, 'status');
         return array(
             'status' => ($status === 'open') ? 'ok' : 'maintenance',
@@ -545,12 +553,12 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $result = array();
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
             $expiry = $this->safe_integer($market, 'expireDate');
-            $future = $expiry ? true : false;
+            $future = $this->safe_string($market, 'nextFundingRateTime') === null;
             $swap = !$future;
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -638,7 +646,7 @@ class kucoinfutures extends kucoin {
         return $result;
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -764,7 +772,7 @@ class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         if ($currencyId !== 'NIM') {
             // contains spaces
@@ -827,7 +835,7 @@ class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $timestamp = $this->parse_to_int($this->safe_integer($data, 'ts') / 1000000);
         $orderbook = $this->parse_order_book($data, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
         $orderbook['nonce'] = $this->safe_integer($data, 'sequence');
@@ -1160,7 +1168,7 @@ class kucoinfutures extends kucoin {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $dataList = $this->safe_value($data, 'dataList', array());
+        $dataList = $this->safe_list($data, 'dataList', array());
         $fees = array();
         for ($i = 0; $i < count($dataList); $i++) {
             $listItem = $dataList[$i];
@@ -1246,7 +1254,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_position($data, $market);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open positions
          *
@@ -1534,6 +1542,8 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
          * @param {float} [$params->cost] the cost of the order in units of USDT
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'isolated'
+         * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * ----------------- Exchange Specific Parameters -----------------
          * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
          * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1543,7 +1553,8 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->stopPriceType] exchange-specific alternative for triggerPriceType => TP, IP or MP
          * @param {bool} [$params->closeOrder] set to true to close position
          * @param {bool} [$params->test] set to true to use the test order endpoint (does not submit order, use to validate $params)
-         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+         * @param {string} [$params->positionSide] *swap and future only* hedged two-way position $side, LONG or SHORT
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1636,6 +1647,11 @@ class kucoinfutures extends kucoin {
             'type' => $type, // limit or $market
             'leverage' => 1,
         );
+        $marginModeUpper = $this->safe_string_upper($params, 'marginMode');
+        if ($marginModeUpper !== null) {
+            $params = $this->omit($params, 'marginMode');
+            $request['marginMode'] = $marginModeUpper;
+        }
         $cost = $this->safe_string($params, 'cost');
         $params = $this->omit($params, 'cost');
         if ($cost !== null) {
@@ -1716,7 +1732,22 @@ class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $hedged = null;
+        list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
+        if ($reduceOnly) {
+            $request['reduceOnly'] = $reduceOnly;
+            if ($hedged) {
+                $reduceOnlyPosSide = ($side === 'sell') ? 'LONG' : 'SHORT';
+                $request['positionSide'] = $reduceOnlyPosSide;
+            }
+        } else {
+            if ($hedged) {
+                $posSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                $request['positionSide'] = $posSide;
+            }
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
         return $this->extend($request, $params);
     }
 
@@ -1759,7 +1790,7 @@ class kucoinfutures extends kucoin {
         //       ),
         //   }
         //
-        return $this->safe_value($response, 'data');
+        return $this->safe_order(array( 'info' => $response ));
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
@@ -1859,7 +1890,8 @@ class kucoinfutures extends kucoin {
         //       ),
         //   }
         //
-        return $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data');
+        return array( $this->safe_order(array( 'info' => $data )) );
     }
 
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
@@ -2112,7 +2144,7 @@ class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        $responseData = $this->safe_value($response, 'data', array());
+        $responseData = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($responseData, 'items', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -2169,7 +2201,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_order(?string $id = null, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2491,6 +2523,7 @@ class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->code] the unified $currency $code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -3050,7 +3083,7 @@ class kucoinfutures extends kucoin {
         //        )
         //    }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
@@ -3139,7 +3172,7 @@ class kucoinfutures extends kucoin {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rate_histories($data, $market, $since, $limit);
     }
 
@@ -3303,6 +3336,34 @@ class kucoinfutures extends kucoin {
         return $this->parse_margin_mode($data, $market);
     }
 
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         *
+         * @see https://www.kucoin.com/docs-new/3475097e0
+         *
+         * @param {bool} $hedged set to true to use two way position
+         * @param {string} [$symbol] not used by bybit setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $response from the exchange
+         */
+        $this->load_markets();
+        $posMode = $hedged ? '1' : '0';
+        $request = array(
+            'positionMode' => $posMode,
+        );
+        $response = $this->futuresPrivatePostPositionSwitchPositionMode ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "positionMode" => 1
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
@@ -3340,7 +3401,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

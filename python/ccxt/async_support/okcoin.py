@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -34,7 +34,7 @@ from ccxt.base.precise import Precise
 
 class okcoin(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(okcoin, self).describe(), {
             'id': 'okcoin',
             'name': 'OKCoin',
@@ -56,6 +56,10 @@ class okcoin(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
+                'createStopLimitOrder': True,
+                'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'createTriggerOrder': True,
                 'fetchBalance': True,
@@ -220,6 +224,90 @@ class okcoin(Exchange, ImplicitAPI):
                         # sub-account
                         'asset/subaccount/transfer': 10,
                     },
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerDirection': True,  # todo
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': False,
+                            'index': False,
+                        },
+                        'stopLossPrice': True,  # todo revise trigger
+                        'takeProfitPrice': True,  # todo revise trigger
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': False,
+                                'index': False,
+                            },
+                            'price': True,
+                        },
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': True,  # todo
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': True,
+                        'selfTradePrevention': False,
+                        'iceberg': True,  # todo
+                    },
+                    'createOrders': None,  # todo
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,
+                        'untilDays': 90,  # todo
+                        'symbolRequired': False,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': True,  # todo
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': 90,  # todo
+                        'daysBackCanceled': 1 / 12,  # todo: possible more with history endpoint
+                        'untilDays': 90,  # todo
+                        'trigger': True,
+                        'trailing': True,
+                        'symbolRequired': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 100,  # 300 is only possible for 'recent' 1440 candles, which does not make much sense
+                    },
+                },
+                'swap': {
+                    'linear': None,
+                    'inverse': None,
+                },
+                'future': {
+                    'linear': None,
+                    'inverse': None,
                 },
             },
             'fees': {
@@ -622,7 +710,7 @@ class okcoin(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -630,12 +718,20 @@ class okcoin(Exchange, ImplicitAPI):
         """
         response = await self.publicGetPublicTime(params)
         #
-        #     {
-        #         "iso": "2015-01-07T23:47:25.201Z",
-        #         "epoch": 1420674445.201
-        #     }
+        # {
+        #     "code": "0",
+        #     "data":
+        #         [
+        #             {
+        #                 "ts": "1737379360033"
+        #             }
+        #         ],
+        #     "msg": ""
+        # }
         #
-        return self.parse8601(self.safe_string(response, 'iso'))
+        data = self.safe_list(response, 'data')
+        timestamp = self.safe_dict(data, 0)
+        return self.safe_integer(timestamp, 'ts')
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -744,50 +840,33 @@ class okcoin(Exchange, ImplicitAPI):
         if not self.check_required_credentials(False):
             if self.options['warnOnFetchCurrenciesWithoutAuthorization']:
                 raise ExchangeError(self.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = False to suppress self warning message.')
-            return None
+            return {}
         else:
             response = await self.privateGetAssetCurrencies(params)
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
             result: dict = {}
             dataByCurrencyId = self.group_by(data, 'ccy')
             currencyIds = list(dataByCurrencyId.keys())
             for i in range(0, len(currencyIds)):
                 currencyId = currencyIds[i]
-                currency = self.safe_currency(currencyId)
-                code = currency['code']
+                code = self.safe_currency_code(currencyId)
                 chains = dataByCurrencyId[currencyId]
                 networks: dict = {}
-                currencyActive = False
-                depositEnabled = False
-                withdrawEnabled = False
-                maxPrecision = None
                 for j in range(0, len(chains)):
                     chain = chains[j]
-                    canDeposit = self.safe_value(chain, 'canDep')
-                    depositEnabled = canDeposit if (canDeposit) else depositEnabled
-                    canWithdraw = self.safe_value(chain, 'canWd')
-                    withdrawEnabled = canWithdraw if (canWithdraw) else withdrawEnabled
-                    canInternal = self.safe_value(chain, 'canInternal')
-                    active = True if (canDeposit and canWithdraw and canInternal) else False
-                    currencyActive = active if (active) else currencyActive
                     networkId = self.safe_string(chain, 'chain')
                     if (networkId is not None) and (networkId.find('-') >= 0):
                         parts = networkId.split('-')
                         chainPart = self.safe_string(parts, 1, networkId)
                         networkCode = self.network_id_to_code(chainPart)
-                        precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
-                        if maxPrecision is None:
-                            maxPrecision = precision
-                        else:
-                            maxPrecision = Precise.string_min(maxPrecision, precision)
                         networks[networkCode] = {
                             'id': networkId,
                             'network': networkCode,
-                            'active': active,
-                            'deposit': canDeposit,
-                            'withdraw': canWithdraw,
+                            'active': None,
+                            'deposit': self.safe_bool(chain, 'canDep'),
+                            'withdraw': self.safe_bool(chain, 'canWd'),
                             'fee': self.safe_number(chain, 'minFee'),
-                            'precision': self.parse_number(precision),
+                            'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
                             'limits': {
                                 'withdraw': {
                                     'min': self.safe_number(chain, 'minWd'),
@@ -797,16 +876,16 @@ class okcoin(Exchange, ImplicitAPI):
                             'info': chain,
                         }
                 firstChain = self.safe_value(chains, 0)
-                result[code] = {
+                result[code] = self.safe_currency_structure({
                     'info': chains,
                     'code': code,
                     'id': currencyId,
                     'name': self.safe_string(firstChain, 'name'),
-                    'active': currencyActive,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
                     'fee': None,
-                    'precision': self.parse_number(maxPrecision),
+                    'precision': None,
                     'limits': {
                         'amount': {
                             'min': None,
@@ -814,7 +893,7 @@ class okcoin(Exchange, ImplicitAPI):
                         },
                     },
                     'networks': networks,
-                }
+                })
             return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -1470,7 +1549,7 @@ class okcoin(Exchange, ImplicitAPI):
             if stopLossDefined:
                 stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
-                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
+                    raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order')
                 request['slTriggerPx'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                 stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
@@ -1481,7 +1560,7 @@ class okcoin(Exchange, ImplicitAPI):
                         raise InvalidOrder(self.id + ' createOrder() params["stopLoss"]["type"] must be either "limit" or "market"')
                     elif stopLossLimitOrderType:
                         if stopLossLimitPrice is None:
-                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order')
+                            raise InvalidOrder(self.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] for a stop loss limit order')
                         else:
                             request['slOrdPx'] = self.price_to_precision(symbol, stopLossLimitPrice)
                     elif stopLossOrderType == 'market':
@@ -1574,7 +1653,7 @@ class okcoin(Exchange, ImplicitAPI):
         advanced = self.safe_value(params, 'advanced')
         if trigger or advanced:
             orderInner = await self.cancel_orders([id], symbol, params)
-            return self.safe_value(orderInner, 0)
+            return self.safe_dict(orderInner, 0)
         market = self.market(symbol)
         request: dict = {
             'instId': market['id'],
@@ -2340,7 +2419,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal

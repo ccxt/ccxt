@@ -13,7 +13,7 @@ var time = require('./functions/time.js');
 var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
@@ -39,6 +39,7 @@ exports.merge = generic.merge;
 exports.omit = generic.omit;
 exports.ordered = generic.ordered;
 exports.pluck = generic.pluck;
+exports.sort = generic.sort;
 exports.sortBy = generic.sortBy;
 exports.sortBy2 = generic.sortBy2;
 exports.sum = generic.sum;
@@ -104,6 +105,7 @@ exports.truncate = number.truncate;
 exports.truncate_to_string = number.truncate_to_string;
 exports.base16ToBinary = encode.base16ToBinary;
 exports.base58ToBinary = encode.base58ToBinary;
+exports.base64ToBase64Url = encode.base64ToBase64Url;
 exports.base64ToBinary = encode.base64ToBinary;
 exports.base64ToString = encode.base64ToString;
 exports.binaryConcat = encode.binaryConcat;

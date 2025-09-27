@@ -20,5 +20,6 @@ function test_fetch_market_leverage_tiers($exchange, $skipped_properties, $symbo
         for ($j = 0; $j < count($tiers); $j++) {
             test_leverage_tier($exchange, $skipped_properties, $method, $tiers[$j]);
         }
+        return true;
     }) ();
 }

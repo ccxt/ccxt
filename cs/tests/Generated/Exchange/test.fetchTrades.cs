@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testFetchTrades(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testFetchTrades(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchTrades";
         object trades = await exchange.fetchTrades(symbol);
@@ -18,10 +18,11 @@ public partial class testMainClass : BaseTest
             testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now);
             testSharedMethods.assertInArray(exchange, skippedProperties, method, getValue(trades, i), "takerOrMaker", new List<object>() {"taker", null});
         }
-        if (!isTrue((inOp(skippedProperties, "timestamp"))))
+        if (!isTrue((inOp(skippedProperties, "timestampSort"))))
         {
             testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
         }
+        return true;
     }
 
 }

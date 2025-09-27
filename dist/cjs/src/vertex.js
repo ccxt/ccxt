@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var vertex$1 = require('./abstract/vertex.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -8,13 +10,13 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class vertex
  * @augments Exchange
  */
-class vertex extends vertex$1 {
+class vertex extends vertex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'vertex',
@@ -321,6 +323,72 @@ class vertex extends vertex$1 {
                 'timeDifference': 0,
                 'brokerId': 5930043274845996,
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': true,
+                            'GTD': true,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': true,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 100000,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
         });
     }
     setSandboxMode(enabled) {
@@ -385,11 +453,10 @@ class vertex extends vertex$1 {
             if ((tickerId !== undefined) && (tickerId.indexOf('PERP') > 0)) {
                 continue;
             }
-            const id = this.safeString(data, 'product_id');
             const name = this.safeString(data, 'symbol');
             const code = this.safeCurrencyCode(name);
-            result[code] = {
-                'id': id,
+            result[code] = this.safeCurrencyStructure({
+                'id': this.safeString(data, 'product_id'),
                 'name': name,
                 'code': code,
                 'precision': undefined,
@@ -409,7 +476,7 @@ class vertex extends vertex$1 {
                         'max': undefined,
                     },
                 },
-            };
+            });
         }
         return result;
     }
@@ -563,7 +630,7 @@ class vertex extends vertex$1 {
     async fetchTime(params = {}) {
         const response = await this.v1GatewayGetTime(params);
         // 1717481623452
-        return this.parseNumber(response);
+        return this.parseToInt(response);
     }
     /**
      * @method
@@ -1485,7 +1552,7 @@ class vertex extends vertex$1 {
         if (base.indexOf('PERP') > 0) {
             marketId = marketId.replace('-PERP', '') + ':USDC';
         }
-        market = this.market(marketId);
+        market = this.safeMarket(marketId, market);
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -2166,7 +2233,7 @@ class vertex extends vertex$1 {
             //       "product_id": 1,
             //       "orders": [
             //         {
-            //           "product_id": 1,
+            //           "product_id": 2,
             //           "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
             //           "price_x18": "1000000000000000000",
             //           "amount": "1000000000000000000",
@@ -2175,7 +2242,7 @@ class vertex extends vertex$1 {
             //           "order_type": "default",
             //           "unfilled_amount": "1000000000000000000",
             //           "digest": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            //           "placed_at": 1682437739,
+            //           "placed_at": 1682437737,
             //           "order_type": "ioc"
             //         }
             //       ]
@@ -2356,7 +2423,7 @@ class vertex extends vertex$1 {
             // }
             //
         }
-        return response;
+        return [this.safeOrder({ 'info': response })];
     }
     /**
      * @method
@@ -2370,7 +2437,8 @@ class vertex extends vertex$1 {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        return await this.cancelOrders([id], symbol, params);
+        const order = await this.cancelOrders([id], symbol, params);
+        return this.safeOrder({ 'info': order });
     }
     /**
      * @method
@@ -2402,15 +2470,16 @@ class vertex extends vertex$1 {
             'digests': ids,
             'nonce': nonce,
         };
+        const productIds = cancels['productIds'];
         const marketIdNum = this.parseToNumeric(marketId);
         for (let i = 0; i < ids.length; i++) {
-            cancels['productIds'].push(marketIdNum);
+            productIds.push(marketIdNum);
         }
         const request = {
             'cancel_orders': {
                 'tx': {
                     'sender': cancels['sender'],
-                    'productIds': cancels['productIds'],
+                    'productIds': productIds,
                     'digests': cancels['digests'],
                     'nonce': this.numberToString(cancels['nonce']),
                 },
@@ -3075,4 +3144,4 @@ class vertex extends vertex$1 {
     }
 }
 
-module.exports = vertex;
+exports["default"] = vertex;

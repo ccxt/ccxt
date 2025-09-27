@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinexRest from '../coinex.js';
-import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable } from '../base/errors.js';
+import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinex extends coinexRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -261,7 +261,10 @@ export default class coinex extends coinexRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
         await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
-        let currencies = Object.keys (this.currencies_by_id);
+        // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
+        const activeCurrencies = this.filterBy (this.currencies_by_id, 'active', true);
+        const activeCurrenciesById = this.indexBy (activeCurrencies, 'id');
+        let currencies = Object.keys (activeCurrenciesById);
         if (currencies === undefined) {
             currencies = [];
         }
@@ -763,7 +766,6 @@ export default class coinex extends coinexRest {
         let type = undefined;
         let callerMethodName = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
-        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, undefined, params);
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
@@ -780,16 +782,16 @@ export default class coinex extends coinexRest {
         }
         params = this.omit (params, 'aggregation');
         const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                market = this.market (symbol);
-                messageHashes.push ('orderbook:' + market['symbol']);
-                watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
-            }
-        } else {
-            messageHashes.push ('orderbook');
+        if (!symbolsDefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a symbol argument');
         }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            market = this.market (symbol);
+            messageHashes.push ('orderbook:' + market['symbol']);
+            watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
+        }
+        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
         const marketList = Object.values (watchOrderBookSubscriptions);
         const subscribe: Dict = {
             'method': 'depth.subscribe',
@@ -860,7 +862,8 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        const defaultType = this.safeString (this.options, 'defaultType');
+        const isSpot = client.url.indexOf ('spot') > -1;
+        const defaultType = isSpot ? 'spot' : 'swap';
         const data = this.safeDict (message, 'data', {});
         const depth = this.safeDict (data, 'depth', {});
         const marketId = this.safeString (data, 'market');
@@ -1303,7 +1306,7 @@ export default class coinex extends coinexRest {
         const defaultType = this.safeString (this.options, 'defaultType');
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        const timestamp = this.safeTimestamp (ticker, 'updated_at');
+        const timestamp = this.safeInteger (ticker, 'updated_at');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
             'timestamp': timestamp,
@@ -1320,7 +1323,7 @@ export default class coinex extends coinexRest {
         const method = this.safeString (message, 'method');
         const error = this.safeString (message, 'message');
         if (error !== undefined) {
-            this.handleErrors (undefined, undefined, client.url, method, undefined, this.json (error), message, undefined, undefined);
+            this.handleErrors (1, '', client.url, method, {}, this.json (error), message, {}, {});
         }
         const handlers: Dict = {
             'state.update': this.handleTicker,

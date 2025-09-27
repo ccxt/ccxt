@@ -27,6 +27,26 @@ public partial class coincatch
         return (Int64)res;
     }
     /// <summary>
+    /// fetch deposit and withdraw fees
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coincatch.github.io/github.io/en/spot/#get-coin-list"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositWithdrawFees(codes, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// retrieves data on all markets for the exchange
     /// </summary>
     /// <remarks>
@@ -510,7 +530,7 @@ public partial class coincatch
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -554,6 +574,12 @@ public partial class coincatch
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap markets only* must be set to true if position mode is hedged (default false)
     /// </description>
     /// </item>
     /// <item>
@@ -730,6 +756,12 @@ public partial class coincatch
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : must be set to true if position mode is hedged (default false)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.postOnly</term>
     /// <description>
     /// bool : *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
@@ -812,7 +844,7 @@ public partial class coincatch
     /// <item>
     /// <term>params.hedged</term>
     /// <description>
-    /// bool : default false
+    /// bool : must be set to true if position mode is hedged (default false)
     /// </description>
     /// </item>
     /// <item>
@@ -922,8 +954,7 @@ public partial class coincatch
     /// create a list of trade orders (all orders should be of the same symbol)
     /// </summary>
     /// <remarks>
-    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders"/>  <br/>
-    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order"/>  <br/>
+    /// See <see href="https://coincatch.github.io/github.io/en/spot/#batch-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

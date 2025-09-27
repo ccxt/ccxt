@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -33,7 +33,7 @@ from ccxt.base.precise import Precise
 
 class kucoin(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'KuCoin',
@@ -812,7 +812,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -932,6 +932,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     # below will be uncommented after consensus
                     # 'BITCOINDIAMON': 'bcd',
                     # 'BITCOINGOLD': 'btg',
@@ -1040,17 +1041,20 @@ class kucoin(Exchange, ImplicitAPI):
                         'limit': None,
                         'daysBack': None,
                         'untilDays': 7,  # per  implementation comments
+                        'symbolRequired': True,
                     },
                     'fetchOrder': {
                         'marginMode': False,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': 500,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
@@ -1061,6 +1065,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'untilDays': 7,
                         'trigger': True,
                         'trailing': False,
+                        'symbolRequired': True,
                     },
                     'fetchOHLCV': {
                         'limit': 1500,
@@ -1080,7 +1085,7 @@ class kucoin(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1326,10 +1331,12 @@ class kucoin(Exchange, ImplicitAPI):
 
         https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
 
+        :returns any: ignore
         """
         if not ('hf' in self.options) or (self.options['hf'] is None) or force:
             result: dict = await self.privateGetHfAccountsOpened()
             self.options['hf'] = self.safe_bool(result, 'data')
+        return True
 
     def handle_hf_and_params(self, params={}):
         migrated: Bool = self.safe_bool(self.options, 'hf', False)
@@ -1352,8 +1359,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        promises = []
-        promises.append(self.publicGetCurrencies(params))
+        response = await self.publicGetCurrencies(params)
         #
         #    {
         #        "code":"200000",
@@ -1379,124 +1385,73 @@ class kucoin(Exchange, ImplicitAPI):
         #                    "isDepositEnabled":false,
         #                    "confirms":12,
         #                    "preConfirms":12,
+        #                    "withdrawPrecision": 8,
+        #                    "maxWithdraw": null,
+        #                    "maxDeposit": null,
+        #                    "needTag": False,
         #                    "contractAddress":"0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
         #                    "depositFeeRate": "0.001",  # present for some currencies/networks
         #                 }
         #              ]
         #           },
-        #    }
-        #
-        promises.append(self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetCurrencyCurrencyChainInfo', True))
-        #
-        #    {
-        #        "success": True,
-        #        "code": "200",
-        #        "msg": "success",
-        #        "retry": False,
-        #        "data": [
-        #            {
-        #                "status": "enabled",
-        #                "currency": "BTC",
-        #                "isChainEnabled": "true",
-        #                "chain": "btc",
-        #                "chainName": "BTC",
-        #                "chainFullName": "Bitcoin",
-        #                "walletPrecision": "8",
-        #                "isDepositEnabled": "true",
-        #                "depositMinSize": "0.00005",
-        #                "confirmationCount": "2",
-        #                "isWithdrawEnabled": "true",
-        #                "withdrawMinSize": "0.001",
-        #                "withdrawMinFee": "0.0005",
-        #                "withdrawFeeRate": "0",
-        #                "depositDisabledTip": "Wallet Maintenance",
-        #                "preDepositTipEnabled": "true",
-        #                "preDepositTip": "Do not transfer from ETH network directly",
-        #                "withdrawDisabledTip": "",
-        #                "preWithdrawTipEnabled": "false",
-        #                "preWithdrawTip": "",
-        #                "orgAddress": "",
-        #                "userAddressName": "Memo",
-        #            },
         #        ]
         #    }
         #
-        responses = await asyncio.gather(*promises)
-        currenciesResponse = self.safe_dict(responses, 0, {})
-        currenciesData = self.safe_list(currenciesResponse, 'data', [])
-        additionalResponse = self.safe_dict(responses, 1, {})
-        additionalData = self.safe_list(additionalResponse, 'data', [])
-        additionalDataGrouped = self.group_by(additionalData, 'currency')
+        currenciesData = self.safe_list(response, 'data', [])
+        brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
         result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
             id = self.safe_string(entry, 'currency')
-            name = self.safe_string(entry, 'fullName')
+            if self.in_array(id, brokenCurrencies):
+                continue  # skip buggy entries: https://t.me/KuCoin_API/217798
             code = self.safe_currency_code(id)
-            isWithdrawEnabled = None
-            isDepositEnabled = None
             networks: dict = {}
             chains = self.safe_list(entry, 'chains', [])
-            extraChainsData = self.index_by(self.safe_list(additionalDataGrouped, id, []), 'chain')
-            rawPrecision = self.safe_string(entry, 'precision')
-            precision = self.parse_number(self.parse_precision(rawPrecision))
             chainsLength = len(chains)
-            if not chainsLength:
-                # https://t.me/KuCoin_API/173118
-                isWithdrawEnabled = False
-                isDepositEnabled = False
             for j in range(0, chainsLength):
                 chain = chains[j]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(chainId, code)
-                chainWithdrawEnabled = self.safe_bool(chain, 'isWithdrawEnabled', False)
-                if isWithdrawEnabled is None:
-                    isWithdrawEnabled = chainWithdrawEnabled
-                else:
-                    isWithdrawEnabled = isWithdrawEnabled or chainWithdrawEnabled
-                chainDepositEnabled = self.safe_bool(chain, 'isDepositEnabled', False)
-                if isDepositEnabled is None:
-                    isDepositEnabled = chainDepositEnabled
-                else:
-                    isDepositEnabled = isDepositEnabled or chainDepositEnabled
-                chainExtraData = self.safe_dict(extraChainsData, chainId, {})
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
                     'name': self.safe_string(chain, 'chainName'),
                     'code': networkCode,
-                    'active': chainWithdrawEnabled and chainDepositEnabled,
+                    'active': None,
                     'fee': self.safe_number(chain, 'withdrawalMinFee'),
-                    'deposit': chainDepositEnabled,
-                    'withdraw': chainWithdrawEnabled,
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chainExtraData, 'walletPrecision'))),
+                    'deposit': self.safe_bool(chain, 'isDepositEnabled'),
+                    'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
                     'limits': {
                         'withdraw': {
                             'min': self.safe_number(chain, 'withdrawalMinSize'),
-                            'max': None,
+                            'max': self.safe_number(chain, 'maxWithdraw'),
                         },
                         'deposit': {
                             'min': self.safe_number(chain, 'depositMinSize'),
-                            'max': None,
+                            'max': self.safe_number(chain, 'maxDeposit'),
                         },
                     },
                 }
             # kucoin has determined 'fiat' currencies with below logic
-            isFiat = (rawPrecision == '2') and (chainsLength == 0)
-            result[code] = {
+            rawPrecision = self.safe_string(entry, 'precision')
+            precision = self.parse_number(self.parse_precision(rawPrecision))
+            isFiat = chainsLength == 0
+            result[code] = self.safe_currency_structure({
                 'id': id,
-                'name': name,
+                'name': self.safe_string(entry, 'fullName'),
                 'code': code,
                 'type': 'fiat' if isFiat else 'crypto',
                 'precision': precision,
                 'info': entry,
-                'active': (isDepositEnabled or isWithdrawEnabled),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': None,
-                'limits': self.limits,
                 'networks': networks,
-            }
+                'deposit': None,
+                'withdraw': None,
+                'active': None,
+                'fee': None,
+                'limits': None,
+            })
         return result
 
     async def fetch_accounts(self, params={}) -> List[Account]:
@@ -1636,6 +1591,35 @@ class kucoin(Exchange, ImplicitAPI):
         #        "chain": "ERC20"
         #    }
         #
+        if 'chains' in fee:
+            # if data obtained through `currencies` endpoint
+            resultNew: dict = {
+                'info': fee,
+                'withdraw': {
+                    'fee': None,
+                    'percentage': False,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+                'networks': {},
+            }
+            chains = self.safe_list(fee, 'chains', [])
+            for i in range(0, len(chains)):
+                chain = chains[i]
+                networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
+                resultNew['networks'][networkCodeNew] = {
+                    'withdraw': {
+                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'percentage': False,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+            return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result: dict = {
             'info': fee,
@@ -1974,7 +1958,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def create_deposit_address(self, code: str, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
 
         https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
@@ -2289,7 +2273,7 @@ class kucoin(Exchange, ImplicitAPI):
         req = {
             'cost': cost,
         }
-        return await self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
+        return await self.create_order(symbol, 'market', side, cost, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
@@ -2642,7 +2626,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         request: dict = {}
-        trigger = self.safe_bool(params, 'stop', False)
+        trigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         hf = None
         hf, params = self.handle_hf_and_params(params)
         params = self.omit(params, 'stop')
@@ -2663,7 +2647,7 @@ class kucoin(Exchange, ImplicitAPI):
                 response = await self.privateDeleteHfOrders(self.extend(request, query))
         else:
             response = await self.privateDeleteOrders(self.extend(request, query))
-        return response
+        return [self.safe_order({'info': response})]
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3121,14 +3105,14 @@ class kucoin(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if limit is not None:
-            request['pageSize'] = limit
         method = self.options['fetchMyTradesMethod']
         parseResponseData = False
         response = None
         request, params = self.handle_until_option('endAt', request, params)
         if hf:
             # does not return trades earlier than 2019-02-18T00:00:00Z
+            if limit is not None:
+                request['limit'] = limit
             if since is not None:
                 # only returns trades up to one week after the since param
                 request['startAt'] = since
@@ -3402,7 +3386,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3898,7 +3882,9 @@ class kucoin(Exchange, ImplicitAPI):
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
                     result[codeInner2] = account
-        returnType = result if isolated else self.safe_balance(result)
+        returnType = result
+        if not isolated:
+            returnType = self.safe_balance(result)
         return returnType
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -4611,7 +4597,8 @@ class kucoin(Exchange, ImplicitAPI):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
-                borrowRateHistories[code].append(borrowRateStructure)
+                borrowRateHistoriesCode = borrowRateHistories[code]
+                borrowRateHistoriesCode.append(borrowRateStructure)
         keys = list(borrowRateHistories.keys())
         for i in range(0, len(keys)):
             code = keys[i]
@@ -4814,7 +4801,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

@@ -1,18 +1,20 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var wavesexchange$1 = require('./abstract/wavesexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class wavesexchange
  * @augments Exchange
  */
-class wavesexchange extends wavesexchange$1 {
+class wavesexchange extends wavesexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'wavesexchange',
@@ -29,6 +31,9 @@ class wavesexchange extends wavesexchange$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': false,
@@ -38,9 +43,14 @@ class wavesexchange extends wavesexchange$1 {
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -50,21 +60,40 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -76,14 +105,20 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': true,
@@ -342,6 +377,84 @@ class wavesexchange extends wavesexchange$1 {
                 'networks': {
                     'ERC20': 'ETH',
                     'BEP20': 'BSC',
+                },
+            },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerDirection': false,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': true, // todo
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyByCost': false,
+                        'marketBuyRequiresPrice': true,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 1,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': undefined, // todo
+                    },
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
             'commonCurrencies': {
@@ -688,6 +801,7 @@ class wavesexchange extends wavesexchange$1 {
         if (hexSecretKeyBytes.length !== 64) {
             throw new errors.AuthenticationError(this.id + ' secret must be a base58 encoded private key');
         }
+        return true;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
@@ -956,6 +1070,7 @@ class wavesexchange extends wavesexchange$1 {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -967,22 +1082,35 @@ class wavesexchange extends wavesexchange$1 {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         const allowedCandles = this.safeInteger(this.options, 'allowedCandles', 1440);
+        const until = this.safeInteger(params, 'until');
+        const untilIsDefined = until !== undefined;
         if (limit === undefined) {
             limit = allowedCandles;
         }
         limit = Math.min(allowedCandles, limit);
         const duration = this.parseTimeframe(timeframe) * 1000;
         if (since === undefined) {
-            const durationRoundedTimestamp = this.parseToInt(this.milliseconds() / duration) * duration;
+            const now = this.milliseconds();
+            const timeEnd = untilIsDefined ? until : now;
+            const durationRoundedTimestamp = this.parseToInt(timeEnd / duration) * duration;
             const delta = (limit - 1) * duration;
             const timeStart = durationRoundedTimestamp - delta;
             request['timeStart'] = timeStart.toString();
+            if (untilIsDefined) {
+                request['timeEnd'] = until.toString();
+            }
         }
         else {
             request['timeStart'] = since.toString();
-            const timeEnd = this.sum(since, duration * limit);
-            request['timeEnd'] = timeEnd.toString();
+            if (untilIsDefined) {
+                request['timeEnd'] = until.toString();
+            }
+            else {
+                const timeEnd = this.sum(since, duration * limit);
+                request['timeEnd'] = timeEnd.toString();
+            }
         }
+        params = this.omit(params, 'until');
         const response = await this.publicGetCandlesBaseIdQuoteId(this.extend(request, params));
         //
         //     {
@@ -2226,12 +2354,25 @@ class wavesexchange extends wavesexchange$1 {
         const order1 = this.safeValue(data, 'order1');
         const order2 = this.safeValue(data, 'order2');
         let order = undefined;
-        // order2 arrived after order1
+        // at first, detect if response is from `fetch_my_trades`
         if (this.safeString(order1, 'senderPublicKey') === this.apiKey) {
             order = order1;
         }
-        else {
+        else if (this.safeString(order2, 'senderPublicKey') === this.apiKey) {
             order = order2;
+        }
+        else {
+            // response is from `fetch_trades`, so find only taker order
+            const date1 = this.safeString(order1, 'timestamp');
+            const date2 = this.safeString(order2, 'timestamp');
+            const ts1 = this.parse8601(date1);
+            const ts2 = this.parse8601(date2);
+            if (ts1 > ts2) {
+                order = order1;
+            }
+            else {
+                order = order2;
+            }
         }
         let symbol = undefined;
         const assetPair = this.safeValue(order, 'assetPair');
@@ -2637,4 +2778,4 @@ class wavesexchange extends wavesexchange$1 {
     }
 }
 
-module.exports = wavesexchange;
+exports["default"] = wavesexchange;

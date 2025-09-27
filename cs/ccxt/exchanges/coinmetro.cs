@@ -200,7 +200,79 @@ public partial class coinmetro : Exchange
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
-                { "currencyIdsListForParseMarket", null },
+                { "currencyIdsListForParseMarket", new List<object>() {"QRDO"} },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", null },
+                            { "price", false },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", true },
+                        { "marketBuyRequiresPrice", false },
+                        { "selfTradePrevention", false },
+                        { "iceberg", true },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", null },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", 100000 },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchClosedOrders", null },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -299,24 +371,35 @@ public partial class coinmetro : Exchange
             object currency = getValue(response, i);
             object id = this.safeString(currency, "symbol");
             object code = this.safeCurrencyCode(id);
-            object withdraw = this.safeValue(currency, "canWithdraw");
-            object deposit = this.safeValue(currency, "canDeposit");
-            object canTrade = this.safeValue(currency, "canTrade");
-            object active = ((bool) isTrue(canTrade)) ? withdraw : true;
-            object minAmount = this.safeNumber(currency, "minQty");
+            object typeRaw = this.safeString(currency, "type");
+            object type = null;
+            if (isTrue(isTrue(isTrue(isEqual(typeRaw, "coin")) || isTrue(isEqual(typeRaw, "token"))) || isTrue(isEqual(typeRaw, "erc20"))))
+            {
+                type = "crypto";
+            } else if (isTrue(isEqual(typeRaw, "fiat")))
+            {
+                type = "fiat";
+            }
+            object precisionDigits = this.safeString2(currency, "digits", "notabeneDecimals");
+            if (isTrue(isEqual(code, "RENDER")))
+            {
+                // RENDER is an exception (with broken info)
+                precisionDigits = "4";
+            }
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "code", code },
                 { "name", code },
+                { "type", type },
                 { "info", currency },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
+                { "active", this.safeBool(currency, "canTrade") },
+                { "deposit", this.safeBool(currency, "canDeposit") },
+                { "withdraw", this.safeBool(currency, "canWithdraw") },
                 { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "digits"))) },
+                { "precision", this.parseNumber(this.parsePrecision(precisionDigits)) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
-                        { "min", minAmount },
+                        { "min", this.safeNumber(currency, "minQty") },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
@@ -331,7 +414,13 @@ public partial class coinmetro : Exchange
         {
             object currenciesById = this.indexBy(result, "id");
             ((IDictionary<string,object>)this.options)["currenciesByIdForParseMarket"] = currenciesById;
-            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+            object currentCurrencyIdsList = this.safeList(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+            object currencyIdsList = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(currencyIdsList)); postFixIncrement(ref i))
+            {
+                ((IList<object>)currentCurrencyIdsList).Add(getValue(currencyIdsList, i));
+            }
+            ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currentCurrencyIdsList;
         }
         return result;
     }
@@ -347,11 +436,14 @@ public partial class coinmetro : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetMarkets(parameters);
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetMarkets(parameters));
         if (isTrue(isEqual(this.safeValue(this.options, "currenciesByIdForParseMarket"), null)))
         {
-            await this.fetchCurrencies();
+            ((IList<object>)promises).Add(this.fetchCurrencies());
         }
+        object responses = await promiseAll(promises);
+        object response = getValue(responses, 0);
         //
         //     [
         //         {
@@ -367,7 +459,18 @@ public partial class coinmetro : Exchange
         //         ...
         //     ]
         //
-        return this.parseMarkets(response);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object market = this.parseMarket(getValue(response, i));
+            // there are several broken (unavailable info) markets
+            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
+            {
+                continue;
+            }
+            ((IList<object>)result).Add(market);
+        }
+        return result;
     }
 
     public override object parseMarket(object market)
@@ -440,11 +543,26 @@ public partial class coinmetro : Exchange
         object baseId = null;
         object quoteId = null;
         object currencyIds = this.safeValue(this.options, "currencyIdsListForParseMarket", new List<object>() {});
+        // Bubble sort by length (longest first)
+        object currencyIdsLength = getArrayLength(currencyIds);
+        for (object i = 0; isLessThan(i, currencyIdsLength); postFixIncrement(ref i))
+        {
+            for (object j = 0; isLessThan(j, subtract(subtract(currencyIdsLength, i), 1)); postFixIncrement(ref j))
+            {
+                object a = getValue(currencyIds, j);
+                object b = getValue(currencyIds, add(j, 1));
+                if (isTrue(isLessThan(getArrayLength(a), getArrayLength(b))))
+                {
+                    ((List<object>)currencyIds)[Convert.ToInt32(j)] = b;
+                    ((List<object>)currencyIds)[Convert.ToInt32(add(j, 1))] = a;
+                }
+            }
+        }
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object entryIndex = getIndexOf(marketId, currencyId);
-            if (isTrue(!isEqual(entryIndex, -1)))
+            if (isTrue(isEqual(entryIndex, 0)))
             {
                 object restId = ((string)marketId).Replace((string)currencyId, (string)"");
                 if (isTrue(this.inArray(restId, currencyIds)))
@@ -460,6 +578,20 @@ public partial class coinmetro : Exchange
                     }
                     break;
                 }
+            }
+        }
+        if (isTrue(isTrue(isEqual(baseId, null)) || isTrue(isEqual(quoteId, null))))
+        {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (isTrue(((string)marketId).EndsWith(((string)"USDT"))))
+            {
+                baseId = ((string)marketId).Replace((string)"USDT", (string)"");
+                quoteId = "USDT";
+            }
+            if (isTrue(((string)marketId).EndsWith(((string)"USD"))))
+            {
+                baseId = ((string)marketId).Replace((string)"USD", (string)"");
+                quoteId = "USD";
             }
         }
         object result = new Dictionary<string, object>() {
@@ -1283,10 +1415,10 @@ public partial class coinmetro : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["orderType"] = type;
-        object precisedAmount = null;
+        object formattedAmount = null;
         if (isTrue(!isEqual(amount, null)))
         {
-            precisedAmount = this.amountToPrecision(symbol, amount);
+            formattedAmount = this.amountToPrecision(symbol, amount);
         }
         object cost = this.safeValue(parameters, "cost");
         parameters = this.omit(parameters, "cost");
@@ -1297,7 +1429,7 @@ public partial class coinmetro : Exchange
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder() requires a price or params.cost argument for a "), type), " order")) ;
             } else if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(amount, null)))))
             {
-                object costString = Precise.stringMul(this.numberToString(price), this.numberToString(precisedAmount));
+                object costString = Precise.stringMul(this.numberToString(price), this.numberToString(formattedAmount));
                 cost = this.parseToNumeric(costString);
             }
         }
@@ -1308,10 +1440,10 @@ public partial class coinmetro : Exchange
         }
         if (isTrue(isEqual(side, "sell")))
         {
-            request = this.handleCreateOrderSide(getValue(market, "baseId"), getValue(market, "quoteId"), precisedAmount, precisedCost, request);
+            request = this.handleCreateOrderSide(getValue(market, "baseId"), getValue(market, "quoteId"), formattedAmount, precisedCost, request);
         } else if (isTrue(isEqual(side, "buy")))
         {
-            request = this.handleCreateOrderSide(getValue(market, "quoteId"), getValue(market, "baseId"), precisedCost, precisedAmount, request);
+            request = this.handleCreateOrderSide(getValue(market, "quoteId"), getValue(market, "baseId"), precisedCost, formattedAmount, request);
         }
         object timeInForce = this.safeValue(parameters, "timeInForce");
         if (isTrue(!isEqual(timeInForce, null)))
@@ -1464,7 +1596,7 @@ public partial class coinmetro : Exchange
 
     /**
      * @method
-     * @name coinmetro#cancelOrder
+     * @name coinmetro#closePosition
      * @description closes an open position
      * @see https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316
      * @param {string} symbol not used by coinmetro closePosition ()

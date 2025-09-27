@@ -6,7 +6,7 @@ import okx from './okx.js';
 // ---------------------------------------------------------------------------
 
 export default class myokx extends okx {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'myokx',
             'name': 'MyOKX (EEA)',
@@ -27,6 +27,24 @@ export default class myokx extends okx {
                 },
                 'test': {
                     'rest': 'https://{hostname}',
+                },
+            },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+            },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });

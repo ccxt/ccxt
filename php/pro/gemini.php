@@ -9,12 +9,12 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class gemini extends \ccxt\async\gemini {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -516,13 +516,18 @@ class gemini extends \ccxt\async\gemini {
         $currentBidAsk['timestamp'] = $timestamp;
         $currentBidAsk['datetime'] = $this->iso8601($timestamp);
         $currentBidAsk['info'] = $rawBidAskChanges;
+        $bidsAsksDict = array();
+        $bidsAsksDict[$symbol] = $currentBidAsk;
         $this->bidsasks[$symbol] = $currentBidAsk;
-        $client->resolve ($currentBidAsk, $messageHash);
+        $client->resolve ($bidsAsksDict, $messageHash);
     }
 
-    public function helper_for_watch_multiple_construct(string $itemHashName, array $symbols, $params = array ()) {
+    public function helper_for_watch_multiple_construct(string $itemHashName, ?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($itemHashName, $symbols, $params) {
             Async\await($this->load_markets());
+            if ($symbols === null) {
+                throw new NotSupported($this->id . ' watchMultiple requires at least one symbol');
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             if (!$firstMarket['spot'] && !$firstMarket['linear']) {

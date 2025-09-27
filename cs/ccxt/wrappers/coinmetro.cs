@@ -349,17 +349,12 @@ public partial class coinmetro
         return new Order(res);
     }
     /// <summary>
-    /// closes an open position
+    /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#eaea86da-16ca-4c56-9f00-5b1cb2ad89f8"/>  <br/>
     /// See <see href="https://documenter.getpostman.com/view/3653795/SVfWN6KS#47f913fb-8cab-49f4-bc78-d980e6ced316"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>side</term>
-    /// <description>
-    /// string : not used by coinmetro closePosition ()
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -367,15 +362,9 @@ public partial class coinmetro
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.orderID</term>
+    /// <term>params.margin</term>
     /// <description>
-    /// string : order id
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.fraction</term>
-    /// <description>
-    /// number : fraction of order to close, between 0 and 1 (defaults to 1)
+    /// string : true for cancelling a margin order
     /// </description>
     /// </item>
     /// </list>

@@ -9,7 +9,7 @@ use Exception; // a common import
 
 class binanceusdm extends \ccxt\pro\binance {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
             'name' => 'Binance USDⓈ-M',
@@ -18,7 +18,9 @@ class binanceusdm extends \ccxt\pro\binance {
                 'doc' => 'https://developers.binance.com/en',
             ),
             'options' => array(
-                'fetchMarkets' => array( 'linear' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'linear' ),
+                ),
                 'defaultSubType' => 'linear',
             ),
             // https://binance-docs.github.io/apidocs/futures/en/#error-codes

@@ -15,8 +15,9 @@ async function testFetchTrades(exchange, skippedProperties, symbol) {
         testTrade(exchange, skippedProperties, method, trades[i], symbol, now);
         testSharedMethods.assertInArray(exchange, skippedProperties, method, trades[i], 'takerOrMaker', ['taker', undefined]);
     }
-    if (!('timestamp' in skippedProperties)) {
+    if (!('timestampSort' in skippedProperties)) {
         testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
     }
+    return true;
 }
 export default testFetchTrades;

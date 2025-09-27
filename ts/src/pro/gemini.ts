@@ -10,7 +10,7 @@ import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -266,7 +266,7 @@ export default class gemini extends geminiRest {
 
     /**
      * @method
-     * @name gemini#fetchOHLCV
+     * @name gemini#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://docs.gemini.com/websocket-api/#candles-data-feed
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -500,12 +500,17 @@ export default class gemini extends geminiRest {
         currentBidAsk['timestamp'] = timestamp;
         currentBidAsk['datetime'] = this.iso8601 (timestamp);
         currentBidAsk['info'] = rawBidAskChanges;
+        const bidsAsksDict = {};
+        bidsAsksDict[symbol] = currentBidAsk;
         this.bidsasks[symbol] = currentBidAsk;
-        client.resolve (currentBidAsk, messageHash);
+        client.resolve (bidsAsksDict, messageHash);
     }
 
-    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[], params = {}) {
+    async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[] = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbols === undefined) {
+            throw new NotSupported (this.id + ' watchMultiple requires at least one symbol');
+        }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         if (!firstMarket['spot'] && !firstMarket['linear']) {

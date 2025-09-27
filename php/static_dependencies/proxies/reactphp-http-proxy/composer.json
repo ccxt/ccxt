@@ -12,20 +12,25 @@
     ],
     "require": {
         "php": ">=5.3",
-        "react/promise": "^3 || ^2.1 || ^1.2.1",
-        "react/socket": "^1.12",
+        "react/promise": "^3.2 || ^2.1 || ^1.2.1",
+        "react/socket": "^1.16",
         "ringcentral/psr7": "^1.2"
     },
     "require-dev": {
-        "clue/block-react": "^1.5",
-        "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8",
+        "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
+        "react/async": "^4.3 || ^3 || ^2",
         "react/event-loop": "^1.2",
-        "react/http": "^1.5"
+        "react/http": "^1.11",
+        "react/promise-timer": "^1.11"
     },
     "autoload": {
-        "psr-4": { "Clue\\React\\HttpProxy\\": "src/" }
+        "psr-4": { 
+            "Clue\\React\\HttpProxy\\": "src/" 
+        }
     },
     "autoload-dev": {
-        "psr-4": { "Clue\\Tests\\React\\HttpProxy\\": "tests/" }
+        "psr-4": { 
+            "Clue\\Tests\\React\\HttpProxy\\": "tests/" 
+        }
     }
 }

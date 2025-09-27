@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var blofin$1 = require('../blofin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------
-class blofin extends blofin$1 {
+class blofin extends blofin$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -31,6 +33,14 @@ class blofin extends blofin$1 {
                         'swap': {
                             'public': 'wss://openapi.blofin.com/ws/public',
                             'private': 'wss://openapi.blofin.com/ws/private',
+                        },
+                    },
+                },
+                'test': {
+                    'ws': {
+                        'swap': {
+                            'public': 'wss://demo-trading-openapi.blofin.com/ws/public',
+                            'private': 'wss://demo-trading-openapi.blofin.com/ws/private',
                         },
                     },
                 },
@@ -472,7 +482,7 @@ class blofin extends blofin$1 {
     }
     /**
      * @method
-     * @name alpaca#watchOrders
+     * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -729,4 +739,4 @@ class blofin extends blofin$1 {
     }
 }
 
-module.exports = blofin;
+exports["default"] = blofin;

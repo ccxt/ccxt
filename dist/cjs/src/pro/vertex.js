@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var vertex$1 = require('../vertex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class vertex extends vertex$1 {
+class vertex extends vertex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -47,6 +49,11 @@ class vertex extends vertex$1 {
                 },
                 'ws': {
                     'inflate': true,
+                    'options': {
+                        'headers': {
+                            'Sec-WebSocket-Extensions': 'permessage-deflate', // requires permessage-deflate extension, maybe we can set this in client implementation when inflate is true
+                        },
+                    },
                 },
             },
             'streaming': {
@@ -990,4 +997,4 @@ class vertex extends vertex$1 {
     }
 }
 
-module.exports = vertex;
+exports["default"] = vertex;

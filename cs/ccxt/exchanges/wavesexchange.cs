@@ -22,6 +22,9 @@ public partial class wavesexchange : Exchange
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelOrder", true },
                 { "closeAllPositions", false },
                 { "closePosition", false },
@@ -31,9 +34,14 @@ public partial class wavesexchange : Exchange
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -43,21 +51,40 @@ public partial class wavesexchange : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLeverage", false },
+                { "fetchLeverages", false },
                 { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
+                { "fetchMarkPrice", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
                 { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -69,14 +96,20 @@ public partial class wavesexchange : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
+                { "fetchUnderlyingAssets", false },
+                { "fetchVolatilityHistory", false },
                 { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
                 { "sandbox", true },
                 { "setLeverage", false },
+                { "setMargin", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
                 { "signIn", true },
@@ -171,6 +204,84 @@ public partial class wavesexchange : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "BEP20", "BSC" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerDirection", false },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", false },
+                        { "takeProfitPrice", false },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "IOC", false },
+                            { "FOK", false },
+                            { "PO", false },
+                            { "GTD", true },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "leverage", false },
+                        { "marketBuyByCost", false },
+                        { "marketBuyRequiresPrice", true },
+                        { "selfTradePrevention", false },
+                        { "iceberg", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "untilDays", 100000 },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBack", 100000 },
+                        { "daysBackCanceled", 1 },
+                        { "untilDays", 100000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -515,7 +626,7 @@ public partial class wavesexchange : Exchange
         return result;
     }
 
-    public virtual void checkRequiredKeys()
+    public virtual object checkRequiredKeys()
     {
         if (isTrue(isEqual(this.apiKey, null)))
         {
@@ -551,6 +662,7 @@ public partial class wavesexchange : Exchange
         {
             throw new AuthenticationError ((string)add(this.id, " secret must be a base58 encoded private key")) ;
         }
+        return true;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -850,6 +962,7 @@ public partial class wavesexchange : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -864,6 +977,8 @@ public partial class wavesexchange : Exchange
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         object allowedCandles = this.safeInteger(this.options, "allowedCandles", 1440);
+        object until = this.safeInteger(parameters, "until");
+        object untilIsDefined = !isEqual(until, null);
         if (isTrue(isEqual(limit, null)))
         {
             limit = allowedCandles;
@@ -872,16 +987,29 @@ public partial class wavesexchange : Exchange
         object duration = multiply(this.parseTimeframe(timeframe), 1000);
         if (isTrue(isEqual(since, null)))
         {
-            object durationRoundedTimestamp = multiply(this.parseToInt(divide(this.milliseconds(), duration)), duration);
+            object now = this.milliseconds();
+            object timeEnd = ((bool) isTrue(untilIsDefined)) ? until : now;
+            object durationRoundedTimestamp = multiply(this.parseToInt(divide(timeEnd, duration)), duration);
             object delta = multiply((subtract(limit, 1)), duration);
             object timeStart = subtract(durationRoundedTimestamp, delta);
             ((IDictionary<string,object>)request)["timeStart"] = ((object)timeStart).ToString();
+            if (isTrue(untilIsDefined))
+            {
+                ((IDictionary<string,object>)request)["timeEnd"] = ((object)until).ToString();
+            }
         } else
         {
             ((IDictionary<string,object>)request)["timeStart"] = ((object)since).ToString();
-            object timeEnd = this.sum(since, multiply(duration, limit));
-            ((IDictionary<string,object>)request)["timeEnd"] = ((object)timeEnd).ToString();
+            if (isTrue(untilIsDefined))
+            {
+                ((IDictionary<string,object>)request)["timeEnd"] = ((object)until).ToString();
+            } else
+            {
+                object timeEnd = this.sum(since, multiply(duration, limit));
+                ((IDictionary<string,object>)request)["timeEnd"] = ((object)timeEnd).ToString();
+            }
         }
+        parameters = this.omit(parameters, "until");
         object response = await this.publicGetCandlesBaseIdQuoteId(this.extend(request, parameters));
         //
         //     {
@@ -2235,13 +2363,27 @@ public partial class wavesexchange : Exchange
         object order1 = this.safeValue(data, "order1");
         object order2 = this.safeValue(data, "order2");
         object order = null;
-        // order2 arrived after order1
+        // at first, detect if response is from `fetch_my_trades`
         if (isTrue(isEqual(this.safeString(order1, "senderPublicKey"), this.apiKey)))
         {
             order = order1;
-        } else
+        } else if (isTrue(isEqual(this.safeString(order2, "senderPublicKey"), this.apiKey)))
         {
             order = order2;
+        } else
+        {
+            // response is from `fetch_trades`, so find only taker order
+            object date1 = this.safeString(order1, "timestamp");
+            object date2 = this.safeString(order2, "timestamp");
+            object ts1 = this.parse8601(date1);
+            object ts2 = this.parse8601(date2);
+            if (isTrue(isGreaterThan(ts1, ts2)))
+            {
+                order = order1;
+            } else
+            {
+                order = order2;
+            }
         }
         object symbol = null;
         object assetPair = this.safeValue(order, "assetPair");

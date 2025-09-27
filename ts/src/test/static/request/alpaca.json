@@ -5,6 +5,18 @@
     ],
     "outputType": "json",
     "methods": {
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://paper-api.alpaca.markets/v2/orders",
+                "input": [
+                    "LTC/USD",
+                    15
+                ],
+                "output": "{\"symbol\":\"LTC/USD\",\"side\":\"buy\",\"type\":\"market\",\"notional\":\"15\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_ae433584bd694fcb96d0f3e1333ad236\"}"
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -198,6 +210,20 @@
         ],
         "fetchOrders": [
             {
+                "description": "trades with since and until",
+                "method": "fetchOrders",
+                "url": "https://paper-api.alpaca.markets/v2/orders?status=all&symbols=BTC%2FUSDT&endTime=2025-02-14T15%3A54%3A04.000Z&after=2025-02-10T15%3A54%3A04.000Z&limit=100",
+                "input": [
+                    "BTC/USDT",
+                    1739202844000,
+                    100,
+                    {
+                        "until": 1739548444000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot open orders",
                 "method": "fetchOrders",
                 "url": "https://api.alpaca.markets/v2/orders?status=all&symbols=LTC%2FUSDT",
@@ -227,6 +253,20 @@
             }
         ],
         "fetchMyTrades": [
+            {
+                "description": "trades with since and until",
+                "method": "fetchMyTrades",
+                "url": "https://paper-api.alpaca.markets/v2/account/activities/FILL?until=2025-02-14T15%3A54%3A04.000Z&after=2025-02-10T15%3A54%3A04.000Z&page_size=100",
+                "input": [
+                    "BTC/USDT",
+                    1739202844000,
+                    100,
+                    {
+                        "until": 1739548444000
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "spot fetch my trades with a limit argument",
                 "method": "fetchMyTrades",
