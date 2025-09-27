@@ -1073,6 +1073,7 @@ class cex extends \ccxt\async\cex {
         if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($this->id . ' watchOrderBook() skipped a message', $messageHash);
+            return;
         }
         $timestamp = $this->safe_integer($data, 'time');
         $asks = $this->safe_value($data, 'asks', array());

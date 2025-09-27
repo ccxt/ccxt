@@ -3767,7 +3767,7 @@ func (this *kraken) ParseDepositAddress(depositAddress interface{}, optionalArgs
  * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
- * @param {string} address the address to withdraw to
+ * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -3784,16 +3784,18 @@ func (this *kraken) Withdraw(code interface{}, amount interface{}, address inter
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
-		this.CheckAddress(address)
 		if IsTrue(InOp(params, "key")) {
 
-			retRes322612 := (<-this.LoadMarkets())
-			PanicOnError(retRes322612)
+			retRes322512 := (<-this.LoadMarkets())
+			PanicOnError(retRes322512)
 			var currency interface{} = this.Currency(code)
 			var request interface{} = map[string]interface{}{
-				"asset":   GetValue(currency, "id"),
-				"amount":  amount,
-				"address": address,
+				"asset":  GetValue(currency, "id"),
+				"amount": amount,
+			}
+			if IsTrue(IsTrue(!IsEqual(address, nil)) && IsTrue(!IsEqual(address, ""))) {
+				AddElementToObject(request, "address", address)
+				this.CheckAddress(address)
 			}
 
 			response := (<-this.PrivatePostWithdraw(this.Extend(request, params)))
@@ -3836,8 +3838,8 @@ func (this *kraken) FetchPositions(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes32588 := (<-this.LoadMarkets())
-		PanicOnError(retRes32588)
+		retRes32618 := (<-this.LoadMarkets())
+		PanicOnError(retRes32618)
 		var request interface{} = map[string]interface{}{
 			"docalcs":       "true",
 			"consolidation": "market",
@@ -3977,9 +3979,9 @@ func (this *kraken) TransferOut(code interface{}, amount interface{}, optionalAr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes338515 := (<-this.Transfer(code, amount, "spot", "swap", params))
-		PanicOnError(retRes338515)
-		ch <- retRes338515
+		retRes338815 := (<-this.Transfer(code, amount, "spot", "swap", params))
+		PanicOnError(retRes338815)
+		ch <- retRes338815
 		return nil
 
 	}()
@@ -4006,8 +4008,8 @@ func (this *kraken) Transfer(code interface{}, amount interface{}, fromAccount i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes34018 := (<-this.LoadMarkets())
-		PanicOnError(retRes34018)
+		retRes34048 := (<-this.LoadMarkets())
+		PanicOnError(retRes34048)
 		var currency interface{} = this.Currency(code)
 		fromAccount = this.ParseAccountType(fromAccount)
 		toAccount = this.ParseAccountType(toAccount)

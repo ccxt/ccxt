@@ -1020,6 +1020,7 @@ class apex extends \ccxt\async\apex {
 
     public function ping(Client $client) {
         $timeStamp = (string) $this->milliseconds();
+        $client->lastPong = $timeStamp; // server won't send a pong, so we set it here
         return array(
             'args' => array( $timeStamp ),
             'op' => 'ping',

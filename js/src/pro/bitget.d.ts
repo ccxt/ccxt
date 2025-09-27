@@ -192,11 +192,13 @@ export default class bitget extends bitgetRest {
      * @name bitget#watchPositions
      * @description watch all open positions
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Positions-Channel
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
@@ -211,6 +213,7 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
      * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Order-Channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -219,6 +222,7 @@ export default class bitget extends bitgetRest {
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
      * @param {string} [params.type] 'spot', 'swap'
      * @param {string} [params.subType] 'linear', 'inverse'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -248,10 +252,12 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
      * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
      * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+     * @see https://www.bitget.com/api-doc/uta/websocket/private/Account-Channel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;

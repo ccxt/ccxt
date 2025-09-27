@@ -199,6 +199,20 @@ class binance extends Exchange {
                     'private' => 'https://testnet.binance.vision/api/v3',
                     'v1' => 'https://testnet.binance.vision/api/v1',
                 ),
+                'demo' => array(
+                    'dapiPublic' => 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate' => 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2' => 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic' => 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2' => 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3' => 'https://demo-fapi.binance.com/fapi/v3',
+                    'fapiPrivate' => 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2' => 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3' => 'https://demo-fapi.binance.com/fapi/v3',
+                    'public' => 'https://demo-api.binance.com/api/v3',
+                    'private' => 'https://demo-api.binance.com/api/v3',
+                    'v1' => 'https://demo-api.binance.com/api/v1',
+                ),
                 'api' => array(
                     'sapi' => 'https://api.binance.com/sapi/v1',
                     'sapiV2' => 'https://api.binance.com/sapi/v2',
@@ -1384,6 +1398,9 @@ class binance extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => true,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => true,
@@ -2750,6 +2767,29 @@ class binance extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
+    public function enable_demo_trading(bool $enable) {
+        /**
+         * enables or disables demo trading mode
+         *
+         * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+         * @see https://demo.binance.com/en/my/settings/api-management
+         *
+         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
+         */
+        if ($this->isSandboxModeEnabled) {
+            throw new NotSupported($this->id . ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if ($enable) {
+            $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
+            $this->urls['api'] = $this->urls['demo'];
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+            $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
+            $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
+            $this->urls = $newUrls;
+        }
+        $this->options['enableDemoTrading'] = $enable;
+    }
+
     public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
@@ -2790,19 +2830,23 @@ class binance extends Exchange {
          */
         $fetchCurrenciesEnabled = $this->safe_bool($this->options, 'fetchCurrencies');
         if (!$fetchCurrenciesEnabled) {
-            return null;
+            return array();
         }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         // sandbox/testnet does not support sapi endpoints
         $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
-            return null;
+            return array();
+        }
+        // demotrading does not support sapi endpoints
+        if ($this->safe_bool($this->options, 'enableDemoTrading', false)) {
+            return array();
         }
         $promises = array( $this->sapiGetCapitalConfigGetall ($params) );
         $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
@@ -2876,7 +2920,7 @@ class binance extends Exchange {
             //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
             //                "addressRule" => "",
             //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
-            //                "withdrawFee" => "0.002",
+            //                "withdrawFee" => "0.003",
             //                "withdrawMin" => "0.01",
             //                "withdrawMax" => "10000000000",
             //                "minConfirm" => "1",
@@ -3046,10 +3090,12 @@ class binance extends Exchange {
             }
         }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $demoMode = $this->safe_bool($this->options, 'enableDemoTrading', false);
+        $isDemoEnv = $demoMode || $sandboxMode;
         $fetchMarkets = array();
         for ($i = 0; $i < count($rawFetchMarkets); $i++) {
             $type = $rawFetchMarkets[$i];
-            if ($type === 'option' && $sandboxMode) {
+            if ($type === 'option' && $isDemoEnv) {
                 continue;
             }
             $fetchMarkets[] = $type;
@@ -3059,7 +3105,7 @@ class binance extends Exchange {
             $marketType = $fetchMarkets[$i];
             if ($marketType === 'spot') {
                 $promisesRaw[] = $this->publicGetExchangeInfo ($params);
-                if ($fetchMargins && $this->check_required_credentials(false) && !$sandboxMode) {
+                if ($fetchMargins && $this->check_required_credentials(false) && !$isDemoEnv) {
                     $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
                     $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
                 }
@@ -6317,6 +6363,7 @@ class binance extends Exchange {
         $isConditional = $isTriggerOrder || $isTrailingPercentOrder || $isStopLoss || $isTakeProfit;
         $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
         $isPriceMatch = $priceMatch !== null;
+        $priceRequiredForTrailing = true;
         $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isTrailingPercentOrder) {
@@ -6327,18 +6374,28 @@ class binance extends Exchange {
                     $request['activationPrice'] = $this->price_to_precision($symbol, $trailingTriggerPrice);
                 }
             } else {
-                if ($isMarketOrder) {
-                    throw new InvalidOrder($this->id . ' $trailingPercent orders are not supported for ' . $symbol . ' ' . $type . ' orders');
+                if (($uppercaseType !== 'STOP_LOSS') && ($uppercaseType !== 'TAKE_PROFIT') && ($uppercaseType !== 'STOP_LOSS_LIMIT') && ($uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
+                    $stopLossOrTakeProfit = $this->safe_string($params, 'stopLossOrTakeProfit');
+                    $params = $this->omit($params, 'stopLossOrTakeProfit');
+                    if (($stopLossOrTakeProfit !== 'stopLoss') && ($stopLossOrTakeProfit !== 'takeProfit')) {
+                        throw new InvalidOrder($this->id . $symbol . ' $trailingPercent orders require a $stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                    }
+                    if ($isMarketOrder) {
+                        if ($stopLossOrTakeProfit === 'stopLoss') {
+                            $uppercaseType = 'STOP_LOSS';
+                        } elseif ($stopLossOrTakeProfit === 'takeProfit') {
+                            $uppercaseType = 'TAKE_PROFIT';
+                        }
+                    } else {
+                        if ($stopLossOrTakeProfit === 'stopLoss') {
+                            $uppercaseType = 'STOP_LOSS_LIMIT';
+                        } elseif ($stopLossOrTakeProfit === 'takeProfit') {
+                            $uppercaseType = 'TAKE_PROFIT_LIMIT';
+                        }
+                    }
                 }
-                $stopLossOrTakeProfit = $this->safe_string($params, 'stopLossOrTakeProfit');
-                $params = $this->omit($params, 'stopLossOrTakeProfit');
-                if ($stopLossOrTakeProfit !== 'stopLoss' && $stopLossOrTakeProfit !== 'takeProfit') {
-                    throw new InvalidOrder($this->id . $symbol . ' $trailingPercent orders require a $stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
-                }
-                if ($stopLossOrTakeProfit === 'stopLoss') {
-                    $uppercaseType = 'STOP_LOSS_LIMIT';
-                } elseif ($stopLossOrTakeProfit === 'takeProfit') {
-                    $uppercaseType = 'TAKE_PROFIT_LIMIT';
+                if (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
+                    $priceRequiredForTrailing = false;
                 }
                 if ($trailingTriggerPrice !== null) {
                     $stopPrice = $this->price_to_precision($symbol, $trailingTriggerPrice);
@@ -6476,7 +6533,7 @@ class binance extends Exchange {
         } elseif (($uppercaseType === 'STOP_LOSS') || ($uppercaseType === 'TAKE_PROFIT')) {
             $triggerPriceIsRequired = true;
             $quantityIsRequired = true;
-            if ($market['linear'] || $market['inverse']) {
+            if (($market['linear'] || $market['inverse']) && $priceRequiredForTrailing) {
                 $priceIsRequired = true;
             }
         } elseif (($uppercaseType === 'STOP_LOSS_LIMIT') || ($uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -11668,7 +11725,7 @@ class binance extends Exchange {
         //         "asset" => "USDT",
         //         "amount" => "-0.16518203",
         //         "type" => "FEE",
-        //         "createDate" => 1676621042489
+        //         "createDate" => 167662104241
         //     }
         //
         // futures (fapi, dapi, papi)

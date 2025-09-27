@@ -393,6 +393,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		tokocryptoItf := &tokocrypto{}
 		tokocryptoItf.Init(exchangeArgs)
 		return tokocryptoItf, true
+	case "toobit":
+		toobitItf := &toobit{}
+		toobitItf.Init(exchangeArgs)
+		return toobitItf, true
 	case "upbit":
 		upbitItf := &upbit{}
 		upbitItf.Init(exchangeArgs)

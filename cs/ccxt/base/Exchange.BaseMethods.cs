@@ -883,6 +883,31 @@ public partial class Exchange
         }
     }
 
+    /**
+     * @method
+     * @name Exchange#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    public virtual void enableDemoTrading(object enable)
+    {
+        if (isTrue(this.isSandboxModeEnabled))
+        {
+            throw new NotSupported ((string)add(this.id, " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")) ;
+        }
+        if (isTrue(enable))
+        {
+            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = getValue(this.urls, "api");
+            ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "demo");
+        } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
+        {
+            ((IDictionary<string,object>)this.urls)["api"] = ((object)getValue(this.urls, "apiBackupDemoTrading"));
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            this.urls = newUrls;
+        }
+        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+    }
+
     public virtual object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1595,6 +1620,116 @@ public partial class Exchange
         return featuresObj;
     }
 
+    public virtual object featureValue(object symbol, object methodName = null, object paramName = null, object subParamName = null, object defaultValue = null)
+    {
+        /**
+         * @method
+         * @name exchange#featureValue
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [symbol] unified symbol
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        object market = this.market(symbol);
+        return this.featureValueByType(getValue(market, "type"), getValue(market, "subType"), methodName, paramName, subParamName, defaultValue);
+    }
+
+    public virtual object featureValueByType(object marketType, object subType, object methodName = null, object paramName = null, object subParamName = null, object defaultValue = null)
+    {
+        /**
+         * @method
+         * @name exchange#featureValueByType
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [marketType] supported only: "spot", "swap", "future"
+         * @param {string} [subType] supported only: "linear", "inverse"
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        // if exchange does not yet have features manually implemented
+        if (isTrue(isEqual(this.features, null)))
+        {
+            return defaultValue;
+        }
+        // if marketType (e.g. 'option') does not exist in features
+        if (!isTrue((inOp(this.features, marketType))))
+        {
+            return defaultValue;  // unsupported marketType, check "exchange.features" for details
+        }
+        // if marketType dict undefined
+        if (isTrue(isEqual(getValue(this.features, marketType), null)))
+        {
+            return defaultValue;
+        }
+        object methodsContainer = getValue(this.features, marketType);
+        if (isTrue(isEqual(subType, null)))
+        {
+            if (isTrue(!isEqual(marketType, "spot")))
+            {
+                return defaultValue;  // subType is required for non-spot markets
+            }
+        } else
+        {
+            if (!isTrue((inOp(getValue(this.features, marketType), subType))))
+            {
+                return defaultValue;  // unsupported subType, check "exchange.features" for details
+            }
+            // if subType dict undefined
+            if (isTrue(isEqual(getValue(getValue(this.features, marketType), subType), null)))
+            {
+                return defaultValue;
+            }
+            methodsContainer = getValue(getValue(this.features, marketType), subType);
+        }
+        // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        if (isTrue(isEqual(methodName, null)))
+        {
+            return methodsContainer;
+        }
+        if (!isTrue((inOp(methodsContainer, methodName))))
+        {
+            return defaultValue;  // unsupported method, check "exchange.features" for details');
+        }
+        object methodDict = getValue(methodsContainer, methodName);
+        if (isTrue(isEqual(methodDict, null)))
+        {
+            return defaultValue;
+        }
+        // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
+        if (isTrue(isEqual(paramName, null)))
+        {
+            return methodDict;
+        }
+        if (!isTrue((inOp(methodDict, paramName))))
+        {
+            return defaultValue;  // unsupported paramName, check "exchange.features" for details');
+        }
+        object dictionary = this.safeDict(methodDict, paramName);
+        if (isTrue(isEqual(dictionary, null)))
+        {
+            // if the value is not dictionary but a scalar value (or undefined), return as is
+            return getValue(methodDict, paramName);
+        } else
+        {
+            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (isTrue(isEqual(subParamName, null)))
+            {
+                return getValue(methodDict, paramName);
+            }
+            // throw an exception for unsupported subParamName
+            if (!isTrue((inOp(getValue(methodDict, paramName), subParamName))))
+            {
+                return defaultValue;  // unsupported subParamName, check "exchange.features" for details
+            }
+            return getValue(getValue(methodDict, paramName), subParamName);
+        }
+    }
+
     public virtual object orderbookChecksumMessage(object symbol)
     {
         return add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
@@ -1953,7 +2088,13 @@ public partial class Exchange
         object marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = new List<object>(((IDictionary<string,object>)marketsSortedBySymbol).Keys);
         this.ids = new List<object>(((IDictionary<string,object>)marketsSortedById).Keys);
+        object numCurrencies = 0;
         if (isTrue(!isEqual(currencies, null)))
+        {
+            object keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
+            numCurrencies = getArrayLength(keys);
+        }
+        if (isTrue(isGreaterThan(numCurrencies, 0)))
         {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
@@ -5700,7 +5841,9 @@ public partial class Exchange
 
     public virtual object currency(object code)
     {
-        if (isTrue(isEqual(this.currencies, null)))
+        object keys = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        object numCurrencies = getArrayLength(keys);
+        if (isTrue(isEqual(numCurrencies, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
         }

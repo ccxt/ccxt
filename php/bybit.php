@@ -1235,6 +1235,9 @@ class bybit extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
@@ -1283,7 +1286,9 @@ class bybit extends Exchange {
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
+         *
          * @see https://bybit-exchange.github.io/docs/v5/demo
+         *
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
         if ($this->isSandboxModeEnabled) {
@@ -1600,10 +1605,10 @@ class bybit extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         if ($this->options['enableDemoTrading']) {
-            return null;
+            return array();
         }
         $response = $this->privateGetV5AssetCoinQueryInfo ($params);
         //
@@ -6230,15 +6235,16 @@ class bybit extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic $accounts only)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $accountType = null;
         $accounts = $this->is_unified_enabled();
         $isUta = $accounts[1];
-        list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType', 'SPOT');
-        if ($isUta) {
-            $accountType = 'UTA';
+        list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType');
+        if ($accountType === null) {
+            $accountType = $isUta ? 'UTA' : 'SPOT';
         }
         $this->load_markets();
         $this->check_address($address);

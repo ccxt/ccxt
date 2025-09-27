@@ -1875,7 +1875,7 @@ public partial class gate : Exchange
         object apiBackup = this.safeValue(this.urls, "apiBackup");
         if (isTrue(!isEqual(apiBackup, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //

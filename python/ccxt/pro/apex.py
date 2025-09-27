@@ -913,6 +913,7 @@ class apex(ccxt.async_support.apex):
 
     def ping(self, client: Client):
         timeStamp = str(self.milliseconds())
+        client.lastPong = timeStamp  # server won't send a pong, so we set it here
         return {
             'args': [timeStamp],
             'op': 'ping',

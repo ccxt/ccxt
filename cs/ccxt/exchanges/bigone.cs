@@ -364,7 +364,7 @@ public partial class bigone : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGetV3Assets", true);
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         // {
@@ -1208,7 +1208,7 @@ public partial class bigone : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "contract")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchTrades () can only fetch trades for spot markets")) ;
         }
         object request = new Dictionary<string, object>() {
             { "asset_pair_name", getValue(market, "id") },
@@ -1275,7 +1275,7 @@ public partial class bigone : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "contract")))
         {
-            throw new BadRequest ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
+            throw new NotSupported ((string)add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
         object until = this.safeInteger(parameters, "until");
         object untilIsDefined = (!isEqual(until, null));

@@ -512,6 +512,7 @@ class okx extends Exchange {
                         'account/fixed-loan/repay-borrowing-order' => 5,
                         'account/bills-history-archive' => 72000, // 12 req/day
                         'account/move-positions' => 10,
+                        'account/set-settle-currency' => 1,
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
@@ -669,7 +670,7 @@ class okx extends Exchange {
                     '51005' => '\\ccxt\\InvalidOrder', // Order amount exceeds the limit
                     '51006' => '\\ccxt\\InvalidOrder', // Order price out of the limit
                     '51007' => '\\ccxt\\InvalidOrder', // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
-                    '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance
+                    '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance or margin
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
                     '51010' => '\\ccxt\\AccountNotEnabled', // Account level too low array("code":"1","data":[array("clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":"")],"msg":"Operation failed.")
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
@@ -694,6 +695,7 @@ class okx extends Exchange {
                     '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
                     '51046' => '\\ccxt\\InvalidOrder', // The take profit trigger price must be higher than the order price
                     '51047' => '\\ccxt\\InvalidOrder', // The stop loss trigger price must be lower than the order price
+                    '51051' => '\\ccxt\\InvalidOrder', // Your SL price should be lower than the primary order price
                     '51072' => '\\ccxt\\InvalidOrder', // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073' => '\\ccxt\\InvalidOrder', // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074' => '\\ccxt\\InvalidOrder', // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
@@ -810,7 +812,7 @@ class okx extends Exchange {
                     '51410' => '\\ccxt\\CancelPending', // Cancellation failed order is already under cancelling status
                     '51500' => '\\ccxt\\ExchangeError', // Either order price or amount is required
                     '51501' => '\\ccxt\\ExchangeError', // Maximum {0} orders can be modified
-                    '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin
+                    '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin or balance
                     '51503' => '\\ccxt\\ExchangeError', // Order modification failed order does not exist
                     '51506' => '\\ccxt\\ExchangeError', // Order modification unavailable for the order type
                     '51508' => '\\ccxt\\ExchangeError', // Orders are not allowed to be modified during the call auction
@@ -834,6 +836,9 @@ class okx extends Exchange {
                     '54008' => '\\ccxt\\InvalidOrder', // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009' => '\\ccxt\\InvalidOrder', // The range of {param0} should be [{param1}, {param2}].
                     '54011' => '\\ccxt\\InvalidOrder', // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54072' => '\\ccxt\\ExchangeError', // This contract is currently view-only and not tradable.
+                    '54073' => '\\ccxt\\BadRequest', // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
+                    '54074' => '\\ccxt\\ExchangeError', // Your settings failed have positions, bot or open orders for USD contracts.
                     // Trading bot Error Code from 55100 to 55999
                     '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
                     '55101' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be within the range of {parameter1}-{parameter2}
@@ -939,6 +944,9 @@ class okx extends Exchange {
                     '59519' => '\\ccxt\\ExchangeError', // You can’t use this function/feature while it's frozen, due to => {freezereason}
                     '59642' => '\\ccxt\\BadRequest', // Lead and copy traders can only use margin-free or single-currency margin account modes
                     '59643' => '\\ccxt\\ExchangeError', // Couldn’t switch account modes’re currently copying spot trades
+                    '59683' => '\\ccxt\\ExchangeError', // Set this crypto collateral crypto before selecting it settlement currency.
+                    '59684' => '\\ccxt\\BadRequest', // Borrowing isn’t supported for this currency.
+                    '59686' => '\\ccxt\\BadRequest', // This crypto can’t be set settlement currency.
                     // WebSocket error Codes from 60000-63999
                     '60001' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_KEY" can not be empty
                     '60002' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_SIGN" can not be empty
@@ -1305,6 +1313,9 @@ class okx extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'swap' => array(
                     'linear' => array(
@@ -1517,19 +1528,38 @@ class okx extends Exchange {
             //
             //     {
             //         "code" => "0",
-            //         "data" => array(
+            //         "data" => [
             //             {
             //                 "acctLv" => "2",
+            //                 "acctStpMode" => "cancel_maker",
             //                 "autoLoan" => false,
             //                 "ctIsoMode" => "automatic",
+            //                 "enableSpotBorrow" => false,
             //                 "greeksType" => "PA",
+            //                 "feeType" => "0",
+            //                 "ip" => "",
+            //                 "type" => "0",
+            //                 "kycLv" => "3",
+            //                 "label" => "v5 test",
             //                 "level" => "Lv1",
             //                 "levelTmp" => "",
+            //                 "liquidationGear" => "-1",
+            //                 "mainUid" => "44705892343619584",
             //                 "mgnIsoMode" => "automatic",
+            //                 "opAuth" => "1",
+            //                 "perm" => "read_only,withdraw,trade",
             //                 "posMode" => "long_short_mode",
-            //                 "uid" => "88018754289672195"
+            //                 "roleType" => "0",
+            //                 "spotBorrowAutoRepay" => false,
+            //                 "spotOffsetType" => "",
+            //                 "spotRoleType" => "0",
+            //                 "spotTraderInsts" => array(),
+            //                 "traderInsts" => array(),
+            //                 "uid" => "44705892343619584",
+            //                 "settleCcy" => "USDT",
+            //                 "settleCcyList" => ["USD", "USDC", "USDG"],
             //             }
-            //         ),
+            //         ],
             //         "msg" => ""
             //     }
             //
@@ -1818,7 +1848,7 @@ class okx extends Exchange {
             // and fallback to generating the currencies from the markets
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
             if (!$this->check_required_credentials(false) || $isSandboxMode) {
-                return null;
+                return array();
             }
             //
             // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -3188,7 +3218,9 @@ class okx extends Exchange {
             if ($attachOrdLen > 0) {
                 $request['attachAlgoOrds'] = array( $attachAlgoOrd );
             }
-        } elseif ($trigger) {
+        }
+        // algo order details
+        if ($trigger) {
             $request['ordType'] = 'trigger';
             $request['triggerPx'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['orderPx'] = $isMarketOrder ? '-1' : $this->price_to_precision($symbol, $price);

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.5'
+__version__ = '4.5.6'
 
 # ----------------------------------------------------------------------------
 
@@ -180,6 +180,7 @@ from ccxt.poloniex import poloniex                                    # noqa: F4
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
+from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
@@ -287,6 +288,7 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
+    'toobit',
     'upbit',
     'wavesexchange',
     'whitebit',

@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.5';
+$version = '4.5.6';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.5';
+    const VERSION = '4.5.6';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -434,6 +434,7 @@ class Exchange {
         'probit',
         'timex',
         'tokocrypto',
+        'toobit',
         'upbit',
         'wavesexchange',
         'whitebit',
@@ -2398,7 +2399,7 @@ class Exchange {
     // ########################################################################
     // ########################################################################
 
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     public function describe(): mixed {
         return array(
@@ -3155,6 +3156,25 @@ class Exchange {
         }
     }
 
+    public function enable_demo_trading(bool $enable) {
+        /**
+         * enables or disables demo trading mode
+         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
+         */
+        if ($this->isSandboxModeEnabled) {
+            throw new NotSupported($this->id . ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if ($enable) {
+            $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
+            $this->urls['api'] = $this->urls['demo'];
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+            $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
+            $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
+            $this->urls = $newUrls;
+        }
+        $this->options['enableDemoTrading'] = $enable;
+    }
+
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null) {
         return array();
     }
@@ -3691,6 +3711,93 @@ class Exchange {
         return $featuresObj;
     }
 
+    public function feature_value(string $symbol, ?string $methodName = null, ?string $paramName = null, ?string $subParamName = null, mixed $defaultValue = null) {
+        /**
+         * this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [$symbol] unified $symbol
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$paramName] unified param value (check docs for supported param names)
+         * @param {string} [$subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {array} [$defaultValue] return default value if no result found
+         * @return {array} returns feature value
+         */
+        $market = $this->market($symbol);
+        return $this->feature_value_by_type($market['type'], $market['subType'], $methodName, $paramName, $subParamName, $defaultValue);
+    }
+
+    public function feature_value_by_type(string $marketType, ?string $subType, ?string $methodName = null, ?string $paramName = null, ?string $subParamName = null, mixed $defaultValue = null) {
+        /**
+         * this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [$marketType] supported only => "spot", "swap", "future"
+         * @param {string} [$subType] supported only => "linear", "inverse"
+         * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
+         * @param {string} [$paramName] unified param value (check docs for supported param names)
+         * @param {string} [$subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {array} [$defaultValue] return default value if no result found
+         * @return {array} returns feature value
+         */
+        // if exchange does not yet have features manually implemented
+        if ($this->features === null) {
+            return $defaultValue;
+        }
+        // if $marketType (e.g. 'option') does not exist in features
+        if (!(is_array($this->features) && array_key_exists($marketType, $this->features))) {
+            return $defaultValue; // unsupported $marketType, check "exchange.features" for details
+        }
+        // if $marketType dict null
+        if ($this->features[$marketType] === null) {
+            return $defaultValue;
+        }
+        $methodsContainer = $this->features[$marketType];
+        if ($subType === null) {
+            if ($marketType !== 'spot') {
+                return $defaultValue; // $subType is required for non-spot markets
+            }
+        } else {
+            if (!(is_array($this->features[$marketType]) && array_key_exists($subType, $this->features[$marketType]))) {
+                return $defaultValue; // unsupported $subType, check "exchange.features" for details
+            }
+            // if $subType dict null
+            if ($this->features[$marketType][$subType] === null) {
+                return $defaultValue;
+            }
+            $methodsContainer = $this->features[$marketType][$subType];
+        }
+        // if user wanted only $marketType and didn't provide $methodName, eg => featureIsSupported('spot')
+        if ($methodName === null) {
+            return $methodsContainer;
+        }
+        if (!(is_array($methodsContainer) && array_key_exists($methodName, $methodsContainer))) {
+            return $defaultValue; // unsupported method, check "exchange.features" for details');
+        }
+        $methodDict = $methodsContainer[$methodName];
+        if ($methodDict === null) {
+            return $defaultValue;
+        }
+        // if user wanted only method and didn't provide `$paramName`, eg => featureIsSupported('swap', 'linear', 'createOrder')
+        if ($paramName === null) {
+            return $methodDict;
+        }
+        if (!(is_array($methodDict) && array_key_exists($paramName, $methodDict))) {
+            return $defaultValue; // unsupported $paramName, check "exchange.features" for details');
+        }
+        $dictionary = $this->safe_dict($methodDict, $paramName);
+        if ($dictionary === null) {
+            // if the value is not $dictionary but a scalar value (or null), return
+            return $methodDict[$paramName];
+        } else {
+            // return, when calling without `$subParamName` eg => featureValueByType('spot', null, 'createOrder', 'stopLoss')
+            if ($subParamName === null) {
+                return $methodDict[$paramName];
+            }
+            // throw an exception for unsupported $subParamName
+            if (!(is_array($methodDict[$paramName]) && array_key_exists($subParamName, $methodDict[$paramName]))) {
+                return $defaultValue; // unsupported $subParamName, check "exchange.features" for details
+            }
+            return $methodDict[$paramName][$subParamName];
+        }
+    }
+
     public function orderbook_checksum_message(?string $symbol) {
         return $symbol . '  = false';
     }
@@ -3996,7 +4103,12 @@ class Exchange {
         $marketsSortedById = $this->keysort($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
         $this->ids = is_array($marketsSortedById) ? array_keys($marketsSortedById) : array();
+        $numCurrencies = 0;
         if ($currencies !== null) {
+            $keys = is_array($currencies) ? array_keys($currencies) : array();
+            $numCurrencies = count($keys);
+        }
+        if ($numCurrencies > 0) {
             // $currencies is always null when called in constructor but not when called from loadMarkets
             $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
         } else {
@@ -6926,7 +7038,9 @@ class Exchange {
     }
 
     public function currency(string $code) {
-        if ($this->currencies === null) {
+        $keys = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        $numCurrencies = count($keys);
+        if ($numCurrencies === 0) {
             throw new ExchangeError($this->id . ' currencies not loaded');
         }
         if (gettype($code) === 'string') {

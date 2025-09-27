@@ -3209,21 +3209,24 @@ class kraken extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
+         * @param {string} $address the $address to withdraw to, not required can be '' or null/none/null
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             $this->load_markets();
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
-                'address' => $address,
+                // 'address' => $address,
             );
+            if ($address !== null && $address !== '') {
+                $request['address'] = $address;
+                $this->check_address($address);
+            }
             $response = $this->privatePostWithdraw ($this->extend($request, $params));
             //
             //     {

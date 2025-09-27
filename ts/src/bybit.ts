@@ -1241,6 +1241,9 @@ export default class bybit extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
@@ -1286,14 +1289,14 @@ export default class bybit extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name bybit#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://bybit-exchange.github.io/docs/v5/demo
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
     enableDemoTrading (enable: boolean) {
-        /**
-         * @method
-         * @name bybit#enableDemoTrading
-         * @description enables or disables demo trading mode
-         * @see https://bybit-exchange.github.io/docs/v5/demo
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
         if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
         }
@@ -1608,10 +1611,10 @@ export default class bybit extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         if (this.options['enableDemoTrading']) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetV5AssetCoinQueryInfo (params);
         //
@@ -6239,6 +6242,7 @@ export default class bybit extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -6246,9 +6250,9 @@ export default class bybit extends Exchange {
         let accountType = undefined;
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
-        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType', 'SPOT');
-        if (isUta) {
-            accountType = 'UTA';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
+        if (accountType === undefined) {
+            accountType = isUta ? 'UTA' : 'SPOT';
         }
         await this.loadMarkets ();
         this.checkAddress (address);

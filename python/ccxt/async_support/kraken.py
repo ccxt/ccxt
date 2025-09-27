@@ -3040,21 +3040,23 @@ class kraken(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
-        :param str address: the address to withdraw to
+        :param str address: the address to withdraw to, not required can be '' or None/none/None
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
         if 'key' in params:
             await self.load_markets()
             currency = self.currency(code)
             request: dict = {
                 'asset': currency['id'],
                 'amount': amount,
-                'address': address,
+                # 'address': address,
             }
+            if address is not None and address != '':
+                request['address'] = address
+                self.check_address(address)
             response = await self.privatePostWithdraw(self.extend(request, params))
             #
             #     {

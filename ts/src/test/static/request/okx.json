@@ -95,6 +95,43 @@
         ],
         "createOrder": [
             {
+                "description": "type2 & type3 together",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/batch-orders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 100333
+                        }
+                    }
+                ],
+                "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"market\",\"sz\":\"0.1\",\"tdMode\":\"cross\",\"attachAlgoOrds\":[{\"slTriggerPx\":\"100333\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\"}],\"clOrdId\":\"6b9ad766b55dBCDE63969a1144bfb943\",\"tag\":\"6b9ad766b55dBCDE\"}]"
+            },
+            {
+                "description": "type2 & type3 together",
+                "method": "createOrder",
+                "url": "https://www.okx.com/api/v5/trade/order-algo",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "triggerPrice": 100444,
+                        "stopLoss": {
+                            "triggerPrice": 100333
+                        }
+                    }
+                ],
+                "output": "{\"instId\":\"BTC-USDT-SWAP\",\"side\":\"buy\",\"ordType\":\"trigger\",\"sz\":\"0.1\",\"tdMode\":\"cross\",\"attachAlgoOrds\":[{\"slTriggerPx\":\"100333\",\"slOrdPx\":\"-1\",\"slTriggerPxType\":\"last\"}],\"triggerPx\":\"100444\",\"orderPx\":\"-1\",\"clOrdId\":\"6b9ad766b55dBCDEd524d810f42296b8\",\"tag\":\"6b9ad766b55dBCDE\"}"
+            },
+            {
                 "description": "spot takeProfitPrice buy order",
                 "method": "createOrder",
                 "url": "https://www.okx.com/api/v5/trade/order-algo",
