@@ -49,6 +49,7 @@ const version = '4.4.99';
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
+import aster from  './src/aster.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
 import binance from  './src/binance.js'
@@ -159,6 +160,7 @@ import zonda from  './src/zonda.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
 import ascendexPro from  './src/pro/ascendex.js'
+import asterPro from  './src/pro/aster.js'
 import bequantPro from  './src/pro/bequant.js'
 import binancePro from  './src/pro/binance.js'
 import binancecoinmPro from  './src/pro/binancecoinm.js'
@@ -234,6 +236,7 @@ const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
     'ascendex':               ascendex,
+    'aster':                  aster,
     'bequant':                bequant,
     'bigone':                 bigone,
     'binance':                binance,
@@ -344,6 +347,7 @@ const pro = {
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
     'ascendex':               ascendexPro,
+    'aster':                  asterPro,
     'bequant':                bequantPro,
     'binance':                binancePro,
     'binancecoinm':           binancecoinmPro,
@@ -561,6 +565,7 @@ export {
     alpaca,
     apex,
     ascendex,
+    aster,
     bequant,
     bigone,
     binance,

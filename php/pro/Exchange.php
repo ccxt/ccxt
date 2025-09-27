@@ -22,6 +22,7 @@ Exchange::$exchanges = array(
     'alpaca',
     'apex',
     'ascendex',
+    'aster',
     'bequant',
     'binance',
     'binancecoinm',

@@ -60,6 +60,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
+from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
 from ccxt.pro.binancecoinm import binancecoinm                            # noqa: F401
@@ -135,6 +136,7 @@ exchanges = [
     'alpaca',
     'apex',
     'ascendex',
+    'aster',
     'bequant',
     'binance',
     'binancecoinm',
