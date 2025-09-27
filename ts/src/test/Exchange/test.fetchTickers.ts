@@ -26,7 +26,10 @@ async function testFetchTickersHelper (exchange: Exchange, skippedProperties: ob
         const ticker = values[i];
         testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
     }
-    return response;
+    // any normal exchange should return at least 3 tickers
+    const length = argSymbols === undefined ? 3 : argSymbols.length;
+    assert (values.length >= length, exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return at least ' + length + ' tickers. ' + exchange.json (response));
+    return true;
 }
 
 function testFetchTickersAmounts (exchange: Exchange, skippedProperties: object, tickers: any) {
