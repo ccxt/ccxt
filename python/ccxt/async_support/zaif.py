@@ -659,7 +659,7 @@ class zaif(Exchange, ImplicitAPI):
         response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41

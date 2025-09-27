@@ -24,17 +24,27 @@ export default class timex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -45,21 +55,40 @@ export default class timex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
@@ -70,15 +99,21 @@ export default class timex extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
+                'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
             },
@@ -966,7 +1001,7 @@ export default class timex extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0);
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**
@@ -1433,11 +1468,6 @@ export default class timex extends Exchange {
         //
         const id = this.safeString (currency, 'symbol');
         const code = this.safeCurrencyCode (id);
-        const name = this.safeString (currency, 'name');
-        const depositEnabled = this.safeValue (currency, 'depositEnabled');
-        const withdrawEnabled = this.safeValue (currency, 'withdrawalEnabled');
-        const isActive = this.safeValue (currency, 'active');
-        const active = depositEnabled && withdrawEnabled && isActive;
         // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
@@ -1462,14 +1492,14 @@ export default class timex extends Exchange {
             'code': code,
             'info': currency,
             'type': undefined,
-            'name': name,
-            'active': active,
-            'deposit': depositEnabled,
-            'withdraw': withdrawEnabled,
+            'name': this.safeString (currency, 'name'),
+            'active': this.safeBool (currency, 'active'),
+            'deposit': this.safeBool (currency, 'depositEnabled'),
+            'withdraw': this.safeBool (currency, 'withdrawalEnabled'),
             'fee': fee,
             'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
             'limits': {
-                'withdraw': { 'min': fee, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},

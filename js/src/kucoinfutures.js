@@ -105,6 +105,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -199,6 +200,7 @@ export default class kucoinfutures extends kucoin {
                         'sub/api-key/update': 1,
                         'changeCrossUserLeverage': 1,
                         'position/changeMarginMode': 1,
+                        'position/switchPositionMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -229,7 +231,7 @@ export default class kucoinfutures extends kucoin {
                     '429': RateLimitExceeded,
                     '500': ExchangeNotAvailable,
                     '503': ExchangeNotAvailable,
-                    '100001': InvalidOrder,
+                    '100001': OrderNotFound,
                     '100004': BadRequest,
                     '101030': PermissionDenied,
                     '200004': InsufficientFunds,
@@ -248,7 +250,8 @@ export default class kucoinfutures extends kucoin {
                     '400100': BadRequest,
                     '411100': AccountSuspended,
                     '500000': ExchangeNotAvailable,
-                    '300009': InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
+                    '300009': InvalidOrder,
+                    '330008': InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
@@ -342,6 +345,7 @@ export default class kucoinfutures extends kucoin {
                             'transfer-out': 'v2',
                             'changeCrossUserLeverage': 'v2',
                             'position/changeMarginMode': 'v2',
+                            'position/switchPositionMode': 'v2',
                         },
                     },
                     'futuresPublic': {
@@ -469,7 +473,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeString(data, 'status');
         return {
             'status': (status === 'open') ? 'ok' : 'maintenance',
@@ -552,12 +556,12 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const result = [];
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString(market, 'symbol');
             const expiry = this.safeInteger(market, 'expireDate');
-            const future = expiry ? true : false;
+            const future = this.safeString(market, 'nextFundingRateTime') === undefined;
             const swap = !future;
             const baseId = this.safeString(market, 'baseCurrency');
             const quoteId = this.safeString(market, 'quoteCurrency');
@@ -769,7 +773,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'address');
         if (currencyId !== 'NIM') {
             // contains spaces
@@ -833,7 +837,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const timestamp = this.parseToInt(this.safeInteger(data, 'ts') / 1000000);
         const orderbook = this.parseOrderBook(data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
@@ -1163,7 +1167,7 @@ export default class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue(response, 'data');
-        const dataList = this.safeValue(data, 'dataList', []);
+        const dataList = this.safeList(data, 'dataList', []);
         const fees = [];
         for (let i = 0; i < dataList.length; i++) {
             const listItem = dataList[i];
@@ -1534,6 +1538,8 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1543,7 +1549,8 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+     * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1637,6 +1644,11 @@ export default class kucoinfutures extends kucoin {
             'type': type,
             'leverage': 1,
         };
+        const marginModeUpper = this.safeStringUpper(params, 'marginMode');
+        if (marginModeUpper !== undefined) {
+            params = this.omit(params, 'marginMode');
+            request['marginMode'] = marginModeUpper;
+        }
         const cost = this.safeString(params, 'cost');
         params = this.omit(params, 'cost');
         if (cost !== undefined) {
@@ -1722,7 +1734,23 @@ export default class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
+        let hedged = undefined;
+        [hedged, params] = this.handleParamBool(params, 'hedged', false);
+        if (reduceOnly) {
+            request['reduceOnly'] = reduceOnly;
+            if (hedged) {
+                const reduceOnlyPosSide = (side === 'sell') ? 'LONG' : 'SHORT';
+                request['positionSide'] = reduceOnlyPosSide;
+            }
+        }
+        else {
+            if (hedged) {
+                const posSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                request['positionSide'] = posSide;
+            }
+        }
+        params = this.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged']); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return this.extend(request, params);
     }
     /**
@@ -1765,7 +1793,7 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue(response, 'data');
+        return this.safeOrder({ 'info': response });
     }
     /**
      * @method
@@ -1864,7 +1892,8 @@ export default class kucoinfutures extends kucoin {
         //       },
         //   }
         //
-        return this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
+        return [this.safeOrder({ 'info': data })];
     }
     /**
      * @method
@@ -2117,7 +2146,7 @@ export default class kucoinfutures extends kucoin {
         //         }
         //     }
         //
-        const responseData = this.safeValue(response, 'data', {});
+        const responseData = this.safeDict(response, 'data', {});
         const orders = this.safeList(responseData, 'items', []);
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2487,6 +2516,7 @@ export default class kucoinfutures extends kucoin {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
@@ -3044,7 +3074,7 @@ export default class kucoinfutures extends kucoin {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseMarketLeverageTiers(data, market);
     }
     parseMarketLeverageTiers(info, market = undefined) {
@@ -3133,7 +3163,7 @@ export default class kucoinfutures extends kucoin {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseFundingRateHistories(data, market, since, limit);
     }
     parseFundingRateHistory(info, market = undefined) {
@@ -3290,6 +3320,33 @@ export default class kucoinfutures extends kucoin {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseMarginMode(data, market);
+    }
+    /**
+     * @method
+     * @name kucoinfutures#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.kucoin.com/docs-new/3475097e0
+     * @param {bool} hedged set to true to use two way position
+     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response from the exchange
+     */
+    async setPositionMode(hedged, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const posMode = hedged ? '1' : '0';
+        const request = {
+            'positionMode': posMode,
+        };
+        const response = await this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "positionMode": 1
+        //         }
+        //     }
+        //
+        return response;
     }
     /**
      * @method

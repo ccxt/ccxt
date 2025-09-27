@@ -673,8 +673,9 @@ export default class exmo extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
+        const promises = [];
         //
-        const currencyList = await this.publicGetCurrencyListExtended(params);
+        promises.push(this.publicGetCurrencyListExtended(params));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -683,7 +684,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList(params);
+        promises.push(this.publicGetPaymentsProvidersCryptoList(params));
         //
         //     {
         //         "BTC":[
@@ -708,86 +709,98 @@ export default class exmo extends Exchange {
         //         ],
         //     }
         //
+        const responses = await Promise.all(promises);
+        const currencyList = responses[0];
+        const cryptoList = responses[1];
         const result = {};
         for (let i = 0; i < currencyList.length; i++) {
             const currency = currencyList[i];
             const currencyId = this.safeString(currency, 'name');
-            const name = this.safeString(currency, 'description');
-            const providers = this.safeValue(cryptoList, currencyId);
-            let active = false;
+            const code = this.safeCurrencyCode(currencyId);
             let type = 'crypto';
-            const limits = {
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'withdraw': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
+            const networks = {};
+            const providers = this.safeList(cryptoList, currencyId);
             if (providers === undefined) {
-                active = true;
                 type = 'fiat';
             }
             else {
                 for (let j = 0; j < providers.length; j++) {
                     const provider = providers[j];
+                    const name = this.safeString(provider, 'name');
+                    // get network-id by removing extra things
+                    let networkId = name.replace(currencyId + ' ', '');
+                    networkId = networkId.replace('(', '');
+                    const replaceChar = ')'; // transpiler trick
+                    networkId = networkId.replace(replaceChar, '');
+                    const networkCode = this.networkIdToCode(networkId);
+                    if (!(networkCode in networks)) {
+                        networks[networkCode] = {
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': undefined,
+                            'withdraw': undefined,
+                            'fee': undefined,
+                            'limits': {
+                                'withdraw': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                            },
+                            'info': [], // set as array, because of multiple network sub-entries
+                        };
+                    }
                     const typeInner = this.safeString(provider, 'type');
                     const minValue = this.safeString(provider, 'min');
-                    let maxValue = this.safeString(provider, 'max');
-                    if (Precise.stringEq(maxValue, '0.0')) {
-                        maxValue = undefined;
-                    }
-                    const activeProvider = this.safeValue(provider, 'enabled');
+                    const maxValue = this.safeString(provider, 'max');
+                    const activeProvider = this.safeBool(provider, 'enabled');
+                    const networkEntry = networks[networkCode];
                     if (typeInner === 'deposit') {
-                        if (activeProvider && !depositEnabled) {
-                            depositEnabled = true;
-                        }
-                        else if (!activeProvider) {
-                            depositEnabled = false;
-                        }
+                        networkEntry['deposit'] = activeProvider;
+                        networkEntry['limits']['deposit']['min'] = minValue;
+                        networkEntry['limits']['deposit']['max'] = maxValue;
                     }
                     else if (typeInner === 'withdraw') {
-                        if (activeProvider && !withdrawEnabled) {
-                            withdrawEnabled = true;
-                        }
-                        else if (!activeProvider) {
-                            withdrawEnabled = false;
-                        }
+                        networkEntry['withdraw'] = activeProvider;
+                        networkEntry['limits']['withdraw']['min'] = minValue;
+                        networkEntry['limits']['withdraw']['max'] = maxValue;
                     }
-                    if (activeProvider) {
-                        active = true;
-                        const limitMin = this.numberToString(limits[typeInner]['min']);
-                        if ((limits[typeInner]['min'] === undefined) || (Precise.stringLt(minValue, limitMin))) {
-                            limits[typeInner]['min'] = minValue;
-                            limits[typeInner]['max'] = maxValue;
-                            if (typeInner === 'withdraw') {
-                                const commissionDesc = this.safeString(provider, 'commission_desc');
-                                fee = this.parseFixedFloatValue(commissionDesc);
-                            }
-                        }
-                    }
+                    const info = this.safeList(networkEntry, 'info');
+                    info.push(provider);
+                    networkEntry['info'] = info;
+                    networks[networkCode] = networkEntry;
                 }
             }
-            const code = this.safeCurrencyCode(currencyId);
-            result[code] = {
+            result[code] = this.safeCurrencyStructure({
                 'id': currencyId,
                 'code': code,
-                'name': name,
+                'name': this.safeString(currency, 'description'),
                 'type': type,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': fee,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
                 'precision': this.parseNumber('1e-8'),
-                'limits': limits,
-                'info': providers,
-                'networks': {},
-            };
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': {
+                    'currency': currency,
+                    'providers': providers,
+                },
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -800,7 +813,8 @@ export default class exmo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const response = await this.publicGetPairSettings(params);
+        const promises = [];
+        promises.push(this.publicGetPairSettings(params));
         //
         //     {
         //         "BTC_USD":{
@@ -817,8 +831,9 @@ export default class exmo extends Exchange {
         //     }
         //
         let marginPairsDict = {};
-        if (this.checkRequiredCredentials(false)) {
-            const marginPairs = await this.privatePostMarginPairList(params);
+        const fetchMargin = this.checkRequiredCredentials(false);
+        if (fetchMargin) {
+            promises.push(this.privatePostMarginPairList(params));
             //
             //    {
             //        "pairs": [
@@ -848,15 +863,20 @@ export default class exmo extends Exchange {
             //        ]
             //    }
             //
-            const pairs = this.safeValue(marginPairs, 'pairs');
+        }
+        const responses = await Promise.all(promises);
+        const spotResponse = responses[0];
+        if (fetchMargin) {
+            const marginPairs = responses[1];
+            const pairs = this.safeList(marginPairs, 'pairs');
             marginPairsDict = this.indexBy(pairs, 'name');
         }
-        const keys = Object.keys(response);
+        const keys = Object.keys(spotResponse);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            const market = response[id];
-            const marginMarket = this.safeValue(marginPairsDict, id);
+            const market = spotResponse[id];
+            const marginMarket = this.safeDict(marginPairsDict, id);
             const symbol = id.replace('_', '/');
             const [baseId, quoteId] = symbol.split('/');
             const base = this.safeCurrencyCode(baseId);
@@ -956,7 +976,7 @@ export default class exmo extends Exchange {
             request['to'] = to;
         }
         else {
-            request['from'] = this.parseToInt(since / 1000) - 1;
+            request['from'] = this.parseToInt(since / 1000);
             if (untilIsDefined) {
                 request['to'] = Math.min(until, now);
             }

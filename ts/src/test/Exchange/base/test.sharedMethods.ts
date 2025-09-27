@@ -317,9 +317,8 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     const logText = logTemplate (exchange, method, entry);
     const keyString = stringValue (key);
     if (Number.isInteger (key)) {
-        key = key as number;
         assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
-        assert (key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
+        assert (key as number < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     } else {
         assert (typeof entry === 'object', 'fee container is expected to be an object' + logText);
         assert (key in entry, 'fee key "' + key + '" was expected to be present in entry' + logText);
@@ -537,6 +536,15 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
+function getActiveMarkets (exchange, includeUnknown = true) {
+    const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
+    if (includeUnknown) {
+        const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
+        return exchange.arrayConcat (filteredActive, filteredUndefined);
+    }
+    return filteredActive;
+}
+
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -639,4 +647,5 @@ export default {
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     concat,
+    getActiveMarkets,
 };

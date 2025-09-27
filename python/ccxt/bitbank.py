@@ -931,13 +931,13 @@ class bitbank(Exchange, ImplicitAPI):
         address = self.safe_string(firstAccount, 'address')
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': None,
             'address': address,
             'tag': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

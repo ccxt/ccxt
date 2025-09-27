@@ -48,14 +48,24 @@ public partial class gate : Exchange
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "futures", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "delivery", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "options", "https://fx-api-testnet.gateio.ws/api/v4" },
+                        { "futures", "https://api-testnet.gateapi.io/api/v4" },
+                        { "delivery", "https://api-testnet.gateapi.io/api/v4" },
+                        { "options", "https://api-testnet.gateapi.io/api/v4" },
+                        { "spot", "https://api-testnet.gateapi.io/api/v4" },
+                        { "wallet", "https://api-testnet.gateapi.io/api/v4" },
+                        { "margin", "https://api-testnet.gateapi.io/api/v4" },
+                        { "sub_accounts", "https://api-testnet.gateapi.io/api/v4" },
+                        { "account", "https://api-testnet.gateapi.io/api/v4" },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "futures", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "delivery", "https://fx-api-testnet.gateio.ws/api/v4" },
-                        { "options", "https://fx-api-testnet.gateio.ws/api/v4" },
+                        { "futures", "https://api-testnet.gateapi.io/api/v4" },
+                        { "delivery", "https://api-testnet.gateapi.io/api/v4" },
+                        { "options", "https://api-testnet.gateapi.io/api/v4" },
+                        { "spot", "https://api-testnet.gateapi.io/api/v4" },
+                        { "wallet", "https://api-testnet.gateapi.io/api/v4" },
+                        { "margin", "https://api-testnet.gateapi.io/api/v4" },
+                        { "sub_accounts", "https://api-testnet.gateapi.io/api/v4" },
+                        { "account", "https://api-testnet.gateapi.io/api/v4" },
                     } },
                 } },
                 { "referral", new Dictionary<string, object>() {
@@ -102,7 +112,7 @@ public partial class gate : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
-                { "fetchDepositAddressesByNetwork", false },
+                { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -657,9 +667,7 @@ public partial class gate : Exchange
                     { "BSC", "BSC" },
                     { "BEP20", "BSC" },
                     { "SOL", "SOL" },
-                    { "POLYGON", "POL" },
-                    { "MATIC", "POL" },
-                    { "OP", "OPETH" },
+                    { "MATIC", "MATIC" },
                     { "OPTIMISM", "OPETH" },
                     { "ADA", "ADA" },
                     { "AVAXC", "AVAX_C" },
@@ -699,6 +707,16 @@ public partial class gate : Exchange
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "OPETH", "OP" },
+                    { "ETH", "ERC20" },
+                    { "ERC20", "ERC20" },
+                    { "TRX", "TRC20" },
+                    { "TRC20", "TRC20" },
+                    { "HT", "HRC20" },
+                    { "HECO", "HRC20" },
+                    { "BSC", "BEP20" },
+                    { "BEP20", "BEP20" },
+                    { "POLYGON", "MATIC" },
+                    { "POL", "MATIC" },
                 } },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", "gtc" },
@@ -720,6 +738,9 @@ public partial class gate : Exchange
                     { "delivery", "delivery" },
                     { "option", "options" },
                     { "options", "options" },
+                } },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot", "swap", "future", "option"} },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "fetchMarkets", new Dictionary<string, object>() {
@@ -1144,20 +1165,34 @@ public partial class gate : Exchange
         {
             await this.loadTimeDifference();
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object rawPromises = new List<object> {this.fetchContractMarkets(parameters), this.fetchOptionMarkets(parameters)};
-        if (!isTrue(sandboxMode))
+        if (isTrue(this.checkRequiredCredentials(false)))
         {
-            // gate does not have a sandbox for spot markets
-            object mainnetOnly = new List<object> {this.fetchSpotMarkets(parameters)};
-            rawPromises = this.arrayConcat(rawPromises, mainnetOnly);
+            await this.loadUnifiedStatus();
         }
-        object promises = await promiseAll(rawPromises);
-        object spotMarkets = this.safeValue(promises, 0, new List<object>() {});
-        object contractMarkets = this.safeValue(promises, 1, new List<object>() {});
-        object optionMarkets = this.safeValue(promises, 2, new List<object>() {});
-        object markets = this.arrayConcat(spotMarkets, contractMarkets);
-        return this.arrayConcat(markets, optionMarkets);
+        object rawPromises = new List<object>() {};
+        object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+        object types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
+        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        {
+            object marketType = getValue(types, i);
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                // if (!sandboxMode) {
+                // gate doesn't have a sandbox for spot markets
+                ((IList<object>)rawPromises).Add(this.fetchSpotMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "swap")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchSwapMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "future")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchFutureMarkets(parameters));
+            } else if (isTrue(isEqual(marketType, "option")))
+            {
+                ((IList<object>)rawPromises).Add(this.fetchOptionMarkets(parameters));
+            }
+        }
+        object results = await promiseAll(rawPromises);
+        return this.arraysConcat(results);
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters = null)
@@ -1176,17 +1211,21 @@ public partial class gate : Exchange
         //         {
         //             "id": "QTUM_ETH",
         //             "base": "QTUM",
+        //             "base_name": "Quantum",
         //             "quote": "ETH",
+        //             "quote_name": "Ethereum",
         //             "fee": "0.2",
         //             "min_base_amount": "0.01",
         //             "min_quote_amount": "0.001",
+        //             "max_quote_amount": "50000",
         //             "amount_precision": 3,
         //             "precision": 6,
         //             "trade_status": "tradable",
-        //             "sell_start": 0,
-        //             "buy_start": 0
+        //             "sell_start": 1607313600,
+        //             "buy_start": 1700492400,
+        //             "type": "normal",
+        //             "trade_url": "https://www.gate.io/trade/QTUM_ETH",
         //         }
-        //     ]
         //
         //  Margin
         //
@@ -1220,6 +1259,8 @@ public partial class gate : Exchange
             object tradeStatus = this.safeString(market, "trade_status");
             object leverage = this.safeNumber(market, "leverage");
             object margin = !isEqual(leverage, null);
+            object buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
+            object createdTs = ((bool) isTrue((!isEqual(buyStart, 0)))) ? buyStart : null;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -1268,19 +1309,22 @@ public partial class gate : Exchange
                         { "max", ((bool) isTrue(margin)) ? this.safeNumber(market, "max_quote_amount") : null },
                     } },
                 } },
-                { "created", null },
+                { "created", createdTs },
                 { "info", market },
             });
         }
         return result;
     }
 
-    public async virtual Task<object> fetchContractMarkets(object parameters = null)
+    public async virtual Task<object> fetchSwapMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
         object swapSettlementCurrencies = this.getSettlementCurrencies("swap", "fetchMarkets");
-        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
+        }
         for (object c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(swapSettlementCurrencies, c);
@@ -1294,6 +1338,18 @@ public partial class gate : Exchange
                 ((IList<object>)result).Add(parsedMarket);
             }
         }
+        return result;
+    }
+
+    public async virtual Task<object> fetchFutureMarkets(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "sandboxMode")))
+        {
+            return new List<object>() {};  // right now sandbox does not have inverse swaps
+        }
+        object result = new List<object>() {};
+        object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
         for (object c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(futureSettlementCurrencies, c);
@@ -1347,6 +1403,7 @@ public partial class gate : Exchange
         //        "funding_next_apply": 1610035200,
         //        "short_users": 977,
         //        "config_change_time": 1609899548,
+        //        "create_time": 1609800048,
         //        "trade_size": 28530850594,
         //        "position_size": 5223816,
         //        "long_users": 455,
@@ -1482,7 +1539,7 @@ public partial class gate : Exchange
                     { "max", null },
                 } },
             } },
-            { "created", null },
+            { "created", this.safeIntegerProduct(market, "create_time", 1000) },
             { "info", market },
         };
     }
@@ -1584,7 +1641,7 @@ public partial class gate : Exchange
                     { "contractSize", this.parseNumber("1") },
                     { "expiry", expiry },
                     { "expiryDatetime", this.iso8601(expiry) },
-                    { "strike", strike },
+                    { "strike", this.parseNumber(strike) },
                     { "optionType", optionType },
                     { "precision", new Dictionary<string, object>() {
                         { "amount", this.parseNumber("1") },
@@ -1818,26 +1875,46 @@ public partial class gate : Exchange
         object apiBackup = this.safeValue(this.urls, "apiBackup");
         if (isTrue(!isEqual(apiBackup, null)))
         {
-            return null;
-        }
-        if (isTrue(this.checkRequiredCredentials(false)))
-        {
-            await this.loadUnifiedStatus();
+            return new Dictionary<string, object>() {};
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
-        //  [
-        //   {
-        //       "currency": "USDT_ETH",
-        //       "name": "Tether",
-        //       "delisted": false,
-        //       "withdraw_disabled": false,
-        //       "withdraw_delayed": false,
-        //       "deposit_disabled": false,
-        //       "trade_disabled": true,
-        //       "chain": "ETH"
-        //    },
-        //  ]
+        //    [
+        //      {
+        //         "currency": "USDT",
+        //         "name": "Tether",
+        //         "delisted": false,
+        //         "withdraw_disabled": false,
+        //         "withdraw_delayed": false,
+        //         "deposit_disabled": false,
+        //         "trade_disabled": false,
+        //         "fixed_rate": "",
+        //         "chain": "ETH",
+        //         "chains": [
+        //           {
+        //             "name": "ETH",
+        //             "addr": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+        //             "withdraw_disabled": false,
+        //             "withdraw_delayed": false,
+        //             "deposit_disabled": false
+        //           },
+        //           {
+        //             "name": "ARBEVM",
+        //             "addr": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+        //             "withdraw_disabled": false,
+        //             "withdraw_delayed": false,
+        //             "deposit_disabled": false
+        //           },
+        //           {
+        //             "name": "BSC",
+        //             "addr": "0x55d398326f99059fF775485246999027B3197955",
+        //             "withdraw_disabled": false,
+        //             "withdraw_delayed": false,
+        //             "deposit_disabled": false
+        //           },
+        //         ]
+        //       },
+        //    ]
         //
         object indexedCurrencies = this.indexBy(response, "currency");
         object result = new Dictionary<string, object>() {};
@@ -1845,68 +1922,50 @@ public partial class gate : Exchange
         {
             object entry = getValue(response, i);
             object currencyId = this.safeString(entry, "currency");
-            object parts = ((string)currencyId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object partFirst = this.safeString(parts, 0);
-            // if there's an underscore then the second part is always the chain name (except the _OLD suffix)
-            object currencyName = ((bool) isTrue(((string)currencyId).EndsWith(((string)"_OLD")))) ? currencyId : partFirst;
-            object withdrawDisabled = this.safeBool(entry, "withdraw_disabled", false);
-            object depositDisabled = this.safeBool(entry, "deposit_disabled", false);
-            object tradeDisabled = this.safeBool(entry, "trade_disabled", false);
-            object precision = this.parseNumber("0.0001"); // temporary safe default, because no value provided from API
-            object code = this.safeCurrencyCode(currencyName);
+            object code = this.safeCurrencyCode(currencyId);
             // check leveraged tokens (e.g. BTC3S, ETH5L)
-            object isLeveragedToken = false;
-            if (isTrue(isTrue(isTrue(isTrue(((string)currencyId).EndsWith(((string)"3S"))) || isTrue(((string)currencyId).EndsWith(((string)"3L")))) || isTrue(((string)currencyId).EndsWith(((string)"5S")))) || isTrue(((string)currencyId).EndsWith(((string)"5L")))))
+            object type = ((bool) isTrue(this.isLeveragedCurrency(currencyId, true, indexedCurrencies))) ? "leveraged" : "crypto";
+            object chains = this.safeList(entry, "chains", new List<object>() {});
+            object networks = new Dictionary<string, object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
-                object realCurrencyId = slice(currencyId, 0, -2);
-                if (isTrue(inOp(indexedCurrencies, realCurrencyId)))
-                {
-                    isLeveragedToken = true;
-                }
-            }
-            object type = ((bool) isTrue(isLeveragedToken)) ? "leveraged" : "crypto";
-            // some networks are null, they are mostly obsolete & unsupported dead tokens, so we can default their networkId to their tokenname
-            object networkId = this.safeString(entry, "chain", currencyId);
-            object networkCode = this.networkIdToCode(networkId, code);
-            object networkEntry = new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                object chain = getValue(chains, j);
+                object networkId = this.safeString(chain, "name");
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", chain },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", !isTrue(this.safeBool(chain, "deposit_disabled")) },
+                    { "withdraw", !isTrue(this.safeBool(chain, "withdraw_disabled")) },
+                    { "fee", null },
+                    { "precision", this.parseNumber("0.0001") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "active", !isTrue(tradeDisabled) },
-                { "deposit", !isTrue(depositDisabled) },
-                { "withdraw", !isTrue(withdrawDisabled) },
-                { "fee", null },
-                { "precision", precision },
-            };
-            // check if first entry for the specific currency
-            if (!isTrue((inOp(result, code))))
-            {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "id", currencyName },
-                    { "lowerCaseId", ((string)currencyName).ToLower() },
-                    { "code", code },
-                    { "type", type },
-                    { "precision", precision },
-                    { "limits", null },
-                    { "networks", new Dictionary<string, object>() {} },
-                    { "info", new List<object>() {} },
                 };
             }
-            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = networkEntry;
-            object info = this.safeList(getValue(result, code), "info", new List<object>() {});
-            ((IList<object>)info).Add(entry);
-            ((IDictionary<string,object>)getValue(result, code))["info"] = info;
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", currencyId },
+                { "code", code },
+                { "name", this.safeString(entry, "name") },
+                { "type", type },
+                { "active", !isTrue(this.safeBool(entry, "delisted")) },
+                { "deposit", !isTrue(this.safeBool(entry, "deposit_disabled")) },
+                { "withdraw", !isTrue(this.safeBool(entry, "withdraw_disabled")) },
+                { "fee", null },
+                { "networks", networks },
+                { "precision", this.parseNumber("0.0001") },
+                { "info", entry },
+            });
         }
         return result;
     }
@@ -2202,9 +2261,7 @@ public partial class gate : Exchange
         object chains = this.safeValue(response, "multichain_addresses", new List<object>() {});
         object currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        object parsed = this.parseDepositAddresses(chains, new List<object>() {getValue(currency, "code")}, false, new Dictionary<string, object>() {
-            { "currency", getValue(currency, "id") },
-        });
+        object parsed = this.parseDepositAddresses(chains, null, false);
         return this.indexBy(parsed, "network");
     }
 
@@ -2227,8 +2284,8 @@ public partial class gate : Exchange
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, parameters);
-        object selectedNetworkId = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
-        return getValue(chainsIndexedById, selectedNetworkId);
+        object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
+        return getValue(chainsIndexedById, selectedNetworkIdOrCode);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2652,7 +2709,14 @@ public partial class gate : Exchange
         var query = ((IList<object>) requestqueryVariable)[1];
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 10, max 100
+            if (isTrue(getValue(market, "spot")))
+            {
+                limit = mathMin(limit, 1000);
+            } else
+            {
+                limit = mathMin(limit, 300);
+            }
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         ((IDictionary<string,object>)request)["with_id"] = true;
         object response = null;
@@ -2996,6 +3060,12 @@ public partial class gate : Exchange
     /**
      * @method
      * @name gate#fetchBalance
+     * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3264,7 +3334,7 @@ public partial class gate : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object isolated = isEqual(marginMode, "margin");
+        object isolated = isTrue(isEqual(marginMode, "margin")) && isTrue(isEqual(type, "spot"));
         object data = response;
         if (isTrue(inOp(data, "balances")))
         {
@@ -4087,7 +4157,7 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, multiply(multiply(multiply(30, 24), 60), 60));
         }
-        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.privateWalletGetDeposits(this.extend(request, parameters));
@@ -4136,7 +4206,7 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["from"] = start;
             ((IDictionary<string,object>)request)["to"] = this.sum(start, multiply(multiply(multiply(30, 24), 60), 60));
         }
-        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.privateWalletGetWithdrawals(this.extend(request, parameters));
@@ -8263,12 +8333,36 @@ public partial class gate : Exchange
         {
             quoteValueString = Precise.stringMul(baseValueString, priceString);
         }
+        // --- derive side ---
+        // 1) options payload has explicit 'side': 'long' | 'short'
+        object optPos = this.safeStringLower(liquidation, "side");
+        object side = null;
+        if (isTrue(isEqual(optPos, "long")))
+        {
+            side = "buy";
+        } else if (isTrue(isEqual(optPos, "short")))
+        {
+            side = "sell";
+        } else
+        {
+            if (isTrue(!isEqual(size, null)))
+            {
+                if (isTrue(Precise.stringGt(size, "0")))
+                {
+                    side = "buy";
+                } else if (isTrue(Precise.stringLt(size, "0")))
+                {
+                    side = "sell";
+                }
+            }
+        }
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.parseNumber(contractsString) },
             { "contractSize", this.parseNumber(contractSizeString) },
             { "price", this.parseNumber(priceString) },
+            { "side", side },
             { "baseValue", this.parseNumber(baseValueString) },
             { "quoteValue", this.parseNumber(Precise.stringAbs(quoteValueString)) },
             { "timestamp", timestamp },

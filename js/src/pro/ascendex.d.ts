@@ -1,5 +1,5 @@
 import ascendexRest from '../ascendex.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class ascendex extends ascendexRest {
     describe(): any;
@@ -88,7 +88,7 @@ export default class ascendex extends ascendexRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleAuthenticate(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;

@@ -3,7 +3,7 @@
 
 import bithumbRest from '../bithumb.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict } from '../base/types.js';
+import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -364,7 +364,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "status" : "5100",

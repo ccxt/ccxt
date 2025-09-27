@@ -28,6 +28,13 @@
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.lyra.finance/public/get_all_currencies",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.lyra.finance/public/get_all_currencies",
                 "input": []
             }
         ],

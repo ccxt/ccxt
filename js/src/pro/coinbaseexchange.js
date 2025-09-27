@@ -227,7 +227,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async watchMyTradesForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false);
         await this.loadMarkets();
         const name = 'user';
@@ -251,7 +251,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async watchOrdersForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';

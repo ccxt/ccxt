@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coincheck$1 = require('../coincheck.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class coincheck extends coincheck$1 {
+class coincheck extends coincheck$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -206,4 +208,4 @@ class coincheck extends coincheck$1 {
     }
 }
 
-module.exports = coincheck;
+exports["default"] = coincheck;
