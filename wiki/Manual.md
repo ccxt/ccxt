@@ -1591,13 +1591,11 @@ var_dump($bitfinex->markets['XRP/BTC']);
 
 ## API Methods / Endpoints
 
-Typically, any exchange API exposes different HTTP urls (called an **endpoint**) where users can query for various types of information. Usually, there are endpoints for getting a **list of markets**, an **orderbook**, **trade history**, endpoints for **placing and canceling orders**, for money **deposit and withdrawal**, etc...
-
-Implicit API differs from exchange to exchange, however for each exchange CCXT defines **Implicit API** methods to interact with all possible endpoints for the given exchange. Any unified method (`fetchOrderBook, fetchOrders, etc...`) itiself uses implicit API methods to query specific endpoint related.
+Each exchange API has multiple endpoints (HTTP urls) where users can make a query for various types of information. Usually, there are endpoints for getting a **list of markets**, **orderbook**, **trade history**, endpoints for **placing and canceling orders**, for money **deposit and withdrawal**, etc...
 
 ## Implicit API Methods
 
-Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property (You don't have to override it, unless you are implementing a new API). Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
+Each method of the API usually has its own endpoint.  Unified CCXT methods (`fetchOrderBook, fetchOrders, etc...`) also uses implicit API methods to query related endpoint. Implicit API methods are different across exchanges, but CCXT defines all endpoints for each particular exchange in the `.api` property (You don't have to override it, unless you are implementing a new API). Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
 The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
