@@ -139,7 +139,7 @@ class aster extends Exchange {
                 'fetchPosition' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
-                'fetchPositions' => false,
+                'fetchPositions' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => false,

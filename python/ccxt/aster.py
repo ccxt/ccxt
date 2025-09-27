@@ -168,7 +168,7 @@ class aster(Exchange, ImplicitAPI):
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': True,
-                'fetchPositions': False,
+                'fetchPositions': True,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': True,
                 'fetchPremiumIndexOHLCV': False,
