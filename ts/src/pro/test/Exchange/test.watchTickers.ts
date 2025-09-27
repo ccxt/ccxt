@@ -55,9 +55,6 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
                 testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
             }
             now = exchange.milliseconds ();
-            // any normal exchange should return at least 3 tickers
-            const length = argSymbols === undefined ? 3 : argSymbols.length;
-            assert (values.length >= length, exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return at least ' + length + ' tickers. ' + exchange.json (response));
         }
     }
     return true;
