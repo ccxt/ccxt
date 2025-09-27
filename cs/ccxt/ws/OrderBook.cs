@@ -214,13 +214,13 @@ public class OrderBook : CustomConcurrentDictionary<string, object>, IOrderBook
         }
     }
 
-    public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-    {
-        lock (_syncRoot)
-        {
-            return new CustomConcurrentDictionary<string, object>(this).GetEnumerator();
-        }
-    }
+    // public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+    // {
+    //     lock (_syncRoot)
+    //     {
+    //         return new CustomConcurrentDictionary<string, object>(this).GetEnumerator();
+    //     }
+    // }
 
     // public IEnumerator<object> GetEnumerator()
     // {

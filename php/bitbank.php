@@ -952,14 +952,14 @@ class bitbank extends Exchange {
         $address = $this->safe_string($firstAccount, 'address');
         return array(
             'info' => $response,
-            'currency' => $currency,
+            'currency' => $currency['code'],
             'network' => null,
             'address' => $address,
             'tag' => null,
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

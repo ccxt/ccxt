@@ -3961,12 +3961,15 @@ public partial class bitfinex : Exchange
         object contractSize = this.safeString(market, "contractSize");
         object baseValue = Precise.stringMul(contracts, contractSize);
         object price = this.safeString(entry, 11);
+        object sideFlag = this.safeInteger(entry, 8);
+        object side = ((bool) isTrue((isEqual(sideFlag, 1)))) ? "buy" : "sell";
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", entry },
             { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "contracts", this.parseNumber(contracts) },
             { "contractSize", this.parseNumber(contractSize) },
             { "price", this.parseNumber(price) },
+            { "side", side },
             { "baseValue", this.parseNumber(baseValue) },
             { "quoteValue", this.parseNumber(Precise.stringMul(baseValue, price)) },
             { "timestamp", timestamp },

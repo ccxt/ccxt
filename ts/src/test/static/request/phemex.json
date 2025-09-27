@@ -502,6 +502,20 @@
         ],
     "fetchPositions": [
             {
+                "description": "fetchPosition with privateGetGAccountsPositions",
+                "method": "fetchPositions",
+                "url": "https://api.phemex.com/g-accounts/positions?currency=USDT",
+                "input": [
+                    [
+                        "XRP/USDT:USDT"
+                    ],
+                    {
+                        "method": "privateGetAccountsPositions"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch btc positions",
                 "method": "fetchPositions",
                 "url": "https://testnet-api.phemex.com/accounts/accountPositions?currency=BTC",

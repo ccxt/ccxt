@@ -239,6 +239,7 @@ class kraken extends Exchange {
                 'UST' => 'USTC',
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
+                'FEE' => 'KFEE',
             ),
             'options' => array(
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -432,6 +433,7 @@ class kraken extends Exchange {
                     'OriginTrail' => 'OTP',
                     'Celestia' => 'TIA',
                 ),
+                'marketHelperProps' => array( 'marketsByAltname', 'delistedMarketsById' ), // used by setMarketsFromExchange
             ),
             'features' => array(
                 'spot' => array(
@@ -712,19 +714,6 @@ class kraken extends Exchange {
             $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
             return $result;
         }) ();
-    }
-
-    public function safe_currency($currencyId, ?array $currency = null) {
-        if ($currencyId !== null) {
-            if (strlen($currencyId) > 3) {
-                if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                    if (!(mb_strpos($currencyId, '.') > 0) && ($currencyId !== 'ZEUS')) {
-                        $currencyId = mb_substr($currencyId, 1);
-                    }
-                }
-            }
-        }
-        return parent::safe_currency($currencyId, $currency);
     }
 
     public function fetch_status($params = array ()) {
@@ -1426,7 +1415,20 @@ class kraken extends Exchange {
         //         "maker" => false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol" => "BTC/USD",
+        //         "side" => "buy",
+        //         "price" => 109601.2,
+        //         "qty" => 0.04561994,
+        //         "ord_type" => "market",
+        //         "trade_id" => 83449369,
+        //         "timestamp" => "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         $timestamp = null;
+        $datetime = null;
         $side = null;
         $type = null;
         $price = null;
@@ -1473,6 +1475,14 @@ class kraken extends Exchange {
                     'currency' => $currency,
                 );
             }
+        } else {
+            $symbol = $this->safe_string($trade, 'symbol');
+            $datetime = $this->safe_string($trade, 'timestamp');
+            $id = $this->safe_string($trade, 'trade_id');
+            $side = $this->safe_string($trade, 'side');
+            $type = $this->safe_string($trade, 'ord_type');
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'qty');
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -1483,12 +1493,17 @@ class kraken extends Exchange {
         if ($maker !== null) {
             $takerOrMaker = $maker ? 'maker' : 'taker';
         }
+        if ($datetime === null) {
+            $datetime = $this->iso8601($timestamp);
+        } else {
+            $timestamp = $this->parse8601($datetime);
+        }
         return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'datetime' => $datetime,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -3263,7 +3278,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3272,21 +3287,24 @@ class kraken extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
+             * @param {string} $address the $address to withdraw to, not required can be '' or null/none/null
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            $this->check_address($address);
             if (is_array($params) && array_key_exists('key', $params)) {
                 Async\await($this->load_markets());
                 $currency = $this->currency($code);
                 $request = array(
                     'asset' => $currency['id'],
                     'amount' => $amount,
-                    'address' => $address,
+                    // 'address' => $address,
                 );
+                if ($address !== null && $address !== '') {
+                    $request['address'] = $address;
+                    $this->check_address($address);
+                }
                 $response = Async\await($this->privatePostWithdraw ($this->extend($request, $params)));
                 //
                 //     {

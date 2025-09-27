@@ -136,6 +136,7 @@ public partial class delta : Exchange
                     } },
                 } },
             } },
+            { "userAgent", getValue(this.userAgents, "chrome39") },
             { "options", new Dictionary<string, object>() {
                 { "networks", new Dictionary<string, object>() {
                     { "TRC20", "TRC20(TRON)" },
@@ -882,9 +883,9 @@ public partial class delta : Exchange
                 { "inverse", ((bool) isTrue(spot)) ? null : !isTrue(linear) },
                 { "taker", this.safeNumber(market, "taker_commission_rate") },
                 { "maker", this.safeNumber(market, "maker_commission_rate") },
-                { "contractSize", contractSize },
+                { "contractSize", ((bool) isTrue(spot)) ? null : contractSize },
                 { "expiry", expiry },
-                { "expiryDatetime", expiryDatetime },
+                { "expiryDatetime", this.iso8601(expiry) },
                 { "strike", this.parseNumber(strike) },
                 { "optionType", optionType },
                 { "precision", new Dictionary<string, object>() {

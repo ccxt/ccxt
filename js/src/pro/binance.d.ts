@@ -62,6 +62,19 @@ export default class binance extends binanceRest {
                     };
                 };
             };
+            demo: {
+                ws: {
+                    spot: string;
+                    margin: string;
+                    future: string;
+                    delivery: string;
+                    'ws-api': {
+                        spot: string;
+                        future: string;
+                        delivery: string;
+                    };
+                };
+            };
             api: {
                 ws: {
                     spot: string;
@@ -149,6 +162,7 @@ export default class binance extends binanceRest {
         };
     };
     requestId(url: any): any;
+    isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: number): string;
     /**
      * @method
@@ -175,7 +189,7 @@ export default class binance extends binanceRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    watchLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
     parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     /**
@@ -541,6 +555,14 @@ export default class binance extends binanceRest {
     handleTickersAndBidsAsks(client: Client, message: any, methodType: any): void;
     getMessageHash(channelName: string, symbol: Str, isBidAsk: boolean): string;
     signParams(params?: {}): any;
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    ensureUserDataStreamWsSubscribeSignature(marketType?: string): Promise<void>;
+    handleUserDataStreamSubscribe(client: Client, message: any): void;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     setBalanceCache(client: Client, type: any, isPortfolioMargin?: boolean): void;
@@ -596,6 +618,7 @@ export default class binance extends binanceRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
+    getAccountTypeFromSubscriptions(subscriptions: string[]): string;
     getMarketType(method: any, market: any, params?: {}): any;
     /**
      * @method
@@ -774,7 +797,7 @@ export default class binance extends binanceRest {
      * @param {int} [params.fromId] trade ID to begin at
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTradesWs(client: Client, message: any): void;
     /**
      * @method
@@ -792,5 +815,6 @@ export default class binance extends binanceRest {
     handleOrder(client: Client, message: any): void;
     handleAcountUpdate(client: any, message: any): void;
     handleWsError(client: Client, message: any): void;
+    handleEventStreamTerminated(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
 }

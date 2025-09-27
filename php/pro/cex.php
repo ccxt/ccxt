@@ -1073,6 +1073,7 @@ class cex extends \ccxt\async\cex {
         if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($this->id . ' watchOrderBook() skipped a message', $messageHash);
+            return;
         }
         $timestamp = $this->safe_integer($data, 'time');
         $asks = $this->safe_value($data, 'asks', array());
@@ -1507,7 +1508,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
         //         "e" => "get-balance",
@@ -1529,6 +1530,7 @@ class cex extends \ccxt\async\cex {
             $future = $this->safe_value($client['futures'], $messageHash);
             if ($future !== null) {
                 $client->reject ($error, $messageHash);
+                return true;
             } else {
                 throw $error;
             }

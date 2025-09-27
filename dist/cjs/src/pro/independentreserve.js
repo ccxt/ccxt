@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class independentreserve extends independentreserve$1 {
+class independentreserve extends independentreserve$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -223,6 +225,7 @@ class independentreserve extends independentreserve$1 {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
+                return;
             }
         }
         if (receivedSnapshot) {
@@ -283,4 +286,4 @@ class independentreserve extends independentreserve$1 {
     }
 }
 
-module.exports = independentreserve;
+exports["default"] = independentreserve;

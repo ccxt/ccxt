@@ -694,7 +694,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    public override object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         trades = this.toArray(trades);

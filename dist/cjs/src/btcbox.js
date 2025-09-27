@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var btcbox$1 = require('./abstract/btcbox.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -13,7 +15,7 @@ var md5 = require('./static_dependencies/noble-hashes/md5.js');
  * @class btcbox
  * @augments Exchange
  */
-class btcbox extends btcbox$1 {
+class btcbox extends btcbox$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'btcbox',
@@ -830,4 +832,4 @@ class btcbox extends btcbox$1 {
     }
 }
 
-module.exports = btcbox;
+exports["default"] = btcbox;

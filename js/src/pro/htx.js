@@ -1998,7 +1998,7 @@ export default class htx extends htxRest {
                 }
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {

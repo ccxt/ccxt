@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var apex$1 = require('../apex.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class apex extends apex$1 {
+class apex extends apex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -962,6 +964,7 @@ class apex extends apex$1 {
     }
     ping(client) {
         const timeStamp = this.milliseconds().toString();
+        client.lastPong = timeStamp; // server won't send a pong, so we set it here
         return {
             'args': [timeStamp],
             'op': 'ping',
@@ -1040,4 +1043,4 @@ class apex extends apex$1 {
     }
 }
 
-module.exports = apex;
+exports["default"] = apex;
