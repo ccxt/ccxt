@@ -42,9 +42,9 @@ from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, C
 # -----------------------------------------------------------------------------
 
 try:
-    from aiohttp_socks import ProxyConnector
+    from aiohttp_socks import ProxyConnector as SocksProxyConnector
 except ImportError:
-    ProxyConnector = None
+    SocksProxyConnector = None
 
 # -----------------------------------------------------------------------------
 
@@ -177,7 +177,7 @@ class Exchange(BaseExchange):
         elif httpsProxy:
             final_proxy = httpsProxy
         elif socksProxy:
-            if ProxyConnector is None:
+            if SocksProxyConnector is None:
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # override session
             if (self.socks_proxy_sessions is None):
@@ -274,12 +274,15 @@ class Exchange(BaseExchange):
         if (self.socks_proxy_sessions is None):
             self.socks_proxy_sessions = {}
         if (socksProxy not in self.socks_proxy_sessions):
-            self.aiohttp_socks_connector = ProxyConnector.from_url(
-                socksProxy,
+            reverse_dns = socksProxy.startswith('socks5h://')
+            socks_proxy_selected = socksProxy if not reverse_dns else socksProxy.replace('socks5h://', 'socks5://')
+            self.aiohttp_socks_connector = SocksProxyConnector.from_url(
+                socks_proxy_selected,
                 # extra args copied from self.open()
                 ssl=self.ssl_context,
                 loop=self.asyncio_loop,
-                enable_cleanup_closed=True
+                enable_cleanup_closed=True,
+                rdns=reverse_dns if reverse_dns else None
             )
             self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
         return self.socks_proxy_sessions[socksProxy]
