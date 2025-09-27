@@ -192,6 +192,7 @@ public partial class kraken : Exchange
                 { "UST", "USTC" },
                 { "XBT", "BTC" },
                 { "XDG", "DOGE" },
+                { "FEE", "KFEE" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeDifference", 0 },
@@ -384,6 +385,7 @@ public partial class kraken : Exchange
                     { "OriginTrail", "OTP" },
                     { "Celestia", "TIA" },
                 } },
+                { "marketHelperProps", new List<object>() {"marketsByAltname", "delistedMarketsById"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -671,24 +673,6 @@ public partial class kraken : Exchange
         }
         ((IDictionary<string,object>)this.options)["marketsByAltname"] = this.indexBy(result, "altname");
         return result;
-    }
-
-    public override object safeCurrency(object currencyId, object currency = null)
-    {
-        if (isTrue(!isEqual(currencyId, null)))
-        {
-            if (isTrue(isGreaterThan(getArrayLength(currencyId), 3)))
-            {
-                if (isTrue(isTrue((isEqual(getIndexOf(currencyId, "X"), 0))) || isTrue((isEqual(getIndexOf(currencyId, "Z"), 0)))))
-                {
-                    if (isTrue(!isTrue((isGreaterThan(getIndexOf(currencyId, "."), 0))) && isTrue((!isEqual(currencyId, "ZEUS")))))
-                    {
-                        currencyId = slice(currencyId, 1, null);
-                    }
-                }
-            }
-        }
-        return base.safeCurrency(currencyId, currency);
     }
 
     /**
@@ -1420,7 +1404,20 @@ public partial class kraken : Exchange
         //         "maker": false
         //     }
         //
+        // watchTrades
+        //
+        //     {
+        //         "symbol": "BTC/USD",
+        //         "side": "buy",
+        //         "price": 109601.2,
+        //         "qty": 0.04561994,
+        //         "ord_type": "market",
+        //         "trade_id": 83449369,
+        //         "timestamp": "2025-05-27T11:24:03.847761Z"
+        //     }
+        //
         object timestamp = null;
+        object datetime = null;
         object side = null;
         object type = null;
         object price = null;
@@ -1475,6 +1472,15 @@ public partial class kraken : Exchange
                     { "currency", currency },
                 };
             }
+        } else
+        {
+            symbol = this.safeString(trade, "symbol");
+            datetime = this.safeString(trade, "timestamp");
+            id = this.safeString(trade, "trade_id");
+            side = this.safeString(trade, "side");
+            type = this.safeString(trade, "ord_type");
+            price = this.safeString(trade, "price");
+            amount = this.safeString(trade, "qty");
         }
         if (isTrue(!isEqual(market, null)))
         {
@@ -1487,12 +1493,19 @@ public partial class kraken : Exchange
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
         }
+        if (isTrue(isEqual(datetime, null)))
+        {
+            datetime = this.iso8601(timestamp);
+        } else
+        {
+            timestamp = this.parse8601(datetime);
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
             { "info", trade },
             { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "datetime", datetime },
             { "symbol", symbol },
             { "type", type },
             { "side", side },
@@ -3419,7 +3432,7 @@ public partial class kraken : Exchange
      * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
+     * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -3430,7 +3443,6 @@ public partial class kraken : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        this.checkAddress(address);
         if (isTrue(inOp(parameters, "key")))
         {
             await this.loadMarkets();
@@ -3438,8 +3450,12 @@ public partial class kraken : Exchange
             object request = new Dictionary<string, object>() {
                 { "asset", getValue(currency, "id") },
                 { "amount", amount },
-                { "address", address },
             };
+            if (isTrue(isTrue(!isEqual(address, null)) && isTrue(!isEqual(address, ""))))
+            {
+                ((IDictionary<string,object>)request)["address"] = address;
+                this.checkAddress(address);
+            }
             object response = await this.privatePostWithdraw(this.extend(request, parameters));
             //
             //     {

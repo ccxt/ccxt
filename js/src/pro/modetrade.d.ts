@@ -1,5 +1,5 @@
 import modetradeRest from '../modetrade.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class modetrade extends modetradeRest {
     describe(): any;
@@ -142,7 +142,7 @@ export default class modetrade extends modetradeRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: any, message: any): void;
-    handleErrorMessage(client: Client, message: any): boolean;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {
         event: string;

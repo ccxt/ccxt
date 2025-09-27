@@ -581,6 +581,7 @@
                   "USDT",
                   5.5,
                   "0x123456789123456789123456789",
+                  null,
                   {
                     "networkCode": "OP"
                   }
@@ -857,6 +858,13 @@
             }
         ],
         "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.kucoin.com/api/v3/currencies",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "default",
                 "method": "fetchCurrencies",

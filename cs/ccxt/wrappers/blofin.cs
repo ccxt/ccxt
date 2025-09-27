@@ -235,6 +235,12 @@ public partial class blofin
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
@@ -966,10 +972,10 @@ public partial class blofin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<MarginMode> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
-        return new MarginMode(res);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetchs the position mode, hedged or one way

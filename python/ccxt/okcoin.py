@@ -229,6 +229,9 @@ class okcoin(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': True,
                         'triggerPrice': True,
@@ -837,7 +840,7 @@ class okcoin(Exchange, ImplicitAPI):
         if not self.check_required_credentials(False):
             if self.options['warnOnFetchCurrenciesWithoutAuthorization']:
                 raise ExchangeError(self.id + ' fetchCurrencies() is a private API endpoint that requires authentication with API keys. Set the API keys on the exchange instance or exchange.options["warnOnFetchCurrenciesWithoutAuthorization"] = False to suppress self warning message.')
-            return None
+            return {}
         else:
             response = self.privateGetAssetCurrencies(params)
             data = self.safe_list(response, 'data', [])
@@ -1650,7 +1653,7 @@ class okcoin(Exchange, ImplicitAPI):
         advanced = self.safe_value(params, 'advanced')
         if trigger or advanced:
             orderInner = self.cancel_orders([id], symbol, params)
-            return self.safe_value(orderInner, 0)
+            return self.safe_dict(orderInner, 0)
         market = self.market(symbol)
         request: dict = {
             'instId': market['id'],
@@ -2416,7 +2419,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
 
         https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal

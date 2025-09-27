@@ -655,7 +655,7 @@ class bitvavo extends Exchange {
             ));
         }
         // set $currencies here to avoid calling publicGetAssets twice
-        $this->currencies = $this->deep_extend($this->currencies, $result);
+        $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $result));
         return $result;
     }
 
@@ -1232,6 +1232,8 @@ class bitvavo extends Exchange {
         list($operatorId, $params) = $this->handle_option_and_params($params, 'createOrder', 'operatorId');
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
+        } else {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         return $this->extend($request, $params);
     }
@@ -1338,6 +1340,8 @@ class bitvavo extends Exchange {
         list($operatorId, $params) = $this->handle_option_and_params($params, 'editOrder', 'operatorId');
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
+        } else {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $request['market'] = $market['id'];
         return $request;
@@ -1381,6 +1385,8 @@ class bitvavo extends Exchange {
         list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'operatorId');
         if ($operatorId !== null) {
             $request['operatorId'] = $this->parse_to_int($operatorId);
+        } else {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         return $this->extend($request, $params);
     }
@@ -1427,6 +1433,13 @@ class bitvavo extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
+        }
+        $operatorId = null;
+        list($operatorId, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'operatorId');
+        if ($operatorId !== null) {
+            $request['operatorId'] = $this->parse_to_int($operatorId);
+        } else {
+            throw new ArgumentsRequired($this->id . ' canceAllOrders() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
         $response = $this->privateDeleteOrders ($this->extend($request, $params));
         //
@@ -1849,7 +1862,7 @@ class bitvavo extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code

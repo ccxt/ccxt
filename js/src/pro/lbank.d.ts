@@ -1,5 +1,5 @@
 import lbankRest from '../lbank.js';
-import type { Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
+import type { Balances, Int, Str, Trade, OrderBook, Order, OHLCV, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;
@@ -94,6 +94,16 @@ export default class lbank extends lbankRest {
     handleOrders(client: any, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
+    /**
+     * @method
+     * @name lbank#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
     /**
      * @method
      * @name lbank#fetchOrderBookWs

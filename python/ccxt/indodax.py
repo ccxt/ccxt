@@ -38,6 +38,9 @@ class indodax(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
@@ -49,9 +52,14 @@ class indodax(Exchange, ImplicitAPI):
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -62,30 +70,52 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrice': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
                 'fetchPosition': False,
+                'fetchPositionForSymbolWs': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsForSymbol': False,
+                'fetchPositionsForSymbolWs': False,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTime': True,
                 'fetchTrades': True,
@@ -96,9 +126,13 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
                 'setMargin': False,
                 'setMarginMode': False,
@@ -170,6 +204,16 @@ class indodax(Exchange, ImplicitAPI):
                     'Minimum order': InvalidOrder,
                 },
             },
+            'timeframes': {
+                '1m': '1',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+            },
             # exchange-specific options
             'options': {
                 'recvWindow': 5 * 1000,  # default 5 sec
@@ -192,16 +236,6 @@ class indodax(Exchange, ImplicitAPI):
                     # 'ZRC2': 'zrc2'
                     # 'ETH': 'eth'
                     # 'BASE': 'base'
-                },
-                'timeframes': {
-                    '1m': '1',
-                    '15m': '15',
-                    '30m': '30',
-                    '1h': '60',
-                    '4h': '240',
-                    '1d': '1D',
-                    '3d': '3D',
-                    '1w': '1W',
                 },
             },
             'features': {
@@ -656,8 +690,7 @@ class indodax(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        timeframes = self.options['timeframes']
-        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        selectedTimeframe = self.safe_string(self.timeframes, timeframe, timeframe)
         now = self.seconds()
         until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
@@ -1110,7 +1143,7 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

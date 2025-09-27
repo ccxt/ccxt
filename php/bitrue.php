@@ -372,9 +372,7 @@ class bitrue extends Exchange {
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'fetchMarkets' => array(
-                    'spot',
-                    'linear',
-                    'inverse',
+                    'types' => array( 'spot', 'linear', 'inverse' ),
                 ),
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod' => 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
@@ -828,9 +826,17 @@ class bitrue extends Exchange {
          * @return {array[]} an array of objects representing market data
          */
         $promisesRaw = array();
-        $fetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
-        for ($i = 0; $i < count($fetchMarkets); $i++) {
-            $marketType = $fetchMarkets[$i];
+        $types = null;
+        $defaultTypes = array( 'spot', 'linear', 'inverse' );
+        $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
+        if ($fetchMarketsOptions !== null) {
+            $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultTypes);
+        } else {
+            // for backward-compatibility
+            $types = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
+        }
+        for ($i = 0; $i < count($types); $i++) {
+            $marketType = $types[$i];
             if ($marketType === 'spot') {
                 $promisesRaw[] = $this->spotV1PublicGetExchangeInfo ($params);
             } elseif ($marketType === 'linear') {
@@ -838,7 +844,7 @@ class bitrue extends Exchange {
             } elseif ($marketType === 'inverse') {
                 $promisesRaw[] = $this->dapiV1PublicGetContracts ($params);
             } else {
-                throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
+                throw new ExchangeError($this->id . ' fetchMarkets() $this->options fetchMarkets "' . $marketType . '" is not a supported market type');
             }
         }
         $promises = $promisesRaw;
@@ -2845,7 +2851,7 @@ class bitrue extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -3088,7 +3094,7 @@ class bitrue extends Exchange {
         return $this->parse_transfer($data, $currency);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *
