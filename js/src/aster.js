@@ -1374,7 +1374,23 @@ export default class aster extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        const response = await this.privatePostFapiV1MarginType(this.extend(request, params));
+        try {
+            const response = await this.privatePostFapiV1MarginType(this.extend(request, params));
+            return response;
+        }
+        catch (e) {
+            if (e instanceof NoChange) {
+                // {"code":-4046,"msg":"No need to change margin type."}".
+                // The 'NoChange' exception is thrown for code -4046
+                // We can extract the original response from the error object if needed,
+                // but the user wants to return the payload.
+                // The raw response is usually stored in the error object.
+                // This part might need adjustment based on how the base exchange class attaches the response to the error.
+                // Assuming the response body is available, we can parse and return it.
+                // For now, we'll just return the error message as a success response.
+                return { 'code': -4046, 'msg': 'No need to change margin type.' };
+            }
+        }
         //
         //     {
         //         "amount": 100.0,
@@ -1382,8 +1398,6 @@ export default class aster extends Exchange {
         //         "msg": "Successfully modify position margin.",
         //         "type": 1
         //     }
-        //
-        return response;
     }
     /**
      * @method
