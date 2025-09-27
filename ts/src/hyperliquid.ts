@@ -1730,7 +1730,7 @@ export default class hyperliquid extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const orders = await this.cancelOrders ([ id ], symbol, params);
-        return this.safeDict (orders, 0);
+        return this.safeDict (orders, 0) as Order;
     }
 
     /**
@@ -1753,6 +1753,47 @@ export default class hyperliquid extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const request = this.cancelOrdersRequest (ids, symbol, params);
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         "status":"ok",
+        //         "response":{
+        //             "type":"cancel",
+        //             "data":{
+        //                 "statuses":[
+        //                     "success"
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const innerResponse = this.safeDict (response, 'response');
+        const data = this.safeDict (innerResponse, 'data');
+        const statuses = this.safeList (data, 'statuses');
+        const orders = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            orders.push (this.safeOrder ({
+                'info': status,
+                'status': status,
+            }));
+        }
+        return orders;
+    }
+
+    cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}): Dict {
+        /**
+         * @method
+         * @name hyperliquid#cancelOrdersRequest
+         * @description build the request payload for cancelling multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified market symbol
+         * @param {object} [params]
+         * @returns {object} the raw request object to be sent to the exchange
+         */
         const market = this.market (symbol);
         let clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
@@ -1798,32 +1839,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (request);
-        //
-        //     {
-        //         "status":"ok",
-        //         "response":{
-        //             "type":"cancel",
-        //             "data":{
-        //                 "statuses":[
-        //                     "success"
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        const innerResponse = this.safeDict (response, 'response');
-        const data = this.safeDict (innerResponse, 'data');
-        const statuses = this.safeList (data, 'statuses');
-        const orders = [];
-        for (let i = 0; i < statuses.length; i++) {
-            const status = statuses[i];
-            orders.push (this.safeOrder ({
-                'info': status,
-                'status': status,
-            }));
-        }
-        return orders;
+        return request;
     }
 
     /**
@@ -1900,7 +1916,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -2404,6 +2420,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2413,12 +2430,19 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const isClientOrderId = id.length >= 34;
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         const request: Dict = {
             'type': 'orderStatus',
-            'oid': isClientOrderId ? id : this.parseToNumeric (id),
+            // 'oid': isClientOrderId ? id : this.parseToNumeric (id),
             'user': userAddress,
         };
+        if (clientOrderId !== undefined) {
+            params = this.omit (params, 'clientOrderId');
+            request['oid'] = clientOrderId;
+        } else {
+            const isClientOrderId = id.length >= 34;
+            request['oid'] = isClientOrderId ? id : this.parseToNumeric (id);
+        }
         const response = await this.publicPostInfo (this.extend (request, params));
         //
         //     {
@@ -2611,6 +2635,9 @@ export default class hyperliquid extends Exchange {
     }
 
     parseOrderStatus (status: Str) {
+        if (status === undefined) {
+            return undefined;
+        }
         const statuses: Dict = {
             'triggered': 'open',
             'filled': 'closed',
@@ -2619,6 +2646,12 @@ export default class hyperliquid extends Exchange {
             'rejected': 'rejected',
             'marginCanceled': 'canceled',
         };
+        if (status.endsWith ('Rejected')) {
+            return 'rejected';
+        }
+        if (status.endsWith ('Canceled')) {
+            return 'canceled';
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2979,7 +3012,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3140,10 +3173,9 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + ' transfer() only support spot <> swap transfer');
             }
             let strAmount = this.numberToString (amount);
-            let vaultAddress = undefined;
-            [ vaultAddress, params ] = this.handleOptionAndParams (params, 'transfer', 'vaultAddress');
-            vaultAddress = this.formatVaultAddress (vaultAddress);
+            let vaultAddress = this.safeString2 (params, 'vaultAddress', 'subAccountAddress');
             if (vaultAddress !== undefined) {
+                vaultAddress = this.formatVaultAddress (vaultAddress);
                 strAmount = strAmount + ' subaccount:' + vaultAddress;
             }
             const toPerp = (toAccount === 'perp') || (toAccount === 'swap');
@@ -3173,12 +3205,6 @@ export default class hyperliquid extends Exchange {
             return transferResponse;
         }
         // transfer between main account and subaccount
-        if (code !== undefined) {
-            code = code.toUpperCase ();
-            if (code !== 'USDC') {
-                throw new NotSupported (this.id + ' transfer() only support USDC');
-            }
-        }
         let isDeposit = false;
         let subAccountAddress = undefined;
         if (fromAccount === 'main') {
@@ -3190,24 +3216,45 @@ export default class hyperliquid extends Exchange {
             throw new NotSupported (this.id + ' transfer() only support main <> subaccount transfer');
         }
         this.checkAddress (subAccountAddress);
-        const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
-        const action = {
-            'type': 'subAccountTransfer',
-            'subAccountUser': subAccountAddress,
-            'isDeposit': isDeposit,
-            'usd': usd,
-        };
-        const sig = this.signL1Action (action, nonce);
-        const request: Dict = {
-            'action': action,
-            'nonce': nonce,
-            'signature': sig,
-        };
-        const response = await this.privatePostExchange (request);
-        //
-        // {'response': {'type': 'default'}, 'status': 'ok'}
-        //
-        return this.parseTransfer (response);
+        if (code === undefined || code.toUpperCase () === 'USDC') {
+            // Transfer USDC with subAccountTransfer
+            const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
+            const action = {
+                'type': 'subAccountTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'usd': usd,
+            };
+            const sig = this.signL1Action (action, nonce);
+            const request: Dict = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            };
+            const response = await this.privatePostExchange (request);
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            return this.parseTransfer (response);
+        } else {
+            // Transfer non-USDC with subAccountSpotTransfer
+            const symbol = this.symbol (code);
+            const action = {
+                'type': 'subAccountSpotTransfer',
+                'subAccountUser': subAccountAddress,
+                'isDeposit': isDeposit,
+                'token': symbol,
+                'amount': this.numberToString (amount),
+            };
+            const sig = this.signL1Action (action, nonce);
+            const request: Dict = {
+                'action': action,
+                'nonce': nonce,
+                'signature': sig,
+            };
+            const response = await this.privatePostExchange (request);
+            return this.parseTransfer (response);
+        }
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -3241,7 +3288,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] vault address withdraw from
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -3577,6 +3624,9 @@ export default class hyperliquid extends Exchange {
         }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDeposits requires since while until is set');
+            }
             request['endTime'] = until;
             params = this.omit (params, [ 'until' ]);
         }
@@ -3799,6 +3849,30 @@ export default class hyperliquid extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name hyperliquid#reserveRequestWeight
+     * @description Instead of trading to increase the address based rate limits, this action allows reserving additional actions for 0.0005 USDC per request. The cost is paid from the Perps balance.
+     * @param {number} weight the weight to reserve, 1 weight = 1 action, 0.0005 USDC per action
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async reserveRequestWeight (weight: Num, params = {}): Promise<Dict> {
+        const nonce = this.milliseconds ();
+        const request: Dict = {
+            'nonce': nonce,
+        };
+        const action: Dict = {
+            'type': 'reserveRequestWeight',
+            'weight': weight,
+        };
+        const signature = this.signL1Action (action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response;
+    }
+
     extractTypeFromDelta (data = []) {
         const records = [];
         for (let i = 0; i < data.length; i++) {
@@ -3852,19 +3926,27 @@ export default class hyperliquid extends Exchange {
         //     }
         // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         //
+        // {"status":"unknownOid"}
+        //
         const status = this.safeString (response, 'status', '');
         const error = this.safeString (response, 'error');
         let message = undefined;
         if (status === 'err') {
             message = this.safeString (response, 'response');
+        } else if (status === 'unknownOid') {
+            throw new OrderNotFound (this.id + ' ' + body); // {"status":"unknownOid"}
         } else if (error !== undefined) {
             message = error;
         } else {
             const responsePayload = this.safeDict (response, 'response', {});
             const data = this.safeDict (responsePayload, 'data', {});
             const statuses = this.safeList (data, 'statuses', []);
-            const firstStatus = this.safeDict (statuses, 0);
-            message = this.safeString (firstStatus, 'error');
+            for (let i = 0; i < statuses.length; i++) {
+                message = this.safeString (statuses[i], 'error');
+                if (message !== undefined) {
+                    break;
+                }
+            }
         }
         const feedback = this.id + ' ' + body;
         const nonEmptyMessage = ((message !== undefined) && (message !== ''));

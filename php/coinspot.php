@@ -601,7 +601,8 @@ class coinspot extends Exchange {
             'amount' => $amount,
             'rate' => $price,
         );
-        return $this->$method ($this->extend($request, $params));
+        $response = $this->$method ($this->extend($request, $params));
+        return $this->parse_order($response);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {

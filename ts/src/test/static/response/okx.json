@@ -3,6 +3,143 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "type2 & type3 together",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 100333
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "clOrdId": "6b9ad766b55dBCDE63969a1144bfb943",
+                            "ordId": "2896576259728695296",
+                            "sCode": "0",
+                            "sMsg": "Order placed",
+                            "tag": "6b9ad766b55dBCDE",
+                            "ts": "1758827099512"
+                        }
+                    ],
+                    "inTime": "1758827099511856",
+                    "msg": "",
+                    "outTime": "1758827099513562"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "clOrdId": "6b9ad766b55dBCDE63969a1144bfb943",
+                        "ordId": "2896576259728695296",
+                        "sCode": "0",
+                        "sMsg": "Order placed",
+                        "tag": "6b9ad766b55dBCDE",
+                        "ts": "1758827099512"
+                    },
+                    "id": "2896576259728695296",
+                    "clientOrderId": "6b9ad766b55dBCDE63969a1144bfb943",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "type2 & type3 together",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 100444,
+                        "stopLoss": {
+                            "triggerPrice": 100333
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "algoClOrdId": "6b9ad766b55dBCDEd524d810f42296b8",
+                            "algoId": "2896574163517353984",
+                            "clOrdId": "6b9ad766b55dBCDEd524d810f42296b8",
+                            "sCode": "0",
+                            "sMsg": "",
+                            "tag": "6b9ad766b55dBCDE"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "info": {
+                        "algoClOrdId": "6b9ad766b55dBCDEd524d810f42296b8",
+                        "algoId": "2896574163517353984",
+                        "clOrdId": "6b9ad766b55dBCDEd524d810f42296b8",
+                        "sCode": "0",
+                        "sMsg": "",
+                        "tag": "6b9ad766b55dBCDE"
+                    },
+                    "id": "2896574163517353984",
+                    "clientOrderId": "6b9ad766b55dBCDEd524d810f42296b8",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "funding balance",

@@ -1110,7 +1110,7 @@ class woo(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
+    def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
@@ -1134,7 +1134,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return self.create_order(symbol, type, side, amount, price, params)
 
-    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
@@ -1502,8 +1502,11 @@ class woo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        response = None
         if trigger:
-            return self.v3PrivateDeleteTradeAlgoOrders(params)
+            response = self.v3PrivateDeleteTradeAlgoOrders(params)
+        else:
+            response = self.v3PrivateDeleteTradeOrders(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1513,7 +1516,8 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1751941988134
         #     }
         #
-        return self.v3PrivateDeleteTradeOrders(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        return [self.safe_order({'info': data})]
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -2834,7 +2838,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3450,7 +3454,7 @@ class woo(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

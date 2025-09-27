@@ -201,7 +201,6 @@ public partial class coinmetro : Exchange
             { "options", new Dictionary<string, object>() {
                 { "currenciesByIdForParseMarket", null },
                 { "currencyIdsListForParseMarket", new List<object>() {"QRDO"} },
-                { "skippedMarkets", new List<object>() {"VXVUSDT"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -460,12 +459,12 @@ public partial class coinmetro : Exchange
         //         ...
         //     ]
         //
-        object skippedMarkets = this.safeList(this.options, "skippedMarkets", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = this.parseMarket(getValue(response, i));
-            if (isTrue(this.inArray(getValue(market, "id"), skippedMarkets)))
+            // there are several broken (unavailable info) markets
+            if (isTrue(isTrue(isEqual(getValue(market, "base"), null)) || isTrue(isEqual(getValue(market, "quote"), null))))
             {
                 continue;
             }
@@ -579,6 +578,20 @@ public partial class coinmetro : Exchange
                     }
                     break;
                 }
+            }
+        }
+        if (isTrue(isTrue(isEqual(baseId, null)) || isTrue(isEqual(quoteId, null))))
+        {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (isTrue(((string)marketId).EndsWith(((string)"USDT"))))
+            {
+                baseId = ((string)marketId).Replace((string)"USDT", (string)"");
+                quoteId = "USDT";
+            }
+            if (isTrue(((string)marketId).EndsWith(((string)"USD"))))
+            {
+                baseId = ((string)marketId).Replace((string)"USD", (string)"");
+                quoteId = "USD";
             }
         }
         object result = new Dictionary<string, object>() {

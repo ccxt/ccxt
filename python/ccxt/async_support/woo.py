@@ -1111,7 +1111,7 @@ class woo(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         return await self.create_order(symbol, 'market', 'sell', cost, 1, params)
 
-    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
+    async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
@@ -1135,7 +1135,7 @@ class woo(Exchange, ImplicitAPI):
         params['trailingTriggerPrice'] = trailingTriggerPrice
         return await self.create_order(symbol, type, side, amount, price, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
@@ -1503,8 +1503,11 @@ class woo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        response = None
         if trigger:
-            return await self.v3PrivateDeleteTradeAlgoOrders(params)
+            response = await self.v3PrivateDeleteTradeAlgoOrders(params)
+        else:
+            response = await self.v3PrivateDeleteTradeOrders(self.extend(request, params))
         #
         #     {
         #         "success": True,
@@ -1514,7 +1517,8 @@ class woo(Exchange, ImplicitAPI):
         #         "timestamp": 1751941988134
         #     }
         #
-        return await self.v3PrivateDeleteTradeOrders(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        return [self.safe_order({'info': data})]
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -2835,7 +2839,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -3451,7 +3455,7 @@ class woo(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

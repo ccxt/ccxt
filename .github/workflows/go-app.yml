@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.21.x"
+          go-version: "1.24.x"
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -51,9 +51,15 @@ jobs:
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
-        run: cd go && go build ./v4 && cd ..
+        run: go build -C go ./v4
       - name: Build tests
-        run: cd go && go build ./tests/main.go && cd ..
+        run: go -C go build ./tests/main.go
+      - name: Format go files
+        run: go fmt .
+        working-directory: go/v4
+      - name: Format go tests
+        run: go fmt .
+        working-directory: go/tests/base
       - name: Test GO Types
         if: env.important_modified == 'true'
         run: npm run test-types-go
@@ -140,7 +146,7 @@ jobs:
       - name: Restore shared_env
         run: ./utils/restore_shared_env.sh
       - name: Build tests
-        run: cd  go/ && go build ./tests/main.go
+        run: go build -C go ./tests/main.go
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Export exchanges
@@ -154,9 +160,9 @@ jobs:
       # - name: Adjust permissions
       #   run: cd go && chmod +x main
       - name: Build
-        run: cd go && go build ./v4 && cd ..
+        run: go build -C go ./v4
       - name: Build tests
-        run: cd go && go build ./tests/main.go && cd ..
+        run: go build -C go ./tests/main.go
       - name: Live tests
         if: env.important_modified == 'true'
         run: node run-tests --go --useProxy

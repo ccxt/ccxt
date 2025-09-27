@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var woo$1 = require('./abstract/woo.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class woo
  * @augments Exchange
  */
-class woo extends woo$1 {
+class woo extends woo$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'woo',
@@ -692,7 +694,7 @@ class woo extends woo$1 {
                     'max': undefined,
                 },
             },
-            'created': null,
+            'created': undefined,
             'info': market,
         };
     }
@@ -1564,8 +1566,12 @@ class woo extends woo$1 {
             const market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        let response = undefined;
         if (trigger) {
-            return await this.v3PrivateDeleteTradeAlgoOrders(params);
+            response = await this.v3PrivateDeleteTradeAlgoOrders(params);
+        }
+        else {
+            response = await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
         }
         //
         //     {
@@ -1576,7 +1582,8 @@ class woo extends woo$1 {
         //         "timestamp": 1751941988134
         //     }
         //
-        return await this.v3PrivateDeleteTradeOrders(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        return [this.safeOrder({ 'info': data })];
     }
     /**
      * @method
@@ -4174,4 +4181,4 @@ class woo extends woo$1 {
     }
 }
 
-module.exports = woo;
+exports["default"] = woo;

@@ -87,6 +87,12 @@ namespace ccxt;
         public ManualInteractionNeeded(string message) : base(message) { }
         public ManualInteractionNeeded(string message, OperationRejected inner) : base(message, inner) { }
     }
+   public class RestrictedLocation : OperationRejected
+    {
+        public RestrictedLocation() : base() { }
+        public RestrictedLocation(string message) : base(message) { }
+        public RestrictedLocation(string message, OperationRejected inner) : base(message, inner) { }
+    }
    public class InsufficientFunds : ExchangeError
     {
         public InsufficientFunds() : base() { }

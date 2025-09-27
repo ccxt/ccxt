@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class binanceus extends binance {
+class binanceus extends binance["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'binanceus',
@@ -38,7 +40,9 @@ class binanceus extends binance {
                 },
             },
             'options': {
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
                 'defaultType': 'spot',
                 'fetchMargins': false,
                 'quoteOrderQty': false,
@@ -219,4 +223,4 @@ class binanceus extends binance {
     }
 }
 
-module.exports = binanceus;
+exports["default"] = binanceus;

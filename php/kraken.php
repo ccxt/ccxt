@@ -228,6 +228,7 @@ class kraken extends Exchange {
                 'UST' => 'USTC',
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
+                'FEE' => 'KFEE',
             ),
             'options' => array(
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -421,6 +422,7 @@ class kraken extends Exchange {
                     'OriginTrail' => 'OTP',
                     'Celestia' => 'TIA',
                 ),
+                'marketHelperProps' => array( 'marketsByAltname', 'delistedMarketsById' ), // used by setMarketsFromExchange
             ),
             'features' => array(
                 'spot' => array(
@@ -699,19 +701,6 @@ class kraken extends Exchange {
         }
         $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
         return $result;
-    }
-
-    public function safe_currency($currencyId, ?array $currency = null) {
-        if ($currencyId !== null) {
-            if (strlen($currencyId) > 3) {
-                if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
-                    if (!(mb_strpos($currencyId, '.') > 0) && ($currencyId !== 'ZEUS')) {
-                        $currencyId = mb_substr($currencyId, 1);
-                    }
-                }
-            }
-        }
-        return parent::safe_currency($currencyId, $currency);
     }
 
     public function fetch_status($params = array ()) {
@@ -3212,7 +3201,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -3220,21 +3209,24 @@ class kraken extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
+         * @param {string} $address the $address to withdraw to, not required can be '' or null/none/null
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             $this->load_markets();
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $amount,
-                'address' => $address,
+                // 'address' => $address,
             );
+            if ($address !== null && $address !== '') {
+                $request['address'] = $address;
+                $this->check_address($address);
+            }
             $response = $this->privatePostWithdraw ($this->extend($request, $params));
             //
             //     {

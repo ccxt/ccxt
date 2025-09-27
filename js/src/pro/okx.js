@@ -170,6 +170,8 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTrades
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -183,11 +185,14 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTradesForSymbols
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
@@ -197,7 +202,8 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const channel = 'trades';
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -214,7 +220,12 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const url = this.getUrl(channel, 'public');
+        let access = 'public';
+        if (channel === 'trades-all') {
+            access = 'business';
+            await this.authenticate({ 'access': access });
+        }
+        const url = this.getUrl(channel, access);
         const trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue(trades, 0);
@@ -229,17 +240,19 @@ export default class okx extends okxRest {
      * @description unWatches from the stream channel
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, false);
-        const channel = 'trades';
+        let channel = undefined;
+        [channel, params] = this.handleOptionAndParams(params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            messageHashes.push('unsubscribe:trades:' + symbol);
+            messageHashes.push('unsubscribe:' + channel + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
                 'channel': channel,
@@ -251,7 +264,12 @@ export default class okx extends okxRest {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = this.getUrl(channel, 'public');
+        let access = 'public';
+        if (channel === 'trades-all') {
+            access = 'business';
+            await this.authenticate({ 'access': access });
+        }
+        const url = this.getUrl(channel, access);
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
     /**
@@ -277,6 +295,23 @@ export default class okx extends okxRest {
         //                 "sz": "0.00001186",
         //                 "side": "buy",
         //                 "ts": "1626531038288"
+        //             }
+        //         ]
+        //     }
+        //     {
+        //         "arg": {
+        //             "channel": "trades-all",
+        //             "instId": "BTC-USDT"
+        //         },
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT",
+        //                 "tradeId": "130639474",
+        //                 "px": "42219.9",
+        //                 "sz": "0.12060306",
+        //                 "side": "buy",
+        //                 "source": "0",
+        //                 "ts": "1630048897897"
         //             }
         //         ]
         //     }
@@ -649,7 +684,7 @@ export default class okx extends okxRest {
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHash = 'liquidations';
@@ -745,7 +780,7 @@ export default class okx extends okxRest {
      * @param {object} [params] exchange specific parameters for the okx api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const isTrigger = this.safeValue2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
@@ -911,6 +946,7 @@ export default class okx extends okxRest {
             'contracts': this.safeNumber(liquidationDetails, 'sz'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidationDetails, 'bkPx'),
+            'side': this.safeString(liquidationDetails, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,
@@ -2070,7 +2106,7 @@ export default class okx extends okxRest {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors(1, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
@@ -2307,7 +2343,7 @@ export default class okx extends okxRest {
             client.reject(e);
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {
@@ -2394,6 +2430,7 @@ export default class okx extends okxRest {
                 'sprd-tickers': this.handleTicker,
                 'block-tickers': this.handleTicker,
                 'trades': this.handleTrades,
+                'trades-all': this.handleTrades,
                 'account': this.handleBalance,
                 'funding-rate': this.handleFundingRate,
                 // 'margin_account': this.handleBalance,
@@ -2413,9 +2450,9 @@ export default class okx extends okxRest {
             }
         }
     }
-    handleUnSubscriptionTrades(client, symbol) {
-        const subMessageHash = 'trades:' + symbol;
-        const messageHash = 'unsubscribe:trades:' + symbol;
+    handleUnSubscriptionTrades(client, symbol, channel) {
+        const subMessageHash = channel + ':' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (symbol in this.trades) {
             delete this.trades[symbol];
@@ -2462,8 +2499,8 @@ export default class okx extends okxRest {
         const channel = this.safeString(arg, 'channel', '');
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
-        if (channel === 'trades') {
-            this.handleUnSubscriptionTrades(client, symbol);
+        if (channel === 'trades' || channel === 'trades-all') {
+            this.handleUnSubscriptionTrades(client, symbol, channel);
         }
         else if (channel.startsWith('bbo') || channel.startsWith('book')) {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);

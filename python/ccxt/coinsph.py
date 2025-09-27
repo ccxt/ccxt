@@ -345,6 +345,9 @@ class coinsph(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': False,
                         'triggerPrice': True,
@@ -540,7 +543,7 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         response = self.privateGetOpenapiWalletV1ConfigGetall(params)
         #
         #    [
@@ -1768,7 +1771,7 @@ class coinsph(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal to coins_ph account
 

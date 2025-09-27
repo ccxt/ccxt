@@ -794,7 +794,7 @@ export default class kucoin extends Exchange {
                     'TLOS': 'tlos', // tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -914,6 +914,7 @@ export default class kucoin extends Exchange {
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON': 'bcd',
                     // 'BITCOINGOLD': 'btg',
@@ -1395,7 +1396,6 @@ export default class kucoin extends Exchange {
         //
         const currenciesData = this.safeList (response, 'data', []);
         const brokenCurrencies = this.safeList (this.options, 'brokenCurrencies', [ '00', 'OPEN_ERROR', 'HUF', 'BDT' ]);
-        const otherFiats = this.safeList (this.options, 'fiats', [ 'KWD', 'IRR', 'PKR' ]);
         const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
@@ -1436,7 +1436,7 @@ export default class kucoin extends Exchange {
             // kucoin has determined 'fiat' currencies with below logic
             const rawPrecision = this.safeString (entry, 'precision');
             const precision = this.parseNumber (this.parsePrecision (rawPrecision));
-            const isFiat = this.inArray (id, otherFiats) || ((rawPrecision === '2') && (chainsLength === 0));
+            const isFiat = chainsLength === 0;
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': this.safeString (entry, 'fullName'),
@@ -2727,7 +2727,7 @@ export default class kucoin extends Exchange {
         } else {
             response = await this.privateDeleteOrders (this.extend (request, query));
         }
-        return response;
+        return [ this.safeOrder ({ 'info': response }) ];
     }
 
     /**
@@ -3528,7 +3528,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         this.checkAddress (address);
@@ -5031,7 +5031,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let marketType: Str = undefined;

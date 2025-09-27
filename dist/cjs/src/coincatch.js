@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coincatch$1 = require('./abstract/coincatch.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class coincatch
  * @augments Exchange
  */
-class coincatch extends coincatch$1 {
+class coincatch extends coincatch$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coincatch',
@@ -608,8 +610,8 @@ class coincatch extends coincatch$1 {
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString(network, 'chain');
-                const networkCode = this.networkCodeToId(networkId);
-                parsedNetworks[networkId] = {
+                const networkCode = this.networkIdToCode(networkId);
+                parsedNetworks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'limits': {
@@ -2304,6 +2306,7 @@ class coincatch extends coincatch$1 {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2506,6 +2509,7 @@ class coincatch extends coincatch$1 {
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2563,7 +2567,7 @@ class coincatch extends coincatch$1 {
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.hedged] default false
+         * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
          * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
          * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2602,31 +2606,42 @@ class coincatch extends coincatch$1 {
         }
         if ((endpointType !== 'tpsl')) {
             request['orderType'] = type;
+            let sideIsExchangeSpecific = false;
             let hedged = false;
-            [hedged, params] = this.handleOptionAndParams(params, methodName, 'hedged', hedged);
-            // hedged and non-hedged orders have different side values and reduceOnly handling
-            let reduceOnly = false;
-            [reduceOnly, params] = this.handleParamBool(params, 'reduceOnly', reduceOnly);
-            if (hedged) {
-                if (reduceOnly) {
-                    if (side === 'buy') {
-                        side = 'close_short';
+            if ((side === 'buy_single') || (side === 'sell_single') || (side === 'open_long') || (side === 'open_short') || (side === 'close_long') || (side === 'close_short')) {
+                sideIsExchangeSpecific = true;
+                if ((side !== 'buy_single') && (side !== 'sell_single')) {
+                    hedged = true;
+                }
+            }
+            if (!sideIsExchangeSpecific) {
+                [hedged, params] = this.handleOptionAndParams(params, methodName, 'hedged', hedged);
+                // hedged and non-hedged orders have different side values and reduceOnly handling
+                const reduceOnly = this.safeBool(params, 'reduceOnly');
+                if (hedged) {
+                    if ((reduceOnly !== undefined) && reduceOnly) {
+                        if (side === 'buy') {
+                            side = 'close_short';
+                        }
+                        else if (side === 'sell') {
+                            side = 'close_long';
+                        }
                     }
-                    else if (side === 'sell') {
-                        side = 'close_long';
+                    else {
+                        if (side === 'buy') {
+                            side = 'open_long';
+                        }
+                        else if (side === 'sell') {
+                            side = 'open_short';
+                        }
                     }
                 }
                 else {
-                    if (side === 'buy') {
-                        side = 'open_long';
-                    }
-                    else if (side === 'sell') {
-                        side = 'open_short';
-                    }
+                    side = side.toLowerCase() + '_single';
                 }
             }
-            else {
-                side = side.toLowerCase() + '_single';
+            if (hedged) {
+                params = this.omit(params, 'reduceOnly');
             }
             request['side'] = side;
         }
@@ -4925,7 +4940,7 @@ class coincatch extends coincatch$1 {
                 }
             }
         }
-        return positions[0];
+        return this.safeDict(positions, 0, {});
     }
     /**
      * @method
@@ -5488,4 +5503,4 @@ class coincatch extends coincatch$1 {
     }
 }
 
-module.exports = coincatch;
+exports["default"] = coincatch;

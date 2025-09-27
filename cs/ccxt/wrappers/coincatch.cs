@@ -530,7 +530,7 @@ public partial class coincatch
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -574,6 +574,12 @@ public partial class coincatch
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap markets only* must be set to true if position mode is hedged (default false)
     /// </description>
     /// </item>
     /// <item>
@@ -750,6 +756,12 @@ public partial class coincatch
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : must be set to true if position mode is hedged (default false)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.postOnly</term>
     /// <description>
     /// bool : *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
@@ -832,7 +844,7 @@ public partial class coincatch
     /// <item>
     /// <term>params.hedged</term>
     /// <description>
-    /// bool : default false
+    /// bool : must be set to true if position mode is hedged (default false)
     /// </description>
     /// </item>
     /// <item>

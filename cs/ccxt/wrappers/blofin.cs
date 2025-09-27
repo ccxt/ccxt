@@ -972,10 +972,10 @@ public partial class blofin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<MarginMode> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
-        return new MarginMode(res);
+        return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// fetchs the position mode, hedged or one way

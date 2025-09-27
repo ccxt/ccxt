@@ -285,7 +285,6 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key, allow
     log_text = log_template(exchange, method, entry)
     key_string = string_value(key)
     if isinstance(key, int):
-        key = key
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:

@@ -211,7 +211,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    findAccountId(code: any, params?: {}): Promise<any>;
+    findAccountId(code: any, params?: {}): Promise<string>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<Dict[]>;
     /**
@@ -440,7 +440,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     /**
      * @method
      * @name coinbase#fetchDepositAddress
@@ -611,7 +611,7 @@ export default class coinbase extends Exchange {
      */
     fetchPortfolioDetails(portfolioUuid: string, params?: {}): Promise<any[]>;
     parsePortfolioDetails(portfolioData: Dict): any[];
-    createAuthToken(seconds: Int, method?: Str, url?: Str): string;
+    createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

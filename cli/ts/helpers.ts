@@ -27,7 +27,8 @@ try {
         // local ccxt project
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
     } catch (ee) {
-        log.error ('Neither a local nor a global ccxt installation was detected, please do `npm i` first');
+        log.error (ee);
+        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
         process.exit (1);
     }
 }
@@ -87,12 +88,17 @@ function injectMissingUndefined (fn, args) {
         const paramsObj = args[args.length - 1];
         args.pop ();
         const newArgsArray = args;
+        const isPartialFunction = fn.toString ().indexOf ('(params = {}, context = {})');
         for (let j = 0; j < missingParams; j++) {
             newArgsArray.push (undefined);
         }
         newArgsArray.push (paramsObj);
+        if (isPartialFunction) {
+            newArgsArray.reverse ();
+        }
         args = newArgsArray;
     }
+    console.log (args);
     return args;
 }
 
@@ -516,6 +522,8 @@ async function loadSettingsAndCreateExchange (
         }
         if (cliOptions.sandbox || cliOptions.testnet) {
             exchange.setSandboxMode (true);
+        } else if (cliOptions.demo) {
+            exchange.enableDemoTrading (true);
         }
     } catch (e) {
         log.red (e);

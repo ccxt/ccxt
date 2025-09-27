@@ -3,7 +3,7 @@
 
 import apexRest from '../apex.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { OHLCV, Order, Position, Str } from '../base/types.js';
@@ -868,7 +868,7 @@ export default class apex extends apexRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //   {
         //       "success": false,
@@ -989,6 +989,7 @@ export default class apex extends apexRest {
 
     ping (client: Client) {
         const timeStamp = this.milliseconds ().toString ();
+        client.lastPong = timeStamp; // server won't send a pong, so we set it here
         return {
             'args': [ timeStamp ],
             'op': 'ping',

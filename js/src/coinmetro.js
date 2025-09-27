@@ -213,7 +213,6 @@ export default class coinmetro extends Exchange {
             'options': {
                 'currenciesByIdForParseMarket': undefined,
                 'currencyIdsListForParseMarket': ['QRDO'],
-                'skippedMarkets': ['VXVUSDT'], // broken markets which do not have enough info in API
             },
             'features': {
                 'spot': {
@@ -461,11 +460,11 @@ export default class coinmetro extends Exchange {
         //         ...
         //     ]
         //
-        const skippedMarkets = this.safeList(this.options, 'skippedMarkets', []);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket(response[i]);
-            if (this.inArray(market['id'], skippedMarkets)) {
+            // there are several broken (unavailable info) markets
+            if (market['base'] === undefined || market['quote'] === undefined) {
                 continue;
             }
             result.push(market);
@@ -567,6 +566,17 @@ export default class coinmetro extends Exchange {
                     }
                     break;
                 }
+            }
+        }
+        if (baseId === undefined || quoteId === undefined) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (marketId.endsWith('USDT')) {
+                baseId = marketId.replace('USDT', '');
+                quoteId = 'USDT';
+            }
+            if (marketId.endsWith('USD')) {
+                baseId = marketId.replace('USD', '');
+                quoteId = 'USD';
             }
         }
         const result = {

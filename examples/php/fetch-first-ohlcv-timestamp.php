@@ -67,10 +67,10 @@ function fetch_first_bar_timestamp($exchange, $symbol, $use_minute_timeframe = f
         }
         // if minute resolution needed
         if ($use_minute_timeframe) {
-            $max_iteration = ((int) ceil($minutes_per_day / $limit));
+            $max_iteration = ((int) ceil($minutes_per_day / $limit)) * 2;
             $all_promises = [];
             for ($i = 0; $i < $max_iteration; $i++) {
-                $current_since = $found_start_time + $i * $limit * 60 * 1000;
+                $current_since = $found_start_time - $milliseconds_per_day + $i * $limit * 60 * 1000; // shift one-duration back for more accuracy for different kind of exchanges, like OKX, where first daily bar is offset by one day, but minute bars present
                 $all_promises[] = $exchange->fetch_ohlcv($symbol, '1m', $current_since, $limit, $fetch_params);
             }
             $all_responses = Async\await(Promise\all($all_promises));

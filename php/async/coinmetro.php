@@ -214,7 +214,6 @@ class coinmetro extends Exchange {
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
                 'currencyIdsListForParseMarket' => array( 'QRDO' ),
-                'skippedMarkets' => array( 'VXVUSDT' ), // broken markets which do not have enough info in API
             ),
             'features' => array(
                 'spot' => array(
@@ -466,11 +465,11 @@ class coinmetro extends Exchange {
             //         ...
             //     )
             //
-            $skippedMarkets = $this->safe_list($this->options, 'skippedMarkets', array());
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $market = $this->parse_market($response[$i]);
-                if ($this->in_array($market['id'], $skippedMarkets)) {
+                // there are several broken (unavailable info) markets
+                if ($market['base'] === null || $market['quote'] === null) {
                     continue;
                 }
                 $result[] = $market;
@@ -574,6 +573,17 @@ class coinmetro extends Exchange {
                     }
                     break;
                 }
+            }
+        }
+        if ($baseId === null || $quoteId === null) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (str_ends_with($marketId, 'USDT')) {
+                $baseId = str_replace('USDT', '', $marketId);
+                $quoteId = 'USDT';
+            }
+            if (str_ends_with($marketId, 'USD')) {
+                $baseId = str_replace('USD', '', $marketId);
+                $quoteId = 'USD';
             }
         }
         $result = array(

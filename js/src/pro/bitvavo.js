@@ -1348,7 +1348,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
         }
         catch (e) {
             rejected = true;
@@ -1356,7 +1356,9 @@ export default class bitvavo extends bitvavoRest {
         }
         if (!rejected) {
             client.reject(message, messageHash);
+            return true;
         }
+        return undefined;
     }
     handleMessage(client, message) {
         //

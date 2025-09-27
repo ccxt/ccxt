@@ -811,7 +811,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OP': 'optimism',
+                    'OPTIMISM': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -931,6 +931,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'CS': 'cs',
                     'ORAI': 'orai',
                     'BASE': 'base',
+                    'TARA': 'tara',
                     # below will be uncommented after consensus
                     # 'BITCOINDIAMON': 'bcd',
                     # 'BITCOINGOLD': 'btg',
@@ -1397,7 +1398,6 @@ class kucoin(Exchange, ImplicitAPI):
         #
         currenciesData = self.safe_list(response, 'data', [])
         brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
-        otherFiats = self.safe_list(self.options, 'fiats', ['KWD', 'IRR', 'PKR'])
         result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
@@ -1436,7 +1436,7 @@ class kucoin(Exchange, ImplicitAPI):
             # kucoin has determined 'fiat' currencies with below logic
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
-            isFiat = self.in_array(id, otherFiats) or ((rawPrecision == '2') and (chainsLength == 0))
+            isFiat = chainsLength == 0
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': self.safe_string(entry, 'fullName'),
@@ -2646,7 +2646,7 @@ class kucoin(Exchange, ImplicitAPI):
                 response = self.privateDeleteHfOrders(self.extend(request, query))
         else:
             response = self.privateDeleteOrders(self.extend(request, query))
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -3385,7 +3385,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4800,7 +4800,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

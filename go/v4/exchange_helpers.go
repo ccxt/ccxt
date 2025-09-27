@@ -117,7 +117,7 @@ func EvalTruthy(val interface{}) bool {
 		// }
 	}
 
-	return true // Consider non-nil complex types as truthy
+	// return true // Consider non-nil complex types as truthy
 }
 
 // func IsInteger(value interface{}) bool {

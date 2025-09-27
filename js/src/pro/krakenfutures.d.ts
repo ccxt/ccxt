@@ -1,5 +1,5 @@
 import krakenfuturesRest from '../krakenfutures.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class krakenfutures extends krakenfuturesRest {
     describe(): any;
@@ -83,7 +83,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    watchTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
      * @name krakenfutures#watchTradesForSymbols
@@ -172,7 +172,7 @@ export default class krakenfutures extends krakenfuturesRest {
     parseWsMyTrade(trade: any, market?: any): Trade;
     watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: any, message: any): void;
     handleAuthenticate(client: Client, message: any): any;
 }

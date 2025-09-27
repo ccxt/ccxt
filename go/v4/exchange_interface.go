@@ -2,8 +2,60 @@ package ccxt
 
 import "sync"
 
+type IBaseExchange interface {
+	SetRateLimit(rateLimit bool)
+	ExtendExchangeOptions(options interface{})
+	GetSymbols() []string
+	SetWssProxy(wssProxy interface{})
+	SetWsProxy(wsProxy interface{})
+	GetAlias() interface{}
+	GetTimeframes() map[string]interface{}
+	GetFeatures() map[string]interface{}
+	GetCache() *sync.Map
+	GetRequiredCredentials() map[string]interface{}
+	SetTimeout(timeout interface{})
+	SetHttpsProxy(httpsProxy interface{})
+	SetHttpProxy(httpProxy interface{})
+	SetCurrencies(currencies interface{})
+	SetPrivateKey(privateKey interface{})
+	SetAccountId(privateKey interface{})
+	SetWalletAddress(walletAddress interface{})
+	SetSecret(secret interface{})
+	SetUid(uid interface{})
+	SetPassword(password interface{})
+	SetApiKey(apiKey interface{})
+	SetAccounts(account interface{})
+	SetVerbose(verbose interface{})
+	GetLast_request_url() interface{}
+	GetLast_request_body() interface{}
+	GetLast_request_headers() map[string]interface{}
+	GetReturnResponseHeaders() bool
+	SetReturnResponseHeaders(val interface{})
+	GetHas() map[string]interface{}
+	GetId() string
+	GetHostname() string
+	GetUrls() interface{}
+	GetApi() map[string]interface{}
+	GetOptions() *sync.Map
+	GetCurrencies() *sync.Map
+	GetMarkets() *sync.Map
+	SetSandboxMode(enable interface{})
+	LoadMarkets(params ...interface{}) (map[string]MarketInterface, error)
+	SetProxyUrl(proxyUrl interface{})
+	SetSocksProxy(proxyUrl interface{})
+	SignIn(optionalArgs ...interface{}) <-chan interface{}
+	Market(symbol interface{}) interface{}
+	Currency(code interface{}) interface{}
+	GetMarket(symbol string) MarketInterface
+	GetMarketsList() []MarketInterface
+	GetCurrency(currencyId string) Currency
+	GetCurrenciesList() []Currency
+
+	// methods from base
+}
+
 // Exchange interface based on the methods from binance.go
-type IExchange interface {
+type ICoreExchange interface {
 	SetRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
@@ -191,6 +243,7 @@ type IDerivedExchange interface {
 	ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{}
 	ParseAccount(account interface{}) interface{}
 	ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{}
+	ParseLastPrice(item interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}
 	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}
@@ -222,6 +275,7 @@ type IDerivedExchange interface {
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
 	ParseDepositAddresses(addresses interface{}, optionalArgs ...interface{}) interface{}
+	FetchTradingFees(optionalArgs ...interface{}) <-chan interface{}
 	ParseDepositAddress(depositAddress interface{}, optionalArgs ...interface{}) interface{}
 	ParseBorrowRate(info interface{}, optionalArgs ...interface{}) interface{}
 	ParseFundingRateHistory(info interface{}, optionalArgs ...interface{}) interface{}

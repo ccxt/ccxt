@@ -11,6 +11,11 @@ public partial class bingx : Exchange
 {
     public bingx (object args = null): base(args) {}
 
+    public async Task<object> fundV1PrivateGetAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("fundV1PrivateGetAccountBalance",parameters);
+    }
+
     public async Task<object> spotV1PublicGetServerTime (object parameters = null)
     {
         return await this.callAsync ("spotV1PublicGetServerTime",parameters);
