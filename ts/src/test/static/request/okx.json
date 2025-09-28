@@ -1039,6 +1039,22 @@
                     }
                 ],
                 "output": "[{\"algoId\":\"663748219972878336\",\"instId\":\"BTC-USDT-SWAP\"}]"
+            },
+            {
+                "description": "cancel trigger orders by clientOrderId",
+                "method": "cancelOrders",
+                "url": "https://www.okx.com/api/v5/trade/cancel-algos",
+                "input": [
+                    null,
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true,
+                        "clientOrderId": [
+                            "1234abcd"
+                        ]
+                    }
+                ],
+                "output": "[{\"instId\":\"BTC-USDT-SWAP\",\"algoClOrdId\":\"1234abcd\"}]"
             }
         ],
         "cancelOrdersForSymbols": [
