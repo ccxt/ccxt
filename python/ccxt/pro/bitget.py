@@ -431,7 +431,7 @@ class bitget(ccxt.async_support.bitget):
         https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
 
         :param str symbol: unified symbol of the market to unwatch the ohlcv for
-        :param str timeframe:
+        :param str [timeframe]: the period for the ratio, default is 1 minute
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -664,7 +664,7 @@ class bitget(ccxt.async_support.bitget):
             self.handle_deltas(storedOrderBook['bids'], bids)
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
-            checksum = self.safe_bool(self.options, 'checksum', True)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
             isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
             if not isSnapshot and checksum:
                 storedAsks = storedOrderBook['asks']
@@ -916,8 +916,8 @@ class bitget(ccxt.async_support.bitget):
         https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
 
         :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.instType]: one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`

@@ -2009,6 +2009,7 @@ export default class wavesexchange extends Exchange {
      * @method
      * @name wavesexchange#fetchMyTrades
      * @description fetch all trades made by the user
+     * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve

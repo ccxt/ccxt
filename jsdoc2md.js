@@ -91,14 +91,19 @@ const exchangeLinks = []
 outputByExchange.forEach ((output, i) => {
   const name = templateData[i][0].id
   const fileName = 'exchanges/' + name + '.md'
-  fs.writeFileSync (outputFolder + fileName, output)
+  try {
+    fs.writeFileSync(outputFolder + fileName, output)
+  } catch (e) {
+    console.error(`Error writing file ${fileName}:`, e.message)
+    debugger
+  }
   exchangeLinks.push (`\t- [${name}](${fileName})`)
 })
 
 
 fs.writeFileSync (outputFile, baseOutput.join ('\n---\n'))
 
-const sidebar = 
+const sidebar =
 `
 - [Install](Install.md)
 - [Examples](Examples.md)

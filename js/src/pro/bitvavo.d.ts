@@ -189,6 +189,7 @@ export default class bitvavo extends bitvavoRest {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    requestId(): number;
     watchRequest(action: any, request: any): Promise<any>;
     /**
      * @method
@@ -308,7 +309,6 @@ export default class bitvavo extends bitvavoRest {
     handleSingleOrder(client: Client, message: any): void;
     handleMarkets(client: Client, message: any): void;
     buildMessageHash(action: any, params?: {}): any;
-    checkMessageHashDoesNotExist(messageHash: any): void;
     actionAndMarketMessageHash(action: any, params?: {}): string;
     actionAndOrderIdMessageHash(action: any, params?: {}): string;
     handleOrder(client: Client, message: any): void;

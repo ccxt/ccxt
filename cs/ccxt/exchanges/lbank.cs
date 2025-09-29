@@ -192,6 +192,7 @@ public partial class lbank : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
+                { "HIT", "Hiver" },
                 { "VET_ERC20", "VEN" },
                 { "PNT", "Penta" },
             } },

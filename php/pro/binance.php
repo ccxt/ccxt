@@ -231,7 +231,7 @@ class binance extends \ccxt\async\binance {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/All-Market-Liquidation-Order-Streams
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/All-Market-Liquidation-Order-Streams
              *
-             * @param {string[]} $symbols
+             * @param {string[]} $symbols list of unified $market $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
@@ -456,7 +456,7 @@ class binance extends \ccxt\async\binance {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
              *
-             * @param $symbols
+             * @param {string[]} $symbols list of unified $market $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
@@ -3269,7 +3269,7 @@ class binance extends \ccxt\async\binance {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
              *
              * @param {string} $id order $id
-             * @param {string} $symbol unified $market $symbol, default is null
+             * @param {string} [$symbol] unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|null} [$params->cancelRestrictions] Supported values => ONLY_NEW - Cancel will succeed if the order status is NEW. ONLY_PARTIALLY_FILLED - Cancel will succeed if order status is PARTIALLY_FILLED.
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
@@ -3315,7 +3315,7 @@ class binance extends \ccxt\async\binance {
              *
              * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
              *
-             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -3355,8 +3355,8 @@ class binance extends \ccxt\async\binance {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
              *
              * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {string} [$symbol] unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3818,8 +3818,8 @@ class binance extends \ccxt\async\binance {
             /**
              * watch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param $since
-             * @param $limit
+             * @param {number} [$since] $since timestamp
+             * @param {number} [$limit] $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}

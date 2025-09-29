@@ -2502,28 +2502,8 @@ public partial class coinbase : Exchange
         object cursor = this.safeString(pagination, "next_starting_after");
         if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
         {
-            object lastFee = this.safeDict(last, "fee");
-            ((IDictionary<string,object>)last)["next_starting_after"] = cursor;
-            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = new Dictionary<string, object>() {
-                { "info", this.safeDict(last, "info") },
-                { "id", this.safeString(last, "id") },
-                { "timestamp", this.safeInteger(last, "timestamp") },
-                { "datetime", this.safeString(last, "datetime") },
-                { "direction", this.safeString(last, "direction") },
-                { "account", this.safeString(last, "account") },
-                { "referenceId", null },
-                { "referenceAccount", null },
-                { "type", this.safeString(last, "type") },
-                { "currency", this.safeString(last, "currency") },
-                { "amount", this.safeNumber(last, "amount") },
-                { "before", null },
-                { "after", null },
-                { "status", this.safeString(last, "status") },
-                { "fee", new Dictionary<string, object>() {
-                    { "cost", this.safeNumber(lastFee, "cost") },
-                    { "currency", this.safeString(lastFee, "currency") },
-                } },
-            };
+            ((IDictionary<string,object>)getValue(last, "info"))["next_starting_after"] = cursor;
+            ((List<object>)ledger)[Convert.ToInt32(lastIndex)] = last;
         }
         return ledger;
     }

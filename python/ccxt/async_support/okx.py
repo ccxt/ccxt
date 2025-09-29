@@ -1200,6 +1200,97 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
+            'features': {
+                # https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+                'default': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'marginMode': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                                'index': True,
+                            },
+                            'limitPrice': True,
+                        },
+                        'timeInForce': {
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': True,
+                        # even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention': True,
+                        'trailing': True,
+                        'twap': True,
+                        'iceberg': True,
+                        'oco': True,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'daysBack': 90,
+                        'limit': 100,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 100,
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOrders': None,  # not supported
+                    'fetchClosedOrders': {
+                        'limit': 100,
+                        'daysBackClosed': 90,  # 3 months
+                        'daysBackCanceled': 1 / 12,  # 2 hour
+                        'untilDays': None,
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': True,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'commonCurrencies': {
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
@@ -7933,8 +8024,8 @@ class okx(Exchange, ImplicitAPI):
 
         :param str [symbol]: not used by okx fetchMarginAdjustmentHistory
         :param str [type]: "add" or "reduce"
- @param since
- @param limit
+        :param int [since]: the earliest time in ms to fetch margin adjustment history for
+        :param int [limit]: the maximum number of entries to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
         :param boolean [params.auto]: True if fetching auto margin increases
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`

@@ -2272,7 +2272,7 @@ class coincatch extends coincatch$1 {
         /**
          * @method
          * @ignore
-         * @name hashkey#createSpotOrderRequest
+         * @name coincatch#createSpotOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -2452,7 +2452,7 @@ class coincatch extends coincatch$1 {
         /**
          * @method
          * @ignore
-         * @name hashkey#createSwapOrderRequest
+         * @name coincatch#createSwapOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -4619,7 +4619,7 @@ class coincatch extends coincatch$1 {
     }
     /**
      * @method
-     * @name hashkey#setLeverage
+     * @name coincatch#setLeverage
      * @description set the level of leverage for a market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
      * @param {float} leverage the rate of leverage

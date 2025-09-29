@@ -338,10 +338,9 @@ public partial class bitvavo : ccxt.bitvavo
         //        ]
         //    }
         //
-        object action = this.safeString(message, "action");
         object response = this.safeValue(message, "response");
         object ohlcv = this.parseOHLCVs(response, null, null, null);
-        object messageHash = this.buildMessageHash(action);
+        object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }
 
@@ -795,16 +794,15 @@ public partial class bitvavo : ccxt.bitvavo
         //        }]
         //    }
         //
-        object action = this.safeString(message, "action");
-        object response = this.safeValue(message, "response");
-        object firstRawOrder = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object marketId = this.safeString(firstRawOrder, "market");
+        // const action = this.safeString (message, 'action');
+        object response = this.safeList(message, "response");
+        // const firstRawOrder = this.safeValue (response, 0, {});
+        // const marketId = this.safeString (firstRawOrder, 'market');
         object orders = this.parseOrders(response);
-        object messageHash = this.buildMessageHash(action, new Dictionary<string, object>() {
-            { "market", marketId },
-        });
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
-        messageHash = this.buildMessageHash(action, message);
+        // let messageHash = this.buildMessageHash (action, { 'market': marketId });
+        // client.resolve (orders, messageHash);
+        // messageHash = this.buildMessageHash (action, message);
+        object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
     }
 
@@ -860,14 +858,22 @@ public partial class bitvavo : ccxt.bitvavo
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
 
+    public virtual object requestId()
+    {
+        object ts = ((object)this.milliseconds()).ToString();
+        object randomNumber = this.randNumber(4);
+        object randomPart = ((object)randomNumber).ToString();
+        return parseInt(add(ts, randomPart));
+    }
+
     public async virtual Task<object> watchRequest(object action, object request)
     {
+        object messageHash = this.requestId();
+        object messageHashStr = ((object)messageHash).ToString();
         ((IDictionary<string,object>)request)["action"] = action;
-        object messageHash = this.buildMessageHash(action, request);
-        this.checkMessageHashDoesNotExist(messageHash);
+        ((IDictionary<string,object>)request)["requestId"] = messageHash;
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object randomSubHash = add(add(((object)this.randNumber(5)).ToString(), ":"), messageHash);
-        return await this.watch(url, messageHash, request, randomSubHash);
+        return await this.watch(url, messageHashStr, request, messageHashStr);
     }
 
     /**
@@ -944,14 +950,12 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         //
-        object action = this.safeString(message, "action");
-        object response = this.safeValue(message, "response");
-        object firstRawTrade = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object marketId = this.safeString(firstRawTrade, "market");
+        // const action = this.safeString (message, 'action');
+        object response = this.safeList(message, "response");
+        // const marketId = this.safeString (firstRawTrade, 'market');
         object trades = this.parseTrades(response, null, null, null);
-        object messageHash = this.buildMessageHash(action, new Dictionary<string, object>() {
-            { "market", marketId },
-        });
+        // const messageHash = this.buildMessageHash (action, { 'market': marketId });
+        object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
     }
 
@@ -991,8 +995,9 @@ public partial class bitvavo : ccxt.bitvavo
         //        }
         //    }
         //
-        object action = this.safeString(message, "action");
-        object messageHash = this.buildMessageHash(action, message);
+        // const action = this.safeString (message, 'action');
+        // const messageHash = this.buildMessageHash (action, message);
+        object messageHash = this.safeString(message, "requestId");
         object response = this.safeValue(message, "response");
         object withdraw = this.parseTransaction(response);
         callDynamically(client as WebSocketClient, "resolve", new object[] {withdraw, messageHash});
@@ -1036,9 +1041,10 @@ public partial class bitvavo : ccxt.bitvavo
         //        ]
         //    }
         //
-        object action = this.safeString(message, "action");
-        object messageHash = this.buildMessageHash(action, message);
-        object response = this.safeValue(message, "response");
+        // const action = this.safeString (message, 'action');
+        // const messageHash = this.buildMessageHash (action, message);
+        object response = this.safeList(message, "response");
+        object messageHash = this.safeString(message, "requestId");
         object withdrawals = this.parseTransactions(response, null, null, null, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
@@ -1106,12 +1112,11 @@ public partial class bitvavo : ccxt.bitvavo
         //        ]
         //    }
         //
-        object action = this.safeString(message, "action");
-        object messageHash = this.buildMessageHash(action, message);
         object response = this.safeValue(message, "response");
         object deposits = this.parseTransactions(response, null, null, null, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
+        object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {deposits, messageHash});
     }
 
@@ -1182,8 +1187,7 @@ public partial class bitvavo : ccxt.bitvavo
         //        ]
         //    }
         //
-        object action = this.safeString(message, "action");
-        object messageHash = this.buildMessageHash(action, message);
+        object messageHash = this.safeString(message, "requestId");
         object response = this.safeValue(message, "response");
         object currencies = this.parseCurrencies(response);
         callDynamically(client as WebSocketClient, "resolve", new object[] {currencies, messageHash});
@@ -1203,8 +1207,7 @@ public partial class bitvavo : ccxt.bitvavo
         //        }
         //    }
         //
-        object action = this.safeString(message, "action");
-        object messageHash = this.buildMessageHash(action, message);
+        object messageHash = this.safeString(message, "requestId");
         object response = this.safeValue(message, "response");
         object fees = this.parseTradingFees(response);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fees, messageHash});
@@ -1240,8 +1243,7 @@ public partial class bitvavo : ccxt.bitvavo
         //        ]
         //    }
         //
-        object action = this.safeString(message, "action", "privateGetBalance");
-        object messageHash = this.buildMessageHash(action, message);
+        object messageHash = this.safeString(message, "requestId");
         object response = this.safeValue(message, "response", new List<object>() {});
         object balance = this.parseBalance(response);
         callDynamically(client as WebSocketClient, "resolve", new object[] {balance, messageHash});
@@ -1277,10 +1279,9 @@ public partial class bitvavo : ccxt.bitvavo
         //        }
         //    }
         //
-        object action = this.safeString(message, "action");
         object response = this.safeValue(message, "response", new Dictionary<string, object>() {});
         object order = this.parseOrder(response);
-        object messageHash = this.buildMessageHash(action, response);
+        object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
@@ -1305,10 +1306,9 @@ public partial class bitvavo : ccxt.bitvavo
         //        ]
         //    }
         //
-        object action = this.safeString(message, "action");
         object response = this.safeValue(message, "response", new Dictionary<string, object>() {});
         object markets = this.parseMarkets(response);
-        object messageHash = this.buildMessageHash(action, response);
+        object messageHash = this.safeString(message, "requestId");
         callDynamically(client as WebSocketClient, "resolve", new object[] {markets, messageHash});
     }
 
@@ -1329,23 +1329,6 @@ public partial class bitvavo : ccxt.bitvavo
             messageHash = DynamicInvoker.InvokeMethod(method, new object[] { action, parameters});
         }
         return messageHash;
-    }
-
-    public virtual void checkMessageHashDoesNotExist(object messageHash)
-    {
-        object supressMultipleWsRequestsError = this.safeBool(this.options, "supressMultipleWsRequestsError", false);
-        if (!isTrue(supressMultipleWsRequestsError))
-        {
-            var client = this.safeValue(this.clients, getValue(getValue(this.urls, "api"), "ws"));
-            if (isTrue(!isEqual(client as WebSocketClient, null)))
-            {
-                var future = this.safeValue((client as WebSocketClient).futures, messageHash);
-                if (isTrue(!isEqual(future, null)))
-                {
-                    throw new ExchangeError ((string)add(add(add(this.id, " a similar request with messageHash "), messageHash), " is already pending, you must wait for a response, or turn off this error by setting supressMultipleWsRequestsError in the options to true")) ;
-                }
-            }
-        }
     }
 
     public virtual object actionAndMarketMessageHash(object action, object parameters = null)
@@ -1526,11 +1509,19 @@ public partial class bitvavo : ccxt.bitvavo
         //        errorCode: 217,
         //        error: 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
         //    }
+        //    {
+        //        action: 'privateCreateOrder',
+        //        requestId: '17317539426571916',
+        //        market: 'USDT-EUR',
+        //        errorCode: 216,
+        //        error: 'You do not have sufficient balance to complete this operation.'
+        //    }
         //
         object error = this.safeString(message, "error");
         object code = this.safeInteger(error, "errorCode");
         object action = this.safeString(message, "action");
-        object messageHash = this.buildMessageHash(action, message);
+        object buildMessage = this.buildMessageHash(action, message);
+        object messageHash = this.safeString(message, "requestId", buildMessage);
         object rejected = false;
         try
         {

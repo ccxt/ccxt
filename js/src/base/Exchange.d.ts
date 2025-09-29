@@ -127,6 +127,7 @@ export default class Exchange {
     id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated'>;
+    features: Dictionary<Dictionary<any>>;
     status: {
         status: Str;
         updated: Num;
@@ -815,6 +816,8 @@ export default class Exchange {
     isRoundNumber(value: number): boolean;
     safeIntegerOmitZero(obj: object, key: IndexType, defaultValue?: Int): Int;
     afterConstruct(): void;
+    featuresGenerator(): void;
+    featuresMapper(initialFeatures: any, marketType: Str, subType?: Str): any;
     orderbookChecksumMessage(symbol: Str): string;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {

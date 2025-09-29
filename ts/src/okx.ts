@@ -1175,6 +1175,97 @@ export default class okx extends Exchange {
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
+            'features': {
+                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'marginMode': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': true,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': true,
+                        'iceberg': true,
+                        'oco': true,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'daysBack': 90,
+                        'limit': 100,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 100,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOrders': undefined, // not supported
+                    'fetchClosedOrders': {
+                        'limit': 100,
+                        'daysBackClosed': 90, // 3 months
+                        'daysBackCanceled': 1 / 12, // 2 hour
+                        'untilDays': undefined,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
@@ -8351,8 +8442,8 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
      * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
      * @param {string} [type] "add" or "reduce"
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}

@@ -491,6 +491,13 @@ export default class phemex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'triggerPriceTypesMap': {
+                    'last': 'ByLastPrice',
+                    'mark': 'ByMarkPrice',
+                    'index': 'ByIndexPrice',
+                    'ask': 'ByAskPrice',
+                    'bid': 'ByBidPrice',
+                },
             },
         });
     }
@@ -506,7 +513,7 @@ export default class phemex extends Exchange {
     parseSwapMarket(market) {
         //
         //     {
-        //         "symbol":"BTCUSD",
+        //         "symbol":"BTCUSD", //
         //         "code":"1",
         //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
@@ -514,7 +521,7 @@ export default class phemex extends Exchange {
         //         "markSymbol":".MBTC",
         //         "fundingRateSymbol":".BTCFR",
         //         "fundingRate8hSymbol":".BTCFR8H",
-        //         "contractUnderlyingAssets":"USD",
+        //         "contractUnderlyingAssets":"USD", // or eg. `1000 SHIB`
         //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
         //         "contractSize":"1 USD",
@@ -557,7 +564,8 @@ export default class phemex extends Exchange {
         const baseId = this.safeString2(market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString(market, 'quoteCurrency');
         const settleId = this.safeString(market, 'settleCurrency');
-        const base = this.safeCurrencyCode(baseId);
+        let base = this.safeCurrencyCode(baseId);
+        base = base.replace(' ', ''); // replace space for junction codes, eg. `1000 SHIB`
         const quote = this.safeCurrencyCode(quoteId);
         const settle = this.safeCurrencyCode(settleId);
         let inverse = false;
@@ -2140,6 +2148,7 @@ export default class phemex extends Exchange {
             'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Canceled': 'canceled',
+            'Suspended': 'canceled',
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
@@ -2636,7 +2645,7 @@ export default class phemex extends Exchange {
                 if (stopLossDefined) {
                     const stopLossTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
-                        throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order');
+                        throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['stopLossRp'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -2646,23 +2655,17 @@ export default class phemex extends Exchange {
                     }
                     const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTrigger');
                     if (stopLossTriggerPriceType !== undefined) {
-                        if (market['settle'] === 'USDT') {
-                            if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice') && (stopLossTriggerPriceType !== 'ByIndexPrice') && (stopLossTriggerPriceType !== 'ByAskPrice') && (stopLossTriggerPriceType !== 'ByBidPrice') && (stopLossTriggerPriceType !== 'ByMarkPriceLimit') && (stopLossTriggerPriceType !== 'ByLastPriceLimit')) {
-                                throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
-                            }
-                        }
-                        else {
-                            if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice')) {
-                                throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
-                            }
-                        }
-                        request['slTrigger'] = stopLossTriggerPriceType;
+                        request['slTrigger'] = this.safeString(this.options['triggerPriceTypesMap'], stopLossTriggerPriceType, stopLossTriggerPriceType);
+                    }
+                    const slLimitPrice = this.safeString(stopLoss, 'price');
+                    if (slLimitPrice !== undefined) {
+                        request['slPxRp'] = this.priceToPrecision(symbol, slLimitPrice);
                     }
                 }
                 if (takeProfitDefined) {
                     const takeProfitTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice');
                     if (takeProfitTriggerPrice === undefined) {
-                        throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order');
+                        throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order');
                     }
                     if (market['settle'] === 'USDT') {
                         request['takeProfitRp'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
@@ -2670,19 +2673,13 @@ export default class phemex extends Exchange {
                     else {
                         request['takeProfitEp'] = this.toEp(takeProfitTriggerPrice, market);
                     }
-                    const takeProfitTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'tpTrigger');
+                    const takeProfitTriggerPriceType = this.safeString2(takeProfit, 'triggerPriceType', 'tpTrigger');
                     if (takeProfitTriggerPriceType !== undefined) {
-                        if (market['settle'] === 'USDT') {
-                            if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice') && (takeProfitTriggerPriceType !== 'ByIndexPrice') && (takeProfitTriggerPriceType !== 'ByAskPrice') && (takeProfitTriggerPriceType !== 'ByBidPrice') && (takeProfitTriggerPriceType !== 'ByMarkPriceLimit') && (takeProfitTriggerPriceType !== 'ByLastPriceLimit')) {
-                                throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
-                            }
-                        }
-                        else {
-                            if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice')) {
-                                throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
-                            }
-                        }
-                        request['tpTrigger'] = takeProfitTriggerPriceType;
+                        request['tpTrigger'] = this.safeString(this.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType);
+                    }
+                    const tpLimitPrice = this.safeString(takeProfit, 'price');
+                    if (tpLimitPrice !== undefined) {
+                        request['tpPxRp'] = this.priceToPrecision(symbol, tpLimitPrice);
                     }
                 }
             }
@@ -2858,7 +2855,7 @@ export default class phemex extends Exchange {
                 request['baseQtyEV'] = this.toEv(amount, market);
             }
         }
-        const stopPrice = this.safeString2(params, 'stopPx', 'stopPrice');
+        const stopPrice = this.safeStringN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         if (stopPrice !== undefined) {
             if (isUSDTSettled) {
                 request['stopPxRp'] = this.priceToPrecision(symbol, stopPrice);
@@ -2867,7 +2864,7 @@ export default class phemex extends Exchange {
                 request['stopPxEp'] = this.toEp(stopPrice, market);
             }
         }
-        params = this.omit(params, ['stopPx', 'stopPrice']);
+        params = this.omit(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         let response = undefined;
         if (isUSDTSettled) {
             const posSide = this.safeString(params, 'posSide');
@@ -4211,6 +4208,7 @@ export default class phemex extends Exchange {
      * @method
      * @name phemex#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
+     * @see https://phemex-docs.github.io/#set-leverage
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4501,6 +4499,8 @@ export default class phemex extends Exchange {
      * @method
      * @name phemex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://phemex-docs.github.io/#transfer-between-spot-and-futures
+     * @see https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -4588,6 +4588,7 @@ export default class phemex extends Exchange {
      * @method
      * @name phemex#fetchTransfers
      * @description fetch a history of internal transfers made on an account
+     * @see https://phemex-docs.github.io/#query-transfer-history
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve

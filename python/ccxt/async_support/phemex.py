@@ -504,6 +504,13 @@ class phemex(Exchange, ImplicitAPI):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
+                'triggerPriceTypesMap': {
+                    'last': 'ByLastPrice',
+                    'mark': 'ByMarkPrice',
+                    'index': 'ByIndexPrice',
+                    'ask': 'ByAskPrice',
+                    'bid': 'ByBidPrice',
+                },
             },
         })
 
@@ -518,7 +525,7 @@ class phemex(Exchange, ImplicitAPI):
     def parse_swap_market(self, market: dict):
         #
         #     {
-        #         "symbol":"BTCUSD",
+        #         "symbol":"BTCUSD",  #
         #         "code":"1",
         #         "type":"Perpetual",
         #         "displaySymbol":"BTC / USD",
@@ -526,7 +533,7 @@ class phemex(Exchange, ImplicitAPI):
         #         "markSymbol":".MBTC",
         #         "fundingRateSymbol":".BTCFR",
         #         "fundingRate8hSymbol":".BTCFR8H",
-        #         "contractUnderlyingAssets":"USD",
+        #         "contractUnderlyingAssets":"USD",  # or eg. `1000 SHIB`
         #         "settleCurrency":"BTC",
         #         "quoteCurrency":"USD",
         #         "contractSize":"1 USD",
@@ -570,6 +577,7 @@ class phemex(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteCurrency')
         settleId = self.safe_string(market, 'settleCurrency')
         base = self.safe_currency_code(baseId)
+        base = base.replace(' ', '')  # replace space for junction codes, eg. `1000 SHIB`
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         inverse = False
@@ -2070,6 +2078,7 @@ class phemex(Exchange, ImplicitAPI):
             'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Canceled': 'canceled',
+            'Suspended': 'canceled',
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
@@ -2532,37 +2541,31 @@ class phemex(Exchange, ImplicitAPI):
                 if stopLossDefined:
                     stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
                     if stopLossTriggerPrice is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"] for a stop loss order')
+                        raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order')
                     if market['settle'] == 'USDT':
                         request['stopLossRp'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     else:
                         request['stopLossEp'] = self.to_ep(stopLossTriggerPrice, market)
                     stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTrigger')
                     if stopLossTriggerPriceType is not None:
-                        if market['settle'] == 'USDT':
-                            if (stopLossTriggerPriceType != 'ByMarkPrice') and (stopLossTriggerPriceType != 'ByLastPrice') and (stopLossTriggerPriceType != 'ByIndexPrice') and (stopLossTriggerPriceType != 'ByAskPrice') and (stopLossTriggerPriceType != 'ByBidPrice') and (stopLossTriggerPriceType != 'ByMarkPriceLimit') and (stopLossTriggerPriceType != 'ByLastPriceLimit'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"')
-                        else:
-                            if (stopLossTriggerPriceType != 'ByMarkPrice') and (stopLossTriggerPriceType != 'ByLastPrice'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"')
-                        request['slTrigger'] = stopLossTriggerPriceType
+                        request['slTrigger'] = self.safe_string(self.options['triggerPriceTypesMap'], stopLossTriggerPriceType, stopLossTriggerPriceType)
+                    slLimitPrice = self.safe_string(stopLoss, 'price')
+                    if slLimitPrice is not None:
+                        request['slPxRp'] = self.price_to_precision(symbol, slLimitPrice)
                 if takeProfitDefined:
                     takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     if takeProfitTriggerPrice is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"] for a take profit order')
+                        raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order')
                     if market['settle'] == 'USDT':
                         request['takeProfitRp'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     else:
                         request['takeProfitEp'] = self.to_ep(takeProfitTriggerPrice, market)
-                    takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTrigger')
+                    takeProfitTriggerPriceType = self.safe_string_2(takeProfit, 'triggerPriceType', 'tpTrigger')
                     if takeProfitTriggerPriceType is not None:
-                        if market['settle'] == 'USDT':
-                            if (takeProfitTriggerPriceType != 'ByMarkPrice') and (takeProfitTriggerPriceType != 'ByLastPrice') and (takeProfitTriggerPriceType != 'ByIndexPrice') and (takeProfitTriggerPriceType != 'ByAskPrice') and (takeProfitTriggerPriceType != 'ByBidPrice') and (takeProfitTriggerPriceType != 'ByMarkPriceLimit') and (takeProfitTriggerPriceType != 'ByLastPriceLimit'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"')
-                        else:
-                            if (takeProfitTriggerPriceType != 'ByMarkPrice') and (takeProfitTriggerPriceType != 'ByLastPrice'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"')
-                        request['tpTrigger'] = takeProfitTriggerPriceType
+                        request['tpTrigger'] = self.safe_string(self.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType)
+                    tpLimitPrice = self.safe_string(takeProfit, 'price')
+                    if tpLimitPrice is not None:
+                        request['tpPxRp'] = self.price_to_precision(symbol, tpLimitPrice)
         if (type == 'Limit') or (type == 'StopLimit') or (type == 'LimitIfTouched'):
             if market['settle'] == 'USDT':
                 request['priceRp'] = self.price_to_precision(symbol, price)
@@ -2713,13 +2716,13 @@ class phemex(Exchange, ImplicitAPI):
                 request['orderQtyRq'] = self.amount_to_precision(market['symbol'], amount)
             else:
                 request['baseQtyEV'] = self.to_ev(amount, market)
-        stopPrice = self.safe_string_2(params, 'stopPx', 'stopPrice')
+        stopPrice = self.safe_string_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         if stopPrice is not None:
             if isUSDTSettled:
                 request['stopPxRp'] = self.price_to_precision(symbol, stopPrice)
             else:
                 request['stopPxEp'] = self.to_ep(stopPrice, market)
-        params = self.omit(params, ['stopPx', 'stopPrice'])
+        params = self.omit(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         response = None
         if isUSDTSettled:
             posSide = self.safe_string(params, 'posSide')
@@ -3958,6 +3961,9 @@ class phemex(Exchange, ImplicitAPI):
     async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
+
+        https://phemex-docs.github.io/#set-leverage
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4221,6 +4227,10 @@ class phemex(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://phemex-docs.github.io/#transfer-between-spot-and-futures
+        https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -4297,6 +4307,9 @@ class phemex(Exchange, ImplicitAPI):
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
+
+        https://phemex-docs.github.io/#query-transfer-history
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve

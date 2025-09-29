@@ -1458,8 +1458,8 @@ class bybit extends \ccxt\async\bybit {
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
-             * @param $since
-             * @param $limit
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

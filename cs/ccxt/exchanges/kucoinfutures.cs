@@ -1241,8 +1241,8 @@ public partial class kucoinfutures : kucoin
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
      * @param {string[]} [symbols] list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch position history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
@@ -1456,7 +1456,7 @@ public partial class kucoinfutures : kucoin
      * @method
      * @name kucoinfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/futures/#place-an-order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
      * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
@@ -1472,8 +1472,9 @@ public partial class kucoinfutures : kucoin
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
-     * @param {float} [params.leverage] Leverage size of the order
+     * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
      * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
      * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
@@ -1578,19 +1579,26 @@ public partial class kucoinfutures : kucoin
         // required param, cannot be used twice
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
-        if (isTrue(isLessThan(amount, 1)))
-        {
-            throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
-        }
-        object preciseAmount = parseInt(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
             { "symbol", getValue(market, "id") },
             { "type", type },
-            { "size", preciseAmount },
             { "leverage", 1 },
         };
+        object cost = this.safeString(parameters, "cost");
+        parameters = this.omit(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)request)["valueQty"] = this.costToPrecision(symbol, cost);
+        } else
+        {
+            if (isTrue(isLessThan(amount, 1)))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
+            }
+            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];
@@ -2554,6 +2562,8 @@ public partial class kucoinfutures : kucoin
      * @method
      * @name kucoinfutures#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -2564,10 +2574,6 @@ public partial class kucoinfutures : kucoin
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue((isTrue(!isEqual(toAccount, "main")) && isTrue(!isEqual(toAccount, "funding")))) || isTrue((isTrue(isTrue(!isEqual(fromAccount, "futures")) && isTrue(!isEqual(fromAccount, "future"))) && isTrue(!isEqual(fromAccount, "contract"))))))
-        {
-            throw new BadRequest ((string)add(this.id, " transfer() only supports transfers from contract(future) account to main(funding) account")) ;
-        }
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
@@ -2575,31 +2581,57 @@ public partial class kucoinfutures : kucoin
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
         };
-        // transfer from usdm futures wallet to spot wallet
-        object response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
-        //        }
-        //    }
-        //
-        object data = this.safeValue(response, "data");
+        object toAccountString = this.parseTransferType(toAccount);
+        object response = null;
+        if (isTrue(isTrue(isEqual(toAccountString, "TRADE")) || isTrue(isEqual(toAccountString, "MAIN"))))
+        {
+            ((IDictionary<string,object>)request)["recAccountType"] = toAccountString;
+            response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
+        } else if (isTrue(isTrue(isTrue(isEqual(toAccount, "future")) || isTrue(isEqual(toAccount, "swap"))) || isTrue(isEqual(toAccount, "contract"))))
+        {
+            ((IDictionary<string,object>)request)["payAccountType"] = this.parseTransferType(fromAccount);
+            response = await this.futuresPrivatePostTransferIn(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amountToPrecision) },
-            { "fromAccount", "future" },
-            { "toAccount", "spot" },
+            { "fromAccount", fromAccount },
+            { "toAccount", toAccount },
         });
     }
 
     public override object parseTransfer(object transfer, object currency = null)
     {
         //
-        // transfer
+        // transfer to spot or funding account
         //
         //     {
         //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        // transfer to future account
+        //
+        //     {
+        //         "applyId": "6738754373ceee00011ec3f8",
+        //         "bizNo": "6738754373ceee00011ec3f7",
+        //         "payAccountType": "CONTRACT",
+        //         "payTag": "DEFAULT",
+        //         "remark": "",
+        //         "recAccountType": "MAIN",
+        //         "recTag": "DEFAULT",
+        //         "recRemark": "",
+        //         "recSystem": "KUCOIN",
+        //         "status": "PROCESSING",
+        //         "currency": "USDT",
+        //         "amount": "5",
+        //         "fee": "0",
+        //         "sn": 1519769124846692,
+        //         "reason": "",
+        //         "createdAt": 1731753283000,
+        //         "updatedAt": 1731753283000
         //     }
         //
         object timestamp = this.safeInteger(transfer, "updatedAt");
@@ -2608,7 +2640,7 @@ public partial class kucoinfutures : kucoin
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "currency", this.safeCurrencyCode(null, currency) },
-            { "amount", null },
+            { "amount", this.safeNumber(transfer, "amount") },
             { "fromAccount", null },
             { "toAccount", null },
             { "status", this.safeString(transfer, "status") },
@@ -2622,6 +2654,15 @@ public partial class kucoinfutures : kucoin
             { "PROCESSING", "pending" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTransferType(object transferType)
+    {
+        object transferTypes = new Dictionary<string, object>() {
+            { "spot", "TRADE" },
+            { "funding", "MAIN" },
+        };
+        return this.safeStringUpper(transferTypes, transferType, transferType);
     }
 
     /**
@@ -3060,6 +3101,7 @@ public partial class kucoinfutures : kucoin
         /**
          * @ignore
          * @method
+         * @name kucoinfutures#parseMarketLeverageTiers
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
          */
@@ -3330,7 +3372,7 @@ public partial class kucoinfutures : kucoin
 
     /**
      * @method
-     * @name kucoin#fetchLeverage
+     * @name kucoinfutures#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
      * @param {string} symbol unified market symbol

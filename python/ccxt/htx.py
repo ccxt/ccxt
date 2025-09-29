@@ -3070,7 +3070,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str type: 'spot', 'swap' or 'future
         :param str [marginMode]: 'cross' or 'isolated'
- @param symbol
+        :param str [symbol]: unified ccxt market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """

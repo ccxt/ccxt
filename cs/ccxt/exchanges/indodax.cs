@@ -11,7 +11,7 @@ public partial class indodax : Exchange
             { "id", "indodax" },
             { "name", "INDODAX" },
             { "countries", new List<object>() {"ID"} },
-            { "rateLimit", 100 },
+            { "rateLimit", 50 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },

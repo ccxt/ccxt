@@ -531,6 +531,8 @@ public partial class kucoin : Exchange
                     { "400303", typeof(PermissionDenied) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "260220", typeof(InvalidAddress) },
+                    { "600100", typeof(InsufficientFunds) },
+                    { "600101", typeof(InvalidOrder) },
                     { "900014", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {
@@ -1044,9 +1046,9 @@ public partial class kucoin : Exchange
     }
 
     /**
-     * @param force
      * @method
      * @name kucoin#loadMigrationStatus
+     * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
      */
@@ -5120,8 +5122,8 @@ public partial class kucoin : Exchange
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
-     * @param leverage
-     * @param {string} symbol unified market symbol
+     * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

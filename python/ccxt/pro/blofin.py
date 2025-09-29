@@ -525,8 +525,8 @@ class blofin(ccxt.async_support.blofin):
 
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
- @param since
- @param limit
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

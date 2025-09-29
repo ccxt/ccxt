@@ -1168,11 +1168,6 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (isTrue(isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["clientOrderId"] = this.uuid22();
-        }
         return this.extend(request, parameters);
     }
 

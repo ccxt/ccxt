@@ -3,7 +3,7 @@ import { Str } from '../../../base/types';
 declare function logTemplate(exchange: Exchange, method: string, entry: object): string;
 declare function isTemporaryFailure(e: any): boolean;
 declare function assertType(exchange: Exchange, skippedProperties: object, entry: object, key: string | number, format: object): boolean;
-declare function assertStructure(exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor?: any[]): void;
+declare function assertStructure(exchange: Exchange, skippedProperties: object, method: string, entry: object, format: any[] | object, emptyAllowedFor?: any[], deep?: boolean): void;
 declare function assertTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: string | number): void;
 declare function assertTimestampAndDatetime(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: any): void;
 declare function assertCurrencyCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, actualCode: Str, expectedCode?: Str): void;

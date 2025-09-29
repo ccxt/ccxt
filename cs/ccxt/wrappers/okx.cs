@@ -2196,6 +2196,18 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch margin adjustment history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.auto</term>
     /// <description>
     /// boolean : true if fetching auto margin increases

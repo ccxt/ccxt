@@ -551,7 +551,7 @@ class bybit extends bybit$1 {
                     '10005': errors.PermissionDenied,
                     '10006': errors.RateLimitExceeded,
                     '10007': errors.AuthenticationError,
-                    '10008': errors.AuthenticationError,
+                    '10008': errors.AccountSuspended,
                     '10009': errors.AuthenticationError,
                     '10010': errors.PermissionDenied,
                     '10014': errors.BadRequest,
@@ -995,7 +995,7 @@ class bybit extends bybit$1 {
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': true,
+                'createMarketBuyOrderRequiresPrice': false,
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',
                 'defaultSubType': 'linear',
@@ -1053,6 +1053,122 @@ class bybit extends bybit$1 {
                     '1h': '1h',
                     '4h': '4h',
                     '1d': '1d',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': true,
+                        },
+                        'marginMode': false,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': false,
+                        'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                        'daysBack': 365 * 2,
+                        'untilDays': 7, // days between start-end
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 50,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'limit': 50,
+                        'daysBackClosed': 365 * 2,
+                        'daysBackCanceled': 1,
+                        'untilDays': 7,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'limitPrice': true,
+                        },
+                        'marginMode': false,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': false,
+                        'oco': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
             'fees': {
@@ -3855,7 +3971,7 @@ class bybit extends bybit$1 {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
-            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [createMarketBuyOrderRequiresPrice, params] = this.handleOptionAndParams(params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -3867,7 +3983,15 @@ class bybit extends bybit$1 {
                 }
             }
             else {
-                request['qty'] = this.getCost(symbol, this.numberToString(amount));
+                if (cost !== undefined) {
+                    request['qty'] = this.getCost(symbol, this.numberToString(cost));
+                }
+                else if (price !== undefined) {
+                    request['qty'] = this.getCost(symbol, Precise["default"].stringMul(amountString, priceString));
+                }
+                else {
+                    request['qty'] = this.getCost(symbol, this.numberToString(amount));
+                }
             }
         }
         else {

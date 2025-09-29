@@ -290,7 +290,7 @@ public partial class coincatch : ccxt.coincatch
 
     /**
      * @method
-     * @name coinctach#unWatchTicker
+     * @name coincatch#unWatchTicker
      * @description unsubscribe from the ticker channel
      * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
      * @param {string} symbol unified symbol of the market to unwatch the ticker for

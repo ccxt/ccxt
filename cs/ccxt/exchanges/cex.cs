@@ -109,6 +109,7 @@ public partial class cex : Exchange
                     { "Insufficient funds", typeof(InsufficientFunds) },
                     { "Get deposit address for main account is not allowed", typeof(PermissionDenied) },
                     { "Market Trigger orders are not allowed", typeof(BadRequest) },
+                    { "key not passed or incorrect", typeof(AuthenticationError) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -906,7 +907,7 @@ public partial class cex : Exchange
             object code = this.safeCurrencyCode(key);
             object account = new Dictionary<string, object>() {
                 { "used", this.safeString(balance, "balanceOnHold") },
-                { "free", this.safeString(balance, "balance") },
+                { "total", this.safeString(balance, "balance") },
             };
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
@@ -918,7 +919,7 @@ public partial class cex : Exchange
      * @name cex#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-     * @param status
+     * @param {string} status order status to fetch for
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve

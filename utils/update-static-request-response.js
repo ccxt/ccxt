@@ -31,8 +31,12 @@ function getExchangeSettings (exchangeId) {
     return settings;
 }
 
+function jsonStringify (elem, spaces = 4) {
+    return JSON.stringify (elem, (k, v) => (v === undefined ? null : v), spaces); // preserve undefined values and convert them to null
+}
+
 function write (filename, data, spaces = 4) {
-    return fs.writeFileSync(filename, JSON.stringify(data, null, spaces));
+    return fs.writeFileSync(filename, jsonStringify(data, spaces));
 }
 function writeString (filename, data) {
     return fs.writeFileSync(filename, data);
@@ -81,7 +85,7 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         write(filePath, jsonFull, spacesAmount);
     } else {
         // stringify the new entry
-        const entryString = JSON.stringify(entry, null, spacesAmount);
+        const entryString = jsonStringify(entry, spacesAmount);
         // typically, method entries are at 3 levels deep, so add 3 indents
         const indentedContent = prependWhitespace(entryString, spacesAmount, 3);
         // check if regex matches and if so, then append an entry to it

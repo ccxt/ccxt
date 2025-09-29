@@ -454,7 +454,7 @@ class bitget extends \ccxt\async\bitget {
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
              *
              * @param {string} $symbol unified $symbol of the market to unwatch the ohlcv for
-             * @param {string} $timeframe
+             * @param {string} [$timeframe] the period for the ratio, default is 1 minute
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
@@ -710,7 +710,7 @@ class bitget extends \ccxt\async\bitget {
             $this->handle_deltas($storedOrderBook['bids'], $bids);
             $storedOrderBook['timestamp'] = $timestamp;
             $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-            $checksum = $this->safe_bool($this->options, 'checksum', true);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             $isSnapshot = $this->safe_string($message, 'action') === 'snapshot'; // snapshot does not have a $checksum
             if (!$isSnapshot && $checksum) {
                 $storedAsks = $storedOrderBook['asks'];
@@ -994,8 +994,8 @@ class bitget extends \ccxt\async\bitget {
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
              *
              * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param $since
-             * @param $limit
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}

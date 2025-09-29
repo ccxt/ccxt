@@ -825,8 +825,8 @@ public partial class bitmart : ccxt.bitmart
      * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch positions
+     * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

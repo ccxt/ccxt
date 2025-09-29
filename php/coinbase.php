@@ -2388,28 +2388,8 @@ class coinbase extends Exchange {
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'next_starting_after');
         if (($cursor !== null) && ($cursor !== '')) {
-            $lastFee = $this->safe_dict($last, 'fee');
-            $last['next_starting_after'] = $cursor;
-            $ledger[$lastIndex] = array(
-                'info' => $this->safe_dict($last, 'info'),
-                'id' => $this->safe_string($last, 'id'),
-                'timestamp' => $this->safe_integer($last, 'timestamp'),
-                'datetime' => $this->safe_string($last, 'datetime'),
-                'direction' => $this->safe_string($last, 'direction'),
-                'account' => $this->safe_string($last, 'account'),
-                'referenceId' => null,
-                'referenceAccount' => null,
-                'type' => $this->safe_string($last, 'type'),
-                'currency' => $this->safe_string($last, 'currency'),
-                'amount' => $this->safe_number($last, 'amount'),
-                'before' => null,
-                'after' => null,
-                'status' => $this->safe_string($last, 'status'),
-                'fee' => array(
-                    'cost' => $this->safe_number($lastFee, 'cost'),
-                    'currency' => $this->safe_string($lastFee, 'currency'),
-                ),
-            );
+            $last['info']['next_starting_after'] = $cursor;
+            $ledger[$lastIndex] = $last;
         }
         return $ledger;
     }

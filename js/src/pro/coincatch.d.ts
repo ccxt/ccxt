@@ -27,7 +27,7 @@ export default class coincatch extends coincatchRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
      * @method
-     * @name coinctach#unWatchTicker
+     * @name coincatch#unWatchTicker
      * @description unsubscribe from the ticker channel
      * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
      * @param {string} symbol unified symbol of the market to unwatch the ticker for

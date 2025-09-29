@@ -45,7 +45,7 @@ function assertType(exchange, skippedProperties, entry, key, format) {
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
-function assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor = []) {
+function assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor = undefined, deep = false) {
     const logText = logTemplate(exchange, method, entry);
     assert(entry, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -55,7 +55,7 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         const expectedLength = format.length;
         assert(realLength === expectedLength, 'entry length is not equal to expected length of ' + expectedLength.toString() + logText);
         for (let i = 0; i < format.length; i++) {
-            const emptyAllowedForThisKey = exchange.inArray(i, emptyAllowedFor);
+            const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray(i, emptyAllowedFor);
             const value = entry[i];
             if (i in skippedProperties) {
                 continue;
@@ -84,7 +84,7 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             if (key in skippedProperties) {
                 continue;
             }
-            const emptyAllowedForThisKey = exchange.inArray(key, emptyAllowedFor);
+            const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray(key, emptyAllowedFor);
             const value = entry[key];
             // check when:
             // - it's not inside "allowe empty values" list
@@ -98,6 +98,11 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             if (key !== 'info') {
                 const typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
                 assert(typeAssertion, '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
+                if (deep) {
+                    if (typeof value === 'object') {
+                        assertStructure(exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
+                    }
+                }
             }
         }
     }

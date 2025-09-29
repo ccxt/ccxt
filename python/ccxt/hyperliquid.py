@@ -733,14 +733,23 @@ class hyperliquid(Exchange, ImplicitAPI):
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
 
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', by default fetches both
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
         # at self stage, to get tickers data, we use fetchMarkets endpoints
-        response = self.fetch_markets(params)
+        response = []
+        type = self.safe_string(params, 'type')
+        params = self.omit(params, 'type')
+        if type == 'spot':
+            response = self.fetch_spot_markets(params)
+        elif type == 'swap':
+            response = self.fetch_swap_markets(params)
+        else:
+            response = self.fetch_markets(params)
         # same response "fetchMarkets"
         result: dict = {}
         for i in range(0, len(response)):

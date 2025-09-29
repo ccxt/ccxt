@@ -413,7 +413,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @name cryptocom#unWatchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-     * @param symbols
+     * @param {string[]} [symbols] list of unified market symbols to unwatch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -965,9 +965,9 @@ public partial class cryptocom : ccxt.cryptocom
      * @name cryptocom#watchPositions
      * @description watch all open positions
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

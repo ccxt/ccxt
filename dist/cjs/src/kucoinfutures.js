@@ -1223,8 +1223,8 @@ class kucoinfutures extends kucoinfutures$1 {
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
      * @param {string[]} [symbols] list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch position history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
@@ -1426,7 +1426,7 @@ class kucoinfutures extends kucoinfutures$1 {
      * @method
      * @name kucoinfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/futures/#place-an-order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
      * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
@@ -1442,8 +1442,9 @@ class kucoinfutures extends kucoinfutures$1 {
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
-     * @param {float} [params.leverage] Leverage size of the order
+     * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
      * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
      * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
@@ -1537,18 +1538,24 @@ class kucoinfutures extends kucoinfutures$1 {
         // required param, cannot be used twice
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId', this.uuid());
         params = this.omit(params, ['clientOid', 'clientOrderId']);
-        if (amount < 1) {
-            throw new errors.InvalidOrder(this.id + ' createOrder() minimum contract order amount is 1');
-        }
-        const preciseAmount = parseInt(this.amountToPrecision(symbol, amount));
         const request = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
             'type': type,
-            'size': preciseAmount,
             'leverage': 1,
         };
+        const cost = this.safeString(params, 'cost');
+        params = this.omit(params, 'cost');
+        if (cost !== undefined) {
+            request['valueQty'] = this.costToPrecision(symbol, cost);
+        }
+        else {
+            if (amount < 1) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() minimum contract order amount is 1');
+            }
+            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
@@ -2423,6 +2430,8 @@ class kucoinfutures extends kucoinfutures$1 {
      * @method
      * @name kucoinfutures#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -2431,9 +2440,6 @@ class kucoinfutures extends kucoinfutures$1 {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
-            throw new errors.BadRequest(this.id + ' transfer() only supports transfers from contract(future) account to main(funding) account');
-        }
         await this.loadMarkets();
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
@@ -2441,29 +2447,86 @@ class kucoinfutures extends kucoinfutures$1 {
             'currency': this.safeString(currency, 'id'),
             'amount': amountToPrecision,
         };
-        // transfer from usdm futures wallet to spot wallet
-        const response = await this.futuresPrivatePostTransferOut(this.extend(request, params));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
-        //        }
-        //    }
-        //
-        const data = this.safeValue(response, 'data');
+        const toAccountString = this.parseTransferType(toAccount);
+        let response = undefined;
+        if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
+            request['recAccountType'] = toAccountString;
+            response = await this.futuresPrivatePostTransferOut(this.extend(request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "6738754373ceee00011ec3f8",
+            //             "bizNo": "6738754373ceee00011ec3f7",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": "",
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": "",
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "USDT",
+            //             "amount": "5",
+            //             "fee": "0",
+            //             "sn": 1519769124846692,
+            //             "reason": "",
+            //             "createdAt": 1731753283000,
+            //             "updatedAt": 1731753283000
+            //         }
+            //     }
+            //
+        }
+        else if (toAccount === 'future' || toAccount === 'swap' || toAccount === 'contract') {
+            request['payAccountType'] = this.parseTransferType(fromAccount);
+            response = await this.futuresPrivatePostTransferIn(this.extend(request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+            //        }
+            //    }
+            //
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' transfer() only supports transfers between future/swap, spot and funding accounts');
+        }
+        const data = this.safeDict(response, 'data', {});
         return this.extend(this.parseTransfer(data, currency), {
             'amount': this.parseNumber(amountToPrecision),
-            'fromAccount': 'future',
-            'toAccount': 'spot',
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
         });
     }
     parseTransfer(transfer, currency = undefined) {
         //
-        // transfer
+        // transfer to spot or funding account
         //
         //     {
         //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        // transfer to future account
+        //
+        //     {
+        //         "applyId": "6738754373ceee00011ec3f8",
+        //         "bizNo": "6738754373ceee00011ec3f7",
+        //         "payAccountType": "CONTRACT",
+        //         "payTag": "DEFAULT",
+        //         "remark": "",
+        //         "recAccountType": "MAIN",
+        //         "recTag": "DEFAULT",
+        //         "recRemark": "",
+        //         "recSystem": "KUCOIN",
+        //         "status": "PROCESSING",
+        //         "currency": "USDT",
+        //         "amount": "5",
+        //         "fee": "0",
+        //         "sn": 1519769124846692,
+        //         "reason": "",
+        //         "createdAt": 1731753283000,
+        //         "updatedAt": 1731753283000
         //     }
         //
         const timestamp = this.safeInteger(transfer, 'updatedAt');
@@ -2472,7 +2535,7 @@ class kucoinfutures extends kucoinfutures$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'currency': this.safeCurrencyCode(undefined, currency),
-            'amount': undefined,
+            'amount': this.safeNumber(transfer, 'amount'),
             'fromAccount': undefined,
             'toAccount': undefined,
             'status': this.safeString(transfer, 'status'),
@@ -2484,6 +2547,13 @@ class kucoinfutures extends kucoinfutures$1 {
             'PROCESSING': 'pending',
         };
         return this.safeString(statuses, status, status);
+    }
+    parseTransferType(transferType) {
+        const transferTypes = {
+            'spot': 'TRADE',
+            'funding': 'MAIN',
+        };
+        return this.safeStringUpper(transferTypes, transferType, transferType);
     }
     /**
      * @method
@@ -2886,6 +2956,7 @@ class kucoinfutures extends kucoinfutures$1 {
         /**
          * @ignore
          * @method
+         * @name kucoinfutures#parseMarketLeverageTiers
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
          */
@@ -3127,7 +3198,7 @@ class kucoinfutures extends kucoinfutures$1 {
     }
     /**
      * @method
-     * @name kucoin#fetchLeverage
+     * @name kucoinfutures#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
      * @param {string} symbol unified market symbol

@@ -113,7 +113,8 @@ class coinbaseexchange extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                        'products/spark-lines', // experimental
+                        'products/spark-lines', // experimental,
+                        'products/volume-summary',
                     ),
                 ),
                 'private' => array(

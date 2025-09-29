@@ -1277,6 +1277,19 @@
         ],
         "fetchFundingRateHistory": [
             {
+                "description": "funding rate with since and until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT&from=1731669065&to=1731755465",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1731669065000,
+                    null,
+                    {
+                        "until": 1731755465000
+                    }
+                ]
+            },
+            {
                 "description": "Fetch Funding Rate History - swap",
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/funding_rate?contract=BTC_USDT",

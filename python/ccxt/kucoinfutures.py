@@ -1212,8 +1212,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
 
         :param str[] [symbols]: list of unified market symbols
- @param since
- @param limit
+        :param int [since]: the earliest time in ms to fetch position history for
+        :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: closing end time
         :param int [params.pageId]: page id
@@ -1404,7 +1404,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         Create an order on the exchange
 
-        https://docs.kucoin.com/futures/#place-an-order
+        https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
         https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
 
         :param str symbol: Unified CCXT market symbol
@@ -1421,8 +1421,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+        :param float [params.cost]: the cost of the order in units of USDT
  ----------------- Exchange Specific Parameters -----------------
-        :param float [params.leverage]: Leverage size of the order
+        :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
         :param str [params.stop]: 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
@@ -1510,17 +1511,21 @@ class kucoinfutures(kucoin, ImplicitAPI):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        if amount < 1:
-            raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
-        preciseAmount = int(self.amount_to_precision(symbol, amount))
         request: dict = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
             'type': type,  # limit or market
-            'size': preciseAmount,
             'leverage': 1,
         }
+        cost = self.safe_string(params, 'cost')
+        params = self.omit(params, 'cost')
+        if cost is not None:
+            request['valueQty'] = self.cost_to_precision(symbol, cost)
+        else:
+            if amount < 1:
+                raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
@@ -2349,6 +2354,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+        https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2356,38 +2365,90 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
-        if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
         request: dict = {
-            'currency': self.safe_string(currency, 'id'),  # Currency,including XBT,USDT
+            'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
-        # transfer from usdm futures wallet to spot wallet
-        response = self.futuresPrivatePostTransferOut(self.extend(request, params))
-        #
-        #    {
-        #        "code": "200000",
-        #        "data": {
-        #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
-        #        }
-        #    }
-        #
-        data = self.safe_value(response, 'data')
+        toAccountString = self.parse_transfer_type(toAccount)
+        response = None
+        if toAccountString == 'TRADE' or toAccountString == 'MAIN':
+            request['recAccountType'] = toAccountString
+            response = self.futuresPrivatePostTransferOut(self.extend(request, params))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "applyId": "6738754373ceee00011ec3f8",
+            #             "bizNo": "6738754373ceee00011ec3f7",
+            #             "payAccountType": "CONTRACT",
+            #             "payTag": "DEFAULT",
+            #             "remark": "",
+            #             "recAccountType": "MAIN",
+            #             "recTag": "DEFAULT",
+            #             "recRemark": "",
+            #             "recSystem": "KUCOIN",
+            #             "status": "PROCESSING",
+            #             "currency": "USDT",
+            #             "amount": "5",
+            #             "fee": "0",
+            #             "sn": 1519769124846692,
+            #             "reason": "",
+            #             "createdAt": 1731753283000,
+            #             "updatedAt": 1731753283000
+            #         }
+            #     }
+            #
+        elif toAccount == 'future' or toAccount == 'swap' or toAccount == 'contract':
+            request['payAccountType'] = self.parse_transfer_type(fromAccount)
+            response = self.futuresPrivatePostTransferIn(self.extend(request, params))
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+            #        }
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' transfer() only supports transfers between future/swap, spot and funding accounts')
+        data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_transfer(data, currency), {
             'amount': self.parse_number(amountToPrecision),
-            'fromAccount': 'future',
-            'toAccount': 'spot',
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
         })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # transfer
+        # transfer to spot or funding account
         #
         #     {
         #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+        #     }
+        #
+        # transfer to future account
+        #
+        #     {
+        #         "applyId": "6738754373ceee00011ec3f8",
+        #         "bizNo": "6738754373ceee00011ec3f7",
+        #         "payAccountType": "CONTRACT",
+        #         "payTag": "DEFAULT",
+        #         "remark": "",
+        #         "recAccountType": "MAIN",
+        #         "recTag": "DEFAULT",
+        #         "recRemark": "",
+        #         "recSystem": "KUCOIN",
+        #         "status": "PROCESSING",
+        #         "currency": "USDT",
+        #         "amount": "5",
+        #         "fee": "0",
+        #         "sn": 1519769124846692,
+        #         "reason": "",
+        #         "createdAt": 1731753283000,
+        #         "updatedAt": 1731753283000
         #     }
         #
         timestamp = self.safe_integer(transfer, 'updatedAt')
@@ -2396,7 +2457,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(None, currency),
-            'amount': None,
+            'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': None,
             'toAccount': None,
             'status': self.safe_string(transfer, 'status'),
@@ -2408,6 +2469,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'PROCESSING': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_transfer_type(self, transferType: Str) -> Str:
+        transferTypes: dict = {
+            'spot': 'TRADE',
+            'funding': 'MAIN',
+        }
+        return self.safe_string_upper(transferTypes, transferType, transferType)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

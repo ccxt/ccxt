@@ -737,14 +737,24 @@ class hyperliquid extends Exchange {
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap', by default fetches both
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        $response = $this->fetch_markets($params);
+        $response = array();
+        $type = $this->safe_string($params, 'type');
+        $params = $this->omit($params, 'type');
+        if ($type === 'spot') {
+            $response = $this->fetch_spot_markets($params);
+        } elseif ($type === 'swap') {
+            $response = $this->fetch_swap_markets($params);
+        } else {
+            $response = $this->fetch_markets($params);
+        }
         // same $response "fetchMarkets"
         $result = array();
         for ($i = 0; $i < count($response); $i++) {

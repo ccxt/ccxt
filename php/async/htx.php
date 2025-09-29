@@ -3218,7 +3218,7 @@ class htx extends Exchange {
              *
              * @param {string} $type 'spot', 'swap' or 'future
              * @param {string} [$marginMode] 'cross' or 'isolated'
-             * @param $symbol
+             * @param {string} [$symbol] unified ccxt market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
              */
