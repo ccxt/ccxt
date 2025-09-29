@@ -60,6 +60,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
