@@ -819,7 +819,6 @@ export default class deribit extends Exchange {
                 const swap = (settlementPeriod === 'perpetual');
                 const future = !swap && (kind.indexOf ('future') >= 0);
                 const option = (kind.indexOf ('option') >= 0);
-                const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
                 let optionType = undefined;
