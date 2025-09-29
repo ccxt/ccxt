@@ -7,7 +7,7 @@
 
   ## What is required to get help?
 
-  See [this paragraph](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
+  You can open a new [bug report](https://github.com/ccxt/ccxt/issues/new?template=BUG_REPORT.yml) and follow the instructions shown on that page.
 
   ## I am calling a method and I get an error, what am I doing wrong?
 
