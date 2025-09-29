@@ -3642,10 +3642,18 @@ export default class okx extends Exchange {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                request.push({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                });
+                if (trailing || trigger) {
+                    request.push({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    });
+                }
+                else {
+                    request.push({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    });
+                }
             }
         }
         let response = undefined;
@@ -3722,7 +3730,12 @@ export default class okx extends Exchange {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
-                idKey = 'clOrdId';
+                if (isStopOrTrailing) {
+                    idKey = 'algoClOrdId';
+                }
+                else {
+                    idKey = 'clOrdId';
+                }
             }
             const requestItem = {
                 'instId': market['id'],
