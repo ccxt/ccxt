@@ -51,6 +51,11 @@ use React\Promise;
 //     throw $e;
 // } );
 
+$zend_assert_value = ini_get('zend.assertions');
+if ($zend_assert_value !== '1') {
+    throw new Exception('CCXT tests can not be conducted, please set zend.assertions=1 in your php.ini file (current value:' . $zend_assert_value);
+}
+
 // ############## detect cli arguments ############## //
 array_shift($argv); // remove first argument (which is script path)
 
@@ -221,7 +226,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
             class '. $newClassName . ' extends ' . $originalClass . ' {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
-                    if ($this->fetch_result) {
+                    if ($this->fetch_result !== null) {
                         return $this->fetch_result;
                     }
                     return parent::fetch($url, $method, $headers, $body);
@@ -237,7 +242,7 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
                 public $fetch_result = null;
                 public function fetch($url, $method = "GET", $headers = null, $body = null) {
                     return Async\async (function() use ($url, $method, $headers, $body){
-                        if ($this->fetch_result) {
+                        if ($this->fetch_result !== null) {
                             return $this->fetch_result;
                         }
                         return  Async\await(parent::fetch($url, $method, $headers, $body));

@@ -11,7 +11,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 //  ---------------------------------------------------------------------------
 
 export default class coincatch extends coincatchRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -1391,7 +1391,7 @@ export default class coincatch extends coincatchRest {
         });
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    { event: "error", code: 30001, msg: "Channel does not exist" }
         //

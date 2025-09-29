@@ -3,14 +3,14 @@
 
 import coinoneRest from '../coinone.js';
 import { AuthenticationError } from '../base/errors.js';
-import type { Int, Market, OrderBook, Ticker, Trade, Dict } from '../base/types.js';
+import type { Int, Market, OrderBook, Ticker, Trade, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinone extends coinoneRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -359,7 +359,7 @@ export default class coinone extends coinoneRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //     {
         //         "response_type": "ERROR",

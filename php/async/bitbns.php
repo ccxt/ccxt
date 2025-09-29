@@ -11,12 +11,12 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class bitbns extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbns',
             'name' => 'Bitbns',
@@ -37,6 +37,7 @@ class bitbns extends Exchange {
                 'createOrder' => true,
                 'createStopOrder' => true,
                 'createTriggerOrder' => true,
+                'fechCurrencies' => false,
                 'fetchBalance' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -316,7 +317,7 @@ class bitbns extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => null,
+                    'active' => $this->safe_bool($market, 'active'),
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,

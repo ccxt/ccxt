@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"sync"
 	"time"
 )
 
@@ -52,9 +53,24 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 	return nil
 }
 
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	if sm == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]interface{}
+	Id             *string
 	UppercaseId    *string
 	LowercaseId    *string
 	Symbol         *string
@@ -98,6 +114,7 @@ func NewMarketInterface(data interface{}) MarketInterface {
 
 	return MarketInterface{
 		Info:           m,
+		Id:             SafeStringTyped(m, "id"),
 		UppercaseId:    SafeStringTyped(m, "uppercaseId"),
 		LowercaseId:    SafeStringTyped(m, "lowercaseId"),
 		Symbol:         SafeStringTyped(m, "symbol"),
@@ -128,6 +145,22 @@ func NewMarketInterface(data interface{}) MarketInterface {
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}
+}
+
+func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
+	// data := ConvertToMap(data2)
+	if dataMap, ok := data2.(*sync.Map); ok {
+		data2 = SafeMapToMap(dataMap)
+	}
+	data := data2.(map[string]interface{})
+	result := make(map[string]MarketInterface)
+	for key, value := range data {
+		result[key] = NewMarketInterface(value)
+	}
+	return result
 }
 
 // Precision struct
@@ -297,7 +330,7 @@ func NewMarket(data interface{}) Market {
 		Precision:     precision,
 		MarginModes:   marginModes,
 		Limits:        limits,
-		Info:          m,
+		Info:          GetInfo(m),
 		Created:       created,
 	}
 }
@@ -450,7 +483,7 @@ func NewTicker(data interface{}) Ticker {
 		Average:       SafeFloatTyped(m, "average"),
 		BaseVolume:    SafeFloatTyped(m, "baseVolume"),
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
-		Info:          m,
+		Info:          GetInfo(m),
 	}
 }
 
@@ -625,7 +658,8 @@ type Balances struct {
 }
 
 // NewBalance initializes a Balance struct from a map.
-func NewBalance(balanceData map[string]interface{}) Balance {
+func NewBalance(balanceData2 interface{}) Balance {
+	balanceData := balanceData2.(map[string]interface{})
 	return Balance{
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
@@ -837,6 +871,29 @@ func NewOrderRequest(requestData map[string]interface{}) OrderRequest {
 	}
 }
 
+func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []interface{} {
+	var result []interface{}
+	for _, orderRequest := range orderRequests {
+		symbol := *orderRequest.Symbol
+		orderType := *orderRequest.Type
+		side := *orderRequest.Side
+		amount := *orderRequest.Amount
+		price := *orderRequest.Price
+		parameters := orderRequest.Parameters
+		individualOrderRequest := map[string]interface{}{
+			"symbol": symbol,
+			"type":   orderType,
+			"side":   side,
+			"amount": amount,
+			"price":  price,
+			"params": parameters,
+		}
+		result = append(result, individualOrderRequest)
+	}
+
+	return result
+}
+
 type LastPrice struct {
 	Symbol    *string
 	Timestamp *int64
@@ -907,23 +964,6 @@ func NewWithdrawlResponse(withdrawlResponseData map[string]interface{}) Withdraw
 	return WithdrawlResponse{
 		Info: info,
 		Id:   SafeStringTyped(withdrawlResponseData, "id"),
-	}
-}
-
-type DepositAddressResponse struct {
-	Address *string
-	Tag     *string
-	Status  *string
-	Info    map[string]interface{}
-}
-
-// NewDepositAddressResponse initializes a DepositAddressResponse struct from a map.
-func NewDepositAddressResponse(depositAddressResponseData map[string]interface{}) DepositAddressResponse {
-	return DepositAddressResponse{
-		Address: SafeStringTyped(depositAddressResponseData, "address"),
-		Tag:     SafeStringTyped(depositAddressResponseData, "tag"),
-		Status:  SafeStringTyped(depositAddressResponseData, "status"),
-		Info:    GetInfo(depositAddressResponseData), // Assuming GetInfo is implemented
 	}
 }
 
@@ -1080,6 +1120,7 @@ type Liquidation struct {
 	BaseValue  *float64
 	Timestamp  *int64
 	Datetime   *string
+	Side       *string
 	Info       map[string]interface{}
 }
 
@@ -1090,6 +1131,7 @@ func NewLiquidation(data interface{}) Liquidation {
 		BaseValue:  SafeFloatTyped(data, "baseValue"),
 		Timestamp:  SafeInt64Typed(data, "timestamp"),
 		Datetime:   SafeStringTyped(data, "datetime"),
+		Side:       SafeStringTyped(data, "side"),
 		Info:       GetInfo(data),
 	}
 }
@@ -1609,6 +1651,9 @@ type Currencies struct {
 }
 
 func NewCurrencies(data2 interface{}) Currencies {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
 	data := data2.(map[string]interface{})
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)
@@ -1802,6 +1847,18 @@ func NewOrderArray(orders2 interface{}) []Order {
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
 			order := NewOrder(tradeMap)
+			result = append(result, order)
+		}
+	}
+	return result
+}
+
+func NewGreeksArray(orders2 interface{}) []Greeks {
+	orders := orders2.([]interface{})
+	result := make([]Greeks, 0, len(orders))
+	for _, t := range orders {
+		if tradeMap, ok := t.(map[string]interface{}); ok {
+			order := NewGreeks(tradeMap)
 			result = append(result, order)
 		}
 	}
@@ -2058,5 +2115,19 @@ func NewCancellationRequest(request map[string]interface{}) CancellationRequest 
 	return CancellationRequest{
 		Id:     SafeStringTyped(request, "id"),
 		Symbol: SafeStringTyped(request, "symbol"),
+	}
+}
+
+// DepositWithdrawFeeNetwork
+
+type DepositWithdrawFeeNetwork struct {
+	fee        *float64
+	percentage *float64
+}
+
+func NewDepositWithdrawFeeNetwork(data interface{}) DepositWithdrawFeeNetwork {
+	return DepositWithdrawFeeNetwork{
+		fee:        SafeFloatTyped(data, "fee"),
+		percentage: SafeFloatTyped(data, "percentage"),
 	}
 }

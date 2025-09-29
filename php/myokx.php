@@ -10,7 +10,7 @@ use ccxt\abstract\myokx as okx;
 
 class myokx extends okx {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myokx',
             'name' => 'MyOKX (EEA)',

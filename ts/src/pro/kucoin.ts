@@ -4,13 +4,13 @@
 import kucoinRest from '../kucoin.js';
 import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class kucoin extends kucoinRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -32,6 +32,11 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'unWatchTicker': true,
+                'unWatchOHLCV': true,
+                'unWatchOrderBook': true,
+                'unWatchTrades': true,
+                'unWatchhTradesForSymbols': true,
             },
             'options': {
                 'tradesLimit': 1000,
@@ -142,6 +147,10 @@ export default class kucoin extends kucoinRest {
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
+    async unSubscribe (url, messageHash, topic, subscriptionHash, params = {}, subscription: Dict = undefined) {
+        return await this.unSubscribeMultiple (url, [ messageHash ], topic, [ subscriptionHash ], params, subscription);
+    }
+
     async subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
         const requestId = this.requestId ().toString ();
         const request: Dict = {
@@ -201,6 +210,35 @@ export default class kucoin extends kucoinRest {
         const topic = method + ':' + market['id'];
         const messageHash = 'ticker:' + symbol;
         return await this.subscribe (url, messageHash, topic, query);
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const url = await this.negotiate (false);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', '/market/snapshot');
+        const topic = method + ':' + market['id'];
+        const messageHash = 'unsubscribe:ticker:' + symbol;
+        const subMessageHash = 'ticker:' + symbol;
+        const subscription = {
+            'messageHashes': [ messageHash ],
+            'subMessageHashes': [ subMessageHash ],
+            'topic': 'trades',
+            'unsubscribe': true,
+            'symbols': [ symbol ],
+        };
+        return await this.unSubscribe (url, messageHash, topic, subMessageHash, params, subscription);
     }
 
     /**
@@ -446,6 +484,35 @@ export default class kucoin extends kucoinRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name kucoin#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const url = await this.negotiate (false);
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
+        const topic = '/market/candles:' + market['id'] + '_' + period;
+        const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
+        const subMessageHash = 'candles:' + symbol + ':' + timeframe;
+        const subscription = {
+            'messageHashes': [ messageHash ],
+            'subMessageHashes': [ subMessageHash ],
+            'topic': 'ohlcv',
+            'unsubscribe': true,
+            'symbols': [ symbol ],
+        };
+        return await this.unSubscribe (url, messageHash, topic, messageHash, params, subscription);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1428,7 +1495,7 @@ export default class kucoin extends kucoinRest {
         // https://docs.kucoin.com/#ping
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         //    {
         //        "id": "1",
@@ -1445,7 +1512,8 @@ export default class kucoin extends kucoinRest {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors (undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        this.handleErrors (1, '', client.url, '', {}, data, message, {}, {});
+        return false;
     }
 
     handleMessage (client: Client, message) {

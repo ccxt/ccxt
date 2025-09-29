@@ -742,7 +742,8 @@ export default class bitfinex extends Exchange {
             'pub:map:currency:pool',
             'pub:map:currency:explorer',
             'pub:map:currency:tx:fee',
-            'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:map:tx:method',
+            'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
         ];
         const config = labels.join(',');
         const request = {
@@ -825,42 +826,85 @@ export default class bitfinex extends Exchange {
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // deposit/withdrawal data
+        //         [
+        //           ["BITCOIN", 1, 1, null, null, null, null, 0, 0, null, null, 3],
+        //           ...
+        //         ]
         //     ]
         //
         const indexed = {
-            'sym': this.indexBy(this.safeValue(response, 1, []), 0),
-            'label': this.indexBy(this.safeValue(response, 2, []), 0),
-            'unit': this.indexBy(this.safeValue(response, 3, []), 0),
-            'undl': this.indexBy(this.safeValue(response, 4, []), 0),
-            'pool': this.indexBy(this.safeValue(response, 5, []), 0),
-            'explorer': this.indexBy(this.safeValue(response, 6, []), 0),
-            'fees': this.indexBy(this.safeValue(response, 7, []), 0),
+            'sym': this.indexBy(this.safeList(response, 1, []), 0),
+            'label': this.indexBy(this.safeList(response, 2, []), 0),
+            'unit': this.indexBy(this.safeList(response, 3, []), 0),
+            'undl': this.indexBy(this.safeList(response, 4, []), 0),
+            'pool': this.indexBy(this.safeList(response, 5, []), 0),
+            'explorer': this.indexBy(this.safeList(response, 6, []), 0),
+            'fees': this.indexBy(this.safeList(response, 7, []), 0),
+            'networks': this.safeList(response, 8, []),
+            'statuses': this.indexBy(this.safeList(response, 9, []), 0),
         };
-        const ids = this.safeValue(response, 0, []);
+        const indexedNetworks = {};
+        for (let i = 0; i < indexed['networks'].length; i++) {
+            const networkObj = indexed['networks'][i];
+            const networkId = this.safeString(networkObj, 0);
+            const valuesList = this.safeList(networkObj, 1);
+            const networkName = this.safeString(valuesList, 0);
+            // for GOlang transpiler, do with "safe" method
+            const networksList = this.safeList(indexedNetworks, networkName, []);
+            networksList.push(networkId);
+            indexedNetworks[networkName] = networksList;
+        }
+        const ids = this.safeList(response, 0, []);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            if (id.indexOf('F0') >= 0) {
+            if (id.endsWith('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
             const code = this.safeCurrencyCode(id);
-            const label = this.safeValue(indexed['label'], id, []);
+            const label = this.safeList(indexed['label'], id, []);
             const name = this.safeString(label, 1);
-            const pool = this.safeValue(indexed['pool'], id, []);
+            const pool = this.safeList(indexed['pool'], id, []);
             const rawType = this.safeString(pool, 1);
             const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
             let type = undefined;
             if (isCryptoCoin) {
                 type = 'crypto';
             }
-            const feeValues = this.safeValue(indexed['fees'], id, []);
-            const fees = this.safeValue(feeValues, 1, []);
+            const feeValues = this.safeList(indexed['fees'], id, []);
+            const fees = this.safeList(feeValues, 1, []);
             const fee = this.safeNumber(fees, 1);
-            const undl = this.safeValue(indexed['undl'], id, []);
+            const undl = this.safeList(indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
-            result[code] = {
+            const dwStatuses = this.safeList(indexed['statuses'], id, []);
+            const depositEnabled = this.safeInteger(dwStatuses, 1) === 1;
+            const withdrawEnabled = this.safeInteger(dwStatuses, 2) === 1;
+            const networks = {};
+            const netwokIds = this.safeList(indexedNetworks, id, []);
+            for (let j = 0; j < netwokIds.length; j++) {
+                const networkId = netwokIds[j];
+                const network = this.networkIdToCode(networkId);
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase(),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': fid,
                 'uppercaseId': id,
                 'code': code,
@@ -868,8 +912,8 @@ export default class bitfinex extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': parseInt(precision),
                 'limits': {
@@ -882,40 +926,8 @@ export default class bitfinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'networks': {},
-            };
-            const networks = {};
-            const currencyNetworks = this.safeValue(response, 8, []);
-            const cleanId = id.replace('F0', '');
-            for (let j = 0; j < currencyNetworks.length; j++) {
-                const pair = currencyNetworks[j];
-                const networkId = this.safeString(pair, 0);
-                const currencyId = this.safeString(this.safeValue(pair, 1, []), 0);
-                if (currencyId === cleanId) {
-                    const network = this.networkIdToCode(networkId);
-                    networks[network] = {
-                        'info': networkId,
-                        'id': networkId.toLowerCase(),
-                        'network': networkId,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'precision': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                    };
-                }
-            }
-            const keysNetworks = Object.keys(networks);
-            const networksLength = keysNetworks.length;
-            if (networksLength > 0) {
-                result[code]['networks'] = networks;
-            }
+                'networks': networks,
+            });
         }
         return result;
     }
@@ -1161,9 +1173,8 @@ export default class bitfinex extends Exchange {
         //
         // on trading pairs (ex. tBTCUSD)
         //
-        //    {
-        //        'result': [
-        //            SYMBOL,
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
         //            BID,
         //            BID_SIZE,
         //            ASK,
@@ -1174,15 +1185,13 @@ export default class bitfinex extends Exchange {
         //            VOLUME,
         //            HIGH,
         //            LOW
-        //        ]
-        //    }
+        //    ]
         //
         //
         // on funding currencies (ex. fUSD)
         //
-        //    {
-        //        'result': [
-        //            SYMBOL,
+        //    [
+        //            SYMBOL, // this index is not present in singular-ticker
         //            FRR,
         //            BID,
         //            BID_PERIOD,
@@ -1199,35 +1208,75 @@ export default class bitfinex extends Exchange {
         //            _PLACEHOLDER,
         //            _PLACEHOLDER,
         //            FRR_AMOUNT_AVAILABLE
-        //        ]
-        //    }
+        //     ]
         //
-        const result = this.safeList(ticker, 'result');
-        const symbol = this.safeSymbol(undefined, market);
-        const length = result.length;
-        const last = this.safeString(result, length - 4);
-        const percentage = this.safeString(result, length - 5);
+        const length = ticker.length;
+        const isFetchTicker = (length === 10) || (length === 16);
+        let symbol = undefined;
+        let minusIndex = 0;
+        let isFundingCurrency = false;
+        if (isFetchTicker) {
+            minusIndex = 1;
+            isFundingCurrency = (length === 16);
+        }
+        else {
+            const marketId = this.safeString(ticker, 0);
+            market = this.safeMarket(marketId, market);
+            isFundingCurrency = (length === 17);
+        }
+        symbol = this.safeSymbol(undefined, market);
+        let last = undefined;
+        let bid = undefined;
+        let ask = undefined;
+        let change = undefined;
+        let percentage = undefined;
+        let volume = undefined;
+        let high = undefined;
+        let low = undefined;
+        if (isFundingCurrency) {
+            // per api docs, they are different array type
+            last = this.safeString(ticker, 10 - minusIndex);
+            bid = this.safeString(ticker, 2 - minusIndex);
+            ask = this.safeString(ticker, 5 - minusIndex);
+            change = this.safeString(ticker, 8 - minusIndex);
+            percentage = this.safeString(ticker, 9 - minusIndex);
+            volume = this.safeString(ticker, 11 - minusIndex);
+            high = this.safeString(ticker, 12 - minusIndex);
+            low = this.safeString(ticker, 13 - minusIndex);
+        }
+        else {
+            // on trading pairs (ex. tBTCUSD or tHMSTR:USD)
+            last = this.safeString(ticker, 7 - minusIndex);
+            bid = this.safeString(ticker, 1 - minusIndex);
+            ask = this.safeString(ticker, 3 - minusIndex);
+            change = this.safeString(ticker, 5 - minusIndex);
+            percentage = this.safeString(ticker, 6 - minusIndex);
+            percentage = Precise.stringMul(percentage, '100');
+            volume = this.safeString(ticker, 8 - minusIndex);
+            high = this.safeString(ticker, 9 - minusIndex);
+            low = this.safeString(ticker, 10 - minusIndex);
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': this.safeString(result, length - 2),
-            'low': this.safeString(result, length - 1),
-            'bid': this.safeString(result, length - 10),
-            'bidVolume': this.safeString(result, length - 9),
-            'ask': this.safeString(result, length - 8),
-            'askVolume': this.safeString(result, length - 7),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString(result, length - 6),
-            'percentage': Precise.stringMul(percentage, '100'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString(result, length - 3),
+            'baseVolume': volume,
             'quoteVolume': undefined,
-            'info': result,
+            'info': ticker,
         }, market);
     }
     /**
@@ -1290,15 +1339,7 @@ export default class bitfinex extends Exchange {
         //         ...
         //     ]
         //
-        const result = {};
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const marketId = this.safeString(ticker, 0);
-            const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker({ 'result': ticker }, market);
-        }
-        return this.filterByArrayTickers(result, 'symbol', symbols);
+        return this.parseTickers(tickers, symbols);
     }
     /**
      * @method
@@ -1316,8 +1357,7 @@ export default class bitfinex extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol(this.extend(request, params));
-        const result = { 'result': ticker };
-        return this.parseTicker(result, market);
+        return this.parseTicker(ticker, market);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -3642,12 +3682,15 @@ export default class bitfinex extends Exchange {
         const contractSize = this.safeString(market, 'contractSize');
         const baseValue = Precise.stringMul(contracts, contractSize);
         const price = this.safeString(entry, 11);
+        const sideFlag = this.safeInteger(entry, 8);
+        const side = (sideFlag === 1) ? 'buy' : 'sell';
         return this.safeLiquidation({
             'info': entry,
             'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'contracts': this.parseNumber(contracts),
             'contractSize': this.parseNumber(contractSize),
             'price': this.parseNumber(price),
+            'side': side,
             'baseValue': this.parseNumber(baseValue),
             'quoteValue': this.parseNumber(Precise.stringMul(baseValue, price)),
             'timestamp': timestamp,

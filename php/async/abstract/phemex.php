@@ -118,8 +118,8 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function private_get_g_accounts_accountpositions($params = array()) {
         return $this->request('g-accounts/accountPositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_accounts_positions($params = array()) {
-        return $this->request('accounts/positions', 'private', 'GET', $params, null, null, array("cost" => 25));
+    public function private_get_g_accounts_positions($params = array()) {
+        return $this->request('g-accounts/positions', 'private', 'GET', $params, null, null, array("cost" => 25));
     }
     public function private_get_api_data_futures_funding_fees($params = array()) {
         return $this->request('api-data/futures/funding-fees', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -307,6 +307,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function private_put_g_orders_replace($params = array()) {
         return $this->request('g-orders/replace', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
+    public function private_put_g_orders_create($params = array()) {
+        return $this->request('g-orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
     public function private_put_positions_leverage($params = array()) {
         return $this->request('positions/leverage', 'private', 'PUT', $params, null, null, array("cost" => 5));
     }
@@ -454,8 +457,8 @@ abstract class phemex extends \ccxt\async\Exchange {
     public function privateGetGAccountsAccountPositions($params = array()) {
         return $this->request('g-accounts/accountPositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetAccountsPositions($params = array()) {
-        return $this->request('accounts/positions', 'private', 'GET', $params, null, null, array("cost" => 25));
+    public function privateGetGAccountsPositions($params = array()) {
+        return $this->request('g-accounts/positions', 'private', 'GET', $params, null, null, array("cost" => 25));
     }
     public function privateGetApiDataFuturesFundingFees($params = array()) {
         return $this->request('api-data/futures/funding-fees', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -642,6 +645,9 @@ abstract class phemex extends \ccxt\async\Exchange {
     }
     public function privatePutGOrdersReplace($params = array()) {
         return $this->request('g-orders/replace', 'private', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function privatePutGOrdersCreate($params = array()) {
+        return $this->request('g-orders/create', 'private', 'PUT', $params, null, null, array("cost" => 1));
     }
     public function privatePutPositionsLeverage($params = array()) {
         return $this->request('positions/leverage', 'private', 'PUT', $params, null, null, array("cost" => 5));

@@ -6,7 +6,7 @@ export type Num = number | undefined;
 export type Bool = boolean | undefined;
 // must be an integer in other langs
 export type IndexType = number | string;
-export type OrderSide = 'buy' | 'sell' | string;
+export type OrderSide = 'buy' | 'sell' | string | undefined;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -44,7 +44,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 
-export type Fee = FeeInterface | undefined
+export type Fee = FeeInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: boolean;
@@ -57,8 +57,8 @@ export interface MarketInterface {
     uppercaseId?: Str;
     lowercaseId?: Str;
     symbol: string;
-    base: Str;
-    quote: Str;
+    base: string;
+    quote: string;
     baseId: Str;
     quoteId: Str;
     active: Bool;
@@ -232,9 +232,7 @@ export interface CurrencyInterface {
             max?: Num;
         },
     },
-    networks: {
-        string: any,
-    },
+    networks: Dictionary<any>,
     info: any;
 }
 
@@ -278,13 +276,6 @@ export interface DepositAddress {
 export interface WithdrawalResponse {
     info: any;
     id: string;
-}
-
-export interface DepositAddressResponse {
-    currency: Str;
-    address: string;
-    info: any;
-    tag?: Str;
 }
 
 export interface FundingRate {
@@ -458,6 +449,7 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    side?: OrderSide;
 }
 
 export interface OrderRequest {
@@ -500,6 +492,9 @@ export interface Greeks {
     theta: number;
     vega: number;
     rho: number;
+    vanna?: number;
+    volga?: number;
+    charm?: number;
     bidSize: number;
     askSize: number;
     bidImpliedVolatility: number;
@@ -602,10 +597,10 @@ export interface MarginModes extends Dictionary<MarginMode> {
 export interface OptionChain extends Dictionary<Option> {
 }
 
-export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRate> {
 }
 
-export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRate> {
 }
 
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {
@@ -621,4 +616,34 @@ export type implicitReturnType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
+interface BaseConstructorArgs {
+    apiKey?: string;
+    secret?: string;
+    password?: string;
+    privateKey?: string;
+    walletAddress?: string;
+    uid?: string;
+    verbose?: boolean;
+    sandbox?: boolean; // redundant with testnet but kept for backward compatibility
+    testnet?: boolean;
+    options?: Dict;
+    enableRateLimit?: boolean;
+    httpsProxy?: string;
+    socksProxy?: string;
+    wssProxy?: string;
+    proxy?: string;
+    rateLimit?: number;
+    commonCurrencies?: Dict;
+    userAgent?: string;
+    userAgents?: Dict;
+    timeout?: number;
+    markets?: Dict;
+    currencies?: Dict;
+    hostname?: string
+    urls?: Dict;
+    headers?: Dict;
+}
 
+export type ConstructorArgs = Partial<BaseConstructorArgs> & {
+    [key: string]: any;
+};

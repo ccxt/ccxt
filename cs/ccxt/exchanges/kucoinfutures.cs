@@ -96,6 +96,7 @@ public partial class kucoinfutures : kucoin
                 { "fetchWithdrawals", true },
                 { "setLeverage", false },
                 { "setMarginMode", true },
+                { "setPositionMode", true },
                 { "transfer", true },
                 { "withdraw", null },
             } },
@@ -187,6 +188,7 @@ public partial class kucoinfutures : kucoin
                         { "sub/api-key/update", 1 },
                         { "changeCrossUserLeverage", 1 },
                         { "position/changeMarginMode", 1 },
+                        { "position/switchPositionMode", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{withdrawalId}", 1 },
@@ -217,7 +219,7 @@ public partial class kucoinfutures : kucoin
                     { "429", typeof(RateLimitExceeded) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "503", typeof(ExchangeNotAvailable) },
-                    { "100001", typeof(InvalidOrder) },
+                    { "100001", typeof(OrderNotFound) },
                     { "100004", typeof(BadRequest) },
                     { "101030", typeof(PermissionDenied) },
                     { "200004", typeof(InsufficientFunds) },
@@ -237,6 +239,7 @@ public partial class kucoinfutures : kucoin
                     { "411100", typeof(AccountSuspended) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "300009", typeof(InvalidOrder) },
+                    { "330008", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Position does not exist", typeof(OrderNotFound) },
@@ -301,6 +304,7 @@ public partial class kucoinfutures : kucoin
                             { "transfer-out", "v2" },
                             { "changeCrossUserLeverage", "v2" },
                             { "position/changeMarginMode", "v2" },
+                            { "position/switchPositionMode", "v2" },
                         } },
                     } },
                     { "futuresPublic", new Dictionary<string, object>() {
@@ -427,7 +431,7 @@ public partial class kucoinfutures : kucoin
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object status = this.safeString(data, "status");
         return new Dictionary<string, object>() {
             { "status", ((bool) isTrue((isEqual(status, "open")))) ? "ok" : "maintenance" },
@@ -513,13 +517,13 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object result = new List<object>() {};
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             object id = this.safeString(market, "symbol");
             object expiry = this.safeInteger(market, "expireDate");
-            object future = ((bool) isTrue(expiry)) ? true : false;
+            object future = isEqual(this.safeString(market, "nextFundingRateTime"), null);
             object swap = !isTrue(future);
             object baseId = this.safeString(market, "baseCurrency");
             object quoteId = this.safeString(market, "quoteCurrency");
@@ -746,7 +750,7 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object address = this.safeString(data, "address");
         if (isTrue(!isEqual(currencyId, "NIM")))
         {
@@ -817,7 +821,7 @@ public partial class kucoinfutures : kucoin
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.parseToInt(divide(this.safeInteger(data, "ts"), 1000000));
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "sequence");
@@ -1170,7 +1174,7 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object data = this.safeValue(response, "data");
-        object dataList = this.safeValue(data, "dataList", new List<object>() {});
+        object dataList = this.safeList(data, "dataList", new List<object>() {});
         object fees = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(dataList)); postFixIncrement(ref i))
         {
@@ -1561,6 +1565,8 @@ public partial class kucoinfutures : kucoin
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1570,7 +1576,8 @@ public partial class kucoinfutures : kucoin
      * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+     * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1675,6 +1682,12 @@ public partial class kucoinfutures : kucoin
             { "type", type },
             { "leverage", 1 },
         };
+        object marginModeUpper = this.safeStringUpper(parameters, "marginMode");
+        if (isTrue(!isEqual(marginModeUpper, null)))
+        {
+            parameters = this.omit(parameters, "marginMode");
+            ((IDictionary<string,object>)request)["marginMode"] = marginModeUpper;
+        }
         object cost = this.safeString(parameters, "cost");
         parameters = this.omit(parameters, "cost");
         if (isTrue(!isEqual(cost, null)))
@@ -1778,7 +1791,28 @@ public partial class kucoinfutures : kucoin
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        object hedged = null;
+        var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+        hedged = ((IList<object>)hedgedparametersVariable)[0];
+        parameters = ((IList<object>)hedgedparametersVariable)[1];
+        if (isTrue(reduceOnly))
+        {
+            ((IDictionary<string,object>)request)["reduceOnly"] = reduceOnly;
+            if (isTrue(hedged))
+            {
+                object reduceOnlyPosSide = ((bool) isTrue((isEqual(side, "sell")))) ? "LONG" : "SHORT";
+                ((IDictionary<string,object>)request)["positionSide"] = reduceOnlyPosSide;
+            }
+        } else
+        {
+            if (isTrue(hedged))
+            {
+                object posSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                ((IDictionary<string,object>)request)["positionSide"] = posSide;
+            }
+        }
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "hedged"}); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return this.extend(request, parameters);
     }
 
@@ -1826,7 +1860,9 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -1937,7 +1973,10 @@ public partial class kucoinfutures : kucoin
         //       },
         //   }
         //
-        return this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
     }
 
     /**
@@ -2207,7 +2246,7 @@ public partial class kucoinfutures : kucoin
         //         }
         //     }
         //
-        object responseData = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(responseData, "items", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -2613,6 +2652,7 @@ public partial class kucoinfutures : kucoin
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -3185,7 +3225,7 @@ public partial class kucoinfutures : kucoin
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseMarketLeverageTiers(data, market);
     }
 
@@ -3285,7 +3325,7 @@ public partial class kucoinfutures : kucoin
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRateHistories(data, market, since, limit);
     }
 
@@ -3460,7 +3500,37 @@ public partial class kucoinfutures : kucoin
         //    }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseMarginMode(data, market);
+        return ((object)this.parseMarginMode(data, market));
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.kucoin.com/docs-new/3475097e0
+     * @param {bool} hedged set to true to use two way position
+     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response from the exchange
+     */
+    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object posMode = ((bool) isTrue(hedged)) ? "1" : "0";
+        object request = new Dictionary<string, object>() {
+            { "positionMode", posMode },
+        };
+        object response = await this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "positionMode": 1
+        //         }
+        //     }
+        //
+        return response;
     }
 
     /**

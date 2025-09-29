@@ -15,7 +15,19 @@ class Helper
         if (data.ContainsKey("info"))
         {
             var info = data["info"];
-            if (info is IDictionary<string, object>)
+            if (info is ccxt.pro.IOrderBook)
+            {
+                var copy = (info as ccxt.pro.IOrderBook).Copy();
+                // return new Dictionary<string, object> { concurrentDict as IDictionary<string, object> };
+                var newInfo = new Dictionary<string, object>();
+                foreach (var kvp in copy)
+                {
+                    newInfo.Add(kvp.Key, kvp.Value);
+                }
+                return newInfo;
+
+            }
+            else if (info is IDictionary<string, object>)
             {
                 return new Dictionary<string, object>(info as IDictionary<string, object>);
             }
@@ -820,23 +832,6 @@ public struct WithdrawlResponse
     }
 }
 
-public struct DepositAddressResponse
-{
-    public string? address;
-    public string? tag;
-    public string? status;
-    public Dictionary<string, object>? info;
-
-    public DepositAddressResponse(object depositAddressResponse2)
-    {
-        var depositAddressResponse = (Dictionary<string, object>)depositAddressResponse2;
-        address = Exchange.SafeString(depositAddressResponse, "address");
-        tag = Exchange.SafeString(depositAddressResponse, "tag");
-        status = Exchange.SafeString(depositAddressResponse, "status");
-        info = Helper.GetInfo(depositAddressResponse);
-    }
-}
-
 public struct DepositAddress
 {
     public Dictionary<string, object>? info;
@@ -1034,6 +1029,7 @@ public struct Liquidation
     public double? baseValue;
     public Int64? timestamp;
     public string? datetime;
+    public string? side;
     public Dictionary<string, object> info;
 
     public Liquidation(object openInterest)
@@ -1043,6 +1039,7 @@ public struct Liquidation
         baseValue = Exchange.SafeFloat(openInterest, "baseValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
+        side = Exchange.SafeString(openInterest, "side");
         info = Helper.GetInfo(openInterest);
     }
 }
@@ -1570,6 +1567,9 @@ public struct Greeks
     public double? theta;
     public double? vega;
     public double? rho;
+    public double? vanna;
+    public double? volga;
+    public double? charm;
     public double? bidSize;
     public double? askSize;
     public double? bidImpliedVolatility;
@@ -1591,6 +1591,9 @@ public struct Greeks
         theta = Exchange.SafeFloat(greeks, "theta");
         vega = Exchange.SafeFloat(greeks, "vega");
         rho = Exchange.SafeFloat(greeks, "rho");
+        vanna = Exchange.SafeFloat(greeks, "vanna");
+        volga = Exchange.SafeFloat(greeks, "volga");
+        charm = Exchange.SafeFloat(greeks, "charm");
         bidSize = Exchange.SafeFloat(greeks, "bidSize");
         askSize = Exchange.SafeFloat(greeks, "askSize");
         bidImpliedVolatility = Exchange.SafeFloat(greeks, "bidImpliedVolatility");

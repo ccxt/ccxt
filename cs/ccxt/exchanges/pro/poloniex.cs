@@ -268,7 +268,9 @@ public partial class poloniex : ccxt.poloniex
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             }
         }
-        return await this.tradeRequest("createOrder", this.extend(request, parameters));
+        object orders = await this.tradeRequest("createOrder", this.extend(request, parameters));
+        object order = this.safeDict(orders, 0);
+        return order;
     }
 
     /**
@@ -291,7 +293,9 @@ public partial class poloniex : ccxt.poloniex
             object clientOrderIds = this.safeValue(parameters, "clientOrderId", new List<object>() {});
             ((IDictionary<string,object>)parameters)["clientOrderIds"] = this.arrayConcat(clientOrderIds, new List<object>() {clientOrderId});
         }
-        return await this.cancelOrdersWs(new List<object>() {id}, symbol, parameters);
+        object orders = await this.cancelOrdersWs(new List<object>() {id}, symbol, parameters);
+        object order = this.safeDict(orders, 0);
+        return order;
     }
 
     /**

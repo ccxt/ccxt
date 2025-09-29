@@ -10,12 +10,12 @@ use ccxt\async\abstract\luno as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class luno extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'luno',
             'name' => 'luno',
@@ -32,52 +32,91 @@ class luno extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelOrder' => true,
                 'closeAllPositions' => false,
                 'closePosition' => false,
+                'createDepositAddress' => true,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchAccounts' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
+                'fetchPositionForSymbolWs' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsForSymbolWs' => false,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
             ),
@@ -123,6 +162,7 @@ class luno extends Exchange {
                         'accounts/{id}/transactions' => 1,
                         'balance' => 1,
                         'beneficiaries' => 1,
+                        'send/networks' => 1,
                         'fee_info' => 1,
                         'funding_address' => 1,
                         'listorders' => 1,
@@ -186,6 +226,9 @@ class luno extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true, // todo
@@ -262,6 +305,97 @@ class luno extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function fetch_currencies($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {dict} [$params] extra parameters specific to the exchange API endpoint
+             * @return {dict} an associative dictionary of currencies
+             */
+            if (!$this->check_required_credentials(false)) {
+                return array();
+            }
+            $response = Async\await($this->privateGetSendNetworks ($params));
+            //
+            //     {
+            //         "networks" => array(
+            //           array(
+            //             "id" => 0,
+            //             "name" => "Ethereum",
+            //             "native_currency" => "ETH"
+            //           ),
+            //           ...
+            //         )
+            //     }
+            //
+            $currenciesData = $this->safe_list($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($currenciesData); $i++) {
+                $networkEntry = $currenciesData[$i];
+                $id = $this->safe_string($networkEntry, 'native_currency');
+                $code = $this->safe_currency_code($id);
+                if (!(is_array($result) && array_key_exists($code, $result))) {
+                    $result[$code] = array(
+                        'id' => $id,
+                        'code' => $code,
+                        'precision' => null,
+                        'type' => null,
+                        'name' => null,
+                        'active' => null,
+                        'deposit' => null,
+                        'withdraw' => null,
+                        'fee' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'networks' => array(),
+                        'info' => array(),
+                    );
+                }
+                $networkId = $this->safe_string($networkEntry, 'name');
+                $networkCode = $this->network_id_to_code($networkId);
+                $result[$code]['networks'][$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'info' => $networkEntry,
+                );
+                // add entry in $info
+                $info = $this->safe_list($result[$code], 'info', array());
+                $info[] = $networkEntry;
+                $result[$code]['info'] = $info;
+            }
+            // only after all entries are formed in currencies, restructure each entry
+            $allKeys = is_array($result) ? array_keys($result) : array();
+            for ($i = 0; $i < count($allKeys); $i++) {
+                $code = $allKeys[$i];
+                $result[$code] = $this->safe_currency_structure($result[$code]); // this is needed after adding network entry
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -1258,6 +1392,123 @@ class luno extends Exchange {
             'status' => $status,
             'fee' => null,
         ), $currency);
+    }
+
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * create a $currency deposit address
+             *
+             * @see https://www.luno.com/en/developers/api#tag/Receive/operation/createFundingAddress
+             *
+             * @param {string} $code unified $currency $code of the $currency for the deposit address
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->name] an optional name for the new address
+             * @param {int} [$params->account_id] an optional account id for the new address
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+            );
+            $response = Async\await($this->privatePostFundingAddress ($this->extend($request, $params)));
+            //
+            //     {
+            //         "account_id" => "string",
+            //         "address" => "string",
+            //         "address_meta" => array(
+            //             {
+            //                 "label" => "string",
+            //                 "value" => "string"
+            //             }
+            //         ),
+            //         "asset" => "string",
+            //         "assigned_at" => 0,
+            //         "name" => "string",
+            //         "network" => 0,
+            //         "qr_code_uri" => "string",
+            //         "receive_fee" => "string",
+            //         "total_received" => "string",
+            //         "total_unconfirmed" => "string"
+            //     }
+            //
+            return $this->parse_deposit_address($response, $currency);
+        }) ();
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             *
+             * @see https://www.luno.com/en/developers/api#tag/Receive/operation/getFundingAddress
+             *
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->address] a specific cryptocurrency address to retrieve
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+            );
+            $response = Async\await($this->privateGetFundingAddress ($this->extend($request, $params)));
+            //
+            //     {
+            //         "account_id" => "string",
+            //         "address" => "string",
+            //         "address_meta" => array(
+            //             {
+            //                 "label" => "string",
+            //                 "value" => "string"
+            //             }
+            //         ),
+            //         "asset" => "string",
+            //         "assigned_at" => 0,
+            //         "name" => "string",
+            //         "network" => 0,
+            //         "qr_code_uri" => "string",
+            //         "receive_fee" => "string",
+            //         "total_received" => "string",
+            //         "total_unconfirmed" => "string"
+            //     }
+            //
+            return $this->parse_deposit_address($response, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+        //
+        //     {
+        //         "account_id" => "string",
+        //         "address" => "string",
+        //         "address_meta" => array(
+        //             {
+        //                 "label" => "string",
+        //                 "value" => "string"
+        //             }
+        //         ),
+        //         "asset" => "string",
+        //         "assigned_at" => 0,
+        //         "name" => "string",
+        //         "network" => 0,
+        //         "qr_code_uri" => "string",
+        //         "receive_fee" => "string",
+        //         "total_received" => "string",
+        //         "total_unconfirmed" => "string"
+        //     }
+        //
+        $currencyId = $this->safe_string_upper($depositAddress, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        return array(
+            'info' => $depositAddress,
+            'currency' => $code,
+            'network' => null,
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => $this->safe_string($depositAddress, 'name'),
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

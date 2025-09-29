@@ -13,12 +13,12 @@ use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use ccxt\UnsubscribeError;
 use ccxt\Precise;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coincatch extends \ccxt\async\coincatch {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -1442,7 +1442,7 @@ class coincatch extends \ccxt\async\coincatch {
         ));
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    array( $event => "error", $code => 30001, $msg => "Channel does not exist" )
         //

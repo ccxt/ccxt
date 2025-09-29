@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class bitfinex(ccxt.async_support.bitfinex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitfinex, self).describe(), {
             'has': {
                 'ws': True,
@@ -30,6 +30,10 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'watchBalance': True,
                 'watchOHLCV': True,
                 'watchOrders': True,
+                'unWatchTicker': True,
+                'unWatchTrades': True,
+                'unWatchOHLCV': True,
+                'unWatchOrderBook': True,
             },
             'urls': {
                 'api': {
@@ -71,6 +75,31 @@ class bitfinex(ccxt.async_support.bitfinex):
             })
         return result
 
+    async def un_subscribe(self, channel, topic, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        marketId = market['id']
+        url = self.urls['api']['ws']['public']
+        client = self.client(url)
+        subMessageHash = channel + ':' + marketId
+        messageHash = 'unsubscribe:' + channel + ':' + marketId
+        unSubTopic = 'unsubscribe' + ':' + topic + ':' + symbol
+        channelId = self.safe_string(client.subscriptions, unSubTopic)
+        request: dict = {
+            'event': 'unsubscribe',
+            'chanId': channelId,
+        }
+        unSubChanMsg = 'unsubscribe:' + channelId
+        client.subscriptions[unSubChanMsg] = subMessageHash
+        subscription = {
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+            'topic': topic,
+            'unsubscribe': True,
+            'symbols': [symbol],
+        }
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
+
     async def subscribe_private(self, messageHash):
         await self.load_markets()
         await self.authenticate()
@@ -105,6 +134,40 @@ class bitfinex(ccxt.async_support.bitfinex):
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}):
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns bool: True if successfully unsubscribed, False otherwise
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        channel = 'candles'
+        subMessageHash = channel + ':' + interval + ':' + market['id']
+        messageHash = 'unsubscribe:' + subMessageHash
+        url = self.urls['api']['ws']['public']
+        client = self.client(url)
+        subId = 'unsubscribe:trade:' + interval + ':' + market['id']  # trade here because we use the key
+        channelId = self.safe_string(client.subscriptions, subId)
+        request: dict = {
+            'event': 'unsubscribe',
+            'chanId': channelId,
+        }
+        unSubChanMsg = 'unsubscribe:' + channelId
+        client.subscriptions[unSubChanMsg] = subMessageHash
+        subscription = {
+            'messageHashes': [messageHash],
+            'subMessageHashes': [subMessageHash],
+            'topic': 'ohlcv',
+            'unsubscribe': True,
+            'symbols': [symbol],
+        }
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
     def handle_ohlcv(self, client: Client, message, subscription):
         #
@@ -199,6 +262,15 @@ class bitfinex(ccxt.async_support.bitfinex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def un_watch_trades(self, symbol: str, params={}):
+        """
+        unWatches the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.un_subscribe('trades', 'trades', symbol, params)
+
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
@@ -226,6 +298,15 @@ class bitfinex(ccxt.async_support.bitfinex):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.subscribe('ticker', symbol, params)
+
+    async def un_watch_ticker(self, symbol: str, params={}):
+        """
+        unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        return await self.un_subscribe('ticker', 'ticker', symbol, params)
 
     def handle_my_trade(self, client: Client, message, subscription={}):
         #
@@ -780,6 +861,28 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         return message
 
+    def handle_unsubscription_status(self, client: Client, message):
+        #
+        # {
+        #     "event": "unsubscribed",
+        #     "status": "OK",
+        #     "chanId": CHANNEL_ID
+        # }
+        #
+        channelId = self.safe_string(message, 'chanId')
+        unSubChannel = 'unsubscribe:' + channelId
+        subMessageHash = self.safe_string(client.subscriptions, unSubChannel)
+        subscription = self.safe_dict(client.subscriptions, 'unsubscribe:' + subMessageHash)
+        del client.subscriptions[unSubChannel]
+        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+        for i in range(0, len(messageHashes)):
+            messageHash = messageHashes[i]
+            subHash = subMessageHashes[i]
+            self.clean_unsubscription(client, subHash, messageHash)
+        self.clean_cache(subscription)
+        return True
+
     def handle_subscription_status(self, client: Client, message):
         #
         #     {
@@ -793,8 +896,34 @@ class bitfinex(ccxt.async_support.bitfinex):
         #         "pair": "BTCUSD"
         #     }
         #
+        #   {
+        #       event: 'subscribed',
+        #       channel: 'candles',
+        #       chanId: 128306,
+        #       key: 'trade:1m:tBTCUST'
+        #  }
+        #
         channelId = self.safe_string(message, 'chanId')
         client.subscriptions[channelId] = message
+        # store the opposite direction too for unWatch
+        mappings: dict = {
+            'book': 'orderbook',
+            'candles': 'ohlcv',
+            'ticker': 'ticker',
+            'trades': 'trades',
+        }
+        unifiedChannel = self.safe_string(mappings, self.safe_string(message, 'channel'))
+        if 'key' in message:
+            # handle ohlcv differently because the message is different
+            key = self.safe_string(message, 'key')
+            subKeyId = 'unsubscribe:' + key
+            client.subscriptions[subKeyId] = channelId
+        else:
+            marketId = self.safe_string(message, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            if unifiedChannel is not None:
+                subId = 'unsubscribe:' + unifiedChannel + ':' + symbol
+                client.subscriptions[subId] = channelId
         return message
 
     async def authenticate(self, params={}):
@@ -1079,6 +1208,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 methods: dict = {
                     'info': self.handle_system_status,
                     'subscribed': self.handle_subscription_status,
+                    'unsubscribed': self.handle_unsubscription_status,
                     'auth': self.handle_authentication_message,
                 }
                 method = self.safe_value(methods, event)

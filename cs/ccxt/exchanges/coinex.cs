@@ -55,7 +55,7 @@ public partial class coinex : Exchange
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", true },
-                { "fetchDepositWithdrawFees", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingInterval", true },
                 { "fetchFundingIntervals", false },
@@ -638,6 +638,7 @@ public partial class coinex : Exchange
                 { "broad", new Dictionary<string, object>() {
                     { "ip not allow visit", typeof(PermissionDenied) },
                     { "service too busy", typeof(ExchangeNotAvailable) },
+                    { "Service is not available during funding fee settlement", typeof(OperationFailed) },
                 } },
             } },
         });
@@ -707,36 +708,16 @@ public partial class coinex : Exchange
             object canWithdraw = this.safeBool(asset, "withdraw_enabled");
             object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
             object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "name", null },
-                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
-                { "fee", null },
-                { "precision", this.parseNumber(firstPrecisionString) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", new Dictionary<string, object>() {} },
-                { "info", coin },
-            };
+            object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "chain");
+                object networkCode = this.networkIdToCode(networkId, code);
+                if (isTrue(isEqual(networkId, null)))
+                {
+                    continue;
+                }
                 object precisionString = this.parsePrecision(this.safeString(chain, "withdrawal_precision"));
                 object feeString = this.safeString(chain, "withdrawal_fee");
                 object minNetworkDepositString = this.safeString(chain, "min_deposit_amount");
@@ -745,7 +726,7 @@ public partial class coinex : Exchange
                 object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
                 object network = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkId },
+                    { "network", networkCode },
                     { "name", null },
                     { "active", isTrue(canDepositChain) && isTrue(canWithdrawChain) },
                     { "deposit", canDepositChain },
@@ -768,10 +749,35 @@ public partial class coinex : Exchange
                     } },
                     { "info", chain },
                 };
-                object networks = this.safeDict(getValue(result, code), "networks", new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)networks)[(string)networkId] = network;
-                ((IDictionary<string,object>)getValue(result, code))["networks"] = networks;
+                ((IDictionary<string,object>)networks)[(string)networkCode] = network;
             }
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", currencyId },
+                { "code", code },
+                { "name", null },
+                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
+                { "deposit", canDeposit },
+                { "withdraw", canWithdraw },
+                { "fee", null },
+                { "precision", this.parseNumber(firstPrecisionString) },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "networks", networks },
+                { "type", "crypto" },
+                { "info", coin },
+            });
         }
         return result;
     }
@@ -803,17 +809,19 @@ public partial class coinex : Exchange
         //         "code": 0,
         //         "data": [
         //             {
-        //                 "base_ccy": "SORA",
-        //                 "base_ccy_precision": 8,
-        //                 "is_amm_available": true,
-        //                 "is_margin_available": false,
-        //                 "maker_fee_rate": "0.003",
-        //                 "market": "SORAUSDT",
-        //                 "min_amount": "500",
+        //                 "market": "BTCUSDT",
+        //                 "taker_fee_rate": "0.002",
+        //                 "maker_fee_rate": "0.002",
+        //                 "min_amount": "0.0005",
+        //                 "base_ccy": "BTC",
         //                 "quote_ccy": "USDT",
-        //                 "quote_ccy_precision": 6,
-        //                 "taker_fee_rate": "0.003"
-        //             },
+        //                 "base_ccy_precision": 8,
+        //                 "quote_ccy_precision": 2,
+        //                 "is_amm_available": true,
+        //                 "is_margin_available": true,
+        //                 "is_pre_trading_available": true,
+        //                 "is_api_trading_available": true
+        //             }
         //         ],
         //         "message": "OK"
         //     }
@@ -840,11 +848,11 @@ public partial class coinex : Exchange
                 { "settleId", null },
                 { "type", "spot" },
                 { "spot", true },
-                { "margin", null },
+                { "margin", this.safeBool(market, "is_margin_available") },
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", null },
+                { "active", this.safeBool(market, "is_api_trading_available") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -3915,7 +3923,7 @@ public partial class coinex : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
+     * @param {string} [tag] memo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -4818,6 +4826,75 @@ public partial class coinex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ((object)this.parseDepositWithdrawFee(data, currency));
+    }
+
+    /**
+     * @method
+     * @name coinex#fetchDepositWithdrawFees
+     * @description fetch the fees for deposits and withdrawals
+     * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+     * @param codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v2PublicGetAssetsAllDepositWithdrawConfig(parameters);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "asset": {
+        //                     "ccy": "CET",
+        //                     "deposit_enabled": true,
+        //                     "withdraw_enabled": true,
+        //                     "inter_transfer_enabled": true,
+        //                     "is_st": false
+        //                 },
+        //                 "chains": [
+        //                     {
+        //                         "chain": "CSC",
+        //                         "min_deposit_amount": "0.8",
+        //                         "min_withdraw_amount": "8",
+        //                         "deposit_enabled": true,
+        //                         "withdraw_enabled": true,
+        //                         "deposit_delay_minutes": 0,
+        //                         "safe_confirmations": 10,
+        //                         "irreversible_confirmations": 20,
+        //                         "deflation_rate": "0",
+        //                         "withdrawal_fee": "0.026",
+        //                         "withdrawal_precision": 8,
+        //                         "memo": "",
+        //                         "is_memo_required_for_deposit": false,
+        //                         "explorer_asset_url": ""
+        //                     },
+        //                 ]
+        //             }
+        //         ],
+        //         "message": "OK"
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object item = getValue(data, i);
+            object asset = this.safeDict(item, "asset", new Dictionary<string, object>() {});
+            object currencyId = this.safeString(asset, "ccy");
+            if (isTrue(isEqual(currencyId, null)))
+            {
+                continue;
+            }
+            object code = this.safeCurrencyCode(currencyId);
+            if (isTrue(isTrue(isEqual(codes, null)) || isTrue(this.inArray(code, codes))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.parseDepositWithdrawFee(item);
+            }
+        }
+        return result;
     }
 
     public override object parseDepositWithdrawFee(object fee, object currency = null)

@@ -10,7 +10,7 @@ use ccxt\abstract\bigone as Exchange;
 
 class bigone extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bigone',
             'name' => 'BigONE',
@@ -21,7 +21,7 @@ class bigone extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => null, // has but unimplemented
+                'swap' => true,
                 'future' => null, // has but unimplemented
                 'option' => false,
                 'cancelAllOrders' => true,
@@ -445,7 +445,7 @@ class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         $data = $this->fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if ($data === null) {
-            return null;
+            return array();
         }
         //
         // {
@@ -498,19 +498,15 @@ class bigone extends Exchange {
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $type = $this->safe_bool($currency, 'is_fiat') ? 'fiat' : 'crypto';
             $networks = array();
             $chains = $this->safe_list($currency, 'binding_gateways', array());
             $currencyMaxPrecision = $this->parse_precision($this->safe_string_2($currency, 'withdrawal_scale', 'scale'));
-            $currencyDepositEnabled = null;
-            $currencyWithdrawEnabled = null;
             for ($j = 0; $j < count($chains); $j++) {
                 $chain = $chains[$j];
                 $networkId = $this->safe_string($chain, 'gateway_name');
                 $networkCode = $this->network_id_to_code($networkId);
                 $deposit = $this->safe_bool($chain, 'is_deposit_enabled');
                 $withdraw = $this->safe_bool($chain, 'is_withdrawal_enabled');
-                $isActive = ($deposit && $withdraw);
                 $minDepositAmount = $this->safe_string($chain, 'min_deposit_amount');
                 $minWithdrawalAmount = $this->safe_string($chain, 'min_withdrawal_amount');
                 $withdrawalFee = $this->safe_string($chain, 'withdrawal_fee');
@@ -521,7 +517,7 @@ class bigone extends Exchange {
                     'margin' => null,
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
-                    'active' => $isActive,
+                    'active' => null,
                     'fee' => $this->parse_number($withdrawalFee),
                     'precision' => $this->parse_number($precision),
                     'limits' => array(
@@ -536,20 +532,29 @@ class bigone extends Exchange {
                     ),
                     'info' => $chain,
                 );
-                // fill global values
-                $currencyDepositEnabled = ($currencyDepositEnabled === null) || $deposit ? $deposit : $currencyDepositEnabled;
-                $currencyWithdrawEnabled = ($currencyWithdrawEnabled === null) || $withdraw ? $withdraw : $currencyWithdrawEnabled;
-                $currencyMaxPrecision = ($currencyMaxPrecision === null) || Precise::string_gt($currencyMaxPrecision, $precision) ? $precision : $currencyMaxPrecision;
             }
-            $result[$code] = array(
+            $chainLength = count($chains);
+            $type = null;
+            if ($this->safe_bool($currency, 'is_fiat')) {
+                $type = 'fiat';
+            } elseif ($chainLength === 0) {
+                if ($this->is_leveraged_currency($id)) {
+                    $type = 'leveraged';
+                } else {
+                    $type = 'other';
+                }
+            } else {
+                $type = 'crypto';
+            }
+            $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $name,
                 'type' => $type,
                 'active' => null,
-                'deposit' => $currencyDepositEnabled,
-                'withdraw' => $currencyWithdrawEnabled,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
                 'precision' => $this->parse_number($currencyMaxPrecision),
                 'limits' => array(
@@ -563,7 +568,7 @@ class bigone extends Exchange {
                     ),
                 ),
                 'networks' => $networks,
-            );
+            ));
         }
         return $result;
     }
@@ -966,7 +971,7 @@ class bigone extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer $timestamp in milliseconds from the exchange server
          *
@@ -1175,8 +1180,6 @@ class bigone extends Exchange {
             'cost' => null,
             'info' => $trade,
         );
-        $makerCurrencyCode = null;
-        $takerCurrencyCode = null;
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
@@ -1238,7 +1241,7 @@ class bigone extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['contract']) {
-            throw new BadRequest($this->id . ' fetchTrades () can only fetch $trades for spot markets');
+            throw new NotSupported($this->id . ' fetchTrades () can only fetch $trades for spot markets');
         }
         $request = array(
             'asset_pair_name' => $market['id'],
@@ -1307,7 +1310,7 @@ class bigone extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         if ($market['contract']) {
-            throw new BadRequest($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new NotSupported($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         $until = $this->safe_integer($params, 'until');
         $untilIsDefined = ($until !== null);
@@ -2259,7 +2262,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, 'failed');
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, Market, OrderBook, Trade
+from ccxt.base.types import Any, Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -13,7 +13,7 @@ from ccxt.base.errors import AuthenticationError
 
 class coincheck(ccxt.async_support.coincheck):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coincheck, self).describe(), {
             'has': {
                 'ws': True,

@@ -145,6 +145,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function public_get_v5_spot_margin_trade_data($params = array()) {
         return $this->request('v5/spot-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_v5_spot_margin_trade_collateral($params = array()) {
+        return $this->request('v5/spot-margin-trade/collateral', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_get_v5_spot_cross_margin_trade_data($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -165,6 +168,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function public_get_v5_ins_loan_ensure_tokens_convert($params = array()) {
         return $this->request('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v5_earn_product($params = array()) {
+        return $this->request('v5/earn/product', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_v5_market_instruments_info($params = array()) {
         return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -574,6 +580,12 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_broker_asset_query_sub_member_deposit_record($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_v5_earn_order($params = array()) {
+        return $this->request('v5/earn/order', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_earn_position($params = array()) {
+        return $this->request('v5/earn/position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_post_spot_v3_private_order($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -919,6 +931,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_post_v5_broker_award_distribution_record($params = array()) {
         return $this->request('v5/broker/award/distribution-record', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_v5_earn_place_order($params = array()) {
+        return $this->request('v5/earn/place-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function publicGetSpotV3PublicSymbols($params = array()) {
         return $this->request('spot/v3/public/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1057,6 +1072,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function publicGetV5SpotMarginTradeData($params = array()) {
         return $this->request('v5/spot-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetV5SpotMarginTradeCollateral($params = array()) {
+        return $this->request('v5/spot-margin-trade/collateral', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function publicGetV5SpotCrossMarginTradeData($params = array()) {
         return $this->request('v5/spot-cross-margin-trade/data', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1077,6 +1095,9 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function publicGetV5InsLoanEnsureTokensConvert($params = array()) {
         return $this->request('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV5EarnProduct($params = array()) {
+        return $this->request('v5/earn/product', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5MarketInstrumentsInfo($params = array()) {
         return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -1486,6 +1507,12 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5BrokerAssetQuerySubMemberDepositRecord($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function privateGetV5EarnOrder($params = array()) {
+        return $this->request('v5/earn/order', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5EarnPosition($params = array()) {
+        return $this->request('v5/earn/position', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privatePostSpotV3PrivateOrder($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
@@ -1830,5 +1857,8 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5BrokerAwardDistributionRecord($params = array()) {
         return $this->request('v5/broker/award/distribution-record', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5EarnPlaceOrder($params = array()) {
+        return $this->request('v5/earn/place-order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
 }

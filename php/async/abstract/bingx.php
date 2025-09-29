@@ -7,6 +7,9 @@ namespace ccxt\async\abstract;
 
 
 abstract class bingx extends \ccxt\async\Exchange {
+    public function fund_v1_private_get_account_balance($params = array()) {
+        return $this->request('account/balance', array('fund', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_v1_public_get_server_time($params = array()) {
         return $this->request('server/time', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -421,6 +424,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function account_v1_private_get_account_apipermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
+    public function account_v1_private_get_allaccountbalance($params = array()) {
+        return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function account_v1_private_post_innertransfer_authorizesubaccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -457,6 +463,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function api_v3_private_get_asset_transfer($params = array()) {
         return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function api_v3_private_get_asset_transferrecord($params = array()) {
+        return $this->request('asset/transferRecord', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
     public function api_v3_private_get_capital_deposit_hisrec($params = array()) {
         return $this->request('capital/deposit/hisrec', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -465,6 +474,15 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function api_v3_private_post_post_asset_transfer($params = array()) {
         return $this->request('post/asset/transfer', array('api', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function api_asset_v1_private_post_transfer($params = array()) {
+        return $this->request('transfer', array('api', 'asset', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function api_asset_v1_public_get_transfer_supportcoins($params = array()) {
+        return $this->request('transfer/supportCoins', array('api', 'asset', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fundV1PrivateGetAccountBalance($params = array()) {
+        return $this->request('account/balance', array('fund', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spotV1PublicGetServerTime($params = array()) {
         return $this->request('server/time', array('spot', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -880,6 +898,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function accountV1PrivateGetAccountApiPermissions($params = array()) {
         return $this->request('account/apiPermissions', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 5));
     }
+    public function accountV1PrivateGetAllAccountBalance($params = array()) {
+        return $this->request('allAccountBalance', array('account', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function accountV1PrivatePostInnerTransferAuthorizeSubAccount($params = array()) {
         return $this->request('innerTransfer/authorizeSubAccount', array('account', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -916,6 +937,9 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function apiV3PrivateGetAssetTransfer($params = array()) {
         return $this->request('asset/transfer', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function apiV3PrivateGetAssetTransferRecord($params = array()) {
+        return $this->request('asset/transferRecord', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 5));
+    }
     public function apiV3PrivateGetCapitalDepositHisrec($params = array()) {
         return $this->request('capital/deposit/hisrec', array('api', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -924,5 +948,11 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function apiV3PrivatePostPostAssetTransfer($params = array()) {
         return $this->request('post/asset/transfer', array('api', 'v3', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function apiAssetV1PrivatePostTransfer($params = array()) {
+        return $this->request('transfer', array('api', 'asset', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function apiAssetV1PublicGetTransferSupportCoins($params = array()) {
+        return $this->request('transfer/supportCoins', array('api', 'asset', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 5));
     }
 }

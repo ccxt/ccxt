@@ -16,7 +16,7 @@ from ccxt.base.errors import NotSupported
 
 class blofin(ccxt.async_support.blofin):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(blofin, self).describe(), {
             'has': {
                 'ws': True,
