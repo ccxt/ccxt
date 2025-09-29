@@ -816,11 +816,7 @@ export default class apex extends Exchange {
             limit = 200; // default is 200 when requested with `since`
         }
         request['limit'] = limit; // max 200, default 200
-        // force using seconds precision instead of milliseconds
-        if ('until' in params) {
-            params['until'] = Math.floor (this.safeInteger (params, 'until') / 1000);
-        }
-        [ request, params ] = this.handleUntilOption ('end', request, params);
+        [ request, params ] = this.handleUntilOption ('end', request, params, 0.001);
         if (since !== undefined) {
             request['start'] = Math.floor (since / 1000);
         }
