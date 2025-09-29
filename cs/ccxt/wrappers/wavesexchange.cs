@@ -115,6 +115,12 @@ public partial class wavesexchange
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -163,7 +169,7 @@ public partial class wavesexchange
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a stop order is triggered at
     /// </description>
@@ -181,6 +187,7 @@ public partial class wavesexchange
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -338,6 +345,7 @@ public partial class wavesexchange
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -371,6 +379,7 @@ public partial class wavesexchange
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -435,7 +444,7 @@ public partial class wavesexchange
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

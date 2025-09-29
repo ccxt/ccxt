@@ -10,12 +10,12 @@ use ccxt\abstract\cex as Exchange;
 
 class cex extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
-            'rateLimit' => 1667, // 100 req/min
+            'rateLimit' => 300, // 200 req/min
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -24,31 +24,95 @@ class cex extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
+                'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
+                'createReduceOnlyOrder' => false,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
+                'fetchLeverage' => false,
+                'fetchLeverages' => false,
+                'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
+                'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
+                'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFees' => true,
+                'fetchVolatilityHistory' => false,
+                'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
+                'setLeverage' => false,
+                'setMargin' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
                 'transfer' => true,
             ),
             'urls' => array(
@@ -105,6 +169,65 @@ class cex extends Exchange {
                     ),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => false,
+                        'stopLossPrice' => false, // todo
+                        'takeProfitPrice' => false, // todo
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => false, // todo check
+                            'GTD' => true,
+                        ),
+                        'hedged' => false,
+                        'leverage' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => true, // todo check
+                        'selfTradePrevention' => false,
+                        'trailing' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => null,
+                    'fetchOrder' => null,
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => 100000,
+                        'daysBackCanceled' => 1,
+                        'untilDays' => 100000,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+                'future' => array(
+                    'linear' => null,
+                    'inverse' => null,
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(),
@@ -116,6 +239,7 @@ class cex extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'timeframes' => array(
@@ -182,7 +306,9 @@ class cex extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+         *
          * @param {dict} [$params] extra parameters specific to the exchange API endpoint
          * @return {dict} an associative dictionary of currencies
          */
@@ -236,8 +362,6 @@ class cex extends Exchange {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
         $type = $this->safe_bool($rawCurrency, 'fiat') ? 'fiat' : 'crypto';
-        $currencyDepositEnabled = $this->safe_bool($rawCurrency, 'walletDeposit');
-        $currencyWithdrawEnabled = $this->safe_bool($rawCurrency, 'walletWithdrawal');
         $currencyPrecision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'blockchains', array());
@@ -254,6 +378,7 @@ class cex extends Exchange {
                 'margin' => null,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
+                'active' => null,
                 'fee' => $this->safe_number($rawNetwork, 'withdrawalFee'),
                 'precision' => $currencyPrecision,
                 'limits' => array(
@@ -275,8 +400,8 @@ class cex extends Exchange {
             'name' => null,
             'type' => $type,
             'active' => null,
-            'deposit' => $currencyDepositEnabled,
-            'withdraw' => $currencyWithdrawEnabled,
+            'deposit' => $this->safe_bool($rawCurrency, 'walletDeposit'),
+            'withdraw' => $this->safe_bool($rawCurrency, 'walletWithdrawal'),
             'fee' => null,
             'precision' => $currencyPrecision,
             'limits' => array(
@@ -297,7 +422,9 @@ class cex extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all markets for ace
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
@@ -388,7 +515,7 @@ class cex extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): ?int {
         /**
          * fetches the current integer $timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -412,8 +539,10 @@ class cex extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
-         * @param {string[]|null} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         *
+         * @param {string} $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -425,7 +554,9 @@ class cex extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -481,7 +612,7 @@ class cex extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $this->safe_string($ticker, 'lastTradePrice'),
+            'close' => $this->safe_string($ticker, 'last'), // last indicative price per api docs (difference also seen here => https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'priceChange'),
             'percentage' => $this->safe_number($ticker, 'priceChangePercentage'),
@@ -495,7 +626,9 @@ class cex extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -575,7 +708,9 @@ class cex extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-order-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -613,7 +748,9 @@ class cex extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -689,7 +826,9 @@ class cex extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading $fees for multiple markets
+         *
          * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -784,7 +923,9 @@ class cex extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
          * @param {array} [$params->account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
@@ -843,7 +984,7 @@ class cex extends Exchange {
             $code = $this->safe_currency_code($key);
             $account = array(
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
-                'free' => $this->safe_string($balance, 'balance'),
+                'total' => $this->safe_string($balance, 'balance'),
             );
             $result[$code] = $account;
         }
@@ -853,7 +994,10 @@ class cex extends Exchange {
     public function fetch_orders_by_status(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple orders made by the user
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         *
+         * @param {string} $status order $status to fetch for
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -927,13 +1071,15 @@ class cex extends Exchange {
         //            ),
         //            ...
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         *
          * fetches information on multiple canceled orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -946,7 +1092,9 @@ class cex extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         *
          * fetches information on multiple canceled orders made by the user
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -960,7 +1108,9 @@ class cex extends Exchange {
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an open order made by the user
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         *
          * @param {string} $id order $id
          * @param {string} [$symbol] unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -977,7 +1127,9 @@ class cex extends Exchange {
     public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an closed order made by the user
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         *
          * @param {string} $id order $id
          * @param {string} [$symbol] unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -993,10 +1145,16 @@ class cex extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            'PENDING_NEW' => 'open',
+            'NEW' => 'open',
+            'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
+            'EXPIRED' => 'expired',
+            'REJECTED' => 'rejected',
+            'PENDING_CANCEL' => 'canceling',
             'CANCELLED' => 'canceled',
         );
-        return $this->safe_string($statuses, $status, null);
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1047,7 +1205,7 @@ class cex extends Exchange {
             $currencyId = $this->safe_string($order, 'feeCurrency');
             $feeCode = $this->safe_currency_code($currencyId);
             $fee['currency'] = $feeCode;
-            $fee['fee'] = $feeAmount;
+            $fee['cost'] = $feeAmount;
         }
         $timestamp = $this->safe_integer($order, 'serverCreateTimestamp');
         $requestedBase = $this->safe_number($order, 'requestedAmountCcy1');
@@ -1067,7 +1225,7 @@ class cex extends Exchange {
             'postOnly' => null,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_number($order, 'price'),
-            'stopPrice' => $this->safe_number($order, 'stopPrice'),
+            'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'amount' => $requestedBase,
             'cost' => $executedQuote,
             'average' => $this->safe_number($order, 'averagePrice'),
@@ -1083,7 +1241,9 @@ class cex extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-new-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1091,6 +1251,7 @@ class cex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] account-id to use (default is empty string)
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $accountId = null;
@@ -1178,7 +1339,9 @@ class cex extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1201,7 +1364,9 @@ class cex extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open $orders in a market
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-$orders
+         *
          * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
@@ -1231,13 +1396,15 @@ class cex extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+         *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest ledger entry
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
          */
         $this->load_markets();
         $currency = null;
@@ -1323,7 +1490,9 @@ class cex extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch history of deposits and withdrawals
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+         *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
          * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1416,7 +1585,9 @@ class cex extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer currency internally between wallets on the same account
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-$transfer
+         *
          * @param {string} $code unified currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount 'SPOT', 'FUND', or 'CONTRACT'
@@ -1536,7 +1707,9 @@ class cex extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)

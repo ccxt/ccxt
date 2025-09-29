@@ -61,6 +61,11 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync ("publicGetProductsSparkLines",parameters);
     }
 
+    public async Task<object> publicGetProductsVolumeSummary (object parameters = null)
+    {
+        return await this.callAsync ("publicGetProductsVolumeSummary",parameters);
+    }
+
     public async Task<object> privateGetAddressBook (object parameters = null)
     {
         return await this.callAsync ("privateGetAddressBook",parameters);

@@ -7,23 +7,8 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue & resolve it quickly:
+Read the notes when opening a [new issue on github](https://github.com/ccxt/ccxt/issues/new/choose) and provide the requested details, so we can assist you better. You can aso read [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section.
 
-- Search for similar [issues](https://github.com/ccxt/ccxt/issues) first to avoid duplicates.
-- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), especially:
-  - Get familiar with [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
-  - Beware of [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) && [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - Ensure you have correct [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-  - Frequently asked questions: [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) 
-  - Follow steps in [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
-- If your issue is unique, the following **IS REQUIRED**:
-  - a basic description about the failure
-  - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
-  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
-  - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
-  - paste code snippet you're having difficulties with. Remove all irrelevant parts, leave just the essence of the code to reproduce the issue.
-  - paste **full verbose output** of the failing method **without api keys** (include the request and response, not just an error callstack)
-  - paste your ccxt & programming language version
 
 ### Reporting Vulnerabilities And Critical Issues
 
@@ -147,12 +132,12 @@ This way you can keep the build tools and processes isolated, not having to work
     - via pip: `pip install tox`
     - MacOS with [brew](https://brew.sh): `brew install tox`
     - Ubuntu Linux: `apt-get install tox`
-- [PHP](https://secure.php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
+- [PHP](https://secure.php.net/downloads.php) 8.1+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
   - PCRE
-  - bcmath (php<7.1) or gmp (this is a built-in extension as of PHP 7.2+)
+  - gmp
 - [C#](https://dotnet.microsoft.com/en-us/download) 7.0
 
 #### Build Steps
@@ -516,7 +501,7 @@ Therefore we have a family of `safe*` functions:
 - `safeNumber (object, key, default)`, `safeNumber2 (object, key1, key2, default)` – for parsing amounts, prices, costs
 - `safeString (object, key, default)`, `safeString2 (object, key1, key2, default)` – for parsing ids, types, statuses
 - `safeStringLower (object, key, default)`, `safeStringLower2 (object, key1, key2, default)` – for parsing and turning to lowercase
-- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to lowercase
+- `safeStringUpper (object, key, default)`, `safeStringUpper2 (object, key1, key2, default)` – for parsing and turning to uppercase
 - `safeBool(object, key, default)` - for parsing bools inside dictionaries and arrays/lists
 - `safeList(object, key, default)` - for parsing lists/arrays inside dictionaries and arrays/lists
 - `safeDict(object, key, default)` - for parsing dictionaries inside dictionaries and arrays/lists
@@ -528,7 +513,7 @@ The `safeValue` function is used for objects inside objects, arrays inside objec
 If you need to search for several different keys within an object you have available the `safeMethodN` function's family that allows for a search with an arbitrary number of keys by accepting an array of keys as an argument.
 
 ```javascript
-const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], default)
+const price = this.safeStringN (object, [ 'key1', 'key2', 'key3' ], defaultValue)
 ```
 For every safe method listed above, there is the correspondent `safeMethodN` too.
 
@@ -746,7 +731,7 @@ This section covers the request-assembly part. The `.toFixed ()` method has [kno
 
 #### Escaped Control Characters
 
-When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
+When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from TypeScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
 
 Bad:
 
@@ -934,7 +919,7 @@ Folder: `ts/src/test/static/request/`
 
 You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/request/binance.json`)
 
-```Javascript
+```shell
 node cli.js binance fetchTrades "BTC/USDT:USDT" --report
 ````
 
@@ -946,7 +931,7 @@ Folder: `ts/src/test/static/response/binance.json`
 
 You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
 
-```Javascript
+```shell
 node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response
 ````
 #### Adding Exchange Credentials
@@ -959,7 +944,7 @@ Exchange API keys can be added to the `keys.local.json` in the root folder insid
 
 An example of `keys.local.json` file:
 
-```javascript
+```json
 {
     "ftx": {
         "apiKey": "XXX",

@@ -39,7 +39,9 @@ public partial class binanceus : binance
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarkets", new List<object>() {"spot"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"spot"} },
+                } },
                 { "defaultType", "spot" },
                 { "fetchMargins", false },
                 { "quoteOrderQty", false },
@@ -222,6 +224,16 @@ public partial class binanceus : binance
                     { "post", new Dictionary<string, object>() {
                         { "sub-account/transfer", 1 },
                     } },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", null },
+                    { "inverse", null },
                 } },
             } },
         });

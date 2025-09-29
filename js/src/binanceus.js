@@ -41,7 +41,9 @@ export default class binanceus extends binance {
                 },
             },
             'options': {
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
                 'defaultType': 'spot',
                 'fetchMargins': false,
                 'quoteOrderQty': false,
@@ -206,6 +208,16 @@ export default class binanceus extends binance {
                     'post': {
                         'sub-account/transfer': 1,
                     },
+                },
+            },
+            'features': {
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
                 },
             },
         });

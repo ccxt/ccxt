@@ -13,6 +13,7 @@ var CairoOption = require('./enum/CairoOption.js');
 var CairoResult = require('./enum/CairoResult.js');
 var tuple = require('./tuple.js');
 
+// ----------------------------------------------------------------------------
 /**
  * parse base types
  * @param type type from abi
@@ -49,7 +50,7 @@ function parseBaseTypes(type, val) {
  * @returns Tupled[]
  */
 function parseTuple(element, typeStr) {
-    const memberTypes = tuple(typeStr);
+    const memberTypes = tuple["default"](typeStr);
     const elements = Object.values(element);
     if (elements.length !== memberTypes.length) {
         throw Error(`ParseTuple: provided and expected abi tuple size do not match.

@@ -65,10 +65,9 @@
 
 
   ## How to create an order with takeProfit+stopLoss?
-  To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
-
-  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
-  See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
+  Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
 
   ## How to create a spot market buy with cost?
   To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
@@ -147,3 +146,11 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
   To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.
 
   See more: [Unified API](Manual.md#unified-api)
+
+  ## How to differentiate between previousFundingRate, fundingRate and nextFundingRate in the funding rate structure?
+  The funding rate structure has three different funding rate values that can be returned:
+  1. `previousFundingRate`refers to the most recently completed rate.
+  2. `fundingRate` is the upcoming rate. This value is always changing until the funding time passes and then it becomes the previousFundingRate.
+  3. `nextFundingRate` is only supported on a few exchanges and is the predicted funding rate after the upcoming rate. This value is two funding rates from now.
+
+  As an example, say it is 12:30. The `previousFundingRate` happened at 12:00 and we're looking to see what the upcoming funding rate will be by checking the `fundingRate` value. In this example, given 4-hour intervals, the `fundingRate` will happen in the future at 4:00 and the `nextFundingRate` is the predicted rate that will happen at 8:00.

@@ -1,6 +1,7 @@
 import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
+    basePublicGetV1PublicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicAuth(params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetInstruments(params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetBook(params?: {}): Promise<implicitReturnType>;
@@ -18,6 +19,7 @@ interface Exchange {
     v1PrivatePostPrivateUserBalanceHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetPositions(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCreateOrder(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateAmendOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCreateOrderList(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCancelOrder(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateCancelOrderList(params?: {}): Promise<implicitReturnType>;

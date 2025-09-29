@@ -40,7 +40,6 @@ class Argv(object):
     ws_tests = False
     request_tests = False
     response_tests = False
-    token_bucket = False
     sandbox = False
     privateOnly = False
     private = False
@@ -58,7 +57,6 @@ class Argv(object):
 
 argv = Argv()
 parser = argparse.ArgumentParser()
-parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
@@ -228,7 +226,7 @@ def init_exchange(exchangeId, args, is_ws=False):
 
 def get_test_files_sync(properties, ws=False):
     tests = {}
-    finalPropList = properties + [PROXY_TEST_FILE_NAME]
+    finalPropList = properties + [PROXY_TEST_FILE_NAME, 'features']
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
         name_snake_case = convert_to_snake_case(methodName)

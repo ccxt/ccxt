@@ -23,3 +23,4 @@ def test_fetch_deposits(exchange, skipped_properties, code):
     for i in range(0, len(transactions)):
         test_deposit_withdrawal(exchange, skipped_properties, method, transactions[i], code, now)
     test_shared_methods.assert_timestamp_order(exchange, method, code, transactions)
+    return True

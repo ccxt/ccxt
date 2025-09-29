@@ -10,7 +10,6 @@ import { sha1 } from '../../static_dependencies/noble-hashes/sha1.js';
 import { md5 } from '../../static_dependencies/noble-hashes/md5.js';
 import { ecdsa, crc32, hash, hmac } from '../../base/functions/crypto.js';
 import { encode } from '../../base/functions/encode.js';
-import { Exchange } from '../../base/Exchange.js';
 import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
 import { rsa, jwt } from '../../base/functions/rsa.js';
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
@@ -25,7 +24,7 @@ function equals(a, b) {
     return true;
 }
 function testCryptography() {
-    const exchange = new Exchange();
+    // const exchange = new Exchange ();
     // ---------------------------------------------------------------------------------------------------------------------
     assert(hash(encode(''), sha256, 'hex') === 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     assert(hash(encode('cheese'), sha256, 'hex') === '873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34');

@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchOHLCVForSymbols(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchOHLCVForSymbols(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "watchOHLCVForSymbols";
         object now = exchange.milliseconds();
@@ -27,6 +27,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = await exchange.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit);
@@ -37,22 +38,27 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            object assertionMessage = add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
-            assert((response is IDictionary<string, object>), add("Response must be a dictionary. ", assertionMessage));
-            assert(inOp(response, symbol), add("Response should contain the symbol as key. ", assertionMessage));
-            object symbolObj = getValue(response, symbol);
-            assert((symbolObj is IDictionary<string, object>), add("Response.Symbol should be a dictionary. ", assertionMessage));
-            assert(inOp(symbolObj, chosenTimeframeKey), add("Response.symbol should contain the timeframe key. ", assertionMessage));
-            object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
-            assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("Response.symbol.timeframe should be an array. ", assertionMessage));
-            now = exchange.milliseconds();
-            for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+            if (isTrue(isEqual(success, true)))
             {
-                testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
+                object assertionMessage = add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
+                assert((response is IDictionary<string, object>), add("Response must be a dictionary. ", assertionMessage));
+                assert(inOp(response, symbol), add("Response should contain the symbol as key. ", assertionMessage));
+                object symbolObj = getValue(response, symbol);
+                assert((symbolObj is IDictionary<string, object>), add("Response.Symbol should be a dictionary. ", assertionMessage));
+                assert(inOp(symbolObj, chosenTimeframeKey), add("Response.symbol should contain the timeframe key. ", assertionMessage));
+                object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
+                assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("Response.symbol.timeframe should be an array. ", assertionMessage));
+                now = exchange.milliseconds();
+                for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+                {
+                    testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
+                }
             }
         }
+        return true;
     }
 
 }

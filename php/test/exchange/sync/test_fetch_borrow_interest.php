@@ -16,4 +16,5 @@ function test_fetch_borrow_interest($exchange, $skipped_properties, $code, $symb
     for ($i = 0; $i < count($borrow_interest); $i++) {
         test_borrow_interest($exchange, $skipped_properties, $method, $borrow_interest[$i], $code, $symbol);
     }
+    return true;
 }

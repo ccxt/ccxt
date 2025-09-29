@@ -17,6 +17,7 @@ function testDatetime() {
     assert(exchange.iso8601(514862627062) === '1986-04-26T01:23:47.062Z');
     assert(exchange.iso8601(0) === '1970-01-01T00:00:00.000Z');
     assert(exchange.iso8601(-1) === undefined);
+    // assert (exchange.iso8601 () === undefined);
     // todo: assert (exchange.iso8601 () === undefined);
     assert(exchange.iso8601(undefined) === undefined);
     assert(exchange.iso8601('') === undefined);
@@ -33,6 +34,7 @@ function testDatetime() {
     assert(exchange.parse8601('3333') === undefined);
     assert(exchange.parse8601('Sr90') === undefined);
     assert(exchange.parse8601('') === undefined);
+    // assert (exchange.parse8601 () === undefined);
     // todo: assert (exchange.parse8601 () === undefined);
     assert(exchange.parse8601(undefined) === undefined);
     assert(exchange.parse8601({}) === undefined);

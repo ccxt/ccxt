@@ -1,14 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var headers = require('./headers.js');
 var body = require('./body.js');
 var isRedirect = require('./utils/is-redirect.js');
 
-/**
- * Response.js
- *
- * Response class provides content decoding
- */
+// ----------------------------------------------------------------------------
 const INTERNALS = Symbol('Response internals');
 /**
  * Response class
@@ -136,4 +134,4 @@ Object.defineProperties(Response.prototype, {
     clone: { enumerable: true }
 });
 
-module.exports = Response;
+exports["default"] = Response;

@@ -202,6 +202,114 @@ abstract class poloniex extends \ccxt\Exchange {
     public function private_put_smartorders_id($params = array()) {
         return $this->request('smartorders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 20));
     }
+    public function swappublic_get_v3_market_allinstruments($params = array()) {
+        return $this->request('v3/market/allInstruments', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_instruments($params = array()) {
+        return $this->request('v3/market/instruments', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_orderbook($params = array()) {
+        return $this->request('v3/market/orderBook', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_candles($params = array()) {
+        return $this->request('v3/market/candles', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swappublic_get_v3_market_indexpricecandlesticks($params = array()) {
+        return $this->request('v3/market/indexPriceCandlesticks', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swappublic_get_v3_market_premiumindexcandlesticks($params = array()) {
+        return $this->request('v3/market/premiumIndexCandlesticks', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swappublic_get_v3_market_markpricecandlesticks($params = array()) {
+        return $this->request('v3/market/markPriceCandlesticks', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swappublic_get_v3_market_trades($params = array()) {
+        return $this->request('v3/market/trades', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_liquidationorder($params = array()) {
+        return $this->request('v3/market/liquidationOrder', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_tickers($params = array()) {
+        return $this->request('v3/market/tickers', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_markprice($params = array()) {
+        return $this->request('v3/market/markPrice', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_indexprice($params = array()) {
+        return $this->request('v3/market/indexPrice', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_indexpricecomponents($params = array()) {
+        return $this->request('v3/market/indexPriceComponents', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_fundingrate($params = array()) {
+        return $this->request('v3/market/fundingRate', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_openinterest($params = array()) {
+        return $this->request('v3/market/openInterest', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_insurance($params = array()) {
+        return $this->request('v3/market/insurance', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swappublic_get_v3_market_risklimit($params = array()) {
+        return $this->request('v3/market/riskLimit', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapprivate_get_v3_account_balance($params = array()) {
+        return $this->request('v3/account/balance', 'swapPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function swapprivate_get_v3_account_bills($params = array()) {
+        return $this->request('v3/account/bills', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_trade_order_opens($params = array()) {
+        return $this->request('v3/trade/order/opens', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_trade_order_trades($params = array()) {
+        return $this->request('v3/trade/order/trades', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_trade_order_history($params = array()) {
+        return $this->request('v3/trade/order/history', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_trade_position_opens($params = array()) {
+        return $this->request('v3/trade/position/opens', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_trade_position_history($params = array()) {
+        return $this->request('v3/trade/position/history', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_position_leverages($params = array()) {
+        return $this->request('v3/position/leverages', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_get_v3_position_mode($params = array()) {
+        return $this->request('v3/position/mode', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_post_v3_trade_order($params = array()) {
+        return $this->request('v3/trade/order', 'swapPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function swapprivate_post_v3_trade_orders($params = array()) {
+        return $this->request('v3/trade/orders', 'swapPrivate', 'POST', $params, null, null, array("cost" => 40));
+    }
+    public function swapprivate_post_v3_trade_position($params = array()) {
+        return $this->request('v3/trade/position', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_post_v3_trade_positionall($params = array()) {
+        return $this->request('v3/trade/positionAll', 'swapPrivate', 'POST', $params, null, null, array("cost" => 100));
+    }
+    public function swapprivate_post_v3_position_leverage($params = array()) {
+        return $this->request('v3/position/leverage', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_post_v3_position_mode($params = array()) {
+        return $this->request('v3/position/mode', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_post_v3_trade_position_margin($params = array()) {
+        return $this->request('v3/trade/position/margin', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_delete_v3_trade_order($params = array()) {
+        return $this->request('v3/trade/order', 'swapPrivate', 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function swapprivate_delete_v3_trade_batchorders($params = array()) {
+        return $this->request('v3/trade/batchOrders', 'swapPrivate', 'DELETE', $params, null, null, array("cost" => 20));
+    }
+    public function swapprivate_delete_v3_trade_allorders($params = array()) {
+        return $this->request('v3/trade/allOrders', 'swapPrivate', 'DELETE', $params, null, null, array("cost" => 20));
+    }
     public function publicGetMarkets($params = array()) {
         return $this->request('markets', 'public', 'GET', $params, null, null, array("cost" => 20));
     }
@@ -396,5 +504,113 @@ abstract class poloniex extends \ccxt\Exchange {
     }
     public function privatePutSmartordersId($params = array()) {
         return $this->request('smartorders/{id}', 'private', 'PUT', $params, null, null, array("cost" => 20));
+    }
+    public function swapPublicGetV3MarketAllInstruments($params = array()) {
+        return $this->request('v3/market/allInstruments', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketInstruments($params = array()) {
+        return $this->request('v3/market/instruments', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketOrderBook($params = array()) {
+        return $this->request('v3/market/orderBook', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketCandles($params = array()) {
+        return $this->request('v3/market/candles', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swapPublicGetV3MarketIndexPriceCandlesticks($params = array()) {
+        return $this->request('v3/market/indexPriceCandlesticks', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swapPublicGetV3MarketPremiumIndexCandlesticks($params = array()) {
+        return $this->request('v3/market/premiumIndexCandlesticks', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swapPublicGetV3MarketMarkPriceCandlesticks($params = array()) {
+        return $this->request('v3/market/markPriceCandlesticks', 'swapPublic', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function swapPublicGetV3MarketTrades($params = array()) {
+        return $this->request('v3/market/trades', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketLiquidationOrder($params = array()) {
+        return $this->request('v3/market/liquidationOrder', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketTickers($params = array()) {
+        return $this->request('v3/market/tickers', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketMarkPrice($params = array()) {
+        return $this->request('v3/market/markPrice', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketIndexPrice($params = array()) {
+        return $this->request('v3/market/indexPrice', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketIndexPriceComponents($params = array()) {
+        return $this->request('v3/market/indexPriceComponents', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketFundingRate($params = array()) {
+        return $this->request('v3/market/fundingRate', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketOpenInterest($params = array()) {
+        return $this->request('v3/market/openInterest', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketInsurance($params = array()) {
+        return $this->request('v3/market/insurance', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPublicGetV3MarketRiskLimit($params = array()) {
+        return $this->request('v3/market/riskLimit', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    public function swapPrivateGetV3AccountBalance($params = array()) {
+        return $this->request('v3/account/balance', 'swapPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function swapPrivateGetV3AccountBills($params = array()) {
+        return $this->request('v3/account/bills', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3TradeOrderOpens($params = array()) {
+        return $this->request('v3/trade/order/opens', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3TradeOrderTrades($params = array()) {
+        return $this->request('v3/trade/order/trades', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3TradeOrderHistory($params = array()) {
+        return $this->request('v3/trade/order/history', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3TradePositionOpens($params = array()) {
+        return $this->request('v3/trade/position/opens', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3TradePositionHistory($params = array()) {
+        return $this->request('v3/trade/position/history', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3PositionLeverages($params = array()) {
+        return $this->request('v3/position/leverages', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateGetV3PositionMode($params = array()) {
+        return $this->request('v3/position/mode', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivatePostV3TradeOrder($params = array()) {
+        return $this->request('v3/trade/order', 'swapPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function swapPrivatePostV3TradeOrders($params = array()) {
+        return $this->request('v3/trade/orders', 'swapPrivate', 'POST', $params, null, null, array("cost" => 40));
+    }
+    public function swapPrivatePostV3TradePosition($params = array()) {
+        return $this->request('v3/trade/position', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivatePostV3TradePositionAll($params = array()) {
+        return $this->request('v3/trade/positionAll', 'swapPrivate', 'POST', $params, null, null, array("cost" => 100));
+    }
+    public function swapPrivatePostV3PositionLeverage($params = array()) {
+        return $this->request('v3/position/leverage', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivatePostV3PositionMode($params = array()) {
+        return $this->request('v3/position/mode', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivatePostV3TradePositionMargin($params = array()) {
+        return $this->request('v3/trade/position/margin', 'swapPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateDeleteV3TradeOrder($params = array()) {
+        return $this->request('v3/trade/order', 'swapPrivate', 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function swapPrivateDeleteV3TradeBatchOrders($params = array()) {
+        return $this->request('v3/trade/batchOrders', 'swapPrivate', 'DELETE', $params, null, null, array("cost" => 20));
+    }
+    public function swapPrivateDeleteV3TradeAllOrders($params = array()) {
+        return $this->request('v3/trade/allOrders', 'swapPrivate', 'DELETE', $params, null, null, array("cost" => 20));
     }
 }

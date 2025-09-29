@@ -18,3 +18,4 @@ async def test_fetch_ticker(exchange, skipped_properties, symbol):
     method = 'fetchTicker'
     ticker = await exchange.fetch_ticker(symbol)
     test_ticker(exchange, skipped_properties, method, ticker, symbol)
+    return True

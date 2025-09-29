@@ -33,11 +33,18 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -48,6 +55,16 @@ public partial class bitget
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchDefaultMarkets(object parameters)
+    {
+        var res = await this.fetchDefaultMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchUtaMarkets(object parameters)
+    {
+        var res = await this.fetchUtaMarkets(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
     /// </summary>
@@ -55,6 +72,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -77,7 +95,13 @@ public partial class bitget
     /// <item>
     /// <term>params.productType</term>
     /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// string : *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -161,7 +185,7 @@ public partial class bitget
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -244,6 +268,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Orderbook"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/OrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -255,6 +280,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -272,11 +303,18 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Tickers"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Ticker"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -313,11 +351,18 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Tickers"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -348,6 +393,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Market-Trades"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Fills-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -365,6 +411,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -459,6 +511,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Candle-Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -479,9 +532,27 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.until</term>
     /// <description>
     /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useHistoryEndpoint</term>
+    /// <description>
+    /// boolean : whether to force to use historical endpoint (it has max limit of 200)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useHistoryEndpointForPagination</term>
+    /// <description>
+    /// boolean : whether to force to use historical endpoint for pagination (default true)
     /// </description>
     /// </item>
     /// <item>
@@ -516,6 +587,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Get-Account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -527,6 +599,12 @@ public partial class bitget
     /// <term>params.productType</term>
     /// <description>
     /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// string : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -570,6 +648,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Place-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -679,6 +759,18 @@ public partial class bitget
     /// bool : true or false whether the order is reduce-only
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.posSide</term>
+    /// <description>
+    /// string : *uta only* hedged two-way position side, long or short
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -688,11 +780,22 @@ public partial class bitget
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<List<Order>> CreateUtaOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createUtaOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// create a list of trade orders (all orders should be of the same symbol)
@@ -702,11 +805,18 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Place-Batch"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -725,6 +835,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Modify-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -786,6 +898,12 @@ public partial class bitget
     /// string : *swap and future only* 'fill_price', 'mark_price' or 'index_price'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -806,6 +924,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Cancel-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -820,7 +940,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for canceling trigger orders
     /// </description>
@@ -837,6 +957,18 @@ public partial class bitget
     /// boolean : set to true if you want to cancel a trailing order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -844,6 +976,11 @@ public partial class bitget
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
+    }
+    public async Task<List<Order>> CancelUtaOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelUtaOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel multiple orders
@@ -854,6 +991,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Cancel-Batch"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -868,9 +1006,15 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -890,6 +1034,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Cancel-All-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -904,9 +1049,15 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -923,11 +1074,24 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/trade/Get-Order-Info"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Get-Order-Details"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-Details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
     /// </description>
     /// </item>
     /// </list>
@@ -948,6 +1112,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -980,7 +1145,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for fetching trigger orders
     /// </description>
@@ -1003,6 +1168,12 @@ public partial class bitget
     /// boolean : set to true if you want to fetch trailing orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1023,6 +1194,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/orders-plan-history"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1045,7 +1217,19 @@ public partial class bitget
     /// <item>
     /// <term>params.until</term>
     /// <description>
-    /// int : the latest time in ms to fetch entries for
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1058,12 +1242,6 @@ public partial class bitget
     /// <term>params.isPlan</term>
     /// <description>
     /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
     /// <item>
@@ -1092,6 +1270,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/orders-plan-history"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1114,7 +1293,19 @@ public partial class bitget
     /// <item>
     /// <term>params.until</term>
     /// <description>
-    /// int : the latest time in ms to fetch entries for
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
     /// </description>
     /// </item>
     /// <item>
@@ -1127,12 +1318,6 @@ public partial class bitget
     /// <term>params.isPlan</term>
     /// <description>
     /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.productType</term>
-    /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
     /// <item>
@@ -1161,6 +1346,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/orders-plan-history"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1180,6 +1367,48 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.planType</term>
+    /// <description>
+    /// string : *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : set to true for fetching trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.isPlan</term>
+    /// <description>
+    /// string : *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// boolean : set to true if you want to fetch trailing orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1188,6 +1417,13 @@ public partial class bitget
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> FetchUtaCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchUtaCanceledAndClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
@@ -1247,7 +1483,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1263,6 +1499,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1289,6 +1526,12 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1309,11 +1552,18 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/get-single-position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1330,6 +1580,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/get-all-position"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1364,7 +1615,13 @@ public partial class bitget
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+    /// string : either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1380,6 +1637,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1397,6 +1655,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -1420,11 +1684,25 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
     /// </description>
     /// </item>
     /// </list>
@@ -1538,6 +1816,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/account/Change-Leverage"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Change-Leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1549,6 +1828,18 @@ public partial class bitget
     /// <term>params.holdSide</term>
     /// <description>
     /// string : *isolated only* position direction, 'long' or 'short'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.posSide</term>
+    /// <description>
+    /// boolean : required for uta isolated margin, long or short
     /// </description>
     /// </item>
     /// </list>
@@ -1584,6 +1875,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Change-Position-Mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1594,7 +1886,13 @@ public partial class bitget
     /// <item>
     /// <term>params.productType</term>
     /// <description>
-    /// string : required if symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// string : required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1610,11 +1908,18 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Open-Interest"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Open-Interest"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1801,6 +2106,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1809,9 +2115,9 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.symbol</term>
+    /// <term>params.uta</term>
     /// <description>
-    /// string : required for isolated margin
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1900,6 +2206,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1923,6 +2230,12 @@ public partial class bitget
     /// <term>params.productType</term>
     /// <description>
     /// string : USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -2048,11 +2361,18 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>

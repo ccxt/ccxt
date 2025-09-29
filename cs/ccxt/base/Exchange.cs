@@ -1,3 +1,4 @@
+using Google.Protobuf;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
@@ -7,8 +8,8 @@ using StarkSharp.Rpc.Utils;
 using StarkSharp.StarkSharp.Base.StarkSharp.Hash;
 using System.IO.Compression;
 using System.Numerics;
-
 namespace ccxt;
+
 
 using dict = Dictionary<string, object>;
 
@@ -22,26 +23,19 @@ public partial class Exchange
         var empty = new List<string>();
         transformApiNew(this.api);
 
-        this.initRestLimiter();
         this.initHttpClient();
 
-        if (this.markets != null)
-        {
-            this.setMarkets(this.markets);
-        }
         this.afterConstruct();
 
-        var isSandbox2 = this.safeBool2(this.options, "sandbox", "testnet", false);
-        var isSandbox = (isSandbox2 != null) ? (bool)isSandbox2 : false;
-        if (isSandbox)
+        if (isTrue(isTrue(this.safeBool(userConfig, "sandbox")) || isTrue(this.safeBool(userConfig, "testnet"))))
         {
-            this.setSandboxMode(isSandbox);
+            this.setSandboxMode(true);
         }
     }
 
     private void initHttpClient()
     {
-        var handler = new HttpClientHandler{ AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+        var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
@@ -171,6 +165,13 @@ public partial class Exchange
         var headers = this.extend(this.headers, headers3) as dict;
         var body = body2 as String;
 
+        var proxyUrl = this.checkProxyUrlSettings(url, method, headers, body);
+        if (proxyUrl != null)
+        {
+            proxyUrl = proxyUrl.ToString();
+            url = proxyUrl + this.urlEncoderForProxyUrl(url).ToString();
+        }
+
         if (this.verbose)
             this.log("fetch Request:\n" + this.id + " " + method + " " + url + "\nRequestHeaders:\n" + this.stringifyObject(headers) + "\nRequestBody:\n" + this.json(body) + "\n");
 
@@ -210,7 +211,7 @@ public partial class Exchange
         {
             if (key.ToLower() != "content-type")
             {
-                request.Headers.Add(key, headers[key].ToString());
+                request.Headers.TryAddWithoutValidation(key, headers[key].ToString());
             }
             else
             {
@@ -312,10 +313,15 @@ public partial class Exchange
 
         this.httpClient.DefaultRequestHeaders.Clear();
 
-        var responseHeaders = response?.Headers.ToDictionary(x => x, y => y.Value.First());
+        var responseHeaders = response?.Headers.ToDictionary(x => x.Key, y => y.Value.First());
         this.last_response_headers = responseHeaders;
         this.last_request_headers = headers;
-        var httpStatusCode = (int)response?.StatusCode;
+        var statusCode = -1;
+        if (response != null)
+        {
+            statusCode = (int)response.StatusCode;
+        }
+        var httpStatusCode = statusCode;
         var httpStatusText = response?.ReasonPhrase;
 
         if (this.verbose)
@@ -326,6 +332,11 @@ public partial class Exchange
         try
         {
             responseBody = JsonHelper.Deserialize(result);
+            if (this.returnResponseHeaders && responseBody is Dictionary<string, object> dict)
+            {
+                dict["headers"] = responseHeaders;
+                responseBody = dict;
+            }
         }
         catch (Exception e)
         {
@@ -409,6 +420,10 @@ public partial class Exchange
         }
         return int.Parse(number);
     }
+    public int binaryLength(object binary)
+    {
+        return getArrayLength(binary);
+    }
     public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
@@ -457,8 +472,10 @@ public partial class Exchange
         if (has["fetchCurrencies"] != null)
         {
             currencies = await this.fetchCurrencies();
+            this.options.TryAdd("cachedCurrencies", currencies);
         }
         var markets = await this.fetchMarkets();
+        this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
 
@@ -572,22 +589,6 @@ public partial class Exchange
     public async Task throttle(object cost)
     {
         await (await this.throttler.throttle(cost));
-    }
-
-    public void initRestLimiter()
-    {
-        if (this.id != null && this.rateLimit == -1)
-        {
-            throw new Exception(this.id + ".rateLimit property is not configured'");
-        }
-        this.tokenBucket = (dict)this.extend(new dict() {
-            {"delay" , 0.001},
-            {"capacity" , 1},
-            {"cost" , 1},
-            {"maxCapacity", 1000},
-            {"refillRate", (this.rateLimit > 0) ? 1 / this.rateLimit : float.MaxValue},
-        }, this.tokenBucket);
-        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public object clone(object o)
@@ -712,6 +713,24 @@ public partial class Exchange
     {
         // to do; improve this implementation to handle ArrayCache (thread-safe) better
         var firstInt = Convert.ToInt32(first);
+
+        if (array is byte[])
+        {
+            var byteArray = (byte[])array;
+            if (second == null)
+            {
+                if (firstInt < 0)
+                {
+                    var index = byteArray.Length + firstInt;
+                    index = index < 0 ? 0 : index;
+                    return byteArray[index..].ToList();
+                }
+                return byteArray[firstInt..].ToList();
+            }
+            var secondInt2 = Convert.ToInt32(second);
+            return byteArray[firstInt..secondInt2];
+        }
+
         var parsedArray = ((IList<object>)array);
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
@@ -771,6 +790,11 @@ public partial class Exchange
     public Task sleep(object ms)
     {
         return Task.Delay(Convert.ToInt32(ms));
+    }
+
+    public void initThrottler()
+    {
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public bool isEmpty(object a)
@@ -992,6 +1016,12 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+    public object getProperty(object obj, object property, object defaultValue = null)
+    {
+        var type = obj.GetType();
+        var prop = type.GetProperty(property.ToString());
+        return (prop != null) ? prop.GetValue(obj) : defaultValue;
+    }
 
     public object fixStringifiedJsonMembers(object content2)
     {
@@ -1078,10 +1108,26 @@ public partial class Exchange
         this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extended);
     }
 
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> convertToSafeDictionary(object obj)
+    {
+        return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
+    }
+
     public IDictionary<string, object> createSafeDictionary()
     {
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     }
+
+    public IDictionary<string, object> mapToSafeMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
+    public IDictionary<string, object> safeMapToMap(object obj)
+    {
+        return (IDictionary<string, object>)obj;
+    }
+
     public class DynamicInvoker
     {
         public static object InvokeMethod(object action, object[] parameters)
@@ -1115,6 +1161,49 @@ public partial class Exchange
             return result;
         }
     }
+
+    public async Task<object> getZKContractSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public async Task<object> getZKTransferSignatureObj(object seed, object parameters)
+    {
+        throw new Exception("Apex currently does not support create order in C# language");
+    }
+
+    public bool isBinaryMessage(object msg)
+    {
+        if (msg is byte[] bytes)
+        {
+            return bytes.Length > 0;
+        }
+        if (msg is string str)
+        {
+            return str.StartsWith("0x") && str.Length > 2;
+        }
+        return false;
+    }
+
+    public object decodeProtoMsg(object data)
+    {
+        if (data is byte[] bytes)
+        {
+            try
+            {
+                var message = PushDataV3ApiWrapper.Parser.ParseFrom(bytes);
+                string json = Google.Protobuf.JsonFormatter.Default.Format(message);
+                var dict = this.parseJson(json);
+                return dict;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to decode protobuf message: " + e.Message);
+            }
+        }
+        throw new Exception("Data is not a valid byte array for protobuf decoding.");
+    }
+
 
 }
 

@@ -21,3 +21,4 @@ async def test_fetch_accounts(exchange, skipped_properties):
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, accounts)
     for i in range(0, len(accounts)):
         test_account(exchange, skipped_properties, method, accounts[i])
+    return True

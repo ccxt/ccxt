@@ -41,9 +41,8 @@ function test_sort_by() {
 ), array(
     'x' => 5,
 )]);
-    try {
-        $new_array_descending = $exchange->sort_by($arr, 'x', true);
-        assert_deep_equal($exchange, null, 'sortBy', $new_array_descending, [array(
+    $new_array_descending = $exchange->sort_by($arr, 'x', true);
+    assert_deep_equal($exchange, null, 'sortBy', $new_array_descending, [array(
     'x' => 5,
 ), array(
     'x' => 4,
@@ -56,14 +55,6 @@ function test_sort_by() {
 ), array(
     'x' => 0,
 )]);
-        $empty_array = $exchange->sort_by([], 'x');
-        assert_deep_equal($exchange, null, 'sortBy', $empty_array, []);
-    } catch(\Throwable $e) {
-        // skip c# , todo
-        if (in_array('BaseTest.assert', (((string) $e))) || in_array('at System.', (((string) $e))) || in_array('at ccxt.Exchange.', (((string) $e)))) {
-            return;
-        } else {
-            throw $e;
-        }
-    }
+    $empty_array = $exchange->sort_by([], 'x');
+    assert_deep_equal($exchange, null, 'sortBy', $empty_array, []);
 }

@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class coinbase extends \ccxt\async\coinbase {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -36,6 +36,11 @@ class coinbase extends \ccxt\async\coinbase {
                 'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'unWatchTicker' => true,
+                'unWatchTickers' => true,
+                'unWatchTrades' => true,
+                'unWatchOrders' => true,
+                'unWatchTradesForSymbols' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -59,9 +64,12 @@ class coinbase extends \ccxt\async\coinbase {
             /**
              * @ignore
              * subscribes to a websocket channel
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
+             *
              * @param {string} $name the $name of the channel
-             * @param {string|string[]} [$symbol] unified $market $symbol
+             * @param {boolean} $isPrivate whether the channel is private or not
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
@@ -76,7 +84,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $messageHash = $messageHash . '::' . implode(',', $symbol);
             } elseif ($symbol !== null) {
                 $market = $this->market($symbol);
-                $messageHash = $name . '::' . $market['id'];
+                $messageHash = $name . '::' . $symbol;
                 $productIds = [ $market['id'] ];
             }
             $url = $this->urls['api']['ws'];
@@ -95,13 +103,76 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
+    public function un_subscribe(string $topic, string $name, bool $isPrivate, $symbol = null) {
+        return Async\async(function () use ($topic, $name, $isPrivate, $symbol) {
+            /**
+             * @ignore
+             * unSubscribes to a websocket channel
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+             *
+             * @param {string} $topic unified $topic
+             * @param {string} $name the $name of the channel
+             * @param {boolean} $isPrivate whether the channel is private or not
+             * @param {string} [$symbol] unified $market $symbol
+             * @return {array} $subscription to a websocket channel
+             */
+            Async\await($this->load_markets());
+            if ($this->safe_bool($this->options, 'unSubscriptionPending', false)) {
+                throw new ExchangeError($this->id . ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
+            }
+            $this->options['unSubscriptionPending'] = true;
+            $market = null;
+            $watchMessageHash = $name;
+            $unWatchMessageHash = 'unsubscribe:' . $name;
+            $productIds = array();
+            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+                $symbols = $this->market_symbols($symbol);
+                $marketIds = $this->market_ids($symbols);
+                $productIds = $marketIds;
+                $watchMessageHash = $watchMessageHash . '::' . implode(',', $symbol);
+                $unWatchMessageHash = $unWatchMessageHash . '::' . implode(',', $symbol);
+            } elseif ($symbol !== null) {
+                $market = $this->market($symbol);
+                $watchMessageHash = $name . '::' . $symbol;
+                $unWatchMessageHash = $unWatchMessageHash . '::' . $symbol;
+                $productIds = [ $market['id'] ];
+            }
+            $url = $this->urls['api']['ws'];
+            // 'array("type" => "unsubscribe", "product_ids" => ["BTC-USD", "ETH-USD"], "channel" => "ticker")'
+            $message = array(
+                'type' => 'unsubscribe',
+                'product_ids' => $productIds,
+                'channel' => $name,
+            );
+            $subscription = array(
+                'messageHashes' => array( $unWatchMessageHash ),
+                'subMessageHashes' => array( $watchMessageHash ),
+                'topic' => $topic,
+                'unsubscribe' => true,
+                'symbols' => array( $symbol ),
+            );
+            if ($isPrivate) {
+                $message = $this->extend($message, $this->create_ws_auth($name, $productIds));
+            }
+            $this->options['unSubscription'] = $subscription;
+            $res = Async\await($this->watch($url, $unWatchMessageHash, $message, $unWatchMessageHash, $subscription));
+            $this->options['unSubscriptionPending'] = false;
+            $this->options['unSubscription'] = null;
+            return $res;
+        }) ();
+    }
+
     public function subscribe_multiple(string $name, bool $isPrivate, ?array $symbols = null, $params = array ()) {
         return Async\async(function () use ($name, $isPrivate, $symbols, $params) {
             /**
              * @ignore
              * subscribes to a websocket channel
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
+             *
              * @param {string} $name the $name of the channel
+             * @param {boolean} $isPrivate whether the channel is private or not
              * @param {string[]} [$symbols] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
@@ -115,7 +186,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $market = $this->market($symbol);
                 $marketId = $market['id'];
                 $productIds[] = $marketId;
-                $messageHashes[] = $name . '::' . $marketId;
+                $messageHashes[] = $name . '::' . $symbol;
             }
             $url = $this->urls['api']['ws'];
             $subscribe = array(
@@ -127,6 +198,62 @@ class coinbase extends \ccxt\async\coinbase {
                 $subscribe = $this->extend($subscribe, $this->create_ws_auth($name, $productIds));
             }
             return Async\await($this->watch_multiple($url, $messageHashes, $subscribe, $messageHashes));
+        }) ();
+    }
+
+    public function un_subscribe_multiple(string $topic, string $name, bool $isPrivate, ?array $symbols = null, $params = array ()) {
+        return Async\async(function () use ($topic, $name, $isPrivate, $symbols, $params) {
+            /**
+             * @ignore
+             * unsubscribes to a websocket channel
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+             *
+             * @param {string} $topic unified $topic
+             * @param {string} $name the $name of the channel
+             * @param {boolean} $isPrivate whether the channel is private or not
+             * @param {string[]} [$symbols] unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} $subscription to a websocket channel
+             */
+            if ($this->safe_bool($this->options, 'unSubscriptionPending', false)) {
+                throw new ExchangeError($this->id . ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
+            }
+            $this->options['unSubscriptionPending'] = true;
+            Async\await($this->load_markets());
+            $productIds = array();
+            $watchMessageHashes = array();
+            $unWatchMessageHashes = array();
+            $symbols = $this->market_symbols($symbols, null, false);
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $marketId = $market['id'];
+                $productIds[] = $marketId;
+                $watchMessageHashes[] = $name . '::' . $symbol;
+                $unWatchMessageHashes[] = 'unsubscribe:' . $name . '::' . $symbol;
+            }
+            $url = $this->urls['api']['ws'];
+            $message = array(
+                'type' => 'unsubscribe',
+                'product_ids' => $productIds,
+                'channel' => $name,
+            );
+            if ($isPrivate) {
+                $message = $this->extend($message, $this->create_ws_auth($name, $productIds));
+            }
+            $subscription = array(
+                'messageHashes' => $unWatchMessageHashes,
+                'subMessageHashes' => $watchMessageHashes,
+                'topic' => $topic,
+                'unsubscribe' => true,
+                'symbols' => $symbols,
+            );
+            $this->options['unSubscription'] = $subscription;
+            $res = Async\await($this->watch_multiple($url, $unWatchMessageHashes, $message, $unWatchMessageHashes, $subscription));
+            $this->options['unSubscriptionPending'] = false;
+            $this->options['unSubscription'] = null;
+            return $res;
         }) ();
     }
 
@@ -162,34 +289,79 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+             *
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $name = 'ticker';
             return Async\await($this->subscribe($name, false, $symbol, $params));
+        }) ();
+    }
+
+    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stops watching a price ticker
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+             *
+             * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $name = 'ticker';
+            return Async\await($this->un_subscribe('ticker', $name, false, $symbol));
         }) ();
     }
 
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#$ticker-batch-channel
+             *
+             * @param {string[]} [$symbols] unified $symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
+            Async\await($this->load_markets());
             if ($symbols === null) {
                 $symbols = $this->symbols;
             }
             $name = 'ticker_batch';
-            $tickers = Async\await($this->subscribe($name, false, $symbols, $params));
+            $ticker = Async\await($this->subscribe_multiple($name, false, $symbols, $params));
             if ($this->newUpdates) {
+                $tickers = array();
+                $symbol = $ticker['symbol'];
+                $tickers[$symbol] = $ticker;
                 return $tickers;
             }
             return $this->tickers;
+        }) ();
+    }
+
+    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * stop watching
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+             *
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            if ($symbols === null) {
+                $symbols = $this->symbols;
+            }
+            return Async\await($this->un_subscribe_multiple('ticker', 'ticker_batch', false, $symbols));
         }) ();
     }
 
@@ -284,7 +456,7 @@ class coinbase extends \ccxt\async\coinbase {
         //
         //
         $channel = $this->safe_string($message, 'channel');
-        $events = $this->safe_value($message, 'events', array());
+        $events = $this->safe_list($message, 'events', array());
         $datetime = $this->safe_string($message, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $newTickers = array();
@@ -293,38 +465,21 @@ class coinbase extends \ccxt\async\coinbase {
             $tickers = $this->safe_list($tickersObj, 'tickers', array());
             for ($j = 0; $j < count($tickers); $j++) {
                 $ticker = $tickers[$j];
+                $wsMarketId = $this->safe_string($ticker, 'product_id');
+                if ($wsMarketId === null) {
+                    continue;
+                }
                 $result = $this->parse_ws_ticker($ticker);
                 $result['timestamp'] = $timestamp;
                 $result['datetime'] = $datetime;
                 $symbol = $result['symbol'];
                 $this->tickers[$symbol] = $result;
-                $wsMarketId = $this->safe_string($ticker, 'product_id');
-                if ($wsMarketId === null) {
-                    continue;
-                }
-                $messageHash = $channel . '::' . $wsMarketId;
                 $newTickers[] = $result;
+                $messageHash = $channel . '::' . $symbol;
                 $client->resolve ($result, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($result, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
+                $this->try_resolve_usdc($client, $messageHash, $result);
             }
         }
-        $messageHashes = $this->find_message_hashes($client, 'ticker_batch::');
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $parts = explode('::', $messageHash);
-            $symbolsString = $parts[1];
-            $symbols = explode(',', $symbolsString);
-            $tickers = $this->filter_by_array($newTickers, 'symbol', $symbols);
-            if (!$this->is_empty($tickers)) {
-                $client->resolve ($tickers, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($tickers, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            }
-        }
-        return $message;
     }
 
     public function parse_ws_ticker($ticker, $market = null) {
@@ -377,7 +532,9 @@ class coinbase extends \ccxt\async\coinbase {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-$trades-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -395,11 +552,30 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stops watching the list of most recent trades for a particular $symbol
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $name = 'market_trades';
+            return Async\await($this->un_subscribe('trades', $name, false, $symbol));
+        }) ();
+    }
+
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular symbol
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-$trades-channel
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -418,11 +594,30 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
+    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * get the list of most recent trades for a particular symbol
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+             *
+             * @param {string[]} $symbols unified symbol of the market to fetch trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $name = 'market_trades';
+            return Async\await($this->un_subscribe_multiple('trades', $name, false, $symbols, $params));
+        }) ();
+    }
+
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+             *
              * @param {string} [$symbol] unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -439,11 +634,30 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
+    public function un_watch_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stops watching information on multiple orders made by the user
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+             *
+             * @param {string} [$symbol] unified market $symbol of the market orders were made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $name = 'user';
+            return Async\await($this->un_subscribe('orders', $name, true, $this->symbol($symbol)));
+        }) ();
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -458,11 +672,31 @@ class coinbase extends \ccxt\async\coinbase {
         }) ();
     }
 
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * stops watching information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+             *
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $name = 'level2';
+            return Async\await($this->un_subscribe('orderbook', $name, false, $symbol));
+        }) ();
+    }
+
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -499,13 +733,13 @@ class coinbase extends \ccxt\async\coinbase {
         //        )
         //    }
         //
-        $events = $this->safe_value($message, 'events');
+        $events = $this->safe_list($message, 'events');
         $event = $this->safe_value($events, 0);
-        $trades = $this->safe_value($event, 'trades');
-        $trade = $this->safe_value($trades, 0);
+        $trades = $this->safe_list($event, 'trades');
+        $trade = $this->safe_dict($trades, 0);
         $marketId = $this->safe_string($trade, 'product_id');
-        $messageHash = 'market_trades::' . $marketId;
         $symbol = $this->safe_symbol($marketId);
+        $messageHash = 'market_trades::' . $symbol;
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -514,17 +748,14 @@ class coinbase extends \ccxt\async\coinbase {
         }
         for ($i = 0; $i < count($events); $i++) {
             $currentEvent = $events[$i];
-            $currentTrades = $this->safe_value($currentEvent, 'trades');
+            $currentTrades = $this->safe_list($currentEvent, 'trades');
             for ($j = 0; $j < count($currentTrades); $j++) {
                 $item = $currentTrades[$i];
                 $tradesArray->append ($this->parse_trade($item));
             }
         }
         $client->resolve ($tradesArray, $messageHash);
-        if (str_ends_with($marketId, 'USD')) {
-            $client->resolve ($tradesArray, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-        }
-        return $message;
+        $this->try_resolve_usdc($client, $messageHash, $tradesArray);
     }
 
     public function handle_order($client, $message) {
@@ -556,7 +787,7 @@ class coinbase extends \ccxt\async\coinbase {
         //        )
         //    }
         //
-        $events = $this->safe_value($message, 'events');
+        $events = $this->safe_list($message, 'events');
         $marketIds = array();
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -564,7 +795,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
         for ($i = 0; $i < count($events); $i++) {
             $event = $events[$i];
-            $responseOrders = $this->safe_value($event, 'orders');
+            $responseOrders = $this->safe_list($event, 'orders');
             for ($j = 0; $j < count($responseOrders); $j++) {
                 $responseOrder = $responseOrders[$j];
                 $parsed = $this->parse_ws_order($responseOrder);
@@ -578,14 +809,12 @@ class coinbase extends \ccxt\async\coinbase {
         }
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $messageHash = 'user::' . $marketId;
+            $symbol = $this->safe_symbol($marketId);
+            $messageHash = 'user::' . $symbol;
             $client->resolve ($this->orders, $messageHash);
-            if (str_ends_with($messageHash, 'USD')) {
-                $client->resolve ($this->orders, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-            }
+            $this->try_resolve_usdc($client, $messageHash, $this->orders);
         }
         $client->resolve ($this->orders, 'user');
-        return $message;
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -665,7 +894,7 @@ class coinbase extends \ccxt\async\coinbase {
         //                    array(
         //                        "side" => "bid",
         //                        "event_time" => "1970-01-01T00:00:00Z",
-        //                        "price_level" => "21921.73",
+        //                        "price_level" => "21921.74",
         //                        "new_quantity" => "0.06317902"
         //                    ),
         //                    array(
@@ -679,39 +908,39 @@ class coinbase extends \ccxt\async\coinbase {
         //        )
         //    }
         //
-        $events = $this->safe_value($message, 'events');
+        $events = $this->safe_list($message, 'events');
         $datetime = $this->safe_string($message, 'timestamp');
         for ($i = 0; $i < count($events); $i++) {
             $event = $events[$i];
-            $updates = $this->safe_value($event, 'updates', array());
+            $updates = $this->safe_list($event, 'updates', array());
             $marketId = $this->safe_string($event, 'product_id');
-            $messageHash = 'level2::' . $marketId;
+            // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, are aliases
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $messageHash = 'level2::' . $symbol;
             $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit');
-            $symbol = $this->safe_symbol($marketId);
             $type = $this->safe_string($event, 'type');
             if ($type === 'snapshot') {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
-                $orderbook = $this->orderbooks[$symbol];
-                $this->handle_order_book_helper($orderbook, $updates);
-                $orderbook['timestamp'] = $this->parse8601($datetime);
-                $orderbook['datetime'] = $datetime;
-                $orderbook['symbol'] = $symbol;
-                $client->resolve ($orderbook, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
-            } elseif ($type === 'update') {
-                $orderbook = $this->orderbooks[$symbol];
-                $this->handle_order_book_helper($orderbook, $updates);
-                $orderbook['datetime'] = $datetime;
-                $orderbook['timestamp'] = $this->parse8601($datetime);
-                $orderbook['symbol'] = $symbol;
-                $client->resolve ($orderbook, $messageHash);
-                if (str_ends_with($messageHash, 'USD')) {
-                    $client->resolve ($orderbook, $messageHash . 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
-                }
             }
+            // unknown bug, can't reproduce, but sometimes $orderbook is null
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) && $this->orderbooks[$symbol] === null) {
+                continue;
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $this->handle_order_book_helper($orderbook, $updates);
+            $orderbook['timestamp'] = $this->parse8601($datetime);
+            $orderbook['datetime'] = $datetime;
+            $orderbook['symbol'] = $symbol;
+            $client->resolve ($orderbook, $messageHash);
+            $this->try_resolve_usdc($client, $messageHash, $orderbook);
+        }
+    }
+
+    public function try_resolve_usdc($client, $messageHash, $result) {
+        if (str_ends_with($messageHash, '/USD') || str_ends_with($messageHash, '-USD')) {
+            $client->resolve ($result, $messageHash . 'C'); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
 
@@ -727,6 +956,31 @@ class coinbase extends \ccxt\async\coinbase {
         //         )
         //     }
         //
+        //
+        //      {
+        //        channel => 'subscriptions',
+        //        client_id => '',
+        //        timestamp => '2025-09-15T17:02:49.90120868Z',
+        //        sequence_num => 3,
+        //        $events => array( array( subscriptions => array() ) )
+        //      }
+        //
+        $events = $this->safe_list($message, 'events', array());
+        $firstEvent = $this->safe_value($events, 0, array());
+        $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions', $firstEvent));
+        $subKeys = is_array($firstEvent['subscriptions']) ? array_keys($firstEvent['subscriptions']) : array();
+        $subKeysLength = count($subKeys);
+        if ($isUnsub && $subKeysLength === 0) {
+            $unSubObject = $this->safe_dict($this->options, 'unSubscription', array());
+            $messageHashes = $this->safe_list($unSubObject, 'messageHashes', array());
+            $subMessageHashes = $this->safe_list($unSubObject, 'subMessageHashes', array());
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $subHash = $subMessageHashes[$i];
+                $this->clean_unsubscription($client, $subHash, $messageHash);
+            }
+            $this->clean_cache($unSubObject);
+        }
         return $message;
     }
 

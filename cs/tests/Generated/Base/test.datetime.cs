@@ -16,6 +16,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.iso8601(514862627062), "1986-04-26T01:23:47.062Z"));
             Assert(isEqual(exchange.iso8601(0), "1970-01-01T00:00:00.000Z"));
             Assert(isEqual(exchange.iso8601(-1), null));
+            // Assert (exchange.iso8601 () === undefined);
             // todo: Assert (exchange.iso8601 () === undefined);
             Assert(isEqual(exchange.iso8601(null), null));
             Assert(isEqual(exchange.iso8601(""), null));
@@ -32,6 +33,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.parse8601("3333"), null));
             Assert(isEqual(exchange.parse8601("Sr90"), null));
             Assert(isEqual(exchange.parse8601(""), null));
+            // Assert (exchange.parse8601 () === undefined);
             // todo: Assert (exchange.parse8601 () === undefined);
             Assert(isEqual(exchange.parse8601(null), null));
             Assert(isEqual(exchange.parse8601(new Dictionary<string, object>() {}), null));

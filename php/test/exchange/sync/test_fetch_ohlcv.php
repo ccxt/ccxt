@@ -27,4 +27,6 @@ function test_fetch_ohlcv($exchange, $skipped_properties, $symbol) {
     for ($i = 0; $i < count($ohlcvs); $i++) {
         test_ohlcv($exchange, $skipped_properties, $method, $ohlcvs[$i], $symbol, $now);
     }
+    // todo: sorted timestamps check
+    return true;
 }

@@ -26,6 +26,7 @@ interface Exchange {
     traderPrivatePostV2WatchlistsWatchlistId(params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2WatchlistsByName(params?: {}): Promise<implicitReturnType>;
     traderPrivatePostV2WalletsTransfers(params?: {}): Promise<implicitReturnType>;
+    traderPrivatePutV2OrdersOrderId(params?: {}): Promise<implicitReturnType>;
     traderPrivatePutV2WatchlistsWatchlistId(params?: {}): Promise<implicitReturnType>;
     traderPrivatePutV2WatchlistsByName(params?: {}): Promise<implicitReturnType>;
     traderPrivatePatchV2OrdersOrderId(params?: {}): Promise<implicitReturnType>;

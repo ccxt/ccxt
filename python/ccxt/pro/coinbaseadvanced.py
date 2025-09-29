@@ -4,11 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.coinbase import coinbase
+from ccxt.base.types import Any
 
 
 class coinbaseadvanced(coinbase):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(coinbaseadvanced, self).describe(), {
             'id': 'coinbaseadvanced',
             'name': 'Coinbase Advanced',

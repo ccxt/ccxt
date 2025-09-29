@@ -7,7 +7,7 @@ import { InvalidOrder } from './base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
@@ -29,10 +29,12 @@ export default class binanceusdm extends binance {
                 'createStopMarketOrder': true,
             },
             'options': {
-                'fetchMarkets': [ 'linear' ],
+                'fetchMarkets': {
+                    'types': [ 'linear' ],
+                },
                 'defaultSubType': 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
-                // tier amount, maintenance margin, initial margin
+                // tier amount, maintenance margin, initial margin,
                 'leverageBrackets': undefined,
                 'marginTypes': {},
                 'marginModes': {},

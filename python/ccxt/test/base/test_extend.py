@@ -65,9 +65,6 @@ def test_extend():
     # extend
     extended = exchange.extend(obj1, obj2)
     tbfe_check_extended(extended, True)
-    # deepExtend
-    deep_extended = exchange.deep_extend(obj1, obj2)
-    tbfe_check_extended(extended, True)
 
 
 def tbfe_check_extended(extended, has_sub):

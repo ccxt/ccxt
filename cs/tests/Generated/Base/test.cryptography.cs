@@ -9,7 +9,7 @@ public partial class BaseTest
         // even though no AUTO_TRANSP flag here, this file is manually transpiled
         public void testCryptography()
         {
-            var exchange = new Exchange();
+            // const exchange = new Exchange ();
             // ---------------------------------------------------------------------------------------------------------------------
             Assert(isEqual(hash(encode(""), sha256, "hex"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"));
             Assert(isEqual(hash(encode("cheese"), sha256, "hex"), "873ac9ffea4dd04fa719e8920cd6938f0c23cd678af330939cff53c3d2855f34"));
