@@ -6538,6 +6538,9 @@ export default class Exchange {
         if (obj === undefined || key === undefined) {
             return undefined;
         }
+        if (key.indexOf ('.') < 0) {
+            return this.safeString (obj, key);
+        }
         const keys = key.split ('.');
         let result = obj;
         const length = keys.length;
