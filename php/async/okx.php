@@ -3672,10 +3672,17 @@ class okx extends Exchange {
                 }
             } else {
                 for ($i = 0; $i < count($clientOrderIds); $i++) {
-                    $request[] = array(
-                        'instId' => $market['id'],
-                        'clOrdId' => $clientOrderIds[$i],
-                    );
+                    if ($trailing || $trigger) {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'algoClOrdId' => $clientOrderIds[$i],
+                        );
+                    } else {
+                        $request[] = array(
+                            'instId' => $market['id'],
+                            'clOrdId' => $clientOrderIds[$i],
+                        );
+                    }
                 }
             }
             $response = null;
@@ -3753,7 +3760,11 @@ class okx extends Exchange {
                 if ($isStopOrTrailing) {
                     $idKey = 'algoId';
                 } elseif ($clientOrderId !== null) {
-                    $idKey = 'clOrdId';
+                    if ($isStopOrTrailing) {
+                        $idKey = 'algoClOrdId';
+                    } else {
+                        $idKey = 'clOrdId';
+                    }
                 }
                 $requestItem = array(
                     'instId' => $market['id'],
