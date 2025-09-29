@@ -721,6 +721,7 @@ export default class coinex extends Exchange {
             const networks: Dict = {};
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
+                const networkId = this.safeString (chain, 'chain');
                 const networkCode = this.networkIdToCode (networkId, code);
                 if (networkId === undefined) {
                     continue;
