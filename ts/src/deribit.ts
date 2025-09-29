@@ -490,6 +490,9 @@ export default class deribit extends Exchange {
                 'transfer': {
                     'method': 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
                 },
+                'fetchTickers': {
+                    'quoteCodes': [ 'USDC', 'USDT', 'BTC' ], // major currencies
+                },
             },
         });
     }
@@ -1363,7 +1366,9 @@ export default class deribit extends Exchange {
         if (code !== undefined) {
             codes.push (code);
         } else {
-            codes = this.codes;
+            let quoteCodes = undefined;
+            [ quoteCodes, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'quoteCodes', this.codes);
+            codes = quoteCodes;
         }
         const promises = [];
         for (let i = 0; i < codes.length; i++) {
