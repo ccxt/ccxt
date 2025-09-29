@@ -288,7 +288,7 @@ class Exchange {
     // API methods metainfo
     public $has = array();
 
-    public $precisionMode = TICK_SIZE;
+    public $precisionMode = DECIMAL_PLACES;
     public $paddingMode = NO_PADDING;
     public $number = 'floatval';
     public $handleContentTypeApplicationZip = false;

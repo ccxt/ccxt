@@ -2963,7 +2963,7 @@ export default class Exchange {
                         'id': this.safeString2 (market, 'baseId', 'base'),
                         'numericId': this.safeInteger (market, 'baseNumericId'),
                         'code': this.safeString (market, 'base'),
-                        'precision': this.safeNumber2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
                     });
                     baseCurrencies.push (currency);
                 }
@@ -2972,7 +2972,7 @@ export default class Exchange {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeInteger (market, 'quoteNumericId'),
                         'code': this.safeString (market, 'quote'),
-                        'precision': this.safeNumber2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
                     });
                     quoteCurrencies.push (currency);
                 }
