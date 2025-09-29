@@ -351,7 +351,7 @@ public partial class indodax : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
-            object id = this.safeString(market, "ticker_id");
+            object id = this.safeString(market, "id");
             object baseId = this.safeString(market, "traded_currency");
             object quoteId = this.safeString(market, "base_currency");
             object bs = this.safeCurrencyCode(baseId);
@@ -499,7 +499,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "pair", getValue(market, "id") },
         };
         object orderbook = await this.publicGetApiDepthPair(this.extend(request, parameters));
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buy", "sell");
@@ -563,7 +563,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetApiTickerPair(this.extend(request, parameters));
         //
@@ -615,7 +615,18 @@ public partial class indodax : Exchange
         //
         object response = await this.publicGetApiTickerAll(parameters);
         object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
-        return this.parseTickers(tickers, symbols);
+        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        object parsedTickers = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object rawTicker = getValue(tickers, key);
+            object marketId = ((string)key).Replace((string)"_", (string)"");
+            object market = this.safeMarket(marketId);
+            object parsed = this.parseTicker(rawTicker, market);
+            ((IDictionary<string,object>)parsedTickers)[(string)marketId] = parsed;
+        }
+        return this.filterByArray(parsedTickers, "symbol", symbols);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -655,7 +666,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetApiTradesPair(this.extend(request, parameters));
         return this.parseTrades(response, market, since, limit);
@@ -701,7 +712,7 @@ public partial class indodax : Exchange
         object request = new Dictionary<string, object>() {
             { "to", until },
             { "tf", selectedTimeframe },
-            { "symbol", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "symbol", getValue(market, "id") },
         };
         if (isTrue(isEqual(limit, null)))
         {
