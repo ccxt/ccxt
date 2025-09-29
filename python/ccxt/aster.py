@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.aster import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface
+from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -138,7 +138,7 @@ class aster(Exchange, ImplicitAPI):
                 'fetchLedgerEntry': False,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': True,
-                'fetchLeverageTiers': False,
+                'fetchLeverageTiers': True,
                 'fetchLiquidations': False,
                 'fetchLongShortRatio': False,
                 'fetchLongShortRatioHistory': False,
@@ -222,7 +222,6 @@ class aster(Exchange, ImplicitAPI):
                         'fapi/v1/ticker/24hr',
                         'fapi/v1/ticker/price',
                         'fapi/v1/ticker/bookTicker',
-                        'fapi/v1/leverageBracket',
                         'fapi/v1/adlQuantile',
                         'fapi/v1/forceOrders',
                     ],
@@ -242,6 +241,7 @@ class aster(Exchange, ImplicitAPI):
                         'fapi/v1/userTrades',
                         'fapi/v1/income',
                         'fapi/v1/commissionRate',
+                        'fapi/v1/leverageBracket',
                     ],
                     'post': [
                         'fapi/v1/order',
@@ -2662,6 +2662,47 @@ class aster(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.portfolioMargin]: set to True if you would like to fetch the leverage tiers for a portfolio margin account
+        :param str [params.subType]: "linear" or "inverse"
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
+        """
+        raise NotSupported(self.id + ' fetchLeverageTiers() implementation attempt failed')
+        # self.load_markets()
+        # type = None
+        # type, params = self.handle_market_type_and_params('fetchLeverageTiers', None, params)
+        # subType = None
+        # subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params, 'linear')
+        # isPortfolioMargin = None
+        # isPortfolioMargin, params = self.handle_option_and_params_2(params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', False)
+        # response = self.publicGetFapiV1LeverageBracket(params)
+        # return response
+        # if self.is_linear(type, subType):
+        #     if isPortfolioMargin:
+        #         response = self.papiGetUmLeverageBracket(params)
+        #     else:
+        #         response = self.fapiPrivateGetLeverageBracket(params)
+        #     }
+        # elif self.is_inverse(type, subType):
+        #     if isPortfolioMargin:
+        #         response = self.papiGetCmLeverageBracket(params)
+        #     else:
+        #         response = self.dapiPrivateV2GetLeverageBracket(params)
+        #     }
+        # else:
+        #     raise NotSupported(self.id + ' fetchLeverageTiers() supports linear and inverse contracts only')
+        # }
+
     def load_leverage_brackets(self, reload=False, params={}):
         self.load_markets()
         # by default cache the leverage bracket
@@ -2675,7 +2716,7 @@ class aster(Exchange, ImplicitAPI):
             subType, params = self.handle_sub_type_and_params('loadLeverageBrackets', None, params, 'linear')
             isPortfolioMargin = None
             isPortfolioMargin, params = self.handle_option_and_params_2(params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', False)
-            response = self.publicGetFapiV1LeverageBracket(query)
+            response = self.privateGetFapiV1LeverageBracket(query)
             self.options['leverageBrackets'] = self.create_safe_dictionary()
             for i in range(0, len(response)):
                 entry = response[i]

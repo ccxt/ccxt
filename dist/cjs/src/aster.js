@@ -114,7 +114,7 @@ class aster extends aster$1["default"] {
                 'fetchLedgerEntry': false,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
@@ -198,7 +198,6 @@ class aster extends aster$1["default"] {
                         'fapi/v1/ticker/24hr',
                         'fapi/v1/ticker/price',
                         'fapi/v1/ticker/bookTicker',
-                        'fapi/v1/leverageBracket',
                         'fapi/v1/adlQuantile',
                         'fapi/v1/forceOrders',
                     ],
@@ -218,6 +217,7 @@ class aster extends aster$1["default"] {
                         'fapi/v1/userTrades',
                         'fapi/v1/income',
                         'fapi/v1/commissionRate',
+                        'fapi/v1/leverageBracket',
                     ],
                     'post': [
                         'fapi/v1/order',
@@ -2749,6 +2749,47 @@ class aster extends aster$1["default"] {
         symbols = this.marketSymbols(symbols);
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    /**
+     * @method
+     * @name binance#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLeverageTiers() implementation attempt failed');
+        // await this.loadMarkets ();
+        // let type = undefined;
+        // [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        // let subType = undefined;
+        // [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        // let isPortfolioMargin = undefined;
+        // [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
+        // const response = await this.publicGetFapiV1LeverageBracket (params);
+        // return response;
+        // if (this.isLinear (type, subType)) {
+        //     if (isPortfolioMargin) {
+        //         response = await this.papiGetUmLeverageBracket (params);
+        //     } else {
+        //         response = await this.fapiPrivateGetLeverageBracket (params);
+        //     }
+        // } else if (this.isInverse (type, subType)) {
+        //     if (isPortfolioMargin) {
+        //         response = await this.papiGetCmLeverageBracket (params);
+        //     } else {
+        //         response = await this.dapiPrivateV2GetLeverageBracket (params);
+        //     }
+        // } else {
+        //     throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
+        // }
+    }
     async loadLeverageBrackets(reload = false, params = {}) {
         await this.loadMarkets();
         // by default cache the leverage bracket
@@ -2762,7 +2803,7 @@ class aster extends aster$1["default"] {
             [subType, params] = this.handleSubTypeAndParams('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin = undefined;
             [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
-            const response = await this.publicGetFapiV1LeverageBracket(query);
+            const response = await this.privateGetFapiV1LeverageBracket(query);
             this.options['leverageBrackets'] = this.createSafeDictionary();
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];

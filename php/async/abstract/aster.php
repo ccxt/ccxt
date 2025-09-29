@@ -52,9 +52,6 @@ abstract class aster extends \ccxt\async\Exchange {
     public function public_get_fapi_v1_ticker_bookticker($params = array()) {
         return $this->request('fapi/v1/ticker/bookTicker', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_fapi_v1_leveragebracket($params = array()) {
-        return $this->request('fapi/v1/leverageBracket', 'public', 'GET', $params, null, null, array());
-    }
     public function public_get_fapi_v1_adlquantile($params = array()) {
         return $this->request('fapi/v1/adlQuantile', 'public', 'GET', $params, null, null, array());
     }
@@ -99,6 +96,9 @@ abstract class aster extends \ccxt\async\Exchange {
     }
     public function private_get_fapi_v1_commissionrate($params = array()) {
         return $this->request('fapi/v1/commissionRate', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_fapi_v1_leveragebracket($params = array()) {
+        return $this->request('fapi/v1/leverageBracket', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_fapi_v1_order($params = array()) {
         return $this->request('fapi/v1/order', 'private', 'POST', $params, null, null, array());
@@ -190,9 +190,6 @@ abstract class aster extends \ccxt\async\Exchange {
     public function publicGetFapiV1TickerBookTicker($params = array()) {
         return $this->request('fapi/v1/ticker/bookTicker', 'public', 'GET', $params, null, null, array());
     }
-    public function publicGetFapiV1LeverageBracket($params = array()) {
-        return $this->request('fapi/v1/leverageBracket', 'public', 'GET', $params, null, null, array());
-    }
     public function publicGetFapiV1AdlQuantile($params = array()) {
         return $this->request('fapi/v1/adlQuantile', 'public', 'GET', $params, null, null, array());
     }
@@ -237,6 +234,9 @@ abstract class aster extends \ccxt\async\Exchange {
     }
     public function privateGetFapiV1CommissionRate($params = array()) {
         return $this->request('fapi/v1/commissionRate', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetFapiV1LeverageBracket($params = array()) {
+        return $this->request('fapi/v1/leverageBracket', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostFapiV1Order($params = array()) {
         return $this->request('fapi/v1/order', 'private', 'POST', $params, null, null, array());

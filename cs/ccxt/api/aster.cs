@@ -86,11 +86,6 @@ public partial class aster : Exchange
         return await this.callAsync ("publicGetFapiV1TickerBookTicker",parameters);
     }
 
-    public async Task<object> publicGetFapiV1LeverageBracket (object parameters = null)
-    {
-        return await this.callAsync ("publicGetFapiV1LeverageBracket",parameters);
-    }
-
     public async Task<object> publicGetFapiV1AdlQuantile (object parameters = null)
     {
         return await this.callAsync ("publicGetFapiV1AdlQuantile",parameters);
@@ -164,6 +159,11 @@ public partial class aster : Exchange
     public async Task<object> privateGetFapiV1CommissionRate (object parameters = null)
     {
         return await this.callAsync ("privateGetFapiV1CommissionRate",parameters);
+    }
+
+    public async Task<object> privateGetFapiV1LeverageBracket (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFapiV1LeverageBracket",parameters);
     }
 
     public async Task<object> privatePostFapiV1Order (object parameters = null)

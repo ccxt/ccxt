@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType,Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages,LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType,Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 
 //  ---------------------------------------------------------------------------xs
@@ -112,7 +112,7 @@ export default class aster extends Exchange {
                 'fetchLedgerEntry': false,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
@@ -196,7 +196,6 @@ export default class aster extends Exchange {
                         'fapi/v1/ticker/24hr',
                         'fapi/v1/ticker/price',
                         'fapi/v1/ticker/bookTicker',
-                        'fapi/v1/leverageBracket',
                         'fapi/v1/adlQuantile',
                         'fapi/v1/forceOrders',
                     ],
@@ -216,6 +215,7 @@ export default class aster extends Exchange {
                         'fapi/v1/userTrades',
                         'fapi/v1/income',
                         'fapi/v1/commissionRate',
+                        'fapi/v1/leverageBracket',
                     ],
                     'post': [
                         'fapi/v1/order',
@@ -2784,6 +2784,48 @@ export default class aster extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    /**
+     * @method
+     * @name binance#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        throw new NotSupported (this.id + ' fetchLeverageTiers() implementation attempt failed');
+        // await this.loadMarkets ();
+        // let type = undefined;
+        // [ type, params ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
+        // let subType = undefined;
+        // [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
+        // let isPortfolioMargin = undefined;
+        // [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
+        // const response = await this.publicGetFapiV1LeverageBracket (params);
+        // return response;
+        // if (this.isLinear (type, subType)) {
+        //     if (isPortfolioMargin) {
+        //         response = await this.papiGetUmLeverageBracket (params);
+        //     } else {
+        //         response = await this.fapiPrivateGetLeverageBracket (params);
+        //     }
+        // } else if (this.isInverse (type, subType)) {
+        //     if (isPortfolioMargin) {
+        //         response = await this.papiGetCmLeverageBracket (params);
+        //     } else {
+        //         response = await this.dapiPrivateV2GetLeverageBracket (params);
+        //     }
+        // } else {
+        //     throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
+        // }
+    }
+
     async loadLeverageBrackets (reload = false, params = {}) {
         await this.loadMarkets ();
         // by default cache the leverage bracket
@@ -2797,7 +2839,7 @@ export default class aster extends Exchange {
             [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             let isPortfolioMargin = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
-            const response = await this.publicGetFapiV1LeverageBracket (query);
+            const response = await this.privateGetFapiV1LeverageBracket (query);
             this.options['leverageBrackets'] = this.createSafeDictionary ();
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];

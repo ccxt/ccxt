@@ -24,7 +24,6 @@ interface Exchange {
     publicGetFapiV1Ticker24hr (params?: {}): Promise<implicitReturnType>;
     publicGetFapiV1TickerPrice (params?: {}): Promise<implicitReturnType>;
     publicGetFapiV1TickerBookTicker (params?: {}): Promise<implicitReturnType>;
-    publicGetFapiV1LeverageBracket (params?: {}): Promise<implicitReturnType>;
     publicGetFapiV1AdlQuantile (params?: {}): Promise<implicitReturnType>;
     publicGetFapiV1ForceOrders (params?: {}): Promise<implicitReturnType>;
     privateGetFapiV1PositionSideDual (params?: {}): Promise<implicitReturnType>;
@@ -40,6 +39,7 @@ interface Exchange {
     privateGetFapiV1UserTrades (params?: {}): Promise<implicitReturnType>;
     privateGetFapiV1Income (params?: {}): Promise<implicitReturnType>;
     privateGetFapiV1CommissionRate (params?: {}): Promise<implicitReturnType>;
+    privateGetFapiV1LeverageBracket (params?: {}): Promise<implicitReturnType>;
     privatePostFapiV1Order (params?: {}): Promise<implicitReturnType>;
     privatePostFapiV1PositionSideDual (params?: {}): Promise<implicitReturnType>;
     privatePostFapiV1MultiAssetsMargin (params?: {}): Promise<implicitReturnType>;

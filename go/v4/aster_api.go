@@ -67,10 +67,6 @@ func (this *aster) PublicGetFapiV1TickerBookTicker (args ...interface{}) <-chan 
    return this.callEndpointAsync("publicGetFapiV1TickerBookTicker", args...)
 }
 
-func (this *aster) PublicGetFapiV1LeverageBracket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFapiV1LeverageBracket", args...)
-}
-
 func (this *aster) PublicGetFapiV1AdlQuantile (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("publicGetFapiV1AdlQuantile", args...)
 }
@@ -129,6 +125,10 @@ func (this *aster) PrivateGetFapiV1Income (args ...interface{}) <-chan interface
 
 func (this *aster) PrivateGetFapiV1CommissionRate (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateGetFapiV1CommissionRate", args...)
+}
+
+func (this *aster) PrivateGetFapiV1LeverageBracket (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetFapiV1LeverageBracket", args...)
 }
 
 func (this *aster) PrivatePostFapiV1Order (args ...interface{}) <-chan interface{} {

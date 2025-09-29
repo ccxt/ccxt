@@ -118,7 +118,7 @@ class aster extends Exchange {
                 'fetchLedgerEntry' => false,
                 'fetchLeverage' => 'emulated',
                 'fetchLeverages' => true,
-                'fetchLeverageTiers' => false,
+                'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
                 'fetchLongShortRatio' => false,
                 'fetchLongShortRatioHistory' => false,
@@ -202,7 +202,6 @@ class aster extends Exchange {
                         'fapi/v1/ticker/24hr',
                         'fapi/v1/ticker/price',
                         'fapi/v1/ticker/bookTicker',
-                        'fapi/v1/leverageBracket',
                         'fapi/v1/adlQuantile',
                         'fapi/v1/forceOrders',
                     ),
@@ -222,6 +221,7 @@ class aster extends Exchange {
                         'fapi/v1/userTrades',
                         'fapi/v1/income',
                         'fapi/v1/commissionRate',
+                        'fapi/v1/leverageBracket',
                     ),
                     'post' => array(
                         'fapi/v1/order',
@@ -2864,6 +2864,50 @@ class aster extends Exchange {
         }) ();
     }
 
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+             *
+             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the leverage tiers for a portfolio margin account
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
+             */
+            throw new NotSupported($this->id . ' fetchLeverageTiers() implementation attempt failed');
+            // Async\await($this->load_markets());
+            // $type = null;
+            // list($type, $params) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
+            // $subType = null;
+            // list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params, 'linear');
+            // $isPortfolioMargin = null;
+            // list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchLeverageTiers', 'papi', 'portfolioMargin', false);
+            // $response = Async\await($this->publicGetFapiV1LeverageBracket ($params));
+            // return $response;
+            // if ($this->is_linear($type, $subType)) {
+            //     if ($isPortfolioMargin) {
+            //         $response = Async\await($this->papiGetUmLeverageBracket ($params));
+            //     } else {
+            //         $response = Async\await($this->fapiPrivateGetLeverageBracket ($params));
+            //     }
+            // } elseif ($this->is_inverse($type, $subType)) {
+            //     if ($isPortfolioMargin) {
+            //         $response = Async\await($this->papiGetCmLeverageBracket ($params));
+            //     } else {
+            //         $response = Async\await($this->dapiPrivateV2GetLeverageBracket ($params));
+            //     }
+            // } else {
+            //     throw new NotSupported($this->id . ' fetchLeverageTiers() supports linear and inverse contracts only');
+            // }
+        }) ();
+    }
+
     public function load_leverage_brackets($reload = false, $params = array ()) {
         return Async\async(function () use ($reload, $params) {
             Async\await($this->load_markets());
@@ -2878,7 +2922,7 @@ class aster extends Exchange {
                 list($subType, $params) = $this->handle_sub_type_and_params('loadLeverageBrackets', null, $params, 'linear');
                 $isPortfolioMargin = null;
                 list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
-                $response = Async\await($this->publicGetFapiV1LeverageBracket ($query));
+                $response = Async\await($this->privateGetFapiV1LeverageBracket ($query));
                 $this->options['leverageBrackets'] = $this->create_safe_dictionary();
                 for ($i = 0; $i < count($response); $i++) {
                     $entry = $response[$i];
