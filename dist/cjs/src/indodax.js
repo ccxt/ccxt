@@ -366,7 +366,7 @@ class indodax extends indodax$1["default"] {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString(market, 'ticker_id');
+            const id = this.safeString(market, 'id');
             const baseId = this.safeString(market, 'traded_currency');
             const quoteId = this.safeString(market, 'base_currency');
             const base = this.safeCurrencyCode(baseId);
@@ -505,7 +505,7 @@ class indodax extends indodax$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const orderbook = await this.publicGetApiDepthPair(this.extend(request, params));
         return this.parseOrderBook(orderbook, market['symbol'], undefined, 'buy', 'sell');
@@ -564,7 +564,7 @@ class indodax extends indodax$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const response = await this.publicGetApiTickerPair(this.extend(request, params));
         //
@@ -613,7 +613,17 @@ class indodax extends indodax$1["default"] {
         //
         const response = await this.publicGetApiTickerAll(params);
         const tickers = this.safeDict(response, 'tickers', {});
-        return this.parseTickers(tickers, symbols);
+        const keys = Object.keys(tickers);
+        const parsedTickers = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const rawTicker = tickers[key];
+            const marketId = key.replace('_', '');
+            const market = this.safeMarket(marketId);
+            const parsed = this.parseTicker(rawTicker, market);
+            parsedTickers[marketId] = parsed;
+        }
+        return this.filterByArray(parsedTickers, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'date');
@@ -648,7 +658,7 @@ class indodax extends indodax$1["default"] {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const response = await this.publicGetApiTradesPair(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
@@ -695,7 +705,7 @@ class indodax extends indodax$1["default"] {
         const request = {
             'to': until,
             'tf': selectedTimeframe,
-            'symbol': market['base'] + market['quote'],
+            'symbol': market['id'],
         };
         if (limit === undefined) {
             limit = 1000;
