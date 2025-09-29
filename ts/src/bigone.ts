@@ -27,7 +27,7 @@ export default class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': undefined, // has but unimplemented
                 'option': false,
                 'cancelAllOrders': true,
@@ -453,7 +453,7 @@ export default class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         // {
@@ -1251,7 +1251,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract']) {
-            throw new BadRequest (this.id + ' fetchTrades () can only fetch trades for spot markets');
+            throw new NotSupported (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request: Dict = {
             'asset_pair_name': market['id'],
@@ -1320,7 +1320,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract']) {
-            throw new BadRequest (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new NotSupported (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger (params, 'until');
         const untilIsDefined = (until !== undefined);
@@ -2284,7 +2284,7 @@ export default class bigone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);

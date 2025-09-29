@@ -49,6 +49,7 @@ class btcmarkets extends Exchange {
                 'fetchClosedOrders' => 'emulated',
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -1330,7 +1331,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

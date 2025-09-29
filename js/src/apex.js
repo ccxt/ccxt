@@ -1541,7 +1541,7 @@ export default class apex extends Exchange {
         }
         const response = await this.privatePostV3DeleteOpenOrders(this.extend(request, params));
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return [this.parseOrder(data, market)];
     }
     /**
      * @method
@@ -1567,7 +1567,7 @@ export default class apex extends Exchange {
             response = await this.privatePostV3DeleteOrder(this.extend(request, params));
         }
         const data = this.safeDict(response, 'data', {});
-        return data;
+        return this.safeOrder(data);
     }
     /**
      * @method

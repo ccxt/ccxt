@@ -653,9 +653,10 @@ public partial class exmo : Exchange
      */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        //
         parameters ??= new Dictionary<string, object>();
-        object currencyList = await this.publicGetCurrencyListExtended(parameters);
+        object promises = new List<object>() {};
+        //
+        ((IList<object>)promises).Add(this.publicGetCurrencyListExtended(parameters));
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -664,7 +665,7 @@ public partial class exmo : Exchange
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        object cryptoList = await this.publicGetPaymentsProvidersCryptoList(parameters);
+        ((IList<object>)promises).Add(this.publicGetPaymentsProvidersCryptoList(parameters));
         //
         //     {
         //         "BTC":[
@@ -689,96 +690,103 @@ public partial class exmo : Exchange
         //         ],
         //     }
         //
+        object responses = await promiseAll(promises);
+        object currencyList = getValue(responses, 0);
+        object cryptoList = getValue(responses, 1);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
         {
             object currency = getValue(currencyList, i);
             object currencyId = this.safeString(currency, "name");
-            object name = this.safeString(currency, "description");
-            object providers = this.safeValue(cryptoList, currencyId);
-            object active = false;
+            object code = this.safeCurrencyCode(currencyId);
             object type = "crypto";
-            object limits = new Dictionary<string, object>() {
-                { "deposit", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-            };
-            object fee = null;
-            object depositEnabled = null;
-            object withdrawEnabled = null;
+            object networks = new Dictionary<string, object>() {};
+            object providers = this.safeList(cryptoList, currencyId);
             if (isTrue(isEqual(providers, null)))
             {
-                active = true;
                 type = "fiat";
             } else
             {
                 for (object j = 0; isLessThan(j, getArrayLength(providers)); postFixIncrement(ref j))
                 {
                     object provider = getValue(providers, j);
+                    object name = this.safeString(provider, "name");
+                    // get network-id by removing extra things
+                    object networkId = ((string)name).Replace((string)add(currencyId, " "), (string)"");
+                    networkId = ((string)networkId).Replace((string)"(", (string)"");
+                    object replaceChar = ")"; // transpiler trick
+                    networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
+                    object networkCode = this.networkIdToCode(networkId);
+                    if (!isTrue((inOp(networks, networkCode))))
+                    {
+                        ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                            { "id", networkId },
+                            { "network", networkCode },
+                            { "active", null },
+                            { "deposit", null },
+                            { "withdraw", null },
+                            { "fee", null },
+                            { "limits", new Dictionary<string, object>() {
+                                { "withdraw", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
+                                { "deposit", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
+                            } },
+                            { "info", new List<object>() {} },
+                        };
+                    }
                     object typeInner = this.safeString(provider, "type");
                     object minValue = this.safeString(provider, "min");
                     object maxValue = this.safeString(provider, "max");
-                    if (isTrue(Precise.stringEq(maxValue, "0.0")))
-                    {
-                        maxValue = null;
-                    }
-                    object activeProvider = this.safeValue(provider, "enabled");
+                    object activeProvider = this.safeBool(provider, "enabled");
+                    object networkEntry = getValue(networks, networkCode);
                     if (isTrue(isEqual(typeInner, "deposit")))
                     {
-                        if (isTrue(isTrue(activeProvider) && !isTrue(depositEnabled)))
-                        {
-                            depositEnabled = true;
-                        } else if (!isTrue(activeProvider))
-                        {
-                            depositEnabled = false;
-                        }
+                        ((IDictionary<string,object>)networkEntry)["deposit"] = activeProvider;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["min"] = minValue;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["max"] = maxValue;
                     } else if (isTrue(isEqual(typeInner, "withdraw")))
                     {
-                        if (isTrue(isTrue(activeProvider) && !isTrue(withdrawEnabled)))
-                        {
-                            withdrawEnabled = true;
-                        } else if (!isTrue(activeProvider))
-                        {
-                            withdrawEnabled = false;
-                        }
+                        ((IDictionary<string,object>)networkEntry)["withdraw"] = activeProvider;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["min"] = minValue;
+                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["max"] = maxValue;
                     }
-                    if (isTrue(activeProvider))
-                    {
-                        active = true;
-                        object limitMin = this.numberToString(getValue(getValue(limits, typeInner), "min"));
-                        if (isTrue(isTrue((isEqual(getValue(getValue(limits, typeInner), "min"), null))) || isTrue((Precise.stringLt(minValue, limitMin)))))
-                        {
-                            ((IDictionary<string,object>)getValue(limits, typeInner))["min"] = minValue;
-                            ((IDictionary<string,object>)getValue(limits, typeInner))["max"] = maxValue;
-                            if (isTrue(isEqual(typeInner, "withdraw")))
-                            {
-                                object commissionDesc = this.safeString(provider, "commission_desc");
-                                fee = this.parseFixedFloatValue(commissionDesc);
-                            }
-                        }
-                    }
+                    object info = this.safeList(networkEntry, "info");
+                    ((IList<object>)info).Add(provider);
+                    ((IDictionary<string,object>)networkEntry)["info"] = info;
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
                 }
             }
-            object code = this.safeCurrencyCode(currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "code", code },
-                { "name", name },
+                { "name", this.safeString(currency, "description") },
                 { "type", type },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", fee },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", null },
                 { "precision", this.parseNumber("1e-8") },
-                { "limits", limits },
-                { "info", providers },
-                { "networks", new Dictionary<string, object>() {} },
-            };
+                { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "info", new Dictionary<string, object>() {
+                    { "currency", currency },
+                    { "providers", providers },
+                } },
+                { "networks", networks },
+            });
         }
         return result;
     }
@@ -794,7 +802,8 @@ public partial class exmo : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetPairSettings(parameters);
+        object promises = new List<object>() {};
+        ((IList<object>)promises).Add(this.publicGetPairSettings(parameters));
         //
         //     {
         //         "BTC_USD":{
@@ -811,48 +820,26 @@ public partial class exmo : Exchange
         //     }
         //
         object marginPairsDict = new Dictionary<string, object>() {};
-        if (isTrue(this.checkRequiredCredentials(false)))
+        object fetchMargin = this.checkRequiredCredentials(false);
+        if (isTrue(fetchMargin))
         {
-            object marginPairs = await this.privatePostMarginPairList(parameters);
-            //
-            //    {
-            //        "pairs": [
-            //            {
-            //                "buy_price": "55978.85",
-            //                "default_leverage": "3",
-            //                "is_fair_price": true,
-            //                "last_trade_price": "55999.23",
-            //                "liquidation_fee": "2",
-            //                "liquidation_level": "10",
-            //                "margin_call_level": "15",
-            //                "max_leverage": "3",
-            //                "max_order_price": "150000",
-            //                "max_order_quantity": "1",
-            //                "max_position_quantity": "1",
-            //                "max_price_precision": 2,
-            //                "min_order_price": "1",
-            //                "min_order_quantity": "0.00002",
-            //                "name": "BTC_USD",
-            //                "position": 1,
-            //                "sell_price": "55985.51",
-            //                "ticker_updated": "1619019818936107989",
-            //                "trade_maker_fee": "0",
-            //                "trade_taker_fee": "0.05",
-            //                "updated": "1619008608955599013"
-            //            }
-            //        ]
-            //    }
-            //
-            object pairs = this.safeValue(marginPairs, "pairs");
+            ((IList<object>)promises).Add(this.privatePostMarginPairList(parameters));
+        }
+        object responses = await promiseAll(promises);
+        object spotResponse = getValue(responses, 0);
+        if (isTrue(fetchMargin))
+        {
+            object marginPairs = getValue(responses, 1);
+            object pairs = this.safeList(marginPairs, "pairs");
             marginPairsDict = this.indexBy(pairs, "name");
         }
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)spotResponse).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object id = getValue(keys, i);
-            object market = getValue(response, id);
-            object marginMarket = this.safeValue(marginPairsDict, id);
+            object market = getValue(spotResponse, id);
+            object marginMarket = this.safeDict(marginPairsDict, id);
             object symbol = ((string)id).Replace((string)"_", (string)"/");
             var baseIdquoteIdVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
@@ -960,7 +947,7 @@ public partial class exmo : Exchange
             ((IDictionary<string,object>)request)["to"] = to;
         } else
         {
-            ((IDictionary<string,object>)request)["from"] = subtract(this.parseToInt(divide(since, 1000)), 1);
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             if (isTrue(untilIsDefined))
             {
                 ((IDictionary<string,object>)request)["to"] = mathMin(until, now);

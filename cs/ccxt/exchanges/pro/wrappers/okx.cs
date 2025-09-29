@@ -10,6 +10,8 @@ public partial class okx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +45,8 @@ public partial class okx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -60,6 +64,12 @@ public partial class okx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.channel</term>
+    /// <description>
+    /// string : the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
     /// </description>
     /// </item>
     /// </list>
@@ -248,7 +258,7 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
-    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Liquidation>> WatchLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -282,7 +292,7 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}.</returns>
-    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Liquidation>> WatchMyLiquidationsForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;

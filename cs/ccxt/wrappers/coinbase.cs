@@ -1130,7 +1130,7 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -1398,9 +1398,9 @@ public partial class coinbase
         var res = await this.fetchPortfolioDetails(portfolioUuid, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public string CreateAuthToken(Int64 seconds, string method = null, string url = null)
+    public string CreateAuthToken(Int64 seconds, string method = null, string url = null, bool useEddsa = false)
     {
-        var res = this.createAuthToken(seconds, method, url);
+        var res = this.createAuthToken(seconds, method, url, useEddsa);
         return ((string)res);
     }
 }

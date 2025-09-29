@@ -2596,25 +2596,26 @@ class deribit(Exchange, ImplicitAPI):
         unrealizedPnl = self.safe_string(position, 'floating_profit_loss')
         initialMarginString = self.safe_string(position, 'initial_margin')
         notionalString = self.safe_string(position, 'size_currency')
+        notionalStringAbs = Precise.string_abs(notionalString)
         maintenanceMarginString = self.safe_string(position, 'maintenance_margin')
-        currentTime = self.milliseconds()
         return self.safe_position({
             'info': position,
             'id': None,
             'symbol': self.safe_string(market, 'symbol'),
-            'timestamp': currentTime,
-            'datetime': self.iso8601(currentTime),
+            'timestamp': None,
+            'datetime': None,
             'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
-            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalString), '100')),
+            'initialMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(initialMarginString, notionalStringAbs), '100')),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
-            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalString), '100')),
+            'maintenanceMarginPercentage': self.parse_number(Precise.string_mul(Precise.string_div(maintenanceMarginString, notionalStringAbs), '100')),
             'entryPrice': self.safe_number(position, 'average_price'),
-            'notional': self.parse_number(notionalString),
+            'notional': self.parse_number(notionalStringAbs),
             'leverage': self.safe_integer(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
-            'contracts': None,
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'realizedPnl': self.safe_number(position, 'realized_profit_loss'),
+            'contracts': self.safe_number(position, 'size'),
+            'contractSize': self.safe_number(position, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
             'markPrice': self.safe_number(position, 'mark_price'),
@@ -2936,7 +2937,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

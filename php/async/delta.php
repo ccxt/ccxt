@@ -217,6 +217,7 @@ class delta extends Exchange {
                     ),
                 ),
             ),
+            'userAgent' => $this->userAgents['chrome39'], // needed for C#
             'options' => array(
                 'networks' => array(
                     'TRC20' => 'TRC20(TRON)',
@@ -933,9 +934,9 @@ class delta extends Exchange {
                     'inverse' => $spot ? null : !$linear,
                     'taker' => $this->safe_number($market, 'taker_commission_rate'),
                     'maker' => $this->safe_number($market, 'maker_commission_rate'),
-                    'contractSize' => $contractSize,
+                    'contractSize' => $spot ? null : $contractSize,
                     'expiry' => $expiry,
-                    'expiryDatetime' => $expiryDatetime,
+                    'expiryDatetime' => $this->iso8601($expiry), // do not use raw $expiry string
                     'strike' => $this->parse_number($strike),
                     'optionType' => $optionType,
                     'precision' => array(
@@ -3092,7 +3093,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

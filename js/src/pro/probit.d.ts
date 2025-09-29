@@ -1,5 +1,5 @@
 import probitRest from '../probit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class probit extends probitRest {
     describe(): any;
@@ -83,7 +83,7 @@ export default class probit extends probitRest {
     handleOrderBook(client: Client, message: any, orderBook: any): void;
     handleBidAsks(bookSide: any, bidAsks: any): void;
     handleDelta(orderbook: any, delta: any): void;
-    handleErrorMessage(client: Client, message: any): void;
+    handleErrorMessage(client: Client, message: any): Bool;
     handleAuthenticate(client: Client, message: any): void;
     handleMarketData(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;

@@ -8,7 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -124,7 +124,8 @@ class apex(ccxt.async_support.apex):
         #                 "L": "PlusTick",
         #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
         #                 "BT": False
-        #             }
+        #             },
+        #             # sorted by newest first
         #         ]
         #     }
         #
@@ -140,8 +141,10 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        for j in range(0, len(trades)):
-            parsed = self.parse_ws_trade(trades[j], market)
+        length = len(trades)
+        for j in range(0, length):
+            index = length - j - 1
+            parsed = self.parse_ws_trade(trades[index], market)
             stored.append(parsed)
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
@@ -805,7 +808,7 @@ class apex(ccxt.async_support.apex):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #   {
         #       "success": False,
@@ -913,6 +916,7 @@ class apex(ccxt.async_support.apex):
 
     def ping(self, client: Client):
         timeStamp = str(self.milliseconds())
+        client.lastPong = timeStamp  # server won't send a pong, so we set it here
         return {
             'args': [timeStamp],
             'op': 'ping',

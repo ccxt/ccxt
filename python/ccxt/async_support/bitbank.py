@@ -54,6 +54,7 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -931,13 +932,13 @@ class bitbank(Exchange, ImplicitAPI):
         address = self.safe_string(firstAccount, 'address')
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': None,
             'address': address,
             'tag': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

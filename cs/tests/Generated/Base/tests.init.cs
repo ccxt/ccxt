@@ -18,6 +18,7 @@ public partial class BaseTest
             testNumberToString();
             testPrecise();
             testSafeMethods();
+            testSafeTicker();
             // testJson ();
             testSortBy();
             testSum();
@@ -26,5 +27,7 @@ public partial class BaseTest
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
+            testParsePrecision();
+            testArraysConcat();
         }
 }

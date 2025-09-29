@@ -66,7 +66,6 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 	return outDict
 }
 
-
 func (this *Exchange) Sort(input interface{}) []string {
 	var list []string
 
@@ -121,9 +120,7 @@ func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{}
 
 	// Handle variadic parameters as individual keys
 	keys := make([]interface{}, len(parameters))
-	for i, parameter := range parameters {
-		keys[i] = parameter
-	}
+	copy(keys, parameters)
 	return this.OmitMap(a, keys)
 }
 
@@ -225,6 +222,13 @@ func (this *Exchange) ToArray(a interface{}) []interface{} {
 		for _, value := range m {
 			outList = append(outList, value)
 		}
+		return outList
+	} else if m, ok := a.(*sync.Map); ok {
+		outList := make([]interface{}, 0)
+		m.Range(func(key, value interface{}) bool {
+			outList = append(outList, value)
+			return true
+		})
 		return outList
 	}
 

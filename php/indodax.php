@@ -26,6 +26,9 @@ class indodax extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
@@ -37,12 +40,18 @@ class indodax extends Exchange {
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => true,
@@ -50,30 +59,52 @@ class indodax extends Exchange {
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrice' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
                 'fetchPosition' => false,
+                'fetchPositionForSymbolWs' => false,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
+                'fetchPositionsForSymbolWs' => false,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
@@ -84,9 +115,13 @@ class indodax extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -158,6 +193,16 @@ class indodax extends Exchange {
                     'Minimum order' => '\\ccxt\\InvalidOrder',
                 ),
             ),
+            'timeframes' => array(
+                '1m' => '1',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '4h' => '240',
+                '1d' => '1D',
+                '3d' => '3D',
+                '1w' => '1W',
+            ),
             // exchange-specific options
             'options' => array(
                 'recvWindow' => 5 * 1000, // default 5 sec
@@ -180,16 +225,6 @@ class indodax extends Exchange {
                     // 'ZRC2' => 'zrc2'
                     // 'ETH' => 'eth'
                     // 'BASE' => 'base'
-                ),
-                'timeframes' => array(
-                    '1m' => '1',
-                    '15m' => '15',
-                    '30m' => '30',
-                    '1h' => '60',
-                    '4h' => '240',
-                    '1d' => '1D',
-                    '3d' => '3D',
-                    '1w' => '1W',
                 ),
             ),
             'features' => array(
@@ -329,7 +364,7 @@ class indodax extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
-            $id = $this->safe_string($market, 'ticker_id');
+            $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'traded_currency');
             $quoteId = $this->safe_string($market, 'base_currency');
             $base = $this->safe_currency_code($baseId);
@@ -471,7 +506,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['base'] . $market['quote'],
+            'pair' => $market['id'],
         );
         $orderbook = $this->publicGetApiDepthPair ($this->extend($request, $params));
         return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
@@ -532,7 +567,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['base'] . $market['quote'],
+            'pair' => $market['id'],
         );
         $response = $this->publicGetApiTickerPair ($this->extend($request, $params));
         //
@@ -555,11 +590,11 @@ class indodax extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
          * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -582,7 +617,17 @@ class indodax extends Exchange {
         //
         $response = $this->publicGetApiTickerAll ($params);
         $tickers = $this->safe_dict($response, 'tickers', array());
-        return $this->parse_tickers($tickers, $symbols);
+        $keys = is_array($tickers) ? array_keys($tickers) : array();
+        $parsedTickers = array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $rawTicker = $tickers[$key];
+            $marketId = str_replace('_', '', $key);
+            $market = $this->safe_market($marketId);
+            $parsed = $this->parse_ticker($rawTicker, $market);
+            $parsedTickers[$marketId] = $parsed;
+        }
+        return $this->filter_by_array($parsedTickers, 'symbol', $symbols);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -619,7 +664,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['base'] . $market['quote'],
+            'pair' => $market['id'],
         );
         $response = $this->publicGetApiTradesPair ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -659,15 +704,14 @@ class indodax extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $timeframes = $this->options['timeframes'];
-        $selectedTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
+        $selectedTimeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $now = $this->seconds();
         $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
         $request = array(
             'to' => $until,
             'tf' => $selectedTimeframe,
-            'symbol' => $market['base'] . $market['quote'],
+            'symbol' => $market['id'],
         );
         if ($limit === null) {
             $limit = 1000;
@@ -1150,7 +1194,7 @@ class indodax extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

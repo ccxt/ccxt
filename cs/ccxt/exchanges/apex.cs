@@ -1637,7 +1637,7 @@ public partial class apex : Exchange
         }
         object response = await this.privatePostV3DeleteOpenOrders(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return new List<object> {this.parseOrder(data, market)};
     }
 
     /**
@@ -1667,7 +1667,7 @@ public partial class apex : Exchange
             response = await this.privatePostV3DeleteOrder(this.extend(request, parameters));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return data;
+        return this.safeOrder(data);
     }
 
     /**

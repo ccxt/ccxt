@@ -494,7 +494,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));

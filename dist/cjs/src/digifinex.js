@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var digifinex$1 = require('./abstract/digifinex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class digifinex
  * @augments Exchange
  */
-class digifinex extends digifinex$1 {
+class digifinex extends digifinex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'digifinex',
@@ -526,7 +528,7 @@ class digifinex extends digifinex$1 {
             const networks = {};
             for (let j = 0; j < networkEntries.length; j++) {
                 const networkEntry = networkEntries[j];
-                const networkId = this.safeString(networkEntry, 'chain');
+                const networkId = this.safeString2(networkEntry, 'chain', 'currency');
                 const networkCode = this.networkIdToCode(networkId);
                 networks[networkCode] = {
                     'id': networkId,
@@ -4449,4 +4451,4 @@ class digifinex extends digifinex$1 {
     }
 }
 
-module.exports = digifinex;
+exports["default"] = digifinex;

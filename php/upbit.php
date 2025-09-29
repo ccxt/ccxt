@@ -37,6 +37,7 @@ class upbit extends Exchange {
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchCurrencies' => false,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
@@ -2216,7 +2217,7 @@ class upbit extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
          * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기

@@ -219,6 +219,7 @@ class independentreserve(ccxt.async_support.independentreserve):
                 del client.subscriptions[messageHash]
                 del self.orderbooks[symbol]
                 client.reject(error, messageHash)
+                return
         if receivedSnapshot:
             client.resolve(orderbook, messageHash)
 

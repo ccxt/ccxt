@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var exmo$1 = require('../exmo.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class exmo extends exmo$1 {
+class exmo extends exmo$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -899,4 +901,4 @@ class exmo extends exmo$1 {
     }
 }
 
-module.exports = exmo;
+exports["default"] = exmo;
