@@ -205,7 +205,7 @@
                         "takeProfitPrice": null
                     }
                 ]
-            },
+            }
         ],
         "fetchCurrencies": [
             {
