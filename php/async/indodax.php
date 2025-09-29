@@ -57,6 +57,7 @@ class indodax extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => true,
