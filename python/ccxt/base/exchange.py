@@ -326,7 +326,7 @@ class Exchange(object):
     # API method metainfo
     has = {}
     features = {}
-    precisionMode = TICK_SIZE
+    precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
