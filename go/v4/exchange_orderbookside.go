@@ -63,7 +63,7 @@ type OrderBookSide struct {
 	Side   bool            `json:"-"`    // false is asks, true is bids
 }
 
-func (obs *OrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
+func (obs OrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
 	switch key {
 	case "Data":
 		return obs.Data
@@ -80,9 +80,9 @@ func (obs *OrderBookSide) GetValue(key string, defaultValue interface{}) interfa
 	}
 }
 
-func NewOrderBookSide(side bool, deltas interface{}, depth interface{}) *OrderBookSide {
+func NewOrderBookSide(side bool, deltas interface{}, depth interface{}) OrderBookSide {
 
-	orderBookSide := &OrderBookSide{
+	orderBookSide := OrderBookSide{
 		Data:   make([][]interface{}, 0),
 		Index:  make([]float64, len(SEED)),
 		Length: 0,
@@ -90,7 +90,7 @@ func NewOrderBookSide(side bool, deltas interface{}, depth interface{}) *OrderBo
 		Side:   side,
 	}
 	result := Init(orderBookSide, deltas, depth)
-	return result.(*OrderBookSide)
+	return result.(OrderBookSide)
 }
 
 func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookSide {
@@ -111,7 +111,7 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 	switch d := deltas.(type) {
 	case [][]float64:
 		for i := 0; i < len(d); i++ {
-			// if iobs, ok := obs.(*IndexedOrderBookSide); ok {
+			// if iobs, ok := obs.(IndexedOrderBookSide); ok {
 			// 	iobs.SetLen(i)
 			// }
 			original := d[i]
@@ -120,7 +120,7 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 		}
 	case IOrderBookSide:
 		for i := 0; i < d.Len(); i++ {
-			// 	if iobs, ok := obs.(*IndexedOrderBookSide); ok {
+			// 	if iobs, ok := obs.(IndexedOrderBookSide); ok {
 			// 		iobs.SetLen(i)
 			// 	}
 			original := (d.GetData())[i]
@@ -129,7 +129,7 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 		}
 	case [][]interface{}:
 		for i := 0; i < len(d); i++ {
-			// 	if iobs, ok := obs.(*IndexedOrderBookSide); ok {
+			// 	if iobs, ok := obs.(IndexedOrderBookSide); ok {
 			// 		iobs.SetLen(i)
 			// 	}
 			original := d[i]
@@ -138,7 +138,7 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 		}
 	case []interface{}:
 		for i := 0; i < len(d); i++ {
-			// if iobs, ok := obs.(*IndexedOrderBookSide); ok {
+			// if iobs, ok := obs.(IndexedOrderBookSide); ok {
 			// 	iobs.SetLen(i)
 			// }
 			original := d[i]
@@ -153,8 +153,10 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 	return obs
 }
 
-func (obs *OrderBookSide) StoreArray(delta interface{}) {
+func (obs OrderBookSide) StoreArray(delta interface{}) {
 
+	// const price = delta[0]
+	// const size = delta[1]
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
 	deltaInterface, isInterface := delta.([]interface{})
@@ -172,6 +174,7 @@ func (obs *OrderBookSide) StoreArray(delta interface{}) {
 		price = normalizeNumber(deltaInterface[0])
 		size = normalizeNumber(deltaInterface[1])
 	}
+	// const index_price = this.side ? -price : price
 	var indexPrice float64
 	if obs.Side {
 		indexPrice = -price
@@ -242,13 +245,13 @@ func normalizeNumber(value interface{}) float64 {
 }
 
 // Store indexes an incoming delta in the string-price-keyed dictionary
-func (obs *OrderBookSide) Store(price interface{}, size interface{}) error {
+func (obs OrderBookSide) Store(price interface{}, size interface{}) error {
 	obs.StoreArray([]float64{normalizeNumber(price), normalizeNumber(size)})
 	return nil
 }
 
 // Limit replaces stored orders with new values
-func (obs *OrderBookSide) Limit() {
+func (obs OrderBookSide) Limit() {
 	if obs.Length > obs.Depth {
 		for i := obs.Depth; i < obs.Length; i++ {
 			obs.Index[i] = math.MaxFloat64
@@ -263,16 +266,16 @@ func (obs *OrderBookSide) Limit() {
 }
 
 type CountedOrderBookSide struct {
-	*OrderBookSide
+	OrderBookSide
 }
 
 // NewCountedOrderBookSide constructor
-func NewCountedOrderBookSide(side bool, deltas interface{}, depth interface{}) *CountedOrderBookSide {
+func NewCountedOrderBookSide(side bool, deltas interface{}, depth interface{}) CountedOrderBookSide {
 
 	// orderBookSide := &CountedOrderBookSide{
 	// 	OrderBookSide: NewOrderBookSide(side, deltas, depth),
 	// }
-	orderBookSide := &OrderBookSide{
+	orderBookSide := OrderBookSide{
 		Data:   make([][]interface{}, 0),
 		Index:  make([]float64, len(SEED)),
 		Length: 0,
@@ -284,15 +287,15 @@ func NewCountedOrderBookSide(side bool, deltas interface{}, depth interface{}) *
 		OrderBookSide: orderBookSide,
 	}
 	result := Init(countedOrderBookSide, deltas, depth)
-	return result.(*CountedOrderBookSide)
+	return result.(CountedOrderBookSide)
 }
 
-func (cobs *CountedOrderBookSide) Store(price interface{}, size interface{}) error {
+func (cobs CountedOrderBookSide) Store(price interface{}, size interface{}) error {
 	return errors.New("CountedOrderBookSide.Store() is not supported, use StoreArray([price, size, count]) instead")
 }
 
 // StoreArray handles deltas with count (3 elements: price, size, count)
-func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
+func (obs CountedOrderBookSide) StoreArray(delta interface{}) {
 
 	deltaArray, isArray := delta.([]interface{})
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -365,7 +368,7 @@ func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
 }
 
 type IndexedOrderBookSide struct {
-	*OrderBookSide
+	OrderBookSide
 	Hashmap map[interface{}]float64 // string-keyed dictionary of price levels / ids / indices
 	Data    [][]interface{}         // equivalent to extending Array
 	Index   []float64               // string-keyed dictionary of price levels / ids / indices
@@ -374,7 +377,7 @@ type IndexedOrderBookSide struct {
 	Side    bool                    // false is asks, true is bids
 }
 
-func NewIndexedOrderBookSide(side bool, deltas interface{}, depth interface{}) *IndexedOrderBookSide {
+func NewIndexedOrderBookSide(side bool, deltas interface{}, depth interface{}) IndexedOrderBookSide {
 	dataLength := 0
 	switch d := deltas.(type) {
 	case []float64:
@@ -394,15 +397,15 @@ func NewIndexedOrderBookSide(side bool, deltas interface{}, depth interface{}) *
 		Side:    side,
 	}
 	result := Init(orderBookSide, deltas, depth)
-	return result.(*IndexedOrderBookSide)
+	return result.(IndexedOrderBookSide)
 }
 
-func (iobs *IndexedOrderBookSide) Store(price interface{}, size interface{}) error {
+func (iobs IndexedOrderBookSide) Store(price interface{}, size interface{}) error {
 	return errors.New("IndexedOrderBook.Store() is not supported, use StoreArray([price, size, id]) instead")
 }
 
 // StoreArray handles deltas with id (3 elements: price, size, id)
-func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
+func (obs IndexedOrderBookSide) StoreArray(delta interface{}) {
 
 	deltaArray, isArray := delta.([]interface{})
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -532,7 +535,7 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 }
 
 // Limit replaces stored orders with new values
-func (iobs *IndexedOrderBookSide) Limit() {
+func (iobs IndexedOrderBookSide) Limit() {
 	if iobs.Length > iobs.Depth {
 		for i := iobs.Depth; i < iobs.Length; i++ {
 			delete(iobs.Hashmap, iobs.Data[i][2])
@@ -548,59 +551,59 @@ func (iobs *IndexedOrderBookSide) Limit() {
 // Asks and Bids types - these are just OrderBookSide with different Side values
 
 type Asks struct {
-	*OrderBookSide
+	OrderBookSide
 }
 type Bids struct {
-	*OrderBookSide
+	OrderBookSide
 }
 type CountedAsks struct {
-	*CountedOrderBookSide
+	CountedOrderBookSide
 }
 type CountedBids struct {
-	*CountedOrderBookSide
+	CountedOrderBookSide
 }
 type IndexedAsks struct {
-	*IndexedOrderBookSide
+	IndexedOrderBookSide
 }
 type IndexedBids struct {
-	*IndexedOrderBookSide
+	IndexedOrderBookSide
 }
 
-func NewAsks(deltas interface{}, depth interface{}) *OrderBookSide {
+func NewAsks(deltas interface{}, depth interface{}) OrderBookSide {
 	obs := NewOrderBookSide(false, deltas, depth)
 	return obs
 }
 
-func NewBids(deltas interface{}, depth interface{}) *OrderBookSide {
+func NewBids(deltas interface{}, depth interface{}) OrderBookSide {
 	obs := NewOrderBookSide(true, deltas, depth)
 	return obs
 }
 
-func NewCountedAsks(deltas interface{}, depth interface{}) *CountedOrderBookSide {
+func NewCountedAsks(deltas interface{}, depth interface{}) CountedOrderBookSide {
 	cobs := NewCountedOrderBookSide(false, deltas, depth)
 	// cobs.Side = false
 	return cobs
 }
 
-func NewCountedBids(deltas interface{}, depth interface{}) *CountedOrderBookSide {
+func NewCountedBids(deltas interface{}, depth interface{}) CountedOrderBookSide {
 	cobs := NewCountedOrderBookSide(true, deltas, depth)
 	return cobs
 }
 
-func NewIndexedAsks(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
+func NewIndexedAsks(deltas interface{}, depth interface{}) IndexedOrderBookSide {
 	iobs := NewIndexedOrderBookSide(false, deltas, depth)
 	// iobs.Side = false
 	return iobs
 }
 
-func NewIndexedBids(deltas interface{}, depth interface{}) *IndexedOrderBookSide {
+func NewIndexedBids(deltas interface{}, depth interface{}) IndexedOrderBookSide {
 	iobs := NewIndexedOrderBookSide(true, deltas, depth)
 	// iobs.Side = true
 	return iobs
 }
 
 // String returns a formatted string representation of the OrderBookSide struct
-func (obs *OrderBookSide) String() string {
+func (obs OrderBookSide) String() string {
 	var result strings.Builder
 	result.WriteString("OrderBookSide{")
 
@@ -634,74 +637,74 @@ func (obs *OrderBookSide) String() string {
 	return result.String()
 }
 
-func (obs *OrderBookSide) Len() int {
+func (obs OrderBookSide) Len() int {
 	return obs.Length
 }
-func (obs *OrderBookSide) GetData() [][]interface{} {
+func (obs OrderBookSide) GetData() [][]interface{} {
 	return obs.Data
 }
-func (ords *OrderBookSide) GetSide() bool {
+func (ords OrderBookSide) GetSide() bool {
 	return ords.Side
 }
-func (obs *OrderBookSide) SetLen(length int) {
+func (obs OrderBookSide) SetLen(length int) {
 	obs.Length = length
 }
-func (obs *OrderBookSide) SetData(data [][]interface{}) {
+func (obs OrderBookSide) SetData(data [][]interface{}) {
 	obs.Data = data
 }
-func (obs *OrderBookSide) GetIndex() *[]float64 {
+func (obs OrderBookSide) GetIndex() *[]float64 {
 	return &obs.Index
 }
 
-func (obs *OrderBookSide) SetDepth(depth int) {
+func (obs OrderBookSide) SetDepth(depth int) {
 	obs.Depth = depth
 }
-func (obs *CountedOrderBookSide) SetLen(length int) {
+func (obs CountedOrderBookSide) SetLen(length int) {
 	obs.OrderBookSide.SetLen(length)
 }
-func (obs *CountedOrderBookSide) GetData() [][]interface{} {
+func (obs CountedOrderBookSide) GetData() [][]interface{} {
 	return obs.OrderBookSide.GetData()
 }
-func (obs *CountedOrderBookSide) SetData(data [][]interface{}) {
+func (obs CountedOrderBookSide) SetData(data [][]interface{}) {
 	obs.OrderBookSide.SetData(data)
 }
-func (obs *CountedOrderBookSide) GetIndex() *[]float64 {
+func (obs CountedOrderBookSide) GetIndex() *[]float64 {
 	return obs.OrderBookSide.GetIndex()
 }
-func (obs *CountedOrderBookSide) String() string {
+func (obs CountedOrderBookSide) String() string {
 	return obs.OrderBookSide.String()
 }
-func (obs *CountedOrderBookSide) Len() int {
+func (obs CountedOrderBookSide) Len() int {
 	return obs.Length
 }
-func (obs *CountedOrderBookSide) SetDepth(depth int) {
+func (obs CountedOrderBookSide) SetDepth(depth int) {
 	obs.OrderBookSide.SetDepth(depth)
 }
-func (obs *CountedOrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
+func (obs CountedOrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
 	return obs.OrderBookSide.GetValue(key, defaultValue)
 }
-func (obs *IndexedOrderBookSide) SetLen(length int) {
+func (obs IndexedOrderBookSide) SetLen(length int) {
 	obs.Length = length
 }
-func (obs *IndexedOrderBookSide) SetData(data [][]interface{}) {
+func (obs IndexedOrderBookSide) SetData(data [][]interface{}) {
 	obs.Data = data
 }
-func (obs *IndexedOrderBookSide) GetIndex() *[]float64 {
+func (obs IndexedOrderBookSide) GetIndex() *[]float64 {
 	return &obs.Index
 }
-func (obs *IndexedOrderBookSide) String() string {
+func (obs IndexedOrderBookSide) String() string {
 	return obs.OrderBookSide.String()
 }
-func (obs *IndexedOrderBookSide) GetData() [][]interface{} {
+func (obs IndexedOrderBookSide) GetData() [][]interface{} {
 	return obs.Data
 }
-func (obs *IndexedOrderBookSide) Len() int {
+func (obs IndexedOrderBookSide) Len() int {
 	return obs.Length
 }
-func (obs *IndexedOrderBookSide) SetDepth(depth int) {
+func (obs IndexedOrderBookSide) SetDepth(depth int) {
 	obs.Depth = depth
 }
-func (iobs *IndexedOrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
+func (iobs IndexedOrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
 	switch key {
 	case "Data":
 		return iobs.Data
