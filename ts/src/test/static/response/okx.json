@@ -5991,6 +5991,77 @@
                   }
                 }
             }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel trigger orders by clientOrderId",
+                "method": "cancelOrders",
+                "input": [
+                    null,
+                    "BTC/USDT:USDT",
+                    {
+                        "trigger": true,
+                        "clientOrderId": [
+                            "1234abcd"
+                        ]
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "algoClOrdId": "1234abcd",
+                            "algoId": "2903938004064555008",
+                            "clOrdId": "",
+                            "sCode": "0",
+                            "sMsg": "",
+                            "tag": ""
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "algoClOrdId": "1234abcd",
+                            "algoId": "2903938004064555008",
+                            "clOrdId": "",
+                            "sCode": "0",
+                            "sMsg": "",
+                            "tag": ""
+                        },
+                        "id": "2903938004064555008",
+                        "clientOrderId": [
+                            "1234abcd"
+                        ],
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": null,
+                        "price": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "triggerPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "status": null,
+                        "fee": null,
+                        "trades": [],
+                        "reduceOnly": false,
+                        "fees": [],
+                        "stopPrice": null,
+                        "trigger": true
+                    }
+                ]
+            }
         ]
     }
 }

@@ -56,6 +56,7 @@ class btcalpha(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDeposit': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
