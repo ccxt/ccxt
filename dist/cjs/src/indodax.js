@@ -56,6 +56,7 @@ class indodax extends indodax$1["default"] {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,

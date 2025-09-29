@@ -38,6 +38,7 @@ export default class bitbns extends Exchange {
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchBalance': true,
+                'fechCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
