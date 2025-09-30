@@ -49,6 +49,7 @@ class wavesexchange extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,

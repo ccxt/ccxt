@@ -3215,7 +3215,6 @@ class kraken extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
         if (is_array($params) && array_key_exists('key', $params)) {
             $this->load_markets();
             $currency = $this->currency($code);
@@ -3226,6 +3225,7 @@ class kraken extends Exchange {
             );
             if ($address !== null && $address !== '') {
                 $request['address'] = $address;
+                $this->check_address($address);
             }
             $response = $this->privatePostWithdraw ($this->extend($request, $params));
             //

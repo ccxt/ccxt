@@ -862,6 +862,9 @@ abstract class okxus extends \ccxt\async\okx {
     public function private_post_account_move_positions($params = array()) {
         return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function private_post_account_set_settle_currency($params = array()) {
+        return $this->request('account/set-settle-currency', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -1899,6 +1902,9 @@ abstract class okxus extends \ccxt\async\okx {
     }
     public function privatePostAccountMovePositions($params = array()) {
         return $this->request('account/move-positions', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostAccountSetSettleCurrency($params = array()) {
+        return $this->request('account/set-settle-currency', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));

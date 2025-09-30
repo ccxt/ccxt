@@ -3046,7 +3046,6 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
         if 'key' in params:
             await self.load_markets()
             currency = self.currency(code)
@@ -3057,6 +3056,7 @@ class kraken(Exchange, ImplicitAPI):
             }
             if address is not None and address != '':
                 request['address'] = address
+                self.check_address(address)
             response = await self.privatePostWithdraw(self.extend(request, params))
             #
             #     {

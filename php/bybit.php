@@ -6235,15 +6235,16 @@ class bybit extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic $accounts only)
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $accountType = null;
         $accounts = $this->is_unified_enabled();
         $isUta = $accounts[1];
-        list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType', 'SPOT');
-        if ($isUta) {
-            $accountType = 'UTA';
+        list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType');
+        if ($accountType === null) {
+            $accountType = $isUta ? 'UTA' : 'SPOT';
         }
         $this->load_markets();
         $this->check_address($address);
