@@ -110,12 +110,12 @@ export default class bingx extends bingxRest {
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
-        const subscriptionHash = market['id'] + '@ticker';
+        const dataType = market['id'] + '@ticker';
         const messageHash = this.getMessageHash ('ticker', market['symbol']);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
-            'dataType': subscriptionHash,
+            'dataType': dataType,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
@@ -124,7 +124,7 @@ export default class bingx extends bingxRest {
             'unsubscribe': false,
             'id': uuid,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     /**
@@ -141,14 +141,15 @@ export default class bingx extends bingxRest {
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const subscriptionHash = market['id'] + '@ticker';
-        const messageHash = 'unsubscribe::tickers::' + market['symbol'];
+        const dataType = market['id'] + '@ticker';
+        const subMessageHash = this.getMessageHash ('ticker', market['symbol']);
+        const messageHash = 'unsubscribe::' + subMessageHash;
         const topic = 'ticker';
         const methodName = 'unWatchTicker';
-        return await this.unWatch (messageHash, subscriptionHash, topic, market, methodName, params);
+        return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
-    async unWatch (messageHash: string, subscriptionHash: string, topic: string, market: Market, methodName: string, params = {}): Promise<any> {
+    async unWatch (messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params = {}): Promise<any> {
         let marketType = undefined;
         let subType = undefined;
         let url = undefined;
@@ -162,7 +163,7 @@ export default class bingx extends bingxRest {
         const id = this.uuid ();
         const request: Dict = {
             'id': id,
-            'dataType': subscriptionHash,
+            'dataType': dataType,
             'reqType': 'unsub',
         };
         const symbols = [];
@@ -172,12 +173,12 @@ export default class bingx extends bingxRest {
         const subscription: Dict = {
             'unsubscribe': true,
             'id': id,
-            'subMessageHashes': [ subscriptionHash ],
+            'subMessageHashes': [ subMessageHash ],
             'messageHashes': [ messageHash ],
             'symbols': symbols,
             'topic': topic,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), subscribeHash, subscription);
     }
 
     handleTicker (client: Client, message) {
@@ -331,8 +332,8 @@ export default class bingx extends bingxRest {
      * @method
      * @name bingx#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
-     * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -379,6 +380,29 @@ export default class bingx extends bingxRest {
             return filtered as Trade[];
         }
         return result as Trade[];
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const dataType = market['id'] + '@trade';
+        const subMessageHash = this.getMessageHash ('trade', market['symbol']);
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const topic = 'trades';
+        const methodName = 'unWatchTrades';
+        return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
     }
 
     handleTrades (client: Client, message) {
@@ -537,6 +561,8 @@ export default class bingx extends bingxRest {
         let subscriptionArgs: Dict = {};
         if (market['inverse']) {
             subscriptionArgs = {
+                'id': uuid,
+                'unsubscribe': false,
                 'count': limit,
                 'params': params,
             };
