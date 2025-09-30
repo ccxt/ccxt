@@ -2777,7 +2777,7 @@ export default class htx extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const id = this.safeStringN (trade, [ 'trade_id', 'trade-id', 'id' ]);
+        const id = this.safeStringN (trade, [ 'id', 'trade_id', 'trade-id' ]);
         return this.safeTrade ({
             'id': id,
             'info': trade,
