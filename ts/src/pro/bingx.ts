@@ -25,6 +25,9 @@ export default class bingx extends bingxRest {
                 'watchTicker': true,
                 'watchTickers': false, // no longer supported
                 'watchBalance': true,
+                'unWatchTrades': true,
+                'unWatchOrderBook': true,
+                'unWatchTicker': true,
             },
             'urls': {
                 'api': {
@@ -84,6 +87,38 @@ export default class bingx extends bingxRest {
                 'keepAlive': 1800000, // 30 minutes
             },
         });
+    }
+
+    async unWatch (messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params = {}): Promise<any> {
+        let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
+        }
+        const id = this.uuid ();
+        const request: Dict = {
+            'id': id,
+            'dataType': dataType,
+            'reqType': 'unsub',
+        };
+        const symbols = [];
+        if (market !== undefined) {
+            symbols.push (market['symbol']);
+        }
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': id,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ messageHash ],
+            'symbols': symbols,
+            'topic': topic,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), subscribeHash, subscription);
     }
 
     /**
@@ -147,38 +182,6 @@ export default class bingx extends bingxRest {
         const topic = 'ticker';
         const methodName = 'unWatchTicker';
         return await this.unWatch (messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, params);
-    }
-
-    async unWatch (messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params = {}): Promise<any> {
-        let marketType = undefined;
-        let subType = undefined;
-        let url = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
-        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
-        if (marketType === 'swap') {
-            url = this.safeString (this.urls['api']['ws'], subType);
-        } else {
-            url = this.safeString (this.urls['api']['ws'], marketType);
-        }
-        const id = this.uuid ();
-        const request: Dict = {
-            'id': id,
-            'dataType': dataType,
-            'reqType': 'unsub',
-        };
-        const symbols = [];
-        if (market !== undefined) {
-            symbols.push (market['symbol']);
-        }
-        const subscription: Dict = {
-            'unsubscribe': true,
-            'id': id,
-            'subMessageHashes': [ subMessageHash ],
-            'messageHashes': [ messageHash ],
-            'symbols': symbols,
-            'topic': topic,
-        };
-        return await this.watch (url, messageHash, this.extend (request, params), subscribeHash, subscription);
     }
 
     handleTicker (client: Client, message) {
@@ -568,6 +571,29 @@ export default class bingx extends bingxRest {
         }
         const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const depth = this.safeInteger (options, 'depth', 100);
+        const subMessageHash = market['id'] + '@' + 'depth' + this.numberToString (depth);
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const topic = 'orderbook';
+        const methodName = 'unWatchOrderBook';
+        return await this.unWatch (messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params);
     }
 
     handleDelta (bookside, delta) {
