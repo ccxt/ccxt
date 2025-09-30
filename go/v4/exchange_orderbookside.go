@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 /**
@@ -62,8 +63,8 @@ type OrderBookSide struct {
 	Depth  int             `json:"-"`    // depth limit
 	Length int             `json:"-"`    // current Length
 	Side   bool            `json:"-"`    // false is asks, true is bids
+	Mutex  sync.RWMutex    `json:"-"`    // protects concurrent access
 }
-
 func (obs *OrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
 	switch key {
 	case "Data":
@@ -155,6 +156,9 @@ func Init(obs IOrderBookSide, deltas interface{}, depth interface{}) IOrderBookS
 }
 
 func (obs *OrderBookSide) StoreArray(delta interface{}) {
+
+	obs.Mutex.Lock()
+	defer obs.Mutex.Unlock()
 
 	deltaArray, isArray := delta.([]float64)
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -250,6 +254,9 @@ func (obs *OrderBookSide) Store(price interface{}, size interface{}) error {
 
 // Limit replaces stored orders with new values
 func (obs *OrderBookSide) Limit() {
+	obs.Mutex.Lock()
+	defer obs.Mutex.Unlock()
+
 	if obs.Length > obs.Depth {
 		for i := obs.Depth; i < obs.Length; i++ {
 			obs.Index[i] = math.MaxFloat64
@@ -294,6 +301,9 @@ func (cobs *CountedOrderBookSide) Store(price interface{}, size interface{}) err
 
 // StoreArray handles deltas with count (3 elements: price, size, count)
 func (obs *CountedOrderBookSide) StoreArray(delta interface{}) {
+
+	obs.OrderBookSide.Mutex.Lock()
+	defer obs.OrderBookSide.Mutex.Unlock()
 
 	deltaArray, isArray := delta.([]interface{})
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -373,6 +383,7 @@ type IndexedOrderBookSide struct {
 	Depth   int                     // depth limit
 	Length  int                     // current Length
 	Side    bool                    // false is asks, true is bids
+	Mutex   sync.RWMutex            // protects concurrent access
 }
 
 func NewIndexedOrderBookSide(side bool, deltas interface{}, depth interface{}) *IndexedOrderBookSide {
@@ -403,7 +414,11 @@ func (iobs *IndexedOrderBookSide) Store(price interface{}, size interface{}) err
 }
 
 // StoreArray handles deltas with id (3 elements: price, size, id)
+// StoreArray handles deltas with id (3 elements: price, size, id)
 func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
+
+	obs.Mutex.Lock()
+	defer obs.Mutex.Unlock()
 
 	deltaArray, isArray := delta.([]interface{})
 	deltaOB, isOB := delta.(IOrderBookSide)
@@ -534,6 +549,9 @@ func (obs *IndexedOrderBookSide) StoreArray(delta interface{}) {
 
 // Limit replaces stored orders with new values
 func (iobs *IndexedOrderBookSide) Limit() {
+	iobs.Mutex.Lock()
+	defer iobs.Mutex.Unlock()
+
 	if iobs.Length > iobs.Depth {
 		for i := iobs.Depth; i < iobs.Length; i++ {
 			delete(iobs.Hashmap, iobs.Data[i][2])
