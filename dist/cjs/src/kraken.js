@@ -2529,7 +2529,7 @@ class kraken extends kraken$1["default"] {
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
