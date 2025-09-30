@@ -122,7 +122,7 @@ class apex(ccxt.async_support.apex):
         #                 "v": "0.001",
         #                 "p": "16578.50",
         #                 "L": "PlusTick",
-        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         #                 "BT": False
         #             },
         #             # sorted by newest first
