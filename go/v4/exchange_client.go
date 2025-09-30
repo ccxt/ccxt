@@ -94,12 +94,13 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 	}
 
 	// Send to Future channel for ongoing updates (non-blocking)
-	this.FuturesMu.Lock()
+	// this.FuturesMu.Lock()
 	if fut, exists := this.Futures[hash]; exists {
+		// Print("Inside resolve, existed future for hash: " + hash)
 		fut.(*Future).Resolve(data)
 		delete(this.Futures, hash)
 	}
-	this.FuturesMu.Unlock()
+	// this.FuturesMu.Unlock()
 	return data
 }
 

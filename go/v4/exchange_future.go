@@ -31,6 +31,7 @@ func ToGetsLimit(v interface{}) GetsLimit {
 type Future struct {
 	result        chan interface{}
 	err           chan interface{}
+	subscribers   []chan interface{}
 	resolved      bool
 	resolvedValue interface{}
 	resolvedError interface{}
@@ -55,11 +56,11 @@ func (f *Future) Resolve(args ...interface{}) {
 		value = args[0]
 	}
 	f.once.Do(func() {
-		f.mu.Lock()
+		// f.mu.Lock()
 		f.resolved = true
 		f.resolvedValue = value
 		f.resolvedError = nil
-		f.mu.Unlock()
+		// f.mu.Unlock()
 
 		func() {
 			defer func() {
@@ -73,6 +74,23 @@ func (f *Future) Resolve(args ...interface{}) {
 			default:
 			}
 		}()
+
+		// Notify all subscribers
+		for _, sub := range f.subscribers {
+			func(sub chan interface{}) {
+				defer func() {
+					if r := recover(); r != nil {
+						// Channel is closed, but that's okay since we're using sync.Once
+						// and the future is already marked as resolved
+					}
+				}()
+				select {
+				case sub <- value:
+				default:
+				}
+			}(sub)
+		}
+		f.subscribers = nil // Clear subscribers after notifying them
 	})
 }
 
@@ -97,75 +115,123 @@ func (f *Future) Reject(reason interface{}) {
 			default:
 			}
 		}()
+
+		// Notify all subscribers
+		for _, sub := range f.subscribers {
+			func(sub chan interface{}) {
+				defer func() {
+					if r := recover(); r != nil {
+						// Channel is closed, but that's okay since we're using sync.Once
+						// and the future is already marked as resolved
+					}
+				}()
+				select {
+				case sub <- reason:
+				default:
+				}
+			}(sub)
+		}
+		f.subscribers = nil // Clear subscribers after notifying them
 	})
 }
 
-// Await blocks until either result or error is received
-// Returns the resolved value (which could be an error)
+// // Await blocks until either result or error is received
+// // Returns the resolved value (which could be an error)
+// func (f *Future) Await() <-chan interface{} {
+// 	ch := make(chan interface{})
+
+// 	go func() {
+// 		defer close(ch)
+
+// 		// f.mu.Lock()
+// 		if f.resolved {
+// 			// f.mu.Unlock()
+// 			// for {
+// 			// Already resolved, return cached value immediately
+// 			// f.mu.Lock()
+// 			if f.resolvedError != nil {
+// 				ch <- f.resolvedError
+// 			} else {
+// 				ch <- f.resolvedValue
+// 			}
+// 			// f.mu.Unlock()
+// 			// f.mu.Unlock()
+// 			// return
+// 		}
+// 		// }
+// 		// f.mu.Unlock()
+
+// 		// // Not resolved yet, wait for it
+// 		// select {
+// 		// case res := <-f.result:
+// 		// 	for {
+// 		// 		ch <- res
+// 		// 	}
+// 		// case err := <-f.err:
+// 		// 	for {
+// 		// 		ch <- err
+// 		// 	}
+// 		// }
+
+// 		resCh, errCh := f.result, f.err
+// 		// f.mu.Unlock()
+
+// 		var out interface{}
+// 		select {
+// 		case out = <-resCh:
+// 		case out = <-errCh:
+// 		}
+
+// 		// Cache the resolution
+// 		f.mu.Lock()
+// 		f.resolved = true
+// 		if e, ok := out.(error); ok {
+// 			f.resolvedError = e
+// 		} else {
+// 			f.resolvedValue = out
+// 		}
+// 		val, err := f.resolvedValue, f.resolvedError
+// 		f.mu.Unlock()
+
+// 		// for {
+// 		if err != nil {
+// 			ch <- err
+// 		} else {
+// 			ch <- val
+// 		}
+// 		// }
+// 	}()
+
+// 	return ch
+// }
+
 func (f *Future) Await() <-chan interface{} {
-	ch := make(chan interface{})
+	ch := make(chan interface{}, 1)
+	f.subscribers = append(f.subscribers, ch)
+	// go func() {
+	// 	defer close(ch)
+	// 	// f.mu.Lock()
+	// 	if f.resolved {
+	// 		// Already resolved, return cached value immediately
+	// 		if f.resolvedError != nil {
+	// 			ch <- f.resolvedError
+	// 		} else {
+	// 			ch <- f.resolvedValue
+	// 		}
+	// 		// f.mu.Unlock()
+	// 		return
+	// 	}
 
-	go func() {
-		// defer close(ch)
+	// 	// f.mu.Unlock()
 
-		// f.mu.Lock()
-		if f.resolved {
-			// f.mu.Unlock()
-			for {
-				// Already resolved, return cached value immediately
-				// f.mu.Lock()
-				if f.resolvedError != nil {
-					ch <- f.resolvedError
-				} else {
-					ch <- f.resolvedValue
-				}
-				// f.mu.Unlock()
-				// f.mu.Unlock()
-				// return
-			}
-		}
-		// f.mu.Unlock()
-
-		// // Not resolved yet, wait for it
-		// select {
-		// case res := <-f.result:
-		// 	for {
-		// 		ch <- res
-		// 	}
-		// case err := <-f.err:
-		// 	for {
-		// 		ch <- err
-		// 	}
-		// }
-
-		resCh, errCh := f.result, f.err
-		// f.mu.Unlock()
-
-		var out interface{}
-		select {
-		case out = <-resCh:
-		case out = <-errCh:
-		}
-
-		// Cache the resolution
-		f.mu.Lock()
-		f.resolved = true
-		if e, ok := out.(error); ok {
-			f.resolvedError = e
-		} else {
-			f.resolvedValue = out
-		}
-		val, err := f.resolvedValue, f.resolvedError
-		f.mu.Unlock()
-
-		for {
-			if err != nil {
-				ch <- err
-			} else {
-				ch <- val
-			}
-		}
-	}()
+	// 	// Not resolved yet, wait for it
+	// 	select {
+	// 	case res := <-f.result:
+	// 		ch <- res
+	// 	case err := <-f.err:
+	// 		ch <- err
+	// 	}
+	// }()
 
 	return ch
 }
@@ -192,7 +258,8 @@ func FutureRace(futures []*Future) *Future {
 	result := NewFuture()
 	for _, f := range futures {
 		go func(fut *Future) {
-			futureResponse := <-fut.Await()
+			futureC := fut.Await()
+			futureResponse := <-futureC
 			if err, isError := futureResponse.(error); isError {
 				result.Reject(err)
 			} else {
