@@ -972,7 +972,7 @@ export default class htx extends htxRest {
         } else {
             // contract branch
             parsedOrder = this.parseWsOrder (message, market);
-            const rawTrades = this.safeValue (message, 'trade', []);
+            const rawTrades = this.safeList (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
                 const tradesObject: Dict = {
@@ -2170,6 +2170,10 @@ export default class htx extends htxRest {
                 for (let i = 0; i < rawTrades.length; i++) {
                     const trade = rawTrades[i];
                     let parsedTrade = this.parseTrade (trade, market);
+                    const uniqueId = this.safeString (trade, 'id');
+                    if (uniqueId !== undefined) {
+                        parsedTrade['id'] = uniqueId;
+                    }
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend (parsedTrade, extendParams);
                     cachedTrades.append (parsedTrade);
