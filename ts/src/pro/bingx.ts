@@ -25,9 +25,10 @@ export default class bingx extends bingxRest {
                 'watchTicker': true,
                 'watchTickers': false, // no longer supported
                 'watchBalance': true,
-                'unWatchTrades': true,
+                'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchTicker': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
