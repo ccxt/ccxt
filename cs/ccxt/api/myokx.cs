@@ -1436,6 +1436,11 @@ public partial class myokx : okx
         return await this.callAsync ("privatePostAccountMovePositions",parameters);
     }
 
+    public async Task<object> privatePostAccountSetSettleCurrency (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountSetSettleCurrency",parameters);
+    }
+
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)
     {
         return await this.callAsync ("privatePostUsersSubaccountModifyApikey",parameters);

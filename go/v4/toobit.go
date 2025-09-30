@@ -409,7 +409,7 @@ func (this *toobit) FetchStatus(optionalArgs ...interface{}) <-chan interface{} 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		response := (<-this.callDynamically("commonGetApiV1Ping", params))
+		response := (<-this.CommonGetApiV1Ping(params))
 		PanicOnError(response)
 
 		ch <- map[string]interface{}{
@@ -441,7 +441,7 @@ func (this *toobit) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		response := (<-this.callDynamically("commonGetApiV1Time", params))
+		response := (<-this.CommonGetApiV1Time(params))
 		PanicOnError(response)
 
 		//
@@ -471,7 +471,7 @@ func (this *toobit) FetchCurrencies(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		response := (<-this.callDynamically("commonGetApiV1ExchangeInfo", params))
+		response := (<-this.CommonGetApiV1ExchangeInfo(params))
 		PanicOnError(response)
 		AddElementToObject(this.Options, "exchangeInfo", response) // we store it in options for later use in fetchMarkets
 		//
@@ -694,7 +694,7 @@ func (this *toobit) FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
 			AddElementToObject(this.Options, "exchangeInfo", nil) // reset it to avoid using old cached data
 		} else {
 
-			response = (<-this.callDynamically("commonGetApiV1ExchangeInfo", params))
+			response = (<-this.CommonGetApiV1ExchangeInfo(params))
 			PanicOnError(response)
 		}
 		//
@@ -946,7 +946,7 @@ func (this *toobit) FetchOrderBook(symbol interface{}, optionalArgs ...interface
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.callDynamically("commonGetQuoteV1Depth", this.Extend(request, params)))
+		response := (<-this.CommonGetQuoteV1Depth(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//    {
@@ -1018,7 +1018,7 @@ func (this *toobit) FetchTrades(symbol interface{}, optionalArgs ...interface{})
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.callDynamically("commonGetQuoteV1Trades", this.Extend(request, params)))
+		response := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -1191,15 +1191,15 @@ func (this *toobit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
 		params = GetValue(endpointparamsVariable, 1)
 		if IsTrue(IsEqual(endpoint, "index")) {
 
-			response = (<-this.callDynamically("commonGetQuoteV1IndexKlines", this.Extend(request, params)))
+			response = (<-this.CommonGetQuoteV1IndexKlines(this.Extend(request, params)))
 			PanicOnError(response)
 		} else if IsTrue(IsEqual(endpoint, "mark")) {
 
-			response = (<-this.callDynamically("commonGetQuoteV1MarkPriceKlines", this.Extend(request, params)))
+			response = (<-this.CommonGetQuoteV1MarkPriceKlines(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("commonGetQuoteV1Klines", this.Extend(request, params)))
+			response = (<-this.CommonGetQuoteV1Klines(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -1255,11 +1255,11 @@ func (this *toobit) FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 		var response interface{} = nil
 		if IsTrue(IsEqual(typeVar, "spot")) {
 
-			response = (<-this.callDynamically("commonGetQuoteV1Ticker24hr", this.Extend(request, params)))
+			response = (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("commonGetQuoteV1ContractTicker24hr", this.Extend(request, params)))
+			response = (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -1348,7 +1348,7 @@ func (this *toobit) FetchLastPrices(optionalArgs ...interface{}) <-chan interfac
 			}
 		}
 
-		response := (<-this.callDynamically("commonGetQuoteV1TickerPrice", this.Extend(request, params)))
+		response := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -1412,7 +1412,7 @@ func (this *toobit) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{
 			}
 		}
 
-		response := (<-this.callDynamically("commonGetQuoteV1TickerBookTicker", this.Extend(request, params)))
+		response := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -1489,7 +1489,7 @@ func (this *toobit) FetchFundingRates(optionalArgs ...interface{}) <-chan interf
 			}
 		}
 
-		response := (<-this.callDynamically("commonGetApiV1FuturesFundingRate", this.Extend(request, params)))
+		response := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -1583,7 +1583,7 @@ func (this *toobit) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
 			AddElementToObject(request, "limit", limit)
 		}
 
-		response := (<-this.callDynamically("commonGetApiV1FuturesHistoryFundingRate", this.Extend(request, params)))
+		response := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -1641,11 +1641,11 @@ func (this *toobit) FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(this.InArray(marketType, []interface{}{"swap", "future"})) {
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesBalance"))
+			response = (<-this.PrivateGetApiV1FuturesBalance())
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateGetApiV1Account"))
+			response = (<-this.PrivateGetApiV1Account())
 			PanicOnError(response)
 		}
 
@@ -1708,14 +1708,14 @@ func (this *toobit) CreateOrder(symbol interface{}, typeVar interface{}, side in
 			request = GetValue(requestparamsVariable, 0)
 			params = GetValue(requestparamsVariable, 1)
 
-			response = (<-this.callDynamically("privatePostApiV1SpotOrder", this.Extend(request, params)))
+			response = (<-this.PrivatePostApiV1SpotOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 			requestparamsVariable := this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 			request = GetValue(requestparamsVariable, 0)
 			params = GetValue(requestparamsVariable, 1)
 
-			response = (<-this.callDynamically("privatePostApiV1FuturesOrder", this.Extend(request, params)))
+			response = (<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -2025,11 +2025,11 @@ func (this *toobit) CancelOrder(id interface{}, optionalArgs ...interface{}) <-c
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateDeleteApiV1SpotOrder", this.Extend(request, params)))
+			response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateDeleteApiV1FuturesOrder", this.Extend(request, params)))
+			response = (<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		// response same as in `createOrder`
@@ -2083,11 +2083,11 @@ func (this *toobit) CancelAllOrders(optionalArgs ...interface{}) <-chan interfac
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateDeleteApiV1SpotOpenOrders", this.Extend(request, params)))
+			response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateDeleteApiV1FuturesBatchOrders", this.Extend(request, params)))
+			response = (<-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -2141,11 +2141,11 @@ func (this *toobit) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateDeleteApiV1SpotCancelOrderByIds", this.Extend(request, params)))
+			response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateDeleteApiV1FuturesCancelOrderByIds", this.Extend(request, params)))
+			response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		var result interface{} = this.SafeList(response, "result", []interface{}{})
@@ -2190,11 +2190,11 @@ func (this *toobit) FetchOrder(id interface{}, optionalArgs ...interface{}) <-ch
 		var response interface{} = nil
 		if IsTrue(GetValue(market, "spot")) {
 
-			response = (<-this.callDynamically("privateGetApiV1SpotOrder", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesOrder", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -2277,11 +2277,11 @@ func (this *toobit) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfac
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateGetApiV1SpotOpenOrders", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesOpenOrders", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -2341,7 +2341,7 @@ func (this *toobit) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateGetApiV1SpotTradeOrders", request))
+			response = (<-this.PrivateGetApiV1SpotTradeOrders(request))
 			PanicOnError(response)
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchOrders() is not supported for "), marketType), " markets")))
@@ -2403,7 +2403,7 @@ func (this *toobit) FetchClosedOrders(optionalArgs ...interface{}) <-chan interf
 			panic(NotSupported(Add(Add(Add(this.Id, " fetchOrders() is not supported for "), marketType), " markets")))
 		} else {
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesHistoryOrders", request))
+			response = (<-this.PrivateGetApiV1FuturesHistoryOrders(request))
 			PanicOnError(response)
 		}
 		var ordersList interface{} = []interface{}{}
@@ -2471,11 +2471,11 @@ func (this *toobit) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateGetApiV1AccountTrades", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesUserTrades", request))
+			response = (<-this.PrivateGetApiV1FuturesUserTrades(request))
 			PanicOnError(response)
 		}
 
@@ -2519,7 +2519,7 @@ func (this *toobit) Transfer(code interface{}, amount interface{}, fromAccount i
 			"toAccountType":   toId,
 		}
 
-		response := (<-this.callDynamically("privatePostApiV1SubAccountTransfer", this.Extend(request, params)))
+		response := (<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -2607,11 +2607,11 @@ func (this *toobit) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		var response interface{} = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			response = (<-this.callDynamically("privateGetApiV1AccountBalanceFlow", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesBalanceFlow", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -2717,7 +2717,7 @@ func (this *toobit) FetchTradingFees(optionalArgs ...interface{}) <-chan interfa
 				"symbol": GetValue(market, "id"),
 			}
 
-			response = (<-this.callDynamically("privateGetApiV1FuturesCommissionRate", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		//
@@ -2848,11 +2848,11 @@ func (this *toobit) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, code i
 		var response interface{} = nil
 		if IsTrue(IsEqual(typeVar, "deposits")) {
 
-			response = (<-this.callDynamically("privateGetApiV1AccountDepositOrders", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		} else if IsTrue(IsEqual(typeVar, "withdrawals")) {
 
-			response = (<-this.callDynamically("privateGetApiV1AccountWithdrawOrders", this.Extend(request, params)))
+			response = (<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 
@@ -2987,7 +2987,7 @@ func (this *toobit) FetchDepositAddress(code interface{}, optionalArgs ...interf
 		}
 		AddElementToObject(request, "chainType", this.NetworkCodeToId(networkCode))
 
-		response := (<-this.callDynamically("privateGetApiV1AccountDepositAddress", this.Extend(request, paramsOmitted)))
+		response := (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)
 
 		//
@@ -3064,7 +3064,7 @@ func (this *toobit) Withdraw(code interface{}, amount interface{}, address inter
 			AddElementToObject(request, "addressExt", tag)
 		}
 
-		response := (<-this.callDynamically("privatePostApiV1AccountWithdraw", this.Extend(request, params)))
+		response := (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -3118,7 +3118,7 @@ func (this *toobit) SetMarginMode(marginMode interface{}, optionalArgs ...interf
 			"marginType": marginMode,
 		}
 
-		response := (<-this.callDynamically("privatePostApiV1FuturesMarginType", this.Extend(request, params)))
+		response := (<-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -3162,7 +3162,7 @@ func (this *toobit) SetLeverage(leverage interface{}, optionalArgs ...interface{
 			"leverage": leverage,
 		}
 
-		response := (<-this.callDynamically("privatePostApiV1FuturesLeverage", this.Extend(request, params)))
+		response := (<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
@@ -3199,7 +3199,7 @@ func (this *toobit) FetchLeverage(symbol interface{}, optionalArgs ...interface{
 			"symbol": GetValue(market, "id"),
 		}
 
-		response := (<-this.callDynamically("privateGetApiV1FuturesAccountLeverage", this.Extend(request, params)))
+		response := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		// [
@@ -3269,7 +3269,7 @@ func (this *toobit) FetchPositions(optionalArgs ...interface{}) <-chan interface
 			}
 		}
 
-		response := (<-this.callDynamically("privateGetApiV1FuturesPositions", this.Extend(request, params)))
+		response := (<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//

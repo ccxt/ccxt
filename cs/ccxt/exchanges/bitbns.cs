@@ -27,6 +27,7 @@ public partial class bitbns : Exchange
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "fetchBalance", true },
+                { "fechCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },

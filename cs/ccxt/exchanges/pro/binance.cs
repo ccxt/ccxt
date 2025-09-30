@@ -74,6 +74,19 @@ public partial class binance : ccxt.binance
                         } },
                     } },
                 } },
+                { "demo", new Dictionary<string, object>() {
+                    { "ws", new Dictionary<string, object>() {
+                        { "spot", "wss://demo-stream.binance.com/ws" },
+                        { "margin", "wss://demo-stream.binance.com/ws" },
+                        { "future", "wss://fstream.binancefuture.com/ws" },
+                        { "delivery", "wss://dstream.binancefuture.com/ws" },
+                        { "ws-api", new Dictionary<string, object>() {
+                            { "spot", "wss://demo-ws-api.binance.com/ws-api/v3" },
+                            { "future", "wss://testnet.binancefuture.com/ws-fapi/v1" },
+                            { "delivery", "wss://testnet.binancefuture.com/ws-dapi/v1" },
+                        } },
+                    } },
+                } },
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://stream.binance.com:9443/ws" },
@@ -169,6 +182,11 @@ public partial class binance : ccxt.binance
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
         return newValue;
+    }
+
+    public virtual object isSpotUrl(WebSocketClient client)
+    {
+        return isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "demo-stream"), -1)));
     }
 
     public virtual object stream(object type, object subscriptionHash, object numSubscriptions = null)
@@ -990,7 +1008,7 @@ public partial class binance : ccxt.binance
         //         ]
         //     }
         //
-        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
+        object isSpot = this.isSpotUrl(client);
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -1510,7 +1528,7 @@ public partial class binance : ccxt.binance
     {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
+        object isSpot = this.isSpotUrl(client);
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
@@ -1781,7 +1799,7 @@ public partial class binance : ccxt.binance
         // use a reverse lookup in a static map instead
         object unifiedTimeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
-        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
+        object isSpot = this.isSpotUrl(client);
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
@@ -2523,7 +2541,7 @@ public partial class binance : ccxt.binance
 
     public virtual void handleTickersAndBidsAsks(WebSocketClient client, object message, object methodType)
     {
-        object isSpot = (isGreaterThan(getIndexOf(client.url, "/stream"), -1));
+        object isSpot = this.isSpotUrl(client);
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object isBidAsk = (isEqual(methodType, "bidasks"));
         object channelName = null;
@@ -2623,6 +2641,65 @@ public partial class binance : ccxt.binance
         return extendedParams;
     }
 
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    public async virtual Task ensureUserDataStreamWsSubscribeSignature(object marketType = null)
+    {
+        marketType ??= "spot";
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
+        var client = this.client(url);
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        if (isTrue(isEqual(accountType, marketType)))
+        {
+            return;
+        }
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)marketType] = true;
+        object requestId = this.requestId(url);
+        object messageHash = ((object)requestId).ToString();
+        object message = new Dictionary<string, object>() {
+            { "id", messageHash },
+            { "method", "userDataStream.subscribe.signature" },
+            { "params", this.signParams(new Dictionary<string, object>() {}) },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "id", messageHash },
+            { "method", this.handleUserDataStreamSubscribe },
+            { "subscription", marketType },
+        };
+        await this.watch(url, messageHash, message, messageHash, subscription);
+    }
+
+    public virtual void handleUserDataStreamSubscribe(WebSocketClient client, object message)
+    {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {
+        //         "subscriptionId": 0
+        //     }
+        //   }
+        //
+        object messageHash = this.safeString(message, "id");
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+        object subscriptionId = this.safeInteger(result, "subscriptionId");
+        if (isTrue(isEqual(subscriptionId, null)))
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)accountType);
+            ((WebSocketClient)client).reject(message, accountType);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
+    }
+
     public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2645,6 +2722,12 @@ public partial class binance : ccxt.binance
         } else if (isTrue(this.isInverse(type, subType)))
         {
             type = "delivery";
+        }
+        // For spot use WebSocket API signature subscription
+        if (isTrue(isEqual(type, "spot")))
+        {
+            await this.ensureUserDataStreamWsSubscribeSignature("spot");
+            return;
         }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("authenticate", parameters);
@@ -2802,7 +2885,7 @@ public partial class binance : ccxt.binance
     public virtual void setBalanceCache(WebSocketClient client, object type, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, type)))
+        if (isTrue(isTrue((inOp(((WebSocketClient)client).subscriptions, type))) && isTrue((inOp(this.balance, type)))))
         {
             return;
         }
@@ -3110,12 +3193,20 @@ public partial class binance : ccxt.binance
         {
             type = "delivery";
         }
+        object url = "";
         object urlType = type;
-        if (isTrue(isPortfolioMargin))
+        if (isTrue(isEqual(type, "spot")))
         {
-            urlType = "papi";
+            // route to WebSocket API connection where the user data stream is subscribed
+            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+        } else
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                urlType = "papi";
+            }
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, null, isPortfolioMargin);
@@ -3200,9 +3291,9 @@ public partial class binance : ccxt.binance
         //
         object wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        object accountType = getValue(subscriptions, 0);
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         object messageHash = add(accountType, ":balance");
         if (isTrue(isEqual(getValue(this.balance, accountType), null)))
         {
@@ -3250,6 +3341,21 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)getValue(this.balance, accountType))["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.balance)[(string)accountType] = this.safeBalance(getValue(this.balance, accountType));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, accountType), messageHash});
+    }
+
+    public virtual object getAccountTypeFromSubscriptions(object subscriptions)
+    {
+        object accountType = "";
+        for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
+        {
+            object subscription = getValue(subscriptions, i);
+            if (isTrue(isTrue(isTrue(isTrue((isEqual(subscription, "spot"))) || isTrue((isEqual(subscription, "margin")))) || isTrue((isEqual(subscription, "future")))) || isTrue((isEqual(subscription, "delivery")))))
+            {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
     }
 
     public virtual object getMarketType(object method, object market, object parameters = null)
@@ -3939,11 +4045,19 @@ public partial class binance : ccxt.binance
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        if (isTrue(isPortfolioMargin))
+        object url = "";
+        if (isTrue(isEqual(type, "spot")))
         {
-            urlType = "papi";
+            // route orders to ws-api user data stream
+            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+        } else
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                urlType = "papi";
+            }
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, null, isPortfolioMargin);
@@ -4371,8 +4485,9 @@ public partial class binance : ccxt.binance
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        object accountType = getValue(subscriptions, 0);
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -4694,11 +4809,18 @@ public partial class binance : ccxt.binance
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchMyTrades", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        if (isTrue(isPortfolioMargin))
+        object url = "";
+        if (isTrue(isEqual(type, "spot")))
         {
-            urlType = "papi";
+            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+        } else
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                urlType = "papi";
+            }
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), urlType), "/"), getValue(getValue(this.options, type), "listenKey"));
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, null, isPortfolioMargin);
@@ -4869,9 +4991,14 @@ public partial class binance : ccxt.binance
             {
                 object subscriptionHash = getValue(subscriptionKeys, i);
                 object subscriptionId = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "id");
+                object subscription = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "subscription");
                 if (isTrue(isEqual(id, subscriptionId)))
                 {
                     ((WebSocketClient)client).reject(e, subscriptionHash);
+                    if (isTrue(!isEqual(subscription, null)))
+                    {
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscription);
+                    }
                 }
             }
         }
@@ -4887,9 +5014,33 @@ public partial class binance : ccxt.binance
         }
     }
 
+    public virtual void handleEventStreamTerminated(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        e: 'eventStreamTerminated',
+        //        E: 1757896885229
+        //    }
+        //
+        object eventVar = this.safeString(message, "e");
+        object subscriptions = ((WebSocketClient)client).subscriptions;
+        object subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        if (isTrue(isEqual(eventVar, "eventStreamTerminated")))
+        {
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)accountType);
+            ((WebSocketClient)client).reject(message, accountType);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         // handle WebSocketAPI
+        object eventMsg = this.safeDict(message, "event");
+        if (isTrue(!isEqual(eventMsg, null)))
+        {
+            message = eventMsg;
+        }
         object status = this.safeString(message, "status");
         object error = this.safeValue(message, "error");
         if (isTrue(isTrue((!isEqual(error, null))) || isTrue((isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))))))
@@ -4897,6 +5048,7 @@ public partial class binance : ccxt.binance
             this.handleWsError(client as WebSocketClient, message);
             return;
         }
+        // user subscription wraps message in subscriptionId and event
         object id = this.safeString(message, "id");
         object subscriptions = this.safeValue(((WebSocketClient)client).subscriptions, id);
         object method = this.safeValue(subscriptions, "method");
@@ -4932,6 +5084,7 @@ public partial class binance : ccxt.binance
             { "executionReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
             { "forceOrder", this.handleLiquidation },
+            { "eventStreamTerminated", this.handleEventStreamTerminated },
             { "externalLockUpdate", this.handleBalance },
         };
         object eventVar = this.safeString(message, "e");

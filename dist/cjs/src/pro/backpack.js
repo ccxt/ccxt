@@ -802,7 +802,7 @@ class backpack extends backpack$1["default"] {
     }
     /**
      * @method
-     * @name kucoin#unWatchOrderBookForSymbols
+     * @name backpack#unWatchOrderBookForSymbols
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint

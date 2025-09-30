@@ -287,6 +287,7 @@ class ImplicitAPI:
     private_post_account_fixed_loan_repay_borrowing_order = privatePostAccountFixedLoanRepayBorrowingOrder = Entry('account/fixed-loan/repay-borrowing-order', 'private', 'POST', {'cost': 5})
     private_post_account_bills_history_archive = privatePostAccountBillsHistoryArchive = Entry('account/bills-history-archive', 'private', 'POST', {'cost': 72000})
     private_post_account_move_positions = privatePostAccountMovePositions = Entry('account/move-positions', 'private', 'POST', {'cost': 10})
+    private_post_account_set_settle_currency = privatePostAccountSetSettleCurrency = Entry('account/set-settle-currency', 'private', 'POST', {'cost': 1})
     private_post_users_subaccount_modify_apikey = privatePostUsersSubaccountModifyApikey = Entry('users/subaccount/modify-apikey', 'private', 'POST', {'cost': 10})
     private_post_asset_subaccount_transfer = privatePostAssetSubaccountTransfer = Entry('asset/subaccount/transfer', 'private', 'POST', {'cost': 10})
     private_post_users_subaccount_set_transfer_out = privatePostUsersSubaccountSetTransferOut = Entry('users/subaccount/set-transfer-out', 'private', 'POST', {'cost': 10})

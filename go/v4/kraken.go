@@ -3784,11 +3784,10 @@ func (this *kraken) Withdraw(code interface{}, amount interface{}, address inter
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
-		this.CheckAddress(address)
 		if IsTrue(InOp(params, "key")) {
 
-			retRes322612 := (<-this.LoadMarkets())
-			PanicOnError(retRes322612)
+			retRes322512 := (<-this.LoadMarkets())
+			PanicOnError(retRes322512)
 			var currency interface{} = this.Currency(code)
 			var request interface{} = map[string]interface{}{
 				"asset":  GetValue(currency, "id"),
@@ -3796,6 +3795,7 @@ func (this *kraken) Withdraw(code interface{}, amount interface{}, address inter
 			}
 			if IsTrue(IsTrue(!IsEqual(address, nil)) && IsTrue(!IsEqual(address, ""))) {
 				AddElementToObject(request, "address", address)
+				this.CheckAddress(address)
 			}
 
 			response := (<-this.PrivatePostWithdraw(this.Extend(request, params)))

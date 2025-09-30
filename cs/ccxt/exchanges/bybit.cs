@@ -6631,6 +6631,7 @@ public partial class bybit : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -6642,12 +6643,12 @@ public partial class bybit : Exchange
         object accountType = null;
         object accounts = await this.isUnifiedEnabled();
         object isUta = getValue(accounts, 1);
-        var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "accountType", "SPOT");
+        var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "accountType");
         accountType = ((IList<object>)accountTypeparametersVariable)[0];
         parameters = ((IList<object>)accountTypeparametersVariable)[1];
-        if (isTrue(isUta))
+        if (isTrue(isEqual(accountType, null)))
         {
-            accountType = "UTA";
+            accountType = ((bool) isTrue(isUta)) ? "UTA" : "SPOT";
         }
         await this.loadMarkets();
         this.checkAddress(address);
