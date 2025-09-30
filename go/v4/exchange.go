@@ -1874,23 +1874,23 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 		for tries < maxRetries.(int) {
 			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
-			index := this.GetCacheIndex(orderBook, cache)
-			if index.(int) >= 0 {
+			index := ToFloat64(this.GetCacheIndex(orderBook, cache))
+			if index >= 0 {
 				// Call Reset method on stored orderbook
 				stored.(OrderBookInterface).Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[index.(int):])
+				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[int(index):])
 				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
-				client.(*WSClient).Resolve(stored, messageHash)
+				client.(*Client).Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(*WSClient).Reject(ExchangeError(errorMsg), messageHash)
-		delete(this.Clients, client.(*WSClient).Url)
+		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
+		delete(this.Clients, client.(*Client).Url)
 	} else {
-		client.(*WSClient).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
+		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
 	// TODO: don't know where this fits
@@ -1926,7 +1926,11 @@ func CallDynamically(fn interface{}, args ...interface{}) interface{} {
 	v := reflect.ValueOf(fn)
 	in := make([]reflect.Value, len(args))
 	for i, a := range args {
-		in[i] = reflect.ValueOf(a)
+		r := reflect.ValueOf(a)
+		if !r.IsValid() {
+			r = reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem())
+		}
+		in[i] = r
 	}
 	out := v.Call(in)
 	if len(out) > 0 {
