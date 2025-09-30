@@ -207,6 +207,9 @@ func (f *Future) Reject(reason interface{}) {
 
 func (f *Future) Await() <-chan interface{} {
 	ch := make(chan interface{}, 1)
+	if f.subscribers == nil {
+		f.subscribers = make([]chan interface{}, 0)
+	}
 	f.subscribers = append(f.subscribers, ch)
 	// go func() {
 	// 	defer close(ch)
