@@ -37,6 +37,7 @@ type Future struct {
 	resolvedError interface{}
 	mu            sync.Mutex
 	once          sync.Once
+	subscribersMu sync.Mutex
 }
 
 // Create new Future
@@ -75,6 +76,7 @@ func (f *Future) Resolve(args ...interface{}) {
 			}
 		}()
 
+		f.subscribersMu.Lock()
 		// Notify all subscribers
 		for _, sub := range f.subscribers {
 			func(sub chan interface{}) {
@@ -91,6 +93,7 @@ func (f *Future) Resolve(args ...interface{}) {
 			}(sub)
 		}
 		f.subscribers = nil // Clear subscribers after notifying them
+		f.subscribersMu.Unlock()
 	})
 }
 
@@ -207,10 +210,21 @@ func (f *Future) Reject(reason interface{}) {
 
 func (f *Future) Await() <-chan interface{} {
 	ch := make(chan interface{}, 1)
+	if f.resolved {
+		// Already resolved, return cached value immediately
+		if f.resolvedError != nil {
+			ch <- f.resolvedError
+		} else {
+			ch <- f.resolvedValue
+		}
+		return ch
+	}
+	f.subscribersMu.Lock()
 	if f.subscribers == nil {
 		f.subscribers = make([]chan interface{}, 0)
 	}
 	f.subscribers = append(f.subscribers, ch)
+	f.subscribersMu.Unlock()
 	// go func() {
 	// 	defer close(ch)
 	// 	// f.mu.Lock()
