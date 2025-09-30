@@ -2170,10 +2170,6 @@ export default class htx extends htxRest {
                 for (let i = 0; i < rawTrades.length; i++) {
                     const trade = rawTrades[i];
                     let parsedTrade = this.parseTrade (trade, market);
-                    const uniqueId = this.safeString (trade, 'id');
-                    if (uniqueId !== undefined) {
-                        parsedTrade['id'] = uniqueId;
-                    }
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend (parsedTrade, extendParams);
                     cachedTrades.append (parsedTrade);
