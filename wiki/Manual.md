@@ -6205,7 +6205,7 @@ Returns
 Note: across the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
 - `collateral (current margin balance) = initial margin + position profit (realized & unrealized) + cross-margin balance (only when it's not an isolated mode, but a cross-margin mode)`
 
-For example, when you had opened an isolated position with **50$** initial margin (with eg. `4x` leverage, so position's notional size is **200$**) and the position got an unrealized profit of **-15$**, then your position's **collateral** will be **35$**. However, an exchange would show **Maintenance Margin** requirement eg. 30$ (to keep the position open) for that position, so your collateral should not drop below it, otherwise the position will be liquidated (users might place a stop-loss before liquidation level).
+For example, when you had opened an isolated position with **50$** initial margin (with eg. `4x` leverage, so position's notional size is **200$**) and the position got an unrealized profit of **-29$**, then your position's **collateral** will be **21$**. However, an exchange would show **Maintenance Margin** requirement eg. 20$ (to keep the position open) for that position, so your collateral should not drop below it, otherwise the position will be liquidated (users might place a stop-loss near liquidation level).
 
 ### addMargin, reduceMargin, setMargin
 
