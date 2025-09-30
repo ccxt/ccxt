@@ -74,7 +74,7 @@ export default class bingx extends bingxRest {
                 },
                 'watchOrderBook': {
                     'depth': 100, // 5, 10, 20, 50, 100
-                    'interval': 500, // 100, 200, 500, 1000
+                    // 'interval': 500, // 100, 200, 500, 1000
                 },
                 'watchTrades': {
                     'ignoreDuplicates': true,
@@ -538,17 +538,9 @@ export default class bingx extends bingxRest {
         } else {
             url = this.safeString (this.urls['api']['ws'], marketType);
         }
-        limit = this.getOrderBookLimitByMarketType (marketType, limit);
-        let channelName = 'depth' + limit.toString ();
-        let interval = undefined;
-        if (marketType !== 'spot') {
-            if (!market['inverse']) {
-                [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
-                this.checkRequiredArgument ('watchOrderBook', interval, 'interval', [ 100, 200, 500, 1000 ]);
-                channelName = channelName + '@' + interval.toString () + 'ms';
-            }
-        }
-        const subscriptionHash = market['id'] + '@' + channelName;
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const depth = this.safeInteger (options, 'depth', 100);
+        const subscriptionHash = market['id'] + '@' + 'depth' + this.numberToString (depth);
         const messageHash = this.getMessageHash ('orderbook', market['symbol']);
         const uuid = this.uuid ();
         const request: Dict = {
@@ -571,7 +563,6 @@ export default class bingx extends bingxRest {
                 'id': uuid,
                 'unsubscribe': false,
                 'level': limit,
-                'interval': interval,
                 'params': params,
             };
         }
@@ -1495,7 +1486,7 @@ export default class bingx extends bingxRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
+        const subscription = this.safeDict (subscriptionsById, id, {});
         const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSubMessage) {
             this.handleUnSubscription (client, subscription);
