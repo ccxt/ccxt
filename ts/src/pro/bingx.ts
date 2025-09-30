@@ -4,7 +4,7 @@
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
+import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -124,7 +124,60 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        return await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscription);
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const subscriptionHash = market['id'] + '@ticker';
+        const messageHash = 'unsubscribe::tickers::' + market['symbol'];
+        const topic = 'ticker';
+        const methodName = 'unWatchTicker';
+        return await this.unWatch (messageHash, subscriptionHash, topic, market, methodName, params);
+    }
+
+    async unWatch (messageHash: string, subscriptionHash: string, topic: string, market: Market, methodName: string, params = {}): Promise<any> {
+        let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
+        }
+        const id = this.uuid ();
+        const request: Dict = {
+            'id': id,
+            'dataType': subscriptionHash,
+            'reqType': 'unsub',
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': id,
+            'subMessageHashes': [ subscriptionHash ],
+            'messageHashes': [ messageHash ],
+            'symbols': [ market['symbol'] ],
+            'topic': topic,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     handleTicker (client: Client, message) {
@@ -295,7 +348,11 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes);
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), subscriptionHashes, subscription);
         if (this.newUpdates) {
             const newDict: Dict = {};
             newDict[result['symbol']] = result;
@@ -357,6 +414,8 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
+            'id': uuid,
+            'unsubscribe': false,
             'symbols': symbols,
             'limit': limit,
             'interval': interval,
@@ -427,6 +486,8 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
+            'id': uuid,
+            'unsubscribe': false,
             'limit': limit,
             'params': params,
         };
@@ -501,7 +562,11 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -675,6 +740,8 @@ export default class bingx extends bingxRest {
             };
         } else {
             subscriptionArgs = {
+                'id': uuid,
+                'unsubscribe': false,
                 'level': limit,
                 'interval': interval,
                 'params': params,
@@ -981,6 +1048,8 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
+            'id': uuid,
+            'unsubscribe': false,
             'interval': rawTimeframe,
             'params': params,
         };
@@ -1044,7 +1113,11 @@ export default class bingx extends bingxRest {
             };
         }
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
-        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        const orders = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1103,7 +1176,11 @@ export default class bingx extends bingxRest {
             };
         }
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1159,7 +1236,11 @@ export default class bingx extends bingxRest {
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
             await client.future (type + ':fetchBalanceSnapshot');
         }
-        return await this.watch (url, messageHash, request, subscriptionHash);
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
     setBalanceCache (client: Client, type, subType, subscriptionHash, params) {
@@ -1570,5 +1651,38 @@ export default class bingx extends bingxRest {
         if (msgEvent === '24hTicker') {
             this.handleTicker (client, message);
         }
+        if (dataType === '' && msgEvent === undefined && e === undefined) {
+            this.handleSubscriptionStatus (client, message);
+        }
+    }
+
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //     {
+        //         "code": 0,
+        //         "id": "b6ed9cb4-f3d0-4641-ac3f-f59eb47a3abd",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1759225965363
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
+        const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
+        if (isUnSubMessage) {
+            this.handleUnSubscription (client, subscription);
+        }
+        return message;
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const unsubHash = messageHashes[i];
+            const subHash = subMessageHashes[i];
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
     }
 }
