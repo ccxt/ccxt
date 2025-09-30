@@ -118,6 +118,11 @@ export default class bingx extends bingxRest {
             'symbols': symbols,
             'topic': topic,
         };
+        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            params = this.omit (params, 'symbolsAndTimeframes');
+        }
         return await this.watch (url, messageHash, this.extend (request, params), subscribeHash, subscription);
     }
 
@@ -904,6 +909,33 @@ export default class bingx extends bingxRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name bingx#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+     * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const options = this.safeValue (this.options, market['type'], {});
+        const timeframes = this.safeValue (options, 'timeframes', {});
+        const rawTimeframe = this.safeString (timeframes, timeframe, timeframe);
+        const subMessageHash = market['id'] + '@kline_' + rawTimeframe;
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const topic = 'ohlcv';
+        const methodName = 'unWatchOHLCV';
+        const symbolsAndTimeframes = [ [ market['symbol'], timeframe ] ];
+        params['symbolsAndTimeframes'] = symbolsAndTimeframes;
+        return await this.unWatch (messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, params);
     }
 
     /**
