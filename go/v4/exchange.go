@@ -1874,7 +1874,7 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 		for tries < maxRetries.(int) {
 			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
-			index := ToFloat64(this.GetCacheIndex(orderBook, cache))
+			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
 				stored.(OrderBookInterface).Reset(orderBook)
