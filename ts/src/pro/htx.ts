@@ -379,7 +379,7 @@ export default class htx extends htxRest {
             if (this.handleOption ('watchOrderBook', 'adjustLimit', false)) {
                 limit = this.findNearestCeiling (selectedLimits, limit);
             } else {
-                throw new BadRequest (this.id + ' watchOrderBook(): for ' + marketKey + ' markets the limit argument must be one of ' + this.json (selectedLimits));
+                throw new BadRequest (this.id + ' watchOrderBook(): the limit argument must be one of ' + this.json (selectedLimits) + ' or set .options["watchOrderBook"]["adjustLimit"] = true to adjust to nearest higher limit automatically');
             }
         }
         let messageHash = undefined;
