@@ -98,7 +98,7 @@ func NewWsOrderBook(snapshot interface{}, depth interface{}) *WsOrderBook {
 	timestamp := SafeInt64(snapshotMap, "timestamp", 0).(int64)
 
 	return &WsOrderBook{
-		Cache:     SafeValue(snapshotMap, "cache", map[string]interface{}{}),
+		Cache:     SafeValue(snapshotMap, "cache", []interface{}{}),
 		Asks:      NewAsks(asks, depth),
 		Bids:      NewBids(bids, depth),
 		Timestamp: timestamp,
@@ -332,7 +332,7 @@ func NewCountedOrderBook(snapshot interface{}, depth interface{}) *CountedOrderB
 
 	return &CountedOrderBook{
 		WsOrderBook: &WsOrderBook{
-			Cache:     SafeValue(snapshotMap, "cache", map[string]interface{}{}),
+			Cache:     SafeValue(snapshotMap, "cache", []interface{}{}),
 			Asks:      NewCountedAsks(asks, depth),
 			Bids:      NewCountedBids(bids, depth),
 			Timestamp: timestamp,
@@ -373,7 +373,7 @@ func NewIndexedOrderBook(snapshot interface{}, depth interface{}) *IndexedOrderB
 
 	return &IndexedOrderBook{
 		WsOrderBook: &WsOrderBook{
-			Cache:     SafeValue(snapshotMap, "cache", map[string]interface{}{}),
+			Cache:     SafeValue(snapshotMap, "cache", []interface{}{}),
 			Asks:      NewIndexedAsks(asks, depth),
 			Bids:      NewIndexedBids(bids, depth),
 			Timestamp: timestamp,

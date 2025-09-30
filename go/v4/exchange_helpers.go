@@ -599,6 +599,23 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case string:
 		return len(v) // should we do it here?
+	case interface{}:
+		if array, ok := value.([]interface{}); ok {
+			return len(array)
+		}
+		// handle interface {}(*interface {}) *[]interface {}
+		if arrayPtr, ok := value.(*[]interface{}); ok {
+			return len(*arrayPtr)
+		}
+
+		if interfacePtr, ok := value.(*interface{}); ok {
+			if array, ok := (*interfacePtr).([]interface{}); ok {
+				return len(array)
+			}
+			if arrayPtr, ok := (*interfacePtr).(*[]interface{}); ok {
+				return len(*arrayPtr)
+			}
+		}
 	default:
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
 		if obs, ok := value.(IOrderBookSide); ok {
@@ -933,6 +950,10 @@ func AppendToArray(slicePtr *interface{}, element interface{}) {
 		} else {
 			// Handle the case where the element is not a string if needed
 			// fmt.Println("Error: element is not a string")
+		}
+	case interface{}:
+		if array, ok := array.([]interface{}); ok {
+			*slicePtr = append(array, element)
 		}
 	default:
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
