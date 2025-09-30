@@ -386,8 +386,8 @@ func NewIndexedOrderBook(snapshot interface{}, depth interface{}) *IndexedOrderB
 
 func (this *IndexedOrderBook) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"asks":      this.Asks.GetData(),
-		"bids":      this.Bids.GetData(),
+		"asks":      this.Asks.GetDataCopy(),
+		"bids":      this.Bids.GetDataCopy(),
 		"timestamp": this.Timestamp,
 		"datetime":  this.Datetime,
 		"nonce":     this.Nonce,

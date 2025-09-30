@@ -48,6 +48,7 @@ type IOrderBookSide interface {
 	Len() int
 	SetLen(length int)
 	GetData() [][]interface{}
+	GetDataCopy() [][]interface{}
 	SetData(data [][]interface{})
 	GetIndex() *[]float64
 	String() string
@@ -640,6 +641,26 @@ func (obs *OrderBookSide) Len() int {
 func (obs *OrderBookSide) GetData() [][]interface{} {
 	return obs.Data
 }
+func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
+    if obs.Data == nil {
+        return nil
+    }
+    
+    // Create a new slice with the same length
+    dataCopy := make([][]interface{}, len(obs.Data))
+    
+    // Deep copy each inner slice
+    for i, row := range obs.Data {
+        if row != nil {
+            // Create a copy of the inner slice
+            rowCopy := make([]interface{}, len(row))
+            copy(rowCopy, row)
+            dataCopy[i] = rowCopy
+        }
+    }
+    
+    return dataCopy
+}
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
 }
@@ -661,6 +682,9 @@ func (obs *CountedOrderBookSide) SetLen(length int) {
 }
 func (obs *CountedOrderBookSide) GetData() [][]interface{} {
 	return obs.OrderBookSide.GetData()
+}
+func (obs *CountedOrderBookSide) GetDataCopy() [][]interface{} {
+	return obs.OrderBookSide.GetDataCopy()
 }
 func (obs *CountedOrderBookSide) SetData(data [][]interface{}) {
 	obs.OrderBookSide.SetData(data)
@@ -694,6 +718,9 @@ func (obs *IndexedOrderBookSide) String() string {
 }
 func (obs *IndexedOrderBookSide) GetData() [][]interface{} {
 	return obs.Data
+}
+func (obs *IndexedOrderBookSide) GetDataCopy() [][]interface{} {
+	return obs.OrderBookSide.GetDataCopy()
 }
 func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length
