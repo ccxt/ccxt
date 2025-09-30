@@ -48,6 +48,7 @@ type IOrderBookSide interface {
 	Len() int
 	SetLen(length int)
 	GetData() [][]interface{}
+	GetDataCopy() [][]interface{}
 	SetData(data [][]interface{})
 	GetIndex() *[]float64
 	String() string
@@ -640,6 +641,34 @@ func (obs *OrderBookSide) Len() int {
 func (obs *OrderBookSide) GetData() [][]interface{} {
 	return obs.Data
 }
+func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
+	if obs.Data == nil {
+		return [][]interface{}{}
+	}
+
+	copyData := make([][]interface{}, len(obs.Data))
+	for i := range obs.Data {
+		if obs.Data[i] == nil {
+			continue
+		}
+		copyData[i] = make([]interface{}, len(obs.Data[i]))
+		for j := range obs.Data[i] {
+			switch v := obs.Data[i][j].(type) {
+			case []interface{}:
+				// recursively deep copy if element is a slice
+				nested := make([]interface{}, len(v))
+				copy(nested, v)
+				copyData[i][j] = nested
+			default:
+				// primitives, structs, pointers, etc. just copy reference/value
+				copyData[i][j] = v
+			}
+		}
+	}
+
+	return copyData
+}
+
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
 }
@@ -661,6 +690,9 @@ func (obs *CountedOrderBookSide) SetLen(length int) {
 }
 func (obs *CountedOrderBookSide) GetData() [][]interface{} {
 	return obs.OrderBookSide.GetData()
+}
+func (obs *CountedOrderBookSide) GetDataCopy() [][]interface{} {
+	return obs.OrderBookSide.GetDataCopy()
 }
 func (obs *CountedOrderBookSide) SetData(data [][]interface{}) {
 	obs.OrderBookSide.SetData(data)
@@ -694,6 +726,9 @@ func (obs *IndexedOrderBookSide) String() string {
 }
 func (obs *IndexedOrderBookSide) GetData() [][]interface{} {
 	return obs.Data
+}
+func (obs *IndexedOrderBookSide) GetDataCopy() [][]interface{} {
+	return obs.OrderBookSide.GetDataCopy()
 }
 func (obs *IndexedOrderBookSide) Len() int {
 	return obs.Length
