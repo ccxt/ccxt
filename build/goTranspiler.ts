@@ -1492,7 +1492,7 @@ ${constStatements.join('\n')}
             [/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,"],
             [/client interface\{\},/g, "client *Client,"],
             [/this.Number = String/g, 'this.Number = "string"'],
-            [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(OrderBookSide))$2'], // tmp fix for c#
+            [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
             [/ch <- nil\s+\/\/.+/g, ''],
 
             [/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange'],
