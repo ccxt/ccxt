@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bingxRest from '../bingx.js';
-import { BadRequest, NetworkError, NotSupported, ArgumentsRequired } from '../base/errors.js';
+import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Market, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -17,9 +17,9 @@ export default class bingx extends bingxRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': true,
+                'watchOrderBookForSymbols': false, // no longer supported
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': true,
+                'watchOHLCVForSymbols': false, // no longer supported
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchTicker': true,
@@ -73,10 +73,6 @@ export default class bingx extends bingxRest {
                     'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchOrderBook': {
-                    'depth': 100, // 5, 10, 20, 50, 100
-                    'interval': 500, // 100, 200, 500, 1000
-                },
-                'watchOrderBookForSymbols': {
                     'depth': 100, // 5, 10, 20, 50, 100
                     'interval': 500, // 100, 200, 500, 1000
                 },
@@ -303,144 +299,6 @@ export default class bingx extends bingxRest {
             'quoteVolume': this.safeString (message, 'q'),
             'info': message,
         }, market);
-    }
-
-    /**
-     * @method
-     * @name bingx#watchOrderBookForSymbols
-     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs
-     * @param {string[]} symbols unified array of symbols
-     * @param {int} [limit] the maximum amount of order book entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-     */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        symbols = this.marketSymbols (symbols, undefined, true, true, false);
-        let firstMarket = undefined;
-        let marketType = undefined;
-        let subType = undefined;
-        const symbolsDefined = (symbols !== undefined);
-        if (symbolsDefined) {
-            firstMarket = this.market (symbols[0]);
-        }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBookForSymbols', firstMarket, params, 'linear');
-        if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
-        }
-        if (subType === 'inverse') {
-            throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for inverse markets yet');
-        }
-        limit = this.getOrderBookLimitByMarketType (marketType, limit);
-        let interval = undefined;
-        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', 500);
-        this.checkRequiredArgument ('watchOrderBookForSymbols', interval, 'interval', [ 100, 200, 500, 1000 ]);
-        const channelName = 'depth' + limit.toString () + '@' + interval.toString () + 'ms';
-        const subscriptionHash = 'all@' + channelName;
-        const messageHashes = [];
-        if (symbolsDefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                messageHashes.push (this.getMessageHash ('orderbook', market['symbol']));
-            }
-        } else {
-            messageHashes.push (this.getMessageHash ('orderbook'));
-        }
-        const url = this.safeString (this.urls['api']['ws'], subType);
-        const uuid = this.uuid ();
-        const request: Dict = {
-            'id': uuid,
-            'dataType': subscriptionHash,
-        };
-        if (marketType === 'swap') {
-            request['reqType'] = 'sub';
-        }
-        const subscriptionArgs: Dict = {
-            'id': uuid,
-            'unsubscribe': false,
-            'symbols': symbols,
-            'limit': limit,
-            'interval': interval,
-            'params': params,
-        };
-        const orderbook = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ subscriptionHash ], subscriptionArgs);
-        return orderbook.limit ();
-    }
-
-    /**
-     * @method
-     * @name bingx#watchOHLCVForSymbols
-     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs
-     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-     */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        const symbolsLength = symbolsAndTimeframes.length;
-        if (symbolsLength !== 0 && !Array.isArray (symbolsAndTimeframes[0])) {
-            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array like  [['BTC/USDT:USDT', '1m'], ['LTC/USDT:USDT', '5m']]");
-        }
-        await this.loadMarkets ();
-        const messageHashes = [];
-        let marketType = undefined;
-        let subType = undefined;
-        let chosenTimeframe = undefined;
-        let firstMarket = undefined;
-        if (symbolsLength !== 0) {
-            let symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
-            symbols = this.marketSymbols (symbols, undefined, true, true, false);
-            firstMarket = this.market (symbols[0]);
-        }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCVForSymbols', firstMarket, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCVForSymbols', firstMarket, params, 'linear');
-        if (marketType === 'spot') {
-            throw new NotSupported (this.id + ' watchOHLCVForSymbols is not supported for spot markets yet');
-        }
-        if (subType === 'inverse') {
-            throw new NotSupported (this.id + ' watchOHLCVForSymbols is not supported for inverse markets yet');
-        }
-        const marketOptions = this.safeDict (this.options, marketType);
-        const timeframes = this.safeDict (marketOptions, 'timeframes', {});
-        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const symbolAndTimeframe = symbolsAndTimeframes[i];
-            const sym = symbolAndTimeframe[0];
-            const tf = symbolAndTimeframe[1];
-            const market = this.market (sym);
-            const rawTimeframe = this.safeString (timeframes, tf, tf);
-            if (chosenTimeframe === undefined) {
-                chosenTimeframe = rawTimeframe;
-            } else if (chosenTimeframe !== rawTimeframe) {
-                throw new BadRequest (this.id + ' watchOHLCVForSymbols requires all timeframes to be the same');
-            }
-            messageHashes.push (this.getMessageHash ('ohlcv', market['symbol'], chosenTimeframe));
-        }
-        const subscriptionHash = 'all@kline_' + chosenTimeframe;
-        const url = this.safeString (this.urls['api']['ws'], subType);
-        const uuid = this.uuid ();
-        const request: Dict = {
-            'id': uuid,
-            'dataType': subscriptionHash,
-        };
-        if (marketType === 'swap') {
-            request['reqType'] = 'sub';
-        }
-        const subscriptionArgs: Dict = {
-            'id': uuid,
-            'unsubscribe': false,
-            'limit': limit,
-            'params': params,
-        };
-        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, request, [ subscriptionHash ], subscriptionArgs);
-        if (this.newUpdates) {
-            limit = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
-        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     getOrderBookLimitByMarketType (marketType: string, limit: Int = undefined) {
