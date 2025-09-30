@@ -32,6 +32,7 @@ public partial class upbit : Exchange
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
+                { "fetchCurrencies", false },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },

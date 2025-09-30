@@ -926,6 +926,7 @@ public partial class mexc : ccxt.mexc
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
+            return;
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
     }
@@ -1607,18 +1608,21 @@ public partial class mexc : ccxt.mexc
     {
         //
         // spot
+        //
         //    {
-        //        "c": "spot@private.account.v3.api",
-        //        "d": {
-        //            "a": "USDT",
-        //            "c": 1678185928428,
-        //            "f": "302.185113007893322435",
-        //            "fd": "-4.990689704",
-        //            "l": "4.990689704",
-        //            "ld": "4.990689704",
-        //            "o": "ENTRUST_PLACE"
-        //        },
-        //        "t": 1678185928435
+        //        channel: "spot@private.account.v3.api.pb",
+        //        createTime: "1758134605364",
+        //        sendTime: "1758134605373",
+        //        privateAccount: {
+        //          vcoinName: "USDT",
+        //          coinId: "128f589271cb4951b03e71e6323eb7be",
+        //          balanceAmount: "0.006016465074677006",
+        //          balanceAmountChange: "-4.4022",
+        //          frozenAmount: "4.4022",
+        //          frozenAmountChange: "4.4022",
+        //          type: "ENTRUST_PLACE",
+        //          time: "1758134605364",
+        //       }
         //    }
         //
         //
@@ -1636,12 +1640,12 @@ public partial class mexc : ccxt.mexc
         //         "ts": 1680059188190
         //     }
         //
-        object c = this.safeString(message, "c"); // do not add 'channel' here, this is especially for spot
-        object type = ((bool) isTrue((isEqual(c, null)))) ? "swap" : "spot";
+        object channel = this.safeString(message, "channel");
+        object type = ((bool) isTrue((isEqual(channel, "spot@private.account.v3.api.pb")))) ? "spot" : "swap";
         object messageHash = add("balance:", type);
-        object data = this.safeDictN(message, new List<object>() {"d", "data", "privateAccount"});
-        object futuresTimestamp = this.safeInteger(message, "ts");
-        object timestamp = this.safeInteger2(data, "c", "time", futuresTimestamp);
+        object data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
+        object futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
+        object timestamp = this.safeInteger2(data, "time", futuresTimestamp);
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
@@ -1649,16 +1653,11 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
         ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
-        object currencyId = this.safeStringN(data, new List<object>() {"a", "currency", "vcoinName"});
+        object currencyId = this.safeStringN(data, new List<object>() {"currency", "vcoinName"});
         object code = this.safeCurrencyCode(currencyId);
         object account = this.account();
-        object balanceAmount = this.safeString(data, "balanceAmount");
-        if (isTrue(!isEqual(balanceAmount, null)))
-        {
-            ((IDictionary<string,object>)account)["free"] = balanceAmount;
-        }
-        ((IDictionary<string,object>)account)["total"] = this.safeStringN(data, new List<object>() {"f", "availableBalance"});
-        ((IDictionary<string,object>)account)["used"] = this.safeStringN(data, new List<object>() {"l", "frozenBalance", "frozenAmount"});
+        ((IDictionary<string,object>)account)["free"] = this.safeString2(data, "balanceAmount", "availableBalance");
+        ((IDictionary<string,object>)account)["used"] = this.safeStringN(data, new List<object>() {"frozenBalance", "frozenAmount"});
         ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), messageHash});

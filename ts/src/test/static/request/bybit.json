@@ -1548,6 +1548,37 @@
         ],
         "withdraw": [
             {
+                "description": "withdraw  using UTA account",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    4.34,
+                    "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
+                    null,
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879504108,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+            },
+            {
+                "description": "withdraw from fund account using UTA account",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    4.34,
+                    "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
+                    null,
+                    {
+                        "network": "TRC20",
+                        "accountType": "FUND"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879459515,\"accountType\":\"FUND\",\"chain\":\"TRX\"}"
+            },
+            {
                 "description": "withdraw usdt on uta",
                 "method": "withdraw",
                 "url": "https://api.bybit.com/v5/asset/withdraw/create",

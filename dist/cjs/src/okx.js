@@ -507,6 +507,7 @@ class okx extends okx$1["default"] {
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,
                         'account/move-positions': 10,
+                        'account/set-settle-currency': 1,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -689,6 +690,7 @@ class okx extends okx$1["default"] {
                     '51031': errors.InvalidOrder,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
+                    '51051': errors.InvalidOrder,
                     '51072': errors.InvalidOrder,
                     '51073': errors.InvalidOrder,
                     '51074': errors.InvalidOrder,
@@ -828,6 +830,9 @@ class okx extends okx$1["default"] {
                     '54008': errors.InvalidOrder,
                     '54009': errors.InvalidOrder,
                     '54011': errors.InvalidOrder,
+                    '54072': errors.ExchangeError,
+                    '54073': errors.BadRequest,
+                    '54074': errors.ExchangeError,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': errors.InvalidOrder,
                     '55101': errors.InvalidOrder,
@@ -933,6 +938,9 @@ class okx extends okx$1["default"] {
                     '59519': errors.ExchangeError,
                     '59642': errors.BadRequest,
                     '59643': errors.ExchangeError,
+                    '59683': errors.ExchangeError,
+                    '59684': errors.BadRequest,
+                    '59686': errors.BadRequest,
                     // WebSocket error Codes from 60000-63999
                     '60001': errors.AuthenticationError,
                     '60002': errors.AuthenticationError,
@@ -1509,14 +1517,33 @@ class okx extends okx$1["default"] {
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -3162,7 +3189,8 @@ class okx extends okx$1["default"] {
                 request['attachAlgoOrds'] = [attachAlgoOrd];
             }
         }
-        else if (trigger) {
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);
@@ -3613,10 +3641,18 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                request.push({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                });
+                if (trailing || trigger) {
+                    request.push({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    });
+                }
+                else {
+                    request.push({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    });
+                }
             }
         }
         let response = undefined;
@@ -3693,7 +3729,12 @@ class okx extends okx$1["default"] {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
-                idKey = 'clOrdId';
+                if (isStopOrTrailing) {
+                    idKey = 'algoClOrdId';
+                }
+                else {
+                    idKey = 'clOrdId';
+                }
             }
             const requestItem = {
                 'instId': market['id'],

@@ -5935,15 +5935,16 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT(for classic accounts only)
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
         accounts = self.is_unified_enabled()
         isUta = accounts[1]
-        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
-        if isUta:
-            accountType = 'UTA'
+        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType')
+        if accountType is None:
+            accountType = 'UTA' if isUta else 'SPOT'
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)

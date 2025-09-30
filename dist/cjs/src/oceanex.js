@@ -49,6 +49,7 @@ class oceanex extends oceanex$1["default"] {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,

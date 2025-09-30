@@ -122,7 +122,7 @@ class apex extends \ccxt\async\apex {
         //         "type" => "snapshot",
         //         "ts" => 1672304486868,
         //         "data" => array(
-        //             {
+        //             array(
         //                 "T" => 1672304486865,
         //                 "s" => "BTCUSDT",
         //                 "S" => "Buy",
@@ -131,7 +131,8 @@ class apex extends \ccxt\async\apex {
         //                 "L" => "PlusTick",
         //                 "i" => "20f43950-d8dd-5b31-9112-a178eb6023af",
         //                 "BT" => false
-        //             }
+        //             ),
+        //             // sorted by newest first
         //         )
         //     }
         //
@@ -148,8 +149,10 @@ class apex extends \ccxt\async\apex {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        for ($j = 0; $j < count($trades); $j++) {
-            $parsed = $this->parse_ws_trade($trades[$j], $market);
+        $length = count($trades);
+        for ($j = 0; $j < $length; $j++) {
+            $index = $length - $j - 1;
+            $parsed = $this->parse_ws_trade($trades[$index], $market);
             $stored->append ($parsed);
         }
         $messageHash = 'trade' . ':' . $symbol;

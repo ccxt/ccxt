@@ -286,6 +286,7 @@ interface Exchange {
     privatePostAccountFixedLoanRepayBorrowingOrder(params?: {}): Promise<implicitReturnType>;
     privatePostAccountBillsHistoryArchive(params?: {}): Promise<implicitReturnType>;
     privatePostAccountMovePositions(params?: {}): Promise<implicitReturnType>;
+    privatePostAccountSetSettleCurrency(params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountModifyApikey(params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer(params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountSetTransferOut(params?: {}): Promise<implicitReturnType>;

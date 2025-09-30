@@ -3443,7 +3443,6 @@ public partial class kraken : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        this.checkAddress(address);
         if (isTrue(inOp(parameters, "key")))
         {
             await this.loadMarkets();
@@ -3455,6 +3454,7 @@ public partial class kraken : Exchange
             if (isTrue(isTrue(!isEqual(address, null)) && isTrue(!isEqual(address, ""))))
             {
                 ((IDictionary<string,object>)request)["address"] = address;
+                this.checkAddress(address);
             }
             object response = await this.privatePostWithdraw(this.extend(request, parameters));
             //

@@ -3201,7 +3201,6 @@ class kraken extends kraken$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
         if ('key' in params) {
             await this.loadMarkets();
             const currency = this.currency(code);
@@ -3212,6 +3211,7 @@ class kraken extends kraken$1["default"] {
             };
             if (address !== undefined && address !== '') {
                 request['address'] = address;
+                this.checkAddress(address);
             }
             const response = await this.privatePostWithdraw(this.extend(request, params));
             //

@@ -3222,7 +3222,6 @@ export default class kraken extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
         if ('key' in params) {
             await this.loadMarkets ();
             const currency = this.currency (code);
@@ -3233,6 +3232,7 @@ export default class kraken extends Exchange {
             };
             if (address !== undefined && address !== '') {
                 request['address'] = address;
+                this.checkAddress (address);
             }
             const response = await this.privatePostWithdraw (this.extend (request, params));
             //

@@ -1081,6 +1081,7 @@ public partial class apex : ccxt.apex
     public override object ping(WebSocketClient client)
     {
         object timeStamp = ((object)this.milliseconds()).ToString();
+        client.lastPong = timeStamp; // server won't send a pong, so we set it here
         return new Dictionary<string, object>() {
             { "args", new List<object>() {timeStamp} },
             { "op", "ping" },
