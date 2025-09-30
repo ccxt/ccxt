@@ -969,7 +969,7 @@ class htx extends htx$1["default"] {
         else {
             // contract branch
             parsedOrder = this.parseWsOrder(message, market);
-            const rawTrades = this.safeValue(message, 'trade', []);
+            const rawTrades = this.safeList(message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
                 const tradesObject = {
