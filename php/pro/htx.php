@@ -993,7 +993,7 @@ class htx extends \ccxt\async\htx {
         } else {
             // contract branch
             $parsedOrder = $this->parse_ws_order($message, $market);
-            $rawTrades = $this->safe_value($message, 'trade', array());
+            $rawTrades = $this->safe_list($message, 'trade', array());
             $tradesLength = count($rawTrades);
             if ($tradesLength > 0) {
                 $tradesObject = array(
