@@ -1,5 +1,3 @@
-'use strict';
-
 var has = Object.prototype.hasOwnProperty;
 var isArray = Array.isArray;
 
@@ -217,14 +215,14 @@ var combine = function combine(a, b) {
     return [].concat(a, b);
 };
 
-module.exports = {
-    arrayToObject: arrayToObject,
-    assign: assign,
-    combine: combine,
-    compact: compact,
-    decode: decode,
-    encode: encode,
-    isBuffer: isBuffer,
-    isRegExp: isRegExp,
-    merge: merge
+export {
+    arrayToObject,
+    assign,
+    combine,
+    compact,
+    decode,
+    encode,
+    isBuffer,
+    isRegExp,
+    merge
 };
