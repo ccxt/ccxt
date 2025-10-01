@@ -11853,6 +11853,9 @@ export default class binance extends Exchange {
         }
         let url = this.urls['api'][api];
         url += '/' + path;
+        if ((url.indexOf ('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled) {
+            throw new NotSupported (this.id + ' testnet/sandbox mode is not supported for futures anymore, please check this announcement https://t.me/ccxt_announcements/92');
+        }
         if (path === 'historicalTrades') {
             if (this.apiKey) {
                 headers = {
