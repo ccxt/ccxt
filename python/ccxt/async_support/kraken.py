@@ -253,6 +253,23 @@ class kraken(Exchange, ImplicitAPI):
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
                 'FEE': 'KFEE',
+                'XETC': 'ETC',
+                'XETH': 'ETH',
+                'XLTC': 'LTC',
+                'XMLN': 'MLN',
+                'XREP': 'REP',
+                'XXBT': 'BTC',
+                'XXDG': 'DOGE',
+                'XXLM': 'XLM',
+                'XXMR': 'XMR',
+                'XXRP': 'XRP',
+                'XZEC': 'ZEC',
+                'ZAUD': 'AUD',
+                'ZCAD': 'CAD',
+                'ZEUR': 'EUR',
+                'ZGBP': 'GBP',
+                'ZJPY': 'JPY',
+                'ZUSD': 'USD',
             },
             'options': {
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -632,10 +649,12 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             id = keys[i]
             market = markets[id]
-            baseId = self.safe_string(market, 'base')
-            quoteId = self.safe_string(market, 'quote')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
+            baseIdRaw = self.safe_string(market, 'base')
+            quoteIdRaw = self.safe_string(market, 'quote')
+            baseId = self.safe_currency_code(baseIdRaw)
+            quoteId = self.safe_currency_code(quoteIdRaw)
+            base = baseId
+            quote = quoteId
             makerFees = self.safe_list(market, 'fees_maker', [])
             firstMakerFee = self.safe_list(makerFees, 0, [])
             firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
