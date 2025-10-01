@@ -35,6 +35,7 @@ export default class htx extends htxRest {
                 'watchOHLCV': true,
                 'unwatchTicker': true,
                 'unwatchOHLCV': true,
+                'unwatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -253,6 +254,27 @@ export default class htx extends htxRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchTrades
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53b69-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33c21-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33cfe-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'trades';
+        const options = this.safeDict (this.options, 'watchTrades', {});
+        const channel = this.safeString (options, 'name', 'market.{marketId}.trade.detail');
+        const subMessageHash = this.implodeParams (channel, { 'marketId': market['id'] });
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleTrades (client: Client, message) {
@@ -1796,13 +1818,13 @@ export default class htx extends htxRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchOHLCV ('BTC/USDT:USDT-251003');
+        await this.watchTrades ('ETH/USD:ETH-251010');
         this.sleep (2000);
         console.log ('Cache after subscribing <---------------'); // todo: remove after testing
-        console.log (this.ohlcvs); // todo: remove after testing
-        await this.unWatchOHLCV ('BTC/USDT:USDT-251003');
+        console.log (this.trades); // todo: remove after testing
+        await this.unWatchTrades ('ETH/USD:ETH-251010');
         console.log ('Cache after unsubscribing <---------------'); // todo: remove after testing
-        console.log (this.ohlcvs); // todo: remove after testing
+        console.log (this.trades); // todo: remove after testing
     }
 
     handleSystemStatus (client: Client, message) {
