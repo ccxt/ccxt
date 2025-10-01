@@ -612,7 +612,7 @@ export default class bitvavo extends Exchange {
             const withdrawal = this.safeString (currency, 'withdrawalStatus') === 'OK';
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber (currency, 'withdrawalFee');
-            const precision = this.safeInteger (currency, 'decimals', 8);
+            const precision = this.safeString (currency, 'decimals', '8');
             const minWithdraw = this.safeNumber (currency, 'withdrawalMinAmount');
             // btw, absolutely all of them have 1 network atm
             for (let j = 0; j < networksArray.length; j++) {
@@ -626,7 +626,7 @@ export default class bitvavo extends Exchange {
                     'deposit': deposit,
                     'withdraw': withdrawal,
                     'fee': withdrawFee,
-                    'precision': precision,
+                    'precision': this.parseNumber (this.parsePrecision (precision)),
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
