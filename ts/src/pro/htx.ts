@@ -324,6 +324,29 @@ export default class htx extends htxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name binance#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33563-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const subMessageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const topic = 'ohlcv';
+        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -1758,27 +1781,27 @@ export default class htx extends htxRest {
     handleUnSubscription (client: Client, subscription: Dict) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        console.log ('Subscriptions before unwatch <---------------------');
-        console.log (client.subscriptions);
+        console.log ('Subscriptions before unwatch <---------------------'); // todo: remove after testing
+        console.log (client.subscriptions); // todo: remove after testing
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
-        console.log ('Subscriptions after unwatch <---------------------');
-        console.log (client.subscriptions);
+        console.log ('Subscriptions after unwatch <---------------------'); // todo: remove after testing
+        console.log (client.subscriptions); // todo: remove after testing
     }
 
     async test () {
         await this.loadMarkets ();
-        await this.watchTicker ('BTC/USDT:USDT-251003');
+        await this.watchOHLCV ('BTC/USDT:USDT-251003');
         this.sleep (2000);
-        console.log ('Cache after subscribing <---------------');
-        console.log (this.tickers);
-        await this.unWatchTicker ('BTC/USDT:USDT-251003');
-        console.log ('Cache after unsubscribing <---------------');
-        console.log (this.tickers);
+        console.log ('Cache after subscribing <---------------'); // todo: remove after testing
+        console.log (this.ohlcvs); // todo: remove after testing
+        await this.unWatchOHLCV ('BTC/USDT:USDT-251003');
+        console.log ('Cache after unsubscribing <---------------'); // todo: remove after testing
+        console.log (this.ohlcvs); // todo: remove after testing
     }
 
     handleSystemStatus (client: Client, message) {
@@ -2381,6 +2404,11 @@ export default class htx extends htxRest {
             'symbols': [ market['symbol'] ],
             'topic': topic,
         };
+        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            params = this.omit (params, 'symbolsAndTimeframes');
+        }
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
