@@ -186,25 +186,22 @@ export default class coinmate extends coinmateRest {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('-');
         const marketId = this.safeString (parts, 1);
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const payload = this.safeDict (message, 'payload');
         const timestamp = this.milliseconds ();
         const orderbook = this.orderBook ({}, 1000);
-        // FIXED: Use lowercase keys to match actual API response
         const bids = this.safeList (payload, 'bids', []);
         const asks = this.safeList (payload, 'asks', []);
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
-            // FIXED: Use lowercase keys for price and amount
             const price = this.safeFloat (bid, 'price');
             const amount = this.safeFloat (bid, 'amount');
             orderbook['bids'].store (price, amount);
         }
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
-            // FIXED: Use lowercase keys for price and amount
             const price = this.safeFloat (ask, 'price');
             const amount = this.safeFloat (ask, 'amount');
             orderbook['asks'].store (price, amount);
@@ -257,7 +254,7 @@ export default class coinmate extends coinmateRest {
         const channel = this.safeString (message, 'channel');
         const parts = channel.split ('-');
         const marketId = this.safeString (parts, 1);
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, '_');
         const symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
         const payload = this.safeDict (message, 'payload');
