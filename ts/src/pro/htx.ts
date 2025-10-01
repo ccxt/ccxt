@@ -5,7 +5,7 @@ import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -33,6 +33,7 @@ export default class htx extends htxRest {
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,
+                'unwatchTicker': true,
             },
             'urls': {
                 'api': {
@@ -146,7 +147,7 @@ export default class htx extends htxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const options = this.safeValue (this.options, 'watchTicker', {});
+        const options = this.safeDict (this.options, 'watchTicker', {});
         const topic = this.safeString (options, 'name', 'market.{marketId}.detail');
         if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
             throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
@@ -154,6 +155,29 @@ export default class htx extends htxRest {
         const messageHash = this.implodeParams (topic, { 'marketId': market['id'] });
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53561-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c33ab2-77ae-11ed-9966-0242ac110003
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'ticker';
+        const options = this.safeDict (this.options, 'watchTicker', {});
+        const channel = this.safeString (options, 'name', 'market.{marketId}.detail');
+        if (channel === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
+            throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
+        }
+        const subMessageHash = this.implodeParams (channel, { 'marketId': market['id'] });
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleTicker (client: Client, message) {
@@ -972,7 +996,7 @@ export default class htx extends htxRest {
         } else {
             // contract branch
             parsedOrder = this.parseWsOrder (message, market);
-            const rawTrades = this.safeList (message, 'trade', []);
+            const rawTrades = this.safeValue (message, 'trade', []);
             const tradesLength = rawTrades.length;
             if (tradesLength > 0) {
                 const tradesObject: Dict = {
@@ -1704,6 +1728,14 @@ export default class htx extends htxRest {
         //         "ts": 1583414229143
         //     }
         //
+        // unsubscribe
+        //     {
+        //         "id": "2",
+        //         "status": "ok",
+        //         "unsubbed": "market.BTC-USDT-251003.detail",
+        //         "ts": 1759329276980
+        //     }
+        //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
@@ -1718,6 +1750,35 @@ export default class htx extends htxRest {
                 delete client.subscriptions[id];
             }
         }
+        if ('unsubbed' in message) {
+            this.handleUnSubscription (client, subscription);
+        }
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        console.log ('Subscriptions before unwatch <---------------------');
+        console.log (client.subscriptions);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const unsubHash = messageHashes[i];
+            const subHash = subMessageHashes[i];
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        this.cleanCache (subscription);
+        console.log ('Subscriptions after unwatch <---------------------');
+        console.log (client.subscriptions);
+    }
+
+    async test () {
+        await this.loadMarkets ();
+        await this.watchTicker ('BTC/USDT:USDT-251003');
+        this.sleep (2000);
+        console.log ('Cache after subscribing <---------------');
+        console.log (this.tickers);
+        await this.unWatchTicker ('BTC/USDT:USDT-251003');
+        console.log ('Cache after unsubscribing <---------------');
+        console.log (this.tickers);
     }
 
     handleSystemStatus (client: Client, message) {
@@ -2301,6 +2362,25 @@ export default class htx extends htxRest {
         if (method !== undefined) {
             subscription['method'] = method;
         }
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async unsubscribePublic (market: Market, subMessageHash: string, topic: string, params = {}) {
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'unsub': subMessageHash,
+            'id': requestId,
+        };
+        const messageHash = 'unsubscribe::' + subMessageHash;
+        const url = this.getUrlByMarketType (market['type'], market['linear'], false);
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestId,
+            'subMessageHashes': [ subMessageHash ],
+            'messageHashes': [ messageHash ],
+            'symbols': [ market['symbol'] ],
+            'topic': topic,
+        };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
