@@ -865,7 +865,7 @@ export default class backpack extends backpackRest {
             storedOrderBook.cache.push(data);
             return;
         }
-        else if (nonce >= deltaNonce) {
+        else if (nonce > deltaNonce) {
             return;
         }
         this.handleDelta(storedOrderBook, data);
@@ -890,16 +890,18 @@ export default class backpack extends backpackRest {
         }
     }
     getCacheIndex(orderbook, cache) {
+        //
+        // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         const firstDelta = this.safeDict(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger(firstDelta, 'sequenceStart');
+        const firstDeltaStart = this.safeInteger(firstDelta, 'U');
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger(delta, 'sequenceStart');
-            const deltaEnd = this.safeInteger(delta, 'sequenceEnd');
+            const deltaStart = this.safeInteger(delta, 'U');
+            const deltaEnd = this.safeInteger(delta, 'u');
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
