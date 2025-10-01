@@ -5223,7 +5223,7 @@ public partial class mexc : Exchange
             object request = new Dictionary<string, object>() {
                 { "transact_id", id },
             };
-            object response = await ((Task<object>)callDynamically(this, "spotPrivateGetAssetInternalTransferRecord", new object[] { this.extend(request, query) }));
+            object response = await this.spotPrivateGetAssetInternalTransferRecord(this.extend(request, query));
             //
             //     {
             //         "code": "200",
