@@ -600,6 +600,8 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case string:
 		return len(v) // should we do it here?
+	case IOrderBookSide:
+		return v.Len()
 	case interface{}:
 		if array, ok := value.([]interface{}); ok {
 			return len(array)
