@@ -105,6 +105,7 @@ export default class htx extends htxRest {
                 'watchOrderBook': {
                     'maxRetries': 3,
                     'checksum': true,
+                    'depth': 150, // 150 or 20
                 },
                 'ws': {
                     'gunzip': true,
@@ -428,17 +429,16 @@ export default class htx extends htxRest {
         // which means whenever there is an order book change at that level, it pushes an update;
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
-        if (limit === undefined) {
-            limit = market['spot'] ? 150 : 20;
-        }
-        if (!this.inArray (limit, allowedLimits)) {
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const depth = this.safeInteger (options, 'depth', 150);
+        if (!this.inArray (depth, allowedLimits)) {
             throw new ExchangeError (this.id + ' watchOrderBook market accepts limits of 20 and 150 only');
         }
         let messageHash = undefined;
         if (market['spot']) {
-            messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
+            messageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
         } else {
-            messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
+            messageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (depth) + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear'], false, true);
         let method = this.handleOrderBookSubscription;
@@ -449,6 +449,33 @@ export default class htx extends htxRest {
         }
         const orderbook = await this.subscribePublic (url, symbol, messageHash, method, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name htx#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+     * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+     * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'orderbook';
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const depth = this.safeInteger (options, 'depth', 150);
+        let subMessageHash = undefined;
+        if (market['spot']) {
+            subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
+        } else {
+            subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (depth) + '.high_freq';
+        }
+        return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
 
     handleOrderBookSnapshot (client: Client, message, subscription) {
@@ -1818,13 +1845,13 @@ export default class htx extends htxRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchTrades ('ETH/USD:ETH-251010');
+        await this.watchOrderBook ('ETH/USDT');
         this.sleep (2000);
         console.log ('Cache after subscribing <---------------'); // todo: remove after testing
-        console.log (this.trades); // todo: remove after testing
-        await this.unWatchTrades ('ETH/USD:ETH-251010');
+        console.log (this.orderbooks); // todo: remove after testing
+        await this.unWatchOrderBook ('ETH/USDT');
         console.log ('Cache after unsubscribing <---------------'); // todo: remove after testing
-        console.log (this.trades); // todo: remove after testing
+        console.log (this.orderbooks); // todo: remove after testing
     }
 
     handleSystemStatus (client: Client, message) {
