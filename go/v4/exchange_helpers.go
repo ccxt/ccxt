@@ -82,6 +82,7 @@ func Add(a interface{}, b interface{}) interface{} {
 		if IsInteger(res) {
 			return ParseInt(res)
 		}
+		return res
 	case string:
 		if bType, ok := b.(string); ok {
 			return aType + bType // Concatenate as strings
