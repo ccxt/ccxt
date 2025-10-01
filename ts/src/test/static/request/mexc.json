@@ -6,6 +6,32 @@
     ],
     "outputType": "json",
     "methods": {
+        "transfer": [
+            {
+                "description": "transfer from swap to spot",
+                "method": "transfer",
+                "url": "https://api.mexc.com/api/v3/capital/transfer?asset=USDT&amount=1&fromAccountType=FUTURES&toAccountType=SPOT&timestamp=1759328309546&recvWindow=5000&signature=c46acee7a5dfdc9bb370eaa01de579597cfcece73c9e52e0d11fe2b6b2342305",
+                "input": [
+                    "USDT",
+                    1,
+                    "swap",
+                    "spot"
+                ],
+                "output": null
+            },
+            {
+                "description": "transfer from spot to futures",
+                "method": "transfer",
+                "url": "https://api.mexc.com/api/v3/capital/transfer?asset=USDT&amount=1&fromAccountType=SPOT&toAccountType=FUTURES&timestamp=1759328120276&recvWindow=5000&signature=dfad4e88d4960b6573e3104e7fd5099ad9ef9283f228745c9177a00d37b471fe",
+                "input": [
+                    "USDT",
+                    1,
+                    "spot",
+                    "swap"
+                ],
+                "output": null
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetchTradingFee",
@@ -427,6 +453,21 @@
             }
         ],
         "fetchTransfers": [
+            {
+                "description": "fetch futures - spot transfers",
+                "method": "fetchTransfers",
+                "url": "https://api.mexc.com/api/v3/capital/transfer?fromAccountType=FUTURES&toAccountType=SPOT&timestamp=1759327539901&recvWindow=5000&signature=12fec501599abd41bfcfa71dea40330e97b80a01d9a3d7e56876885c718ff43c",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "fromAccountType": "FUTURES",
+                        "toAccountType": "SPOT"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "usdt transfers",
                 "method": "fetchTransfers",
