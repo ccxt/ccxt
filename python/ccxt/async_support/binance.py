@@ -11258,6 +11258,8 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papi' and path != 'ping'):
             self.check_required_credentials()
+            if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning')):
+                raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')
