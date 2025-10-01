@@ -430,7 +430,7 @@
             {
                 "description": "fetch USDT transfers",
                 "method": "fetchTransfers",
-                "url": "https://www.mexc.com/open/api/v2/asset/internal/transfer/record?currency=USDT",
+                "url": "https://www.mexc.com/open/api/v3/asset/internal/transfer/record?currency=USDT",
                 "input": [
                     "USDT"
                 ]
