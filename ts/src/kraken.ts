@@ -639,8 +639,8 @@ export default class kraken extends Exchange {
             const quoteIdRaw = this.safeString (market, 'quote');
             const baseId = this.safeCurrencyCode (baseIdRaw);
             const quoteId = this.safeCurrencyCode (quoteIdRaw);
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const base = baseId;
+            const quote = quoteId;
             const makerFees = this.safeList (market, 'fees_maker', []);
             const firstMakerFee = this.safeList (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);
