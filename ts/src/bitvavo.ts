@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
-import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { DECIMAL_PLACES, TRUNCATE, ROUND, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
@@ -382,7 +382,7 @@ export default class bitvavo extends Exchange {
                 'operatorId': undefined, // this will be required soon for order-related endpoints
                 'fiatCurrencies': [ 'EUR' ], // only fiat atm
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
@@ -436,7 +436,7 @@ export default class bitvavo extends Exchange {
         //        "status": "trading",
         //        "base": "BTC",
         //        "quote": "EUR",
-        //        "pricePrecision": "0", // this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
         //        "tickSize": "1.00",
         //        "minOrderInBaseAsset": "0.00006100",
         //        "minOrderInQuoteAsset": "5.00",
@@ -453,8 +453,6 @@ export default class bitvavo extends Exchange {
     }
 
     parseMarkets (markets) {
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy (currencies, 'id');
         const result = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
@@ -465,9 +463,6 @@ export default class bitvavo extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (market, 'status');
-            const baseCurrency = this.safeValue (currenciesById, baseId);
-            const basePrecision = this.safeInteger (baseCurrency, 'precision');
-            const precisionFromString = this.precisionFromString (this.safeString (market, 'tickSize'));
             result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -495,9 +490,9 @@ export default class bitvavo extends Exchange {
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': this.safeInteger2 (baseCurrency, 'decimals', 'quantityDecimals', basePrecision),
-                    'price': this.parseToInt (precisionFromString),
-                    'cost': this.safeInteger (market, 'notionalDecimals'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityDecimals'))),
+                    'price': this.safeNumber (market, 'tickSize'),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'notionalDecimals'))),
                 },
                 'limits': {
                     'leverage': {
