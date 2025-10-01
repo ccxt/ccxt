@@ -34,6 +34,7 @@ export default class htx extends htxRest {
                 'watchBalance': true,
                 'watchOHLCV': true,
                 'unwatchTicker': true,
+                'unwatchOHLCV': true,
             },
             'urls': {
                 'api': {
