@@ -526,8 +526,6 @@ class NewTranspiler {
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
-            [/orderbook, "nonce"/g, 'orderbook, "Nonce"'],
-            [/AddElementToObject\(orderbook, "Nonce"/g, 'AddElementToObject(orderbook, "nonce"'],
             // Error constructors
             [/NewInvalidNonce/g, 'InvalidNonce'],
             [/NewOrderBook/g, 'NewWsOrderBook'],
@@ -535,6 +533,7 @@ class NewTranspiler {
             [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
             [/GetDescribeForExtendedWsExchange\(&ccxt.(\w+){}, &ccxt.(\w+){}/g, 'GetDescribeForExtendedWsExchange(ccxt.New$1(nil), ccxt.New$2(nil)'],
             [/restInstance := &ccxt.(\w+){}/g, 'restInstance := ccxt.New$1(nil)'],
+            // Nonce
         ];
     }
 

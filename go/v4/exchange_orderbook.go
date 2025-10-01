@@ -66,19 +66,19 @@ func (this *WsOrderBook) ToMap() map[string]interface{} {
 
 func (this *WsOrderBook) GetValue(key string, defaultValue interface{}) interface{} {
 	switch key {
-	case "Nonce":
+	case "nonce":
 		return this.Nonce
-	case "Cache":
+	case "cache":
 		return this.Cache
-	case "Asks":
+	case "asks":
 		return this.Asks
-	case "Bids":
+	case "bids":
 		return this.Bids
-	case "Timestamp":
+	case "timestamp":
 		return this.Timestamp
-	case "Datetime":
+	case "datetime":
 		return this.Datetime
-	case "Symbol":
+	case "symbol":
 		return this.Symbol
 	default:
 		return defaultValue
