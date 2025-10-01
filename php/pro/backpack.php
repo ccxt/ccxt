@@ -921,7 +921,7 @@ class backpack extends \ccxt\async\backpack {
             }
             $storedOrderBook->cache[] = $data;
             return;
-        } elseif ($nonce >= $deltaNonce) {
+        } elseif ($nonce > $deltaNonce) {
             return;
         }
         $this->handle_delta($storedOrderBook, $data);
@@ -949,16 +949,18 @@ class backpack extends \ccxt\async\backpack {
     }
 
     public function get_cache_index($orderbook, $cache) {
+        //
+        // array("E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":array(),"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171)
         $firstDelta = $this->safe_dict($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        $firstDeltaStart = $this->safe_integer($firstDelta, 'sequenceStart');
+        $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
         if ($nonce < $firstDeltaStart - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
-            $deltaStart = $this->safe_integer($delta, 'sequenceStart');
-            $deltaEnd = $this->safe_integer($delta, 'sequenceEnd');
+            $deltaStart = $this->safe_integer($delta, 'U');
+            $deltaEnd = $this->safe_integer($delta, 'u');
             if (($nonce >= $deltaStart - 1) && ($nonce < $deltaEnd)) {
                 return $i;
             }
