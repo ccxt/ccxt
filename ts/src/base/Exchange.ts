@@ -166,14 +166,20 @@ const {
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
 // ----------------------------------------------------------------------------
+const dynamicImport = async (moduleName: string) => {
+  return await import(/* webpackIgnore: true */ moduleName)
+}
+
+
 let protobufMexc = undefined;
 (async () => {
     try {
-        protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+        protobufMexc = await dynamicImport ('../protobuf/mexc/compiled.cjs');
     } catch {
         // TODO: handle error
     }
 }) ();
+
 
 // -----------------------------------------------------------------------------
 /**
@@ -745,16 +751,16 @@ export default class Exchange {
                 // import issues (https://github.com/ccxt/ccxt/pull/20687)
                 try {
                     // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+                    this.httpProxyAgentModule = await dynamicImport ('../static_dependencies/proxies/http-proxy-agent/index.js');
+                    this.httpsProxyAgentModule = await dynamicImport ('../static_dependencies/proxies/https-proxy-agent/index.js');
                 } catch (e) {
                     // if several users are using those frameworks which cause exceptions,
                     // let them to be able to load modules still, by installing them
                     try {
                         // @ts-ignore
-                        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                        this.httpProxyAgentModule = await dynamicImport ('http-proxy-agent');
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent'); // eslint-disable-line
+                        this.httpsProxyAgentModule = await dynamicImport ('https-proxy-agent'); // eslint-disable-line
                     } catch (err) {
                         // TODO: handle error
                     }
@@ -762,7 +768,7 @@ export default class Exchange {
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
-                        this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
+                        this.socksProxyAgentModule = await dynamicImport ('socks-proxy-agent');
                     } catch (e) {
                         // TODO: handle error
                     }
