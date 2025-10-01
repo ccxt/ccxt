@@ -431,18 +431,23 @@ export default class bitvavo extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetMarkets (params);
         //
-        //     [
-        //         {
-        //             "market":"ADA-BTC",
-        //             "status":"trading", // "trading" "halted" "auction"
-        //             "base":"ADA",
-        //             "quote":"BTC",
-        //             "pricePrecision":5,
-        //             "minOrderInBaseAsset":"100",
-        //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes": [ "market", "limit" ]
-        //         }
-        //     ]
+        //    {
+        //        "market": "BTC-EUR",
+        //        "status": "trading",
+        //        "base": "BTC",
+        //        "quote": "EUR",
+        //        "pricePrecision": "0", // this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "tickSize": "1.00",
+        //        "minOrderInBaseAsset": "0.00006100",
+        //        "minOrderInQuoteAsset": "5.00",
+        //        "maxOrderInBaseAsset": "1000000000.00000000",
+        //        "maxOrderInQuoteAsset": "1000000000.00",
+        //        "quantityDecimals": "8",
+        //        "notionalDecimals": "2",
+        //        "maxOpenOrders": "100",
+        //        "feeCategory": "A",
+        //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
+        //    }
         //
         return this.parseMarkets (response);
     }
@@ -462,6 +467,7 @@ export default class bitvavo extends Exchange {
             const status = this.safeString (market, 'status');
             const baseCurrency = this.safeValue (currenciesById, baseId);
             const basePrecision = this.safeInteger (baseCurrency, 'precision');
+            const precisionFromString = this.precisionFromString (this.safeString (market, 'tickSize'));
             result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -489,8 +495,9 @@ export default class bitvavo extends Exchange {
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': this.safeInteger (baseCurrency, 'decimals', basePrecision),
-                    'price': this.safeInteger (market, 'pricePrecision'),
+                    'amount': this.safeInteger2 (baseCurrency, 'decimals', 'quantityDecimals', basePrecision),
+                    'price': this.parseToInt (precisionFromString),
+                    'cost': this.safeInteger (market, 'notionalDecimals'),
                 },
                 'limits': {
                     'leverage': {
@@ -499,7 +506,7 @@ export default class bitvavo extends Exchange {
                     },
                     'amount': {
                         'min': this.safeNumber (market, 'minOrderInBaseAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxOrderInBaseAsset'),
                     },
                     'price': {
                         'min': undefined,
@@ -507,7 +514,7 @@ export default class bitvavo extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minOrderInQuoteAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maxOrderInQuoteAsset'),
                     },
                 },
                 'created': undefined,
