@@ -6364,6 +6364,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchohlcv)
+* [bingx](/exchanges/bingx.md#bingxunwatchohlcv)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexunwatchohlcv)
 * [bitget](/exchanges/bitget.md#bitgetunwatchohlcv)
 * [bybit](/exchanges/bybit.md#bybitunwatchohlcv)
@@ -6415,6 +6416,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchorderbook)
+* [bingx](/exchanges/bingx.md#bingxunwatchorderbook)
 * [bitget](/exchanges/bitget.md#bitgetunwatchorderbook)
 * [bybit](/exchanges/bybit.md#bybitunwatchorderbook)
 * [coincatch](/exchanges/coincatch.md#coincatchunwatchorderbook)
@@ -6512,6 +6514,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchticker)
+* [bingx](/exchanges/bingx.md#bingxunwatchticker)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexunwatchticker)
 * [bitget](/exchanges/bitget.md#bitgetunwatchticker)
 * [bybit](/exchanges/bybit.md#bybitunwatchticker)
@@ -6565,6 +6568,7 @@ unWatches from the stream channel
 
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchtrades)
+* [bingx](/exchanges/bingx.md#bingxunwatchtrades)
 * [bitfinex](/exchanges/bitfinex.md#bitfinexunwatchtrades)
 * [bitget](/exchanges/bitget.md#bitgetunwatchtrades)
 * [bybit](/exchanges/bybit.md#bybitunwatchtrades)
@@ -7057,7 +7061,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchohlcvforsymbols)
 * [backpack](/exchanges/backpack.md#backpackwatchohlcvforsymbols)
-* [bingx](/exchanges/bingx.md#bingxwatchohlcvforsymbols)
 * [blofin](/exchanges/blofin.md#blofinwatchohlcvforsymbols)
 * [bybit](/exchanges/bybit.md#bybitwatchohlcvforsymbols)
 * [defx](/exchanges/defx.md#defxwatchohlcvforsymbols)
@@ -7158,7 +7161,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchorderbookforsymbols)
 * [backpack](/exchanges/backpack.md#backpackwatchorderbookforsymbols)
-* [bingx](/exchanges/bingx.md#bingxwatchorderbookforsymbols)
 * [bitget](/exchanges/bitget.md#bitgetwatchorderbookforsymbols)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchorderbookforsymbols)
 * [bitmex](/exchanges/bitmex.md#bitmexwatchorderbookforsymbols)
@@ -7404,7 +7406,6 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexwatchtickers)
 * [backpack](/exchanges/backpack.md#backpackwatchtickers)
-* [bingx](/exchanges/bingx.md#bingxwatchtickers)
 * [bitget](/exchanges/bitget.md#bitgetwatchtickers)
 * [bithumb](/exchanges/bithumb.md#bithumbwatchtickers)
 * [bitmart](/exchanges/bitmart.md#bitmartwatchtickers)
