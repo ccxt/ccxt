@@ -428,12 +428,13 @@
         ],
         "fetchTransfers": [
             {
-                "description": "fetch USDT transfers",
+                "description": "usdt transfers",
                 "method": "fetchTransfers",
-                "url": "https://www.mexc.com/open/api/v2/asset/internal/transfer/record?currency=USDT",
+                "url": "https://api.mexc.com/api/v3/asset/internal/transfer/record?currency=USDT&timestamp=1759307926137&recvWindow=5000&signature=19e568815bdfab7b38a4b3f839b97bfb84545f3da82cbc1deadf8e1334c29c91",
                 "input": [
                     "USDT"
-                ]
+                ],
+                "output": null
             }
         ],
         "fetchDepositAddress": [
