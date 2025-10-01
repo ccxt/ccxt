@@ -659,33 +659,49 @@ func (obs *OrderBookSide) Len() int {
 func (obs *OrderBookSide) GetData() [][]interface{} {
 	return obs.Data
 }
+// assumes the first two elements are float64 and the third element is a primitive
 func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
+	if obs == nil {
+		return [][]interface{}{}
+	}
+
+	obs.Mutex.RLock() // read lock prevents writes while copying
+	defer obs.Mutex.RUnlock()
+
 	if obs.Data == nil {
 		return [][]interface{}{}
 	}
 
-	copyData := make([][]interface{}, len(obs.Data))
-	for i := range obs.Data {
-		if obs.Data[i] == nil {
+	out := make([][]interface{}, len(obs.Data))
+
+	for i, slice := range obs.Data {
+		if slice == nil {
+			out[i] = []interface{}{}
 			continue
 		}
-		copyData[i] = make([]interface{}, len(obs.Data[i]))
-		for j := range obs.Data[i] {
-			switch v := obs.Data[i][j].(type) {
+
+		newSlice := make([]interface{}, len(slice))
+		for j, val := range slice {
+			switch v := val.(type) {
+			case map[string]interface{}:
+				newMap := make(map[string]interface{}, len(v))
+				for key, value := range v {
+					newMap[key] = value
+				}
+				newSlice[j] = newMap
 			case []interface{}:
-				// recursively deep copy if element is a slice
-				nested := make([]interface{}, len(v))
-				copy(nested, v)
-				copyData[i][j] = nested
+				newSlice[j] = append([]interface{}{}, v...)
 			default:
-				// primitives, structs, pointers, etc. just copy reference/value
-				copyData[i][j] = v
+				newSlice[j] = v
 			}
 		}
+		out[i] = newSlice
 	}
 
-	return copyData
+	return out
 }
+
+
 
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side
