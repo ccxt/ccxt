@@ -161,6 +161,7 @@ const VIRTUAL_BASE_METHODS: any = {
     "parseConversion": false,
     "sign": false,
     // ws methods
+    'handleDelta': false,
     'cancelAllOrdersWs': true,
 	'cancelOrdersWs': true,
 	'cancelOrderWs': true,

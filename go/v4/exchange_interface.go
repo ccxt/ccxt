@@ -306,6 +306,7 @@ type ICoreExchange interface {
 }
 
 type IDerivedExchange interface {
+	HandleDelta(bookside interface{}, delta interface{})
 	GetCacheIndex(orderbook interface{}, deltas interface{}) interface{}
 	Ping(client interface{}) interface{}
 	HandleDeltas(orderbook interface{}, deltas interface{})
