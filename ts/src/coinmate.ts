@@ -573,7 +573,7 @@ export default class coinmate extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await (this as any).publicGetSystemTime (params);
+        const response = await this.publicGetSystemTime (params);
         //
         //     {
         //         "serverTime": 1499827319559
@@ -936,22 +936,74 @@ export default class coinmate extends Exchange {
             throw new ExchangeError (this.id + ' withdraw() only allows withdrawing the following currencies: ' + allowedCurrencies.join (', '));
         }
         let request: Dict = {};
+        let response = undefined;
         if (method === 'privatePostWithdrawVirtualCurrency') {
             request = {
                 'currencyName': code,
                 'amount': this.currencyToPrecision (code, amount),
                 'address': address,
             };
-        } else {
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostWithdrawVirtualCurrency (this.extend (request, params));
+        } else if (method === 'privatePostBitcoinWithdrawal') {
             request = {
                 'amount': this.currencyToPrecision (code, amount),
                 'address': address,
             };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostBitcoinWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostLitecoinWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostLitecoinWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostEthereumWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostEthereumWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostRippleWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostRippleWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostAdaWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostAdaWithdrawal (this.extend (request, params));
+        } else if (method === 'privatePostSolWithdrawal') {
+            request = {
+                'amount': this.currencyToPrecision (code, amount),
+                'address': address,
+            };
+            if (tag !== undefined) {
+                request['destinationTag'] = tag;
+            }
+            response = await this.privatePostSolWithdrawal (this.extend (request, params));
+        } else {
+            throw new ExchangeError (this.id + ' withdraw() unknown method: ' + method);
         }
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
-        }
-        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": false,
@@ -997,20 +1049,22 @@ export default class coinmate extends Exchange {
             response = await this.privatePostVirtualCurrencyDepositAddresses (this.extend ({ 'currencyName': code }, params));
         } catch (e) {
             // fallback to legacy per-coin endpoints if present
-            const depositMethods = {
-                'BTC': 'privatePostBitcoinDepositAddresses',
-                'LTC': 'privatePostLitecoinDepositAddresses',
-                'ETH': 'privatePostEthereumDepositAddresses',
-                'XRP': 'privatePostRippleDepositAddresses',
-                'ADA': 'privatePostAdaDepositAddresses',
-                'SOL': 'privatePostSolDepositAddresses',
-            };
-            const method = this.safeString (depositMethods, code);
-            if (method === undefined) {
-                const allowedCurrencies = Object.keys (depositMethods);
+            if (code === 'BTC') {
+                response = await this.privatePostBitcoinDepositAddresses (this.extend ({}, params));
+            } else if (code === 'LTC') {
+                response = await this.privatePostLitecoinDepositAddresses (this.extend ({}, params));
+            } else if (code === 'ETH') {
+                response = await this.privatePostEthereumDepositAddresses (this.extend ({}, params));
+            } else if (code === 'XRP') {
+                response = await this.privatePostRippleDepositAddresses (this.extend ({}, params));
+            } else if (code === 'ADA') {
+                response = await this.privatePostAdaDepositAddresses (this.extend ({}, params));
+            } else if (code === 'SOL') {
+                response = await this.privatePostSolDepositAddresses (this.extend ({}, params));
+            } else {
+                const allowedCurrencies = [ 'BTC', 'LTC', 'ETH', 'XRP', 'ADA', 'SOL' ];
                 throw new ExchangeError (this.id + ' fetchDepositAddress() only supports the following currencies: ' + allowedCurrencies.join (', '));
             }
-            response = await this[method] (this.extend ({}, params));
         }
         //
         // Bitcoin/Litecoin/Ethereum etc.
@@ -1248,7 +1302,7 @@ export default class coinmate extends Exchange {
      * @returns {object} a dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await (this as any).privatePostCurrencies (params);
+        const response = await this.privatePostCurrencies (params);
         const data = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
@@ -1543,7 +1597,19 @@ export default class coinmate extends Exchange {
                 request['hidden'] = hidden ? 1 : 0;
             }
         }
-        const response = await this[method] (this.extend (request, this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ])));
+        const omittedParams = this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ]);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit (this.extend (request, omittedParams));
+        } else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit (this.extend (request, omittedParams));
+        } else {
+            throw new ExchangeError (this.id + ' createOrder() unknown method: ' + method);
+        }
         const id = this.safeString (response, 'data');
         return this.safeOrder ({
             'info': response,
@@ -1702,7 +1768,19 @@ export default class coinmate extends Exchange {
                 request['hidden'] = hidden ? 1 : 0;
             }
         }
-        const response = await this[method] (this.extend (request, this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ])));
+        const omittedParams = this.omit (params, [ 'postOnly', 'immediateOrCancel', 'hidden' ]);
+        let response = undefined;
+        if (method === 'privatePostReplaceByBuyInstant') {
+            response = await this.privatePostReplaceByBuyInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostReplaceByBuyLimit') {
+            response = await this.privatePostReplaceByBuyLimit (this.extend (request, omittedParams));
+        } else if (method === 'privatePostReplaceBySellInstant') {
+            response = await this.privatePostReplaceBySellInstant (this.extend (request, omittedParams));
+        } else if (method === 'privatePostReplaceBySellLimit') {
+            response = await this.privatePostReplaceBySellLimit (this.extend (request, omittedParams));
+        } else {
+            throw new ExchangeError (this.id + ' editOrder() unknown method: ' + method);
+        }
         // replaceBy* returns an object with createdOrderId and cancel info
         const data = this.safeDict (response, 'data', {});
         const newOrderId = this.safeString (data, 'createdOrderId');
