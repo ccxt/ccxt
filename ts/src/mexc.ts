@@ -232,6 +232,7 @@ export default class mexc extends Exchange {
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                             'selfSymbols': 1,
+                            'asset/internal/transfer/record': 10,
                         },
                         'post': {
                             'order': 1,
@@ -5268,7 +5269,7 @@ export default class mexc extends Exchange {
             const request: Dict = {
                 'transact_id': id,
             };
-            const response = await this.spot2PrivateGetAssetInternalTransferInfo (this.extend (request, query));
+            const response = await this.spotPrivateGetAssetInternalTransferRecord (this.extend (request, query));
             //
             //     {
             //         "code": "200",
@@ -5322,7 +5323,7 @@ export default class mexc extends Exchange {
                 }
                 request['page-size'] = limit;
             }
-            const response = await this.spot2PrivateGetAssetInternalTransferRecord (this.extend (request, query));
+            const response = await this.spotPrivateGetAssetInternalTransferRecord (this.extend (request, query));
             //
             //     {
             //         "code": "200",
