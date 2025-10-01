@@ -299,7 +299,7 @@ func (c *ArrayCacheByTimestamp) Append(item interface{}) {
 			// locate and update in Data as well
 			// to do use the reference in hashmap instead of searching
 			currItem := c.Hashmap[ts].([]interface{})
-			for i, _ := range currItem {
+			for i := range currItem {
 				if arr, ok := item.([]interface{}); ok && len(arr) > 0 {
 					currItem[i] = arr[i]
 				}
