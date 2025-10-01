@@ -13138,6 +13138,9 @@ func (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interfa
 		}
 	} else if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(api, "private"))) || IsTrue((IsEqual(api, "eapiPrivate")))) || IsTrue((IsTrue(IsEqual(api, "sapi")) && IsTrue(!IsEqual(path, "system/status"))))) || IsTrue((IsEqual(api, "sapiV2")))) || IsTrue((IsEqual(api, "sapiV3")))) || IsTrue((IsEqual(api, "sapiV4")))) || IsTrue((IsEqual(api, "dapiPrivate")))) || IsTrue((IsEqual(api, "dapiPrivateV2")))) || IsTrue((IsEqual(api, "fapiPrivate")))) || IsTrue((IsEqual(api, "fapiPrivateV2")))) || IsTrue((IsEqual(api, "fapiPrivateV3")))) || IsTrue((IsTrue(IsEqual(api, "papi")) && IsTrue(!IsEqual(path, "ping"))))) {
 		this.CheckRequiredCredentials()
+		if IsTrue(IsTrue(IsTrue((IsGreaterThan(GetIndexOf(url, "testnet.binancefuture.com"), OpNeg(1)))) && IsTrue(this.IsSandboxModeEnabled)) && IsTrue((!IsTrue(this.SafeBool(this.Options, "disableFuturesSandboxWarning"))))) {
+			panic(NotSupported(Add(this.Id, " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")))
+		}
 		if IsTrue(IsTrue(IsEqual(method, "POST")) && IsTrue((IsTrue((IsEqual(path, "order"))) || IsTrue((IsEqual(path, "sor/order")))))) {
 			// inject in implicit API calls
 			var newClientOrderId interface{} = this.SafeString(params, "newClientOrderId")
@@ -13433,8 +13436,8 @@ func (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{}, 
 			panic(NotSupported(Add(this.Id, " add / reduce margin only supported with type future or delivery")))
 		}
 
-		retRes121328 := (<-this.LoadMarkets())
-		PanicOnError(retRes121328)
+		retRes121358 := (<-this.LoadMarkets())
+		PanicOnError(retRes121358)
 		var market interface{} = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
 		var request interface{} = map[string]interface{}{
@@ -13538,9 +13541,9 @@ func (this *binance) ReduceMargin(symbol interface{}, amount interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes1221915 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes1221915)
-		ch <- retRes1221915
+		retRes1222215 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes1222215)
+		ch <- retRes1222215
 		return nil
 
 	}()
@@ -13566,9 +13569,9 @@ func (this *binance) AddMargin(symbol interface{}, amount interface{}, optionalA
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes1223415 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes1223415)
-		ch <- retRes1223415
+		retRes1223715 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes1223715)
+		ch <- retRes1223715
 		return nil
 
 	}()
@@ -13592,8 +13595,8 @@ func (this *binance) FetchCrossBorrowRate(code interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes122478 := (<-this.LoadMarkets())
-		PanicOnError(retRes122478)
+		retRes122508 := (<-this.LoadMarkets())
+		PanicOnError(retRes122508)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset": GetValue(currency, "id"),
@@ -13673,8 +13676,8 @@ func (this *binance) FetchIsolatedBorrowRates(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes123018 := (<-this.LoadMarkets())
-		PanicOnError(retRes123018)
+		retRes123048 := (<-this.LoadMarkets())
+		PanicOnError(retRes123048)
 		var request interface{} = map[string]interface{}{}
 		var symbol interface{} = this.SafeString(params, "symbol")
 		params = this.Omit(params, "symbol")
@@ -13737,8 +13740,8 @@ func (this *binance) FetchBorrowRateHistory(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes123468 := (<-this.LoadMarkets())
-		PanicOnError(retRes123468)
+		retRes123498 := (<-this.LoadMarkets())
+		PanicOnError(retRes123498)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 93
 		} else if IsTrue(IsGreaterThan(limit, 93)) {
@@ -13855,8 +13858,8 @@ func (this *binance) CreateGiftCode(code interface{}, amount interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes124488 := (<-this.LoadMarkets())
-		PanicOnError(retRes124488)
+		retRes124518 := (<-this.LoadMarkets())
+		PanicOnError(retRes124518)
 		var currency interface{} = this.Currency(code)
 		// ensure you have enough token in your funding account before calling this code
 		var request interface{} = map[string]interface{}{
@@ -14000,8 +14003,8 @@ func (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes125448 := (<-this.LoadMarkets())
-		PanicOnError(retRes125448)
+		retRes125478 := (<-this.LoadMarkets())
+		PanicOnError(retRes125478)
 		var isPortfolioMargin interface{} = nil
 		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "fetchBorrowInterest", "papi", "portfolioMargin", false)
 		isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
@@ -14122,8 +14125,8 @@ func (this *binance) RepayCrossMargin(code interface{}, amount interface{}, opti
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes126448 := (<-this.LoadMarkets())
-		PanicOnError(retRes126448)
+		retRes126478 := (<-this.LoadMarkets())
+		PanicOnError(retRes126478)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset":  GetValue(currency, "id"),
@@ -14182,8 +14185,8 @@ func (this *binance) RepayIsolatedMargin(symbol interface{}, code interface{}, a
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes127028 := (<-this.LoadMarkets())
-		PanicOnError(retRes127028)
+		retRes127058 := (<-this.LoadMarkets())
+		PanicOnError(retRes127058)
 		var currency interface{} = this.Currency(code)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
@@ -14230,8 +14233,8 @@ func (this *binance) BorrowCrossMargin(code interface{}, amount interface{}, opt
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes127358 := (<-this.LoadMarkets())
-		PanicOnError(retRes127358)
+		retRes127388 := (<-this.LoadMarkets())
+		PanicOnError(retRes127388)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset":  GetValue(currency, "id"),
@@ -14286,8 +14289,8 @@ func (this *binance) BorrowIsolatedMargin(symbol interface{}, code interface{}, 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes127728 := (<-this.LoadMarkets())
-		PanicOnError(retRes127728)
+		retRes127758 := (<-this.LoadMarkets())
+		PanicOnError(retRes127758)
 		var currency interface{} = this.Currency(code)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
@@ -14377,17 +14380,17 @@ func (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs .
 			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot use the 1m timeframe")))
 		}
 
-		retRes128418 := (<-this.LoadMarkets())
-		PanicOnError(retRes128418)
+		retRes128448 := (<-this.LoadMarkets())
+		PanicOnError(retRes128448)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1284519 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
-			PanicOnError(retRes1284519)
-			ch <- retRes1284519
+			retRes1284819 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 500))
+			PanicOnError(retRes1284819)
+			ch <- retRes1284819
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -14465,8 +14468,8 @@ func (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes129068 := (<-this.LoadMarkets())
-		PanicOnError(retRes129068)
+		retRes129098 := (<-this.LoadMarkets())
+		PanicOnError(retRes129098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(GetValue(market, "option")) {
@@ -14599,17 +14602,17 @@ func (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes130118 := (<-this.LoadMarkets())
-		PanicOnError(retRes130118)
+		retRes130148 := (<-this.LoadMarkets())
+		PanicOnError(retRes130148)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes1301519 := (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
-			PanicOnError(retRes1301519)
-			ch <- retRes1301519
+			retRes1301819 := (<-this.FetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, params, "current", 100))
+			PanicOnError(retRes1301819)
+			ch <- retRes1301819
 			return nil
 		}
 		var market interface{} = nil
@@ -14874,8 +14877,8 @@ func (this *binance) FetchGreeks(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes132468 := (<-this.LoadMarkets())
-		PanicOnError(retRes132468)
+		retRes132498 := (<-this.LoadMarkets())
+		PanicOnError(retRes132498)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -14927,8 +14930,8 @@ func (this *binance) FetchAllGreeks(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes132828 := (<-this.LoadMarkets())
-		PanicOnError(retRes132828)
+		retRes132858 := (<-this.LoadMarkets())
+		PanicOnError(retRes132858)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
@@ -15116,8 +15119,8 @@ func (this *binance) FetchMarginModes(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes134208 := (<-this.LoadMarkets())
-		PanicOnError(retRes134208)
+		retRes134238 := (<-this.LoadMarkets())
+		PanicOnError(retRes134238)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -15170,8 +15173,8 @@ func (this *binance) FetchMarginMode(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes135148 := (<-this.LoadMarkets())
-		PanicOnError(retRes135148)
+		retRes135178 := (<-this.LoadMarkets())
+		PanicOnError(retRes135178)
 		var market interface{} = this.Market(symbol)
 		var subType interface{} = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchMarginMode", market, params)
@@ -15240,8 +15243,8 @@ func (this *binance) FetchOption(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes135738 := (<-this.LoadMarkets())
-		PanicOnError(retRes135738)
+		retRes135768 := (<-this.LoadMarkets())
+		PanicOnError(retRes135768)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -15361,8 +15364,8 @@ func (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes136688 := (<-this.LoadMarkets())
-		PanicOnError(retRes136688)
+		retRes136718 := (<-this.LoadMarkets())
+		PanicOnError(retRes136718)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
 		}
@@ -15436,8 +15439,8 @@ func (this *binance) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes137268 := (<-this.LoadMarkets())
-		PanicOnError(retRes137268)
+		retRes137298 := (<-this.LoadMarkets())
+		PanicOnError(retRes137298)
 
 		response := (<-this.SapiGetConvertAssetInfo(params))
 		PanicOnError(response)
@@ -15516,8 +15519,8 @@ func (this *binance) FetchConvertQuote(fromCode interface{}, toCode interface{},
 			panic(ArgumentsRequired(Add(this.Id, " fetchConvertQuote() requires an amount argument")))
 		}
 
-		retRes137898 := (<-this.LoadMarkets())
-		PanicOnError(retRes137898)
+		retRes137928 := (<-this.LoadMarkets())
+		PanicOnError(retRes137928)
 		var request interface{} = map[string]interface{}{
 			"fromAsset":  fromCode,
 			"toAsset":    toCode,
@@ -15568,8 +15571,8 @@ func (this *binance) CreateConvertTrade(id interface{}, fromCode interface{}, to
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes138248 := (<-this.LoadMarkets())
-		PanicOnError(retRes138248)
+		retRes138278 := (<-this.LoadMarkets())
+		PanicOnError(retRes138278)
 		var request interface{} = map[string]interface{}{}
 		var response interface{} = nil
 		if IsTrue(IsTrue((IsEqual(fromCode, "BUSD"))) || IsTrue((IsEqual(toCode, "BUSD")))) {
@@ -15619,8 +15622,8 @@ func (this *binance) FetchConvertTrade(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes138698 := (<-this.LoadMarkets())
-		PanicOnError(retRes138698)
+		retRes138728 := (<-this.LoadMarkets())
+		PanicOnError(retRes138728)
 		var request interface{} = map[string]interface{}{}
 		var response interface{} = nil
 		if IsTrue(IsEqual(code, "BUSD")) {
@@ -15691,8 +15694,8 @@ func (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes139498 := (<-this.LoadMarkets())
-		PanicOnError(retRes139498)
+		retRes139528 := (<-this.LoadMarkets())
+		PanicOnError(retRes139528)
 		var request interface{} = map[string]interface{}{}
 		var msInThirtyDays interface{} = 2592000000
 		var now interface{} = this.Milliseconds()
@@ -15861,8 +15864,8 @@ func (this *binance) FetchFundingIntervals(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes141378 := (<-this.LoadMarkets())
-		PanicOnError(retRes141378)
+		retRes141408 := (<-this.LoadMarkets())
+		PanicOnError(retRes141408)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -15934,8 +15937,8 @@ func (this *binance) FetchLongShortRatioHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes141838 := (<-this.LoadMarkets())
-		PanicOnError(retRes141838)
+		retRes141868 := (<-this.LoadMarkets())
+		PanicOnError(retRes141868)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(IsEqual(timeframe, nil)) {
 			timeframe = "1d"
