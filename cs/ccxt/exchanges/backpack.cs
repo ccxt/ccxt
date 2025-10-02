@@ -235,7 +235,12 @@ public partial class backpack : Exchange
                         { "leverage", false },
                         { "marketBuyByCost", true },
                         { "marketBuyRequiresPrice", true },
-                        { "selfTradePrevention", false },
+                        { "selfTradePrevention", new Dictionary<string, object>() {
+                            { "EXPIRE_MAKER", true },
+                            { "EXPIRE_TAKER", true },
+                            { "EXPIRE_BOTH", true },
+                            { "NONE", false },
+                        } },
                         { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
@@ -1741,7 +1746,7 @@ public partial class backpack : Exchange
      * @param {boolean} [params.postOnly] true to place a post only order
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-     * @param {string} [params.selfTradePrevention] 'RejectTaker', 'RejectMaker' or 'RejectBoth'
+     * @param {string} [params.selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
      * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
      * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
      * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
@@ -1874,6 +1879,23 @@ public partial class backpack : Exchange
                 ((IDictionary<string,object>)request)["stopLossLimitPrice"] = this.priceToPrecision(symbol, stopLossPrice);
             }
             parameters = this.omit(parameters, "stopLoss");
+        }
+        object selfTradePrevention = null;
+        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = ((IList<object>)selfTradePreventionparametersVariable)[0];
+        parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
+        if (isTrue(!isEqual(selfTradePrevention, null)))
+        {
+            if (isTrue(isEqual(selfTradePrevention, "EXPIRE_MAKER")))
+            {
+                ((IDictionary<string,object>)request)["selfTradePrevention"] = "RejectMaker";
+            } else if (isTrue(isEqual(selfTradePrevention, "EXPIRE_TAKER")))
+            {
+                ((IDictionary<string,object>)request)["selfTradePrevention"] = "RejectTaker";
+            } else if (isTrue(isEqual(selfTradePrevention, "EXPIRE_BOTH")))
+            {
+                ((IDictionary<string,object>)request)["selfTradePrevention"] = "RejectBoth";
+            }
         }
         return this.extend(request, parameters);
     }
