@@ -138,7 +138,7 @@ public partial class backpack : Exchange
                 } },
                 { "www", "https://backpack.exchange/" },
                 { "doc", "https://docs.backpack.exchange/" },
-                { "referral", "https://backpack.exchange/join/ib8qxwyl" },
+                { "referral", "https://backpack.exchange/join/ccxt" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
