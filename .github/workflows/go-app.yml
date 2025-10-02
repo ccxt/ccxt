@@ -50,6 +50,7 @@ jobs:
         #   # done
         run : |
           cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+          echo "Cleaned files: $cleaned_rest_files"
           tsx utils/granular-go-build.ts -- $cleaned_rest_files
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
