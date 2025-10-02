@@ -13,12 +13,12 @@ export default class coinmate extends coinmateRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false, // Coinmate doesn't support watching all tickers at once
+                'watchTickers': false,
                 'watchTrades': true,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false, // Not supported by Coinmate WebSocket
+                'watchOHLCV': false,
             },
             'urls': {
                 'api': {
@@ -192,18 +192,18 @@ export default class coinmate extends coinmateRest {
         const payload = this.safeDict (message, 'payload');
         const timestamp = this.milliseconds ();
         const orderbook = this.orderBook ({}, 1000);
-        const bids = this.safeList (payload, 'bids', []);
-        const asks = this.safeList (payload, 'asks', []);
+        const bids = this.safeList (payload, 'Bids', []);
+        const asks = this.safeList (payload, 'Asks', []);
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
-            const price = this.safeFloat (bid, 'price');
-            const amount = this.safeFloat (bid, 'amount');
+            const price = this.safeFloat (bid, 'Price');
+            const amount = this.safeFloat (bid, 'Amount');
             orderbook['bids'].store (price, amount);
         }
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
-            const price = this.safeFloat (ask, 'price');
-            const amount = this.safeFloat (ask, 'amount');
+            const price = this.safeFloat (ask, 'Price');
+            const amount = this.safeFloat (ask, 'Amount');
             orderbook['asks'].store (price, amount);
         }
         orderbook['timestamp'] = timestamp;
@@ -368,13 +368,14 @@ export default class coinmate extends coinmateRest {
         // }
         //
         const payload = this.safeDict (message, 'payload');
-        const currencyIds = Object.keys (payload);
+        const balances = this.safeDict (payload, 'balances', {});
+        const currencyIds = Object.keys (balances);
         this.balance['info'] = payload;
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const balanceInfo = this.safeDict (payload, currencyId);
+            const balanceInfo = this.safeDict (balances, currencyId);
             const total = this.safeString (balanceInfo, 'balance');
             const used = this.safeString (balanceInfo, 'reserved');
             account['total'] = total;
@@ -792,7 +793,6 @@ export default class coinmate extends coinmateRest {
         const channel = this.safeString (message, 'channel');
         const feedback = this.id + ' ' + errorMessage + ' ' + JSON.stringify (message);
         try {
-            // Check if it's an authentication error
             const lowerError = errorMessage.toLowerCase ();
             if (lowerError.includes ('auth') || lowerError.includes ('signature') || lowerError.includes ('invalid')) {
                 throw new AuthenticationError (feedback);
@@ -801,14 +801,11 @@ export default class coinmate extends coinmateRest {
             }
         } catch (error) {
             if (error instanceof AuthenticationError) {
-                // Reject all pending subscriptions for private channels
                 if (channel && channel.startsWith ('private')) {
                     client.reject (error, channel);
                 }
-                // Also reject the authenticated messageHash
                 client.reject (error, 'authenticated');
             } else {
-                // Reject the specific channel subscription
                 if (channel) {
                     client.reject (error, channel);
                 } else {
@@ -819,21 +816,15 @@ export default class coinmate extends coinmateRest {
     }
 
     ping (client: Client) {
-        // Send a JSON ping message to keep connection alive
-        // The server expects both client and server to send pings
         return { 'event': 'ping' };
     }
 
     handlePing (client: Client, message) {
-        // Server sent us a ping, which means connection is alive
-        // Update lastPong to prevent timeout
         client.lastPong = this.milliseconds ();
         client.send ({ 'event': 'pong' });
     }
 
     handlePong (client: Client, message) {
-        // Server responded to our ping with pong
-        // Update lastPong to show connection is alive
         client.lastPong = this.milliseconds ();
         return message;
     }
