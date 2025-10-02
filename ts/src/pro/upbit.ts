@@ -33,8 +33,18 @@ export default class upbit extends upbitRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'currentSubscriptions': {},
             },
         });
+    }
+
+    addSubsciptionItem (requestPart: any) {
+        const currentSubscriptions = this.safeValue (this.options, 'currentSubscriptions', {});
+        const stringified = this.json (requestPart);
+        if (!(stringified in currentSubscriptions)) {
+            currentSubscriptions[stringified] = requestPart;
+        }
+        this.options['currentSubscriptions'] = currentSubscriptions;
     }
 
     async watchPublic (symbol: string, channel, params = {}) {
@@ -49,17 +59,23 @@ export default class upbit extends upbitRest {
         this.options[channel][symbol] = true;
         const symbols = Object.keys (this.options[channel]);
         const marketIds = this.marketIds (symbols);
-        const request = [
+        let request = [
             {
                 'ticket': this.uuid (),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
         ];
+        const existingSubscriptions = this.safeDict (this.options, 'currentSubscriptions', {});
+        const subscriptionsArray = Object.values (existingSubscriptions);
+        request = this.arrayConcat (request, subscriptionsArray);
+        const newItem = {
+            'type': channel,
+            'codes': marketIds,
+            // 'isOnlySnapshot': false,
+            // 'isOnlyRealtime': false,
+        };
+        // @ts-ignore
+        request.push (newItem);
+        this.addSubsciptionItem (newItem);
         const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, request, messageHash);
     }
