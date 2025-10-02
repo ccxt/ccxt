@@ -36,6 +36,7 @@ export default class htx extends htxRest {
                 'unwatchTicker': true,
                 'unwatchOHLCV': true,
                 'unwatchTrades': true,
+                'unwatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -474,6 +475,9 @@ export default class htx extends htxRest {
             subMessageHash = 'market.' + market['id'] + '.mbp.' + this.numberToString (depth);
         } else {
             subMessageHash = 'market.' + market['id'] + '.depth.size_' + this.numberToString (depth) + '.high_freq';
+        }
+        if (!(market['spot'])) {
+            params['data_type'] = 'incremental';
         }
         return await this.unsubscribePublic (market, subMessageHash, topic, params);
     }
@@ -1811,12 +1815,12 @@ export default class htx extends htxRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
+        const subscription = this.safeDict (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
                 method.call (this, client, message, subscription);
-                return;
+                // return; commented out to clean up
             }
             // clean up
             if (id in client.subscriptions) {
@@ -1831,27 +1835,12 @@ export default class htx extends htxRest {
     handleUnSubscription (client: Client, subscription: Dict) {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        console.log ('Subscriptions before unwatch <---------------------'); // todo: remove after testing
-        console.log (client.subscriptions); // todo: remove after testing
         for (let i = 0; i < messageHashes.length; i++) {
             const unsubHash = messageHashes[i];
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
         this.cleanCache (subscription);
-        console.log ('Subscriptions after unwatch <---------------------'); // todo: remove after testing
-        console.log (client.subscriptions); // todo: remove after testing
-    }
-
-    async test () {
-        await this.loadMarkets ();
-        await this.watchOrderBook ('ETH/USDT');
-        this.sleep (2000);
-        console.log ('Cache after subscribing <---------------'); // todo: remove after testing
-        console.log (this.orderbooks); // todo: remove after testing
-        await this.unWatchOrderBook ('ETH/USDT');
-        console.log ('Cache after unsubscribing <---------------'); // todo: remove after testing
-        console.log (this.orderbooks); // todo: remove after testing
     }
 
     handleSystemStatus (client: Client, message) {
@@ -2445,7 +2434,8 @@ export default class htx extends htxRest {
             'id': requestId,
         };
         const messageHash = 'unsubscribe::' + subMessageHash;
-        const url = this.getUrlByMarketType (market['type'], market['linear'], false);
+        const isFeed = (topic === 'orderbook');
+        const url = this.getUrlByMarketType (market['type'], market['linear'], false, isFeed);
         const subscription: Dict = {
             'unsubscribe': true,
             'id': requestId,
