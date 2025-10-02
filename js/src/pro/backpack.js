@@ -876,8 +876,8 @@ export default class backpack extends backpackRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = this.safeInteger(delta, 'u');
-        const bids = this.safeDict(delta, 'b', []);
-        const asks = this.safeDict(delta, 'a', []);
+        const bids = this.safeList(delta, 'b', []);
+        const asks = this.safeList(delta, 'a', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks(storedBids, bids);
