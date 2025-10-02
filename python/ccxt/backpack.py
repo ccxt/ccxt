@@ -158,7 +158,7 @@ class backpack(Exchange, ImplicitAPI):
                 },
                 'www': 'https://backpack.exchange/',
                 'doc': 'https://docs.backpack.exchange/',
-                'referral': 'https://backpack.exchange/join/ib8qxwyl',
+                'referral': 'https://backpack.exchange/join/ccxt',
             },
             'api': {
                 'public': {
