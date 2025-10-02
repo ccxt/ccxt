@@ -266,7 +266,12 @@ class bitvavo(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
                         'marketBuyByCost': True,
-                        'selfTradePrevention': True,  # todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': False,
+                            'EXPIRE_TAKER': False,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,
+                        },
                         'iceberg': False,
                     },
                     'createOrders': None,
@@ -1193,6 +1198,13 @@ class bitvavo(Exchange, ImplicitAPI):
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            if selfTradePrevention == 'EXPIRE_BOTH':
+                request['selfTradePrevention'] = 'cancelBoth'
+            else:
+                request['selfTradePrevention'] = selfTradePrevention
         return self.extend(request, params)
 
     def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1215,7 +1227,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
         :param str [params.triggerType]: "price"
         :param str [params.triggerReference]: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
-        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param str [params.selfTradePrevention]: one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
         :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
         :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
