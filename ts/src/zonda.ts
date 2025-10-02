@@ -1376,11 +1376,11 @@ export default class zonda extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //          "id": "df00b0da-e5e0-11e9-8c19-0242ac11000a",
-        //          "t": "1570108958831",
-        //          "a": "0.04776653",
-        //          "r": "0.02145854",
-        //          "ty": "Sell"
+        //          "id": "df00b0da-e5e0-11e9-8c19-0242ac11000a",  // UUID of transaction.
+        //          "t": "1570108958831",                          // Transaction time.
+        //          "a": "0.04776653",                             // Amount of cryptocurrency in the transaction.
+        //          "r": "0.02145854",                             // Price of the transaction.
+        //          "ty": "Sell"                                   // Transaction type: buy / sell.
         //     }
         //
         const timestamp = this.safeInteger2 (trade, 'time', 't');
