@@ -43,11 +43,14 @@ jobs:
         run: tsx build/goTranspiler.ts
       - name: Transpile to Go (specific)
         if: env.important_modified == 'false'
-        run: |
+        # run: |
+        #   cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        #   # for exchange in $cleaned_rest_files; do
+        #   #   tsx build/goTranspiler.ts -- $exchange
+        #   # done
+        run : |
           cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
-          for exchange in $cleaned_rest_files; do
-            tsx build/goTranspiler.ts -- $exchange
-          done
+          tsx utils/granular-go-build.ts -- $cleaned_rest_files
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build
