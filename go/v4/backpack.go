@@ -145,7 +145,7 @@ func (this *backpack) Describe() interface{} {
 			},
 			"www":      "https://backpack.exchange/",
 			"doc":      "https://docs.backpack.exchange/",
-			"referral": "https://backpack.exchange/join/ib8qxwyl",
+			"referral": "https://backpack.exchange/join/ccxt",
 		},
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
