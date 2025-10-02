@@ -1,0 +1,97 @@
+{
+    "exchange": "btcalpha",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with since",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?from=2025-01-02T23%3A59%3A59.999Z&timeWindow=1h",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?limit=4&timeWindow=1h",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?timeWindow=1h&to=2025-01-04T00%3A00%3A00.001Z&until=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?from=2025-01-02T23%3A59%3A59.998Z&limit=4&timeWindow=1h",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862399999,
+                  4
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?from=2025-01-02T23%3A59%3A59.999Z&timeWindow=1h&to=2025-01-04T00%3A00%3A00.001Z&until=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  null,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?limit=4&timeWindow=1h&to=2025-01-04T00%3A00%3A00.001Z&until=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  null,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            },
+            {
+                "description": "fetchOHLCV with since, limit and until",
+                "method": "fetchOHLCV",
+                "url": "https://api.btcmarkets.net/v3/markets/BTC-USDT/candles?from=2025-01-02T23%3A59%3A59.999Z&limit=4&timeWindow=1h&to=2025-01-04T00%3A00%3A00.001Z&until=1735948800000",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1735862400000,
+                  4,
+                  {
+                    "until": 1735948800000
+                  }
+                ]
+            }              
+        ]
+    }
+}
