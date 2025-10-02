@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitbns
@@ -36,8 +36,8 @@ class bitbns extends bitbns$1["default"] {
                 'createOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
-                'fetchBalance': true,
                 'fechCurrencies': false,
+                'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
