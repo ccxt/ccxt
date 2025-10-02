@@ -35,6 +35,7 @@ jobs:
             ${{ runner.os }}-go-
       - name: Install dependencies
         run: go mod download
+        working-directory: ./go
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
