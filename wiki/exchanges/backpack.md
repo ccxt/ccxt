@@ -479,7 +479,7 @@ create a trade order
 | params.postOnly | <code>boolean</code> | No | true to place a post only order |
 | params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'PO' |
 | params.reduceOnly | <code>bool</code> | No | *contract only* Indicates if this order is to reduce the size of a position |
-| params.selfTradePrevention | <code>string</code> | No | 'RejectTaker', 'RejectMaker' or 'RejectBoth' |
+| params.selfTradePrevention | <code>string</code> | No | one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH |
 | params.autoLend | <code>bool</code> | No | *spot margin only* if true then the order can lend |
 | params.autoLendRedeem | <code>bool</code> | No | *spot margin only* if true then the order can redeem a lend if required |
 | params.autoBorrow | <code>bool</code> | No | *spot margin only* if true then the order can borrow |
