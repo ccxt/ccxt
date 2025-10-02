@@ -122,9 +122,10 @@ class apex(ccxt.async_support.apex):
         #                 "v": "0.001",
         #                 "p": "16578.50",
         #                 "L": "PlusTick",
-        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         #                 "BT": False
-        #             }
+        #             },
+        #             # sorted by newest first
         #         ]
         #     }
         #
@@ -140,8 +141,10 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        for j in range(0, len(trades)):
-            parsed = self.parse_ws_trade(trades[j], market)
+        length = len(trades)
+        for j in range(0, length):
+            index = length - j - 1
+            parsed = self.parse_ws_trade(trades[index], market)
             stored.append(parsed)
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
@@ -913,6 +916,7 @@ class apex(ccxt.async_support.apex):
 
     def ping(self, client: Client):
         timeStamp = str(self.milliseconds())
+        client.lastPong = timeStamp  # server won't send a pong, so we set it here
         return {
             'args': [timeStamp],
             'op': 'ping',

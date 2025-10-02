@@ -437,6 +437,9 @@ export default class cryptocom extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -532,13 +535,13 @@ export default class cryptocom extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         // this endpoint requires authentication
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         let skipFetchCurrencies = false;
         [ skipFetchCurrencies, params ] = this.handleOptionAndParams (params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if (skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
-            return undefined;
+            return {};
         }
         let response = {};
         try {
@@ -547,7 +550,7 @@ export default class cryptocom extends Exchange {
             if (e instanceof ExchangeError) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
-                return undefined;
+                return {};
             }
             throw e;
             // do nothing

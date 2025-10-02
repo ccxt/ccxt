@@ -358,29 +358,11 @@ public partial class bitvavo : Exchange
                 { "operatorId", null },
                 { "fiatCurrencies", new List<object>() {"EUR"} },
             } },
-            { "precisionMode", SIGNIFICANT_DIGITS },
+            { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "MIOTA", "IOTA" },
             } },
         });
-    }
-
-    public override object amountToPrecision(object symbol, object amount)
-    {
-        // https://docs.bitfinex.com/docs/introduction#amount-precision
-        // The amount field allows up to 8 decimals.
-        // Anything exceeding this will be rounded to the 8th decimal.
-        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
-    }
-
-    public override object priceToPrecision(object symbol, object price)
-    {
-        price = this.decimalToPrecision(price, ROUND, getValue(getValue(getValue(this.markets, symbol), "precision"), "price"), this.precisionMode);
-        // https://docs.bitfinex.com/docs/introduction#price-precision
-        // The precision level of all trading prices is based on significant figures.
-        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        // Prices submit with a precision larger than 5 will be cut by the API.
-        return this.decimalToPrecision(price, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     /**
@@ -413,26 +395,29 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetMarkets(parameters);
         //
-        //     [
-        //         {
-        //             "market":"ADA-BTC",
-        //             "status":"trading", // "trading" "halted" "auction"
-        //             "base":"ADA",
-        //             "quote":"BTC",
-        //             "pricePrecision":5,
-        //             "minOrderInBaseAsset":"100",
-        //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes": [ "market", "limit" ]
-        //         }
-        //     ]
+        //    {
+        //        "market": "BTC-EUR",
+        //        "status": "trading",
+        //        "base": "BTC",
+        //        "quote": "EUR",
+        //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "tickSize": "1.00",
+        //        "minOrderInBaseAsset": "0.00006100",
+        //        "minOrderInQuoteAsset": "5.00",
+        //        "maxOrderInBaseAsset": "1000000000.00000000",
+        //        "maxOrderInQuoteAsset": "1000000000.00",
+        //        "quantityDecimals": "8",
+        //        "notionalDecimals": "2",
+        //        "maxOpenOrders": "100",
+        //        "feeCategory": "A",
+        //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
+        //    }
         //
         return this.parseMarkets(response);
     }
 
     public override object parseMarkets(object markets)
     {
-        object currencies = this.currencies;
-        object currenciesById = this.indexBy(currencies, "id");
         object result = new List<object>() {};
         object fees = this.fees;
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
@@ -444,8 +429,6 @@ public partial class bitvavo : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object status = this.safeString(market, "status");
-            object baseCurrency = this.safeValue(currenciesById, baseId);
-            object basePrecision = this.safeInteger(baseCurrency, "precision");
             ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -473,8 +456,9 @@ public partial class bitvavo : Exchange
                 { "taker", getValue(getValue(fees, "trading"), "taker") },
                 { "maker", getValue(getValue(fees, "trading"), "maker") },
                 { "precision", new Dictionary<string, object>() {
-                    { "amount", this.safeInteger(baseCurrency, "decimals", basePrecision) },
-                    { "price", this.safeInteger(market, "pricePrecision") },
+                    { "amount", this.parseNumber(this.parsePrecision(this.safeString(market, "quantityDecimals"))) },
+                    { "price", this.safeNumber(market, "tickSize") },
+                    { "cost", this.parseNumber(this.parsePrecision(this.safeString(market, "notionalDecimals"))) },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -483,7 +467,7 @@ public partial class bitvavo : Exchange
                     } },
                     { "amount", new Dictionary<string, object>() {
                         { "min", this.safeNumber(market, "minOrderInBaseAsset") },
-                        { "max", null },
+                        { "max", this.safeNumber(market, "maxOrderInBaseAsset") },
                     } },
                     { "price", new Dictionary<string, object>() {
                         { "min", null },
@@ -491,7 +475,7 @@ public partial class bitvavo : Exchange
                     } },
                     { "cost", new Dictionary<string, object>() {
                         { "min", this.safeNumber(market, "minOrderInQuoteAsset") },
-                        { "max", null },
+                        { "max", this.safeNumber(market, "maxOrderInQuoteAsset") },
                     } },
                 } },
                 { "created", null },
@@ -598,7 +582,7 @@ public partial class bitvavo : Exchange
             object withdrawal = isEqual(this.safeString(currency, "withdrawalStatus"), "OK");
             object active = isTrue(deposit) && isTrue(withdrawal);
             object withdrawFee = this.safeNumber(currency, "withdrawalFee");
-            object precision = this.safeInteger(currency, "decimals", 8);
+            object precision = this.safeString(currency, "decimals", "8");
             object minWithdraw = this.safeNumber(currency, "withdrawalMinAmount");
             // btw, absolutely all of them have 1 network atm
             for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
@@ -613,7 +597,7 @@ public partial class bitvavo : Exchange
                     { "deposit", deposit },
                     { "withdraw", withdrawal },
                     { "fee", withdrawFee },
-                    { "precision", precision },
+                    { "precision", this.parseNumber(this.parsePrecision(precision)) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "min", minWithdraw },
@@ -632,7 +616,7 @@ public partial class bitvavo : Exchange
                 { "withdraw", withdrawal },
                 { "networks", networks },
                 { "fee", withdrawFee },
-                { "precision", precision },
+                { "precision", null },
                 { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
@@ -650,8 +634,6 @@ public partial class bitvavo : Exchange
                 } },
             });
         }
-        // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
 

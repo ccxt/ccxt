@@ -226,6 +226,9 @@ class luno(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': False,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': False,
                         'triggerPrice': True,  # todo
@@ -310,7 +313,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         response = self.privateGetSendNetworks(params)
         #
         #     {

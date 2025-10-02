@@ -1345,6 +1345,8 @@ class bitget(Exchange, ImplicitAPI):
                     '43025': InvalidOrder,  # Plan order does not exist
                     '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
+                    '40774': InvalidOrder,  # {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '45122': InvalidOrder,  # {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol,  # invalid trading pair
@@ -5046,6 +5048,13 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'orderType': type,
         }
+        hedged = None
+        hedged, params = self.handle_param_bool(params, 'hedged', False)
+        # backward compatibility for `oneWayMode`
+        oneWayMode = None
+        oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
+        if oneWayMode is not None:
+            hedged = not oneWayMode
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
@@ -5123,7 +5132,10 @@ class bitget(Exchange, ImplicitAPI):
             elif isStopLossOrTakeProfitTrigger:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
+                if hedged:
+                    request['holdSide'] = 'long' if (side == 'sell') else 'short'
+                else:
+                    request['holdSide'] = 'buy' if (side == 'sell') else 'sell'
                 if isStopLossTriggerOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     request['planType'] = 'pos_loss'
@@ -5142,13 +5154,6 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                hedged = None
-                hedged, params = self.handle_param_bool(params, 'hedged', False)
-                # backward compatibility for `oneWayMode`
-                oneWayMode = None
-                oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
-                if oneWayMode is not None:
-                    hedged = not oneWayMode
                 requestSide = side
                 if reduceOnly:
                     if not hedged:
@@ -7477,6 +7482,7 @@ class bitget(Exchange, ImplicitAPI):
 
         https://www.bitget.com/api-doc/contract/position/get-all-position
         https://www.bitget.com/api-doc/contract/position/Get-History-Position
+        https://www.bitget.com/api-doc/uta/trade/Get-Position
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7484,7 +7490,8 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.productType]: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param boolean [params.useHistoryEndpoint]: default False, when True  will use the historic endpoint to fetch positions
-        :param str [params.method]: either(default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+        :param str [params.method]: either(default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+        :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
@@ -7504,12 +7511,15 @@ class bitget(Exchange, ImplicitAPI):
             market = self.market(first)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
-            'productType': productType,
-        }
+        request: dict = {}
         response = None
         isHistory = False
-        if method == 'privateMixGetV2MixPositionAllPosition':
+        uta = None
+        uta, params = self.handle_option_and_params(params, 'fetchPositions', 'uta', False)
+        if uta:
+            request['category'] = productType
+            response = self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
+        elif method == 'privateMixGetV2MixPositionAllPosition':
             marginCoin = self.safe_string(params, 'marginCoin', 'USDT')
             if symbols is not None:
                 marginCoin = market['settleId']
@@ -7525,11 +7535,13 @@ class bitget(Exchange, ImplicitAPI):
                 if marginCoin is None:
                     raise ArgumentsRequired(self.id + ' fetchPositions() requires a marginCoin parameter that matches the productType')
             request['marginCoin'] = marginCoin
+            request['productType'] = productType
             response = self.privateMixGetV2MixPositionAllPosition(self.extend(request, params))
         else:
             isHistory = True
             if market is not None:
                 request['symbol'] = market['id']
+            request['productType'] = productType
             response = self.privateMixGetV2MixPositionHistoryPosition(self.extend(request, params))
         #
         # privateMixGetV2MixPositionAllPosition
@@ -7593,12 +7605,51 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        # privateUtaGetV3PositionCurrentPosition
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1750929905423,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "category": "USDT-FUTURES",
+        #                     "symbol": "BTCUSDT",
+        #                     "marginCoin": "USDT",
+        #                     "holdMode": "hedge_mode",
+        #                     "posSide": "long",
+        #                     "marginMode": "crossed",
+        #                     "positionBalance": "5.435199",
+        #                     "available": "0.001",
+        #                     "frozen": "0",
+        #                     "total": "0.001",
+        #                     "leverage": "20",
+        #                     "curRealisedPnl": "0",
+        #                     "avgPrice": "107410.3",
+        #                     "positionStatus": "normal",
+        #                     "unrealisedPnl": "0.0047",
+        #                     "liquidationPrice": "0",
+        #                     "mmr": "0.004",
+        #                     "profitRate": "0.0008647337475591",
+        #                     "markPrice": "107415.3",
+        #                     "breakEvenPrice": "107539.2",
+        #                     "totalFunding": "0",
+        #                     "openFeeTotal": "-0.06444618",
+        #                     "closeFeeTotal": "0",
+        #                     "createdTime": "1750495670699",
+        #                     "updatedTime": "1750929883465"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
         position = []
-        if not isHistory:
-            position = self.safe_list(response, 'data', [])
-        else:
+        if uta or isHistory:
             data = self.safe_dict(response, 'data', {})
             position = self.safe_list(data, 'list', [])
+        else:
+            position = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(position)):
             result.append(self.parse_position(position[i], market))

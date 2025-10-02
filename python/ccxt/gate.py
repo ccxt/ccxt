@@ -1439,8 +1439,8 @@ class gate(Exchange, ImplicitAPI):
         #        "leverage_min": "1",
         #        "leverage_max": "100",
         #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",
-        #        "taker_fee_rate": "0.00075",
+        #        "maker_fee_rate": "-0.00025",  # not actual value for regular users
+        #        "taker_fee_rate": "0.00075",  # not actual value for regular users
         #        "funding_rate": "0.002053",
         #        "order_size_max": 1000000,
         #        "funding_next_apply": 1610035200,
@@ -1484,8 +1484,8 @@ class gate(Exchange, ImplicitAPI):
         #        "risk_limit_base": "140.726652109199",
         #        "risk_limit_step": "1000000",
         #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",
-        #        "taker_fee_rate": "0.00075",
+        #        "maker_fee_rate": "-0.00025",  # not actual value for regular users
+        #        "taker_fee_rate": "0.00075",  # not actual value for regular users
         #        "ref_discount_rate": "0",
         #        "ref_rebate_rate": "0.2",
         #        "order_price_deviate": "0.5",
@@ -1522,8 +1522,6 @@ class gate(Exchange, ImplicitAPI):
         maxMultiplier = Precise.string_add('1', priceDeviate)
         minPrice = Precise.string_mul(minMultiplier, markPrice)
         maxPrice = Precise.string_mul(maxMultiplier, markPrice)
-        takerPercent = self.safe_string(market, 'taker_fee_rate')
-        makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
         isLinear = quote == settle
         contractSize = self.safe_string(market, 'quanto_multiplier')
         # exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1548,8 +1546,8 @@ class gate(Exchange, ImplicitAPI):
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
-            'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
-            'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+            'taker': None,
+            'maker': None,
             'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1648,8 +1646,6 @@ class gate(Exchange, ImplicitAPI):
                 maxMultiplier = Precise.string_add('1', priceDeviate)
                 minPrice = Precise.string_mul(minMultiplier, markPrice)
                 maxPrice = Precise.string_mul(maxMultiplier, markPrice)
-                takerPercent = self.safe_string(market, 'taker_fee_rate')
-                makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -1669,8 +1665,8 @@ class gate(Exchange, ImplicitAPI):
                     'contract': True,
                     'linear': True,
                     'inverse': False,
-                    'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
-                    'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+                    'taker': None,
+                    'maker': None,
                     'contractSize': self.parse_number('1'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
@@ -1836,7 +1832,7 @@ class gate(Exchange, ImplicitAPI):
         # sandbox/testnet only supports future markets
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
-            return None
+            return {}
         response = self.publicSpotGetCurrencies(params)
         #
         #    [

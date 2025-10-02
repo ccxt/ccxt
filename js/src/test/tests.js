@@ -1539,6 +1539,7 @@ class testMainClass {
             this.testCryptomus(),
             this.testDerive(),
             this.testModeTrade(),
+            this.testBackpack()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2160,6 +2161,25 @@ class testMainClass {
         }
         const brokerId = request['order_tag'];
         assert(brokerId === id, 'modetrade - id: ' + id + ' different from  broker_id: ' + brokerId);
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testBackpack() {
+        const exchange = this.initOfflineExchange('backpack');
+        exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
+        exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
+        let reqHeaders = undefined;
+        const id = '1400';
+        try {
+            await exchange.createOrder('ETH/USDC', 'limit', 'buy', 1, 5000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }

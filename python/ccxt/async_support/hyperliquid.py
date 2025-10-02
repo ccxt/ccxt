@@ -3413,6 +3413,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             request['startTime'] = since
         until = self.safe_integer(params, 'until')
         if until is not None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchDeposits requires since while until is set')
             request['endTime'] = until
             params = self.omit(params, ['until'])
         response = await self.publicPostInfo(self.extend(request, params))

@@ -332,6 +332,9 @@ export default class bybit extends bybitRest {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
+        }
         const orderRequest = this.cancelOrderRequest(id, symbol, params);
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate(url);

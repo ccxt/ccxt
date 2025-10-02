@@ -3934,6 +3934,10 @@ public partial class hyperliquid : Exchange
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
+            if (isTrue(isEqual(since, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits requires since while until is set")) ;
+            }
             ((IDictionary<string,object>)request)["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"until"});
         }

@@ -858,6 +858,7 @@ class mexc(ccxt.async_support.mexc):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
+            return
         client.resolve(storedOrderBook, messageHash)
 
     def handle_bookside_delta(self, bookside, bidasks):
@@ -1448,18 +1449,21 @@ class mexc(ccxt.async_support.mexc):
     def handle_balance(self, client: Client, message):
         #
         # spot
+        #
         #    {
-        #        "c": "spot@private.account.v3.api",
-        #        "d": {
-        #            "a": "USDT",
-        #            "c": 1678185928428,
-        #            "f": "302.185113007893322435",
-        #            "fd": "-4.990689704",
-        #            "l": "4.990689704",
-        #            "ld": "4.990689704",
-        #            "o": "ENTRUST_PLACE"
-        #        },
-        #        "t": 1678185928435
+        #        channel: "spot@private.account.v3.api.pb",
+        #        createTime: "1758134605364",
+        #        sendTime: "1758134605373",
+        #        privateAccount: {
+        #          vcoinName: "USDT",
+        #          coinId: "128f589271cb4951b03e71e6323eb7be",
+        #          balanceAmount: "0.006016465074677006",
+        #          balanceAmountChange: "-4.4022",
+        #          frozenAmount: "4.4022",
+        #          frozenAmountChange: "4.4022",
+        #          type: "ENTRUST_PLACE",
+        #          time: "1758134605364",
+        #       }
         #    }
         #
         #
@@ -1477,25 +1481,22 @@ class mexc(ccxt.async_support.mexc):
         #         "ts": 1680059188190
         #     }
         #
-        c = self.safe_string(message, 'c')  # do not add 'channel' here, self is especially for spot
-        type = 'swap' if (c is None) else 'spot'
+        channel = self.safe_string(message, 'channel')
+        type = 'spot' if (channel == 'spot@private.account.v3.api.pb') else 'swap'
         messageHash = 'balance:' + type
-        data = self.safe_dict_n(message, ['d', 'data', 'privateAccount'])
-        futuresTimestamp = self.safe_integer(message, 'ts')
-        timestamp = self.safe_integer_2(data, 'c', 'time', futuresTimestamp)
+        data = self.safe_dict_n(message, ['data', 'privateAccount'])
+        futuresTimestamp = self.safe_integer_2(message, 'ts', 'createTime')
+        timestamp = self.safe_integer_2(data, 'time', futuresTimestamp)
         if not (type in self.balance):
             self.balance[type] = {}
         self.balance[type]['info'] = data
         self.balance[type]['timestamp'] = timestamp
         self.balance[type]['datetime'] = self.iso8601(timestamp)
-        currencyId = self.safe_string_n(data, ['a', 'currency', 'vcoinName'])
+        currencyId = self.safe_string_n(data, ['currency', 'vcoinName'])
         code = self.safe_currency_code(currencyId)
         account = self.account()
-        balanceAmount = self.safe_string(data, 'balanceAmount')
-        if balanceAmount is not None:
-            account['free'] = balanceAmount
-        account['total'] = self.safe_string_n(data, ['f', 'availableBalance'])
-        account['used'] = self.safe_string_n(data, ['l', 'frozenBalance', 'frozenAmount'])
+        account['free'] = self.safe_string_2(data, 'balanceAmount', 'availableBalance')
+        account['used'] = self.safe_string_n(data, ['frozenBalance', 'frozenAmount'])
         self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], messageHash)

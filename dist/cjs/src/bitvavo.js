@@ -382,25 +382,11 @@ class bitvavo extends bitvavo$1["default"] {
                 'operatorId': undefined,
                 'fiatCurrencies': ['EUR'], // only fiat atm
             },
-            'precisionMode': number.SIGNIFICANT_DIGITS,
+            'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
-    }
-    amountToPrecision(symbol, amount) {
-        // https://docs.bitfinex.com/docs/introduction#amount-precision
-        // The amount field allows up to 8 decimals.
-        // Anything exceeding this will be rounded to the 8th decimal.
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.markets[symbol]['precision']['amount'], number.DECIMAL_PLACES);
-    }
-    priceToPrecision(symbol, price) {
-        price = this.decimalToPrecision(price, number.ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-        // https://docs.bitfinex.com/docs/introduction#price-precision
-        // The precision level of all trading prices is based on significant figures.
-        // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        // Prices submit with a precision larger than 5 will be cut by the API.
-        return this.decimalToPrecision(price, number.TRUNCATE, 8, number.DECIMAL_PLACES);
     }
     /**
      * @method
@@ -427,24 +413,27 @@ class bitvavo extends bitvavo$1["default"] {
     async fetchMarkets(params = {}) {
         const response = await this.publicGetMarkets(params);
         //
-        //     [
-        //         {
-        //             "market":"ADA-BTC",
-        //             "status":"trading", // "trading" "halted" "auction"
-        //             "base":"ADA",
-        //             "quote":"BTC",
-        //             "pricePrecision":5,
-        //             "minOrderInBaseAsset":"100",
-        //             "minOrderInQuoteAsset":"0.001",
-        //             "orderTypes": [ "market", "limit" ]
-        //         }
-        //     ]
+        //    {
+        //        "market": "BTC-EUR",
+        //        "status": "trading",
+        //        "base": "BTC",
+        //        "quote": "EUR",
+        //        "pricePrecision": "0", // deprecated, this is mostly 0 across other markets too, which is abnormal, so we ignore this.
+        //        "tickSize": "1.00",
+        //        "minOrderInBaseAsset": "0.00006100",
+        //        "minOrderInQuoteAsset": "5.00",
+        //        "maxOrderInBaseAsset": "1000000000.00000000",
+        //        "maxOrderInQuoteAsset": "1000000000.00",
+        //        "quantityDecimals": "8",
+        //        "notionalDecimals": "2",
+        //        "maxOpenOrders": "100",
+        //        "feeCategory": "A",
+        //        "orderTypes": [ "market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit" ]
+        //    }
         //
         return this.parseMarkets(response);
     }
     parseMarkets(markets) {
-        const currencies = this.currencies;
-        const currenciesById = this.indexBy(currencies, 'id');
         const result = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
@@ -455,8 +444,6 @@ class bitvavo extends bitvavo$1["default"] {
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
-            const baseCurrency = this.safeValue(currenciesById, baseId);
-            const basePrecision = this.safeInteger(baseCurrency, 'precision');
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -484,8 +471,9 @@ class bitvavo extends bitvavo$1["default"] {
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': this.safeInteger(baseCurrency, 'decimals', basePrecision),
-                    'price': this.safeInteger(market, 'pricePrecision'),
+                    'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityDecimals'))),
+                    'price': this.safeNumber(market, 'tickSize'),
+                    'cost': this.parseNumber(this.parsePrecision(this.safeString(market, 'notionalDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -494,7 +482,7 @@ class bitvavo extends bitvavo$1["default"] {
                     },
                     'amount': {
                         'min': this.safeNumber(market, 'minOrderInBaseAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'maxOrderInBaseAsset'),
                     },
                     'price': {
                         'min': undefined,
@@ -502,7 +490,7 @@ class bitvavo extends bitvavo$1["default"] {
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minOrderInQuoteAsset'),
-                        'max': undefined,
+                        'max': this.safeNumber(market, 'maxOrderInQuoteAsset'),
                     },
                 },
                 'created': undefined,
@@ -603,7 +591,7 @@ class bitvavo extends bitvavo$1["default"] {
             const withdrawal = this.safeString(currency, 'withdrawalStatus') === 'OK';
             const active = deposit && withdrawal;
             const withdrawFee = this.safeNumber(currency, 'withdrawalFee');
-            const precision = this.safeInteger(currency, 'decimals', 8);
+            const precision = this.safeString(currency, 'decimals', '8');
             const minWithdraw = this.safeNumber(currency, 'withdrawalMinAmount');
             // btw, absolutely all of them have 1 network atm
             for (let j = 0; j < networksArray.length; j++) {
@@ -617,7 +605,7 @@ class bitvavo extends bitvavo$1["default"] {
                     'deposit': deposit,
                     'withdraw': withdrawal,
                     'fee': withdrawFee,
-                    'precision': precision,
+                    'precision': this.parseNumber(this.parsePrecision(precision)),
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -636,7 +624,7 @@ class bitvavo extends bitvavo$1["default"] {
                 'withdraw': withdrawal,
                 'networks': networks,
                 'fee': withdrawFee,
-                'precision': precision,
+                'precision': undefined,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'limits': {
                     'amount': {
@@ -654,8 +642,6 @@ class bitvavo extends bitvavo$1["default"] {
                 },
             });
         }
-        // set currencies here to avoid calling publicGetAssets twice
-        this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, result));
         return result;
     }
     /**

@@ -152,6 +152,8 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#watchTrades
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -168,11 +170,14 @@ public partial class okx : ccxt.okx
     /**
      * @method
      * @name okx#watchTradesForSymbols
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -185,7 +190,10 @@ public partial class okx : ccxt.okx
         }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object channel = "trades";
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "channel", "trades");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -203,7 +211,15 @@ public partial class okx : ccxt.okx
             { "op", "subscribe" },
             { "args", topics },
         };
-        object url = this.getUrl(channel, "public");
+        object access = "public";
+        if (isTrue(isEqual(channel, "trades-all")))
+        {
+            access = "business";
+            await this.authenticate(new Dictionary<string, object>() {
+                { "access", access },
+            });
+        }
+        object url = this.getUrl(channel, access);
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -220,6 +236,7 @@ public partial class okx : ccxt.okx
      * @description unWatches from the stream channel
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
@@ -227,13 +244,16 @@ public partial class okx : ccxt.okx
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
-        object channel = "trades";
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "channel", "trades");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
+            ((IList<object>)messageHashes).Add(add(add("unsubscribe:", channel), symbol));
             object marketId = this.marketId(symbol);
             object topic = new Dictionary<string, object>() {
                 { "channel", channel },
@@ -245,7 +265,15 @@ public partial class okx : ccxt.okx
             { "op", "unsubscribe" },
             { "args", topics },
         };
-        object url = this.getUrl(channel, "public");
+        object access = "public";
+        if (isTrue(isEqual(channel, "trades-all")))
+        {
+            access = "business";
+            await this.authenticate(new Dictionary<string, object>() {
+                { "access", access },
+            });
+        }
+        object url = this.getUrl(channel, access);
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
@@ -276,6 +304,23 @@ public partial class okx : ccxt.okx
         //                 "sz": "0.00001186",
         //                 "side": "buy",
         //                 "ts": "1626531038288"
+        //             }
+        //         ]
+        //     }
+        //     {
+        //         "arg": {
+        //             "channel": "trades-all",
+        //             "instId": "BTC-USDT"
+        //         },
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT",
+        //                 "tradeId": "130639474",
+        //                 "px": "42219.9",
+        //                 "sz": "0.12060306",
+        //                 "side": "buy",
+        //                 "source": "0",
+        //                 "ts": "1630048897897"
         //             }
         //         ]
         //     }
@@ -2677,6 +2722,7 @@ public partial class okx : ccxt.okx
                 { "sprd-tickers", this.handleTicker },
                 { "block-tickers", this.handleTicker },
                 { "trades", this.handleTrades },
+                { "trades-all", this.handleTrades },
                 { "account", this.handleBalance },
                 { "funding-rate", this.handleFundingRate },
                 { "orders", this.handleOrders },
@@ -2698,10 +2744,10 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnSubscriptionTrades(WebSocketClient client, object symbol)
+    public virtual void handleUnSubscriptionTrades(WebSocketClient client, object symbol, object channel)
     {
-        object subMessageHash = add("trades:", symbol);
-        object messageHash = add("unsubscribe:trades:", symbol);
+        object subMessageHash = add(add(channel, ":"), symbol);
+        object messageHash = add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.trades, symbol)))
         {
@@ -2760,9 +2806,9 @@ public partial class okx : ccxt.okx
         object channel = this.safeString(arg, "channel", "");
         object marketId = this.safeString(arg, "instId");
         object symbol = this.safeSymbol(marketId);
-        if (isTrue(isEqual(channel, "trades")))
+        if (isTrue(isTrue(isEqual(channel, "trades")) || isTrue(isEqual(channel, "trades-all"))))
         {
-            this.handleUnSubscriptionTrades(client as WebSocketClient, symbol);
+            this.handleUnSubscriptionTrades(client as WebSocketClient, symbol, channel);
         } else if (isTrue(isTrue(((string)channel).StartsWith(((string)"bbo"))) || isTrue(((string)channel).StartsWith(((string)"book")))))
         {
             this.handleUnsubscriptionOrderBook(client as WebSocketClient, symbol, channel);

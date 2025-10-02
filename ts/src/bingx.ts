@@ -666,6 +666,9 @@ export default class bingx extends Exchange {
                 //
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,
@@ -739,11 +742,11 @@ export default class bingx extends Exchange {
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (isSandbox) {
-            return undefined;
+            return {};
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
         //

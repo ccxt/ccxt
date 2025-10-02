@@ -1229,6 +1229,7 @@ public partial class Exchange
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
+public class  Backpack: backpack { public Backpack(object args = null) : base(args) { } }
 public class  Bequant: bequant { public Bequant(object args = null) : base(args) { } }
 public class  Bigone: bigone { public Bigone(object args = null) : base(args) { } }
 public class  Binance: binance { public Binance(object args = null) : base(args) { } }
@@ -1321,7 +1322,7 @@ public class  Poloniex: poloniex { public Poloniex(object args = null) : base(ar
 public class  Probit: probit { public Probit(object args = null) : base(args) { } }
 public class  Timex: timex { public Timex(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }
-public class  Tradeogre: tradeogre { public Tradeogre(object args = null) : base(args) { } }
+public class  Toobit: toobit { public Toobit(object args = null) : base(args) { } }
 public class  Upbit: upbit { public Upbit(object args = null) : base(args) { } }
 public class  Wavesexchange: wavesexchange { public Wavesexchange(object args = null) : base(args) { } }
 public class  Whitebit: whitebit { public Whitebit(object args = null) : base(args) { } }
