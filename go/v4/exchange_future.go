@@ -217,6 +217,7 @@ func (f *Future) Await() <-chan interface{} {
 		} else {
 			ch <- f.resolvedValue
 		}
+		f.mu.Unlock()
 		return ch
 	}
 	f.subscribersMu.Lock()
