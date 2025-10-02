@@ -933,8 +933,8 @@ class backpack extends \ccxt\async\backpack {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $this->safe_integer($delta, 'u');
-        $bids = $this->safe_dict($delta, 'b', array());
-        $asks = $this->safe_dict($delta, 'a', array());
+        $bids = $this->safe_list($delta, 'b', array());
+        $asks = $this->safe_list($delta, 'a', array());
         $storedBids = $orderbook['bids'];
         $storedAsks = $orderbook['asks'];
         $this->handle_bid_asks($storedBids, $bids);
