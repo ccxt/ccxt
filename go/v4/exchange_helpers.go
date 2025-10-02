@@ -3158,14 +3158,14 @@ func PanicOnError(msg interface{}) {
 	switch v := msg.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
-			stack := debug.Stack()
+			stack := debug.Stack()[:300]
 			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, msg, stack)
 			panic(panicMsg)
 		}
 	case []interface{}:
 		for _, item := range v {
 			if str, ok := item.(string); ok && strings.HasPrefix(str, "panic:") {
-				stack := debug.Stack()
+				stack := debug.Stack()[:300]
 				panicMsg := fmt.Sprintf("%s\nStack trace:\n%s", str, stack)
 				panic(panicMsg)
 			} else if nestedSlice, ok := item.([]interface{}); ok {
@@ -3174,11 +3174,11 @@ func PanicOnError(msg interface{}) {
 			}
 		}
 	case *Error:
-		stack := debug.Stack()
+		stack := debug.Stack()[:300]
 		panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
 		panic(panicMsg)
 	case error: // ✅ optional: handle any other error type
-		stack := debug.Stack()
+		stack := debug.Stack()[:300]
 		panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
 		panic(panicMsg)
 	default:
