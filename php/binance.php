@@ -3326,7 +3326,7 @@ class binance extends Exchange {
         //                 "expiryDate" => 1677225600000,
         //                 "filters" => array(
         //                     array("filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"),
-        //                     array("filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01")
+        //                     array("filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01")
         //                 ),
         //                 "id" => 2474,
         //                 "symbol" => "ETH-230224-800-C",
