@@ -3,6 +3,7 @@
 import Exchange from './abstract/dase.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Dict, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, Str, int } from './base/types.js';
 
@@ -522,8 +523,15 @@ export default class dase extends Exchange {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
         const side = this.safeStringLower (trade, 'side');
-        // For public trades, we cannot determine if the user was maker or taker
-        const takerOrMaker = undefined;
+        const makerSide = this.safeStringLower (trade, 'maker_side');
+        let takerOrMaker = undefined;
+        if (makerSide !== undefined) {
+            if (makerSide === side) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -571,47 +579,112 @@ export default class dase extends Exchange {
         }
         const response = await (this as any).privateGetAccountsTransactions (this.extend (request, params));
         const items = this.safeList (response, 'transactions', response);
-        const trades: Trade[] = [];
+        const grouped: Dict = {};
         for (let i = 0; i < items.length; i++) {
-            const tx = items[i];
-            const tradeId = this.safeString (tx, 'trade_id');
+            const entry = items[i];
+            const tradeId = this.safeString (entry, 'trade_id');
             if (tradeId === undefined) {
                 continue;
             }
-            const txnType = this.safeString (tx, 'txn_type');
+            const txnType = this.safeString (entry, 'txn_type');
             const isFill = (txnType !== undefined) ? (txnType.indexOf ('trade_fill_') === 0) : false;
             if (!isFill) {
                 continue;
             }
-            // derive market/symbol per-transaction instead of relying on input symbol
-            const marketIdFromTx = this.safeString2 (tx, 'market', 'market_id');
-            const tradeMarket = this.safeMarket (marketIdFromTx, market, '-');
-            const createdAt = this.safeInteger (tx, 'created_at');
-            const amountStr = this.safeString (tx, 'amount');
-            let inferredSide = undefined;
-            if ((txnType === 'trade_fill_credit_base') || (txnType === 'trade_fill_debit_quote')) {
-                inferredSide = 'buy';
-            } else if ((txnType === 'trade_fill_debit_base') || (txnType === 'trade_fill_credit_quote')) {
-                inferredSide = 'sell';
+            if (!(tradeId in grouped)) {
+                grouped[tradeId] = [];
             }
-            const parsed: Trade = this.safeTrade ({
-                'id': tradeId,
-                'info': tx,
-                'timestamp': createdAt,
-                'datetime': (createdAt === undefined) ? undefined : this.iso8601 (createdAt),
-                'symbol': tradeMarket['symbol'],
-                'type': undefined,
-                'side': inferredSide,
-                'order': undefined,
-                'takerOrMaker': undefined,
-                'price': undefined,
-                'amount': amountStr,
-                'cost': undefined,
-                'fee': undefined,
-            }, tradeMarket);
-            trades.push (parsed);
+            grouped[tradeId].push (entry);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
+        const tradeIds = Object.keys (grouped);
+        const trades: Trade[] = [];
+        for (let i = 0; i < tradeIds.length; i++) {
+            const tradeId = tradeIds[i];
+            const fills = grouped[tradeId];
+            if (!Array.isArray (fills)) {
+                continue;
+            }
+            let tradeMarket = market;
+            let timestamp = undefined;
+            let side = undefined;
+            let orderId = undefined;
+            let baseSize = '0';
+            let quoteCost = '0';
+            let feeCurrency = undefined;
+            let feeCost = '0';
+            for (let j = 0; j < fills.length; j++) {
+                const fill = fills[j];
+                const createdAt = this.safeInteger (fill, 'created_at');
+                if (timestamp === undefined || ((createdAt !== undefined) && (createdAt < timestamp))) {
+                    timestamp = createdAt;
+                }
+                const marketIdFromTx = this.safeString2 (fill, 'market', 'market_id');
+                if (marketIdFromTx !== undefined) {
+                    tradeMarket = this.safeMarket (marketIdFromTx, tradeMarket, '-');
+                }
+                const orderIdCandidate = this.safeString (fill, 'order_id');
+                if (orderIdCandidate !== undefined) {
+                    orderId = orderIdCandidate;
+                }
+                const txnType = this.safeString (fill, 'txn_type');
+                const amountString = this.safeString (fill, 'amount');
+                const currencyId = this.safeString (fill, 'currency');
+                if (txnType === 'trade_fill_credit_base' || txnType === 'trade_fill_debit_base') {
+                    if (txnType === 'trade_fill_credit_base') {
+                        side = 'buy';
+                    } else if (txnType === 'trade_fill_debit_base') {
+                        side = 'sell';
+                    }
+                    if (amountString !== undefined) {
+                        baseSize = Precise.stringAdd (baseSize, Precise.stringAbs (amountString));
+                    }
+                } else if (txnType === 'trade_fill_credit_quote' || txnType === 'trade_fill_debit_quote') {
+                    if (txnType === 'trade_fill_credit_quote') {
+                        side = 'sell';
+                    } else if (txnType === 'trade_fill_debit_quote') {
+                        side = 'buy';
+                    }
+                    if (amountString !== undefined) {
+                        quoteCost = Precise.stringAdd (quoteCost, Precise.stringAbs (amountString));
+                    }
+                } else if ((txnType === 'trade_fill_fee_base') || (txnType === 'trade_fill_fee_quote')) {
+                    feeCurrency = this.safeCurrencyCode (currencyId);
+                    if (amountString !== undefined) {
+                        feeCost = Precise.stringAdd (feeCost, Precise.stringAbs (amountString));
+                    }
+                }
+            }
+            const amount = this.parseNumber (baseSize);
+            let cost = undefined;
+            let price = undefined;
+            if (!Precise.stringEquals (quoteCost, '0')) {
+                cost = this.parseNumber (quoteCost);
+                if (!Precise.stringEquals (baseSize, '0')) {
+                    price = this.parseNumber (Precise.stringDiv (quoteCost, baseSize));
+                }
+            }
+            const trade: Trade = this.safeTrade ({
+                'id': tradeId,
+                'info': fills,
+                'timestamp': timestamp,
+                'datetime': (timestamp === undefined) ? undefined : this.iso8601 (timestamp),
+                'symbol': (tradeMarket === undefined) ? undefined : tradeMarket['symbol'],
+                'type': undefined,
+                'side': side,
+                'order': orderId,
+                'takerOrMaker': undefined,
+                'price': price,
+                'amount': amount,
+                'cost': cost,
+                'fee': (feeCurrency === undefined || Precise.stringEquals (feeCost, '0')) ? undefined : {
+                    'currency': feeCurrency,
+                    'cost': this.parseNumber (feeCost),
+                },
+            }, tradeMarket);
+            trades.push (trade);
+        }
+        const sortedTrades = this.sortBy (trades, 'timestamp');
+        return this.filterBySymbolSinceLimit (sortedTrades, symbol, since, limit);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
