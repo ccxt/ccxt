@@ -27,6 +27,7 @@ import (
 type ClientInterface interface {
 	Resolve(data interface{}, subHash interface{}) interface{}
 	Future(messageHash interface{}) <-chan interface{}
+	ReusableFuture(messageHash interface{}) *Future
 	Reject(err interface{}, messageHash ...interface{})
 	Send(message interface{}) <-chan interface{}
 	Reset(err interface{})
@@ -107,6 +108,11 @@ func (this *Client) Resolve(data interface{}, subHash interface{}) interface{} {
 func (this *Client) Future(messageHash interface{}) <-chan interface{} {
 	future := this.NewFuture(messageHash)
 	return future.Await()
+}
+
+func (this *Client) ReusableFuture(messageHash interface{}) *Future {
+	future := this.NewFuture(messageHash)
+	return future
 }
 
 func (this *Client) NewFuture(messageHash interface{}) *Future {

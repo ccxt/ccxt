@@ -56,7 +56,7 @@ type IBaseExchange interface {
 
 // Exchange interface based on the methods from binance.go
 type ICoreExchange interface {
-	Spawn(method interface{}, args ...interface{}) <-chan interface{}
+	Spawn(method interface{}, args ...interface{}) *Future
 	SetEnableRateLimit(rateLimit bool)
 	ExtendExchangeOptions(options interface{})
 	GetSymbols() []string
