@@ -1209,7 +1209,7 @@ export default class upbit extends Exchange {
         const request: Dict = {
             'market': market['id'],
             'side': orderSide,
-            'smp_type': selfTradePrevention,
+            // 'smp_type': selfTradePrevention,
         };
         if (type === 'limit') {
             if (price === undefined || amount === undefined) {
