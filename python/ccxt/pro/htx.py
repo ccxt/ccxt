@@ -926,7 +926,7 @@ class htx(ccxt.async_support.htx):
         else:
             # contract branch
             parsedOrder = self.parse_ws_order(message, market)
-            rawTrades = self.safe_value(message, 'trade', [])
+            rawTrades = self.safe_list(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
                 tradesObject: dict = {

@@ -69,6 +69,10 @@ ${imports}
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${prefix}ICoreExchange, bool) {
     switch exchangeId {
+    case "Exchange":
+		ExchangeItf := &Exchange{}
+		ExchangeItf.Init(exchangeArgs)
+		return ExchangeItf, true
 ${caseStatements}
     default:
         return nil, false

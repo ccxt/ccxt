@@ -129,7 +129,7 @@ class apex extends \ccxt\async\apex {
         //                 "v" => "0.001",
         //                 "p" => "16578.50",
         //                 "L" => "PlusTick",
-        //                 "i" => "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "i" => "20f43950-d8dd-5b31-9112-a178eb6023ef",
         //                 "BT" => false
         //             ),
         //             // sorted by newest first

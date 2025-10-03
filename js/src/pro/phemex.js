@@ -114,7 +114,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), '2'));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), '1'), '100'));
         }
-        const result = {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -137,8 +137,7 @@ export default class phemex extends phemexRest {
             'markPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'markPrice'), market)),
             'indexPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'indexPrice'), market)),
             'info': ticker,
-        };
-        return result;
+        });
     }
     parsePerpetualTicker(ticker, market = undefined) {
         //
@@ -174,7 +173,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), '2'));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), '1'), '100'));
         }
-        const result = {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -195,8 +194,7 @@ export default class phemex extends phemexRest {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        });
     }
     handleTicker(client, message) {
         //
