@@ -252,7 +252,12 @@ class bitvavo extends Exchange {
                         'leverage' => false,
                         'marketBuyRequiresPrice' => false,
                         'marketBuyByCost' => true,
-                        'selfTradePrevention' => true, // todo implement
+                        'selfTradePrevention' => array(
+                            'EXPIRE_MAKER' => false,
+                            'EXPIRE_TAKER' => false,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => false,
+                        ),
                         'iceberg' => false,
                     ),
                     'createOrders' => null,
@@ -1246,6 +1251,15 @@ class bitvavo extends Exchange {
         } else {
             throw new ArgumentsRequired($this->id . ' createOrder() requires an $operatorId in $params or options, eg => exchange.options[\'operatorId\'] = 1234567890');
         }
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            if ($selfTradePrevention === 'EXPIRE_BOTH') {
+                $request['selfTradePrevention'] = 'cancelBoth';
+            } else {
+                $request['selfTradePrevention'] = $selfTradePrevention;
+            }
+        }
         return $this->extend($request, $params);
     }
 
@@ -1270,7 +1284,7 @@ class bitvavo extends Exchange {
              * @param {float} [$params->takeProfitPrice] The $price at which a take profit order is triggered at
              * @param {string} [$params->triggerType] "price"
              * @param {string} [$params->triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders => Use this to determine which parameter will trigger the order
-             * @param {string} [$params->selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+             * @param {string} [$params->selfTradePrevention] one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
              * @param {bool} [$params->disableMarketProtection] don't cancel if the next fill $price is 10% worse than the best fill $price
              * @param {bool} [$params->responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~

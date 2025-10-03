@@ -24,6 +24,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.24.x"
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod       # module download cache
+            ~/.cache/go-build  # build cache
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Install dependencies
+        run: go mod download
+        working-directory: ./go
       - name: Setup Node.js
         uses: actions/setup-node@v3
       - name: Install npm dependencies
@@ -43,11 +55,15 @@ jobs:
         run: tsx build/goTranspiler.ts
       - name: Transpile to Go (specific)
         if: env.important_modified == 'false'
-        run: |
+        # run: |
+        #   cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        #   # for exchange in $cleaned_rest_files; do
+        #   #   tsx build/goTranspiler.ts -- $exchange
+        #   # done
+        run : |
           cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
-          for exchange in $cleaned_rest_files; do
-            tsx build/goTranspiler.ts -- $exchange
-          done
+          echo "Cleaned files: $cleaned_rest_files"
+          tsx utils/granular-go-build.ts $cleaned_rest_files
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
       - name: Build

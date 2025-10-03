@@ -735,7 +735,7 @@ public partial class binance
     /// <item>
     /// <term>params.selfTradePrevention</term>
     /// <description>
-    /// string : set unified value for stp (see .features for available values)
+    /// string : set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
     /// </description>
     /// </item>
     /// <item>

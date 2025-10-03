@@ -824,8 +824,8 @@ class backpack(ccxt.async_support.backpack):
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')
-        bids = self.safe_dict(delta, 'b', [])
-        asks = self.safe_dict(delta, 'a', [])
+        bids = self.safe_list(delta, 'b', [])
+        asks = self.safe_list(delta, 'a', [])
         storedBids = orderbook['bids']
         storedAsks = orderbook['asks']
         self.handle_bid_asks(storedBids, bids)

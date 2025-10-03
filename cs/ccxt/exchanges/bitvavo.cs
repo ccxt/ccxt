@@ -229,7 +229,12 @@ public partial class bitvavo : Exchange
                         { "leverage", false },
                         { "marketBuyRequiresPrice", false },
                         { "marketBuyByCost", true },
-                        { "selfTradePrevention", true },
+                        { "selfTradePrevention", new Dictionary<string, object>() {
+                            { "EXPIRE_MAKER", false },
+                            { "EXPIRE_TAKER", false },
+                            { "EXPIRE_BOTH", true },
+                            { "NONE", false },
+                        } },
                         { "iceberg", false },
                     } },
                     { "createOrders", null },
@@ -1267,6 +1272,20 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
+        object selfTradePrevention = null;
+        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = ((IList<object>)selfTradePreventionparametersVariable)[0];
+        parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
+        if (isTrue(!isEqual(selfTradePrevention, null)))
+        {
+            if (isTrue(isEqual(selfTradePrevention, "EXPIRE_BOTH")))
+            {
+                ((IDictionary<string,object>)request)["selfTradePrevention"] = "cancelBoth";
+            } else
+            {
+                ((IDictionary<string,object>)request)["selfTradePrevention"] = selfTradePrevention;
+            }
+        }
         return this.extend(request, parameters);
     }
 
@@ -1289,7 +1308,7 @@ public partial class bitvavo : Exchange
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
      * @param {string} [params.triggerType] "price"
      * @param {string} [params.triggerReference] "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
-     * @param {string} [params.selfTradePrevention] "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+     * @param {string} [params.selfTradePrevention] one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
      * @param {bool} [params.disableMarketProtection] don't cancel if the next fill price is 10% worse than the best fill price
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
