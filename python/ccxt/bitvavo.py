@@ -22,10 +22,8 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
-from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -268,7 +266,12 @@ class bitvavo(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
                         'marketBuyByCost': True,
-                        'selfTradePrevention': True,  # todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': False,
+                            'EXPIRE_TAKER': False,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,
+                        },
                         'iceberg': False,
                     },
                     'createOrders': None,
@@ -398,25 +401,11 @@ class bitvavo(Exchange, ImplicitAPI):
                 'operatorId': None,  # self will be required soon for order-related endpoints
                 'fiatCurrencies': ['EUR'],  # only fiat atm
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
         })
-
-    def amount_to_precision(self, symbol, amount):
-        # https://docs.bitfinex.com/docs/introduction#amount-precision
-        # The amount field allows up to 8 decimals.
-        # Anything exceeding self will be rounded to the 8th decimal.
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
-
-    def price_to_precision(self, symbol, price):
-        price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
-        # https://docs.bitfinex.com/docs/introduction#price-precision
-        # The precision level of all trading prices is based on significant figures.
-        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        # Prices submit with a precision larger than 5 will be cut by the API.
-        return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
     def fetch_time(self, params={}) -> Int:
         """
@@ -441,24 +430,27 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         response = self.publicGetMarkets(params)
         #
-        #     [
-        #         {
-        #             "market":"ADA-BTC",
-        #             "status":"trading",  # "trading" "halted" "auction"
-        #             "base":"ADA",
-        #             "quote":"BTC",
-        #             "pricePrecision":5,
-        #             "minOrderInBaseAsset":"100",
-        #             "minOrderInQuoteAsset":"0.001",
-        #             "orderTypes": ["market", "limit"]
-        #         }
-        #     ]
+        #    {
+        #        "market": "BTC-EUR",
+        #        "status": "trading",
+        #        "base": "BTC",
+        #        "quote": "EUR",
+        #        "pricePrecision": "0",  # deprecated, self is mostly 0 across other markets too, which is abnormal, so we ignore self.
+        #        "tickSize": "1.00",
+        #        "minOrderInBaseAsset": "0.00006100",
+        #        "minOrderInQuoteAsset": "5.00",
+        #        "maxOrderInBaseAsset": "1000000000.00000000",
+        #        "maxOrderInQuoteAsset": "1000000000.00",
+        #        "quantityDecimals": "8",
+        #        "notionalDecimals": "2",
+        #        "maxOpenOrders": "100",
+        #        "feeCategory": "A",
+        #        "orderTypes": ["market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit"]
+        #    }
         #
         return self.parse_markets(response)
 
     def parse_markets(self, markets):
-        currencies = self.currencies
-        currenciesById = self.index_by(currencies, 'id')
         result = []
         fees = self.fees
         for i in range(0, len(markets)):
@@ -469,8 +461,6 @@ class bitvavo(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
-            baseCurrency = self.safe_value(currenciesById, baseId)
-            basePrecision = self.safe_integer(baseCurrency, 'precision')
             result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -498,8 +488,9 @@ class bitvavo(Exchange, ImplicitAPI):
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': self.safe_integer(baseCurrency, 'decimals', basePrecision),
-                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityDecimals'))),
+                    'price': self.safe_number(market, 'tickSize'),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'notionalDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -508,7 +499,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                     'amount': {
                         'min': self.safe_number(market, 'minOrderInBaseAsset'),
-                        'max': None,
+                        'max': self.safe_number(market, 'maxOrderInBaseAsset'),
                     },
                     'price': {
                         'min': None,
@@ -516,7 +507,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minOrderInQuoteAsset'),
-                        'max': None,
+                        'max': self.safe_number(market, 'maxOrderInQuoteAsset'),
                     },
                 },
                 'created': None,
@@ -616,7 +607,7 @@ class bitvavo(Exchange, ImplicitAPI):
             withdrawal = self.safe_string(currency, 'withdrawalStatus') == 'OK'
             active = deposit and withdrawal
             withdrawFee = self.safe_number(currency, 'withdrawalFee')
-            precision = self.safe_integer(currency, 'decimals', 8)
+            precision = self.safe_string(currency, 'decimals', '8')
             minWithdraw = self.safe_number(currency, 'withdrawalMinAmount')
             # btw, absolutely all of them have 1 network atm
             for j in range(0, len(networksArray)):
@@ -630,7 +621,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     'deposit': deposit,
                     'withdraw': withdrawal,
                     'fee': withdrawFee,
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(precision)),
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -648,7 +639,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'withdraw': withdrawal,
                 'networks': networks,
                 'fee': withdrawFee,
-                'precision': precision,
+                'precision': None,
                 'type': 'fiat' if isFiat else 'crypto',
                 'limits': {
                     'amount': {
@@ -665,8 +656,6 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                 },
             })
-        # set currencies here to avoid calling publicGetAssets twice
-        self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, result))
         return result
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1209,6 +1198,13 @@ class bitvavo(Exchange, ImplicitAPI):
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
             raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            if selfTradePrevention == 'EXPIRE_BOTH':
+                request['selfTradePrevention'] = 'cancelBoth'
+            else:
+                request['selfTradePrevention'] = selfTradePrevention
         return self.extend(request, params)
 
     def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1231,7 +1227,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
         :param str [params.triggerType]: "price"
         :param str [params.triggerReference]: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
-        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param str [params.selfTradePrevention]: one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
         :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
         :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`

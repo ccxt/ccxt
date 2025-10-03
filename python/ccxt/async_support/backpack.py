@@ -158,7 +158,7 @@ class backpack(Exchange, ImplicitAPI):
                 },
                 'www': 'https://backpack.exchange/',
                 'doc': 'https://docs.backpack.exchange/',
-                'referral': 'https://backpack.exchange/join/ib8qxwyl',
+                'referral': 'https://backpack.exchange/join/ccxt',
             },
             'api': {
                 'public': {
@@ -255,7 +255,12 @@ class backpack(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': True,
-                        'selfTradePrevention': False,
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,
+                        },
                         'iceberg': False,
                     },
                     'createOrders': {
@@ -1614,7 +1619,7 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.postOnly]: True to place a post only order
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
         :param bool [params.reduceOnly]: *contract only* Indicates if self order is to reduce the size of a position
-        :param str [params.selfTradePrevention]: 'RejectTaker', 'RejectMaker' or 'RejectBoth'
+        :param str [params.selfTradePrevention]: one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
         :param bool [params.autoLend]: *spot margin only* if True then the order can lend
         :param bool [params.autoLendRedeem]: *spot margin only* if True then the order can redeem a lend if required
         :param bool [params.autoBorrow]: *spot margin only* if True then the order can borrow
@@ -1711,6 +1716,15 @@ class backpack(Exchange, ImplicitAPI):
             if stopLossPrice is not None:
                 request['stopLossLimitPrice'] = self.price_to_precision(symbol, stopLossPrice)
             params = self.omit(params, 'stopLoss')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            if selfTradePrevention == 'EXPIRE_MAKER':
+                request['selfTradePrevention'] = 'RejectMaker'
+            elif selfTradePrevention == 'EXPIRE_TAKER':
+                request['selfTradePrevention'] = 'RejectTaker'
+            elif selfTradePrevention == 'EXPIRE_BOTH':
+                request['selfTradePrevention'] = 'RejectBoth'
         return self.extend(request, params)
 
     def encode_order_side(self, side):
@@ -1865,7 +1879,7 @@ class backpack(Exchange, ImplicitAPI):
         #         "createdAt": 1753626206762,
         #         "executedQuantity": "0",
         #         "executedQuoteQuantity": "0",
-        #         "id": "4228978330",
+        #         "id": "4228978331",
         #         "orderType": "Limit",
         #         "postOnly": True,
         #         "price": "3000",

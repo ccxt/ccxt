@@ -439,7 +439,7 @@ func (this *digifinex) FetchCurrencies(optionalArgs ...interface{}) <-chan inter
 			var networks interface{} = map[string]interface{}{}
 			for j := 0; IsLessThan(j, GetArrayLength(networkEntries)); j++ {
 				var networkEntry interface{} = GetValue(networkEntries, j)
-				var networkId interface{} = this.SafeString(networkEntry, "chain")
+				var networkId interface{} = this.SafeString2(networkEntry, "chain", "currency")
 				var networkCode interface{} = this.NetworkIdToCode(networkId)
 				AddElementToObject(networks, networkCode, map[string]interface{}{
 					"id":        networkId,

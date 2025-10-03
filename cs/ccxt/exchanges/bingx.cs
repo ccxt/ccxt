@@ -656,6 +656,9 @@ public partial class bingx : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "defaultForLinear" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "triggerPriceType", null },
                         { "attachedStopLossTakeProfit", null },

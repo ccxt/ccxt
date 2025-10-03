@@ -62,6 +62,19 @@ export default class binance extends binanceRest {
                     };
                 };
             };
+            demo: {
+                ws: {
+                    spot: string;
+                    margin: string;
+                    future: string;
+                    delivery: string;
+                    'ws-api': {
+                        spot: string;
+                        future: string;
+                        delivery: string;
+                    };
+                };
+            };
             api: {
                 ws: {
                     spot: string;
@@ -149,6 +162,7 @@ export default class binance extends binanceRest {
         };
     };
     requestId(url: any): any;
+    isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: number): string;
     /**
      * @method

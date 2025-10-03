@@ -213,6 +213,9 @@ class okcoin extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => true,
                         'triggerPrice' => true,

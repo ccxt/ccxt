@@ -537,7 +537,7 @@ class digifinex extends Exchange {
                 $networks = array();
                 for ($j = 0; $j < count($networkEntries); $j++) {
                     $networkEntry = $networkEntries[$j];
-                    $networkId = $this->safe_string($networkEntry, 'chain');
+                    $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
                     $networkCode = $this->network_id_to_code($networkId);
                     $networks[$networkCode] = array(
                         'id' => $networkId,

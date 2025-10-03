@@ -169,7 +169,6 @@ class okx extends okx$1["default"] {
     /**
      * @method
      * @name okx#watchTrades
-     * @name okx#watchTradesForSymbols
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol

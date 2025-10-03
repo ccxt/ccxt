@@ -686,9 +686,9 @@ class gemini extends Exchange {
                     $indexedTradingPairs = $this->index_by($tradingPairs, 0);
                     for ($i = 0; $i < count($marketIds); $i++) {
                         $marketId = $marketIds[$i];
-                        $tradingPair = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
-                        if ($tradingPair !== null && !$this->in_array($tradingPair, $brokenPairs)) {
-                            $result[] = $this->parse_market($tradingPair);
+                        $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
+                        if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
+                            $result[] = $this->parse_market($pairInfo);
                         }
                     }
                 } else {
@@ -1499,7 +1499,7 @@ class gemini extends Exchange {
             //          "is_hidden":false,
             //          "was_forced":false,
             //          "executed_amount":"0",
-            //          "client_order_id":"1650398445709",
+            //          "client_order_id":"1650398445701",
             //          "options":array(),
             //          "price":"2000.00",
             //          "original_amount":"0.01",

@@ -428,7 +428,7 @@ public partial class digifinex : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
             {
                 object networkEntry = getValue(networkEntries, j);
-                object networkId = this.safeString(networkEntry, "chain");
+                object networkId = this.safeString2(networkEntry, "chain", "currency");
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },

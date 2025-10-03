@@ -666,6 +666,9 @@ class bingx extends bingx$1["default"] {
                 //
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,

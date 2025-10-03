@@ -225,6 +225,9 @@ class luno extends luno$1["default"] {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,

@@ -148,7 +148,7 @@ class backpack extends Exchange {
                 ),
                 'www' => 'https://backpack.exchange/',
                 'doc' => 'https://docs.backpack.exchange/',
-                'referral' => 'https://backpack.exchange/join/ib8qxwyl',
+                'referral' => 'https://backpack.exchange/join/ccxt',
             ),
             'api' => array(
                 'public' => array(
@@ -245,7 +245,12 @@ class backpack extends Exchange {
                         'leverage' => false,
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => true,
-                        'selfTradePrevention' => false,
+                        'selfTradePrevention' => array(
+                            'EXPIRE_MAKER' => true,
+                            'EXPIRE_TAKER' => true,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => false,
+                        ),
                         'iceberg' => false,
                     ),
                     'createOrders' => array(
@@ -1706,7 +1711,7 @@ class backpack extends Exchange {
              * @param {boolean} [$params->postOnly] true to place a post only order
              * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
              * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-             * @param {string} [$params->selfTradePrevention] 'RejectTaker', 'RejectMaker' or 'RejectBoth'
+             * @param {string} [$params->selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
              * @param {bool} [$params->autoLend] *spot margin only* if true then the order can lend
              * @param {bool} [$params->autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
              * @param {bool} [$params->autoBorrow] *spot margin only* if true then the order can borrow
@@ -1819,6 +1824,17 @@ class backpack extends Exchange {
                 $request['stopLossLimitPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             }
             $params = $this->omit($params, 'stopLoss');
+        }
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            if ($selfTradePrevention === 'EXPIRE_MAKER') {
+                $request['selfTradePrevention'] = 'RejectMaker';
+            } elseif ($selfTradePrevention === 'EXPIRE_TAKER') {
+                $request['selfTradePrevention'] = 'RejectTaker';
+            } elseif ($selfTradePrevention === 'EXPIRE_BOTH') {
+                $request['selfTradePrevention'] = 'RejectBoth';
+            }
         }
         return $this->extend($request, $params);
     }
@@ -1997,7 +2013,7 @@ class backpack extends Exchange {
         //         "createdAt" => 1753626206762,
         //         "executedQuantity" => "0",
         //         "executedQuoteQuantity" => "0",
-        //         "id" => "4228978330",
+        //         "id" => "4228978331",
         //         "orderType" => "Limit",
         //         "postOnly" => true,
         //         "price" => "3000",

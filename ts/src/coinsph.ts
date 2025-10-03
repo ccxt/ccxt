@@ -325,6 +325,9 @@ export default class coinsph extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,

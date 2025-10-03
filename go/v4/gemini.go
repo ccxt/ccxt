@@ -724,9 +724,9 @@ func (this *gemini) FetchMarketsFromAPI(optionalArgs ...interface{}) <-chan inte
 				var indexedTradingPairs interface{} = this.IndexBy(tradingPairs, 0)
 				for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 					var marketId interface{} = GetValue(marketIds, i)
-					var tradingPair interface{} = this.SafeList(indexedTradingPairs, ToUpper(marketId))
-					if IsTrue(IsTrue(!IsEqual(tradingPair, nil)) && !IsTrue(this.InArray(tradingPair, brokenPairs))) {
-						AppendToArray(&result, this.ParseMarket(tradingPair))
+					var pairInfo interface{} = this.SafeList(indexedTradingPairs, ToUpper(marketId))
+					if IsTrue(IsTrue(!IsEqual(pairInfo, nil)) && !IsTrue(this.InArray(marketId, brokenPairs))) {
+						AppendToArray(&result, this.ParseMarket(pairInfo))
 					}
 				}
 			} else {
@@ -1682,7 +1682,7 @@ func (this *gemini) FetchOrder(id interface{}, optionalArgs ...interface{}) <-ch
 		//          "is_hidden":false,
 		//          "was_forced":false,
 		//          "executed_amount":"0",
-		//          "client_order_id":"1650398445709",
+		//          "client_order_id":"1650398445701",
 		//          "options":[],
 		//          "price":"2000.00",
 		//          "original_amount":"0.01",

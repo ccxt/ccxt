@@ -436,6 +436,10 @@ public partial class lbank : Exchange
             {
                 object networkEntry = getValue(networksRaw, j);
                 object networkId = this.safeString(networkEntry, "chain");
+                if (isTrue(isEqual(networkId, null)))
+                {
+                    networkId = this.safeString(networkEntry, "assetCode"); // use type as fallback if networkId is not present
+                }
                 object networkCode = this.networkIdToCode(networkId);
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
