@@ -1428,10 +1428,10 @@ class binance extends binance$1["default"] {
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': {
-                            'expire_maker': true,
-                            'expire_taker': true,
-                            'expire_both': true,
-                            'none': true,
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': true,
                         },
                         'trailing': false,
                         'icebergAmount': true,
@@ -3342,7 +3342,7 @@ class binance extends binance$1["default"] {
         //                 "expiryDate": 1677225600000,
         //                 "filters": [
         //                     {"filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"},
-        //                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01"}
+        //                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01"}
         //                 ],
         //                 "id": 2474,
         //                 "symbol": "ETH-230224-800-C",
@@ -6311,7 +6311,7 @@ class binance extends binance$1["default"] {
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
-     * @param {string} [params.selfTradePrevention] set unified value for stp (see .features for available values)
+     * @param {string} [params.selfTradePrevention] set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
      * @param {float} [params.icebergAmount] set iceberg amount for limit orders
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
@@ -6727,7 +6727,8 @@ class binance extends binance$1["default"] {
             request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
         }
         // unified stp
-        const selfTradePrevention = this.safeString(params, 'selfTradePrevention');
+        let selfTradePrevention = undefined;
+        [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (market['spot']) {
                 request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
@@ -6740,7 +6741,7 @@ class binance extends binance$1["default"] {
                 request['icebergQty'] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
-        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount']);
+        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount']);
         return this.extend(request, requestParams);
     }
     /**
@@ -12067,6 +12068,9 @@ class binance extends binance$1["default"] {
         }
         else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials();
+            if ((url.indexOf('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool(this.options, 'disableFuturesSandboxWarning'))) {
+                throw new errors.NotSupported(this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
+            }
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString(params, 'newClientOrderId');

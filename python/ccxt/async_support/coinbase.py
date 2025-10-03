@@ -2837,7 +2837,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = await self.find_account_id(code, params)
             if accountId is None:
-                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.')
         request: dict = {
             'account_id': accountId,
         }

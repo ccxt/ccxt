@@ -59,12 +59,13 @@
 * [fetchMarginMode](#fetchmarginmode)
 * [fetchTradingFee](#fetchtradingfee)
 * [watchTicker](#watchticker)
-* [watchTickers](#watchtickers)
-* [watchOrderBookForSymbols](#watchorderbookforsymbols)
-* [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [unWatchTicker](#unwatchticker)
 * [watchTrades](#watchtrades)
+* [unWatchTrades](#unwatchtrades)
 * [watchOrderBook](#watchorderbook)
+* [unWatchOrderBook](#unwatchorderbook)
 * [watchOHLCV](#watchohlcv)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
@@ -1480,69 +1481,29 @@ bingx.watchTicker (symbol[, params])
 ```
 
 
-<a name="watchTickers" id="watchtickers"></a>
+<a name="unWatchTicker" id="unwatchticker"></a>
 
-### watchTickers{docsify-ignore}
-watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+### unWatchTicker{docsify-ignore}
+unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes%20of%20all%20trading%20pairs  
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to watch the tickers for |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bingx.watchTickers (symbols[, params])
-```
-
-
-<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
-
-### watchOrderBookForSymbols{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-
-**Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
-
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data%20of%20all%20trading%20pairs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bingx.watchOrderBookForSymbols (symbols[, limit, params])
-```
-
-
-<a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
-
-### watchOHLCVForSymbols{docsify-ignore}
-watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-
-**Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']] |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-bingx.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+bingx.unWatchTicker (symbol[, params])
 ```
 
 
@@ -1556,8 +1517,8 @@ watches information on multiple trades made in a market
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
-- https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
 - https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
 
 
@@ -1571,6 +1532,33 @@ watches information on multiple trades made in a market
 
 ```javascript
 bingx.watchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unsubscribes from the trades channel
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.name | <code>string</code> | No | the name of the method to call, 'trade' or 'aggTrade', default is 'trade' |
+
+
+```javascript
+bingx.unWatchTrades (symbol[, params])
 ```
 
 
@@ -1601,6 +1589,32 @@ bingx.watchOrderBook (symbol[, limit, params])
 ```
 
 
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.unWatchOrderBook (symbol[, params])
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -1627,6 +1641,33 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 bingx.watchOHLCV (symbol, timeframe[, since, limit, params])
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**
+
+- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.unWatchOHLCV (symbol, timeframe[, params])
 ```
 
 

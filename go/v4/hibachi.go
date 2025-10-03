@@ -64,7 +64,7 @@ func (this *hibachi) Describe() interface{} {
 			"fetchClosedOrders":                    false,
 			"fetchConvertCurrencies":               false,
 			"fetchConvertQuote":                    false,
-			"fetchCurrencies":                      true,
+			"fetchCurrencies":                      false,
 			"fetchDepositAddress":                  true,
 			"fetchDeposits":                        true,
 			"fetchDepositsWithdrawals":             false,
@@ -184,7 +184,8 @@ func (this *hibachi) Describe() interface{} {
 				"taker":      this.ParseNumber("0.00045"),
 			},
 		},
-		"options": map[string]interface{}{},
+		"currencies": this.HardcodedCurrencies(),
+		"options":    map[string]interface{}{},
 		"features": map[string]interface{}{
 			"default": map[string]interface{}{
 				"sandbox": false,
@@ -382,75 +383,55 @@ func (this *hibachi) FetchMarkets(optionalArgs ...interface{}) <-chan interface{
 	}()
 	return ch
 }
-
-/**
- * @method
- * @name hibachi#fetchCurrencies
- * @description fetches all available currencies on an exchange
- * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an associative dictionary of currencies
- */
-func (this *hibachi) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// Hibachi only supports USDT on Arbitrum at this time
-		// We don't have an API endpoint to expose this information yet
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
-		_ = params
-		var result interface{} = map[string]interface{}{}
-		var networks interface{} = map[string]interface{}{}
-		var networkId interface{} = "ARBITRUM"
-		AddElementToObject(networks, networkId, map[string]interface{}{
-			"id":      networkId,
-			"network": networkId,
-			"limits": map[string]interface{}{
-				"withdraw": map[string]interface{}{
-					"min": nil,
-					"max": nil,
-				},
-				"deposit": map[string]interface{}{
-					"min": nil,
-					"max": nil,
-				},
+func (this *hibachi) HardcodedCurrencies() interface{} {
+	// Hibachi only supports USDT on Arbitrum at this time
+	// We don't have an API endpoint to expose this information yet
+	var result interface{} = map[string]interface{}{}
+	var networks interface{} = map[string]interface{}{}
+	var networkId interface{} = "ARBITRUM"
+	AddElementToObject(networks, networkId, map[string]interface{}{
+		"id":      networkId,
+		"network": networkId,
+		"limits": map[string]interface{}{
+			"withdraw": map[string]interface{}{
+				"min": nil,
+				"max": nil,
 			},
-			"active":   nil,
-			"deposit":  nil,
-			"withdraw": nil,
-			"info":     map[string]interface{}{},
-		})
-		var code interface{} = this.SafeCurrencyCode("USDT")
-		AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
-			"id":        "USDT",
-			"name":      "USDT",
-			"type":      "fiat",
-			"code":      code,
-			"precision": this.ParseNumber("0.000001"),
-			"active":    true,
-			"fee":       nil,
-			"networks":  networks,
-			"deposit":   true,
-			"withdraw":  true,
-			"limits": map[string]interface{}{
-				"deposit": map[string]interface{}{
-					"min": nil,
-					"max": nil,
-				},
-				"withdraw": map[string]interface{}{
-					"min": nil,
-					"max": nil,
-				},
+			"deposit": map[string]interface{}{
+				"min": nil,
+				"max": nil,
 			},
-			"info": map[string]interface{}{},
-		}))
-
-		ch <- result
-		return nil
-
-	}()
-	return ch
+		},
+		"active":   nil,
+		"deposit":  nil,
+		"withdraw": nil,
+		"info":     map[string]interface{}{},
+	})
+	var code interface{} = this.SafeCurrencyCode("USDT")
+	AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]interface{}{
+		"id":        "USDT",
+		"name":      "USDT",
+		"type":      "fiat",
+		"code":      code,
+		"precision": this.ParseNumber("0.000001"),
+		"active":    true,
+		"fee":       nil,
+		"networks":  networks,
+		"deposit":   true,
+		"withdraw":  true,
+		"limits": map[string]interface{}{
+			"deposit": map[string]interface{}{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]interface{}{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"info": map[string]interface{}{},
+	}))
+	return result
 }
 func (this *hibachi) ParseBalance(response interface{}) interface{} {
 	var result interface{} = map[string]interface{}{
@@ -641,8 +622,8 @@ func (this *hibachi) FetchTrades(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes5998 := (<-this.LoadMarkets())
-		PanicOnError(retRes5998)
+		retRes5928 := (<-this.LoadMarkets())
+		PanicOnError(retRes5928)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -688,8 +669,8 @@ func (this *hibachi) FetchTicker(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes6318 := (<-this.LoadMarkets())
-		PanicOnError(retRes6318)
+		retRes6248 := (<-this.LoadMarkets())
+		PanicOnError(retRes6248)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -824,8 +805,8 @@ func (this *hibachi) FetchOrder(id interface{}, optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes7538 := (<-this.LoadMarkets())
-		PanicOnError(retRes7538)
+		retRes7468 := (<-this.LoadMarkets())
+		PanicOnError(retRes7468)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -860,8 +841,8 @@ func (this *hibachi) FetchTradingFees(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes7748 := (<-this.LoadMarkets())
-		PanicOnError(retRes7748)
+		retRes7678 := (<-this.LoadMarkets())
+		PanicOnError(retRes7678)
 		var request interface{} = map[string]interface{}{
 			"accountId": this.GetAccountId(),
 		}
@@ -1012,8 +993,8 @@ func (this *hibachi) CreateOrder(symbol interface{}, typeVar interface{}, side i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9058 := (<-this.LoadMarkets())
-		PanicOnError(retRes9058)
+		retRes8988 := (<-this.LoadMarkets())
+		PanicOnError(retRes8988)
 		var nonce interface{} = this.Nonce()
 		var request interface{} = this.CreateOrderRequest(nonce, symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "accountId", this.GetAccountId())
@@ -1053,8 +1034,8 @@ func (this *hibachi) CreateOrders(orders interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9318 := (<-this.LoadMarkets())
-		PanicOnError(retRes9318)
+		retRes9248 := (<-this.LoadMarkets())
+		PanicOnError(retRes9248)
 		var nonce interface{} = this.Nonce()
 		var requestOrders interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1144,14 +1125,14 @@ func (this *hibachi) EditOrder(id interface{}, symbol interface{}, typeVar inter
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes9988 := (<-this.LoadMarkets())
-		PanicOnError(retRes9988)
+		retRes9918 := (<-this.LoadMarkets())
+		PanicOnError(retRes9918)
 		var nonce interface{} = this.Nonce()
 		var request interface{} = this.EditOrderRequest(nonce, id, symbol, typeVar, side, amount, price, params)
 		AddElementToObject(request, "accountId", this.GetAccountId())
 
-		retRes10028 := (<-this.PrivatePutTradeOrder(request))
-		PanicOnError(retRes10028)
+		retRes9958 := (<-this.PrivatePutTradeOrder(request))
+		PanicOnError(retRes9958)
 
 		// At this time the response body is empty. A 200 response means the update request is accepted and sent to process
 		//
@@ -1184,8 +1165,8 @@ func (this *hibachi) EditOrders(orders interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes10238 := (<-this.LoadMarkets())
-		PanicOnError(retRes10238)
+		retRes10168 := (<-this.LoadMarkets())
+		PanicOnError(retRes10168)
 		var nonce interface{} = this.Nonce()
 		var requestOrders interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -1352,8 +1333,8 @@ func (this *hibachi) CancelAllOrders(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11458 := (<-this.LoadMarkets())
-		PanicOnError(retRes11458)
+		retRes11388 := (<-this.LoadMarkets())
+		PanicOnError(retRes11388)
 		var nonce interface{} = this.Nonce()
 		var nonce16 interface{} = this.IntToBase16(nonce)
 		var noncePadded interface{} = PadStart(nonce16, 16, "0")
@@ -1462,8 +1443,8 @@ func (this *hibachi) Withdraw(code interface{}, amount interface{}, address inte
 			"signature":       signature,
 		}
 
-		retRes12398 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
-		PanicOnError(retRes12398)
+		retRes12328 := (<-this.PrivatePostCapitalWithdraw(this.Extend(request, params)))
+		PanicOnError(retRes12328)
 
 		// At this time the response body is empty. A 200 response means the withdraw request is accepted and sent to process
 		//
@@ -1537,8 +1518,8 @@ func (this *hibachi) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12988 := (<-this.LoadMarkets())
-		PanicOnError(retRes12988)
+		retRes12918 := (<-this.LoadMarkets())
+		PanicOnError(retRes12918)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1620,8 +1601,8 @@ func (this *hibachi) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes13608 := (<-this.LoadMarkets())
-		PanicOnError(retRes13608)
+		retRes13538 := (<-this.LoadMarkets())
+		PanicOnError(retRes13538)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1705,8 +1686,8 @@ func (this *hibachi) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14288 := (<-this.LoadMarkets())
-		PanicOnError(retRes14288)
+		retRes14218 := (<-this.LoadMarkets())
+		PanicOnError(retRes14218)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1779,8 +1760,8 @@ func (this *hibachi) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14818 := (<-this.LoadMarkets())
-		PanicOnError(retRes14818)
+		retRes14748 := (<-this.LoadMarkets())
+		PanicOnError(retRes14748)
 		var market interface{} = this.Market(symbol)
 		timeframe = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request interface{} = map[string]interface{}{
@@ -1841,8 +1822,8 @@ func (this *hibachi) FetchPositions(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15248 := (<-this.LoadMarkets())
-		PanicOnError(retRes15248)
+		retRes15178 := (<-this.LoadMarkets())
+		PanicOnError(retRes15178)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{
 			"accountId": this.GetAccountId(),
@@ -2112,8 +2093,8 @@ func (this *hibachi) FetchLedger(optionalArgs ...interface{}) <-chan interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17568 := (<-this.LoadMarkets())
-		PanicOnError(retRes17568)
+		retRes17498 := (<-this.LoadMarkets())
+		PanicOnError(retRes17498)
 		var currency interface{} = this.Currency("USDT")
 		var request interface{} = map[string]interface{}{
 			"accountId": this.GetAccountId(),
@@ -2488,8 +2469,8 @@ func (this *hibachi) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20538 := (<-this.LoadMarkets())
-		PanicOnError(retRes20538)
+		retRes20468 := (<-this.LoadMarkets())
+		PanicOnError(retRes20468)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2533,8 +2514,8 @@ func (this *hibachi) FetchFundingRate(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20838 := (<-this.LoadMarkets())
-		PanicOnError(retRes20838)
+		retRes20768 := (<-this.LoadMarkets())
+		PanicOnError(retRes20768)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2611,8 +2592,8 @@ func (this *hibachi) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21408 := (<-this.LoadMarkets())
-		PanicOnError(retRes21408)
+		retRes21338 := (<-this.LoadMarkets())
+		PanicOnError(retRes21338)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),

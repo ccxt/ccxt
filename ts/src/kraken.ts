@@ -236,6 +236,23 @@ export default class kraken extends Exchange {
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
                 'FEE': 'KFEE',
+                'XETC': 'ETC',
+                'XETH': 'ETH',
+                'XLTC': 'LTC',
+                'XMLN': 'MLN',
+                'XREP': 'REP',
+                'XXBT': 'BTC',
+                'XXDG': 'DOGE',
+                'XXLM': 'XLM',
+                'XXMR': 'XMR',
+                'XXRP': 'XRP',
+                'XZEC': 'ZEC',
+                'ZAUD': 'AUD',
+                'ZCAD': 'CAD',
+                'ZEUR': 'EUR',
+                'ZGBP': 'GBP',
+                'ZJPY': 'JPY',
+                'ZUSD': 'USD',
             },
             'options': {
                 'timeDifference': 0, // the difference between system clock and Binance clock
@@ -618,10 +635,12 @@ export default class kraken extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
             const market = markets[id];
-            const baseId = this.safeString (market, 'base');
-            const quoteId = this.safeString (market, 'quote');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const baseIdRaw = this.safeString (market, 'base');
+            const quoteIdRaw = this.safeString (market, 'quote');
+            const baseId = this.safeCurrencyCode (baseIdRaw);
+            const quoteId = this.safeCurrencyCode (quoteIdRaw);
+            const base = baseId;
+            const quote = quoteId;
             const makerFees = this.safeList (market, 'fees_maker', []);
             const firstMakerFee = this.safeList (makerFees, 0, []);
             const firstMakerFeeRate = this.safeString (firstMakerFee, 1);

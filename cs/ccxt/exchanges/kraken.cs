@@ -193,6 +193,23 @@ public partial class kraken : Exchange
                 { "XBT", "BTC" },
                 { "XDG", "DOGE" },
                 { "FEE", "KFEE" },
+                { "XETC", "ETC" },
+                { "XETH", "ETH" },
+                { "XLTC", "LTC" },
+                { "XMLN", "MLN" },
+                { "XREP", "REP" },
+                { "XXBT", "BTC" },
+                { "XXDG", "DOGE" },
+                { "XXLM", "XLM" },
+                { "XXMR", "XMR" },
+                { "XXRP", "XRP" },
+                { "XZEC", "ZEC" },
+                { "ZAUD", "AUD" },
+                { "ZCAD", "CAD" },
+                { "ZEUR", "EUR" },
+                { "ZGBP", "GBP" },
+                { "ZJPY", "JPY" },
+                { "ZUSD", "USD" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeDifference", 0 },
@@ -579,10 +596,12 @@ public partial class kraken : Exchange
         {
             object id = getValue(keys, i);
             object market = getValue(markets, id);
-            object baseId = this.safeString(market, "base");
-            object quoteId = this.safeString(market, "quote");
-            object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
+            object baseIdRaw = this.safeString(market, "base");
+            object quoteIdRaw = this.safeString(market, "quote");
+            object baseId = this.safeCurrencyCode(baseIdRaw);
+            object quoteId = this.safeCurrencyCode(quoteIdRaw);
+            object bs = baseId;
+            object quote = quoteId;
             object makerFees = this.safeList(market, "fees_maker", new List<object>() {});
             object firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
             object firstMakerFeeRate = this.safeString(firstMakerFee, 1);

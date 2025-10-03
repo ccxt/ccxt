@@ -466,6 +466,9 @@ class lbank extends Exchange {
                 for ($j = 0; $j < count($networksRaw); $j++) {
                     $networkEntry = $networksRaw[$j];
                     $networkId = $this->safe_string($networkEntry, 'chain');
+                    if ($networkId === null) {
+                        $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+                    }
                     $networkCode = $this->network_id_to_code($networkId);
                     $networks[$networkCode] = array(
                         'id' => $networkId,

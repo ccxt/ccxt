@@ -1318,6 +1318,7 @@ public partial class mexc
     /// <remarks>
     /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records"/>  <br/>
     /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1335,6 +1336,18 @@ public partial class mexc
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.fromAccountType</term>
+    /// <description>
+    /// string : 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.toAccountType</term>
+    /// <description>
+    /// string : 'SPOT' for spot wallet, 'FUTURES' for contract wallet
     /// </description>
     /// </item>
     /// </list>

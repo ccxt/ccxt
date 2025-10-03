@@ -10,7 +10,10 @@
 * [fetchTransactionFees](#fetchtransactionfees)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
 * [fetchTradingFees](#fetchtradingfees)
+* [fetchTradingLimits](#fetchtradinglimits)
+* [fetchFundingLimits](#fetchfundinglimits)
 * [fetchTicker](#fetchticker)
+* [fetchOrder](#fetchorder)
 * [fetchTickers](#fetchtickers)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
@@ -24,13 +27,17 @@
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
+* [fetchOrders](#fetchorders)
 * [cancelAllOrdersAfter](#cancelallordersafter)
 * [fetchBalance](#fetchbalance)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
 * [fetchOrderTrades](#fetchordertrades)
+* [fetchWithdrawals](#fetchwithdrawals)
+* [fetchTransactions](#fetchtransactions)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [createDepositAddress](#createdepositaddress)
+* [fetchAccounts](#fetchaccounts)
 * [setLeverage](#setleverage)
 * [transfer](#transfer)
 * [withdraw](#withdraw)
@@ -161,6 +168,52 @@ whitebit.fetchTradingFees ([params])
 ```
 
 
+<a name="fetchTradingLimits" id="fetchtradinglimits"></a>
+
+### fetchTradingLimits{docsify-ignore}
+fetch the trading limits for a market
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>object</code> - a [trading limits structure](https://docs.ccxt.com/#/?id=trading-limits-structure)
+
+**See**: https://docs.whitebit.com/public/http-v4/#market-info  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+whitebit.fetchTradingLimits (symbols[, params])
+```
+
+
+<a name="fetchFundingLimits" id="fetchfundinglimits"></a>
+
+### fetchFundingLimits{docsify-ignore}
+fetch the deposit and withdrawal limits for a currency
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>object</code> - a [funding limits structure](https://docs.ccxt.com/#/?id=funding-limits-structure)
+
+**See**
+
+- https://docs.whitebit.com/public/http-v4/#asset-status-list
+- https://docs.whitebit.com/public/http-v4/#fee
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified currency codes |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+whitebit.fetchFundingLimits (codes[, params])
+```
+
+
 <a name="fetchTicker" id="fetchticker"></a>
 
 ### fetchTicker{docsify-ignore}
@@ -179,6 +232,34 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 whitebit.fetchTicker (symbol[, params])
+```
+
+
+<a name="fetchOrder" id="fetchorder"></a>
+
+### fetchOrder{docsify-ignore}
+fetches information on an order by the id
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+- https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.checkActive | <code>boolean</code> | No | whether to check active orders (default: true) |
+| params.checkExecuted | <code>boolean</code> | No | whether to check executed orders (default: true) |
+
+
+```javascript
+whitebit.fetchOrder (id, symbol[, params])
 ```
 
 
@@ -487,6 +568,33 @@ whitebit.cancelAllOrders (symbol[, params])
 ```
 
 
+<a name="fetchOrders" id="fetchorders"></a>
+
+### fetchOrders{docsify-ignore}
+fetches information on multiple orders made by the user (combines open and closed orders)
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**
+
+- https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+- https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+whitebit.fetchOrders (symbol[, since, limit, params])
+```
+
+
 <a name="cancelAllOrdersAfter" id="cancelallordersafter"></a>
 
 ### cancelAllOrdersAfter{docsify-ignore}
@@ -604,6 +712,54 @@ whitebit.fetchOrderTrades (id, symbol[, since, limit, params])
 ```
 
 
+<a name="fetchWithdrawals" id="fetchwithdrawals"></a>
+
+### fetchWithdrawals{docsify-ignore}
+fetch all withdrawals made from an account
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
+| limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transactionMethod | <code>string</code> | No | transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals |
+
+
+```javascript
+whitebit.fetchWithdrawals (code[, since, limit, params])
+```
+
+
+<a name="fetchTransactions" id="fetchtransactions"></a>
+
+### fetchTransactions{docsify-ignore}
+fetch history of deposits and withdrawals
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+
+**See**: https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | the earliest time in ms to fetch transactions for |
+| limit | <code>int</code> | No | the maximum number of transactions structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transactionMethod | <code>string</code> | No | transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits |
+
+
+```javascript
+whitebit.fetchTransactions ([code, since, limit, params])
+```
+
+
 <a name="fetchDepositAddress" id="fetchdepositaddress"></a>
 
 ### fetchDepositAddress{docsify-ignore}
@@ -649,6 +805,26 @@ create a currency deposit address
 
 ```javascript
 whitebit.createDepositAddress (code[, params])
+```
+
+
+<a name="fetchAccounts" id="fetchaccounts"></a>
+
+### fetchAccounts{docsify-ignore}
+fetch all the accounts associated with a profile
+
+**Kind**: instance method of [<code>whitebit</code>](#whitebit)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/#/?id=account-structure)
+
+**See**: https://docs.whitebit.com/private/http-main-v4/#sub-account-list  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+whitebit.fetchAccounts ([params])
 ```
 
 

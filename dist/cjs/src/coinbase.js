@@ -2919,7 +2919,7 @@ class coinbase extends coinbase$1["default"] {
             }
             accountId = await this.findAccountId(code, params);
             if (accountId === undefined) {
-                throw new errors.ExchangeError(this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
+                throw new errors.ExchangeError(this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.');
             }
         }
         const request = {

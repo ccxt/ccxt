@@ -1136,14 +1136,17 @@ fetch a history of internal transfers made on an account
 
 - https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
 - https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
+- https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history     * @param {string} code unified currency code of the currency transferred
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| code | <code>string</code> | Yes | unified currency code of the currency transferred |
+| code |  | Yes |  |
 | since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
 | limit | <code>int</code> | No | the maximum number of  transfers structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.fromAccountType | <code>string</code> | No | 'SPOT' for spot wallet, 'FUTURES' for contract wallet |
+| params.toAccountType | <code>string</code> | No | 'SPOT' for spot wallet, 'FUTURES' for contract wallet |
 
 
 ```javascript

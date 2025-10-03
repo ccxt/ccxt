@@ -43,7 +43,8 @@ func (this *whitebit) Describe() interface{} {
 			"createStopMarketOrder":          true,
 			"createStopOrder":                true,
 			"createTriggerOrder":             true,
-			"editOrder":                      false,
+			"editOrder":                      true,
+			"fetchAccounts":                  true,
 			"fetchBalance":                   true,
 			"fetchBorrowRateHistories":       false,
 			"fetchBorrowRateHistory":         false,
@@ -63,12 +64,14 @@ func (this *whitebit) Describe() interface{} {
 			"fetchDepositWithdrawFee":        "emulated",
 			"fetchDepositWithdrawFees":       true,
 			"fetchFundingHistory":            true,
+			"fetchFundingLimits":             true,
 			"fetchFundingRate":               true,
 			"fetchFundingRateHistory":        false,
 			"fetchFundingRates":              true,
 			"fetchIndexOHLCV":                false,
 			"fetchIsolatedBorrowRate":        false,
 			"fetchIsolatedBorrowRates":       false,
+			"fetchLedger":                    false,
 			"fetchMarginMode":                false,
 			"fetchMarkets":                   true,
 			"fetchMarkOHLCV":                 false,
@@ -76,7 +79,9 @@ func (this *whitebit) Describe() interface{} {
 			"fetchOHLCV":                     true,
 			"fetchOpenInterestHistory":       false,
 			"fetchOpenOrders":                true,
+			"fetchOrder":                     true,
 			"fetchOrderBook":                 true,
+			"fetchOrders":                    true,
 			"fetchOrderTrades":               true,
 			"fetchPosition":                  true,
 			"fetchPositionHistory":           true,
@@ -90,7 +95,10 @@ func (this *whitebit) Describe() interface{} {
 			"fetchTrades":                    true,
 			"fetchTradingFee":                false,
 			"fetchTradingFees":               true,
+			"fetchTradingLimits":             true,
 			"fetchTransactionFees":           true,
+			"fetchTransactions":              true,
+			"fetchWithdrawals":               true,
 			"repayCrossMargin":               false,
 			"repayIsolatedMargin":            false,
 			"setLeverage":                    true,
@@ -156,7 +164,7 @@ func (this *whitebit) Describe() interface{} {
 					"get": []interface{}{"assets", "collateral/markets", "fee", "orderbook/depth/{market}", "orderbook/{market}", "ticker", "trades/{market}", "time", "ping", "markets", "futures", "platform/status", "mining-pool"},
 				},
 				"private": map[string]interface{}{
-					"post": []interface{}{"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order", "trade-account/order/history", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"},
+					"post": []interface{}{"collateral-account/balance", "collateral-account/balance-summary", "collateral-account/positions/history", "collateral-account/leverage", "collateral-account/positions/open", "collateral-account/summary", "collateral-account/funding-history", "main-account/address", "main-account/balance", "main-account/create-new-address", "main-account/codes", "main-account/codes/apply", "main-account/codes/my", "main-account/codes/history", "main-account/fiat-deposit-url", "main-account/history", "main-account/withdraw", "main-account/withdraw-pay", "main-account/transfer", "main-account/smart/plans", "main-account/smart/investment", "main-account/smart/investment/close", "main-account/smart/investments", "main-account/fee", "main-account/smart/interest-payment-history", "trade-account/balance", "trade-account/executed-history", "trade-account/order/history", "trade-account/order", "order/collateral/limit", "order/collateral/market", "order/collateral/stop-limit", "order/collateral/trigger-market", "order/collateral/bulk", "order/new", "order/market", "order/stock_market", "order/stop_limit", "order/stop_market", "order/cancel", "order/cancel/all", "order/kill-switch", "order/kill-switch/status", "order/bulk", "order/modify", "order/conditional-cancel", "orders", "oco-orders", "order/collateral/oco", "order/oco-cancel", "order/oto-cancel", "profile/websocket_token", "convert/estimate", "convert/confirm", "convert/history", "sub-account/create", "sub-account/delete", "sub-account/edit", "sub-account/list", "sub-account/transfer", "sub-account/block", "sub-account/unblock", "sub-account/balances", "sub-account/transfer/history", "sub-account/api-key/create", "sub-account/api-key/edit", "sub-account/api-key/delete", "sub-account/api-key/list", "sub-account/api-key/reset", "sub-account/api-key/ip-address/list", "sub-account/api-key/ip-address/create", "sub-account/api-key/ip-address/delete", "mining/rewards", "market/fee", "conditional-orders"},
 				},
 			},
 		},
@@ -221,7 +229,14 @@ func (this *whitebit) Describe() interface{} {
 					"untilDays":      nil,
 					"symbolRequired": false,
 				},
-				"fetchOrder": nil,
+				"fetchOrder": map[string]interface{}{
+					"checkActive":    true,
+					"checkExecuted":  true,
+					"symbolRequired": false,
+					"marginMode":     false,
+					"trigger":        false,
+					"trailing":       false,
+				},
 				"fetchOpenOrders": map[string]interface{}{
 					"marginMode":     false,
 					"limit":          100,
@@ -229,7 +244,15 @@ func (this *whitebit) Describe() interface{} {
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": nil,
+				"fetchOrders": map[string]interface{}{
+					"marginMode":     false,
+					"limit":          100,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
 				"fetchClosedOrders": map[string]interface{}{
 					"marginMode":       false,
 					"limit":            100,
@@ -242,6 +265,13 @@ func (this *whitebit) Describe() interface{} {
 				},
 				"fetchOHLCV": map[string]interface{}{
 					"limit": 1440,
+				},
+				"fetchWithdrawals": map[string]interface{}{
+					"marginMode":     false,
+					"limit":          100,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"symbolRequired": false,
 				},
 			},
 			"spot": map[string]interface{}{
@@ -308,8 +338,8 @@ func (this *whitebit) FetchMarkets(optionalArgs ...interface{}) <-chan interface
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes42112 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes42112)
+			retRes45112 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes45112)
 		}
 
 		markets := (<-this.V4PublicGetMarkets())
@@ -611,8 +641,8 @@ func (this *whitebit) FetchTransactionFees(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes6958 := (<-this.LoadMarkets())
-		PanicOnError(retRes6958)
+		retRes7258 := (<-this.LoadMarkets())
+		PanicOnError(retRes7258)
 
 		response := (<-this.V4PublicGetFee(params))
 		PanicOnError(response)
@@ -684,8 +714,8 @@ func (this *whitebit) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes7518 := (<-this.LoadMarkets())
-		PanicOnError(retRes7518)
+		retRes7818 := (<-this.LoadMarkets())
+		PanicOnError(retRes7818)
 
 		response := (<-this.V4PublicGetFee(params))
 		PanicOnError(response)
@@ -852,8 +882,8 @@ func (this *whitebit) FetchTradingFees(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9018 := (<-this.LoadMarkets())
-		PanicOnError(retRes9018)
+		retRes9318 := (<-this.LoadMarkets())
+		PanicOnError(retRes9318)
 
 		response := (<-this.V4PublicGetAssets(params))
 		PanicOnError(response)
@@ -902,6 +932,294 @@ func (this *whitebit) FetchTradingFees(optionalArgs ...interface{}) <-chan inter
 
 /**
  * @method
+ * @name whitebit#fetchTradingLimits
+ * @description fetch the trading limits for a market
+ * @see https://docs.whitebit.com/public/http-v4/#market-info
+ * @param {string[]|undefined} symbols unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/#/?id=trading-limits-structure}
+ */
+func (this *whitebit) FetchTradingLimits(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes9818 := (<-this.LoadMarkets())
+		PanicOnError(retRes9818)
+		//
+		// Trading limits are derived from market information already loaded by loadMarkets()
+		// Market structure includes:
+		//     {
+		//         "id": "BTC_USDT",                    // Market ID
+		//         "symbol": "BTC/USDT",                // Unified symbol
+		//         "base": "BTC",                       // Base currency
+		//         "quote": "USDT",                     // Quote currency
+		//         "active": true,                      // Market active status
+		//         "type": "spot",                      // Market type
+		//         "spot": true,                        // Spot trading enabled
+		//         "margin": false,                     // Margin trading enabled
+		//         "future": false,                     // Futures trading enabled
+		//         "option": false,                     // Options trading enabled
+		//         "contract": false,                   // Contract trading enabled
+		//         "settle": undefined,                 // Settlement currency
+		//         "settleId": undefined,               // Settlement currency ID
+		//         "contractSize": undefined,           // Contract size
+		//         "linear": undefined,                 // Linear contract
+		//         "inverse": undefined,                // Inverse contract
+		//         "limits": {                          // Trading limits
+		//             "amount": {                      // Amount limits
+		//                 "min": 0.00001,              // Minimum amount
+		//                 "max": 1000000               // Maximum amount
+		//             },
+		//             "price": {                       // Price limits
+		//                 "min": 0.01,                 // Minimum price
+		//                 "max": 1000000               // Maximum price
+		//             },
+		//             "cost": {                        // Cost limits
+		//                 "min": 5.0,                  // Minimum cost
+		//                 "max": 10000000              // Maximum cost
+		//             }
+		//         },
+		//         "precision": {                       // Precision settings
+		//             "amount": 5,                     // Amount precision
+		//             "price": 2                       // Price precision
+		//         },
+		//         "taker": 0.001,                      // Taker fee
+		//         "maker": 0.001,                      // Maker fee
+		//         "percentage": true,                  // Fee percentage
+		//         "tierBased": false                   // Tier-based fees
+		//     }
+		//
+		var result interface{} = map[string]interface{}{}
+		// Process all markets from the loaded markets cache
+		var marketIds interface{} = ObjectKeys(this.Markets)
+		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
+			var marketId interface{} = GetValue(marketIds, i)
+			var market interface{} = GetValue(this.Markets, marketId)
+			if IsTrue(!IsTrue(market) || !IsTrue(GetValue(market, "symbol"))) {
+				continue
+			}
+			var symbol interface{} = GetValue(market, "symbol")
+			// Filter by symbols if specified
+			if IsTrue(symbols) {
+				var symbolFound interface{} = false
+				for j := 0; IsLessThan(j, GetArrayLength(symbols)); j++ {
+					if IsTrue(IsEqual(GetValue(symbols, j), symbol)) {
+						symbolFound = true
+						break
+					}
+				}
+				if !IsTrue(symbolFound) {
+					continue
+				}
+			}
+			// Extract trading limits
+			var limits interface{} = this.SafeDict(market, "limits")
+			var amountLimits interface{} = this.SafeDict(limits, "amount")
+			var priceLimits interface{} = this.SafeDict(limits, "price")
+			var costLimits interface{} = this.SafeDict(limits, "cost")
+			// Validate that all required limits exist and are valid numbers
+			var hasAmountLimits interface{} = IsTrue(IsTrue(amountLimits) && IsTrue(!IsEqual(this.SafeNumber(amountLimits, "min"), nil))) && IsTrue(!IsEqual(this.SafeNumber(amountLimits, "max"), nil))
+			var hasPriceLimits interface{} = IsTrue(IsTrue(priceLimits) && IsTrue(!IsEqual(this.SafeNumber(priceLimits, "min"), nil))) && IsTrue(!IsEqual(this.SafeNumber(priceLimits, "max"), nil))
+			var hasCostLimits interface{} = IsTrue(IsTrue(costLimits) && IsTrue(!IsEqual(this.SafeNumber(costLimits, "min"), nil))) && IsTrue(!IsEqual(this.SafeNumber(costLimits, "max"), nil))
+			if IsTrue(IsTrue(IsTrue(hasAmountLimits) && IsTrue(hasPriceLimits)) && IsTrue(hasCostLimits)) {
+				AddElementToObject(result, symbol, map[string]interface{}{
+					"info": market,
+					"limits": map[string]interface{}{
+						"amount": map[string]interface{}{
+							"min": this.SafeNumber(amountLimits, "min"),
+							"max": this.SafeNumber(amountLimits, "max"),
+						},
+						"price": map[string]interface{}{
+							"min": this.SafeNumber(priceLimits, "min"),
+							"max": this.SafeNumber(priceLimits, "max"),
+						},
+						"cost": map[string]interface{}{
+							"min": this.SafeNumber(costLimits, "min"),
+							"max": this.SafeNumber(costLimits, "max"),
+						},
+					},
+				})
+			}
+		}
+
+		ch <- result
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name whitebit#fetchFundingLimits
+ * @description fetch the deposit and withdrawal limits for a currency
+ * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+ * @see https://docs.whitebit.com/public/http-v4/#fee
+ * @param {string[]|undefined} codes unified currency codes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/#/?id=funding-limits-structure}
+ */
+func (this *whitebit) FetchFundingLimits(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		codes := GetArg(optionalArgs, 0, nil)
+		_ = codes
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes10928 := (<-this.LoadMarkets())
+		PanicOnError(retRes10928)
+		// Fetch both currencies and fees data for comprehensive funding limits
+		currenciesDatafeesDataVariable := (<-promiseAll([]interface{}{this.FetchCurrencies(), this.V4PublicGetFee(params)}))
+		currenciesData := GetValue(currenciesDatafeesDataVariable, 0)
+		feesData := GetValue(currenciesDatafeesDataVariable, 1)
+		//
+		// Currencies response structure (from fetchCurrencies):
+		//     {
+		//         "BTC": {
+		//             "id": "BTC",                          // Currency ID
+		//             "code": "BTC",                        // Currency code
+		//             "name": "Bitcoin",                    // Currency name
+		//             "active": true,                       // Currency active status
+		//             "type": "crypto",                     // Currency type
+		//             "precision": 8,                       // Currency precision
+		//             "limits": {                           // Currency limits
+		//                 "deposit": {                      // Deposit limits
+		//                     "min": 0.00001,               // Minimum deposit
+		//                     "max": 1000000                // Maximum deposit
+		//                 },
+		//                 "withdraw": {                     // Withdrawal limits
+		//                     "min": 0.00001,               // Minimum withdrawal
+		//                     "max": 1000000                // Maximum withdrawal
+		//                 }
+		//             },
+		//             "networks": {                         // Network-specific limits
+		//                 "BTC": {
+		//                     "limits": {
+		//                         "deposit": { "min": "0.001" },
+		//                         "withdraw": { "min": "0.002" }
+		//                     }
+		//                 }
+		//             },
+		//             "info": { ... }                       // Original API response
+		//         }
+		//     }
+		//
+		// Fees response structure (from /api/v4/public/fee):
+		//     {
+		//         "USDT (ERC20)": {
+		//             "ticker": "USDT",
+		//             "name": "Tether US",
+		//             "deposit": {
+		//                 "min_amount": "0.0005",
+		//                 "max_amount": "0.1",
+		//                 "fixed": "0.0005",
+		//                 "flex": {
+		//                     "min_fee": "100",
+		//                     "max_fee": "1000",
+		//                     "percent": "10"
+		//                 }
+		//             },
+		//             "withdraw": {
+		//                 "min_amount": "0.001",
+		//                 "max_amount": "0",
+		//                 "fixed": null,
+		//                 "flex": null
+		//             }
+		//         }
+		//     }
+		//
+		var result interface{} = map[string]interface{}{}
+		var currencyKeys interface{} = ObjectKeys(currenciesData)
+		for i := 0; IsLessThan(i, GetArrayLength(currencyKeys)); i++ {
+			var code interface{} = GetValue(currencyKeys, i)
+			var currency interface{} = GetValue(currenciesData, code)
+			if !IsTrue(currency) {
+				continue
+			}
+			if IsTrue(IsTrue(!IsEqual(codes, nil)) && !IsTrue(this.InArray(code, codes))) {
+				continue
+			}
+			// Find corresponding fee data for this currency
+			var feeData interface{} = nil
+			var feeKeys interface{} = ObjectKeys(feesData)
+			for j := 0; IsLessThan(j, GetArrayLength(feeKeys)); j++ {
+				var feeKey interface{} = GetValue(feeKeys, j)
+				var fee interface{} = GetValue(feesData, feeKey)
+				if IsTrue(IsTrue(fee) && IsTrue(IsEqual(GetValue(fee, "ticker"), code))) {
+					feeData = fee
+					break
+				}
+			}
+			// Build comprehensive funding limits
+			var limits interface{} = map[string]interface{}{
+				"deposit": map[string]interface{}{
+					"min": GetValue(GetValue(GetValue(currency, "limits"), "deposit"), "min"),
+					"max": GetValue(GetValue(GetValue(currency, "limits"), "deposit"), "max"),
+				},
+				"withdraw": map[string]interface{}{
+					"min": GetValue(GetValue(GetValue(currency, "limits"), "withdraw"), "min"),
+					"max": GetValue(GetValue(GetValue(currency, "limits"), "withdraw"), "max"),
+				},
+			}
+			// Add fee information if available
+			if IsTrue(feeData) {
+				var depositFee interface{} = GetValue(feeData, "deposit")
+				var withdrawFee interface{} = GetValue(feeData, "withdraw")
+				if IsTrue(depositFee) {
+					var depositFeeData interface{} = map[string]interface{}{
+						"fixed": this.SafeNumber(depositFee, "fixed"),
+					}
+					if IsTrue(GetValue(depositFee, "flex")) {
+						AddElementToObject(depositFeeData, "flex", map[string]interface{}{
+							"min":     this.SafeNumber(GetValue(depositFee, "flex"), "min_fee"),
+							"max":     this.SafeNumber(GetValue(depositFee, "flex"), "max_fee"),
+							"percent": this.SafeNumber(GetValue(depositFee, "flex"), "percent"),
+						})
+					}
+					AddElementToObject(GetValue(limits, "deposit"), "fee", depositFeeData)
+				}
+				if IsTrue(withdrawFee) {
+					var withdrawFeeData interface{} = map[string]interface{}{
+						"fixed": this.SafeNumber(withdrawFee, "fixed"),
+					}
+					if IsTrue(GetValue(withdrawFee, "flex")) {
+						AddElementToObject(withdrawFeeData, "flex", map[string]interface{}{
+							"min":     this.SafeNumber(GetValue(withdrawFee, "flex"), "min_fee"),
+							"max":     this.SafeNumber(GetValue(withdrawFee, "flex"), "max_fee"),
+							"percent": this.SafeNumber(GetValue(withdrawFee, "flex"), "percent"),
+						})
+					}
+					AddElementToObject(GetValue(limits, "withdraw"), "fee", withdrawFeeData)
+				}
+			}
+			// Add network-specific limits if available
+			if IsTrue(GetValue(currency, "networks")) {
+				AddElementToObject(limits, "networks", GetValue(currency, "networks"))
+			}
+			AddElementToObject(result, code, map[string]interface{}{
+				"info":   currency,
+				"limits": limits,
+			})
+		}
+
+		ch <- result
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name whitebit#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://docs.whitebit.com/public/http-v4/#market-activity
@@ -917,8 +1235,8 @@ func (this *whitebit) FetchTicker(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9518 := (<-this.LoadMarkets())
-		PanicOnError(retRes9518)
+		retRes12428 := (<-this.LoadMarkets())
+		PanicOnError(retRes12428)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -1037,6 +1355,132 @@ func (this *whitebit) ParseTicker(ticker interface{}, optionalArgs ...interface{
 
 /**
  * @method
+ * @name whitebit#fetchOrder
+ * @description fetches information on an order by the id
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+ * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *whitebit) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes13658 := (<-this.LoadMarkets())
+		PanicOnError(retRes13658)
+		// Extract control parameters from params
+		var checkActive interface{} = this.SafeBool(params, "checkActive", true)
+		var checkExecuted interface{} = this.SafeBool(params, "checkExecuted", true)
+		var request interface{} = map[string]interface{}{
+			"orderId": id,
+		}
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			AddElementToObject(request, "market", GetValue(market, "id"))
+		}
+		// Try active orders first (if enabled)
+		if IsTrue(checkActive) {
+
+			{
+				func(this *whitebit) (ret_ interface{}) {
+					defer func() {
+						if error := recover(); error != nil {
+							if error == "break" {
+								return
+							}
+							ret_ = func(this *whitebit) interface{} {
+								// catch block:
+								if !IsTrue((IsInstance(error, OrderNotFound))) {
+									panic(error)
+								}
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					response := (<-this.V4PrivatePostOrders(this.Extend(request, params)))
+					PanicOnError(response)
+					// Search for order in active orders response (array format)
+					for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+						var order interface{} = GetValue(response, i)
+						var orderId interface{} = this.SafeString(order, "orderId")
+						if IsTrue(IsEqual(orderId, id)) {
+							var marketId interface{} = this.SafeString(order, "market")
+							var marketNew interface{} = this.SafeMarket(marketId, nil, "_")
+
+							ch <- this.ParseOrder(order, marketNew)
+							return nil
+						}
+					}
+					return nil
+				}(this)
+
+			}
+		}
+		// Try executed orders (if enabled)
+		if IsTrue(checkExecuted) {
+
+			{
+				func(this *whitebit) (ret_ interface{}) {
+					defer func() {
+						if error := recover(); error != nil {
+							if error == "break" {
+								return
+							}
+							ret_ = func(this *whitebit) interface{} {
+								// catch block:
+								if !IsTrue((IsInstance(error, OrderNotFound))) {
+									panic(error)
+								}
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					response := (<-this.V4PrivatePostTradeAccountOrderHistory(this.Extend(request, params)))
+					PanicOnError(response)
+					// Search for order in executed orders response (object format)
+					var marketIds interface{} = ObjectKeys(response)
+					for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
+						var marketId interface{} = GetValue(marketIds, i)
+						var marketNew interface{} = this.SafeMarket(marketId, nil, "_")
+						var orders interface{} = GetValue(response, marketId)
+						for j := 0; IsLessThan(j, GetArrayLength(orders)); j++ {
+							var order interface{} = GetValue(orders, j)
+							var orderId interface{} = this.SafeString(order, "id")
+							if IsTrue(IsEqual(orderId, id)) {
+
+								ch <- this.ParseOrder(order, marketNew)
+								return nil
+							}
+						}
+					}
+					return nil
+				}(this)
+
+			}
+		}
+		panic(OrderNotFound(Add(Add(this.Id, " fetchOrder() order not found: "), id)))
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name whitebit#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @see https://docs.whitebit.com/public/http-v4/#market-activity
@@ -1055,8 +1499,8 @@ func (this *whitebit) FetchTickers(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10718 := (<-this.LoadMarkets())
-		PanicOnError(retRes10718)
+		retRes14368 := (<-this.LoadMarkets())
+		PanicOnError(retRes14368)
 		symbols = this.MarketSymbols(symbols)
 		var method interface{} = "v4PublicGetTicker"
 		methodparamsVariable := this.HandleOptionAndParams(params, "fetchTickers", "method", method)
@@ -1126,8 +1570,8 @@ func (this *whitebit) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11198 := (<-this.LoadMarkets())
-		PanicOnError(retRes11198)
+		retRes14848 := (<-this.LoadMarkets())
+		PanicOnError(retRes14848)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -1189,8 +1633,8 @@ func (this *whitebit) FetchTrades(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes11638 := (<-this.LoadMarkets())
-		PanicOnError(retRes11638)
+		retRes15288 := (<-this.LoadMarkets())
+		PanicOnError(retRes15288)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -1243,8 +1687,8 @@ func (this *whitebit) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes11968 := (<-this.LoadMarkets())
-		PanicOnError(retRes11968)
+		retRes15618 := (<-this.LoadMarkets())
+		PanicOnError(retRes15618)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1425,8 +1869,8 @@ func (this *whitebit) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes13548 := (<-this.LoadMarkets())
-		PanicOnError(retRes13548)
+		retRes17198 := (<-this.LoadMarkets())
+		PanicOnError(retRes17198)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market":   GetValue(market, "id"),
@@ -1573,10 +2017,10 @@ func (this *whitebit) CreateMarketOrderWithCost(symbol interface{}, side interfa
 			"cost": cost,
 		}
 
-		retRes146815 := (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
-		PanicOnError(retRes146815)
+		retRes183315 := (<-this.CreateOrder(symbol, "market", side, 0, nil, this.Extend(req, params)))
+		PanicOnError(retRes183315)
 		// only buy side is supported
-		ch <- retRes146815
+		ch <- retRes183315
 		return nil
 
 	}()
@@ -1600,9 +2044,9 @@ func (this *whitebit) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes148115 := (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
-		PanicOnError(retRes148115)
-		ch <- retRes148115
+		retRes184615 := (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
+		PanicOnError(retRes184615)
+		ch <- retRes184615
 		return nil
 
 	}()
@@ -1641,8 +2085,8 @@ func (this *whitebit) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15078 := (<-this.LoadMarkets())
-		PanicOnError(retRes15078)
+		retRes18728 := (<-this.LoadMarkets())
+		PanicOnError(retRes18728)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -1773,51 +2217,53 @@ func (this *whitebit) EditOrder(id interface{}, symbol interface{}, typeVar inte
 		_ = price
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
-		if IsTrue(IsEqual(id, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a id argument")))
-		}
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a symbol argument")))
-		}
 
-		retRes16098 := (<-this.LoadMarkets())
-		PanicOnError(retRes16098)
+		retRes19688 := (<-this.LoadMarkets())
+		PanicOnError(retRes19688)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
-			"orderId": id,
-			"market":  GetValue(market, "id"),
+			"market": GetValue(market, "id"),
 		}
-		var clientOrderId interface{} = this.SafeString2(params, "clOrdId", "clientOrderId")
+		// Handle clientOrderId vs orderId (clientOrderId takes priority)
+		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			// Update clientOrderId of the order
 			AddElementToObject(request, "clientOrderId", clientOrderId)
+		} else {
+			AddElementToObject(request, "orderId", id)
 		}
-		var isLimitOrder interface{} = IsEqual(typeVar, "limit")
-		var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"triggerPrice", "stopPrice", "activation_price"})
+		// Handle amount vs total parameter based on order type and side
+		var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"triggerPrice", "stopPrice", "activationPrice"})
 		var isStopOrder interface{} = (!IsEqual(triggerPrice, nil))
-		params = this.Omit(params, []interface{}{"clOrdId", "clientOrderId", "triggerPrice", "stopPrice"})
+		// Handle activation price for stop orders
 		if IsTrue(isStopOrder) {
 			AddElementToObject(request, "activation_price", this.PriceToPrecision(symbol, triggerPrice))
+		}
+		var isLimitOrder interface{} = IsEqual(typeVar, "limit")
+		var total interface{} = this.SafeNumber(params, "total")
+		if IsTrue(!IsEqual(total, nil)) {
+			AddElementToObject(request, "total", this.AmountToPrecision(symbol, total))
+		} else if IsTrue(!IsEqual(amount, nil)) {
 			if IsTrue(isLimitOrder) {
-				// stop limit order
+				// Limit orders always use amount parameter
 				AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
-				AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+			} else if IsTrue(IsTrue(IsEqual(typeVar, "market")) && IsTrue(IsEqual(side, "buy"))) {
+				// Market buy orders use total parameter
+				AddElementToObject(request, "total", this.AmountToPrecision(symbol, amount))
 			} else {
-				// stop market order
-				if IsTrue(IsEqual(side, "buy")) {
-					// Use total parameter instead of amount for modify buy stop market order
-					AddElementToObject(request, "total", this.AmountToPrecision(symbol, amount))
-				} else {
-					AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
-				}
-			}
-		} else {
-			AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
-			if IsTrue(isLimitOrder) {
-				// limit order
-				AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+				// Market sell orders use amount parameter
+				AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 			}
 		}
+		// Handle price parameter for limit orders
+		if IsTrue(!IsEqual(price, nil)) {
+			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+		}
+		// Ensure at least one modifiable parameter is provided
+		var hasModifiableParam interface{} = IsTrue(IsTrue(IsTrue((!IsEqual(amount, nil))) || IsTrue((!IsEqual(price, nil)))) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(total, nil)))
+		if !IsTrue(hasModifiableParam) {
+			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")))
+		}
+		params = this.Omit(params, []interface{}{"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"})
 
 		response := (<-this.V4PrivatePostOrderModify(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1852,8 +2298,8 @@ func (this *whitebit) CancelOrder(id interface{}, optionalArgs ...interface{}) <
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes16648 := (<-this.LoadMarkets())
-		PanicOnError(retRes16648)
+		retRes20318 := (<-this.LoadMarkets())
+		PanicOnError(retRes20318)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market":  GetValue(market, "id"),
@@ -1910,8 +2356,8 @@ func (this *whitebit) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17058 := (<-this.LoadMarkets())
-		PanicOnError(retRes17058)
+		retRes20728 := (<-this.LoadMarkets())
+		PanicOnError(retRes20728)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1955,6 +2401,55 @@ func (this *whitebit) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 
 /**
  * @method
+ * @name whitebit#fetchOrders
+ * @description fetches information on multiple orders made by the user (combines open and closed orders)
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *whitebit) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+
+		retRes21168 := (<-this.LoadMarkets())
+		PanicOnError(retRes21168)
+		// Fetch both open and closed orders in parallel
+		openOrdersclosedOrdersVariable := (<-promiseAll([]interface{}{this.FetchOpenOrders(symbol, since, limit, params), this.FetchClosedOrders(symbol, since, limit, params)}))
+		openOrders := GetValue(openOrdersclosedOrdersVariable, 0)
+		closedOrders := GetValue(openOrdersclosedOrdersVariable, 1)
+		var allOrders interface{} = this.ArrayConcat(openOrders, closedOrders)
+		// Sort by timestamp (most recent first)
+		var sortedOrders interface{} = this.SortBy(allOrders, "timestamp", true)
+		// Apply limit if specified (since and symbol filtering already handled by individual methods)
+		if IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(IsGreaterThan(GetArrayLength(sortedOrders), limit))) {
+
+			ch <- Slice(sortedOrders, 0, limit)
+			return nil
+		}
+
+		ch <- sortedOrders
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name whitebit#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
  * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
@@ -1972,8 +2467,8 @@ func (this *whitebit) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17488 := (<-this.LoadMarkets())
-		PanicOnError(retRes17488)
+		retRes21448 := (<-this.LoadMarkets())
+		PanicOnError(retRes21448)
 		var symbol interface{} = this.SafeString(params, "symbol")
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrdersAfter() requires a symbol argument in params")))
@@ -2046,8 +2541,8 @@ func (this *whitebit) FetchBalance(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18098 := (<-this.LoadMarkets())
-		PanicOnError(retRes18098)
+		retRes22058 := (<-this.LoadMarkets())
+		PanicOnError(retRes22058)
 		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -2127,8 +2622,8 @@ func (this *whitebit) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes18638 := (<-this.LoadMarkets())
-		PanicOnError(retRes18638)
+		retRes22598 := (<-this.LoadMarkets())
+		PanicOnError(retRes22598)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2196,8 +2691,8 @@ func (this *whitebit) FetchClosedOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes19098 := (<-this.LoadMarkets())
-		PanicOnError(retRes19098)
+		retRes23058 := (<-this.LoadMarkets())
+		PanicOnError(retRes23058)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2388,8 +2883,8 @@ func (this *whitebit) FetchOrderTrades(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20788 := (<-this.LoadMarkets())
-		PanicOnError(retRes20788)
+		retRes24748 := (<-this.LoadMarkets())
+		PanicOnError(retRes24748)
 		var request interface{} = map[string]interface{}{
 			"orderId": ParseInt(id),
 		}
@@ -2434,6 +2929,153 @@ func (this *whitebit) FetchOrderTrades(id interface{}, optionalArgs ...interface
 
 /**
  * @method
+ * @name whitebit#fetchWithdrawals
+ * @description fetch all withdrawals made from an account
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch withdrawals for
+ * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
+func (this *whitebit) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+
+		retRes25238 := (<-this.LoadMarkets())
+		PanicOnError(retRes25238)
+		var currency interface{} = nil
+		var request interface{} = map[string]interface{}{}
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+			AddElementToObject(request, "ticker", GetValue(currency, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startDate", this.ParseToInt(Divide(since, 1000)))
+		}
+		if IsTrue(IsTrue(IsEqual(limit, nil)) || IsTrue(IsGreaterThan(limit, 100))) {
+			limit = 100
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		// Use transactionMethod parameter to filter withdrawals server-side (method = 2)
+		AddElementToObject(request, "transactionMethod", "2")
+
+		response := (<-this.V4PrivatePostMainAccountHistory(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     [
+		//         {
+		//             "id": 123456789,                    // Transaction ID
+		//             "method": "2",                      // Method: 1=deposit, 2=withdrawal (filtered server-side)
+		//             "ticker": "BTC",                    // Currency ticker
+		//             "amount": "0.001",                  // Transaction amount
+		//             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Withdrawal address
+		//             "memo": "",                         // Memo/tag (if required)
+		//             "network": "BTC",                   // Network name
+		//             "fee": "0.0005",                    // Transaction fee
+		//             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+		//             "timestamp": 1641051917,            // Transaction timestamp
+		//             "txid": "abc123def456..."           // Transaction hash
+		//         },
+		//         { ... }                                 // More withdrawal transactions
+		//     ]
+		//
+		ch <- this.ParseTransactions(response, currency, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name whitebit#fetchTransactions
+ * @description fetch history of deposits and withdrawals
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+ * @param {string} [code] unified currency code
+ * @param {int} [since] the earliest time in ms to fetch transactions for
+ * @param {int} [limit] the maximum number of transactions structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
+func (this *whitebit) FetchTransactions(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+
+		retRes25768 := (<-this.LoadMarkets())
+		PanicOnError(retRes25768)
+		var currency interface{} = nil
+		var request interface{} = map[string]interface{}{}
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+			AddElementToObject(request, "ticker", GetValue(currency, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startDate", this.ParseToInt(Divide(since, 1000)))
+		}
+		if IsTrue(IsTrue(IsEqual(limit, nil)) || IsTrue(IsGreaterThan(limit, 100))) {
+			limit = 100
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+		// Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
+
+		response := (<-this.V4PrivatePostMainAccountHistory(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     [
+		//         {
+		//             "id": 123456789,                    // Transaction ID
+		//             "method": "1",                      // Method: 1=deposit, 2=withdrawal
+		//             "ticker": "BTC",                    // Currency ticker
+		//             "amount": "0.001",                  // Transaction amount
+		//             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
+		//             "memo": "",                         // Memo/tag (if required)
+		//             "network": "BTC",                   // Network name
+		//             "fee": "0.0005",                    // Transaction fee
+		//             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+		//             "timestamp": 1641051917,            // Transaction timestamp
+		//             "txid": "abc123def456..."           // Transaction hash
+		//         },
+		//         { ... }                                 // More transactions (deposits and withdrawals)
+		//     ]
+		//
+		ch <- this.ParseTransactions(response, currency, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name whitebit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
  * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
@@ -2450,8 +3092,8 @@ func (this *whitebit) FetchDepositAddress(code interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21258 := (<-this.LoadMarkets())
-		PanicOnError(retRes21258)
+		retRes26268 := (<-this.LoadMarkets())
+		PanicOnError(retRes26268)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ticker": GetValue(currency, "id"),
@@ -2544,8 +3186,8 @@ func (this *whitebit) CreateDepositAddress(code interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22028 := (<-this.LoadMarkets())
-		PanicOnError(retRes22028)
+		retRes27038 := (<-this.LoadMarkets())
+		PanicOnError(retRes27038)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ticker": GetValue(currency, "id"),
@@ -2599,6 +3241,63 @@ func (this *whitebit) ParseDepositAddress(depositAddress interface{}, optionalAr
 
 /**
  * @method
+ * @name whitebit#fetchAccounts
+ * @description fetch all the accounts associated with a profile
+ * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ */
+func (this *whitebit) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		retRes27568 := (<-this.LoadMarkets())
+		PanicOnError(retRes27568)
+		var accounts interface{} = []interface{}{}
+		// Fetch sub-accounts
+		//
+		//     [
+		//         {
+		//             "id": "12345",
+		//             "name": "SubAccount1",
+		//             "status": "active",
+		//             "permissions": ["trade", "withdraw"]
+		//         }
+		//     ]
+		//
+
+		subAccounts := (<-this.V4PrivatePostSubAccountList(params))
+		PanicOnError(subAccounts)
+		if IsTrue(IsTrue(subAccounts) && IsTrue(IsArray(subAccounts))) {
+			for i := 0; IsLessThan(i, GetArrayLength(subAccounts)); i++ {
+				var subAccount interface{} = this.SafeValue(subAccounts, i)
+				var accountId interface{} = this.SafeString(subAccount, "id")
+				var accountName interface{} = this.SafeString(subAccount, "name")
+				if IsTrue(accountId) {
+					AppendToArray(&accounts, map[string]interface{}{
+						"id":   accountId,
+						"type": "subaccount",
+						"name": IsTrue(accountName) || IsTrue(Add("SubAccount ", accountId)),
+						"code": nil,
+						"info": subAccount,
+					})
+				}
+			}
+		}
+
+		ch <- accounts
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name whitebit#setLeverage
  * @description set the level of leverage for a market
  * @see https://docs.whitebit.com/private/http-trade-v4/#change-collateral-account-leverage
@@ -2617,8 +3316,8 @@ func (this *whitebit) SetLeverage(leverage interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22578 := (<-this.LoadMarkets())
-		PanicOnError(retRes22578)
+		retRes28008 := (<-this.LoadMarkets())
+		PanicOnError(retRes28008)
 		if IsTrue(!IsEqual(symbol, nil)) {
 			panic(NotSupported(Add(this.Id, " setLeverage() does not allow to set per symbol")))
 		}
@@ -2629,9 +3328,9 @@ func (this *whitebit) SetLeverage(leverage interface{}, optionalArgs ...interfac
 			"leverage": leverage,
 		}
 
-		retRes226715 := (<-this.V4PrivatePostCollateralAccountLeverage(this.Extend(request, params)))
-		PanicOnError(retRes226715)
-		ch <- retRes226715
+		retRes281015 := (<-this.V4PrivatePostCollateralAccountLeverage(this.Extend(request, params)))
+		PanicOnError(retRes281015)
+		ch <- retRes281015
 		return nil
 
 	}()
@@ -2658,8 +3357,8 @@ func (this *whitebit) Transfer(code interface{}, amount interface{}, fromAccount
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22868 := (<-this.LoadMarkets())
-		PanicOnError(retRes22868)
+		retRes28298 := (<-this.LoadMarkets())
+		PanicOnError(retRes28298)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeValue(this.Options, "accountsByType")
 		var fromAccountId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -2725,8 +3424,8 @@ func (this *whitebit) Withdraw(code interface{}, amount interface{}, address int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes23358 := (<-this.LoadMarkets())
-		PanicOnError(retRes23358)
+		retRes28788 := (<-this.LoadMarkets())
+		PanicOnError(retRes28788)
 		var currency interface{} = this.Currency(code) // check if it has canDeposit
 		var request interface{} = map[string]interface{}{
 			"ticker":  GetValue(currency, "id"),
@@ -2874,8 +3573,8 @@ func (this *whitebit) FetchDeposit(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24658 := (<-this.LoadMarkets())
-		PanicOnError(retRes24658)
+		retRes30088 := (<-this.LoadMarkets())
+		PanicOnError(retRes30088)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{
 			"transactionMethod": 1,
@@ -2962,8 +3661,8 @@ func (this *whitebit) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes25328 := (<-this.LoadMarkets())
-		PanicOnError(retRes25328)
+		retRes30758 := (<-this.LoadMarkets())
+		PanicOnError(retRes30758)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{
 			"transactionMethod": 1,
@@ -3054,8 +3753,8 @@ func (this *whitebit) FetchBorrowInterest(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes26018 := (<-this.LoadMarkets())
-		PanicOnError(retRes26018)
+		retRes31448 := (<-this.LoadMarkets())
+		PanicOnError(retRes31448)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3149,8 +3848,8 @@ func (this *whitebit) FetchFundingRate(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes26808 := (<-this.LoadMarkets())
-		PanicOnError(retRes26808)
+		retRes32238 := (<-this.LoadMarkets())
+		PanicOnError(retRes32238)
 		symbol = this.Symbol(symbol)
 
 		response := (<-this.FetchFundingRates([]interface{}{symbol}, params))
@@ -3182,8 +3881,8 @@ func (this *whitebit) FetchFundingRates(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26968 := (<-this.LoadMarkets())
-		PanicOnError(retRes26968)
+		retRes32398 := (<-this.LoadMarkets())
+		PanicOnError(retRes32398)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V4PublicGetFutures(params))
@@ -3329,8 +4028,8 @@ func (this *whitebit) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes28218 := (<-this.LoadMarkets())
-		PanicOnError(retRes28218)
+		retRes33648 := (<-this.LoadMarkets())
+		PanicOnError(retRes33648)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
 		}
@@ -3450,8 +4149,8 @@ func (this *whitebit) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes29138 := (<-this.LoadMarkets())
-		PanicOnError(retRes29138)
+		retRes34568 := (<-this.LoadMarkets())
+		PanicOnError(retRes34568)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3532,8 +4231,8 @@ func (this *whitebit) FetchConvertQuote(fromCode interface{}, toCode interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes29788 := (<-this.LoadMarkets())
-		PanicOnError(retRes29788)
+		retRes35218 := (<-this.LoadMarkets())
+		PanicOnError(retRes35218)
 		var fromCurrency interface{} = this.Currency(fromCode)
 		var toCurrency interface{} = this.Currency(toCode)
 		var request interface{} = map[string]interface{}{
@@ -3586,8 +4285,8 @@ func (this *whitebit) CreateConvertTrade(id interface{}, fromCode interface{}, t
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes30158 := (<-this.LoadMarkets())
-		PanicOnError(retRes30158)
+		retRes35588 := (<-this.LoadMarkets())
+		PanicOnError(retRes35588)
 		var fromCurrency interface{} = this.Currency(fromCode)
 		var toCurrency interface{} = this.Currency(toCode)
 		var request interface{} = map[string]interface{}{
@@ -3639,8 +4338,8 @@ func (this *whitebit) FetchConvertTradeHistory(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes30478 := (<-this.LoadMarkets())
-		PanicOnError(retRes30478)
+		retRes35908 := (<-this.LoadMarkets())
+		PanicOnError(retRes35908)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(request, "fromTicker", code)
@@ -3778,8 +4477,8 @@ func (this *whitebit) FetchPositionHistory(symbol interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes31628 := (<-this.LoadMarkets())
-		PanicOnError(retRes31628)
+		retRes37058 := (<-this.LoadMarkets())
+		PanicOnError(retRes37058)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"market": GetValue(market, "id"),
@@ -3847,8 +4546,8 @@ func (this *whitebit) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes32128 := (<-this.LoadMarkets())
-		PanicOnError(retRes32128)
+		retRes37558 := (<-this.LoadMarkets())
+		PanicOnError(retRes37558)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.V4PrivatePostCollateralAccountPositionsOpen(params))
@@ -3899,8 +4598,8 @@ func (this *whitebit) FetchPosition(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes32498 := (<-this.LoadMarkets())
-		PanicOnError(retRes32498)
+		retRes37928 := (<-this.LoadMarkets())
+		PanicOnError(retRes37928)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -4036,8 +4735,8 @@ func (this *whitebit) FetchCrossBorrowRate(code interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes33708 := (<-this.LoadMarkets())
-		PanicOnError(retRes33708)
+		retRes39138 := (<-this.LoadMarkets())
+		PanicOnError(retRes39138)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ticker": GetValue(currency, "id"),
@@ -4092,6 +4791,10 @@ func (this *whitebit) Sign(path interface{}, optionalArgs ...interface{}) interf
 	var query interface{} = this.Omit(params, this.ExtractParams(path))
 	var version interface{} = this.SafeValue(api, 0)
 	var accessibility interface{} = this.SafeValue(api, 1)
+	if IsTrue(IsEqual(headers, nil)) {
+		headers = map[string]interface{}{}
+	}
+	AddElementToObject(headers, "User-Agent", Add(Add(Add("ccxt/", this.Id), "-"), this.Version))
 	var pathWithParams interface{} = Add("/", this.ImplodeParams(path, params))
 	var url interface{} = Add(GetValue(GetValue(GetValue(this.Urls, "api"), version), accessibility), pathWithParams)
 	if IsTrue(IsEqual(accessibility, "public")) {

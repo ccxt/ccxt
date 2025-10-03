@@ -6,7 +6,6 @@
 **Extends**: <code>Exchange</code>  
 
 * [fetchMarkets](#fetchmarkets)
-* [fetchCurrencies](#fetchcurrencies)
 * [fetchBalance](#fetchbalance)
 * [fetchTrades](#fetchtrades)
 * [fetchTicker](#fetchticker)
@@ -75,26 +74,6 @@ retrieves data on all markets for hibachi
 
 ```javascript
 hibachi.fetchMarkets ([params])
-```
-
-
-<a name="fetchCurrencies" id="fetchcurrencies"></a>
-
-### fetchCurrencies{docsify-ignore}
-fetches all available currencies on an exchange
-
-**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>object</code> - an associative dictionary of currencies
-
-**See**: https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-hibachi.fetchCurrencies ([params])
 ```
 
 
