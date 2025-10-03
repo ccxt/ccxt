@@ -227,6 +227,14 @@ public partial class bithumb : Exchange
                             } },
                         } },
                     } },
+                    { "USDT", new Dictionary<string, object>() {
+                        { "limits", new Dictionary<string, object>() {
+                            { "cost", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
+                        } },
+                    } },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
