@@ -6652,10 +6652,6 @@ export default class Exchange {
         return this.precisionMode === TICK_SIZE;
     }
 
-    isDecimalPrecision () {
-        return this.precisionMode === DECIMAL_PLACES;
-    }
-
     isSignificantPrecision () {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
