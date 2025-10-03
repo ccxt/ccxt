@@ -1836,7 +1836,21 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	return future.Await()
 }
 
-func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
+// func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan interface{} {
+// 	future := NewFuture()
+
+// 	go func() {
+// 		response := <-(CallDynamically(method, args...).(<-chan interface{}))
+// 		if err, ok := response.(error); ok {
+// 			future.Reject(err)
+// 		} else {
+// 			future.Resolve(response)
+// 		}
+// 	}()
+// 	return future.Await()
+// }
+
+func (this *Exchange) Spawn(method interface{}, args ...interface{}) *Future {
 	future := NewFuture()
 
 	go func() {
@@ -1847,7 +1861,7 @@ func (this *Exchange) Spawn(method interface{}, args ...interface{}) <-chan inte
 			future.Resolve(response)
 		}
 	}()
-	return future.Await()
+	return future
 }
 
 func (this *Exchange) Delay(timeout interface{}, method interface{}, args ...interface{}) {
