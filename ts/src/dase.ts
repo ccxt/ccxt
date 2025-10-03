@@ -2,7 +2,7 @@
 
 import Exchange from './abstract/dase.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { BadRequest, AuthenticationError, PermissionDenied, DDoSProtection, ExchangeNotAvailable, ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Dict, Int, Market, Order, OrderBook, Strings, Ticker, Tickers, Trade, OHLCV, Balances, OrderType, OrderSide, Num, Str, int } from './base/types.js';
@@ -99,6 +99,29 @@ export default class dase extends Exchange {
                 },
             },
             'features': {},
+            'exceptions': {
+                'exact': {
+                    'InternalError': ExchangeNotAvailable,
+                    'NotFound': ExchangeError,
+                    'InsufficientFunds': InsufficientFunds,
+                    'InvalidInput': BadRequest,
+                    'InvalidIdFormat': InvalidOrder,
+                    'InvalidNumberFormat': BadRequest,
+                    'Unauthorized': AuthenticationError,
+                    'Forbidden': PermissionDenied,
+                    'PayloadTooLarge': BadRequest,
+                    'ServiceStarting': ExchangeNotAvailable,
+                    'ServiceRestarting': ExchangeNotAvailable,
+                    'ServiceUnavailable': ExchangeNotAvailable,
+                    'ServiceReadOnly': ExchangeNotAvailable,
+                    'ServiceCancelOnly': ExchangeNotAvailable,
+                    'ServicePostOnly': ExchangeNotAvailable,
+                    'ServiceShuttingDown': ExchangeNotAvailable,
+                    'TooManyRequests': DDoSProtection,
+                    'MarketOrdersDisabled': InvalidOrder,
+                },
+                'broad': {},
+            },
         });
     }
 
@@ -553,12 +576,8 @@ export default class dase extends Exchange {
         const side = this.safeStringLower (trade, 'side');
         const makerSide = this.safeStringLower (trade, 'maker_side');
         let takerOrMaker = undefined;
-        if (makerSide !== undefined) {
-            if (makerSide === side) {
-                takerOrMaker = 'maker';
-            } else {
-                takerOrMaker = 'taker';
-            }
+        if ((makerSide !== undefined) && (side !== undefined) && (makerSide !== side)) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade ({
             'id': id,
@@ -862,7 +881,7 @@ export default class dase extends Exchange {
             params = this.omit (params, [ 'status' ]);
         }
         const response = await (this as any).privateGetOrders (this.extend (request, params));
-        const list = this.safeList (response, 'orders', response);
+        const list = this.safeList (response, 'orders', []);
         return this.parseOrders (list, market, since, limit);
     }
 
@@ -896,7 +915,7 @@ export default class dase extends Exchange {
             params = this.omit (params, [ 'before' ]);
         }
         const response = await (this as any).privateGetOrders (this.extend (request, params));
-        const list = this.safeList (response, 'orders', response);
+        const list = this.safeList (response, 'orders', []);
         return this.parseOrders (list, market, since, limit);
     }
 
@@ -1036,8 +1055,12 @@ export default class dase extends Exchange {
         if ((code >= 200) && (code <= 299)) {
             return undefined;
         }
+        const responseType = this.safeString (response, 'type');
         const message = this.safeString (response, 'message', body);
         const feedback = this.id + ' ' + message;
+        if (responseType !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseType, feedback);
+        }
         if (code >= 500) {
             throw new ExchangeNotAvailable (feedback);
         }
