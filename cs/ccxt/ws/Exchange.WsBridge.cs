@@ -45,8 +45,8 @@ public partial class Exchange
     {
         // var client = (WebSocketClient)client2;
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        rejectFutures(urlClient, urlClient.error);
-        if (urlClient != null && urlClient.error)
+        rejectFutures(urlClient, error);
+        if (urlClient != null) //  && urlClient.error
         {
             // this.clients.Remove(client.url);
             this.clients.TryRemove(client.url, out _);
