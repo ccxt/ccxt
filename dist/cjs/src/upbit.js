@@ -131,7 +131,8 @@ class upbit extends upbit$1["default"] {
                         'ticker': 2,
                         'ticker/all': 2,
                         'orderbook': 2,
-                        'orderbook/supported_levels': 2, // Upbit KR only
+                        'orderbook/instruments': 2,
+                        'orderbook/supported_levels': 2, // Upbit KR only, deprecatd
                     },
                 },
                 'private': {
@@ -200,14 +201,14 @@ class upbit extends upbit$1["default"] {
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
-                            'PO': false,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
                         'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': false,
+                        'selfTradePrevention': true,
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -620,7 +621,7 @@ class upbit extends upbit$1["default"] {
      * @see https://global-docs.upbit.com/reference/order-book-list
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-     * @param {int} [limit] not used by upbit fetchOrderBooks ()
+     * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
      */
@@ -636,7 +637,11 @@ class upbit extends upbit$1["default"] {
         }
         const request = {
             'markets': ids,
+            // 'count': limit,
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.publicGetOrderbook(this.extend(request, params));
         //
         //     [ {          market:   "BTC-ETH",
@@ -1171,12 +1176,21 @@ class upbit extends upbit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const customType = this.safeString2(params, 'ordType', 'ord_type');
+        const postOnly = this.isPostOnly(type === 'market', false, params);
+        const timeInForce = this.safeStringLower2(params, 'timeInForce', 'time_in_force');
+        const selfTradePrevention = this.safeString2(params, 'selfTradePrevention', 'smp_type');
+        if (postOnly && (selfTradePrevention !== undefined)) {
+            throw new errors.ExchangeError(this.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.');
+        }
         let orderSide = undefined;
         if (side === 'buy') {
             orderSide = 'bid';
@@ -1190,6 +1204,7 @@ class upbit extends upbit$1["default"] {
         const request = {
             'market': market['id'],
             'side': orderSide,
+            // 'smp_type': selfTradePrevention,
         };
         if (type === 'limit') {
             if (price === undefined || amount === undefined) {
@@ -1216,7 +1231,6 @@ class upbit extends upbit$1["default"] {
         else {
             throw new errors.InvalidOrder(this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const customType = this.safeString2(params, 'ordType', 'ord_type');
         if (customType === 'best') {
             params = this.omit(params, ['ordType', 'ord_type']);
             request['ord_type'] = 'best';
@@ -1231,23 +1245,24 @@ class upbit extends upbit$1["default"] {
                 request['volume'] = this.amountToPrecision(symbol, amount);
             }
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['identifier'] = clientOrderId;
         }
-        if (request['ord_type'] !== 'market' && request['ord_type'] !== 'price') {
-            const timeInForce = this.safeStringLower2(params, 'timeInForce', 'time_in_force');
-            params = this.omit(params, ['timeInForce']);
-            if (timeInForce !== undefined) {
+        if (postOnly) {
+            if (request['ord_type'] !== 'limit') {
+                throw new errors.InvalidOrder(this.id + ' postOnly orders are only supported for limit orders');
+            }
+            request['time_in_force'] = 'post_only';
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'ioc' || timeInForce === 'fok') {
                 request['time_in_force'] = timeInForce;
             }
-            else {
-                if (request['ord_type'] === 'best') {
-                    throw new errors.ArgumentsRequired(this.id + ' the best type order in createOrder() is required timeInForce.');
-                }
-            }
         }
-        params = this.omit(params, ['clientOrderId', 'cost']);
+        if (request['ord_type'] === 'best' && timeInForce === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a timeInForce parameter for best type orders');
+        }
+        params = this.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type']);
         const response = await this.privatePostOrders(this.extend(request, params));
         //
         //     {
@@ -1324,15 +1339,24 @@ class upbit extends upbit$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
-     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
      * @param {string} [params.newClientOrderId] the order ID that the user can define.
      * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const request = {};
         const prevClientOrderId = this.safeString(params, 'clientOrderId');
+        const customType = this.safeString2(params, 'newOrdType', 'new_ord_type');
+        const clientOrderId = this.safeString(params, 'newClientOrderId');
+        const postOnly = this.isPostOnly(type === 'market', false, params);
+        const timeInForce = this.safeStringLower2(params, 'newTimeInForce', 'new_time_in_force');
+        const selfTradePrevention = this.safeString2(params, 'selfTradePrevention', 'new_smp_type');
+        if (postOnly && (selfTradePrevention !== undefined)) {
+            throw new errors.ExchangeError(this.id + ' editOrder() does not support post_only and selfTradePrevention simultaneously.');
+        }
         params = this.omit(params, 'clientOrderId');
         if (id !== undefined) {
             request['prev_order_uuid'] = id;
@@ -1368,7 +1392,6 @@ class upbit extends upbit$1["default"] {
         else {
             throw new errors.InvalidOrder(this.id + ' editOrder() supports only limit or market types in the type argument.');
         }
-        const customType = this.safeString2(params, 'newOrdType', 'new_ord_type');
         if (customType === 'best') {
             params = this.omit(params, ['newOrdType', 'new_ord_type']);
             request['new_ord_type'] = 'best';
@@ -1383,23 +1406,27 @@ class upbit extends upbit$1["default"] {
                 request['new_volume'] = this.amountToPrecision(symbol, amount);
             }
         }
-        const clientOrderId = this.safeString(params, 'newClientOrderId');
         if (clientOrderId !== undefined) {
             request['new_identifier'] = clientOrderId;
         }
-        if (request['new_ord_type'] !== 'market' && request['new_ord_type'] !== 'price') {
-            const timeInForce = this.safeStringLower2(params, 'newTimeInForce', 'new_time_in_force');
-            params = this.omit(params, ['newTimeInForce', 'new_time_in_force']);
-            if (timeInForce !== undefined) {
+        if (selfTradePrevention !== undefined) {
+            request['new_smp_type'] = selfTradePrevention;
+        }
+        if (postOnly) {
+            if (request['new_ord_type'] !== 'limit') {
+                throw new errors.InvalidOrder(this.id + ' postOnly orders are only supported for limit orders');
+            }
+            request['new_time_in_force'] = 'post_only';
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'ioc' || timeInForce === 'fok') {
                 request['new_time_in_force'] = timeInForce;
             }
-            else {
-                if (request['new_ord_type'] === 'best') {
-                    throw new errors.ArgumentsRequired(this.id + ' the best type order is required timeInForce.');
-                }
-            }
         }
-        params = this.omit(params, ['newClientOrderId', 'cost']);
+        if (request['new_ord_type'] === 'best' && timeInForce === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a timeInForce parameter for best type orders');
+        }
+        params = this.omit(params, ['newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type']);
         // console.log ('check the each request params: ', request);
         const response = await this.privatePostOrdersCancelAndNew(this.extend(request, params));
         //   {
@@ -1688,48 +1715,36 @@ class upbit extends upbit$1["default"] {
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
-        //
+        // {
+        //   "market": "KRW-USDT",
+        //   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
+        //   "side": "ask",
+        //   "ord_type": "market",
+        //   "state": "done",
+        //   "created_at": "2025-08-09T16:44:00+09:00",
+        //   "volume": "5.377594",
+        //   "remaining_volume": "0",
+        //   "executed_volume": "5.377594",
+        //   "reserved_fee": "0",
+        //   "remaining_fee": "0",
+        //   "paid_fee": "3.697095875",
+        //   "locked": "0",
+        //   "prevented_volume": "0",
+        //   "prevented_locked": "0",
+        //   "trades_count": 1,
+        //   "trades": [
         //     {
-        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "side": "bid",
-        //         "ord_type": "limit",
-        //         "price": "17417000.0",
-        //         "state": "done",
-        //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-05T14:09:14+09:00",
-        //         "volume": "1.0",
-        //         "remaining_volume": "0.0",
-        //         "reserved_fee": "26125.5",
-        //         "remaining_fee": "25974.0",
-        //         "paid_fee": "151.5",
-        //         "locked": "17341974.0",
-        //         "executed_volume": "1.0",
-        //         "trades_count": 2,
-        //         "trades": [
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "price": "101000.0",
-        //                 "volume": "0.77368323",
-        //                 "funds": "78142.00623",
-        //                 "ask_fee": "117.213009345",
-        //                 "bid_fee": "117.213009345",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid",
-        //             },
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "price": "101000.0",
-        //                 "volume": "0.22631677",
-        //                 "funds": "22857.99377",
-        //                 "ask_fee": "34.286990655", // missing in market orders
-        //                 "bid_fee": "34.286990655", // missing in market orders
-        //                 "created_at": "2018-04-05T14:09:15+09:00", // missing in market orders
-        //                 "side": "bid",
-        //             },
-        //         ],
+        //       "market": "KRW-USDT",
+        //       "uuid": "795dff29-bba6-49b2-baab-63473ab7931c",
+        //       "price": "1375",
+        //       "volume": "5.377594",
+        //       "funds": "7394.19175",
+        //       "trend": "down",
+        //       "created_at": "2025-08-09T16:44:00.597751+09:00",
+        //       "side": "ask"
         //     }
+        //   ]
+        // }
         //
         // fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //

@@ -105,7 +105,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols, all symbols fetched if undefined, default is undefined |
-| limit | <code>int</code> | No | not used by upbit fetchOrderBooks () |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -313,7 +313,8 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.cost | <code>float</code> | No | for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount |
 | params.ordType | <code>string</code> | No | this field can be used to place a ‘best’ type order |
-| params.timeInForce | <code>string</code> | No | 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'. |
+| params.timeInForce | <code>string</code> | No | 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'. |
+| params.selfTradePrevention | <code>string</code> | No | 'reduce', 'cancel_maker', 'cancel_taker' [https://global-docs.upbit.com/docs/smp](https://global-docs.upbit.com/docs/smp) |
 
 
 ```javascript
@@ -372,9 +373,10 @@ canceled existing order and create new order. It's only generated same side and 
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint. |
 | params.clientOrderId | <code>string</code> | No | to identify the previous order, either the id or this field is required in this method. |
 | params.cost | <code>float</code> | No | for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount. |
-| params.newTimeInForce | <code>string</code> | No | 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'. |
+| params.newTimeInForce | <code>string</code> | No | 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'. |
 | params.newClientOrderId | <code>string</code> | No | the order ID that the user can define. |
 | params.newOrdType | <code>string</code> | No | this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field. |
+| params.selfTradePrevention | <code>string</code> | No | 'reduce', 'cancel_maker', 'cancel_taker' [https://global-docs.upbit.com/docs/smp](https://global-docs.upbit.com/docs/smp) |
 
 
 ```javascript
