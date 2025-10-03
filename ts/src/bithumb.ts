@@ -266,6 +266,14 @@ export default class bithumb extends Exchange {
                             },
                         },
                     },
+                    'USDT': {
+                        'limits': {
+                            'cost': {
+                                'min': 0.5,
+                                'max': 5000000,
+                            },
+                        },
+                    },
                 },
             },
             'commonCurrencies': {
