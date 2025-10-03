@@ -41,7 +41,7 @@ export default class dase extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
@@ -51,7 +51,7 @@ export default class dase extends Exchange {
             'urls': {
                 'logo': undefined,
                 'api': {
-                    'rest': 'https://api.dase.com/v1',
+                    'rest': 'https://api.staging.dase.com/v1',
                 },
                 'www': 'https://www.dase.com',
                 'doc': 'https://api.dase.com/docs',
@@ -84,6 +84,7 @@ export default class dase extends Exchange {
                     ],
                     'delete': [
                         'orders/{order_id}',
+                        'orders/',
                     ],
                 },
             },
@@ -316,6 +317,33 @@ export default class dase extends Exchange {
             'id': id,
             'symbol': (market === undefined) ? undefined : market['symbol'],
         }, market);
+    }
+
+    /**
+     * @method
+     * @name dase#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://api.dase.com/docs#tag/orders/delete/v1/orders/
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await (this as any).privateDeleteOrders (this.extend (request, params));
+        // 204 No Content is expected; return minimal order structure
+        return [
+            this.safeOrder ({
+                'info': response,
+                'symbol': (market === undefined) ? undefined : market['symbol'],
+            }, market),
+        ];
     }
 
     /**
