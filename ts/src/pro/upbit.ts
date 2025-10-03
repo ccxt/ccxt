@@ -38,7 +38,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    addSubsciptionItem (requestPart: any) {
+    addToSubscriptions (requestPart: any) {
         const currentSubscriptions = this.safeValue (this.options, 'currentSubscriptions', {});
         const stringified = this.json (requestPart);
         if (!(stringified in currentSubscriptions)) {
@@ -75,7 +75,7 @@ export default class upbit extends upbitRest {
         };
         // @ts-ignore
         request.push (newItem);
-        this.addSubsciptionItem (newItem);
+        this.addToSubscriptions (newItem);
         const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, request, messageHash);
     }
