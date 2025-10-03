@@ -51,7 +51,7 @@ export default class dase extends Exchange {
             'urls': {
                 'logo': undefined,
                 'api': {
-                    'rest': 'https://api.staging.dase.com/v1',
+                    'rest': 'https://api.dase.com/v1',
                 },
                 'www': 'https://www.dase.com',
                 'doc': 'https://api.dase.com/docs',
@@ -105,6 +105,7 @@ export default class dase extends Exchange {
                     'NotFound': ExchangeError,
                     'InsufficientFunds': InsufficientFunds,
                     'InvalidInput': BadRequest,
+                    'InvalidId': InvalidOrder,
                     'InvalidIdFormat': InvalidOrder,
                     'InvalidNumberFormat': BadRequest,
                     'Unauthorized': AuthenticationError,
@@ -119,6 +120,11 @@ export default class dase extends Exchange {
                     'ServiceShuttingDown': ExchangeNotAvailable,
                     'TooManyRequests': DDoSProtection,
                     'MarketOrdersDisabled': InvalidOrder,
+                    'InvalidSignature': AuthenticationError,
+                    'InvalidApiKey': AuthenticationError,
+                    'InvalidSignatureData': AuthenticationError,
+                    'MissingMessageData': BadRequest,
+                    'InvalidObjectState': ExchangeError,
                 },
                 'broad': {},
             },
