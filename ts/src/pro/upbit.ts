@@ -33,18 +33,17 @@ export default class upbit extends upbitRest {
             },
             'options': {
                 'tradesLimit': 1000,
-                'currentSubscriptions': {},
+                'subscriptionsMap': {},
             },
         });
     }
 
-    addToSubscriptions (requestPart: any) {
-        const currentSubscriptions = this.safeValue (this.options, 'currentSubscriptions', {});
-        const stringified = this.json (requestPart);
-        if (!(stringified in currentSubscriptions)) {
-            currentSubscriptions[stringified] = requestPart;
+    addToSubscriptions (messageHash: string, requestPart: any) {
+        const subscriptionsMap = this.safeValue (this.options, 'subscriptionsMap', {});
+        if (!(messageHash in subscriptionsMap)) {
+            subscriptionsMap[messageHash] = requestPart;
         }
-        this.options['currentSubscriptions'] = currentSubscriptions;
+        this.options['subscriptionsMap'] = subscriptionsMap;
     }
 
     async watchPublic (symbol: string, channel, params = {}) {
@@ -59,24 +58,33 @@ export default class upbit extends upbitRest {
         this.options[channel][symbol] = true;
         const symbols = Object.keys (this.options[channel]);
         const marketIds = this.marketIds (symbols);
-        let request = [
-            {
-                'ticket': this.uuid (),
-            },
-        ];
-        const existingSubscriptions = this.safeDict (this.options, 'currentSubscriptions', {});
-        const subscriptionsArray = Object.values (existingSubscriptions);
-        request = this.arrayConcat (request, subscriptionsArray);
+        const messageHash = channel + ':' + marketId;
         const newItem = {
             'type': channel,
             'codes': marketIds,
             // 'isOnlySnapshot': false,
             // 'isOnlyRealtime': false,
         };
+        this.addToSubscriptions (messageHash, newItem);
+        let request = [
+            {
+                'ticket': this.uuid (),
+            },
+        ];
+        const subscriptionsMap = this.safeDict (this.options, 'subscriptionsMap', {});
+        const subscriptionsArray = [];
+        const client = this.client (url);
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            // skip current messageHash
+            if (messageHash !== key && (key in subscriptionsMap)) {
+                subscriptionsArray.push (subscriptionsMap[key]);
+            }
+        }
+        request = this.arrayConcat (request, subscriptionsArray);
         // @ts-ignore
         request.push (newItem);
-        this.addToSubscriptions (newItem);
-        const messageHash = channel + ':' + marketId;
         return await this.watch (url, messageHash, request, messageHash);
     }
 
