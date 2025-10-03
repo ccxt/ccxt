@@ -798,7 +798,7 @@ func IsEqual(a, b interface{}) bool {
 			return aVal == bVal
 		}
 	case *sync.Map:
-		if aVal == nil && b == nil { // TODO: we know that b is not nil from the 4th line of this function
+		if aVal == nil {
 			return true
 		}
 	}
@@ -1331,9 +1331,6 @@ func IsDictionary(v interface{}) bool {
 	case map[string]interface{}:
 		return true
 	case *sync.Map:
-		if v == nil { // TODO: we already know v's type is *sync.Map, why is this here
-			return false
-		}
 		return true
 	case Dict:
 		return true
