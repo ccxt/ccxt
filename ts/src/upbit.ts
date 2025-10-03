@@ -640,8 +640,11 @@ export default class upbit extends Exchange {
         }
         const request: Dict = {
             'markets': ids,
-            'count': limit,
+            // 'count': limit,
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.publicGetOrderbook (this.extend (request, params));
         //
         //     [ {          market:   "BTC-ETH",
