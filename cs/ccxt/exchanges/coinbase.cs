@@ -3064,7 +3064,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if (isTrue(isEqual(accountId, null)))
             {
-                throw new ExchangeError ((string)add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)add(add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code), ". You might try to generate the deposit address in the website for that coin first.")) ;
             }
         }
         object request = new Dictionary<string, object>() {
