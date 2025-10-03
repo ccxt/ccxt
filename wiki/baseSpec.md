@@ -2117,7 +2117,6 @@ fetches all available currencies on an exchange
 * [gate](/exchanges/gate.md#gatefetchcurrencies)
 * [gemini](/exchanges/gemini.md#geminifetchcurrencies)
 * [hashkey](/exchanges/hashkey.md#hashkeyfetchcurrencies)
-* [hibachi](/exchanges/hibachi.md#hibachifetchcurrencies)
 * [hitbtc](/exchanges/hitbtc.md#hitbtcfetchcurrencies)
 * [hollaex](/exchanges/hollaex.md#hollaexfetchcurrencies)
 * [htx](/exchanges/htx.md#htxfetchcurrencies)
