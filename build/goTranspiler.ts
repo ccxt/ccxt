@@ -455,18 +455,14 @@ class NewTranspiler {
             // --- Generic fixes for WS transpilation (Go) ---
             // Instantiate REST class pointer correctly (e.g., new hitbtcRest() -> &ccxt.hitbtcRest{})
             [/New(\w+)Rest\(\)/g, '&ccxt.$1{}'],
-            
             // await-style return (C#) → channel read in Go (return await foo; -> return <-$1)
             [/return await (\w+);/g, 'return <-$1'],
-            
             [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
-            
             // Casted access to subscriptions/futures/clients → exported Go field/prop
             [/client\.subscriptions/g, 'client.(*WSClient).Subscriptions'],
             [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
             [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
-            
             // OrderBook & OrderBookSide casts → plain method/field access with proper capitalisation
             [/(orderbook)(\.reset)/g, '$1.(OrderBookInterface).Reset'],
             [/(\w+)(\.cache)/g, '$1.Cache'],
@@ -571,6 +567,10 @@ class NewTranspiler {
 
     isAlias (exchangeName: string) {
         return this.isExtendedExchange(exchangeName) && !this.futuresExchanges.has(exchangeName);
+    }
+
+    getParentExchange(exchangeName: string) {
+        return this.extendedExchanges[exchangeName];
     }
 
     // go custom method
@@ -1271,7 +1271,7 @@ class NewTranspiler {
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
         const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
-
+        const isAlias = this.isAlias(exchange);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
 
         let missingMethodsWrappers = '';
@@ -1289,6 +1289,7 @@ class NewTranspiler {
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         const coreName = capitalize(exchange) + 'Core';
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
+        let fromCoreMethod: string = '';
 
         let exchangeStruct = '';
         if (exchange === 'Exchange') {
@@ -1300,12 +1301,18 @@ class NewTranspiler {
             ].join('\n');
 
         } else {
+            let exchangeTyped = ''
+            if (!ws) {
+                exchangeTyped =  '*ExchangeTyped';
 
+            } else {
+                exchangeTyped = !this.isAlias(exchange) ? `*ccxt.${capitizedName}` : '*ccxt.' + capitalize(this.getParentExchange(exchange))
+            }
             exchangeStruct = [
                 `type ${capitizedName} struct {`,
                 `   *${coreName}`,
                 `   Core *${coreName}`,
-                `   exchangeTyped *ExchangeTyped`,
+                `   exchangeTyped ${exchangeTyped}`,
                 `}`
             ].join('\n');
 
@@ -1330,6 +1337,8 @@ class NewTranspiler {
             ].join('\n');
 
         } else {
+            const baseEx = !this.isAlias(exchange) ? 'p.base' : 'p.base.base'
+            const exTyped = !ws ? 'NewExchangeTyped(&p.Exchange)' : `ccxt.New${capitizedName}FromCore(${baseEx})`
             newMethod = [
                 'func New' + capitizedName + '(userConfig map[string]interface{}) *' + capitizedName + ' {',
                 `   p := New${coreName}()`,
@@ -1337,10 +1346,26 @@ class NewTranspiler {
                 `   return &${capitizedName}{`,
                 `       ${coreName}: p,`,
                 `       Core:  p,`,
-                '       exchangeTyped: NewExchangeTyped(&p.Exchange),',
+                `       exchangeTyped: ${exTyped},`,
                 `   }`,
                 '}'
             ].join('\n');
+
+
+            if (!ws) {
+
+                const coreExchange = !isAlias ? `${capitizedName}` : `${capitalize(this.getParentExchange(exchange))}`;
+                fromCoreMethod = [
+                    `func New${capitizedName}FromCore(core *${coreExchange}Core) *${coreExchange} {`,
+                    `   return &${coreExchange}{`,
+                    `       ${coreExchange}Core: core,`,
+                    `       Core:  core,`,
+                    `       exchangeTyped: NewExchangeTyped(&core.Exchange),`,
+                    `   }`,
+                    '}',
+                ].join('\n');
+
+            }
         }
 
         let file = [
@@ -1349,6 +1374,7 @@ class NewTranspiler {
             exchangeStruct,
             '',
             newMethod,
+            fromCoreMethod,
             '',
             this.createGeneratedHeader().join('\n'),
             '',
