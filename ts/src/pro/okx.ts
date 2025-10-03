@@ -1534,7 +1534,7 @@ export default class okx extends okxRest {
         const url = this.getUrl ('users', access);
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();

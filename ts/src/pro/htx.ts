@@ -2348,7 +2348,7 @@ export default class htx extends htxRest {
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');

@@ -520,6 +520,8 @@ class NewTranspiler {
             [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
             [/client\.KeepAlive\s*=\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
+            [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
+            [/(retRes\d+)\s+:=\s+<-future.\(<-chan interface{}\)/g, '$1 := <- future.(*ccxt.Future).Await()'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],

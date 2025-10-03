@@ -112,3 +112,65 @@ func waitFuture(client *ccxt.Client, fut *ccxt.Future) <-chan interface{} {
 
 	return ch
 }
+
+// to do: add this use case later
+// var futureMap = map[string]interface{}{}
+// var authToken string
+// var exchange = ccxt.NewExchange()
+
+// func fakeAuthRequest() <-chan interface{} {
+//     ch := make(chan interface{}, 1)
+
+//     go func() {
+//         // ch <- nil
+//         fmt.Println("Will request auth...")
+//         time.Sleep(5 * time.Second)
+//         authToken = "tokennn"
+//         ch <- authToken
+//     }()
+//     return ch
+// }
+
+// func authenticate() <-chan interface{} {
+//     ch := make(chan interface{}, 1)
+
+//     go func() {
+
+//         if future, ok := futureMap["auth"]; ok {
+//             fmt.Println("Reusing existing auth future...")
+//             ch <- <-future.(<-chan interface{})
+//         } else {
+//             fmt.Println("Spawning new auth future...")
+//             authFutur := exchange.Spawn(fakeAuthRequest)
+//             futureMap["auth"] = authFutur
+//             ch <- <-authFutur
+//         }
+
+//     }()
+//     return ch
+// }
+
+// func privateRequest(id string) <-chan interface{} {
+//     ch := make(chan interface{}, 1)
+
+//     go func() {
+//         <-authenticate()
+//         fmt.Println("Private request done: "+id, ":", authToken)
+
+//     }()
+//     return ch
+// }
+
+// func main() {
+
+//     ch1 := privateRequest("req1")
+//     ch2 := privateRequest("req2")
+//     ch3 := privateRequest("req3")
+
+//     <-ch1
+//     <-ch2
+//     <-ch3
+
+//     fmt.Println("All done")
+
+// }

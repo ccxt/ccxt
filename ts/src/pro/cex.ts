@@ -1558,7 +1558,7 @@ export default class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
+        const future = client.reusableFuture ('authenticated');
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
@@ -1573,7 +1573,7 @@ export default class cex extends cexRest {
                     'timestamp': nonce,
                 },
             };
-            await this.watch (url, messageHash, this.extend (request, params), messageHash);
+            this.watch (url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }
