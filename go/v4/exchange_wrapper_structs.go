@@ -4537,6 +4537,25 @@ func WithFetchMarketByIdParams(params map[string]interface{}) FetchMarketByIdOpt
 	}
 }
 
+type FetchFundingLimitsOptionsStruct struct {
+	Codes  *[]string
+	Params *map[string]interface{}
+}
+
+type FetchFundingLimitsOptions func(opts *FetchFundingLimitsOptionsStruct)
+
+func WithFetchFundingLimitsCodes(codes []string) FetchFundingLimitsOptions {
+	return func(opts *FetchFundingLimitsOptionsStruct) {
+		opts.Codes = &codes
+	}
+}
+
+func WithFetchFundingLimitsParams(params map[string]interface{}) FetchFundingLimitsOptions {
+	return func(opts *FetchFundingLimitsOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchTickersHelperOptionsStruct struct {
 	Params *map[string]interface{}
 }
