@@ -569,6 +569,10 @@ class NewTranspiler {
         return this.isExtendedExchange(exchangeName) && !this.futuresExchanges.has(exchangeName);
     }
 
+    getParentExchange(exchangeName: string) {
+        return this.extendedExchanges[exchangeName];
+    }
+
     // go custom method
     customGoPropAssignment(node: any, identation: any) {
         const stringValue = node.getFullText().trim();
@@ -1267,7 +1271,7 @@ class NewTranspiler {
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
         const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
-
+        const isAlias = this.isAlias(exchange);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
 
         let missingMethodsWrappers = '';
@@ -1297,7 +1301,13 @@ class NewTranspiler {
             ].join('\n');
 
         } else {
-            const exchangeTyped = !ws ? '*ExchangeTyped' : `*ccxt.${capitizedName}`;
+            let exchangeTyped = ''
+            if (!ws) {
+                exchangeTyped =  '*ExchangeTyped';
+
+            } else {
+                exchangeTyped = !this.isAlias(exchange) ? `*ccxt.${capitizedName}` : '*ccxt.' + capitalize(this.getParentExchange(exchange))
+            }
             exchangeStruct = [
                 `type ${capitizedName} struct {`,
                 `   *${coreName}`,
@@ -1327,7 +1337,8 @@ class NewTranspiler {
             ].join('\n');
 
         } else {
-            const exTyped = !ws ? 'NewExchangeTyped(&p.Exchange)' : `ccxt.New${capitizedName}FromCore(p.base)`
+            const baseEx = !this.isAlias(exchange) ? 'p.base' : 'p.base.base'
+            const exTyped = !ws ? 'NewExchangeTyped(&p.Exchange)' : `ccxt.New${capitizedName}FromCore(${baseEx})`
             newMethod = [
                 'func New' + capitizedName + '(userConfig map[string]interface{}) *' + capitizedName + ' {',
                 `   p := New${coreName}()`,
@@ -1342,10 +1353,12 @@ class NewTranspiler {
 
 
             if (!ws) {
+
+                const coreExchange = !isAlias ? `${capitizedName}` : `${capitalize(this.getParentExchange(exchange))}`;
                 fromCoreMethod = [
-                    `func New${capitizedName}FromCore(core *${capitizedName}Core) *${capitizedName} {`,
-                    `   return &${capitizedName}{`,
-                    `       ${coreName}: core,`,
+                    `func New${capitizedName}FromCore(core *${coreExchange}Core) *${coreExchange} {`,
+                    `   return &${coreExchange}{`,
+                    `       ${coreExchange}Core: core,`,
                     `       Core:  core,`,
                     `       exchangeTyped: NewExchangeTyped(&core.Exchange),`,
                     `   }`,
