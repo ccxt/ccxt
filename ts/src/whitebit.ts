@@ -1966,19 +1966,13 @@ export default class whitebit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a id argument');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
         };
         // Handle clientOrderId vs orderId (clientOrderId takes priority)
-        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         } else {
@@ -2016,7 +2010,7 @@ export default class whitebit extends Exchange {
         if (!hasModifiableParam) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters');
         }
-        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ]);
+        params = this.omit (params, [ 'clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total' ]);
         const response = await this.v4PrivatePostOrderModify (this.extend (request, params));
         return this.parseOrder (response);
     }
