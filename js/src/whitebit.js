@@ -46,7 +46,8 @@ export default class whitebit extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -66,12 +67,14 @@ export default class whitebit extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingLimits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchLedger': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -79,7 +82,9 @@ export default class whitebit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
@@ -93,7 +98,10 @@ export default class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTradingLimits': true,
                 'fetchTransactionFees': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'setLeverage': true,
@@ -227,8 +235,8 @@ export default class whitebit extends Exchange {
                             'main-account/smart/interest-payment-history',
                             'trade-account/balance',
                             'trade-account/executed-history',
-                            'trade-account/order',
                             'trade-account/order/history',
+                            'trade-account/order',
                             'order/collateral/limit',
                             'order/collateral/market',
                             'order/collateral/stop-limit',
@@ -340,7 +348,14 @@ export default class whitebit extends Exchange {
                         'untilDays': undefined,
                         'symbolRequired': false,
                     },
-                    'fetchOrder': undefined,
+                    'fetchOrder': {
+                        'checkActive': true,
+                        'checkExecuted': true,
+                        'symbolRequired': false,
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -348,7 +363,15 @@ export default class whitebit extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 100,
@@ -361,6 +384,13 @@ export default class whitebit extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
+                    },
+                    'fetchWithdrawals': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                        'symbolRequired': false,
                     },
                 },
                 'spot': {
@@ -936,6 +966,265 @@ export default class whitebit extends Exchange {
     }
     /**
      * @method
+     * @name whitebit#fetchTradingLimits
+     * @description fetch the trading limits for a market
+     * @see https://docs.whitebit.com/public/http-v4/#market-info
+     * @param {string[]|undefined} symbols unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/#/?id=trading-limits-structure}
+     */
+    async fetchTradingLimits(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        //
+        // Trading limits are derived from market information already loaded by loadMarkets()
+        // Market structure includes:
+        //     {
+        //         "id": "BTC_USDT",                    // Market ID
+        //         "symbol": "BTC/USDT",                // Unified symbol
+        //         "base": "BTC",                       // Base currency
+        //         "quote": "USDT",                     // Quote currency
+        //         "active": true,                      // Market active status
+        //         "type": "spot",                      // Market type
+        //         "spot": true,                        // Spot trading enabled
+        //         "margin": false,                     // Margin trading enabled
+        //         "future": false,                     // Futures trading enabled
+        //         "option": false,                     // Options trading enabled
+        //         "contract": false,                   // Contract trading enabled
+        //         "settle": undefined,                 // Settlement currency
+        //         "settleId": undefined,               // Settlement currency ID
+        //         "contractSize": undefined,           // Contract size
+        //         "linear": undefined,                 // Linear contract
+        //         "inverse": undefined,                // Inverse contract
+        //         "limits": {                          // Trading limits
+        //             "amount": {                      // Amount limits
+        //                 "min": 0.00001,              // Minimum amount
+        //                 "max": 1000000               // Maximum amount
+        //             },
+        //             "price": {                       // Price limits
+        //                 "min": 0.01,                 // Minimum price
+        //                 "max": 1000000               // Maximum price
+        //             },
+        //             "cost": {                        // Cost limits
+        //                 "min": 5.0,                  // Minimum cost
+        //                 "max": 10000000              // Maximum cost
+        //             }
+        //         },
+        //         "precision": {                       // Precision settings
+        //             "amount": 5,                     // Amount precision
+        //             "price": 2                       // Price precision
+        //         },
+        //         "taker": 0.001,                      // Taker fee
+        //         "maker": 0.001,                      // Maker fee
+        //         "percentage": true,                  // Fee percentage
+        //         "tierBased": false                   // Tier-based fees
+        //     }
+        //
+        const result = {};
+        // Process all markets from the loaded markets cache
+        const marketIds = Object.keys(this.markets);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.markets[marketId];
+            if (!market || !market['symbol']) {
+                continue; // Skip invalid markets silently
+            }
+            const symbol = market['symbol'];
+            // Filter by symbols if specified
+            if (symbols) {
+                let symbolFound = false;
+                for (let j = 0; j < symbols.length; j++) {
+                    if (symbols[j] === symbol) {
+                        symbolFound = true;
+                        break;
+                    }
+                }
+                if (!symbolFound) {
+                    continue; // Skip symbols not in requested list
+                }
+            }
+            // Extract trading limits
+            const limits = this.safeDict(market, 'limits');
+            const amountLimits = this.safeDict(limits, 'amount');
+            const priceLimits = this.safeDict(limits, 'price');
+            const costLimits = this.safeDict(limits, 'cost');
+            // Validate that all required limits exist and are valid numbers
+            const hasAmountLimits = amountLimits && this.safeNumber(amountLimits, 'min') !== undefined && this.safeNumber(amountLimits, 'max') !== undefined;
+            const hasPriceLimits = priceLimits && this.safeNumber(priceLimits, 'min') !== undefined && this.safeNumber(priceLimits, 'max') !== undefined;
+            const hasCostLimits = costLimits && this.safeNumber(costLimits, 'min') !== undefined && this.safeNumber(costLimits, 'max') !== undefined;
+            if (hasAmountLimits && hasPriceLimits && hasCostLimits) {
+                result[symbol] = {
+                    'info': market,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(amountLimits, 'min'),
+                            'max': this.safeNumber(amountLimits, 'max'),
+                        },
+                        'price': {
+                            'min': this.safeNumber(priceLimits, 'min'),
+                            'max': this.safeNumber(priceLimits, 'max'),
+                        },
+                        'cost': {
+                            'min': this.safeNumber(costLimits, 'min'),
+                            'max': this.safeNumber(costLimits, 'max'),
+                        },
+                    },
+                };
+            }
+        }
+        return result;
+    }
+    /**
+     * @method
+     * @name whitebit#fetchFundingLimits
+     * @description fetch the deposit and withdrawal limits for a currency
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/#/?id=funding-limits-structure}
+     */
+    async fetchFundingLimits(codes = undefined, params = {}) {
+        await this.loadMarkets();
+        // Fetch both currencies and fees data for comprehensive funding limits
+        const [currenciesData, feesData] = await Promise.all([
+            this.fetchCurrencies(),
+            this.v4PublicGetFee(params),
+        ]);
+        //
+        // Currencies response structure (from fetchCurrencies):
+        //     {
+        //         "BTC": {
+        //             "id": "BTC",                          // Currency ID
+        //             "code": "BTC",                        // Currency code
+        //             "name": "Bitcoin",                    // Currency name
+        //             "active": true,                       // Currency active status
+        //             "type": "crypto",                     // Currency type
+        //             "precision": 8,                       // Currency precision
+        //             "limits": {                           // Currency limits
+        //                 "deposit": {                      // Deposit limits
+        //                     "min": 0.00001,               // Minimum deposit
+        //                     "max": 1000000                // Maximum deposit
+        //                 },
+        //                 "withdraw": {                     // Withdrawal limits
+        //                     "min": 0.00001,               // Minimum withdrawal
+        //                     "max": 1000000                // Maximum withdrawal
+        //                 }
+        //             },
+        //             "networks": {                         // Network-specific limits
+        //                 "BTC": {
+        //                     "limits": {
+        //                         "deposit": { "min": "0.001" },
+        //                         "withdraw": { "min": "0.002" }
+        //                     }
+        //                 }
+        //             },
+        //             "info": { ... }                       // Original API response
+        //         }
+        //     }
+        //
+        // Fees response structure (from /api/v4/public/fee):
+        //     {
+        //         "USDT (ERC20)": {
+        //             "ticker": "USDT",
+        //             "name": "Tether US",
+        //             "deposit": {
+        //                 "min_amount": "0.0005",
+        //                 "max_amount": "0.1",
+        //                 "fixed": "0.0005",
+        //                 "flex": {
+        //                     "min_fee": "100",
+        //                     "max_fee": "1000",
+        //                     "percent": "10"
+        //                 }
+        //             },
+        //             "withdraw": {
+        //                 "min_amount": "0.001",
+        //                 "max_amount": "0",
+        //                 "fixed": null,
+        //                 "flex": null
+        //             }
+        //         }
+        //     }
+        //
+        const result = {};
+        const currencyKeys = Object.keys(currenciesData);
+        for (let i = 0; i < currencyKeys.length; i++) {
+            const code = currencyKeys[i];
+            const currency = currenciesData[code];
+            if (!currency) {
+                // Skip invalid currency silently
+                continue;
+            }
+            if (codes !== undefined && !this.inArray(code, codes)) {
+                // Skip currency not in requested list silently
+                continue;
+            }
+            // Find corresponding fee data for this currency
+            let feeData = undefined;
+            const feeKeys = Object.keys(feesData);
+            for (let j = 0; j < feeKeys.length; j++) {
+                const feeKey = feeKeys[j];
+                const fee = feesData[feeKey];
+                if (fee && fee['ticker'] === code) {
+                    feeData = fee;
+                    break;
+                }
+            }
+            // Build comprehensive funding limits
+            const limits = {
+                'deposit': {
+                    'min': currency['limits']['deposit']['min'],
+                    'max': currency['limits']['deposit']['max'],
+                },
+                'withdraw': {
+                    'min': currency['limits']['withdraw']['min'],
+                    'max': currency['limits']['withdraw']['max'],
+                },
+            };
+            // Add fee information if available
+            if (feeData) {
+                const depositFee = feeData['deposit'];
+                const withdrawFee = feeData['withdraw'];
+                if (depositFee) {
+                    const depositFeeData = {
+                        'fixed': this.safeNumber(depositFee, 'fixed'),
+                    };
+                    if (depositFee['flex']) {
+                        depositFeeData['flex'] = {
+                            'min': this.safeNumber(depositFee['flex'], 'min_fee'),
+                            'max': this.safeNumber(depositFee['flex'], 'max_fee'),
+                            'percent': this.safeNumber(depositFee['flex'], 'percent'),
+                        };
+                    }
+                    limits['deposit']['fee'] = depositFeeData;
+                }
+                if (withdrawFee) {
+                    const withdrawFeeData = {
+                        'fixed': this.safeNumber(withdrawFee, 'fixed'),
+                    };
+                    if (withdrawFee['flex']) {
+                        withdrawFeeData['flex'] = {
+                            'min': this.safeNumber(withdrawFee['flex'], 'min_fee'),
+                            'max': this.safeNumber(withdrawFee['flex'], 'max_fee'),
+                            'percent': this.safeNumber(withdrawFee['flex'], 'percent'),
+                        };
+                    }
+                    limits['withdraw']['fee'] = withdrawFeeData;
+                }
+            }
+            // Add network-specific limits if available
+            if (currency['networks']) {
+                limits['networks'] = currency['networks'];
+            }
+            result[code] = {
+                'info': currency,
+                'limits': limits,
+            };
+        }
+        return result;
+    }
+    /**
+     * @method
      * @name whitebit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
@@ -1050,6 +1339,81 @@ export default class whitebit extends Exchange {
             'quoteVolume': this.safeStringN(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
             'info': ticker,
         }, market);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchOrder
+     * @description fetches information on an order by the id
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+     * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        // Extract control parameters from params
+        const checkActive = this.safeBool(params, 'checkActive', true);
+        const checkExecuted = this.safeBool(params, 'checkExecuted', true);
+        const request = {
+            'orderId': id,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            request['market'] = market['id'];
+        }
+        // Try active orders first (if enabled)
+        if (checkActive) {
+            try {
+                const response = await this.v4PrivatePostOrders(this.extend(request, params));
+                // Search for order in active orders response (array format)
+                for (let i = 0; i < response.length; i++) {
+                    const order = response[i];
+                    const orderId = this.safeString(order, 'orderId');
+                    if (orderId === id) {
+                        const marketId = this.safeString(order, 'market');
+                        const marketNew = this.safeMarket(marketId, undefined, '_');
+                        return this.parseOrder(order, marketNew);
+                    }
+                }
+            }
+            catch (error) {
+                if (!(error instanceof OrderNotFound)) {
+                    throw error;
+                }
+            }
+        }
+        // Try executed orders (if enabled)
+        if (checkExecuted) {
+            try {
+                const response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, params));
+                // Search for order in executed orders response (object format)
+                const marketIds = Object.keys(response);
+                for (let i = 0; i < marketIds.length; i++) {
+                    const marketId = marketIds[i];
+                    const marketNew = this.safeMarket(marketId, undefined, '_');
+                    const orders = response[marketId];
+                    for (let j = 0; j < orders.length; j++) {
+                        const order = orders[j];
+                        const orderId = this.safeString(order, 'id');
+                        if (orderId === id) {
+                            return this.parseOrder(order, marketNew);
+                        }
+                    }
+                }
+            }
+            catch (error) {
+                if (!(error instanceof OrderNotFound)) {
+                    throw error;
+                }
+            }
+        }
+        // If both checks failed or were disabled, throw OrderNotFound
+        throw new OrderNotFound(this.id + ' fetchOrder() order not found: ' + id);
     }
     /**
      * @method
@@ -1593,52 +1957,55 @@ export default class whitebit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a id argument');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
-        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'orderId': id,
             'market': market['id'],
         };
-        const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
+        // Handle clientOrderId vs orderId (clientOrderId takes priority)
+        const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            // Update clientOrderId of the order
             request['clientOrderId'] = clientOrderId;
         }
-        const isLimitOrder = type === 'limit';
-        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activation_price']);
+        else {
+            request['orderId'] = id;
+        }
+        // Handle amount vs total parameter based on order type and side
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'activationPrice']);
         const isStopOrder = (triggerPrice !== undefined);
-        params = this.omit(params, ['clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice']);
+        // Handle activation price for stop orders
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision(symbol, triggerPrice);
+        }
+        const isLimitOrder = type === 'limit';
+        const total = this.safeNumber(params, 'total');
+        if (total !== undefined) {
+            request['total'] = this.amountToPrecision(symbol, total);
+        }
+        else if (amount !== undefined) {
             if (isLimitOrder) {
-                // stop limit order
+                // Limit orders always use amount parameter
                 request['amount'] = this.amountToPrecision(symbol, amount);
-                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            else if (type === 'market' && side === 'buy') {
+                // Market buy orders use total parameter
+                request['total'] = this.amountToPrecision(symbol, amount);
             }
             else {
-                // stop market order
-                if (side === 'buy') {
-                    // Use total parameter instead of amount for modify buy stop market order
-                    request['total'] = this.amountToPrecision(symbol, amount);
-                }
-                else {
-                    request['amount'] = this.amountToPrecision(symbol, amount);
-                }
+                // Market sell orders use amount parameter
+                request['amount'] = this.amountToPrecision(symbol, amount);
             }
         }
-        else {
-            request['amount'] = this.amountToPrecision(symbol, amount);
-            if (isLimitOrder) {
-                // limit order
-                request['price'] = this.priceToPrecision(symbol, price);
-            }
+        // Handle price parameter for limit orders
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision(symbol, price);
         }
+        // Ensure at least one modifiable parameter is provided
+        const hasModifiableParam = (amount !== undefined) || (price !== undefined) || (triggerPrice !== undefined) || (total !== undefined);
+        if (!hasModifiableParam) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters');
+        }
+        params = this.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total']);
         const response = await this.v4PrivatePostOrderModify(this.extend(request, params));
         return this.parseOrder(response);
     }
@@ -1728,6 +2095,34 @@ export default class whitebit extends Exchange {
         // []
         //
         return this.parseOrders(response, market);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchOrders
+     * @description fetches information on multiple orders made by the user (combines open and closed orders)
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        // Fetch both open and closed orders in parallel
+        const [openOrders, closedOrders] = await Promise.all([
+            this.fetchOpenOrders(symbol, since, limit, params),
+            this.fetchClosedOrders(symbol, since, limit, params),
+        ]);
+        const allOrders = this.arrayConcat(openOrders, closedOrders);
+        // Sort by timestamp (most recent first)
+        const sortedOrders = this.sortBy(allOrders, 'timestamp', true);
+        // Apply limit if specified (since and symbol filtering already handled by individual methods)
+        if (limit !== undefined && sortedOrders.length > limit) {
+            return sortedOrders.slice(0, limit);
+        }
+        return sortedOrders;
     }
     /**
      * @method
@@ -2105,6 +2500,109 @@ export default class whitebit extends Exchange {
     }
     /**
      * @method
+     * @name whitebit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['ticker'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.parseToInt(since / 1000);
+        }
+        if (limit === undefined || limit > 100) {
+            limit = 100;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        // Use transactionMethod parameter to filter withdrawals server-side (method = 2)
+        request['transactionMethod'] = '2';
+        const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "2",                      // Method: 1=deposit, 2=withdrawal (filtered server-side)
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Withdrawal address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More withdrawal transactions
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit);
+    }
+    /**
+     * @method
+     * @name whitebit#fetchTransactions
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transactions structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['ticker'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.parseToInt(since / 1000);
+        }
+        if (limit === undefined || limit > 100) {
+            limit = 100;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
+        const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "id": 123456789,                    // Transaction ID
+        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
+        //             "ticker": "BTC",                    // Currency ticker
+        //             "amount": "0.001",                  // Transaction amount
+        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
+        //             "memo": "",                         // Memo/tag (if required)
+        //             "network": "BTC",                   // Network name
+        //             "fee": "0.0005",                    // Transaction fee
+        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
+        //             "timestamp": 1641051917,            // Transaction timestamp
+        //             "txid": "abc123def456..."           // Transaction hash
+        //         },
+        //         { ... }                                 // More transactions (deposits and withdrawals)
+        //     ]
+        //
+        return this.parseTransactions(response, currency, since, limit);
+    }
+    /**
+     * @method
      * @name whitebit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
@@ -2232,6 +2730,47 @@ export default class whitebit extends Exchange {
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'memo'),
         };
+    }
+    /**
+     * @method
+     * @name whitebit#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     */
+    async fetchAccounts(params = {}) {
+        await this.loadMarkets();
+        const accounts = [];
+        // Fetch sub-accounts
+        //
+        //     [
+        //         {
+        //             "id": "12345",
+        //             "name": "SubAccount1",
+        //             "status": "active",
+        //             "permissions": ["trade", "withdraw"]
+        //         }
+        //     ]
+        //
+        const subAccounts = await this.v4PrivatePostSubAccountList(params);
+        if (subAccounts && Array.isArray(subAccounts)) {
+            for (let i = 0; i < subAccounts.length; i++) {
+                const subAccount = this.safeValue(subAccounts, i);
+                const accountId = this.safeString(subAccount, 'id');
+                const accountName = this.safeString(subAccount, 'name');
+                if (accountId) {
+                    accounts.push({
+                        'id': accountId,
+                        'type': 'subaccount',
+                        'name': accountName || 'SubAccount ' + accountId,
+                        'code': undefined,
+                        'info': subAccount,
+                    });
+                }
+            }
+        }
+        return accounts;
     }
     /**
      * @method
@@ -3368,6 +3907,10 @@ export default class whitebit extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const version = this.safeValue(api, 0);
         const accessibility = this.safeValue(api, 1);
+        if (headers === undefined) {
+            headers = {};
+        }
+        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         const pathWithParams = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][version][accessibility] + pathWithParams;
         if (accessibility === 'public') {
