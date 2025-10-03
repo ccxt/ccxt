@@ -59,6 +59,14 @@ function createExchangeDynamicFile(exchanges: string[], ws = false) {
             ${exchange}Itf.Init(exchangeArgs)
             return ${exchange}Itf, true`).join('\n');
 
+const ExchangeStatement = `
+    case "Exchange":
+		ExchangeItf := &Exchange{}
+		ExchangeItf.Init(exchangeArgs)
+		return ExchangeItf, true
+`
+
+
     const template =`
 package ${pack}
 ${imports}
@@ -69,10 +77,7 @@ ${imports}
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${prefix}ICoreExchange, bool) {
     switch exchangeId {
-    case "Exchange":
-		ExchangeItf := &Exchange{}
-		ExchangeItf.Init(exchangeArgs)
-		return ExchangeItf, true
+${ws ? '' : ExchangeStatement}
 ${caseStatements}
     default:
         return nil, false

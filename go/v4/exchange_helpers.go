@@ -3177,7 +3177,7 @@ func PanicOnError(msg interface{}) {
 		stack := debug.Stack()[:300]
 		panicMsg := fmt.Sprintf("ccxt.Error:%v:%v\nStack trace:\n%s", caller, v, stack)
 		panic(panicMsg)
-	case error: // ✅ optional: handle any other error type
+	case error:
 		stack := debug.Stack()[:300]
 		panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
 		panic(panicMsg)

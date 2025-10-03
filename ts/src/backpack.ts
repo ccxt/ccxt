@@ -148,7 +148,7 @@ export default class backpack extends Exchange {
                 },
                 'www': 'https://backpack.exchange/',
                 'doc': 'https://docs.backpack.exchange/',
-                'referral': 'https://backpack.exchange/join/ccxt',
+                'referral': 'https://backpack.exchange/join/ib8qxwyl',
             },
             'api': {
                 'public': {
@@ -245,12 +245,7 @@ export default class backpack extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': {
-                            'EXPIRE_MAKER': true,
-                            'EXPIRE_TAKER': true,
-                            'EXPIRE_BOTH': true,
-                            'NONE': false,
-                        },
+                        'selfTradePrevention': false,
                         'iceberg': false,
                     },
                     'createOrders': {
@@ -1674,7 +1669,7 @@ export default class backpack extends Exchange {
      * @param {boolean} [params.postOnly] true to place a post only order
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {bool} [params.reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-     * @param {string} [params.selfTradePrevention] one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
+     * @param {string} [params.selfTradePrevention] 'RejectTaker', 'RejectMaker' or 'RejectBoth'
      * @param {bool} [params.autoLend] *spot margin only* if true then the order can lend
      * @param {bool} [params.autoLendRedeem] *spot margin only* if true then the order can redeem a lend if required
      * @param {bool} [params.autoBorrow] *spot margin only* if true then the order can borrow
@@ -1785,17 +1780,6 @@ export default class backpack extends Exchange {
                 request['stopLossLimitPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             }
             params = this.omit (params, 'stopLoss');
-        }
-        let selfTradePrevention = undefined;
-        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
-        if (selfTradePrevention !== undefined) {
-            if (selfTradePrevention === 'EXPIRE_MAKER') {
-                request['selfTradePrevention'] = 'RejectMaker';
-            } else if (selfTradePrevention === 'EXPIRE_TAKER') {
-                request['selfTradePrevention'] = 'RejectTaker';
-            } else if (selfTradePrevention === 'EXPIRE_BOTH') {
-                request['selfTradePrevention'] = 'RejectBoth';
-            }
         }
         return this.extend (request, params);
     }

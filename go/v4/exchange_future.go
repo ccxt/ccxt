@@ -57,11 +57,11 @@ func (f *Future) Resolve(args ...interface{}) {
 		value = args[0]
 	}
 	f.once.Do(func() {
-		// f.mu.Lock()
+		f.mu.Lock()
 		f.resolved = true
 		f.resolvedValue = value
 		f.resolvedError = nil
-		// f.mu.Unlock()
+		f.mu.Unlock()
 
 		func() {
 			defer func() {
@@ -210,6 +210,7 @@ func (f *Future) Reject(reason interface{}) {
 
 func (f *Future) Await() <-chan interface{} {
 	ch := make(chan interface{}, 1)
+	f.mu.Lock()
 	if f.resolved {
 		// Already resolved, return cached value immediately
 		if f.resolvedError != nil {
@@ -220,6 +221,7 @@ func (f *Future) Await() <-chan interface{} {
 		f.mu.Unlock()
 		return ch
 	}
+	f.mu.Unlock()
 	f.subscribersMu.Lock()
 	if f.subscribers == nil {
 		f.subscribers = make([]chan interface{}, 0)
