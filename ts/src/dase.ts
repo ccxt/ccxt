@@ -129,7 +129,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchMarkets
      * @description retrieves data on all markets for dase
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/markets/get/v1/markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -245,7 +245,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/balances/get/v1/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -259,7 +259,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#createOrder
      * @description create a trade order
-     * @see https://api.dase.com/v1/orders
+     * @see https://api.dase.com/docs#tag/orders/post/v1/orders
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -373,7 +373,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchStatus
      * @description fetches the current status of all markets and overall exchange
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/status/get/v1/status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
      */
@@ -409,7 +409,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchTicker
      * @description fetches a price ticker, a statistical calculation with latest market data
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/markets/get/v1/markets/{market}/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -465,7 +465,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchTickers
      * @description fetches price tickers for multiple markets
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/markets/get/v1/markets/stats
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -530,7 +530,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchOrderBook
      * @description fetches order book snapshot (bids/asks) for a market
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/markets/get/v1/markets/{market}/snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -600,7 +600,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://api.dase.com/v1/accounts/transactions
+     * @see https://api.dase.com/docs#tag/accounts/get/v1/accounts/transactions
      * @param {string} symbol unified market symbol
      * @param {int} [since] not used by dase fetchMyTrades()
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -782,7 +782,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/trades/get/v1/markets/{market}/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -828,7 +828,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://api.dase.com/v1/orders/{order_id}
+     * @see https://api.dase.com/docs#tag/orders/get/v1/orders/{order_id}
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -850,7 +850,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://api.dase.com/v1/orders
+     * @see https://api.dase.com/docs#tag/orders/get/v1/orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -889,7 +889,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://api.dase.com/v1/orders
+     * @see https://api.dase.com/docs#tag/orders/get/v1/orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] not used by dase fetchOpenOrders()
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -923,7 +923,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchClosedOrders
      * @description fetches information on multiple canceled or filled orders made by the user
-     * @see https://api.dase.com/v1/orders
+     * @see https://api.dase.com/docs#tag/orders/get/v1/orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -957,7 +957,7 @@ export default class dase extends Exchange {
      * @method
      * @name dase#fetchOHLCV
      * @description fetches a list of OHLCV candles for a market
-     * @see https://api.dase.com/docs
+     * @see https://api.dase.com/docs#tag/markets/get/v1/markets/{market}/candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV for
      * @param {string} [timeframe] timeframe string mapped to API granularity
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
