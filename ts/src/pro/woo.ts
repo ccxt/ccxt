@@ -29,6 +29,8 @@ export default class woo extends wooRest {
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchOrderBook': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -696,6 +698,23 @@ export default class woo extends wooRest {
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
+
+        /**
+     * @method
+     * @name woo#unWatchTrades
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.woox.io/#trade
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+        async unWatchTrades (symbol: string, params = {}): Promise<any> {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            const topic = 'trades';
+            const subHash = market['id'] + '@trade';
+            return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+        }
 
     handleTrade (client: Client, message) {
         //
@@ -1399,11 +1418,11 @@ export default class woo extends wooRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchOHLCV ('ETH/USDT', '1m');
+        await this.watchTrades ('ETH/USDT');
         await this.sleep (1000);
         console.log ('cache after subscribe <--------------------------------------');
         console.log (this.ohlcvs);
-        await this.unWatchOHLCV ('ETH/USDT', '1m');
+        await this.unWatchTrades ('ETH/USDT');
         await this.sleep (1000);
         console.log ('cache after unsubscribe <--------------------------------------');
         console.log (this.ohlcvs);
