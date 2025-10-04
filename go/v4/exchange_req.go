@@ -174,11 +174,12 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			}
 		}
 
-		// Unmarshal the response body
+		// Use ParseJSON to handle JSON parsing with proper number normalization
 		var result interface{}
-		err = json.Unmarshal(respBody, &result)
-		if err != nil {
-			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
+		result = ParseJSON(string(respBody))
+
+		if result == nil {
+			// If ParseJSON failed, fallback to raw string
 			result = string(respBody)
 		} else {
 			if this.ReturnResponseHeaders {
