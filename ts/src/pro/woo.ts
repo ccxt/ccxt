@@ -26,6 +26,9 @@ export default class woo extends wooRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPositions': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -88,6 +91,27 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
+    async unwatchPublic (subHash: string, symbols: string[], topic: string, params = {}): Promise<any> {
+        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const url = this.urls['api']['ws']['public'] + urlUid;
+        const requestId = this.requestId (url);
+        const unsubHash = 'unsubscribe::' + subHash;
+        const message: Dict = {
+            'id': requestId,
+            'event': 'unsubscribe',
+            'topic': subHash,
+        };
+        const subscription: Dict = {
+            'id': requestId.toString (),
+            'unsubscribe': true,
+            'symbols': symbols,
+            'topic': topic,
+            'subMessageHashes': [ subHash ],
+            'unsubMessageHashes': [ unsubHash ],
+        };
+        return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
+    }
+
     /**
      * @method
      * @name woo#watchOrderBook
@@ -117,7 +141,7 @@ export default class woo extends wooRest {
         const subscription: Dict = {
             'id': requestId.toString (),
             'name': method,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'limit': limit,
             'params': params,
         };
@@ -126,6 +150,26 @@ export default class woo extends wooRest {
         }
         const orderbook = await this.watch (url, topic, this.extend (request, params), topic, subscription);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name woo#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.woox.io/#orderbookupdate
+     * @see https://docs.woox.io/#orderbook
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
+        const market = this.market (symbol);
+        const subHash = market['id'] + '@' + method;
+        const topic = 'orderbook';
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
     handleOrderBook (client: Client, message) {
@@ -280,6 +324,24 @@ export default class woo extends wooRest {
         return await this.watchPublic (topic, message);
     }
 
+    /**
+     * @method
+     * @name woo#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'ticker');
+        const market = this.market (symbol);
+        const subHash = market['id'] + '@' + method;
+        const topic = 'ticker';
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+    }
+
     parseWsTicker (ticker, market = undefined) {
         //
         //     {
@@ -368,6 +430,26 @@ export default class woo extends wooRest {
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
         return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name woo#unWatchTickers
+     * @see https://docs.woox.io/#24h-tickers
+     * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to stop fetching the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        symbols = this.marketSymbols (symbols);
+        const topic = 'ticker';
+        const subHash = 'tickers';
+        return await this.unwatchPublic (subHash, symbols, topic, params);
     }
 
     handleTickers (client: Client, message) {
@@ -1267,6 +1349,45 @@ export default class woo extends wooRest {
         }
     }
 
+    handleUnSubscription (client: Client, message) {
+        //
+        //     {
+        //         "id": "2",
+        //         "event": "unsubscribe",
+        //         "success": true,
+        //         "ts": 1759568478343,
+        //         "data": "SPOT_BTC_USDT@orderbook"
+        //     }
+        //
+        const subscribeHash = this.safeString (message, 'data');
+        const unsubscribeHash = 'unsubscribe::' + subscribeHash;
+        const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
+        console.log ('subscriptions before unwatch <--------------------------------------');
+        console.log (client.subscriptions);
+        for (let i = 0; i < subMessageHashes.length; i++) {
+            const subHash = subMessageHashes[i];
+            const unsubHash = unsubMessageHashes[i];
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
+        console.log ('subscriptions after unwatch <--------------------------------------');
+        console.log (client.subscriptions);
+        this.cleanCache (subscription);
+    }
+
+    async test () {
+        await this.loadMarkets ();
+        await this.watchTickers ();
+        await this.sleep (1000);
+        console.log ('cache after subscribe <--------------------------------------');
+        console.log (this.tickers);
+        await this.unWatchTickers ();
+        await this.sleep (1000);
+        console.log ('cache after unsubscribe <--------------------------------------');
+        console.log (this.tickers);
+    }
+
     handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -1275,6 +1396,7 @@ export default class woo extends wooRest {
             'ping': this.handlePing,
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,
+            'unsubscribe': this.handleUnSubscription,
             'orderbook': this.handleOrderBook,
             'orderbookupdate': this.handleOrderBook,
             'ticker': this.handleTicker,
