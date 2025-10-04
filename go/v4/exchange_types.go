@@ -557,6 +557,9 @@ type OrderBook struct {
 
 // NewOrderBook initializes an OrderBook struct from a map.
 func NewOrderBook(orderbook2 interface{}) OrderBook {
+	if orderbook2 == nil {
+		return OrderBook{}
+	}
 	orderbook := orderbook2.(map[string]interface{})
 	return OrderBook{
 		Bids:      parseOrderBookEntries(orderbook, "bids"),
@@ -571,8 +574,8 @@ func NewOrderBook(orderbook2 interface{}) OrderBook {
 // parseOrderBookEntries extracts and converts order book entries to [][]float64.
 func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]float64 {
 	if value, ok := orderbook[key]; ok {
+		var result [][]float64
 		if entries, ok := value.([]interface{}); ok {
-			var result [][]float64
 			for _, entry := range entries {
 				if pair, ok := entry.([]interface{}); ok {
 					var floatPair []float64
@@ -584,6 +587,19 @@ func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]flo
 					if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
 						result = append(result, floatPair)
 					}
+				}
+			}
+			return result
+		} else if entries, ok := value.([][]interface{}); ok {
+			for _, entry := range entries {
+				var floatPair []float64
+				for _, v := range entry {
+					if num, ok := v.(float64); ok {
+						floatPair = append(floatPair, num)
+					}
+				}
+				if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+					result = append(result, floatPair)
 				}
 			}
 			return result

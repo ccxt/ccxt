@@ -8,7 +8,7 @@ package ccxt
 // statistics, etc.).
 
 type IOrderBook struct {
-    *WsOrderBook
+	*WsOrderBook
 }
 
 // NewIOrderBook attempts to convert arbitrary return values coming from the
@@ -17,15 +17,29 @@ type IOrderBook struct {
 // map[string]interface{} coming from REST/WS which will be used to seed a
 // fresh order-book.
 func NewIOrderBook(v interface{}) IOrderBook {
-    switch t := v.(type) {
-    case *WsOrderBook:
-        return IOrderBook{t}
-    case map[string]interface{}:
-        ob := (&Exchange{}).OrderBook(t) // depth defaults to max-int
-        return IOrderBook{ob}
-    default:
-        // unknown type – create empty orderbook
-        ob := NewWsOrderBook(map[string]interface{}{}, nil)
-        return IOrderBook{ob}
-    }
-} 
+	switch t := v.(type) {
+	case *WsOrderBook:
+		return IOrderBook{t}
+	case map[string]interface{}:
+		ob := (&Exchange{}).OrderBook(t) // depth defaults to max-int
+		return IOrderBook{ob}
+	default:
+		// unknown type – create empty orderbook
+		ob := NewWsOrderBook(map[string]interface{}{}, nil)
+		return IOrderBook{ob}
+	}
+}
+
+func NewOrderBookFromWs(v interface{}) OrderBook {
+	switch t := v.(type) {
+	case *WsOrderBook:
+		ob := t.ToMap()
+		return NewOrderBook(ob)
+	case map[string]interface{}:
+		return NewOrderBook(t)
+	default:
+		// unknown type – create empty orderbook
+		ob := NewWsOrderBook(map[string]interface{}{}, nil)
+		return NewOrderBook(ob.ToMap())
+	}
+}
