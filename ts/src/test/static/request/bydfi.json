@@ -1,0 +1,25 @@
+{
+  "exchange": "bydfi",
+  "skipKeys": ["timestamp", "signature"],
+  "outputType": "json",
+  "methods": {
+      "fetchMarkets": [
+          {
+              "description": "Fetch markets",
+              "method": "fetchMarkets",
+              "url": "https://api.bydtms.com/api/v1/swap/market/exchange_info",
+              "input": [],
+              "output": null
+          }
+      ],
+      "fetchTicker": [
+          {
+              "description": "Fetch ticker",
+              "method": "fetchTicker",
+              "url": "https://api.bydfi.com/api/v1/swap/market/ticker/24hr?symbol=BTCUSDT",
+              "input": ["BTCUSDT"],
+              "output": null
+          }
+      ]
+  }
+}
