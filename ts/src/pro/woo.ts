@@ -321,6 +321,24 @@ export default class woo extends wooRest {
         return await this.watchPublic (topic, message);
     }
 
+    /**
+     * @method
+     * @name woo#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'ticker');
+        const market = this.market (symbol);
+        const subHash = market['id'] + '@' + method;
+        const topic = 'ticker';
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+    }
+
     parseWsTicker (ticker, market = undefined) {
         //
         //     {
@@ -1337,14 +1355,14 @@ export default class woo extends wooRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchOrderBook ('BTC/USDT');
+        await this.watchTicker ('BTC/USDT');
         await this.sleep (2000);
         console.log ('cache after subscribe <--------------------------------------');
-        console.log (this.orderbooks);
-        await this.unWatchOrderBook ('BTC/USDT');
+        console.log (this.tickers);
+        await this.unWatchTicker ('BTC/USDT');
         await this.sleep (2000);
         console.log ('cache after unsubscribe <--------------------------------------');
-        console.log (this.orderbooks);
+        console.log (this.tickers);
     }
 
     handleMessage (client: Client, message) {
