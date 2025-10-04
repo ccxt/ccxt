@@ -33,8 +33,17 @@ export default class upbit extends upbitRest {
             },
             'options': {
                 'tradesLimit': 1000,
+                'subscriptionsMap': {},
             },
         });
+    }
+
+    addToSubscriptions (messageHash: string, requestPart: any) {
+        const subscriptionsMap = this.safeValue (this.options, 'subscriptionsMap', {});
+        if (!(messageHash in subscriptionsMap)) {
+            subscriptionsMap[messageHash] = requestPart;
+        }
+        this.options['subscriptionsMap'] = subscriptionsMap;
     }
 
     async watchPublic (symbol: string, channel, params = {}) {
@@ -49,18 +58,33 @@ export default class upbit extends upbitRest {
         this.options[channel][symbol] = true;
         const symbols = Object.keys (this.options[channel]);
         const marketIds = this.marketIds (symbols);
-        const request = [
+        const messageHash = channel + ':' + marketId;
+        const newItem = {
+            'type': channel,
+            'codes': marketIds,
+            // 'isOnlySnapshot': false,
+            // 'isOnlyRealtime': false,
+        };
+        this.addToSubscriptions (messageHash, newItem);
+        let request = [
             {
                 'ticket': this.uuid (),
             },
-            {
-                'type': channel,
-                'codes': marketIds,
-                // 'isOnlySnapshot': false,
-                // 'isOnlyRealtime': false,
-            },
         ];
-        const messageHash = channel + ':' + marketId;
+        const subscriptionsMap = this.safeDict (this.options, 'subscriptionsMap', {});
+        const subscriptionsArray = [];
+        const client = this.client (url);
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            // skip current messageHash
+            if (messageHash !== key && (key in subscriptionsMap)) {
+                subscriptionsArray.push (subscriptionsMap[key]);
+            }
+        }
+        request = this.arrayConcat (request, subscriptionsArray);
+        // @ts-ignore
+        request.push (newItem);
         return await this.watch (url, messageHash, request, messageHash);
     }
 
