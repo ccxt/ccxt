@@ -26,6 +26,9 @@ export default class woo extends wooRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPositions': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchOrderBook': true,
             },
             'urls': {
                 'api': {
@@ -88,7 +91,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async unwatchPublic (subHash: string, symbol: string, topic: string, params = {}): Promise<any> {
+    async unwatchPublic (subHash: string, symbols: string[], topic: string, params = {}): Promise<any> {
         const urlUid = (this.uid) ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId (url);
@@ -101,7 +104,7 @@ export default class woo extends wooRest {
         const subscription: Dict = {
             'id': requestId.toString (),
             'unsubscribe': true,
-            'symbols': [ symbol ],
+            'symbols': symbols,
             'topic': topic,
             'subMessageHashes': [ subHash ],
             'unsubMessageHashes': [ unsubHash ],
@@ -427,6 +430,26 @@ export default class woo extends wooRest {
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
         return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name woo#unWatchTickers
+     * @see https://docs.woox.io/#24h-tickers
+     * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} symbols unified symbol of the market to stop fetching the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        symbols = this.marketSymbols (symbols);
+        const topic = 'ticker';
+        const subHash = 'tickers';
+        return await this.unwatchPublic (subHash, symbols, topic, params);
     }
 
     handleTickers (client: Client, message) {
@@ -1355,12 +1378,12 @@ export default class woo extends wooRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchTicker ('BTC/USDT');
-        await this.sleep (2000);
+        await this.watchTickers ();
+        await this.sleep (1000);
         console.log ('cache after subscribe <--------------------------------------');
         console.log (this.tickers);
-        await this.unWatchTicker ('BTC/USDT');
-        await this.sleep (2000);
+        await this.unWatchTickers ();
+        await this.sleep (1000);
         console.log ('cache after unsubscribe <--------------------------------------');
         console.log (this.tickers);
     }
