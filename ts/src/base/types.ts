@@ -51,6 +51,13 @@ export interface MarketMarginModes {
     cross: boolean;
 }
 
+export interface MarketLimits {
+    amount?: MinMax,
+    cost?: MinMax,
+    leverage?: MinMax,
+    price?: MinMax,
+    market?: MinMax,
+}
 export interface MarketInterface {
     id: Str;
     numericId?: Num;
@@ -91,13 +98,7 @@ export interface MarketInterface {
         cost?: Num
     };
     marginModes?: MarketMarginModes;
-    limits: {
-        amount?: MinMax,
-        cost?: MinMax,
-        leverage?: MinMax,
-        price?: MinMax,
-        market?: MinMax,
-    };
+    limits: MarketLimits;
     created: Int;
     info: any;
 }
@@ -647,3 +648,44 @@ interface BaseConstructorArgs {
 export type ConstructorArgs = Partial<BaseConstructorArgs> & {
     [key: string]: any;
 };
+
+export interface Status {
+    status: Str,
+    updated: Num,
+    eta: Num,
+    url: Str,
+    info: any,
+}
+
+export interface RequiredCredentials {
+    apiKey: Bool,
+    secret: Bool,
+    uid: Bool,
+    login: Bool,
+    password: Bool,
+    twofa: Bool,  // 2-factor authentication (one-time password key)
+    privateKey: Bool,  // a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: Bool,  // the wallet address "0x"-prefixed hexstring
+    token: Bool,  // reserved for HTTP auth in some cases
+}
+
+export interface Urls {
+    logo?: Str;
+    api?: Str | Dictionary<string>;
+    apiBackup?: Str | Dictionary<string>;
+    test?: Str | Dictionary<string>;
+    www?: Str;
+    doc?: Strings;
+    api_management?: Str;  // ! deprecated, use apiManagement instead
+    apiManagement?: Str;
+    fees?: Str;
+    referral?: Str | Dictionary<string>;
+}
+
+export interface Precision {
+    amount?: Num,
+    price?: Num,
+    cost?: Num,
+    base?: Num,
+    quote?: Num,
+}
