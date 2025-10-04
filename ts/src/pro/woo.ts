@@ -603,6 +603,27 @@ export default class woo extends wooRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+        /**
+     * @method
+     * @name woo#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.woox.io/#k-line
+     * @param {string} symbol unified symbol of the market
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+        async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            const interval = this.safeString (this.timeframes, timeframe, timeframe);
+            const topic = 'ohlcv';
+            const name = 'kline';
+            const subHash = market['id'] + '@' + name + '_' + interval;
+            return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+        }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -1378,14 +1399,14 @@ export default class woo extends wooRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchTickers ();
+        await this.watchOHLCV ('ETH/USDT', '1m');
         await this.sleep (1000);
         console.log ('cache after subscribe <--------------------------------------');
-        console.log (this.tickers);
-        await this.unWatchTickers ();
+        console.log (this.ohlcvs);
+        await this.unWatchOHLCV ('ETH/USDT', '1m');
         await this.sleep (1000);
         console.log ('cache after unsubscribe <--------------------------------------');
-        console.log (this.tickers);
+        console.log (this.ohlcvs);
     }
 
     handleMessage (client: Client, message) {
