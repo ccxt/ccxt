@@ -1,0 +1,68 @@
+{
+    "BTC": {
+        "active": null,
+        "code": "BTC",
+        "deposit": null,
+        "fee": null,
+        "fees": {},
+        "id": "BTC",
+        "info": {
+            "asset": "BTC",
+            "autoAssetExchange": "0",
+            "marginAvailable": true
+        },
+        "limits": {
+            "amount": {
+                "max": null,
+                "min": null
+            },
+            "deposit": {
+                "max": null,
+                "min": null
+            },
+            "withdraw": {
+                "max": null,
+                "min": null
+            }
+        },
+        "name": "BTC",
+        "networks": null,
+        "numericId": null,
+        "precision": null,
+        "type": "crypto",
+        "withdraw": null
+    },
+    "USDT": {
+        "active": null,
+        "code": "USDT",
+        "deposit": null,
+        "fee": null,
+        "fees": {},
+        "id": "USDT",
+        "info": {
+            "asset": "USDT",
+            "autoAssetExchange": "-10000",
+            "marginAvailable": true
+        },
+        "limits": {
+            "amount": {
+                "max": null,
+                "min": null
+            },
+            "deposit": {
+                "max": null,
+                "min": null
+            },
+            "withdraw": {
+                "max": null,
+                "min": null
+            }
+        },
+        "name": "USDT",
+        "networks": null,
+        "numericId": null,
+        "precision": null,
+        "type": "crypto",
+        "withdraw": null
+    }
+}
