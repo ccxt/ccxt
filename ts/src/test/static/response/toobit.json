@@ -3371,6 +3371,7 @@
         "fetchMarkets": [
             {
                 "description": "fetchMarkets no args",
+                "disabledGO": true,
                 "method": "fetchMarkets",
                 "disabledGO": true,
                 "input": [],

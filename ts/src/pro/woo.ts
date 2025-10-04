@@ -721,7 +721,7 @@ export default class woo extends wooRest {
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce ().toString ();

@@ -1,9 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import execSync from 'child_process';
-import log from 'ololog'
 
-const WS_SUPPORT = true; // set to true when WS support is added
 
 const foldersToSearch = [
     './go/v4'
@@ -22,8 +19,6 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
     fs.readdirSync(directory).forEach(file => {
         const fullPath = path.join(directory, file);
 
-        const fileWithoutExt = path.parse(file).name;
-
         const fileExtension = path.extname(file);
         if (fileExtension !== '.go' && !fs.statSync(fullPath).isDirectory()) {
             return; // Skip non-Go files
@@ -35,12 +30,12 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
 
         if (fs.statSync(fullPath).isDirectory()) {
             deleteFilesRecursively(fullPath, exchangesToKeep);
-        } else if (!exchangesToKeep.some(exchange => (fileWithoutExt === exchange || fileWithoutExt.startsWith(exchange + '_')))) {
+        } else if (!exchangesToKeep.some(exchange => file.startsWith(exchange))) {
             try {
                 fs.unlinkSync(fullPath);
-                log.red(`Deleted: ${fullPath}`);
+                console.log(`Deleted: ${fullPath}`);
             } catch (error) {
-                log.red(`Failed to delete ${fullPath}:`, error);
+                console.error(`Failed to delete ${fullPath}:`, error);
             }
         }
     });
@@ -59,14 +54,6 @@ function createExchangeDynamicFile(exchanges: string[], ws = false) {
             ${exchange}Itf.Init(exchangeArgs)
             return ${exchange}Itf, true`).join('\n');
 
-const ExchangeStatement = `
-    case "Exchange":
-		ExchangeItf := &Exchange{}
-		ExchangeItf.Init(exchangeArgs)
-		return ExchangeItf, true
-`
-
-
     const template =`
 package ${pack}
 ${imports}
@@ -77,7 +64,6 @@ ${imports}
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${prefix}ICoreExchange, bool) {
     switch exchangeId {
-${ws ? '' : ExchangeStatement}
 ${caseStatements}
     default:
         return nil, false
@@ -85,7 +71,7 @@ ${caseStatements}
 }`
 
     fs.writeFileSync(dynamicPath, template.trim());
-    log.green(`Created: ${dynamicPath}`);
+    console.log(`Created: ${dynamicPath}`);
 }
 
 
@@ -128,17 +114,6 @@ ${caseStatements}
 }
 
 
-function transpileAndGenerateAPI(exchanges: string[]) {
-    execSync.execSync(`tsx ./build/generateImplicitAPI.ts`, { stdio: 'inherit' });
-    for (const exchange of exchanges) {
-        execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange}`, { stdio: 'inherit' });
-        if (WS_SUPPORT) {
-            execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange} --ws`, { stdio: 'inherit' });
-        }
-    }
-
-}
-
 function main() {
     const args = process.argv.slice(2);
 
@@ -146,15 +121,11 @@ function main() {
         console.error("Usage: tsx granular-go-build.ts <exchange1> <exchange2> ...");
         process.exit(1);
     }
-    transpileAndGenerateAPI(args)
+
     foldersToSearch.forEach(folder => deleteFilesRecursively(folder, args));
     createExchangeDynamicFile(args);
-    if (WS_SUPPORT) {
-        createExchangeDynamicFile(args, true);
-    }
+    createExchangeDynamicFile(args, true);
     createExchangeTypedInterfaceFile(args);
-
-    log.bright.cyan("Done! You can now build the Go project (tests/cli/etc) with 'go build' command.");
 }
 
 main();

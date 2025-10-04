@@ -12,7 +12,7 @@ type Throttler struct {
 	Config  map[string]interface{}
 }
 
-func NewThrottler(config map[string]interface{}) Throttler {
+func NewThrottler(config map[string]interface{}) *Throttler {
 	defaultConfig := map[string]interface{}{
 		"refillRate":  1.0,
 		"delay":       0.001,
@@ -22,7 +22,7 @@ func NewThrottler(config map[string]interface{}) Throttler {
 		"cost":        1.0,
 	}
 
-	return Throttler{
+	return &Throttler{
 		Queue:   NewQueue(),
 		Running: false,
 		Config:  ExtendMap(defaultConfig, config),

@@ -4,13 +4,22 @@ import (
 	"fmt"
 
 	"github.com/ccxt/tests/base"
+	cache "github.com/ccxt/tests/base/cache"
 )
 
 func main() {
 	RUN_BASE_TESTS := base.GetCliArgValue("--baseTests")
+	WS_TESTS := base.GetCliArgValue("--ws")
 	if RUN_BASE_TESTS {
-		base.BaseTestsInit()
-		fmt.Println("Base REST tests passed!")
+		if WS_TESTS {
+			cache.TestWsCache()
+			cache.TestWsOrderBook()
+			fmt.Println("Base WS tests passed!")
+		} else {
+			base.BaseTestsInit()
+			fmt.Println("Base REST tests passed!")
+		}
+
 		return
 	}
 	tests := base.NewTestMainClass()
