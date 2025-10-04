@@ -91,7 +91,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async unwatchPublic (subHash: string, symbols: string[], topic: string, params = {}): Promise<any> {
+    async unwatchPublic (subHash: string, symbols: Strings, topic: string, params = {}): Promise<any> {
         const urlUid = (this.uid) ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId (url);
@@ -169,7 +169,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
         const topic = 'orderbook';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
     }
 
     handleOrderBook (client: Client, message) {
@@ -339,7 +339,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
         const topic = 'ticker';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
     }
 
     parseWsTicker (ticker, market = undefined) {
