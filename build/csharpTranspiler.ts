@@ -536,6 +536,10 @@ class NewTranspiler {
             return `return (Int64)res;`;
         }
 
+        if (unwrappedType === 'double') {
+            return `return (double)res;`;
+        }
+
         // handle the typescript type Dict
         if (unwrappedType === 'Dict') {
             return `return (Dictionary<string, object>)res;`;
