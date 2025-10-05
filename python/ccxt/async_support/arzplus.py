@@ -247,6 +247,8 @@ class arzplus(Exchange, ImplicitAPI):
             request = {
                 'symbol': response[i]['name'],
             }
+            if i == 10:
+                await self.delay(3000)
             assetDetails = await self.publicGetApiV1MarketSymbols(request)
             ticker = self.parse_ticker(assetDetails)
             symbol = ticker['symbol']
@@ -399,14 +401,21 @@ class arzplus(Exchange, ImplicitAPI):
         timestamp = Date.now()
         return self.parse_order_book(orderBook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
 
+    def delay(self, ms: float):
+        start = Date.now()
+        while(Date.now() - start < ms):
+            continue
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['public'] + '/' + path
-        if params['stats'] is not None:
+        symbol = self.safe_string(params, 'symbol')
+        stats = self.safe_value(params, 'stats')
+        if stats is not None:
             url = url + '?' + self.urlencode(query)
         if path == 'api/v1/market/tradingview/ohlcv':
             url = url + '?' + self.urlencode(query)
-        elif params['symbol'] is not None:
-            url = url + '/' + params['symbol']
+        elif symbol is not None:
+            url = url + '/' + symbol
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
