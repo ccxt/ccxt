@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import wooRest from '../woo.js';
-import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -93,7 +93,7 @@ export default class woo extends wooRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async unwatchPublic (subHash: string, symbols: Strings, topic: string, params = {}): Promise<any> {
+    async unwatchPublic (subHash: string, symbol: string, topic: string, params = {}): Promise<any> {
         const urlUid = (this.uid) ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId (url);
@@ -106,7 +106,7 @@ export default class woo extends wooRest {
         const subscription: Dict = {
             'id': requestId.toString (),
             'unsubscribe': true,
-            'symbols': symbols,
+            'symbols': [ symbol ],
             'topic': topic,
             'subMessageHashes': [ subHash ],
             'unsubMessageHashes': [ unsubHash ],
@@ -176,7 +176,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
         const topic = 'orderbook';
-        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
     handleOrderBook (client: Client, message) {
@@ -346,7 +346,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const subHash = market['id'] + '@' + method;
         const topic = 'ticker';
-        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -450,13 +450,12 @@ export default class woo extends wooRest {
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        if (symbols === undefined) {
-            symbols = this.symbols;
+        if (symbols !== undefined) {
+            throw new NotSupported (this.id + ' unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once');
         }
-        symbols = this.marketSymbols (symbols);
         const topic = 'ticker';
         const subHash = 'tickers';
-        return await this.unwatchPublic (subHash, symbols, topic, params);
+        return await this.unwatchPublic (subHash, undefined, topic, params);
     }
 
     handleTickers (client: Client, message) {
@@ -629,7 +628,7 @@ export default class woo extends wooRest {
         const name = 'kline';
         const subHash = market['id'] + '@' + name + '_' + interval;
         params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
-        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
     handleOHLCV (client: Client, message) {
@@ -719,7 +718,7 @@ export default class woo extends wooRest {
         const market = this.market (symbol);
         const topic = 'trades';
         const subHash = market['id'] + '@trade';
-        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
     }
 
     handleTrade (client: Client, message) {
@@ -1424,14 +1423,14 @@ export default class woo extends wooRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchOHLCV ('ETH/USDT', '1m');
+        await this.watchTickers ();
         await this.sleep (1000);
         console.log ('cache after subscribe <--------------------------------------');
-        console.log (this.ohlcvs);
-        await this.unWatchOHLCV ('ETH/USDT', '1m');
+        console.log (this.tickers);
+        await this.unWatchTickers ();
         await this.sleep (1000);
         console.log ('cache after unsubscribe <--------------------------------------');
-        console.log (this.ohlcvs);
+        console.log (this.tickers);
     }
 
     handleMessage (client: Client, message) {
