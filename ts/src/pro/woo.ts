@@ -507,13 +507,13 @@ export default class woo extends wooRest {
      * @name woo#watchBidsAsks
      * @see https://docs.woox.io/#bbos
      * @description watches best bid & ask for symbols
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -521,11 +521,30 @@ export default class woo extends wooRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const tickers = await this.watchPublic (topic, message);
+        const bidsasks = await this.watchPublic (topic, message);
         if (this.newUpdates) {
-            return tickers;
+            return bidsasks;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name woo#unWatchBidsAsks
+     * @see https://docs.woox.io/#bbos
+     * @description unWatches best bid & ask for symbols
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for (not used by woo)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        if (symbols !== undefined) {
+            throw new NotSupported (this.id + ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once');
+        }
+        const subHash = 'bbos';
+        const topic = 'bidsasks';
+        return await this.unwatchPublic (subHash, undefined, topic, params);
     }
 
     handleBidAsk (client: Client, message) {
@@ -1409,28 +1428,12 @@ export default class woo extends wooRest {
         const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
-        console.log ('subscriptions before unwatch <--------------------------------------');
-        console.log (client.subscriptions);
         for (let i = 0; i < subMessageHashes.length; i++) {
             const subHash = subMessageHashes[i];
             const unsubHash = unsubMessageHashes[i];
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
-        console.log ('subscriptions after unwatch <--------------------------------------');
-        console.log (client.subscriptions);
         this.cleanCache (subscription);
-    }
-
-    async test () {
-        await this.loadMarkets ();
-        await this.watchTickers ();
-        await this.sleep (1000);
-        console.log ('cache after subscribe <--------------------------------------');
-        console.log (this.tickers);
-        await this.unWatchTickers ();
-        await this.sleep (1000);
-        console.log ('cache after unsubscribe <--------------------------------------');
-        console.log (this.tickers);
     }
 
     handleMessage (client: Client, message) {
