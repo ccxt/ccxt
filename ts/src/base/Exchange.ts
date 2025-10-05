@@ -8305,6 +8305,14 @@ export default class Exchange {
                         delete this.tickers[tickerSymbol];
                     }
                 }
+            } else if (topic === 'bidsasks' && (this.bidsasks !== undefined)) {
+                const bidsaskSymbols = Object.keys (this.bidsasks);
+                for (let i = 0; i < bidsaskSymbols.length; i++) {
+                    const bidsaskSymbol = bidsaskSymbols[i];
+                    if (bidsaskSymbol in this.bidsasks) {
+                        delete this.bidsasks[bidsaskSymbol];
+                    }
+                }
             }
         }
     }
