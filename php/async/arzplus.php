@@ -256,6 +256,9 @@ class arzplus extends Exchange {
                 $request = array(
                     'symbol' => $response[$i]['name'],
                 );
+                if ($i === 10) {
+                    Async\await($this->delay(3000));
+                }
                 $assetDetails = Async\await($this->publicGetApiV1MarketSymbols ($request));
                 $ticker = $this->parse_ticker($assetDetails);
                 $symbol = $ticker['symbol'];
@@ -425,16 +428,25 @@ class arzplus extends Exchange {
         }) ();
     }
 
+    public function delay(float $ms) {
+        $start = Date.now ();
+        while (Date.now () - $start < $ms) {
+            continue;
+        }
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api']['public'] . '/' . $path;
-        if ($params['stats'] !== null) {
+        $symbol = $this->safe_string($params, 'symbol');
+        $stats = $this->safe_value($params, 'stats');
+        if ($stats !== null) {
             $url = $url . '?' . $this->urlencode($query);
         }
         if ($path === 'api/v1/market/tradingview/ohlcv') {
             $url = $url . '?' . $this->urlencode($query);
-        } elseif ($params['symbol'] !== null) {
-            $url = $url . '/' . $params['symbol'];
+        } elseif ($symbol !== null) {
+            $url = $url . '/' . $symbol;
         }
         $headers = array( 'Content-Type' => 'application/json' );
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

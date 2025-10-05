@@ -39,6 +39,7 @@ ccxt/bitso.py
 ccxt/bitstamp.py
 ccxt/bitteam.py
 ccxt/bittrade.py
+ccxt/bitunix.py
 ccxt/bitvavo.py
 ccxt/blockchaincom.py
 ccxt/blofin.py
@@ -175,6 +176,7 @@ ccxt/abstract/bitso.py
 ccxt/abstract/bitstamp.py
 ccxt/abstract/bitteam.py
 ccxt/abstract/bittrade.py
+ccxt/abstract/bitunix.py
 ccxt/abstract/bitvavo.py
 ccxt/abstract/blockchaincom.py
 ccxt/abstract/blofin.py
@@ -311,6 +313,7 @@ ccxt/async_support/bitso.py
 ccxt/async_support/bitstamp.py
 ccxt/async_support/bitteam.py
 ccxt/async_support/bittrade.py
+ccxt/async_support/bitunix.py
 ccxt/async_support/bitvavo.py
 ccxt/async_support/blockchaincom.py
 ccxt/async_support/blofin.py

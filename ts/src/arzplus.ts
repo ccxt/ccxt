@@ -257,6 +257,9 @@ export default class arzplus extends Exchange {
             const request = {
                 'symbol': response[i]['name'],
             };
+            if (i === 10) {
+                await this.delay (3000);
+            }
             const assetDetails = await this.publicGetApiV1MarketSymbols (request);
             const ticker = this.parseTicker (assetDetails);
             const symbol = ticker['symbol'];
@@ -425,16 +428,25 @@ export default class arzplus extends Exchange {
         return this.parseOrderBook (orderBook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
+    delay (ms: number) {
+        const start = Date.now ();
+        while (Date.now () - start < ms) {
+            continue;
+        }
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['public'] + '/' + path;
-        if (params['stats'] !== undefined) {
+        const symbol = this.safeString (params, 'symbol');
+        const stats = this.safeValue (params, 'stats');
+        if (stats !== undefined) {
             url = url + '?' + this.urlencode (query);
         }
         if (path === 'api/v1/market/tradingview/ohlcv') {
             url = url + '?' + this.urlencode (query);
-        } else if (params['symbol'] !== undefined) {
-            url = url + '/' + params['symbol'];
+        } else if (symbol !== undefined) {
+            url = url + '/' + symbol;
         }
         headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
