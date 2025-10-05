@@ -6413,7 +6413,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [coincatch](/exchanges/coincatch.md#coincatchunwatchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#cryptocomunwatchohlcv)
 * [defx](/exchanges/defx.md#defxunwatchohlcv)
-* [binance](/exchanges/binance.md#binanceunwatchohlcv)
+* [htx](/exchanges/htx.md#htxunwatchohlcv)
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidunwatchohlcv)
 * [kucoin](/exchanges/kucoin.md#kucoinunwatchohlcv)
 * [mexc](/exchanges/mexc.md#mexcunwatchohlcv)

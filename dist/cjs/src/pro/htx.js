@@ -341,7 +341,7 @@ class htx extends htx$1["default"] {
     }
     /**
      * @method
-     * @name binance#unWatchOHLCV
+     * @name htx#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53241-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c3346a-77ae-11ed-9966-0242ac110003
