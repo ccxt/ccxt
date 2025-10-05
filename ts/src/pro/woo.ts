@@ -111,6 +111,11 @@ export default class woo extends wooRest {
             'subMessageHashes': [ subHash ],
             'unsubMessageHashes': [ unsubHash ],
         };
+        const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
+        if (symbolsAndTimeframes !== undefined) {
+            subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
+            params = this.omit (params, 'symbolsAndTimeframes');
+        }
         return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
     }
 
@@ -605,7 +610,7 @@ export default class woo extends wooRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-        /**
+    /**
      * @method
      * @name woo#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -616,15 +621,16 @@ export default class woo extends wooRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-        async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
-            await this.loadMarkets ();
-            const market = this.market (symbol);
-            const interval = this.safeString (this.timeframes, timeframe, timeframe);
-            const topic = 'ohlcv';
-            const name = 'kline';
-            const subHash = market['id'] + '@' + name + '_' + interval;
-            return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
-        }
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const topic = 'ohlcv';
+        const name = 'kline';
+        const subHash = market['id'] + '@' + name + '_' + interval;
+        params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
+        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+    }
 
     handleOHLCV (client: Client, message) {
         //
@@ -699,7 +705,7 @@ export default class woo extends wooRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-        /**
+    /**
      * @method
      * @name woo#unWatchTrades
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -708,13 +714,13 @@ export default class woo extends wooRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-        async unWatchTrades (symbol: string, params = {}): Promise<any> {
-            await this.loadMarkets ();
-            const market = this.market (symbol);
-            const topic = 'trades';
-            const subHash = market['id'] + '@trade';
-            return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
-        }
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = 'trades';
+        const subHash = market['id'] + '@trade';
+        return await this.unwatchPublic (subHash, [ market['symbol'] ], topic, params);
+    }
 
     handleTrade (client: Client, message) {
         //
@@ -1418,11 +1424,11 @@ export default class woo extends wooRest {
 
     async test () {
         await this.loadMarkets ();
-        await this.watchTrades ('ETH/USDT');
+        await this.watchOHLCV ('ETH/USDT', '1m');
         await this.sleep (1000);
         console.log ('cache after subscribe <--------------------------------------');
         console.log (this.ohlcvs);
-        await this.unWatchTrades ('ETH/USDT');
+        await this.unWatchOHLCV ('ETH/USDT', '1m');
         await this.sleep (1000);
         console.log ('cache after unsubscribe <--------------------------------------');
         console.log (this.ohlcvs);
