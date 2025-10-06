@@ -2869,6 +2869,7 @@ If you want to stay on top of the second-order data latency, then you will have 
 
 As noted in above paragraph, users can build candles manually using `buildOHLCV / build_ohlcv` method. You can see an example file named "build-ohlcv-bars" inside [examples folder](https://github.com/ccxt/ccxt/tree/master/examples). 
 Notes:
+- This method expects the provided trades to be chronologically sorted (newest trade to be the last in array)
 - Due to some possible mistakes inside trade entries (coming from `watch_ohlcv` or other sources) inside `build_ohlcv` method we skip trades that has `0` price, to avoid distorted `low` value for a candle. However, if you don't want to skip such trade items, set an option: 
 
 ```
