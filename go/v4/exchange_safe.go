@@ -223,7 +223,12 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 			return ob.GetValue(keys[0].(string), defVal)
 		}
 		if obs, ok := obj.(IOrderBookSide); ok { // TODO: should takes keys and not keys[0]
-			return obs.GetValue(keys[0].(string), defVal)
+			switch keys[0].(type) {
+			case string:
+				return obs.GetValue(keys[0].(string), defVal)
+			case int:
+				return obs.GetData()[keys[0].(int)]
+			}
 		}
 		return defVal
 	}
