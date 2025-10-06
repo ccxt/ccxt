@@ -247,8 +247,6 @@ class arzplus(Exchange, ImplicitAPI):
             request = {
                 'symbol': response[i]['name'],
             }
-            if i == 10:
-                self.delay(3000)
             assetDetails = self.publicGetApiV1MarketSymbols(request)
             ticker = self.parse_ticker(assetDetails)
             symbol = ticker['symbol']
@@ -400,11 +398,6 @@ class arzplus(Exchange, ImplicitAPI):
         orderBook = self.publicGetApiV1MarketDepth(request)
         timestamp = Date.now()
         return self.parse_order_book(orderBook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
-
-    def delay(self, ms: float):
-        start = Date.now()
-        while(Date.now() - start < ms):
-            continue
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

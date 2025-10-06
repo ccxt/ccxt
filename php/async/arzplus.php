@@ -256,9 +256,6 @@ class arzplus extends Exchange {
                 $request = array(
                     'symbol' => $response[$i]['name'],
                 );
-                if ($i === 10) {
-                    Async\await($this->delay(3000));
-                }
                 $assetDetails = Async\await($this->publicGetApiV1MarketSymbols ($request));
                 $ticker = $this->parse_ticker($assetDetails);
                 $symbol = $ticker['symbol'];
@@ -426,13 +423,6 @@ class arzplus extends Exchange {
             $timestamp = Date.now ();
             return $this->parse_order_book($orderBook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
         }) ();
-    }
-
-    public function delay(float $ms) {
-        $start = Date.now ();
-        while (Date.now () - $start < $ms) {
-            continue;
-        }
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
