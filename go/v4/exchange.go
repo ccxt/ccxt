@@ -1443,17 +1443,17 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	future := client.NewFuture(messageHash)
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
-	client.SubscriptionsMu.Lock()
-	clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
-	if clientSubscription == nil {
-		if subscription != nil {
-			client.Subscriptions[subscribeHash.(string)] = subscription
-		} else {
-			// client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
-			client.Subscriptions[subscribeHash.(string)] = true
-		}
-	}
-	client.SubscriptionsMu.Unlock()
+    client.SubscriptionsMu.Lock()
+    clientSubscription := SafeValue(client.Subscriptions, subscribeHash, nil)
+    if clientSubscription == nil {
+        if subscription != nil {
+            client.Subscriptions[subscribeHash.(string)] = subscription
+        } else {
+            // client.Subscriptions[subscribeHash.(string)] = make(chan interface{})
+            client.Subscriptions[subscribeHash.(string)] = true
+        }
+    }
+    client.SubscriptionsMu.Unlock()
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1494,10 +1494,12 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 							}
 						}
 					}
-					sendFutureChannel := <-client.Send(message)
+                    sendFutureChannel := <-client.Send(message)
 					if err, ok := sendFutureChannel.(error); ok {
 						client.OnError(err)
-						// ? delete(client.Subscriptions, subscribeHash.(string))
+                        client.SubscriptionsMu.Lock()
+                        delete(client.Subscriptions, subscribeHash.(string))
+                        client.SubscriptionsMu.Unlock()
 					}
 				}
 			}
@@ -1752,8 +1754,8 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	// read and write subscription, this is done before connecting the client
 	// to avoid race conditions when other parts of the code read or write to the client.subscriptions
 	missingSubscriptions := []string{}
-	client.SubscriptionsMu.Lock()
-	if subscribeHashes != nil {
+    client.SubscriptionsMu.Lock()
+    if subscribeHashes != nil {
 		// Handle both []string and []interface{} for subscribeHashes
 		var subscribeHashesList []interface{}
 		if hashes, ok := subscribeHashes.([]string); ok {
@@ -1767,7 +1769,7 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 
 		for _, subscribeHash := range subscribeHashesList {
 			if hashStr, ok := subscribeHash.(string); ok {
-				if _, exists := client.Subscriptions[hashStr]; !exists {
+                if _, exists := client.Subscriptions[hashStr]; !exists {
 					missingSubscriptions = append(missingSubscriptions, hashStr)
 					if subscription != nil {
 						client.Subscriptions[hashStr] = subscription
@@ -1777,8 +1779,8 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 				}
 			}
 		}
-	}
-	client.SubscriptionsMu.Unlock()
+    }
+    client.SubscriptionsMu.Unlock()
 	// we intentionally do not use await here to avoid unhandled exceptions
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
@@ -1822,11 +1824,13 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 							}
 						}
 					}
-					sendFutureChannel := <-client.Send(message)
+                    sendFutureChannel := <-client.Send(message)
 					if err, ok := sendFutureChannel.(error); ok {
-						for _, subscribeHash := range missingSubscriptions {
-							delete(client.Subscriptions, subscribeHash)
-						}
+                        client.SubscriptionsMu.Lock()
+                        for _, subscribeHash := range missingSubscriptions {
+                            delete(client.Subscriptions, subscribeHash)
+                        }
+                        client.SubscriptionsMu.Unlock()
 						future.Reject(err)
 					}
 				}

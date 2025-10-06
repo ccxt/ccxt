@@ -1186,11 +1186,15 @@ func InOp(dict interface{}, key interface{}) bool {
 		return false
 	}
 
-	switch v := dict.(type) {
-	case map[string]interface{}:
-		if _, ok := v[key.(string)]; ok {
-			return true
-		}
+    switch v := dict.(type) {
+    case map[string]interface{}:
+        // serialize map read to avoid concurrent read/write with AddElementToObject
+        addElementMu.Lock()
+        _, ok := v[key.(string)]
+        addElementMu.Unlock()
+        if ok {
+            return true
+        }
 	case *sync.Map:
 		if v == nil {
 			return false
@@ -1200,30 +1204,42 @@ func InOp(dict interface{}, key interface{}) bool {
 				return true
 			}
 		}
-	case map[string]map[string]*ArrayCacheByTimestamp:
-		if keyStr, ok := key.(string); ok {
-			if _, ok := v[keyStr]; ok {
-				return true
-			}
-		}
-	case map[string]*ArrayCacheByTimestamp:
-		if keyStr, ok := key.(string); ok {
-			if _, ok := v[keyStr]; ok {
-				return true
-			}
-		}
-	case map[string]*ArrayCache:
-		if keyStr, ok := key.(string); ok {
-			if _, ok := v[keyStr]; ok {
-				return true
-			}
-		}
-	case map[string]*ArrayCacheBySymbolBySide:
-		if keyStr, ok := key.(string); ok {
-			if _, ok := v[keyStr]; ok {
-				return true
-			}
-		}
+    case map[string]map[string]*ArrayCacheByTimestamp:
+        if keyStr, ok2 := key.(string); ok2 {
+            addElementMu.Lock()
+            _, ok3 := v[keyStr]
+            addElementMu.Unlock()
+            if ok3 {
+                return true
+            }
+        }
+    case map[string]*ArrayCacheByTimestamp:
+        if keyStr, ok2 := key.(string); ok2 {
+            addElementMu.Lock()
+            _, ok3 := v[keyStr]
+            addElementMu.Unlock()
+            if ok3 {
+                return true
+            }
+        }
+    case map[string]*ArrayCache:
+        if keyStr, ok2 := key.(string); ok2 {
+            addElementMu.Lock()
+            _, ok3 := v[keyStr]
+            addElementMu.Unlock()
+            if ok3 {
+                return true
+            }
+        }
+    case map[string]*ArrayCacheBySymbolBySide:
+        if keyStr, ok2 := key.(string); ok2 {
+            addElementMu.Lock()
+            _, ok3 := v[keyStr]
+            addElementMu.Unlock()
+            if ok3 {
+                return true
+            }
+        }
 	}
 
 	return false
