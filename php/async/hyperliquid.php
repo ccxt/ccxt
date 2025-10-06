@@ -3666,6 +3666,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
              * @param {string} [$params->subAccountAddress] sub account user address
+             * @param {string} [$params->vaultAddress] vault address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -3701,7 +3702,23 @@ class hyperliquid extends Exchange {
             // )
             //
             $records = $this->extract_type_from_delta($response);
-            $deposits = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
+            $vaultAddress = null;
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $deposits = array();
+            if ($vaultAddress !== null) {
+                for ($i = 0; $i < count($records); $i++) {
+                    $record = $records[$i];
+                    if ($record['type'] === 'vaultDeposit') {
+                        $delta = $this->safe_dict($record, 'delta');
+                        if ($delta['vault'] === '0x' . $vaultAddress) {
+                            $deposits[] = $record;
+                        }
+                    }
+                }
+            } else {
+                $deposits = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
+            }
             return $this->parse_transactions($deposits, null, $since, $limit);
         }) ();
     }
@@ -3716,6 +3733,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $withdrawals for
              * @param {string} [$params->subAccountAddress] sub account user address
+             * @param {string} [$params->vaultAddress] vault address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -3748,7 +3766,23 @@ class hyperliquid extends Exchange {
             // )
             //
             $records = $this->extract_type_from_delta($response);
-            $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
+            $vaultAddress = null;
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $withdrawals = array();
+            if ($vaultAddress !== null) {
+                for ($i = 0; $i < count($records); $i++) {
+                    $record = $records[$i];
+                    if ($record['type'] === 'vaultWithdraw') {
+                        $delta = $this->safe_dict($record, 'delta');
+                        if ($delta['vault'] === '0x' . $vaultAddress) {
+                            $withdrawals[] = $record;
+                        }
+                    }
+                }
+            } else {
+                $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
+            }
             return $this->parse_transactions($withdrawals, null, $since, $limit);
         }) ();
     }
