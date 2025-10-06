@@ -4,9 +4,8 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
-var utils = require('./utils.cjs');
-var formats = require('./formats.cjs');
+import * as utils from './utils.js';
+import defaultFormat, { formatters } from './formats.js';
 var has = Object.prototype.hasOwnProperty;
 var arrayPrefixGenerators = {
     brackets: function brackets(prefix) {
@@ -35,7 +34,7 @@ var defaults = {
     encode: true,
     encoder: utils.encode,
     encodeValuesOnly: false,
-    formatter: formats.formatters[formats['default']],
+    formatter: formatters[defaultFormat],
     // deprecated
     indices: false,
     serializeDate: function serializeDate(date) {
@@ -106,14 +105,14 @@ var normalizeStringifyOptions = function normalizeStringifyOptions(opts) {
     if (typeof opts.charset !== 'undefined' && opts.charset !== 'utf-8' && opts.charset !== 'iso-8859-1') {
         throw new TypeError('The charset option must be either utf-8, iso-8859-1, or undefined');
     }
-    var format = formats['default'];
+    var format = defaultFormat;
     if (typeof opts.format !== 'undefined') {
-        if (!has.call(formats.formatters, opts.format)) {
+        if (!has.call(formatters, opts.format)) {
             throw new TypeError('Unknown format option provided.');
         }
         format = opts.format;
     }
-    var formatter = formats.formatters[format];
+    var formatter = formatters[format];
     var filter = defaults.filter;
     if (typeof opts.filter === 'function' || isArray(opts.filter)) {
         filter = opts.filter;
@@ -135,7 +134,7 @@ var normalizeStringifyOptions = function normalizeStringifyOptions(opts) {
         strictNullHandling: typeof opts.strictNullHandling === 'boolean' ? opts.strictNullHandling : defaults.strictNullHandling
     };
 };
-module.exports = function (object, opts) {
+export default function (object, opts) {
     var obj = object;
     var options = normalizeStringifyOptions(opts);
     var objKeys;
@@ -189,4 +188,4 @@ module.exports = function (object, opts) {
         }
     }
     return joined.length > 0 ? prefix + joined : '';
-};
+}

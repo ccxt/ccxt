@@ -3467,10 +3467,16 @@ class okx(Exchange, ImplicitAPI):
                     })
         else:
             for i in range(0, len(clientOrderIds)):
-                request.append({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                })
+                if trailing or trigger:
+                    request.append({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    })
+                else:
+                    request.append({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    })
         response = None
         if method == 'privatePostTradeCancelAlgos':
             response = self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
@@ -3541,7 +3547,10 @@ class okx(Exchange, ImplicitAPI):
             if isStopOrTrailing:
                 idKey = 'algoId'
             elif clientOrderId is not None:
-                idKey = 'clOrdId'
+                if isStopOrTrailing:
+                    idKey = 'algoClOrdId'
+                else:
+                    idKey = 'clOrdId'
             requestItem: dict = {
                 'instId': market['id'],
             }

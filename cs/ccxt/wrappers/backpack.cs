@@ -531,7 +531,7 @@ public partial class backpack
     /// <item>
     /// <term>params.selfTradePrevention</term>
     /// <description>
-    /// string : 'RejectTaker', 'RejectMaker' or 'RejectBoth'
+    /// string : one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
     /// </description>
     /// </item>
     /// <item>

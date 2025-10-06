@@ -4,8 +4,7 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
-var utils = require('./utils.cjs');
+import * as utils from './utils.js';
 var has = Object.prototype.hasOwnProperty;
 var defaults = {
     allowDots: false,
@@ -190,7 +189,7 @@ var normalizeParseOptions = function normalizeParseOptions(opts) {
         strictNullHandling: typeof opts.strictNullHandling === 'boolean' ? opts.strictNullHandling : defaults.strictNullHandling
     };
 };
-module.exports = function (str, opts) {
+export default function (str, opts) {
     var options = normalizeParseOptions(opts);
     if (str === '' || str === null || typeof str === 'undefined') {
         return options.plainObjects ? Object.create(null) : {};
@@ -205,4 +204,4 @@ module.exports = function (str, opts) {
         obj = utils.merge(obj, newObj, options);
     }
     return utils.compact(obj);
-};
+}

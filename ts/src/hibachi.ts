@@ -68,7 +68,7 @@ export default class hibachi extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -188,6 +188,7 @@ export default class hibachi extends Exchange {
                     'taker': this.parseNumber ('0.00045'),
                 },
             },
+            'currencies': this.hardcodedCurrencies (),
             'options': {
             },
             'features': {
@@ -378,15 +379,7 @@ export default class hibachi extends Exchange {
         return this.parseMarkets (rows);
     }
 
-    /**
-     * @method
-     * @name hibachi#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    hardcodedCurrencies (): Currencies {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         const result: Dict = {};

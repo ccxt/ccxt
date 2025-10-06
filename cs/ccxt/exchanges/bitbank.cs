@@ -40,6 +40,7 @@ public partial class bitbank : Exchange
                 { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },

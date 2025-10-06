@@ -2717,7 +2717,15 @@ class htx(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
+        # htx's multi-market trade-id is a bit complex to parse accordingly.
+        # - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2(self happens mostly for contract markets)
+        # - otherwise the least priority is given to the `id` key
+        id: Str = None
+        safeId = self.safe_string(trade, 'id')
+        if safeId is not None and safeId.find('-') >= 0:
+            id = safeId
+        else:
+            id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,

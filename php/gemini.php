@@ -667,9 +667,9 @@ class gemini extends Exchange {
                 $indexedTradingPairs = $this->index_by($tradingPairs, 0);
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
-                    $tradingPair = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
-                    if ($tradingPair !== null && !$this->in_array($tradingPair, $brokenPairs)) {
-                        $result[] = $this->parse_market($tradingPair);
+                    $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
+                    if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
+                        $result[] = $this->parse_market($pairInfo);
                     }
                 }
             } else {

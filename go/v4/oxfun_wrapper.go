@@ -794,7 +794,7 @@ func (this *Oxfun) FetchPositions(options ...FetchPositionsOptions) ([]Position,
  * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
- * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+ * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
  * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */

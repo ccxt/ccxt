@@ -1449,10 +1449,10 @@ class binance(Exchange, ImplicitAPI):
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
                         'selfTradePrevention': {
-                            'expire_maker': True,
-                            'expire_taker': True,
-                            'expire_both': True,
-                            'none': True,
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': True,
                         },
                         'trailing': False,  # todo: self is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
                         'icebergAmount': True,
@@ -1523,7 +1523,7 @@ class binance(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         # exchange-supported features
-                        'selfTradePrevention': True,  # todo
+                        'selfTradePrevention': True,
                         'trailing': True,
                         'iceberg': False,
                         'leverage': False,
@@ -3303,7 +3303,7 @@ class binance(Exchange, ImplicitAPI):
         #                 "expiryDate": 1677225600000,
         #                 "filters": [
         #                     {"filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"},
-        #                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01"}
+        #                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01"}
         #                 ],
         #                 "id": 2474,
         #                 "symbol": "ETH-230224-800-C",
@@ -6069,7 +6069,7 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
-        :param str [params.selfTradePrevention]: set unified value for stp(see .features for available values)
+        :param str [params.selfTradePrevention]: set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
         :param float [params.icebergAmount]: set iceberg amount for limit orders
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
@@ -6384,7 +6384,8 @@ class binance(Exchange, ImplicitAPI):
                 side = 'sell' if (side == 'buy') else 'buy'
             request['positionSide'] = 'LONG' if (side == 'buy') else 'SHORT'
         # unified stp
-        selfTradePrevention = self.safe_string(params, 'selfTradePrevention')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if market['spot']:
                 request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums(but needs uppercase)
@@ -6393,7 +6394,7 @@ class binance(Exchange, ImplicitAPI):
         if icebergAmount is not None:
             if market['spot']:
                 request['icebergQty'] = self.amount_to_precision(symbol, icebergAmount)
-        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount'])
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount'])
         return self.extend(request, requestParams)
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
@@ -11257,6 +11258,8 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papi' and path != 'ping'):
             self.check_required_credentials()
+            if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning')):
+                raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')

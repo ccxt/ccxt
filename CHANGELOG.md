@@ -1,3 +1,33 @@
+<a id="v4.5.7"></a>
+# [v4.5.7](https://github.com/ccxt/ccxt/releases/tag/v4.5.7) - 2025-10-01
+
+## What's Changed
+* fix(kraken): withdraw address is optional ([#26895](https://github.com/ccxt/ccxt/issues/26895)) by [@ron7684](https://github.com/ron7684) in [#26914](https://github.com/ccxt/ccxt/pull/26914)
+* feat(okx): cancelOrders, add new algoClOrdId support by [@Dan-krm](https://github.com/Dan-krm) in [#26921](https://github.com/ccxt/ccxt/pull/26921)
+* fix(apex): watchTrades order by [@ttodua](https://github.com/ttodua) in [#26920](https://github.com/ccxt/ccxt/pull/26920)
+* fix(digifinex): chain id for coin by [@ttodua](https://github.com/ttodua) in [#26919](https://github.com/ccxt/ccxt/pull/26919)
+* fix(fetchCurrencies): false by [@ttodua](https://github.com/ttodua) in [#26918](https://github.com/ccxt/ccxt/pull/26918)
+* fix(deribit): add size and unrpnl to position by [@carlosmiei](https://github.com/carlosmiei) in [#26915](https://github.com/ccxt/ccxt/pull/26915)
+* fix(indodax): market id in methods ^ by [@ttodua](https://github.com/ttodua) in [#26887](https://github.com/ccxt/ccxt/pull/26887)
+* fix(gemini): fetchMarkets inarray fix by [@ttodua](https://github.com/ttodua) in [#26929](https://github.com/ccxt/ccxt/pull/26929)
+* test(apex): sort skip by [@ttodua](https://github.com/ttodua) in [#26928](https://github.com/ccxt/ccxt/pull/26928)
+* fix(apex): fetchOHLCV by [@ttodua](https://github.com/ttodua) in [#26930](https://github.com/ccxt/ccxt/pull/26930)
+* fix(htx): fix ws trades by [@ttodua](https://github.com/ttodua) in [#26932](https://github.com/ccxt/ccxt/pull/26932)
+* Clarify symbol parameter in cancelAllOrders documentation for Kraken by [@rayBastard](https://github.com/rayBastard) in [#26933](https://github.com/ccxt/ccxt/pull/26933)
+* feat(kraken): add commonCurrencies with x and z prefixes by [@Dan-krm](https://github.com/Dan-krm) in [#26937](https://github.com/ccxt/ccxt/pull/26937)
+* fix(bitvavo): markets parsing by [@ttodua](https://github.com/ttodua) in [#26935](https://github.com/ccxt/ccxt/pull/26935)
+* gate - `taker/maker` rate removal from fetchMarkets by [@ttodua](https://github.com/ttodua) in [#14271](https://github.com/ccxt/ccxt/pull/14271)
+* fix(mexc): upgrade fetchTransfers to v3 by [@carlosmiei](https://github.com/carlosmiei) in [#26936](https://github.com/ccxt/ccxt/pull/26936)
+* feat(Bingx): add unWatch methods by [@yzh-pelle](https://github.com/yzh-pelle) in [#26931](https://github.com/ccxt/ccxt/pull/26931)
+* fix(binance): throw error for futures+sandbox access by [@carlosmiei](https://github.com/carlosmiei) in [#26941](https://github.com/ccxt/ccxt/pull/26941)
+* fix(backpack): watchOrderBook nonce handling by [@carlosmiei](https://github.com/carlosmiei) in [#26943](https://github.com/ccxt/ccxt/pull/26943)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.6...v4.5.7
+
+[Changes][v4.5.7]
+
+
 <a id="v4.5.6"></a>
 # [v4.5.6](https://github.com/ccxt/ccxt/releases/tag/v4.5.6) - 2025-09-26
 
@@ -10448,6 +10478,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.7]: https://github.com/ccxt/ccxt/compare/v4.5.6...v4.5.7
 [v4.5.6]: https://github.com/ccxt/ccxt/compare/v4.5.5...v4.5.6
 [v4.5.5]: https://github.com/ccxt/ccxt/compare/v4.5.4...v4.5.5
 [v4.5.4]: https://github.com/ccxt/ccxt/compare/v4.5.3...v4.5.4

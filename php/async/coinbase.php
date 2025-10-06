@@ -2995,7 +2995,7 @@ class coinbase extends Exchange {
                 }
                 $accountId = Async\await($this->find_account_id($code, $params));
                 if ($accountId === null) {
-                    throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code);
+                    throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code . '. You might try to generate the deposit address in the website for that coin first.');
                 }
             }
             $request = array(

@@ -724,9 +724,9 @@ func (this *gemini) FetchMarketsFromAPI(optionalArgs ...interface{}) <-chan inte
 				var indexedTradingPairs interface{} = this.IndexBy(tradingPairs, 0)
 				for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 					var marketId interface{} = GetValue(marketIds, i)
-					var tradingPair interface{} = this.SafeList(indexedTradingPairs, ToUpper(marketId))
-					if IsTrue(IsTrue(!IsEqual(tradingPair, nil)) && !IsTrue(this.InArray(tradingPair, brokenPairs))) {
-						AppendToArray(&result, this.ParseMarket(tradingPair))
+					var pairInfo interface{} = this.SafeList(indexedTradingPairs, ToUpper(marketId))
+					if IsTrue(IsTrue(!IsEqual(pairInfo, nil)) && !IsTrue(this.InArray(marketId, brokenPairs))) {
+						AppendToArray(&result, this.ParseMarket(pairInfo))
 					}
 				}
 			} else {

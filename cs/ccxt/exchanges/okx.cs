@@ -3774,10 +3774,19 @@ public partial class okx : Exchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
             {
-                ((IList<object>)request).Add(new Dictionary<string, object>() {
-                    { "instId", getValue(market, "id") },
-                    { "clOrdId", getValue(clientOrderIds, i) },
-                });
+                if (isTrue(isTrue(trailing) || isTrue(trigger)))
+                {
+                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                        { "instId", getValue(market, "id") },
+                        { "algoClOrdId", getValue(clientOrderIds, i) },
+                    });
+                } else
+                {
+                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                        { "instId", getValue(market, "id") },
+                        { "clOrdId", getValue(clientOrderIds, i) },
+                    });
+                }
             }
         }
         object response = null;
@@ -3861,7 +3870,13 @@ public partial class okx : Exchange
                 idKey = "algoId";
             } else if (isTrue(!isEqual(clientOrderId, null)))
             {
-                idKey = "clOrdId";
+                if (isTrue(isStopOrTrailing))
+                {
+                    idKey = "algoClOrdId";
+                } else
+                {
+                    idKey = "clOrdId";
+                }
             }
             object requestItem = new Dictionary<string, object>() {
                 { "instId", getValue(market, "id") },

@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-'use strict';
 var has = Object.prototype.hasOwnProperty;
 var isArray = Array.isArray;
 var hexTable = (function () {
@@ -189,14 +188,4 @@ var isBuffer = function isBuffer(obj) {
 var combine = function combine(a, b) {
     return [].concat(a, b);
 };
-module.exports = {
-    arrayToObject: arrayToObject,
-    assign: assign,
-    combine: combine,
-    compact: compact,
-    decode: decode,
-    encode: encode,
-    isBuffer: isBuffer,
-    isRegExp: isRegExp,
-    merge: merge
-};
+export { arrayToObject, assign, combine, compact, decode, encode, isBuffer, isRegExp, merge };
