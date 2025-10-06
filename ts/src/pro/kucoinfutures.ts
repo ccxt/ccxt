@@ -62,7 +62,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 },
                 'tradesLimit': 1000,
                 'watchOrderBook': {
-                    'snapshotDelay': 20,
+                    'snapshotDelay': 40,
                     'snapshotMaxRetries': 3,
                 },
                 'watchPosition': {
@@ -937,6 +937,15 @@ export default class kucoinfutures extends kucoinfuturesRest {
             return;
         }
         this.handleDelta (storedOrderBook, data);
+        // crossed-book guard: avoid emitting transient crossed top-of-book during catch-up
+        const bids = storedOrderBook['bids'];
+        const asks = storedOrderBook['asks'];
+        const bestBid = (bids && bids.length > 0) ? this.safeNumber (bids[0], 0) : undefined;
+        const bestAsk = (asks && asks.length > 0) ? this.safeNumber (asks[0], 0) : undefined;
+        if ((bestBid !== undefined) && (bestAsk !== undefined) && (bestBid >= bestAsk)) {
+            // wait for next delta/snapshot to restore consistency
+            return;
+        }
         client.resolve (storedOrderBook, messageHash);
     }
 
