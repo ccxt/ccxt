@@ -778,7 +778,11 @@ class NewTranspiler {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
         if (name.startsWith('watchOrderBook')) {
-            return `IOrderBook`;
+            // if (isReturn) {
+            //     return `NewOrderBookFromWs`
+            // }
+             return `OrderBook`;
+
         }
 
         if (name === 'fetchTime'){
@@ -1005,6 +1009,10 @@ class NewTranspiler {
         // custom handling for now
         if (methodName === 'fetchTime'){
             return `(res).(int64)`;
+        }
+
+        if (methodName.startsWith('watchOrderBook')) {
+            return `NewOrderBookFromWs(res)`;
         }
 
         if (methodName === 'fetchDepositWithdrawFees' || methodName === 'fetchDepositWithdrawFee') {
