@@ -3553,6 +3553,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3589,7 +3590,24 @@ export default class hyperliquid extends Exchange {
         // ]
         //
         const records = this.extractTypeFromDelta(response);
-        const deposits = this.filterByArray(records, 'type', ['deposit'], false);
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        let deposits = [];
+        if (vaultAddress !== undefined) {
+            for (let i = 0; i < records.length; i++) {
+                const record = records[i];
+                if (record['type'] === 'vaultDeposit') {
+                    const delta = this.safeDict(record, 'delta');
+                    if (delta['vault'] === '0x' + vaultAddress) {
+                        deposits.push(record);
+                    }
+                }
+            }
+        }
+        else {
+            deposits = this.filterByArray(records, 'type', ['deposit'], false);
+        }
         return this.parseTransactions(deposits, undefined, since, limit);
     }
     /**
@@ -3602,6 +3620,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3635,7 +3654,24 @@ export default class hyperliquid extends Exchange {
         // ]
         //
         const records = this.extractTypeFromDelta(response);
-        const withdrawals = this.filterByArray(records, 'type', ['withdraw'], false);
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'fetchDepositsWithdrawals', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        let withdrawals = [];
+        if (vaultAddress !== undefined) {
+            for (let i = 0; i < records.length; i++) {
+                const record = records[i];
+                if (record['type'] === 'vaultWithdraw') {
+                    const delta = this.safeDict(record, 'delta');
+                    if (delta['vault'] === '0x' + vaultAddress) {
+                        withdrawals.push(record);
+                    }
+                }
+            }
+        }
+        else {
+            withdrawals = this.filterByArray(records, 'type', ['withdraw'], false);
+        }
         return this.parseTransactions(withdrawals, undefined, since, limit);
     }
     /**

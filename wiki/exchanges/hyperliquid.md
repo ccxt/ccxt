@@ -1061,6 +1061,7 @@ fetch all deposits made to an account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch withdrawals for |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.vaultAddress | <code>string</code> | No | vault address |
 
 
 ```javascript
@@ -1085,6 +1086,7 @@ fetch all withdrawals made from an account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch withdrawals for |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.vaultAddress | <code>string</code> | No | vault address |
 
 
 ```javascript
