@@ -1010,6 +1010,7 @@ export default class bybit extends bybitRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        orderbook['symbol'] = symbol;
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             orderbook.reset (snapshot);
