@@ -104,6 +104,7 @@ export default class kucoinfutures extends kucoin {
                 'fetchWithdrawals': true,
                 'setLeverage': false,
                 'setMarginMode': true,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': undefined,
             },
@@ -198,6 +199,7 @@ export default class kucoinfutures extends kucoin {
                         'sub/api-key/update': 1,
                         'changeCrossUserLeverage': 1,
                         'position/changeMarginMode': 1,
+                        'position/switchPositionMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -342,6 +344,7 @@ export default class kucoinfutures extends kucoin {
                             'transfer-out': 'v2',
                             'changeCrossUserLeverage': 'v2',
                             'position/changeMarginMode': 'v2',
+                            'position/switchPositionMode': 'v2',
                         },
                     },
                     'futuresPublic': {
@@ -559,7 +562,7 @@ export default class kucoinfutures extends kucoin {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const expiry = this.safeInteger (market, 'expireDate');
-            const future = expiry ? true : false;
+            const future = this.safeString (market, 'nextFundingRateTime') === undefined;
             const swap = !future;
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
@@ -1545,6 +1548,7 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'isolated'
+     * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1554,7 +1558,8 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.stopPriceType] exchange-specific alternative for triggerPriceType: TP, IP or MP
      * @param {bool} [params.closeOrder] set to true to close position
      * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
-     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+     * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+     * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1733,7 +1738,22 @@ export default class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        let hedged = undefined;
+        [ hedged, params ] = this.handleParamBool (params, 'hedged', false);
+        if (reduceOnly) {
+            request['reduceOnly'] = reduceOnly;
+            if (hedged) {
+                const reduceOnlyPosSide = (side === 'sell') ? 'LONG' : 'SHORT';
+                request['positionSide'] = reduceOnlyPosSide;
+            }
+        } else {
+            if (hedged) {
+                const posSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                request['positionSide'] = posSide;
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         return this.extend (request, params);
     }
 
@@ -3326,6 +3346,34 @@ export default class kucoinfutures extends kucoin {
         //
         const data = this.safeDict (response, 'data', {});
         return this.parseMarginMode (data, market) as any;
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.kucoin.com/docs-new/3475097e0
+     * @param {bool} hedged set to true to use two way position
+     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const posMode = hedged ? '1' : '0';
+        const request: Dict = {
+            'positionMode': posMode,
+        };
+        const response = await this.futuresPrivatePostPositionSwitchPositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "positionMode": 1
+        //         }
+        //     }
+        //
+        return response;
     }
 
     /**

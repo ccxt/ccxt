@@ -50,6 +50,7 @@ export default class bithumb extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -263,6 +264,14 @@ export default class bithumb extends Exchange {
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
+                            },
+                        },
+                    },
+                    'USDT': {
+                        'limits': {
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
                             },
                         },
                     },

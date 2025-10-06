@@ -37,22 +37,6 @@ func (this *Hibachi) FetchMarkets(params ...interface{}) ([]MarketInterface, err
 
 /**
  * @method
- * @name hibachi#fetchCurrencies
- * @description fetches all available currencies on an exchange
- * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an associative dictionary of currencies
- */
-func (this *Hibachi) FetchCurrencies(params ...interface{}) (Currencies, error) {
-	res := <-this.Core.FetchCurrencies(params...)
-	if IsError(res) {
-		return Currencies{}, CreateReturnError(res)
-	}
-	return NewCurrencies(res), nil
-}
-
-/**
- * @method
  * @name hibachi#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
@@ -1064,6 +1048,9 @@ func (this *Hibachi) FetchCrossBorrowRate(code string, options ...FetchCrossBorr
 }
 func (this *Hibachi) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
+}
+func (this *Hibachi) FetchCurrencies(params ...interface{}) (Currencies, error) {
+	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Hibachi) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)

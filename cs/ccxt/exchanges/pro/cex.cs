@@ -1111,6 +1111,7 @@ public partial class cex : ccxt.cex
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(add(this.id, " watchOrderBook() skipped a message"), messageHash);
+            return;
         }
         object timestamp = this.safeInteger(data, "time");
         object asks = this.safeValue(data, "asks", new List<object>() {});

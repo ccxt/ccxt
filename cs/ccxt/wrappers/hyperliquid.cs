@@ -1305,6 +1305,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -1348,6 +1354,12 @@ public partial class hyperliquid
     /// <term>params.subAccountAddress</term>
     /// <description>
     /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
     /// </description>
     /// </item>
     /// </list>

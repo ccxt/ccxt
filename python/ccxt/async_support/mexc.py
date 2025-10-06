@@ -245,6 +245,7 @@ class mexc(Exchange, ImplicitAPI):
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
                             'selfSymbols': 1,
+                            'asset/internal/transfer/record': 10,
                         },
                         'post': {
                             'order': 1,
@@ -776,6 +777,9 @@ class mexc(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'forDerivs': {
                     'extends': 'default',
@@ -1062,7 +1066,7 @@ class mexc(Exchange, ImplicitAPI):
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
-            return None
+            return {}
         response = await self.spotPrivateGetCapitalConfigGetall(params)
         #
         # {
@@ -5027,7 +5031,7 @@ class mexc(Exchange, ImplicitAPI):
             request: dict = {
                 'transact_id': id,
             }
-            response = await self.spot2PrivateGetAssetInternalTransferInfo(self.extend(request, query))
+            response = await self.spotPrivateGetAssetInternalTransferRecord(self.extend(request, query))
             #
             #     {
             #         "code": "200",
@@ -5053,54 +5057,74 @@ class mexc(Exchange, ImplicitAPI):
 
         https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
         https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
+        https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history    :param str code: unified currency code of the currency transferred
 
-        :param str code: unified currency code of the currency transferred
+ @param code
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.fromAccountType]: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
+        :param str [params.toAccountType]: 'SPOT' for spot wallet, 'FUTURES' for contract wallet
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
-        marketType, query = self.handle_market_type_and_params('fetchTransfers', None, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTransfers', None, params)
         await self.load_markets()
         request: dict = {}
         currency = None
-        resultList = None
         if code is not None:
             currency = self.currency(code)
-            request['currency'] = currency['id']
+        fromAccountType = None
+        fromAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'fromAccountType')
+        accountTypes = {
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'futures': 'FUTURES',
+            'future': 'FUTURES',
+            'margin': 'SPOT',
+        }
+        if fromAccountType is not None:
+            request['fromAccountType'] = self.safe_string(accountTypes, fromAccountType, fromAccountType)
+        else:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a fromAccountType parameter, one of "SPOT", "FUTURES"')
+        toAccountType = None
+        toAccountType, params = self.handle_option_and_params(params, 'fetchTransfers', 'toAccountType')
+        if toAccountType is not None:
+            request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
+        else:
+            raise ArgumentsRequired(self.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"')
+        resultList = []
         if marketType == 'spot':
             if since is not None:
-                request['start_time'] = since
+                request['startTime'] = since
             if limit is not None:
-                if limit > 50:
+                if limit > 100:
                     raise ExchangeError('This exchange supports a maximum limit of 50')
-                request['page-size'] = limit
-            response = await self.spot2PrivateGetAssetInternalTransferRecord(self.extend(request, query))
+                request['size'] = limit
+            response = await self.spotPrivateGetCapitalTransfer(self.extend(request, params))
             #
-            #     {
-            #         "code": "200",
-            #         "data": {
-            #             "total_page": "1",
-            #             "total_size": "5",
-            #             "result_list": [{
-            #                     "currency": "USDT",
-            #                     "amount": "1",
-            #                     "transact_id": "954877a2ef54499db9b28a7cf9ebcf41",
-            #                     "from": "MAIN",
-            #                     "to": "CONTRACT",
-            #                     "transact_state": "SUCCESS"
-            #                 },
-            #                 ...
-            #             ]
+            #
+            # {
+            #     "rows": [
+            #         {
+            #         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+            #         "clientTranId": null,
+            #         "asset": "USDT",
+            #         "amount": "1",
+            #         "fromAccountType": "FUTURES",
+            #         "toAccountType": "SPOT",
+            #         "symbol": null,
+            #         "status": "SUCCESS",
+            #         "timestamp": 1759328309000
             #         }
-            #     }
-            #
-            data = self.safe_value(response, 'data', {})
-            resultList = self.safe_value(data, 'result_list', [])
+            #     ],
+            #     "total": 1
+            # }
+            resultList = self.safe_list(response, 'rows', [])
         elif marketType == 'swap':
             if limit is not None:
                 request['page_size'] = limit
-            response = await self.contractPrivateGetAccountTransferRecord(self.extend(request, query))
+            response = await self.contractPrivateGetAccountTransferRecord(self.extend(request, params))
             data = self.safe_value(response, 'data')
             resultList = self.safe_value(data, 'resultList')
             #
@@ -5148,10 +5172,10 @@ class mexc(Exchange, ImplicitAPI):
         accounts: dict = {
             'spot': 'SPOT',
             'swap': 'FUTURES',
-            'margin': 'ISOLATED_MARGIN',
+            'future': 'FUTURES',
         }
-        fromId = self.safe_string(accounts, fromAccount)
-        toId = self.safe_string(accounts, toAccount)
+        fromId = self.safe_string(accounts, fromAccount, fromAccount)
+        toId = self.safe_string(accounts, toAccount, toAccount)
         if fromId is None:
             keys = list(accounts.keys())
             raise ExchangeError(self.id + ' fromAccount must be one of ' + ', '.join(keys))
@@ -5209,6 +5233,17 @@ class mexc(Exchange, ImplicitAPI):
         #         "createTime": "1648849076000",
         #         "updateTime": "1648849076000"
         #     }
+        #         {
+        #         "tranId": "cdf0d2a618b5458c965baefe6b1d0859",
+        #         "clientTranId": null,
+        #         "asset": "USDT",
+        #         "amount": "1",
+        #         "fromAccountType": "FUTURES",
+        #         "toAccountType": "SPOT",
+        #         "symbol": null,
+        #         "status": "SUCCESS",
+        #         "timestamp": 1759328309000
+        #         }
         #
         # transfer
         #
@@ -5216,14 +5251,19 @@ class mexc(Exchange, ImplicitAPI):
         #         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         #     }
         #
-        currencyId = self.safe_string(transfer, 'currency')
+        currencyId = self.safe_string_2(transfer, 'currency', 'asset')
         id = self.safe_string_n(transfer, ['transact_id', 'txid', 'tranId'])
-        timestamp = self.safe_integer(transfer, 'createTime')
+        timestamp = self.safe_integer_2(transfer, 'createTime', 'timestamp')
         datetime = self.iso8601(timestamp) if (timestamp is not None) else None
         direction = self.safe_string(transfer, 'type')
         accountFrom = None
         accountTo = None
-        if direction is not None:
+        fromAccountType = self.safe_string(transfer, 'fromAccountType')
+        toAccountType = self.safe_string(transfer, 'toAccountType')
+        if (fromAccountType is not None) and (toAccountType is not None):
+            accountFrom = fromAccountType
+            accountTo = toAccountType
+        elif direction is not None:
             accountFrom = 'MAIN' if (direction == 'IN') else 'CONTRACT'
             accountTo = 'CONTRACT' if (direction == 'IN') else 'MAIN'
         else:
@@ -5238,11 +5278,13 @@ class mexc(Exchange, ImplicitAPI):
             'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': self.parse_account_id(accountFrom),
             'toAccount': self.parse_account_id(accountTo),
-            'status': self.parse_transfer_status(self.safe_string_2(transfer, 'transact_state', 'state')),
+            'status': self.parse_transfer_status(self.safe_string_n(transfer, ['transact_state', 'state', 'status'])),
         }
 
     def parse_account_id(self, status):
         statuses: dict = {
+            'SPOT': 'spot',
+            'FUTURES': 'swap',
             'MAIN': 'spot',
             'CONTRACT': 'swap',
         }

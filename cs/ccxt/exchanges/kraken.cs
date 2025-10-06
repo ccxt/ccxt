@@ -193,6 +193,23 @@ public partial class kraken : Exchange
                 { "XBT", "BTC" },
                 { "XDG", "DOGE" },
                 { "FEE", "KFEE" },
+                { "XETC", "ETC" },
+                { "XETH", "ETH" },
+                { "XLTC", "LTC" },
+                { "XMLN", "MLN" },
+                { "XREP", "REP" },
+                { "XXBT", "BTC" },
+                { "XXDG", "DOGE" },
+                { "XXLM", "XLM" },
+                { "XXMR", "XMR" },
+                { "XXRP", "XRP" },
+                { "XZEC", "ZEC" },
+                { "ZAUD", "AUD" },
+                { "ZCAD", "CAD" },
+                { "ZEUR", "EUR" },
+                { "ZGBP", "GBP" },
+                { "ZJPY", "JPY" },
+                { "ZUSD", "USD" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeDifference", 0 },
@@ -385,6 +402,7 @@ public partial class kraken : Exchange
                     { "OriginTrail", "OTP" },
                     { "Celestia", "TIA" },
                 } },
+                { "marketHelperProps", new List<object>() {"marketsByAltname", "delistedMarketsById"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -578,10 +596,12 @@ public partial class kraken : Exchange
         {
             object id = getValue(keys, i);
             object market = getValue(markets, id);
-            object baseId = this.safeString(market, "base");
-            object quoteId = this.safeString(market, "quote");
-            object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
+            object baseIdRaw = this.safeString(market, "base");
+            object quoteIdRaw = this.safeString(market, "quote");
+            object baseId = this.safeCurrencyCode(baseIdRaw);
+            object quoteId = this.safeCurrencyCode(quoteIdRaw);
+            object bs = baseId;
+            object quote = quoteId;
             object makerFees = this.safeList(market, "fees_maker", new List<object>() {});
             object firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
             object firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -2687,7 +2707,7 @@ public partial class kraken : Exchange
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -3431,7 +3451,7 @@ public partial class kraken : Exchange
      * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
+     * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
@@ -3442,7 +3462,6 @@ public partial class kraken : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        this.checkAddress(address);
         if (isTrue(inOp(parameters, "key")))
         {
             await this.loadMarkets();
@@ -3450,8 +3469,12 @@ public partial class kraken : Exchange
             object request = new Dictionary<string, object>() {
                 { "asset", getValue(currency, "id") },
                 { "amount", amount },
-                { "address", address },
             };
+            if (isTrue(isTrue(!isEqual(address, null)) && isTrue(!isEqual(address, ""))))
+            {
+                ((IDictionary<string,object>)request)["address"] = address;
+                this.checkAddress(address);
+            }
             object response = await this.privatePostWithdraw(this.extend(request, parameters));
             //
             //     {

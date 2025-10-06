@@ -2777,7 +2777,16 @@ export default class htx extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        const id = this.safeStringN (trade, [ 'trade_id', 'trade-id', 'id' ]);
+        // htx's multi-market trade-id is a bit complex to parse accordingly.
+        // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `id` key
+        let id: Str = undefined;
+        const safeId = this.safeString (trade, 'id');
+        if (safeId !== undefined && safeId.indexOf ('-') >= 0) {
+            id = safeId;
+        } else {
+            id = this.safeStringN (trade, [ 'trade_id', 'trade-id', 'id' ]);
+        }
         return this.safeTrade ({
             'id': id,
             'info': trade,

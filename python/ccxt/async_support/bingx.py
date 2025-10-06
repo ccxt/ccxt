@@ -680,6 +680,9 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 'spot': {
                     'extends': 'defaultForLinear',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'triggerPriceType': None,
                         'attachedStopLossTakeProfit': None,
@@ -751,10 +754,10 @@ class bingx(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
         if isSandbox:
-            return None
+            return {}
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {

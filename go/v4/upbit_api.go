@@ -91,6 +91,10 @@ func (this *upbit) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
+func (this *upbit) PublicGetOrderbookInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbookInstruments", args...)
+}
+
 func (this *upbit) PublicGetOrderbookSupportedLevels(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetOrderbookSupportedLevels", args...)
 }

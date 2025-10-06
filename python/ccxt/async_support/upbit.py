@@ -49,6 +49,7 @@ class upbit(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
@@ -135,7 +136,8 @@ class upbit(Exchange, ImplicitAPI):
                         'ticker': 2,
                         'ticker/all': 2,
                         'orderbook': 2,
-                        'orderbook/supported_levels': 2,  # Upbit KR only
+                        'orderbook/instruments': 2,
+                        'orderbook/supported_levels': 2,  # Upbit KR only, deprecatd
                     },
                 },
                 'private': {
@@ -204,14 +206,14 @@ class upbit(Exchange, ImplicitAPI):
                         'timeInForce': {
                             'IOC': True,
                             'FOK': True,
-                            'PO': False,
+                            'PO': True,
                             'GTD': False,
                         },
                         'hedged': False,
                         'leverage': False,
                         'marketBuyByCost': False,
                         'marketBuyRequiresPrice': False,
-                        'selfTradePrevention': False,
+                        'selfTradePrevention': True,
                         'trailing': False,
                         'iceberg': False,
                     },
@@ -618,7 +620,7 @@ class upbit(Exchange, ImplicitAPI):
 
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
         :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
-        :param int [limit]: not used by upbit fetchOrderBooks()
+        :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
         """
@@ -631,7 +633,10 @@ class upbit(Exchange, ImplicitAPI):
             ids = ','.join(ids)
         request: dict = {
             'markets': ids,
+            # 'count': limit,
         }
+        if limit is not None:
+            request['count'] = limit
         response = await self.publicGetOrderbook(self.extend(request, params))
         #
         #     [{         market:   "BTC-ETH",
@@ -1146,11 +1151,19 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount
         :param str [params.ordType]: self field can be used to place a ‘best’ type order
-        :param str [params.timeInForce]: 'IOC' or 'FOK'. only for limit or best type orders. self field is required when the order type is 'best'.
+        :param str [params.timeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
+        :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        customType = self.safe_string_2(params, 'ordType', 'ord_type')
+        postOnly = self.is_post_only(type == 'market', False, params)
+        timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
+        selfTradePrevention = self.safe_string_2(params, 'selfTradePrevention', 'smp_type')
+        if postOnly and (selfTradePrevention is not None):
+            raise ExchangeError(self.id + ' createOrder() does not support post_only and selfTradePrevention simultaneously.')
         orderSide = None
         if side == 'buy':
             orderSide = 'bid'
@@ -1161,6 +1174,7 @@ class upbit(Exchange, ImplicitAPI):
         request: dict = {
             'market': market['id'],
             'side': orderSide,
+            # 'smp_type': selfTradePrevention,
         }
         if type == 'limit':
             if price is None or amount is None:
@@ -1180,7 +1194,6 @@ class upbit(Exchange, ImplicitAPI):
                 request['volume'] = self.amount_to_precision(symbol, amount)
         else:
             raise InvalidOrder(self.id + ' createOrder() supports only limit or market types in the type argument.')
-        customType = self.safe_string_2(params, 'ordType', 'ord_type')
         if customType == 'best':
             params = self.omit(params, ['ordType', 'ord_type'])
             request['ord_type'] = 'best'
@@ -1191,18 +1204,18 @@ class upbit(Exchange, ImplicitAPI):
                 if amount is None:
                     raise ArgumentsRequired(self.id + ' the best sell type order in createOrder() is required amount.')
                 request['volume'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['identifier'] = clientOrderId
-        if request['ord_type'] != 'market' and request['ord_type'] != 'price':
-            timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
-            params = self.omit(params, ['timeInForce'])
-            if timeInForce is not None:
+        if postOnly:
+            if request['ord_type'] != 'limit':
+                raise InvalidOrder(self.id + ' postOnly orders are only supported for limit orders')
+            request['time_in_force'] = 'post_only'
+        if timeInForce is not None:
+            if timeInForce == 'ioc' or timeInForce == 'fok':
                 request['time_in_force'] = timeInForce
-            else:
-                if request['ord_type'] == 'best':
-                    raise ArgumentsRequired(self.id + ' the best type order in createOrder() is required timeInForce.')
-        params = self.omit(params, ['clientOrderId', 'cost'])
+        if request['ord_type'] == 'best' and timeInForce is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a timeInForce parameter for best type orders')
+        params = self.omit(params, ['timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type'])
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -1280,14 +1293,22 @@ class upbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint.
         :param str [params.clientOrderId]: to identify the previous order, either the id or self field is hasattr(self, required) method.
         :param float [params.cost]: for market buy and best buy orders, the quote quantity that can be used alternative for the amount.
-        :param str [params.newTimeInForce]: 'IOC' or 'FOK'. only for limit or best type orders. self field is required when the order type is 'best'.
+        :param str [params.newTimeInForce]: 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. self field is required when the order type is 'best'.
         :param str [params.newClientOrderId]: the order ID that the user can define.
         :param str [params.newOrdType]: self field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use self field.
+        :param str [params.selfTradePrevention]: 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
         prevClientOrderId = self.safe_string(params, 'clientOrderId')
+        customType = self.safe_string_2(params, 'newOrdType', 'new_ord_type')
+        clientOrderId = self.safe_string(params, 'newClientOrderId')
+        postOnly = self.is_post_only(type == 'market', False, params)
+        timeInForce = self.safe_string_lower_2(params, 'newTimeInForce', 'new_time_in_force')
+        selfTradePrevention = self.safe_string_2(params, 'selfTradePrevention', 'new_smp_type')
+        if postOnly and (selfTradePrevention is not None):
+            raise ExchangeError(self.id + ' editOrder() does not support post_only and selfTradePrevention simultaneously.')
         params = self.omit(params, 'clientOrderId')
         if id is not None:
             request['prev_order_uuid'] = id
@@ -1313,7 +1334,6 @@ class upbit(Exchange, ImplicitAPI):
                 request['new_volume'] = self.amount_to_precision(symbol, amount)
         else:
             raise InvalidOrder(self.id + ' editOrder() supports only limit or market types in the type argument.')
-        customType = self.safe_string_2(params, 'newOrdType', 'new_ord_type')
         if customType == 'best':
             params = self.omit(params, ['newOrdType', 'new_ord_type'])
             request['new_ord_type'] = 'best'
@@ -1324,18 +1344,20 @@ class upbit(Exchange, ImplicitAPI):
                 if amount is None:
                     raise ArgumentsRequired(self.id + ' editOrder() is required amount to create best sell order.')
                 request['new_volume'] = self.amount_to_precision(symbol, amount)
-        clientOrderId = self.safe_string(params, 'newClientOrderId')
         if clientOrderId is not None:
             request['new_identifier'] = clientOrderId
-        if request['new_ord_type'] != 'market' and request['new_ord_type'] != 'price':
-            timeInForce = self.safe_string_lower_2(params, 'newTimeInForce', 'new_time_in_force')
-            params = self.omit(params, ['newTimeInForce', 'new_time_in_force'])
-            if timeInForce is not None:
+        if selfTradePrevention is not None:
+            request['new_smp_type'] = selfTradePrevention
+        if postOnly:
+            if request['new_ord_type'] != 'limit':
+                raise InvalidOrder(self.id + ' postOnly orders are only supported for limit orders')
+            request['new_time_in_force'] = 'post_only'
+        if timeInForce is not None:
+            if timeInForce == 'ioc' or timeInForce == 'fok':
                 request['new_time_in_force'] = timeInForce
-            else:
-                if request['new_ord_type'] == 'best':
-                    raise ArgumentsRequired(self.id + ' the best type order is required timeInForce.')
-        params = self.omit(params, ['newClientOrderId', 'cost'])
+        if request['new_ord_type'] == 'best' and timeInForce is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a timeInForce parameter for best type orders')
+        params = self.omit(params, ['newTimeInForce', 'new_time_in_force', 'postOnly', 'newClientOrderId', 'cost', 'selfTradePrevention', 'new_smp_type'])
         # print('check the each request params: ', request)
         response = await self.privatePostOrdersCancelAndNew(self.extend(request, params))
         #   {
@@ -1617,48 +1639,36 @@ class upbit(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
-        #
+        # {
+        #   "market": "KRW-USDT",
+        #   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
+        #   "side": "ask",
+        #   "ord_type": "market",
+        #   "state": "done",
+        #   "created_at": "2025-08-09T16:44:00+09:00",
+        #   "volume": "5.377594",
+        #   "remaining_volume": "0",
+        #   "executed_volume": "5.377594",
+        #   "reserved_fee": "0",
+        #   "remaining_fee": "0",
+        #   "paid_fee": "3.697095875",
+        #   "locked": "0",
+        #   "prevented_volume": "0",
+        #   "prevented_locked": "0",
+        #   "trades_count": 1,
+        #   "trades": [
         #     {
-        #         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        #         "side": "bid",
-        #         "ord_type": "limit",
-        #         "price": "17417000.0",
-        #         "state": "done",
-        #         "market": "KRW-BTC",
-        #         "created_at": "2018-04-05T14:09:14+09:00",
-        #         "volume": "1.0",
-        #         "remaining_volume": "0.0",
-        #         "reserved_fee": "26125.5",
-        #         "remaining_fee": "25974.0",
-        #         "paid_fee": "151.5",
-        #         "locked": "17341974.0",
-        #         "executed_volume": "1.0",
-        #         "trades_count": 2,
-        #         "trades": [
-        #             {
-        #                 "market": "KRW-BTC",
-        #                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        #                 "price": "101000.0",
-        #                 "volume": "0.77368323",
-        #                 "funds": "78142.00623",
-        #                 "ask_fee": "117.213009345",
-        #                 "bid_fee": "117.213009345",
-        #                 "created_at": "2018-04-05T14:09:15+09:00",
-        #                 "side": "bid",
-        #             },
-        #             {
-        #                 "market": "KRW-BTC",
-        #                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-        #                 "price": "101000.0",
-        #                 "volume": "0.22631677",
-        #                 "funds": "22857.99377",
-        #                 "ask_fee": "34.286990655",  # missing in market orders
-        #                 "bid_fee": "34.286990655",  # missing in market orders
-        #                 "created_at": "2018-04-05T14:09:15+09:00",  # missing in market orders
-        #                 "side": "bid",
-        #             },
-        #         ],
+        #       "market": "KRW-USDT",
+        #       "uuid": "795dff29-bba6-49b2-baab-63473ab7931c",
+        #       "price": "1375",
+        #       "volume": "5.377594",
+        #       "funds": "7394.19175",
+        #       "trend": "down",
+        #       "created_at": "2025-08-09T16:44:00.597751+09:00",
+        #       "side": "ask"
         #     }
+        #   ]
+        # }
         #
         # fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #

@@ -1396,8 +1396,8 @@ public partial class gate : Exchange
         //        "leverage_min": "1",
         //        "leverage_max": "100",
         //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
+        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate": "0.00075", // not actual value for regular users
         //        "funding_rate": "0.002053",
         //        "order_size_max": 1000000,
         //        "funding_next_apply": 1610035200,
@@ -1441,8 +1441,8 @@ public partial class gate : Exchange
         //        "risk_limit_base": "140.726652109199",
         //        "risk_limit_step": "1000000",
         //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
+        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate": "0.00075", // not actual value for regular users
         //        "ref_discount_rate": "0",
         //        "ref_rebate_rate": "0.2",
         //        "order_price_deviate": "0.5",
@@ -1482,8 +1482,6 @@ public partial class gate : Exchange
         object maxMultiplier = Precise.stringAdd("1", priceDeviate);
         object minPrice = Precise.stringMul(minMultiplier, markPrice);
         object maxPrice = Precise.stringMul(maxMultiplier, markPrice);
-        object takerPercent = this.safeString(market, "taker_fee_rate");
-        object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
         object isLinear = isEqual(quote, settle);
         object contractSize = this.safeString(market, "quanto_multiplier");
         // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1510,8 +1508,8 @@ public partial class gate : Exchange
             { "contract", true },
             { "linear", isLinear },
             { "inverse", !isTrue(isLinear) },
-            { "taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")) },
-            { "maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")) },
+            { "taker", null },
+            { "maker", null },
             { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -1615,8 +1613,6 @@ public partial class gate : Exchange
                 object maxMultiplier = Precise.stringAdd("1", priceDeviate);
                 object minPrice = Precise.stringMul(minMultiplier, markPrice);
                 object maxPrice = Precise.stringMul(maxMultiplier, markPrice);
-                object takerPercent = this.safeString(market, "taker_fee_rate");
-                object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", symbol },
@@ -1636,8 +1632,8 @@ public partial class gate : Exchange
                     { "contract", true },
                     { "linear", true },
                     { "inverse", false },
-                    { "taker", this.parseNumber(Precise.stringDiv(takerPercent, "100")) },
-                    { "maker", this.parseNumber(Precise.stringDiv(makerPercent, "100")) },
+                    { "taker", null },
+                    { "maker", null },
                     { "contractSize", this.parseNumber("1") },
                     { "expiry", expiry },
                     { "expiryDatetime", this.iso8601(expiry) },
@@ -1875,7 +1871,7 @@ public partial class gate : Exchange
         object apiBackup = this.safeValue(this.urls, "apiBackup");
         if (isTrue(!isEqual(apiBackup, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
@@ -3060,6 +3056,12 @@ public partial class gate : Exchange
     /**
      * @method
      * @name gate#fetchBalance
+     * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3328,7 +3330,7 @@ public partial class gate : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object isolated = isEqual(marginMode, "margin");
+        object isolated = isTrue(isEqual(marginMode, "margin")) && isTrue(isEqual(type, "spot"));
         object data = response;
         if (isTrue(inOp(data, "balances")))
         {

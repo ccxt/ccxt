@@ -133,7 +133,7 @@ func (this *Upbit) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://global-docs.upbit.com/reference/order-book-list
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
  * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
- * @param {int} [limit] not used by upbit fetchOrderBooks ()
+ * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
  */
@@ -410,7 +410,8 @@ func (this *Upbit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
  * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
- * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+ * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+ * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Upbit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -487,9 +488,10 @@ func (this *Upbit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
  * @param {object} [params] extra parameters specific to the exchange API endpoint.
  * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
  * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
- * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+ * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
  * @param {string} [params.newClientOrderId] the order ID that the user can define.
  * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+ * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Upbit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {

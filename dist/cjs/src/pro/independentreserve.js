@@ -225,6 +225,7 @@ class independentreserve extends independentreserve$1["default"] {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
+                return;
             }
         }
         if (receivedSnapshot) {

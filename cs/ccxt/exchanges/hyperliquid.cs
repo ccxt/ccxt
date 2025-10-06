@@ -3913,6 +3913,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -3934,6 +3935,10 @@ public partial class hyperliquid : Exchange
         object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
+            if (isTrue(isEqual(since, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits requires since while until is set")) ;
+            }
             ((IDictionary<string,object>)request)["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"until"});
         }
@@ -3952,7 +3957,30 @@ public partial class hyperliquid : Exchange
         // ]
         //
         object records = this.extractTypeFromDelta(response);
-        object deposits = this.filterByArray(records, "type", new List<object>() {"deposit"}, false);
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        object deposits = new List<object>() {};
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
+            {
+                object record = getValue(records, i);
+                if (isTrue(isEqual(getValue(record, "type"), "vaultDeposit")))
+                {
+                    object delta = this.safeDict(record, "delta");
+                    if (isTrue(isEqual(getValue(delta, "vault"), add("0x", vaultAddress))))
+                    {
+                        ((IList<object>)deposits).Add(record);
+                    }
+                }
+            }
+        } else
+        {
+            deposits = this.filterByArray(records, "type", new List<object>() {"deposit"}, false);
+        }
         return this.parseTransactions(deposits, null, since, limit);
     }
 
@@ -3966,6 +3994,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {string} [params.vaultAddress] vault address
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -4005,7 +4034,30 @@ public partial class hyperliquid : Exchange
         // ]
         //
         object records = this.extractTypeFromDelta(response);
-        object withdrawals = this.filterByArray(records, "type", new List<object>() {"withdraw"}, false);
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        object withdrawals = new List<object>() {};
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
+            {
+                object record = getValue(records, i);
+                if (isTrue(isEqual(getValue(record, "type"), "vaultWithdraw")))
+                {
+                    object delta = this.safeDict(record, "delta");
+                    if (isTrue(isEqual(getValue(delta, "vault"), add("0x", vaultAddress))))
+                    {
+                        ((IList<object>)withdrawals).Add(record);
+                    }
+                }
+            }
+        } else
+        {
+            withdrawals = this.filterByArray(records, "type", new List<object>() {"withdraw"}, false);
+        }
         return this.parseTransactions(withdrawals, null, since, limit);
     }
 

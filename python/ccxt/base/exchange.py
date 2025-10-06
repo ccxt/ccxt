@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.4'
+__version__ = '4.5.7'
 
 # -----------------------------------------------------------------------------
 
@@ -311,8 +311,7 @@ class Exchange(object):
     bidsasks = None
     base_currencies = None
     quote_currencies = None
-    currencies = None
-
+    currencies = {}
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
     accounts = None
@@ -1916,7 +1915,7 @@ class Exchange(object):
     # ########################################################################
     # ########################################################################
 
-    # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
     def describe(self) -> Any:
         return {
@@ -2591,6 +2590,22 @@ class Exchange(object):
             # set flag
             self.isSandboxModeEnabled = False
 
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.isSandboxModeEnabled:
+            raise NotSupported(self.id + ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences')
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demo']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
+
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
         return {}
 
@@ -3009,6 +3024,76 @@ class Exchange(object):
                     featureBlock['symbolRequired'] = self.in_array(key, ['createOrder', 'createOrders', 'fetchOHLCV'])
         return featuresObj
 
+    def feature_value(self, symbol: str, methodName: Str = None, paramName: Str = None, subParamName: Str = None, defaultValue: Any = None):
+        """
+        self method is a very deterministic to help users to know what feature is supported by the exchange
+        :param str [symbol]: unified symbol
+        :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
+        :param str [paramName]: unified param value(check docs for supported param names)
+        :param str [subParamName]: unified sub-param value(eg. stopLoss->triggerPriceType)
+        :param dict [defaultValue]: return default value if no result found
+        :returns dict: returns feature value
+        """
+        market = self.market(symbol)
+        return self.feature_value_by_type(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue)
+
+    def feature_value_by_type(self, marketType: str, subType: Str, methodName: Str = None, paramName: Str = None, subParamName: Str = None, defaultValue: Any = None):
+        """
+        self method is a very deterministic to help users to know what feature is supported by the exchange
+        :param str [marketType]: supported only: "spot", "swap", "future"
+        :param str [subType]: supported only: "linear", "inverse"
+        :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
+        :param str [paramName]: unified param value(check docs for supported param names)
+        :param str [subParamName]: unified sub-param value(eg. stopLoss->triggerPriceType)
+        :param dict [defaultValue]: return default value if no result found
+        :returns dict: returns feature value
+        """
+        # if exchange does not yet have features manually implemented
+        if self.features is None:
+            return defaultValue
+        # if marketType(e.g. 'option') does not exist in features
+        if not (marketType in self.features):
+            return defaultValue  # unsupported marketType, check "exchange.features" for details
+        # if marketType dict None
+        if self.features[marketType] is None:
+            return defaultValue
+        methodsContainer = self.features[marketType]
+        if subType is None:
+            if marketType != 'spot':
+                return defaultValue  # subType is required for non-spot markets
+        else:
+            if not (subType in self.features[marketType]):
+                return defaultValue  # unsupported subType, check "exchange.features" for details
+            # if subType dict None
+            if self.features[marketType][subType] is None:
+                return defaultValue
+            methodsContainer = self.features[marketType][subType]
+        # if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        if methodName is None:
+            return methodsContainer
+        if not (methodName in methodsContainer):
+            return defaultValue  # unsupported method, check "exchange.features" for details')
+        methodDict = methodsContainer[methodName]
+        if methodDict is None:
+            return defaultValue
+        # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
+        if paramName is None:
+            return methodDict
+        if not (paramName in methodDict):
+            return defaultValue  # unsupported paramName, check "exchange.features" for details')
+        dictionary = self.safe_dict(methodDict, paramName)
+        if dictionary is None:
+            # if the value is not dictionary but a scalar value(or None), return
+            return methodDict[paramName]
+        else:
+            # return, when calling without `subParamName` eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
+            if subParamName is None:
+                return methodDict[paramName]
+            # raise an exception for unsupported subParamName
+            if not (subParamName in methodDict[paramName]):
+                return defaultValue  # unsupported subParamName, check "exchange.features" for details
+            return methodDict[paramName][subParamName]
+
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'
 
@@ -3275,7 +3360,11 @@ class Exchange(object):
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
         self.ids = list(marketsSortedById.keys())
+        numCurrencies = 0
         if currencies is not None:
+            keys = list(currencies.keys())
+            numCurrencies = len(keys)
+        if numCurrencies > 0:
             # currencies is always None when called in constructor but not when called from loadMarkets
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
         else:
@@ -3343,6 +3432,12 @@ class Exchange(object):
         self.baseCurrencies = sourceExchange.baseCurrencies
         self.quoteCurrencies = sourceExchange.quoteCurrencies
         self.codes = sourceExchange.codes
+        # check marketHelperProps
+        sourceExchangeHelpers = self.safe_list(sourceExchange.options, 'marketHelperProps', [])
+        for i in range(0, len(sourceExchangeHelpers)):
+            helper = sourceExchangeHelpers[i]
+            if sourceExchange.options[helper] is not None:
+                self.options[helper] = sourceExchange.options[helper]
         return self
 
     def get_describe_for_extended_ws_exchange(self, currentRestInstance: Any, parentRestInstance: Any, wsBaseDescribe: dict):
@@ -5653,7 +5748,9 @@ class Exchange(object):
         return self.safe_string(self.commonCurrencies, code, code)
 
     def currency(self, code: str):
-        if self.currencies is None:
+        keys = list(self.currencies.keys())
+        numCurrencies = len(keys)
+        if numCurrencies == 0:
             raise ExchangeError(self.id + ' currencies not loaded')
         if isinstance(code, str):
             if code in self.currencies:
@@ -6783,6 +6880,15 @@ class Exchange(object):
         values = list(uniqueResult.values())
         return values
 
+    def remove_keys_from_dict(self, dict: dict, removeKeys: List[str]):
+        keys = list(dict.keys())
+        newDict = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if not self.in_array(key, removeKeys):
+                newDict[key] = dict[key]
+        return newDict
+
     def handle_until_option(self, key: str, request, params, multiplier=1):
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
@@ -7080,9 +7186,9 @@ class Exchange(object):
         symbols = self.safe_list(subscription, 'symbols', [])
         symbolsLength = len(symbols)
         if topic == 'ohlcv':
-            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
-            for i in range(0, len(symbolsAndTimeFrames)):
-                symbolAndTimeFrame = symbolsAndTimeFrames[i]
+            symbolsAndTimeframes = self.safe_list(subscription, 'symbolsAndTimeframes', [])
+            for i in range(0, len(symbolsAndTimeframes)):
+                symbolAndTimeFrame = symbolsAndTimeframes[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
                 if (self.ohlcvs is not None) and (symbol in self.ohlcvs):
@@ -7100,6 +7206,9 @@ class Exchange(object):
                 elif topic == 'ticker':
                     if symbol in self.tickers:
                         del self.tickers[symbol]
+                elif topic == 'bidsasks':
+                    if symbol in self.bidsasks:
+                        del self.bidsasks[symbol]
         else:
             if topic == 'myTrades' and (self.myTrades is not None):
                 self.myTrades = None
@@ -7119,3 +7228,9 @@ class Exchange(object):
                     tickerSymbol = tickerSymbols[i]
                     if tickerSymbol in self.tickers:
                         del self.tickers[tickerSymbol]
+            elif topic == 'bidsasks' and (self.bidsasks is not None):
+                bidsaskSymbols = list(self.bidsasks.keys())
+                for i in range(0, len(bidsaskSymbols)):
+                    bidsaskSymbol = bidsaskSymbols[i]
+                    if bidsaskSymbol in self.bidsasks:
+                        del self.bidsasks[bidsaskSymbol]

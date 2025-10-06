@@ -100,6 +100,7 @@ class kucoinfutures extends kucoin {
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
                 'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => null,
             ),
@@ -194,6 +195,7 @@ class kucoinfutures extends kucoin {
                         'sub/api-key/update' => 1,
                         'changeCrossUserLeverage' => 1,
                         'position/changeMarginMode' => 1,
+                        'position/switchPositionMode' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -338,6 +340,7 @@ class kucoinfutures extends kucoin {
                             'transfer-out' => 'v2',
                             'changeCrossUserLeverage' => 'v2',
                             'position/changeMarginMode' => 'v2',
+                            'position/switchPositionMode' => 'v2',
                         ),
                     ),
                     'futuresPublic' => array(
@@ -555,7 +558,7 @@ class kucoinfutures extends kucoin {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
             $expiry = $this->safe_integer($market, 'expireDate');
-            $future = $expiry ? true : false;
+            $future = $this->safe_string($market, 'nextFundingRateTime') === null;
             $swap = !$future;
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -1540,6 +1543,7 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
          * @param {float} [$params->cost] the cost of the order in units of USDT
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'isolated'
+         * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * ----------------- Exchange Specific Parameters -----------------
          * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
          * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1549,7 +1553,8 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->stopPriceType] exchange-specific alternative for triggerPriceType => TP, IP or MP
          * @param {bool} [$params->closeOrder] set to true to close position
          * @param {bool} [$params->test] set to true to use the test order endpoint (does not submit order, use to validate $params)
-         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+         * @param {string} [$params->positionSide] *swap and future only* hedged two-way position $side, LONG or SHORT
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -1727,7 +1732,22 @@ class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $hedged = null;
+        list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
+        if ($reduceOnly) {
+            $request['reduceOnly'] = $reduceOnly;
+            if ($hedged) {
+                $reduceOnlyPosSide = ($side === 'sell') ? 'LONG' : 'SHORT';
+                $request['positionSide'] = $reduceOnlyPosSide;
+            }
+        } else {
+            if ($hedged) {
+                $posSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                $request['positionSide'] = $posSide;
+            }
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
         return $this->extend($request, $params);
     }
 
@@ -3314,6 +3334,34 @@ class kucoinfutures extends kucoin {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_margin_mode($data, $market);
+    }
+
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         *
+         * @see https://www.kucoin.com/docs-new/3475097e0
+         *
+         * @param {bool} $hedged set to true to use two way position
+         * @param {string} [$symbol] not used by bybit setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $response from the exchange
+         */
+        $this->load_markets();
+        $posMode = $hedged ? '1' : '0';
+        $request = array(
+            'positionMode' => $posMode,
+        );
+        $response = $this->futuresPrivatePostPositionSwitchPositionMode ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "positionMode" => 1
+        //         }
+        //     }
+        //
+        return $response;
     }
 
     public function fetch_leverage(string $symbol, $params = array ()): array {

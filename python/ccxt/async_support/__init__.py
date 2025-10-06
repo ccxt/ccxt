@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.4'
+__version__ = '4.5.7'
 
 # -----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
+from ccxt.async_support.backpack import backpack                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
 from ccxt.async_support.bigone import bigone                                    # noqa: F401
 from ccxt.async_support.binance import binance                                  # noqa: F401
@@ -159,7 +160,7 @@ from ccxt.async_support.poloniex import poloniex                                
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
-from ccxt.async_support.tradeogre import tradeogre                              # noqa: F401
+from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
@@ -174,6 +175,7 @@ exchanges = [
     'alpaca',
     'apex',
     'ascendex',
+    'backpack',
     'bequant',
     'bigone',
     'binance',
@@ -266,7 +268,7 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
-    'tradeogre',
+    'toobit',
     'upbit',
     'wavesexchange',
     'whitebit',

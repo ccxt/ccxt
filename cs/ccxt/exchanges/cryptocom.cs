@@ -405,6 +405,9 @@ public partial class cryptocom : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                 } },
                 { "swap", new Dictionary<string, object>() {
                     { "linear", new Dictionary<string, object>() {
@@ -502,7 +505,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object skipFetchCurrencies = false;
         var skipFetchCurrenciesparametersVariable = this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
@@ -511,7 +514,7 @@ public partial class cryptocom : Exchange
         if (isTrue(skipFetchCurrencies))
         {
             // sub-accounts can't access this endpoint
-            return null;
+            return new Dictionary<string, object>() {};
         }
         object response = new Dictionary<string, object>() {};
         try
@@ -523,7 +526,7 @@ public partial class cryptocom : Exchange
             {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
-                return null;
+                return new Dictionary<string, object>() {};
             }
             throw e;
         }

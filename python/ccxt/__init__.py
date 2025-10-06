@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.4'
+__version__ = '4.5.7'
 
 # ----------------------------------------------------------------------------
 
@@ -87,6 +87,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
+from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
 from ccxt.bigone import bigone                                        # noqa: F401
 from ccxt.binance import binance                                      # noqa: F401
@@ -179,7 +180,7 @@ from ccxt.poloniex import poloniex                                    # noqa: F4
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
-from ccxt.tradeogre import tradeogre                                  # noqa: F401
+from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
 from ccxt.wavesexchange import wavesexchange                          # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
@@ -194,6 +195,7 @@ exchanges = [
     'alpaca',
     'apex',
     'ascendex',
+    'backpack',
     'bequant',
     'bigone',
     'binance',
@@ -286,7 +288,7 @@ exchanges = [
     'probit',
     'timex',
     'tokocrypto',
-    'tradeogre',
+    'toobit',
     'upbit',
     'wavesexchange',
     'whitebit',

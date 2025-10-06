@@ -23,6 +23,7 @@ class ImplicitAPI:
     public_get_ticker = publicGetTicker = Entry('ticker', 'public', 'GET', {'cost': 2})
     public_get_ticker_all = publicGetTickerAll = Entry('ticker/all', 'public', 'GET', {'cost': 2})
     public_get_orderbook = publicGetOrderbook = Entry('orderbook', 'public', 'GET', {'cost': 2})
+    public_get_orderbook_instruments = publicGetOrderbookInstruments = Entry('orderbook/instruments', 'public', 'GET', {'cost': 2})
     public_get_orderbook_supported_levels = publicGetOrderbookSupportedLevels = Entry('orderbook/supported_levels', 'public', 'GET', {'cost': 2})
     private_get_accounts = privateGetAccounts = Entry('accounts', 'private', 'GET', {'cost': 0.67})
     private_get_orders_chance = privateGetOrdersChance = Entry('orders/chance', 'private', 'GET', {'cost': 0.67})

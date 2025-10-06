@@ -40,6 +40,7 @@ public partial class oceanex : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", null },
                 { "fetchDepositAddressesByNetwork", true },

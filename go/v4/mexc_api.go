@@ -231,6 +231,10 @@ func (this *mexc) SpotPrivateGetSelfSymbols(args ...interface{}) <-chan interfac
 	return this.callEndpointAsync("spotPrivateGetSelfSymbols", args...)
 }
 
+func (this *mexc) SpotPrivateGetAssetInternalTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetAssetInternalTransferRecord", args...)
+}
+
 func (this *mexc) SpotPrivatePostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivatePostOrder", args...)
 }
