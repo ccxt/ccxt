@@ -1,11 +1,7 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import ccxt, { Exchange } from '../../../../ccxt.js';
-
-async function createOrderAfterDelay (exchange: Exchange) {
-    await exchange.sleep (3000);
-    await exchange.createOrder ('BTC/USDT', 'market', 'buy', 0.001);
-}
+import createOrderAfterDelay from './utils.js';
 
 async function testUnwatchOrders (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'unWatchOrders';

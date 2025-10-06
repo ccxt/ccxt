@@ -2563,8 +2563,9 @@ export default class binance extends binanceRest {
         let privateMessageHashPending = false;
         for (let i = 0; i < privateMessageHashes.length; i++) {
             const privateMessageHash = privateMessageHashes[i];
-            const res = this.findMessageHashes (client, privateMessageHash);
-            if (res.length > 0) {
+            const hashes = this.findMessageHashes (client, privateMessageHash);
+            // for loop to allow valid transpilation to php
+            for (let j = 0; j < hashes.length; j++) {
                 privateMessageHashPending = true;
             }
         }
