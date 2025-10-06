@@ -156,8 +156,11 @@ class ProxyConnector implements ConnectorInterface
 
         $connecting = $this->connector->connect($proxyUri);
 
-        $deferred = new Deferred(function ($_, $reject) use ($connecting, $uri) {
-            $reject(new RuntimeException(
+        $deferred = new Deferred();
+        
+        // Handle cancellation for React Promise v2.x/v3.x compatibility
+        $cancelHandler = function () use ($connecting, $uri, $deferred) {
+            $deferred->reject(new RuntimeException(
                 'Connection to ' . $uri . ' cancelled while waiting for proxy (ECONNABORTED)',
                 defined('SOCKET_ECONNABORTED') ? SOCKET_ECONNABORTED : 103
             ));
@@ -169,7 +172,7 @@ class ProxyConnector implements ConnectorInterface
                 // ignore to avoid reporting unhandled rejection
             });
             $connecting->cancel();
-        });
+        };
 
         $headers = $this->headers;
         $connecting->then(function (ConnectionInterface $stream) use ($target, $headers, $deferred, $uri) {

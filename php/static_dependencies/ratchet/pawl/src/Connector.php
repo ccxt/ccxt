@@ -52,8 +52,11 @@ class Connector {
 
         $connecting = $connector->connect($uriString);
 
-        $futureWsConn = new Deferred(function ($_, $reject) use ($url, $connecting) {
-            $reject(new \RuntimeException(
+        $futureWsConn = new Deferred();
+        
+        // Handle cancellation for React Promise v2.x/v3.x compatibility
+        $cancelHandler = function () use ($url, $connecting, $futureWsConn) {
+            $futureWsConn->reject(new \RuntimeException(
                 'Connection to ' . $url . ' cancelled during handshake'
             ));
 
@@ -62,7 +65,7 @@ class Connector {
                 $connection->close();
             });
             $connecting->cancel();
-        });
+        };
 
         $connecting->then(function(ConnectionInterface $conn) use ($request, $subProtocols, $futureWsConn) {
             $earlyClose = function() use ($futureWsConn) {
