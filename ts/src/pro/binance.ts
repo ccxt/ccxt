@@ -2553,14 +2553,14 @@ export default class binance extends binanceRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Promise<any>} cleanup result
      */
-    async checkAndCleanupUserDataStreams (marketType: string = 'spot', params = {}) {
+    async checkAndCleanupUserDataStreams (marketType: string = 'spot', params = {}): Promise<string[]> {
         const url = this.urls['api']['ws']['ws-api'][marketType];
         const client = this.client (url);
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (accountType !== marketType) {
-            return; // No active subscription for this market type
+            return []; // No active subscription for this market type
         }
         // Check if any user data streams are still active
         const activeUserDataStreams = this.getActiveUserDataStreams (client, marketType);
@@ -2595,16 +2595,29 @@ export default class binance extends binanceRest {
             'myTrades',
             'positions',
         ];
-        const commonStreams = userDataStreamKeys.filter ((key) => {
+        const commonStreams = [];
+        for (let i = 0; i < userDataStreamKeys.length; i++) {
+            const key = userDataStreamKeys[i];
             const messageHash = marketType + ':' + key;
-            return subscriptions[messageHash] !== undefined;
-        }).map ((key) => marketType + ':' + key);
-        activeStreams.push (...commonStreams);
+            if (subscriptions[messageHash] !== undefined) {
+                commonStreams.push (marketType + ':' + key);
+            }
+        }
+        for (let i = 0; i < commonStreams.length; i++) {
+            activeStreams.push (commonStreams[i]);
+        }
         // Check for symbol-specific subscriptions
-        const symbolSpecificStreams = Object.keys (subscriptions).filter ((subscriptionKey) => subscriptionKey.includes (marketType + ':')
-            && (subscriptionKey.includes ('orders:')
-                || subscriptionKey.includes ('myTrades:')));
-        activeStreams.push (...symbolSpecificStreams);
+        const symbolSpecificStreams = [];
+        const subscriptionKeys = Object.keys (subscriptions);
+        for (let i = 0; i < subscriptionKeys.length; i++) {
+            const subscriptionKey = subscriptionKeys[i];
+            if ((subscriptionKey.indexOf (marketType + ':') >= 0 && ((subscriptionKey.indexOf ('orders:') >= 0) || (subscriptionKey.indexOf ('myTrades:') >= 0)))) {
+                symbolSpecificStreams.push (subscriptionKey);
+            }
+        }
+        for (let i = 0; i < symbolSpecificStreams.length; i++) {
+            activeStreams.push (symbolSpecificStreams[i]);
+        }
         return activeStreams;
     }
 
@@ -3075,6 +3088,7 @@ export default class binance extends binanceRest {
         }
         // Check and cleanup user data streams if no active subscriptions remain
         await this.checkAndCleanupUserDataStreams (type, params);
+        return true;
     }
 
     handleBalance (client: Client, message) {
@@ -3872,6 +3886,7 @@ export default class binance extends binanceRest {
         }
         // Check and cleanup user data streams if no active subscriptions remain
         await this.checkAndCleanupUserDataStreams (type, params);
+        return true;
     }
 
     parseWsOrder (order, market = undefined) {
@@ -4218,6 +4233,7 @@ export default class binance extends binanceRest {
         this.cleanUnsubscription (client, messageHash, messageHash);
         // Check and cleanup user data streams if no active subscriptions remain
         await this.checkAndCleanupUserDataStreams (type, params);
+        return true;
     }
 
     setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
@@ -4642,6 +4658,7 @@ export default class binance extends binanceRest {
         }
         // Check and cleanup user data streams if no active subscriptions remain
         await this.checkAndCleanupUserDataStreams (type, params);
+        return true;
     }
 
     handleMyTrade (client: Client, message) {
