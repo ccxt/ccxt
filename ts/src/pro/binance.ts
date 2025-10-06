@@ -2390,7 +2390,7 @@ export default class binance extends binanceRest {
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (accountType === marketType) {
-            return;
+            return true;
         }
         client.subscriptions[marketType] = true;
         const requestId = this.requestId (url);
@@ -2471,7 +2471,9 @@ export default class binance extends binanceRest {
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
         const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
-        delete client.subscriptions[accountType];
+        if (accountType in subscriptions) {
+            delete client.subscriptions[accountType];
+        }
         client.resolve (message, messageHash);
     }
 
