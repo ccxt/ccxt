@@ -255,9 +255,6 @@ export default class arzplus extends Exchange {
             const request = {
                 'symbol': response[i]['name'],
             };
-            if (i === 10) {
-                await this.delay(3000);
-            }
             const assetDetails = await this.publicGetApiV1MarketSymbols(request);
             const ticker = this.parseTicker(assetDetails);
             const symbol = ticker['symbol'];
@@ -420,12 +417,6 @@ export default class arzplus extends Exchange {
         const orderBook = await this.publicGetApiV1MarketDepth(request);
         const timestamp = Date.now();
         return this.parseOrderBook(orderBook, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
-    }
-    delay(ms) {
-        const start = Date.now();
-        while (Date.now() - start < ms) {
-            continue;
-        }
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit(params, this.extractParams(path));
