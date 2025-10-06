@@ -2523,13 +2523,11 @@ export default class binance extends binanceRest {
         //   }
         //
         const messageHash = this.safeString (message, 'id');
-        const subscriptions = client.subscriptions;
-        const subscriptionsKeys = Object.keys (subscriptions);
-        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
-        delete client.subscriptions[accountType];
-        client.reject (message, accountType);
-        // TODO: reject all futures of watchBalance, watchOrders, watchMyTrades and watchPositions
-        // TODO: clean unsubscriptions
+        const privateMessageHashes = [ 'balance', 'orders', 'myTrades', 'positions' ];
+        for (let i = 0; i < privateMessageHashes.length; i++) {
+            const privateMessageHash = privateMessageHashes[i];
+            this.cleanUnsubscription (client, privateMessageHash, privateMessageHash, true);
+        }
         client.resolve (message, messageHash);
     }
 
