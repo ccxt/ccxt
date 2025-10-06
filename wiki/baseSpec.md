@@ -6365,6 +6365,7 @@ unWatches best bid & ask for symbols
 ##### Supported exchanges
 * [backpack](/exchanges/backpack.md#backpackunwatchbidsasks)
 * [mexc](/exchanges/mexc.md#mexcunwatchbidsasks)
+* [woo](/exchanges/woo.md#woounwatchbidsasks)
 
 ---
 
@@ -6418,6 +6419,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [kucoin](/exchanges/kucoin.md#kucoinunwatchohlcv)
 * [mexc](/exchanges/mexc.md#mexcunwatchohlcv)
 * [okx](/exchanges/okx.md#okxunwatchohlcv)
+* [woo](/exchanges/woo.md#woounwatchohlcv)
 
 ---
 
@@ -6473,6 +6475,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturesunwatchorderbook)
 * [mexc](/exchanges/mexc.md#mexcunwatchorderbook)
 * [okx](/exchanges/okx.md#okxunwatchorderbook)
+* [woo](/exchanges/woo.md#woounwatchorderbook)
 
 ---
 
@@ -6569,6 +6572,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 * [kucoin](/exchanges/kucoin.md#kucoinunwatchticker)
 * [mexc](/exchanges/mexc.md#mexcunwatchticker)
 * [okx](/exchanges/okx.md#okxunwatchticker)
+* [woo](/exchanges/woo.md#woounwatchticker)
 
 ---
 
@@ -6594,6 +6598,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [hyperliquid](/exchanges/hyperliquid.md#hyperliquidunwatchtickers)
 * [mexc](/exchanges/mexc.md#mexcunwatchtickers)
 * [okx](/exchanges/okx.md#okxunwatchtickers)
+* [woo](/exchanges/woo.md#woounwatchtickers)
 
 ---
 
@@ -6628,6 +6633,7 @@ unWatches from the stream channel
 * [kucoinfutures](/exchanges/kucoinfutures.md#kucoinfuturesunwatchtrades)
 * [mexc](/exchanges/mexc.md#mexcunwatchtrades)
 * [okx](/exchanges/okx.md#okxunwatchtrades)
+* [woo](/exchanges/woo.md#woounwatchtrades)
 
 ---
 
