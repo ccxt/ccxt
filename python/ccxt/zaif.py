@@ -36,6 +36,7 @@ class zaif(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchCurrencies': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,

@@ -1,11 +1,12 @@
 import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
 import { CHash, Input } from '../../static_dependencies/noble-hashes/utils.js';
-import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, base16ToBinary, base64ToBinary } from './encode.js';
-import { hmac } from './crypto.js';
+import { base16, base64, utf8 } from '../../static_dependencies/scure-base/index.js';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, binaryToString, base64ToBase64Url } from './encode.js';
+import { eddsa, hmac } from './crypto.js';
 import { P256 } from '../../static_dependencies/noble-curves/p256.js';
 import { ecdsa } from '../../base/functions/crypto.js';
 import { Dictionary } from "../types.js";
+import { ed25519 } from "../../static_dependencies/noble-curves/ed25519.js";
 
 function rsa (request: string, secret: string, hash: CHash) {
     const RSA = new JSEncrypt ()
@@ -21,13 +22,14 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
         alg = opts['alg'].toUpperCase ();
     }
     const header = Object.assign({ 'alg': alg, 'typ': 'JWT' }, opts);
+
     if (header['iat'] !== undefined) {
         request['iat'] = header['iat'];
         delete header['iat'];
     }
     const encodedHeader = urlencodeBase64 (JSON.stringify(header));
     const encodedData = urlencodeBase64 (JSON.stringify (request));
-    const token = [ encodedHeader, encodedData ].join ('.');
+    let token = [ encodedHeader, encodedData ].join ('.');
     const algoType = alg.slice (0, 2);
     let signature = undefined;
     if (algoType === 'HS') {
@@ -39,8 +41,21 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
         const r = signedHash.r.padStart (64, '0');
         const s = signedHash.s.padStart (64, '0');
         signature = urlencodeBase64 (base16ToBinary (r + s));
+    } else if (algoType === 'ED') {
+        const base64str = eddsa(toHex(token), secret, ed25519);
+        // we need urlencoded64 not base64
+        signature = base64ToBase64Url (base64str);
     }
     return [ token, signature ].join ('.');
 }
+
+  function toHex(str) {
+    var result = '';
+    for (var i=0; i<str.length; i++) {
+      result += str.charCodeAt(i).toString(16);
+    }
+    return result;
+  }
+
 
 export { rsa, jwt }

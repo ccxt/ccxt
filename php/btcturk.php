@@ -46,6 +46,7 @@ class btcturk extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,

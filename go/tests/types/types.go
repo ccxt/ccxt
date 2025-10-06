@@ -212,7 +212,7 @@ func initExchangeOffline() *ccxt.Binance {
 	marketsFile := GetRootDir() + "ts/src/test/static/markets/binance.json"
 	marketsContent := IoFileRead(marketsFile, true)
 	exchange.Markets = MapToSafeMap(marketsContent.(map[string]interface{}))
-	<-exchange.LoadMarkets()
+	exchange.LoadMarkets()
 	return exchange
 }
 

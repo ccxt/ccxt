@@ -54,6 +54,7 @@ class oceanex(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,

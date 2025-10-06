@@ -489,6 +489,9 @@ func (this *Bitbns) FetchDepositAddress(code string, options ...FetchDepositAddr
 
 // missing typed methods from base
 // nolint
+func (this *Bitbns) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitbns) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

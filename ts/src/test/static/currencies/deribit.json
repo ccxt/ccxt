@@ -2,12 +2,12 @@
     "BTC": {
         "info": {
             "currency": "BTC",
+            "apr": "0.0",
             "min_withdrawal_fee": "1.0e-5",
             "withdrawal_fee": "1.0e-5",
             "fee_precision": "5",
             "coin_type": "BTC",
             "withdrawal_priorities": [],
-            "apr": "0.0",
             "min_confirmations": "1",
             "currency_long": "Bitcoin",
             "in_cross_collateral_pool": true
@@ -198,5 +198,6 @@
                 "max": null
             }
         }
-    }
+    },
+    "USD": null
 }

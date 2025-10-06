@@ -476,6 +476,9 @@ func (this *Bitbank) Withdraw(code string, amount float64, address string, optio
 
 // missing typed methods from base
 // nolint
+func (this *Bitbank) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Bitbank) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

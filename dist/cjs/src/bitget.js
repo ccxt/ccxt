@@ -1326,6 +1326,8 @@ class bitget extends bitget$1["default"] {
                     '43025': errors.InvalidOrder,
                     '43115': errors.OnMaintenance,
                     '45110': errors.InvalidOrder,
+                    '40774': errors.InvalidOrder,
+                    '45122': errors.InvalidOrder,
                     // spot
                     'invalid sign': errors.AuthenticationError,
                     'invalid currency': errors.BadSymbol,
@@ -1918,7 +1920,7 @@ class bitget extends bitget$1["default"] {
             const res = this.safeDict(results, i);
             const data = this.safeList(res, 'data', []);
             const firstData = this.safeDict(data, 0, {});
-            const isBorrowable = this.safeString(firstData, 'isBorrowable');
+            const isBorrowable = this.safeBool(firstData, 'isBorrowable');
             if (fetchMargins && isBorrowable !== undefined) {
                 const keysList = Object.keys(this.indexBy(data, 'symbol'));
                 this.options['crossMarginPairsData'] = keysList;
@@ -5247,6 +5249,14 @@ class bitget extends bitget$1["default"] {
             'symbol': market['id'],
             'orderType': type,
         };
+        let hedged = undefined;
+        [hedged, params] = this.handleParamBool(params, 'hedged', false);
+        // backward compatibility for `oneWayMode`
+        let oneWayMode = undefined;
+        [oneWayMode, params] = this.handleParamBool(params, 'oneWayMode');
+        if (oneWayMode !== undefined) {
+            hedged = !oneWayMode;
+        }
         const isMarketOrder = type === 'market';
         const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
         const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice');
@@ -5340,7 +5350,12 @@ class bitget extends bitget$1["default"] {
                 if (!isMarketOrder) {
                     throw new errors.ExchangeError(this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
                 }
-                request['holdSide'] = (side === 'buy') ? 'long' : 'short';
+                if (hedged) {
+                    request['holdSide'] = (side === 'sell') ? 'long' : 'short';
+                }
+                else {
+                    request['holdSide'] = (side === 'sell') ? 'buy' : 'sell';
+                }
                 if (isStopLossTriggerOrder) {
                     request['triggerPrice'] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                     request['planType'] = 'pos_loss';
@@ -5366,14 +5381,6 @@ class bitget extends bitget$1["default"] {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                let hedged = undefined;
-                [hedged, params] = this.handleParamBool(params, 'hedged', false);
-                // backward compatibility for `oneWayMode`
-                let oneWayMode = undefined;
-                [oneWayMode, params] = this.handleParamBool(params, 'oneWayMode');
-                if (oneWayMode !== undefined) {
-                    hedged = !oneWayMode;
-                }
                 let requestSide = side;
                 if (reduceOnly) {
                     if (!hedged) {
@@ -7708,7 +7715,7 @@ class bitget extends bitget$1["default"] {
         //         "requestTime": 1700802995406,
         //         "data": [
         //             {
-        //                 "userId": "7264631750",
+        //                 "userId": "7264631751",
         //                 "symbol": "BTCUSDT",
         //                 "orderId": "1098394344925597696",
         //                 "tradeId": "1098394344974925824",
@@ -7957,13 +7964,15 @@ class bitget extends bitget$1["default"] {
      * @description fetch all open positions
      * @see https://www.bitget.com/api-doc/contract/position/get-all-position
      * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
      * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
-     * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+     * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
@@ -7988,12 +7997,16 @@ class bitget extends bitget$1["default"] {
         }
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
-        const request = {
-            'productType': productType,
-        };
+        const request = {};
         let response = undefined;
         let isHistory = false;
-        if (method === 'privateMixGetV2MixPositionAllPosition') {
+        let uta = undefined;
+        [uta, params] = this.handleOptionAndParams(params, 'fetchPositions', 'uta', false);
+        if (uta) {
+            request['category'] = productType;
+            response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, params));
+        }
+        else if (method === 'privateMixGetV2MixPositionAllPosition') {
             let marginCoin = this.safeString(params, 'marginCoin', 'USDT');
             if (symbols !== undefined) {
                 marginCoin = market['settleId'];
@@ -8016,6 +8029,7 @@ class bitget extends bitget$1["default"] {
                 }
             }
             request['marginCoin'] = marginCoin;
+            request['productType'] = productType;
             response = await this.privateMixGetV2MixPositionAllPosition(this.extend(request, params));
         }
         else {
@@ -8023,6 +8037,7 @@ class bitget extends bitget$1["default"] {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
             }
+            request['productType'] = productType;
             response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, params));
         }
         //
@@ -8087,13 +8102,52 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
+        // privateUtaGetV3PositionCurrentPosition
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750929905423,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "marginCoin": "USDT",
+        //                     "holdMode": "hedge_mode",
+        //                     "posSide": "long",
+        //                     "marginMode": "crossed",
+        //                     "positionBalance": "5.435199",
+        //                     "available": "0.001",
+        //                     "frozen": "0",
+        //                     "total": "0.001",
+        //                     "leverage": "20",
+        //                     "curRealisedPnl": "0",
+        //                     "avgPrice": "107410.3",
+        //                     "positionStatus": "normal",
+        //                     "unrealisedPnl": "0.0047",
+        //                     "liquidationPrice": "0",
+        //                     "mmr": "0.004",
+        //                     "profitRate": "0.0008647337475591",
+        //                     "markPrice": "107415.3",
+        //                     "breakEvenPrice": "107539.2",
+        //                     "totalFunding": "0",
+        //                     "openFeeTotal": "-0.06444618",
+        //                     "closeFeeTotal": "0",
+        //                     "createdTime": "1750495670699",
+        //                     "updatedTime": "1750929883465"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         let position = [];
-        if (!isHistory) {
-            position = this.safeList(response, 'data', []);
-        }
-        else {
+        if (uta || isHistory) {
             const data = this.safeDict(response, 'data', {});
             position = this.safeList(data, 'list', []);
+        }
+        else {
+            position = this.safeList(response, 'data', []);
         }
         const result = [];
         for (let i = 0; i < position.length; i++) {

@@ -873,6 +873,9 @@ func (this *Defx) SetLeverage(leverage int64, options ...SetLeverageOptions) (Le
 
 // missing typed methods from base
 // nolint
+func (this *Defx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Defx) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

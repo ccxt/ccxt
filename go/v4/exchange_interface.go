@@ -40,7 +40,7 @@ type IBaseExchange interface {
 	GetCurrencies() *sync.Map
 	GetMarkets() *sync.Map
 	SetSandboxMode(enable interface{})
-	LoadMarkets(params ...interface{}) <-chan interface{}
+	LoadMarkets(params ...interface{}) (map[string]MarketInterface, error)
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
@@ -243,6 +243,7 @@ type IDerivedExchange interface {
 	ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{}
 	ParseAccount(account interface{}) interface{}
 	ParseLedgerEntry(item interface{}, optionalArgs ...interface{}) interface{}
+	ParseLastPrice(item interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrder(order interface{}, optionalArgs ...interface{}) interface{}
 	ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{}
 	ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}

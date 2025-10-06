@@ -177,7 +177,7 @@ export default class mexc extends mexcRest {
         this.handleBidAsk(client, message);
         const rawTicker = this.safeDictN(message, ['d', 'data', 'publicAggreBookTicker']);
         const marketId = this.safeString2(message, 's', 'symbol');
-        const timestamp = this.safeInteger2(message, 't', 'sendtime');
+        const timestamp = this.safeInteger2(message, 't', 'sendTime');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         let ticker = undefined;
@@ -884,6 +884,7 @@ export default class mexc extends mexcRest {
         catch (e) {
             delete client.subscriptions[messageHash];
             client.reject(e, messageHash);
+            return;
         }
         client.resolve(storedOrderBook, messageHash);
     }
@@ -1504,18 +1505,21 @@ export default class mexc extends mexcRest {
     handleBalance(client, message) {
         //
         // spot
+        //
         //    {
-        //        "c": "spot@private.account.v3.api",
-        //        "d": {
-        //            "a": "USDT",
-        //            "c": 1678185928428,
-        //            "f": "302.185113007893322435",
-        //            "fd": "-4.990689704",
-        //            "l": "4.990689704",
-        //            "ld": "4.990689704",
-        //            "o": "ENTRUST_PLACE"
-        //        },
-        //        "t": 1678185928435
+        //        channel: "spot@private.account.v3.api.pb",
+        //        createTime: "1758134605364",
+        //        sendTime: "1758134605373",
+        //        privateAccount: {
+        //          vcoinName: "USDT",
+        //          coinId: "128f589271cb4951b03e71e6323eb7be",
+        //          balanceAmount: "0.006016465074677006",
+        //          balanceAmountChange: "-4.4022",
+        //          frozenAmount: "4.4022",
+        //          frozenAmountChange: "4.4022",
+        //          type: "ENTRUST_PLACE",
+        //          time: "1758134605364",
+        //       }
         //    }
         //
         //
@@ -1533,23 +1537,23 @@ export default class mexc extends mexcRest {
         //         "ts": 1680059188190
         //     }
         //
-        const c = this.safeString2(message, 'c', 'channel');
-        const type = (c === undefined) ? 'swap' : 'spot';
+        const channel = this.safeString(message, 'channel');
+        const type = (channel === 'spot@private.account.v3.api.pb') ? 'spot' : 'swap';
         const messageHash = 'balance:' + type;
-        const data = this.safeDictN(message, ['d', 'data', 'privateAccount']);
-        const futuresTimestamp = this.safeInteger(message, 'ts');
-        const timestamp = this.safeInteger2(data, 'c', 'time', futuresTimestamp);
+        const data = this.safeDictN(message, ['data', 'privateAccount']);
+        const futuresTimestamp = this.safeInteger2(message, 'ts', 'createTime');
+        const timestamp = this.safeInteger2(data, 'time', futuresTimestamp);
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
         this.balance[type]['info'] = data;
         this.balance[type]['timestamp'] = timestamp;
         this.balance[type]['datetime'] = this.iso8601(timestamp);
-        const currencyId = this.safeStringN(data, ['a', 'currency', 'vcoinName']);
+        const currencyId = this.safeStringN(data, ['currency', 'vcoinName']);
         const code = this.safeCurrencyCode(currencyId);
         const account = this.account();
-        account['total'] = this.safeStringN(data, ['f', 'availableBalance', 'balanceAmount']);
-        account['used'] = this.safeStringN(data, ['l', 'frozenBalance', 'frozenAmount']);
+        account['free'] = this.safeString2(data, 'balanceAmount', 'availableBalance');
+        account['used'] = this.safeStringN(data, ['frozenBalance', 'frozenAmount']);
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], messageHash);

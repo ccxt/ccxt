@@ -229,6 +229,20 @@ class binance(Exchange, ImplicitAPI):
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
+                'demo': {
+                    'dapiPublic': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'fapiPrivate': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'public': 'https://demo-api.binance.com/api/v3',
+                    'private': 'https://demo-api.binance.com/api/v3',
+                    'v1': 'https://demo-api.binance.com/api/v1',
+                },
                 'api': {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
@@ -1309,6 +1323,7 @@ class binance(Exchange, ImplicitAPI):
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
                 # https://github.com/ccxt/ccxt/pull/11624
@@ -1413,6 +1428,9 @@ class binance(Exchange, ImplicitAPI):
             'features': {
                 'spot': {
                     'sandbox': True,
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'marginMode': True,
                         'triggerPrice': True,
@@ -1432,10 +1450,10 @@ class binance(Exchange, ImplicitAPI):
                         'marketBuyByCost': True,
                         'marketBuyRequiresPrice': False,
                         'selfTradePrevention': {
-                            'expire_maker': True,
-                            'expire_taker': True,
-                            'expire_both': True,
-                            'none': True,
+                            'EXPIRE_MAKER': True,
+                            'EXPIRE_TAKER': True,
+                            'EXPIRE_BOTH': True,
+                            'NONE': True,
                         },
                         'trailing': False,  # todo: self is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
                         'icebergAmount': True,
@@ -1506,7 +1524,7 @@ class binance(Exchange, ImplicitAPI):
                         },
                         'hedged': True,
                         # exchange-supported features
-                        'selfTradePrevention': True,  # todo
+                        'selfTradePrevention': True,
                         'trailing': True,
                         'iceberg': False,
                         'leverage': False,
@@ -2753,15 +2771,28 @@ class binance(Exchange, ImplicitAPI):
     def cost_to_precision(self, symbol, cost):
         return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['quote'], self.precisionMode, self.paddingMode)
 
-    def currency_to_precision(self, code, fee, networkCode=None):
-        # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[code], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
-        else:
-            return self.number_to_string(fee)
-
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
+
+    def enable_demo_trading(self, enable: bool):
+        """
+        enables or disables demo trading mode
+
+        https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+        https://demo.binance.com/en/my/settings/api-management
+
+        :param boolean [enable]: True if demo trading should be enabled, False otherwise
+        """
+        if self.isSandboxModeEnabled:
+            raise NotSupported(self.id + ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences')
+        if enable:
+            self.urls['apiBackupDemoTrading'] = self.urls['api']
+            self.urls['api'] = self.urls['demo']
+        elif 'apiBackupDemoTrading' in self.urls:
+            self.urls['api'] = self.urls['apiBackupDemoTrading']
+            newUrls = self.omit(self.urls, 'apiBackupDemoTrading')
+            self.urls = newUrls
+        self.options['enableDemoTrading'] = enable
 
     async def fetch_time(self, params={}) -> Int:
         """
@@ -2801,17 +2832,20 @@ class binance(Exchange, ImplicitAPI):
         """
         fetchCurrenciesEnabled = self.safe_bool(self.options, 'fetchCurrencies')
         if not fetchCurrenciesEnabled:
-            return None
+            return {}
         # self endpoint requires authentication
         # while fetchCurrencies is a public API method by design
         # therefore we check the keys here
         # and fallback to generating the currencies from the markets
         if not self.check_required_credentials(False):
-            return None
+            return {}
         # sandbox/testnet does not support sapi endpoints
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
-            return None
+            return {}
+        # demotrading does not support sapi endpoints
+        if self.safe_bool(self.options, 'enableDemoTrading', False):
+            return {}
         promises = [self.sapiGetCapitalConfigGetall(params)]
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
         if fetchMargins:
@@ -2882,7 +2916,7 @@ class binance(Exchange, ImplicitAPI):
             #                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
             #                "addressRule": "",
             #                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-            #                "withdrawFee": "0.002",
+            #                "withdrawFee": "0.003",
             #                "withdrawMin": "0.01",
             #                "withdrawMax": "10000000000",
             #                "minConfirm": "1",
@@ -3042,10 +3076,12 @@ class binance(Exchange, ImplicitAPI):
             if not self.in_array('option', rawFetchMarkets):
                 rawFetchMarkets.append('option')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
+        isDemoEnv = demoMode or sandboxMode
         fetchMarkets = []
         for i in range(0, len(rawFetchMarkets)):
             type = rawFetchMarkets[i]
-            if type == 'option' and sandboxMode:
+            if type == 'option' and isDemoEnv:
                 continue
             fetchMarkets.append(type)
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
@@ -3053,7 +3089,7 @@ class binance(Exchange, ImplicitAPI):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
                 promisesRaw.append(self.publicGetExchangeInfo(params))
-                if fetchMargins and self.check_required_credentials(False) and not sandboxMode:
+                if fetchMargins and self.check_required_credentials(False) and not isDemoEnv:
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
             elif marketType == 'linear':
@@ -3268,7 +3304,7 @@ class binance(Exchange, ImplicitAPI):
         #                 "expiryDate": 1677225600000,
         #                 "filters": [
         #                     {"filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"},
-        #                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01"}
+        #                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01"}
         #                 ],
         #                 "id": 2474,
         #                 "symbol": "ETH-230224-800-C",
@@ -6034,7 +6070,7 @@ class binance(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param boolean [params.portfolioMargin]: set to True if you would like to create an order in a portfolio margin account
-        :param str [params.selfTradePrevention]: set unified value for stp(see .features for available values)
+        :param str [params.selfTradePrevention]: set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
         :param float [params.icebergAmount]: set iceberg amount for limit orders
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
@@ -6144,6 +6180,7 @@ class binance(Exchange, ImplicitAPI):
         isConditional = isTriggerOrder or isTrailingPercentOrder or isStopLoss or isTakeProfit
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
         isPriceMatch = priceMatch is not None
+        priceRequiredForTrailing = True
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
@@ -6153,16 +6190,23 @@ class binance(Exchange, ImplicitAPI):
                 if trailingTriggerPrice is not None:
                     request['activationPrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
             else:
-                if isMarketOrder:
-                    raise InvalidOrder(self.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders')
-                stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
-                params = self.omit(params, 'stopLossOrTakeProfit')
-                if stopLossOrTakeProfit != 'stopLoss' and stopLossOrTakeProfit != 'takeProfit':
-                    raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
-                if stopLossOrTakeProfit == 'stopLoss':
-                    uppercaseType = 'STOP_LOSS_LIMIT'
-                elif stopLossOrTakeProfit == 'takeProfit':
-                    uppercaseType = 'TAKE_PROFIT_LIMIT'
+                if (uppercaseType != 'STOP_LOSS') and (uppercaseType != 'TAKE_PROFIT') and (uppercaseType != 'STOP_LOSS_LIMIT') and (uppercaseType != 'TAKE_PROFIT_LIMIT'):
+                    stopLossOrTakeProfit = self.safe_string(params, 'stopLossOrTakeProfit')
+                    params = self.omit(params, 'stopLossOrTakeProfit')
+                    if (stopLossOrTakeProfit != 'stopLoss') and (stopLossOrTakeProfit != 'takeProfit'):
+                        raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
+                    if isMarketOrder:
+                        if stopLossOrTakeProfit == 'stopLoss':
+                            uppercaseType = 'STOP_LOSS'
+                        elif stopLossOrTakeProfit == 'takeProfit':
+                            uppercaseType = 'TAKE_PROFIT'
+                    else:
+                        if stopLossOrTakeProfit == 'stopLoss':
+                            uppercaseType = 'STOP_LOSS_LIMIT'
+                        elif stopLossOrTakeProfit == 'takeProfit':
+                            uppercaseType = 'TAKE_PROFIT_LIMIT'
+                if (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+                    priceRequiredForTrailing = False
                 if trailingTriggerPrice is not None:
                     stopPrice = self.price_to_precision(symbol, trailingTriggerPrice)
                 trailingPercentConverted = Precise.string_mul(trailingPercent, '100')
@@ -6278,7 +6322,7 @@ class binance(Exchange, ImplicitAPI):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             triggerPriceIsRequired = True
             quantityIsRequired = True
-            if market['linear'] or market['inverse']:
+            if (market['linear'] or market['inverse']) and priceRequiredForTrailing:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
@@ -6302,16 +6346,12 @@ class binance(Exchange, ImplicitAPI):
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
-            # portfolio margin has a different amount precision
-            if isPortfolioMargin:
-                request['quantity'] = self.parse_to_numeric(amount)
+            marketAmountPrecision = self.safe_string(market['precision'], 'amount')
+            isPrecisionAvailable = (marketAmountPrecision is not None)
+            if isPrecisionAvailable:
+                request['quantity'] = self.amount_to_precision(symbol, amount)
             else:
-                marketAmountPrecision = self.safe_string(market['precision'], 'amount')
-                isPrecisionAvailable = (marketAmountPrecision is not None)
-                if isPrecisionAvailable:
-                    request['quantity'] = self.amount_to_precision(symbol, amount)
-                else:
-                    request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
+                request['quantity'] = self.parse_to_numeric(amount)  # some options don't have the precision available
         if priceIsRequired and not isPriceMatch:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
@@ -6345,7 +6385,8 @@ class binance(Exchange, ImplicitAPI):
                 side = 'sell' if (side == 'buy') else 'buy'
             request['positionSide'] = 'LONG' if (side == 'buy') else 'SHORT'
         # unified stp
-        selfTradePrevention = self.safe_string(params, 'selfTradePrevention')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             if market['spot']:
                 request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums(but needs uppercase)
@@ -6354,7 +6395,7 @@ class binance(Exchange, ImplicitAPI):
         if icebergAmount is not None:
             if market['spot']:
                 request['icebergQty'] = self.amount_to_precision(symbol, icebergAmount)
-        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount'])
+        requestParams = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount'])
         return self.extend(request, requestParams)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
@@ -7366,6 +7407,7 @@ class binance(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: alternative to ids, array of client order ids
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
@@ -7380,8 +7422,14 @@ class binance(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
         request: dict = {
             'symbol': market['id'],
-            'orderidlist': ids,
+            # 'orderidlist': ids,
         }
+        origClientOrderIdList = self.safe_list_2(params, 'origClientOrderIdList', 'clientOrderIds')
+        if origClientOrderIdList is not None:
+            params = self.omit(params, ['clientOrderIds'])
+            request['origClientOrderIdList'] = origClientOrderIdList
+        else:
+            request['orderidlist'] = ids
         response = None
         if market['linear']:
             response = await self.fapiPrivateDeleteBatchOrders(self.extend(request, params))
@@ -8864,7 +8912,6 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': self.currency_to_precision(code, amount),
             # issue sapiGetCapitalConfigGetall() to get networks for withdrawing USDT ERC20 vs USDT Omni
             # 'network': 'ETH',  # 'BTC', 'TRX', etc, optional
         }
@@ -8876,6 +8923,7 @@ class binance(Exchange, ImplicitAPI):
         if network is not None:
             request['network'] = network
             params = self.omit(params, 'network')
+        request['amount'] = self.currency_to_precision(code, amount, network)
         response = await self.sapiPostCapitalWithdrawApply(self.extend(request, params))
         #     {id: '9a67628b16ba4988ae20d329333f16bc'}
         return self.parse_transaction(response, currency)
@@ -10668,11 +10716,13 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: response from the exchange
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, ['type'])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('setPositionMode', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('setPositionMode', None, params)
+        subType, params = self.handle_sub_type_and_params('setPositionMode', market, params)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'setPositionMode', 'papi', 'portfolioMargin', False)
         dualSidePosition = None
@@ -11083,7 +11133,7 @@ class binance(Exchange, ImplicitAPI):
         #         "asset": "USDT",
         #         "amount": "-0.16518203",
         #         "type": "FEE",
-        #         "createDate": 1676621042489
+        #         "createDate": 167662104241
         #     }
         #
         # futures(fapi, dapi, papi)
@@ -11209,6 +11259,8 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papi' and path != 'ping'):
             self.check_required_credentials()
+            if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning')):
+                raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
                 newClientOrderId = self.safe_string(params, 'newClientOrderId')
@@ -11253,15 +11305,19 @@ class binance(Exchange, ImplicitAPI):
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0) or (path.find('simple-earn') >= 0):
                 if (method == 'DELETE') and (path == 'batchOrders'):
                     orderidlist = self.safe_list(extendedParams, 'orderidlist', [])
-                    origclientorderidlist = self.safe_list(extendedParams, 'origclientorderidlist', [])
-                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist'])
+                    origclientorderidlist = self.safe_list_2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', [])
+                    extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList'])
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)
                     if orderidlistLength > 0:
                         query = query + '&' + 'orderidlist=%5B' + '%2C'.join(orderidlist) + '%5D'
                     if origclientorderidlistLength > 0:
-                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(origclientorderidlist) + '%5D'
+                        # wrap clientOrderids around ""
+                        newClientOrderIds = []
+                        for i in range(0, origclientorderidlistLength):
+                            newClientOrderIds.append('%22' + origclientorderidlist[i] + '%22')
+                        query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(newClientOrderIds) + '%5D'
                 else:
                     query = self.rawencode(extendedParams)
             else:

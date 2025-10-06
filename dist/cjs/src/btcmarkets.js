@@ -54,6 +54,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                 'fetchClosedOrders': 'emulated',
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,

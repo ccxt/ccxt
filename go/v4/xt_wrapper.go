@@ -1128,6 +1128,7 @@ func (this *Xt) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLe
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
  * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
  */
 func (this *Xt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
@@ -1441,6 +1442,9 @@ func (this *Xt) EditOrder(id string, symbol string, typeVar string, side string,
 
 // missing typed methods from base
 // nolint
+func (this *Xt) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Xt) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }

@@ -21,6 +21,9 @@ func NewGateio(userConfig map[string]interface{}) *Gateio {
 
 // missing typed methods from base
 // nolint
+func (this *Gateio) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Gateio) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

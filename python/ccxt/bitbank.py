@@ -54,6 +54,7 @@ class bitbank(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -931,7 +932,7 @@ class bitbank(Exchange, ImplicitAPI):
         address = self.safe_string(firstAccount, 'address')
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': None,
             'address': address,
             'tag': None,

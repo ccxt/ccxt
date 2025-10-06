@@ -147,6 +147,7 @@ type Exchange struct {
 	Positions  interface{}
 	MyTrades   interface{}
 	Orderbooks interface{}
+	Bidsasks   interface{}
 
 	PaddingMode int
 

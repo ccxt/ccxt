@@ -658,7 +658,7 @@ class htx extends Exchange {
                             'api/v1/contract_batchorder' => 1,
                             'api/v1/contract_cancel' => 1,
                             'api/v1/contract_cancelall' => 1,
-                            'api/v1/contract_switch_lever_rate' => 1,
+                            'api/v1/contract_switch_lever_rate' => 30,
                             'api/v1/lightning_close_position' => 1,
                             'api/v1/contract_order_info' => 1,
                             'api/v1/contract_order_detail' => 1,
@@ -717,7 +717,7 @@ class htx extends Exchange {
                             'swap-api/v1/swap_cancel' => 1,
                             'swap-api/v1/swap_cancelall' => 1,
                             'swap-api/v1/swap_lightning_close_position' => 1,
-                            'swap-api/v1/swap_switch_lever_rate' => 1,
+                            'swap-api/v1/swap_switch_lever_rate' => 30,
                             'swap-api/v1/swap_order_info' => 1,
                             'swap-api/v1/swap_order_detail' => 1,
                             'swap-api/v1/swap_openorders' => 1,
@@ -791,8 +791,8 @@ class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_cancel' => 1,
                             'linear-swap-api/v1/swap_cancelall' => 1,
                             'linear-swap-api/v1/swap_cross_cancelall' => 1,
-                            'linear-swap-api/v1/swap_switch_lever_rate' => 1,
-                            'linear-swap-api/v1/swap_cross_switch_lever_rate' => 1,
+                            'linear-swap-api/v1/swap_switch_lever_rate' => 30,
+                            'linear-swap-api/v1/swap_cross_switch_lever_rate' => 30,
                             'linear-swap-api/v1/swap_lightning_close_position' => 1,
                             'linear-swap-api/v1/swap_cross_lightning_close_position' => 1,
                             'linear-swap-api/v1/swap_order_info' => 1,
@@ -2772,7 +2772,16 @@ class htx extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
-        $id = $this->safe_string_n($trade, array( 'trade_id', 'trade-id', 'id' ));
+        // htx's multi-$market $trade-$id is a bit complex to parse accordingly.
+        // - for `$id` which contains hyphen, it would be the unique $id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `$id` key
+        $id = null;
+        $safeId = $this->safe_string($trade, 'id');
+        if ($safeId !== null && mb_strpos($safeId, '-') !== false) {
+            $id = $safeId;
+        } else {
+            $id = $this->safe_string_n($trade, array( 'trade_id', 'trade-id', 'id' ));
+        }
         return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,

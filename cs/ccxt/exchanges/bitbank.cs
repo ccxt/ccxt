@@ -40,6 +40,7 @@ public partial class bitbank : Exchange
                 { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
@@ -954,7 +955,7 @@ public partial class bitbank : Exchange
         object address = this.safeString(firstAccount, "address");
         return new Dictionary<string, object>() {
             { "info", response },
-            { "currency", currency },
+            { "currency", getValue(currency, "code") },
             { "network", null },
             { "address", address },
             { "tag", null },

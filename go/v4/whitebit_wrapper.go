@@ -136,6 +136,73 @@ func (this *Whitebit) FetchTradingFees(params ...interface{}) (TradingFees, erro
 
 /**
  * @method
+ * @name whitebit#fetchTradingLimits
+ * @description fetch the trading limits for a market
+ * @see https://docs.whitebit.com/public/http-v4/#market-info
+ * @param {string[]|undefined} symbols unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/#/?id=trading-limits-structure}
+ */
+func (this *Whitebit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+
+	opts := FetchTradingLimitsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTradingLimits(symbols, params)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return res.(map[string]interface{}), nil
+}
+
+/**
+ * @method
+ * @name whitebit#fetchFundingLimits
+ * @description fetch the deposit and withdrawal limits for a currency
+ * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+ * @see https://docs.whitebit.com/public/http-v4/#fee
+ * @param {string[]|undefined} codes unified currency codes
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/#/?id=funding-limits-structure}
+ */
+func (this *Whitebit) FetchFundingLimits(options ...FetchFundingLimitsOptions) (map[string]interface{}, error) {
+
+	opts := FetchFundingLimitsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var codes interface{} = nil
+	if opts.Codes != nil {
+		codes = *opts.Codes
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingLimits(codes, params)
+	if IsError(res) {
+		return map[string]interface{}{}, CreateReturnError(res)
+	}
+	return res.(map[string]interface{}), nil
+}
+
+/**
+ * @method
  * @name whitebit#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @see https://docs.whitebit.com/public/http-v4/#market-activity
@@ -160,6 +227,43 @@ func (this *Whitebit) FetchTicker(symbol string, options ...FetchTickerOptions) 
 		return Ticker{}, CreateReturnError(res)
 	}
 	return NewTicker(res), nil
+}
+
+/**
+ * @method
+ * @name whitebit#fetchOrder
+ * @description fetches information on an order by the id
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+ * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Whitebit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+
+	opts := FetchOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
 }
 
 /**
@@ -610,6 +714,52 @@ func (this *Whitebit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 
 /**
  * @method
+ * @name whitebit#fetchOrders
+ * @description fetches information on multiple orders made by the user (combines open and closed orders)
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+ * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Whitebit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
+
+	opts := FetchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
  * @name whitebit#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
  * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
@@ -793,6 +943,98 @@ func (this *Whitebit) FetchOrderTrades(id string, options ...FetchOrderTradesOpt
 
 /**
  * @method
+ * @name whitebit#fetchWithdrawals
+ * @description fetch all withdrawals made from an account
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+ * @param {string} code unified currency code
+ * @param {int} [since] the earliest time in ms to fetch withdrawals for
+ * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
+func (this *Whitebit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
+
+	opts := FetchWithdrawalsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code interface{} = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchWithdrawals(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransactionArray(res), nil
+}
+
+/**
+ * @method
+ * @name whitebit#fetchTransactions
+ * @description fetch history of deposits and withdrawals
+ * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+ * @param {string} [code] unified currency code
+ * @param {int} [since] the earliest time in ms to fetch transactions for
+ * @param {int} [limit] the maximum number of transactions structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ */
+func (this *Whitebit) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
+
+	opts := FetchTransactionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code interface{} = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTransactions(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransactionArray(res), nil
+}
+
+/**
+ * @method
  * @name whitebit#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
  * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
@@ -848,6 +1090,22 @@ func (this *Whitebit) CreateDepositAddress(code string, options ...CreateDeposit
 		return DepositAddress{}, CreateReturnError(res)
 	}
 	return NewDepositAddress(res), nil
+}
+
+/**
+ * @method
+ * @name whitebit#fetchAccounts
+ * @description fetch all the accounts associated with a profile
+ * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+ */
+func (this *Whitebit) FetchAccounts(params ...interface{}) ([]Account, error) {
+	res := <-this.Core.FetchAccounts(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewAccountArray(res), nil
 }
 
 /**
@@ -1493,6 +1751,9 @@ func (this *Whitebit) FetchCrossBorrowRate(code string, options ...FetchCrossBor
 
 // missing typed methods from base
 // nolint
+func (this *Whitebit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Whitebit) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
 }
@@ -1564,9 +1825,6 @@ func (this *Whitebit) EditLimitSellOrder(id string, symbol string, amount float6
 }
 func (this *Whitebit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
-}
-func (this *Whitebit) FetchAccounts(params ...interface{}) ([]Account, error) {
-	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Whitebit) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
@@ -1688,14 +1946,8 @@ func (this *Whitebit) FetchOption(symbol string, options ...FetchOptionOptions) 
 func (this *Whitebit) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
-func (this *Whitebit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrder(id, options...)
-}
 func (this *Whitebit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Whitebit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrders(options...)
 }
 func (this *Whitebit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
@@ -1721,23 +1973,14 @@ func (this *Whitebit) FetchPremiumIndexOHLCV(symbol string, options ...FetchPrem
 func (this *Whitebit) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Whitebit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
-	return this.exchangeTyped.FetchTradingLimits(options...)
-}
 func (this *Whitebit) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
-}
-func (this *Whitebit) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchTransactions(options...)
 }
 func (this *Whitebit) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfer(id, options...)
 }
 func (this *Whitebit) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 	return this.exchangeTyped.FetchTransfers(options...)
-}
-func (this *Whitebit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
-	return this.exchangeTyped.FetchWithdrawals(options...)
 }
 func (this *Whitebit) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)

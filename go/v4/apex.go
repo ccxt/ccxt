@@ -924,11 +924,11 @@ func (this *apex) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-
 			limit = 200 // default is 200 when requested with `since`
 		}
 		AddElementToObject(request, "limit", limit) // max 200, default 200
-		requestparamsVariable := this.HandleUntilOption("end", request, params)
+		requestparamsVariable := this.HandleUntilOption("end", request, params, 0.001)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start", since)
+			AddElementToObject(request, "start", MathFloor(Divide(since, 1000)))
 		}
 
 		response := (<-this.PublicGetV3Klines(this.Extend(request, params)))

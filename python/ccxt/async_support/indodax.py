@@ -63,6 +63,7 @@ class indodax(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDeposit': False,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': True,
@@ -204,6 +205,16 @@ class indodax(Exchange, ImplicitAPI):
                     'Minimum order': InvalidOrder,
                 },
             },
+            'timeframes': {
+                '1m': '1',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+            },
             # exchange-specific options
             'options': {
                 'recvWindow': 5 * 1000,  # default 5 sec
@@ -226,16 +237,6 @@ class indodax(Exchange, ImplicitAPI):
                     # 'ZRC2': 'zrc2'
                     # 'ETH': 'eth'
                     # 'BASE': 'base'
-                },
-                'timeframes': {
-                    '1m': '1',
-                    '15m': '15',
-                    '30m': '30',
-                    '1h': '60',
-                    '4h': '240',
-                    '1d': '1D',
-                    '3d': '3D',
-                    '1w': '1W',
                 },
             },
             'features': {
@@ -372,7 +373,7 @@ class indodax(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = self.safe_string(market, 'ticker_id')
+            id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'traded_currency')
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
@@ -509,7 +510,7 @@ class indodax(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         }
         orderbook = await self.publicGetApiDepthPair(self.extend(request, params))
         return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
@@ -568,7 +569,7 @@ class indodax(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         }
         response = await self.publicGetApiTickerPair(self.extend(request, params))
         #
@@ -617,7 +618,16 @@ class indodax(Exchange, ImplicitAPI):
         #
         response = await self.publicGetApiTickerAll(params)
         tickers = self.safe_dict(response, 'tickers', {})
-        return self.parse_tickers(tickers, symbols)
+        keys = list(tickers.keys())
+        parsedTickers = {}
+        for i in range(0, len(keys)):
+            key = keys[i]
+            rawTicker = tickers[key]
+            marketId = key.replace('_', '')
+            market = self.safe_market(marketId)
+            parsed = self.parse_ticker(rawTicker, market)
+            parsedTickers[marketId] = parsed
+        return self.filter_by_array(parsedTickers, 'symbol', symbols)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         timestamp = self.safe_timestamp(trade, 'date')
@@ -652,7 +662,7 @@ class indodax(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         }
         response = await self.publicGetApiTradesPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -690,15 +700,14 @@ class indodax(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        timeframes = self.options['timeframes']
-        selectedTimeframe = self.safe_string(timeframes, timeframe, timeframe)
+        selectedTimeframe = self.safe_string(self.timeframes, timeframe, timeframe)
         now = self.seconds()
         until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
         request: dict = {
             'to': until,
             'tf': selectedTimeframe,
-            'symbol': market['base'] + market['quote'],
+            'symbol': market['id'],
         }
         if limit is None:
             limit = 1000

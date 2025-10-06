@@ -1235,6 +1235,7 @@ func (this *Hyperliquid) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEnt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Hyperliquid) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
@@ -1281,6 +1282,7 @@ func (this *Hyperliquid) FetchDeposits(options ...FetchDepositsOptions) ([]Trans
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *Hyperliquid) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
@@ -1423,6 +1425,9 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 
 // missing typed methods from base
 // nolint
+func (this *Hyperliquid) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Hyperliquid) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

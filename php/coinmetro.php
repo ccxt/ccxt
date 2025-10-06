@@ -565,6 +565,17 @@ class coinmetro extends Exchange {
                 }
             }
         }
+        if ($baseId === null || $quoteId === null) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (str_ends_with($marketId, 'USDT')) {
+                $baseId = str_replace('USDT', '', $marketId);
+                $quoteId = 'USDT';
+            }
+            if (str_ends_with($marketId, 'USD')) {
+                $baseId = str_replace('USD', '', $marketId);
+                $quoteId = 'USD';
+            }
+        }
         $result = array(
             'baseId' => $baseId,
             'quoteId' => $quoteId,

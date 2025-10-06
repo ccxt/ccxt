@@ -2316,10 +2316,12 @@ class coinbase extends coinbase$1["default"] {
         if (('bids' in ticker)) {
             const bids = this.safeList(ticker, 'bids', []);
             const asks = this.safeList(ticker, 'asks', []);
-            bid = this.safeNumber(bids[0], 'price');
-            bidVolume = this.safeNumber(bids[0], 'size');
-            ask = this.safeNumber(asks[0], 'price');
-            askVolume = this.safeNumber(asks[0], 'size');
+            const firstBid = this.safeDict(bids, 0, {});
+            const firstAsk = this.safeDict(asks, 0, {});
+            bid = this.safeNumber(firstBid, 'price');
+            bidVolume = this.safeNumber(firstBid, 'size');
+            ask = this.safeNumber(firstAsk, 'price');
+            askVolume = this.safeNumber(firstAsk, 'size');
         }
         const marketId = this.safeString(ticker, 'product_id');
         market = this.safeMarket(marketId, market);
@@ -2917,7 +2919,7 @@ class coinbase extends coinbase$1["default"] {
             }
             accountId = await this.findAccountId(code, params);
             if (accountId === undefined) {
-                throw new errors.ExchangeError(this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
+                throw new errors.ExchangeError(this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.');
             }
         }
         const request = {
@@ -5012,8 +5014,9 @@ class coinbase extends coinbase$1["default"] {
         }
         return parsedPositions;
     }
-    createAuthToken(seconds, method = undefined, url = undefined) {
-        // it may not work for v2
+    createAuthToken(seconds, method = undefined, url = undefined, useEddsa = false) {
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
         if (url !== undefined) {
             uri = method + ' ' + url.replace('https://', '');
@@ -5024,20 +5027,35 @@ class coinbase extends coinbase$1["default"] {
                 uri = uri.slice(0, quesPos);
             }
         }
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         const nonce = this.randomBytes(16);
+        const aud = useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
+        const iss = useEddsa ? 'cdp' : 'coinbase-cloud';
         const request = {
-            'aud': ['retail_rest_api_proxy'],
-            'iss': 'coinbase-cloud',
+            'aud': [aud],
+            'iss': iss,
             'nbf': seconds,
             'exp': seconds + 120,
             'sub': this.apiKey,
             'iat': seconds,
         };
         if (uri !== undefined) {
-            request['uri'] = uri;
+            if (!useEddsa) {
+                request['uri'] = uri;
+            }
+            else {
+                request['uris'] = [uri];
+            }
         }
-        const token = rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
-        return token;
+        if (useEddsa) {
+            const byteArray = this.base64ToBinary(this.secret);
+            const seed = this.arraySlice(byteArray, 0, 32);
+            return rsa.jwt(request, seed, sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+        }
+        else {
+            // ecdsa with p256
+            return rsa.jwt(request, this.encode(this.secret), sha256.sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        }
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
@@ -5087,8 +5105,10 @@ class coinbase extends coinbase$1["default"] {
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 const isCloudAPiKey = (this.apiKey.indexOf('organizations/') >= 0) || (this.secret.startsWith('-----BEGIN'));
-                if (isCloudAPiKey) {
-                    if (this.apiKey.startsWith('-----BEGIN')) {
+                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+                const isV2CloudAPiKey = this.secret.length === 88 || this.safeBool(this.options, 'v2CloudAPiKey', false) || this.secret.endsWith('=');
+                if (isCloudAPiKey || isV2CloudAPiKey) {
+                    if (isCloudAPiKey && this.apiKey.startsWith('-----BEGIN')) {
                         throw new errors.ArgumentsRequired(this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
                     // // it may not work for v2
@@ -5109,7 +5129,7 @@ class coinbase extends coinbase$1["default"] {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = this.createAuthToken(seconds, method, url);
+                    const token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 }

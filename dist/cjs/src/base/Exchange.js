@@ -51,24 +51,26 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, ecdsa, arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep } = functions;
+const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
+// ecdsa,
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 (async () => {
     try {
         protobufMexc = await Promise.resolve().then(function () { return require('../protobuf/mexc/compiled.cjs.js'); });
     }
-    catch { }
+    catch {
+        // TODO: handle error
+    }
 })();
-//-----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /**
  * @class Exchange
  */
 class Exchange {
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
-        this.throttleProp = undefined;
-        this.sleep = sleep;
         this.api = undefined;
         this.certified = false;
         this.pro = false;
@@ -93,6 +95,7 @@ class Exchange {
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true; // reserved
         this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        // eslint-disable-next-line no-unused-vars
         this.number = Number; // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
@@ -158,11 +161,19 @@ class Exchange {
         this.name = undefined;
         this.targetAccount = undefined;
         this.stablePairs = {};
+        this.httpProxyAgentModule = undefined;
+        this.httpsProxyAgentModule = undefined;
+        this.socksProxyAgentModule = undefined;
+        this.socksProxyAgentModuleChecked = false;
+        this.proxyDictionaries = {};
+        this.proxiesModulesLoading = undefined;
+        this.alias = false;
         // WS/PRO options
         this.clients = {};
         this.newUpdates = true;
         this.streaming = {};
-        this.alias = false;
+        // INTERNAL METHODS
+        this.sleep = sleep;
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
@@ -265,12 +276,6 @@ class Exchange {
         this.crc32 = crc32;
         this.packb = packb;
         this.urlencodeBase64 = urlencodeBase64;
-        this.httpProxyAgentModule = undefined;
-        this.httpsProxyAgentModule = undefined;
-        this.socksProxyAgentModule = undefined;
-        this.socksProxyAgentModuleChecked = false;
-        this.proxyDictionaries = {};
-        this.proxiesModulesLoading = undefined;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -314,6 +319,7 @@ class Exchange {
         this.token = undefined; // reserved for HTTP auth in some cases
         // placeholders for cached data
         this.balance = {};
+        this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
         this.liquidations = {};
@@ -386,7 +392,14 @@ class Exchange {
     }
     checkRequiredVersion(requiredVersion, error = true) {
         let result = true;
-        const [major1, minor1, patch1] = requiredVersion.split('.'), [major2, minor2, patch2] = Exchange.ccxtVersion.split('.'), intMajor1 = this.parseToInt(major1), intMinor1 = this.parseToInt(minor1), intPatch1 = this.parseToInt(patch1), intMajor2 = this.parseToInt(major2), intMinor2 = this.parseToInt(minor2), intPatch2 = this.parseToInt(patch2);
+        const [major1, minor1, patch1] = requiredVersion.split('.');
+        const [major2, minor2, patch2] = Exchange.ccxtVersion.split('.');
+        const intMajor1 = this.parseToInt(major1);
+        const intMinor1 = this.parseToInt(minor1);
+        const intPatch1 = this.parseToInt(patch1);
+        const intMajor2 = this.parseToInt(major2);
+        const intMinor2 = this.parseToInt(minor2);
+        const intPatch2 = this.parseToInt(patch2);
         if (intMajor1 > intMajor2) {
             result = false;
         }
@@ -455,7 +468,7 @@ class Exchange {
                         this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config);
                     }
                     else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config });
+                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { 'cost': config });
                     }
                     else {
                         throw new errors.NotSupported(this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
@@ -468,6 +481,7 @@ class Exchange {
         }
     }
     log(...args) {
+        // eslint-disable-next-line no-console
         console.log(...args);
     }
     async loadProxyModules() {
@@ -488,16 +502,20 @@ class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'http-proxy-agent')); });
                         // @ts-ignore
-                        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); });
+                        this.httpsProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'https-proxy-agent')); }); // eslint-disable-line
                     }
-                    catch (e) { }
+                    catch (err) {
+                        // TODO: handle error
+                    }
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'socks-proxy-agent')); });
                     }
-                    catch (e) { }
+                    catch (e) {
+                        // TODO: handle error
+                    }
                     this.socksProxyAgentModuleChecked = true;
                 }
             })();
@@ -597,7 +615,7 @@ class Exchange {
             if (!this.nodeHttpModuleLoaded) {
                 this.nodeHttpModuleLoaded = true;
                 const httpsModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:https')); });
-                this.httpsAgent = new httpsModule.Agent({ keepAlive: true });
+                this.httpsAgent = new httpsModule.Agent({ 'keepAlive': true });
             }
         }
         // ##### PROXY & HEADERS #####
@@ -641,7 +659,7 @@ class Exchange {
         headers = this.setHeaders(headers);
         // log
         if (this.verbose) {
-            this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n");
+            this.log('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
         }
         // end of proxies & headers
         if (this.fetchImplementation === undefined) {
@@ -650,16 +668,16 @@ class Exchange {
                     this.agent = this.httpsAgent;
                 }
                 try {
-                    const module = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
-                    this.AbortError = module.AbortError;
-                    this.fetchImplementation = module.default;
-                    this.FetchError = module.FetchError;
+                    const nodeFetchModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ '../static_dependencies/node-fetch/index.js'); });
+                    this.AbortError = nodeFetchModule.AbortError;
+                    this.fetchImplementation = nodeFetchModule.default;
+                    this.FetchError = nodeFetchModule.FetchError;
                 }
                 catch (e) {
                     // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
                     // so let them to fallback to node's native fetch
                     if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch;
+                        this.fetchImplementation = fetch; // eslint-disable-line
                         // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
                         // it throws same error types
                         this.AbortError = DOMException;
@@ -671,6 +689,7 @@ class Exchange {
                 }
             }
             else {
+                // eslint-disable-next-line
                 this.fetchImplementation = (selfIsDefined()) ? self.fetch : fetch;
                 this.AbortError = DOMException;
                 this.FetchError = TypeError;
@@ -679,7 +698,7 @@ class Exchange {
         // fetchImplementation cannot be called on this. in browsers:
         // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
         const fetchImplementation = this.fetchImplementation;
-        const params = { method, headers, body, timeout: this.timeout };
+        const params = { method, headers, body, 'timeout': this.timeout };
         if (this.agent) {
             params['agent'] = this.agent;
         }
@@ -742,14 +761,14 @@ class Exchange {
                 this.last_http_response = responseBuffer;
             }
             if (this.verbose) {
-                this.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n");
+                this.log('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, 'ZIP redacted', '\n');
             }
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
         return response.text().then((responseBody) => {
             const bodyText = this.onRestResponse(response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
-            const json = this.parseJson(bodyText);
+            const parsedBody = this.parseJson(bodyText);
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders;
             }
@@ -757,19 +776,19 @@ class Exchange {
                 this.last_http_response = responseBody;
             }
             if (this.enableLastJsonResponse) {
-                this.last_json_response = json;
+                this.last_json_response = parsedBody;
             }
             if (this.verbose) {
-                this.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n");
+                this.log('handleRestResponse:\n', this.id, method, url, response.status, response.statusText, '\nResponseHeaders:\n', responseHeaders, '\nResponseBody:\n', responseBody, '\n');
             }
-            const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody);
+            const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, parsedBody, requestHeaders, requestBody);
             if (!skipFurtherErrorHandling) {
                 this.handleHttpStatusCode(response.status, response.statusText, url, method, responseBody);
             }
-            if (json && !Array.isArray(json) && this.returnResponseHeaders) {
-                json['responseHeaders'] = responseHeaders;
+            if (parsedBody && !Array.isArray(parsedBody) && this.returnResponseHeaders) {
+                parsedBody['responseHeaders'] = responseHeaders;
             }
-            return json || responseBody;
+            return parsedBody || responseBody;
         });
     }
     onRestResponse(statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
@@ -829,31 +848,38 @@ class Exchange {
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(this.currencies));
+        return new Promise((resolve, reject) => {
+            resolve(this.currencies);
+        });
     }
     async fetchCurrenciesWs(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(this.currencies));
+        return new Promise((resolve, reject) => {
+            resolve(this.currencies);
+        });
     }
     async fetchMarkets(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
+        return new Promise((resolve, reject) => {
+            resolve(Object.values(this.markets));
+        });
     }
     async fetchMarketsWs(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise((resolve, reject) => resolve(Object.values(this.markets)));
+        return new Promise((resolve, reject) => {
+            resolve(Object.values(this.markets));
+        });
     }
     checkRequiredDependencies() {
-        return;
     }
     parseNumber(value, d = undefined) {
         if (value === undefined) {
@@ -870,7 +896,7 @@ class Exchange {
                     return this.number(numberToString(parseFloat(numberNormalized)));
                 }
                 const result = this.number(numberNormalized);
-                return isNaN(result) ? d : result;
+                return Number.isNaN(result) ? d : result;
             }
             catch (e) {
                 return d;
@@ -952,6 +978,7 @@ class Exchange {
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
             // part only for node-js
             const httpProxyAgent = this.getHttpAgentIfNeeded(url);
+            // eslint-disable-next-line no-nested-ternary
             const finalAgent = chosenAgent ? chosenAgent : (httpProxyAgent ? httpProxyAgent : this.agent);
             //
             const options = this.deepExtend(this.streaming, {
@@ -1001,10 +1028,10 @@ class Exchange {
         //                                 |               |
         //                             subscribe -----→ receive
         //
-        const future = Future.Future.race(messageHashes.map(messageHash => client.future(messageHash)));
+        const future = Future.Future.race(messageHashes.map((messageHash) => client.future(messageHash)));
         // read and write subscription, this is done before connecting the client
         // to avoid race conditions when other parts of the code read or write to the client.subscriptions
-        let missingSubscriptions = [];
+        const missingSubscriptions = [];
         if (subscribeHashes !== undefined) {
             for (let i = 0; i < subscribeHashes.length; i++) {
                 const subscribeHash = subscribeHashes[i];
@@ -1160,8 +1187,15 @@ class Exchange {
         }
     }
     async close() {
+        // test by running ts/src/pro/test/base/test.close.ts
+        await this.sleep(0); // allow other futures to run
         const clients = Object.values(this.clients || {});
         const closedClients = [];
+        for (let i = 0; i < clients.length; i++) {
+            const client = clients[i];
+            client.error = new errors.ExchangeClosedByUser(this.id + ' closedByUser');
+            closedClients.push(client.close());
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             delete this.clients[client.url];
@@ -1193,6 +1227,7 @@ class Exchange {
             }
             client.reject(new errors.ExchangeError(this.id + ' nonce is behind the cache after ' + maxRetries.toString() + ' tries.'), messageHash);
             delete this.clients[client.url];
+            this.orderbooks[symbol] = this.orderBook(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }
         catch (e) {
             client.reject(e, messageHash);
@@ -1244,18 +1279,18 @@ class Exchange {
         const privateKey = index$1.ethSigToPrivate(signature);
         const publicKey = index$1.getStarkKey(privateKey);
         const callData = index$2.CallData.compile({
-            implementation: accountClassHash,
-            selector: selector.getSelectorFromName('initialize'),
-            calldata: index$2.CallData.compile({
-                signer: publicKey,
-                guardian: '0',
+            'implementation': accountClassHash,
+            'selector': selector.getSelectorFromName('initialize'),
+            'calldata': index$2.CallData.compile({
+                'signer': publicKey,
+                'guardian': '0',
             }),
         });
         const address = classHash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
-            address
+            address,
         };
     }
     starknetEncodeStructuredData(domain, messageTypes, messageData, address) {
@@ -1268,9 +1303,9 @@ class Exchange {
             'primaryType': types[0],
             'types': this.extend({
                 'StarkNetDomain': [
-                    { 'name': "name", 'type': "felt" },
-                    { 'name': "chainId", 'type': "felt" },
-                    { 'name': "version", 'type': "felt" },
+                    { 'name': 'name', 'type': 'felt' },
+                    { 'name': 'chainId', 'type': 'felt' },
+                    { 'name': 'version', 'type': 'felt' },
                 ],
             }, messageTypes),
             'message': messageData,
@@ -1278,9 +1313,9 @@ class Exchange {
         const msgHash = typedData$1.getMessageHash(request, address);
         return msgHash;
     }
-    starknetSign(hash, pri) {
+    starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = index$1.sign(hash.replace('0x', ''), pri.slice(-64));
+        const signature = index$1.sign(msgHash.replace('0x', ''), pri.slice(-64));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     async getZKContractSignatureObj(seed, params = {}) {
@@ -1294,10 +1329,10 @@ class Exchange {
         await zklinkSdkWeb["default"]();
         const _signer = zklinkSdkWeb.newRpcSignerWithProvider({});
         await _signer.initZklinkSigner(seed);
-        let tx_builder = new zklinkSdkWeb.ContractBuilder(accountId, 0, slotId, nonce, this.safeInteger(params, 'pairId'), Precise["default"].stringMul(this.safeString(params, 'size'), '1e18'), Precise["default"].stringMul(this.safeString(params, 'price'), '1e18'), this.safeString(params, 'direction') === 'BUY', parseInt(Precise["default"].stringMul(this.safeString(params, 'makerFeeRate'), '10000')), parseInt(Precise["default"].stringMul(this.safeString(params, 'takerFeeRate'), '10000')), false);
-        let contractor = zklinkSdkWeb.newContract(tx_builder);
-        //const signer = ZkLinkSigner.ethSig(seed);
-        //const signer = new Signer(seed);
+        const tx_builder = new zklinkSdkWeb.ContractBuilder(accountId, 0, slotId, nonce, this.safeInteger(params, 'pairId'), Precise["default"].stringMul(this.safeString(params, 'size'), '1e18'), Precise["default"].stringMul(this.safeString(params, 'price'), '1e18'), this.safeString(params, 'direction') === 'BUY', parseInt(Precise["default"].stringMul(this.safeString(params, 'makerFeeRate'), '10000')), parseInt(Precise["default"].stringMul(this.safeString(params, 'takerFeeRate'), '10000')), false);
+        const contractor = zklinkSdkWeb.newContract(tx_builder);
+        // const signer = ZkLinkSigner.ethSig(seed);
+        // const signer = new Signer(seed);
         contractor?.sign(_signer?.getZkLinkSigner());
         const tx = contractor.jsValue();
         const zkSign = tx?.signature?.signature;
@@ -1313,10 +1348,10 @@ class Exchange {
             const formattedNonce = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(nonce), sha256.sha256, 'hex'))).toString();
             nonce = Precise["default"].stringMod(formattedNonce, formattedUint32);
         }
-        let tx_builder = new zklinkSdkWeb.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
-        let contractor = zklinkSdkWeb.newTransfer(tx_builder);
-        //const signer = ZkLinkSigner.ethSig(seed);
-        //const signer = new Signer(seed);
+        const tx_builder = new zklinkSdkWeb.TransferBuilder(this.safeNumber(params, 'zkAccountId', 0), this.safeString(params, 'receiverAddress'), this.safeNumber(params, 'subAccountId', 0), this.safeNumber(params, 'receiverSubAccountId', 0), this.safeNumber(params, 'tokenId', 0), this.safeString(params, 'fee', '0'), this.safeString(params, 'amount', '0'), this.parseToInt(nonce), this.safeNumber(params, 'timestampSeconds', 0));
+        const contractor = zklinkSdkWeb.newTransfer(tx_builder);
+        // const signer = ZkLinkSigner.ethSig(seed);
+        // const signer = new Signer(seed);
         contractor?.sign(_signer?.getZkLinkSigner());
         const tx = contractor.jsValue();
         const zkSign = tx?.signature?.signature;
@@ -1390,7 +1425,7 @@ class Exchange {
     // ########################################################################
     // ########################################################################
     // ------------------------------------------------------------------------
-    // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+    // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
     describe() {
         return {
             'id': undefined,
@@ -2138,6 +2173,27 @@ class Exchange {
             this.isSandboxModeEnabled = false;
         }
     }
+    /**
+     * @method
+     * @name Exchange#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    enableDemoTrading(enable) {
+        if (this.isSandboxModeEnabled) {
+            throw new errors.NotSupported(this.id + ' demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demo'];
+        }
+        else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'];
+            const newUrls = this.omit(this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
+    }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         return {};
     }
@@ -2203,6 +2259,9 @@ class Exchange {
     }
     async unWatchPositions(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchPositions() is not supported yet');
+    }
+    async unWatchTicker(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTicker() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
@@ -2437,9 +2496,9 @@ class Exchange {
     parseToNumeric(number) {
         const stringVersion = this.numberToString(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
-        // in JS: 1 == 1.0 is true;  1 === 1.0 is true
+        // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
-        // in PHP 1 == 1.0 is true, but 1 === 1.0 is false.
+        // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (stringVersion.indexOf('.') >= 0) {
             return parseFloat(stringVersion);
         }
@@ -2588,6 +2647,97 @@ class Exchange {
             }
         }
         return featuresObj;
+    }
+    featureValue(symbol, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+        /**
+         * @method
+         * @name exchange#featureValue
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [symbol] unified symbol
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        const market = this.market(symbol);
+        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue);
+    }
+    featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+        /**
+         * @method
+         * @name exchange#featureValueByType
+         * @description this method is a very deterministic to help users to know what feature is supported by the exchange
+         * @param {string} [marketType] supported only: "spot", "swap", "future"
+         * @param {string} [subType] supported only: "linear", "inverse"
+         * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
+         * @param {string} [paramName] unified param value (check docs for supported param names)
+         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {object} [defaultValue] return default value if no result found
+         * @returns {object} returns feature value
+         */
+        // if exchange does not yet have features manually implemented
+        if (this.features === undefined) {
+            return defaultValue;
+        }
+        // if marketType (e.g. 'option') does not exist in features
+        if (!(marketType in this.features)) {
+            return defaultValue; // unsupported marketType, check "exchange.features" for details
+        }
+        // if marketType dict undefined
+        if (this.features[marketType] === undefined) {
+            return defaultValue;
+        }
+        let methodsContainer = this.features[marketType];
+        if (subType === undefined) {
+            if (marketType !== 'spot') {
+                return defaultValue; // subType is required for non-spot markets
+            }
+        }
+        else {
+            if (!(subType in this.features[marketType])) {
+                return defaultValue; // unsupported subType, check "exchange.features" for details
+            }
+            // if subType dict undefined
+            if (this.features[marketType][subType] === undefined) {
+                return defaultValue;
+            }
+            methodsContainer = this.features[marketType][subType];
+        }
+        // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
+        if (methodName === undefined) {
+            return methodsContainer;
+        }
+        if (!(methodName in methodsContainer)) {
+            return defaultValue; // unsupported method, check "exchange.features" for details');
+        }
+        const methodDict = methodsContainer[methodName];
+        if (methodDict === undefined) {
+            return defaultValue;
+        }
+        // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
+        if (paramName === undefined) {
+            return methodDict;
+        }
+        if (!(paramName in methodDict)) {
+            return defaultValue; // unsupported paramName, check "exchange.features" for details');
+        }
+        const dictionary = this.safeDict(methodDict, paramName);
+        if (dictionary === undefined) {
+            // if the value is not dictionary but a scalar value (or undefined), return as is
+            return methodDict[paramName];
+        }
+        else {
+            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (subParamName === undefined) {
+                return methodDict[paramName];
+            }
+            // throw an exception for unsupported subParamName
+            if (!(subParamName in methodDict[paramName])) {
+                return defaultValue; // unsupported subParamName, check "exchange.features" for details
+            }
+            return methodDict[paramName][subParamName];
+        }
     }
     orderbookChecksumMessage(symbol) {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
@@ -2893,7 +3043,12 @@ class Exchange {
         const marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = Object.keys(marketsSortedBySymbol);
         this.ids = Object.keys(marketsSortedById);
+        let numCurrencies = 0;
         if (currencies !== undefined) {
+            const keys = Object.keys(currencies);
+            numCurrencies = keys.length;
+        }
+        if (numCurrencies > 0) {
             // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
         }
@@ -2953,6 +3108,34 @@ class Exchange {
         const currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = Object.keys(currenciesSortedByCode);
         return this.markets;
+    }
+    setMarketsFromExchange(sourceExchange) {
+        // Validate that both exchanges are of the same type
+        if (this.id !== sourceExchange.id) {
+            throw new errors.ArgumentsRequired(this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
+        }
+        // Validate that source exchange has loaded markets
+        if (!sourceExchange.markets) {
+            throw new errors.ExchangeError('setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function');
+        }
+        // Set all market-related data
+        this.markets = sourceExchange.markets;
+        this.markets_by_id = sourceExchange.markets_by_id;
+        this.symbols = sourceExchange.symbols;
+        this.ids = sourceExchange.ids;
+        this.currencies = sourceExchange.currencies;
+        this.baseCurrencies = sourceExchange.baseCurrencies;
+        this.quoteCurrencies = sourceExchange.quoteCurrencies;
+        this.codes = sourceExchange.codes;
+        // check marketHelperProps
+        const sourceExchangeHelpers = this.safeList(sourceExchange.options, 'marketHelperProps', []);
+        for (let i = 0; i < sourceExchangeHelpers.length; i++) {
+            const helper = sourceExchangeHelpers[i];
+            if (sourceExchange.options[helper] !== undefined) {
+                this.options[helper] = sourceExchange.options[helper];
+            }
+        }
+        return this;
     }
     getDescribeForExtendedWsExchange(currentRestInstance, parentRestInstance, wsBaseDescribe) {
         const extendedRestDescribe = this.deepExtend(parentRestInstance.describe(), currentRestInstance.describe());
@@ -4232,16 +4415,29 @@ class Exchange {
         }
         return result;
     }
-    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTradesHelper(isWs, trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         trades = this.toArray(trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend(this.parseTrade(trades[i], market), params);
+            let parsed = undefined;
+            if (isWs) {
+                parsed = this.parseWsTrade(trades[i], market);
+            }
+            else {
+                parsed = this.parseTrade(trades[i], market);
+            }
+            const trade = this.extend(parsed, params);
             result.push(trade);
         }
         result = this.sortBy2(result, 'timestamp', 'id');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+    parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.parseTradesHelper(false, trades, market, since, limit, params);
+    }
+    parseWsTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.parseTradesHelper(true, trades, market, since, limit, params);
     }
     parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
         transactions = this.toArray(transactions);
@@ -4692,6 +4888,12 @@ class Exchange {
             return market;
         }
         return result;
+    }
+    marketOrNull(symbol) {
+        if (symbol === undefined) {
+            return undefined;
+        }
+        return this.market(symbol);
     }
     checkRequiredCredentials(error = true) {
         /**
@@ -5674,7 +5876,9 @@ class Exchange {
         return this.safeString(this.commonCurrencies, code, code);
     }
     currency(code) {
-        if (this.currencies === undefined) {
+        const keys = Object.keys(this.currencies);
+        const numCurrencies = keys.length;
+        if (numCurrencies === 0) {
             throw new errors.ExchangeError(this.id + ' currencies not loaded');
         }
         if (typeof code === 'string') {
@@ -6191,6 +6395,35 @@ class Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    handleTriggerPricesAndParams(symbol, params, omitParams = true) {
+        //
+        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        let triggerPriceStr = undefined;
+        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        let stopLossPriceStr = undefined;
+        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        let takeProfitPriceStr = undefined;
+        //
+        if (triggerPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit(params, ['triggerPrice', 'stopPrice']);
+            }
+            triggerPriceStr = this.priceToPrecision(symbol, parseFloat(triggerPrice));
+        }
+        if (stopLossPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit(params, 'stopLossPrice');
+            }
+            stopLossPriceStr = this.priceToPrecision(symbol, parseFloat(stopLossPrice));
+        }
+        if (takeProfitPrice !== undefined) {
+            if (omitParams) {
+                params = this.omit(params, 'takeProfitPrice');
+            }
+            takeProfitPriceStr = this.priceToPrecision(symbol, parseFloat(takeProfitPrice));
+        }
+        return [triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params];
     }
     handleTriggerDirectionAndParams(params, exchangeSpecificKey = undefined, allowEmpty = false) {
         /**
@@ -6993,6 +7226,17 @@ class Exchange {
         const values = Object.values(uniqueResult);
         return values;
     }
+    removeKeysFromDict(dict, removeKeys) {
+        const keys = Object.keys(dict);
+        const newDict = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!this.inArray(key, removeKeys)) {
+                newDict[key] = dict[key];
+            }
+        }
+        return newDict;
+    }
     handleUntilOption(key, request, params, multiplier = 1) {
         const until = this.safeInteger2(params, 'until', 'till');
         if (until !== undefined) {
@@ -7344,9 +7588,9 @@ class Exchange {
         const symbols = this.safeList(subscription, 'symbols', []);
         const symbolsLength = symbols.length;
         if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
-            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
-                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+            const symbolsAndTimeframes = this.safeList(subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeframes[i];
                 const symbol = this.safeString(symbolAndTimeFrame, 0);
                 const timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if ((this.ohlcvs !== undefined) && (symbol in this.ohlcvs)) {
@@ -7374,6 +7618,11 @@ class Exchange {
                         delete this.tickers[symbol];
                     }
                 }
+                else if (topic === 'bidsasks') {
+                    if (symbol in this.bidsasks) {
+                        delete this.bidsasks[symbol];
+                    }
+                }
             }
         }
         else {
@@ -7388,7 +7637,7 @@ class Exchange {
                 const clients = Object.values(this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = this.safeDict(client, 'futures');
+                    const futures = client.futures;
                     if ((futures !== undefined) && ('fetchPositionsSnapshot' in futures)) {
                         delete futures['fetchPositionsSnapshot'];
                     }
@@ -7400,6 +7649,15 @@ class Exchange {
                     const tickerSymbol = tickerSymbols[i];
                     if (tickerSymbol in this.tickers) {
                         delete this.tickers[tickerSymbol];
+                    }
+                }
+            }
+            else if (topic === 'bidsasks' && (this.bidsasks !== undefined)) {
+                const bidsaskSymbols = Object.keys(this.bidsasks);
+                for (let i = 0; i < bidsaskSymbols.length; i++) {
+                    const bidsaskSymbol = bidsaskSymbols[i];
+                    if (bidsaskSymbol in this.bidsasks) {
+                        delete this.bidsasks[bidsaskSymbol];
                     }
                 }
             }

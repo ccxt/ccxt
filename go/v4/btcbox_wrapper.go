@@ -414,6 +414,9 @@ func (this *Btcbox) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 
 // missing typed methods from base
 // nolint
+func (this *Btcbox) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Btcbox) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

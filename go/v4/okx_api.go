@@ -83,6 +83,10 @@ func (this *okx) PublicGetMarketIndexComponents(args ...interface{}) <-chan inte
 	return this.callEndpointAsync("publicGetMarketIndexComponents", args...)
 }
 
+func (this *okx) PublicGetPublicMarketDataHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicMarketDataHistory", args...)
+}
+
 func (this *okx) PublicGetPublicEconomicCalendar(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicEconomicCalendar", args...)
 }
@@ -1141,6 +1145,10 @@ func (this *okx) PrivatePostAccountBillsHistoryArchive(args ...interface{}) <-ch
 
 func (this *okx) PrivatePostAccountMovePositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAccountMovePositions", args...)
+}
+
+func (this *okx) PrivatePostAccountSetSettleCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountSetSettleCurrency", args...)
 }
 
 func (this *okx) PrivatePostUsersSubaccountModifyApikey(args ...interface{}) <-chan interface{} {

@@ -2260,10 +2260,12 @@ class coinbase(Exchange, ImplicitAPI):
         if ('bids' in ticker):
             bids = self.safe_list(ticker, 'bids', [])
             asks = self.safe_list(ticker, 'asks', [])
-            bid = self.safe_number(bids[0], 'price')
-            bidVolume = self.safe_number(bids[0], 'size')
-            ask = self.safe_number(asks[0], 'price')
-            askVolume = self.safe_number(asks[0], 'size')
+            firstBid = self.safe_dict(bids, 0, {})
+            firstAsk = self.safe_dict(asks, 0, {})
+            bid = self.safe_number(firstBid, 'price')
+            bidVolume = self.safe_number(firstBid, 'size')
+            ask = self.safe_number(firstAsk, 'price')
+            askVolume = self.safe_number(firstAsk, 'size')
         marketId = self.safe_string(ticker, 'product_id')
         market = self.safe_market(marketId, market)
         last = self.safe_number(ticker, 'price')
@@ -2834,7 +2836,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = self.find_account_id(code, params)
             if accountId is None:
-                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.')
         request: dict = {
             'account_id': accountId,
         }
@@ -4809,8 +4811,9 @@ class coinbase(Exchange, ImplicitAPI):
             parsedPositions.append(positionData)
         return parsedPositions
 
-    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None):
-        # it may not work for v2
+    def create_auth_token(self, seconds: Int, method: Str = None, url: Str = None, useEddsa=False):
+        # v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        # v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         uri = None
         if url is not None:
             uri = method + ' ' + url.replace('https://', '')
@@ -4819,19 +4822,30 @@ class coinbase(Exchange, ImplicitAPI):
             # Also it's not possible that the question mark is first character, only check > 0 here.
             if quesPos > 0:
                 uri = uri[0:quesPos]
+        # self.eddsa{"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         nonce = self.random_bytes(16)
+        aud = 'cdp_service' if useEddsa else 'retail_rest_api_proxy'
+        iss = 'cdp' if useEddsa else 'coinbase-cloud'
         request: dict = {
-            'aud': ['retail_rest_api_proxy'],
-            'iss': 'coinbase-cloud',
+            'aud': [aud],
+            'iss': iss,
             'nbf': seconds,
             'exp': seconds + 120,
             'sub': self.apiKey,
             'iat': seconds,
         }
         if uri is not None:
-            request['uri'] = uri
-        token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
-        return token
+            if not useEddsa:
+                request['uri'] = uri
+            else:
+                request['uris'] = [uri]
+        if useEddsa:
+            byteArray = self.base64_to_binary(self.secret)
+            seed = self.array_slice(byteArray, 0, 32)
+            return self.jwt(request, seed, 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'EdDSA'})
+        else:
+            # self.ecdsawith p256
+            return self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
 
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
@@ -4872,8 +4886,10 @@ class coinbase(Exchange, ImplicitAPI):
                 # v2: 'GET' require payload in the signature
                 # https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
-                if isCloudAPiKey:
-                    if self.apiKey.startswith('-----BEGIN'):
+                # using the size might be fragile, so we add an option to force v2 cloud api key if needed
+                isV2CloudAPiKey = len(self.secret) == 88 or self.safe_bool(self.options, 'v2CloudAPiKey', False) or self.secret.endswith('=')
+                if isCloudAPiKey or isV2CloudAPiKey:
+                    if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
                         raise ArgumentsRequired(self.id + ' apiKey should contain the name(eg: organizations/3b910e93....) and not the public key')
                     #  # it may not work for v2
                     # uri = method + ' ' + url.replace('https://', '')
@@ -4893,7 +4909,7 @@ class coinbase(Exchange, ImplicitAPI):
                     #     'uri': uri,
                     #     'iat': seconds,
                     # }
-                    token = self.create_auth_token(seconds, method, url)
+                    token = self.create_auth_token(seconds, method, url, isV2CloudAPiKey)
                     # token = self.jwt(request, self.encode(self.secret), 'sha256', False, {'kid': self.apiKey, 'nonce': nonce, 'alg': 'ES256'})
                     authorizationString = 'Bearer ' + token
                 else:

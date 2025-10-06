@@ -467,6 +467,9 @@ func (this *Independentreserve) Withdraw(code string, amount float64, address st
 
 // missing typed methods from base
 // nolint
+func (this *Independentreserve) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Independentreserve) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

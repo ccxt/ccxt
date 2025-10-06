@@ -10,6 +10,7 @@ async function testWatchTrades (exchange: Exchange, skippedProperties: object, s
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchTrades (symbol);
         } catch (e) {
@@ -17,16 +18,20 @@ async function testWatchTrades (exchange: Exchange, skippedProperties: object, s
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response);
-        now = exchange.milliseconds ();
-        for (let i = 0; i < response.length; i++) {
-            testTrade (exchange, skippedProperties, method, response[i], symbol, now);
+        if (success === true) {
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response);
+            now = exchange.milliseconds ();
+            for (let i = 0; i < response.length; i++) {
+                testTrade (exchange, skippedProperties, method, response[i], symbol, now);
+            }
+            if (!('timestampSort' in skippedProperties)) {
+                testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+            }
         }
-        if (!('timestamp' in skippedProperties)) {
-            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
-        }
+
     }
 }
 

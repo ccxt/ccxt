@@ -469,6 +469,8 @@ class lbank(Exchange, ImplicitAPI):
             for j in range(0, len(networksRaw)):
                 networkEntry = networksRaw[j]
                 networkId = self.safe_string(networkEntry, 'chain')
+                if networkId is None:
+                    networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'id': networkId,

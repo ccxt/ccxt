@@ -1286,6 +1286,8 @@ public partial class bitget : Exchange
                     { "43025", typeof(InvalidOrder) },
                     { "43115", typeof(OnMaintenance) },
                     { "45110", typeof(InvalidOrder) },
+                    { "40774", typeof(InvalidOrder) },
+                    { "45122", typeof(InvalidOrder) },
                     { "invalid sign", typeof(AuthenticationError) },
                     { "invalid currency", typeof(BadSymbol) },
                     { "invalid symbol", typeof(BadSymbol) },
@@ -1881,7 +1883,7 @@ public partial class bitget : Exchange
             object res = this.safeDict(results, i);
             object data = this.safeList(res, "data", new List<object>() {});
             object firstData = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            object isBorrowable = this.safeString(firstData, "isBorrowable");
+            object isBorrowable = this.safeBool(firstData, "isBorrowable");
             if (isTrue(isTrue(fetchMargins) && isTrue(!isEqual(isBorrowable, null))))
             {
                 object keysList = new List<object>(((IDictionary<string,object>)this.indexBy(data, "symbol")).Keys);
@@ -5503,6 +5505,19 @@ public partial class bitget : Exchange
             { "symbol", getValue(market, "id") },
             { "orderType", type },
         };
+        object hedged = null;
+        var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
+        hedged = ((IList<object>)hedgedparametersVariable)[0];
+        parameters = ((IList<object>)hedgedparametersVariable)[1];
+        // backward compatibility for `oneWayMode`
+        object oneWayMode = null;
+        var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
+        oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
+        parameters = ((IList<object>)oneWayModeparametersVariable)[1];
+        if (isTrue(!isEqual(oneWayMode, null)))
+        {
+            hedged = !isTrue(oneWayMode);
+        }
         object isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
         object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
@@ -5613,7 +5628,13 @@ public partial class bitget : Exchange
                 {
                     throw new ExchangeError ((string)add(this.id, " createOrder() bitget stopLoss or takeProfit orders must be market orders")) ;
                 }
-                ((IDictionary<string,object>)request)["holdSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
+                if (isTrue(hedged))
+                {
+                    ((IDictionary<string,object>)request)["holdSide"] = ((bool) isTrue((isEqual(side, "sell")))) ? "long" : "short";
+                } else
+                {
+                    ((IDictionary<string,object>)request)["holdSide"] = ((bool) isTrue((isEqual(side, "sell")))) ? "buy" : "sell";
+                }
                 if (isTrue(isStopLossTriggerOrder))
                 {
                     ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
@@ -5644,19 +5665,6 @@ public partial class bitget : Exchange
                 }
                 object marginModeRequest = ((bool) isTrue((isEqual(marginMode, "cross")))) ? "crossed" : "isolated";
                 ((IDictionary<string,object>)request)["marginMode"] = marginModeRequest;
-                object hedged = null;
-                var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
-                hedged = ((IList<object>)hedgedparametersVariable)[0];
-                parameters = ((IList<object>)hedgedparametersVariable)[1];
-                // backward compatibility for `oneWayMode`
-                object oneWayMode = null;
-                var oneWayModeparametersVariable = this.handleParamBool(parameters, "oneWayMode");
-                oneWayMode = ((IList<object>)oneWayModeparametersVariable)[0];
-                parameters = ((IList<object>)oneWayModeparametersVariable)[1];
-                if (isTrue(!isEqual(oneWayMode, null)))
-                {
-                    hedged = !isTrue(oneWayMode);
-                }
                 object requestSide = side;
                 if (isTrue(reduceOnly))
                 {
@@ -8230,7 +8238,7 @@ public partial class bitget : Exchange
         //         "requestTime": 1700802995406,
         //         "data": [
         //             {
-        //                 "userId": "7264631750",
+        //                 "userId": "7264631751",
         //                 "symbol": "BTCUSDT",
         //                 "orderId": "1098394344925597696",
         //                 "tradeId": "1098394344974925824",
@@ -8489,13 +8497,15 @@ public partial class bitget : Exchange
      * @description fetch all open positions
      * @see https://www.bitget.com/api-doc/contract/position/get-all-position
      * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
+     * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
      * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
-     * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+     * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -8531,12 +8541,18 @@ public partial class bitget : Exchange
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
-            { "productType", productType },
-        };
+        object request = new Dictionary<string, object>() {};
         object response = null;
         object isHistory = false;
-        if (isTrue(isEqual(method, "privateMixGetV2MixPositionAllPosition")))
+        object uta = null;
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "uta", false);
+        uta = ((IList<object>)utaparametersVariable)[0];
+        parameters = ((IList<object>)utaparametersVariable)[1];
+        if (isTrue(uta))
+        {
+            ((IDictionary<string,object>)request)["category"] = productType;
+            response = await this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "privateMixGetV2MixPositionAllPosition")))
         {
             object marginCoin = this.safeString(parameters, "marginCoin", "USDT");
             if (isTrue(!isEqual(symbols, null)))
@@ -8562,6 +8578,7 @@ public partial class bitget : Exchange
                 }
             }
             ((IDictionary<string,object>)request)["marginCoin"] = marginCoin;
+            ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixGetV2MixPositionAllPosition(this.extend(request, parameters));
         } else
         {
@@ -8570,6 +8587,7 @@ public partial class bitget : Exchange
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
+            ((IDictionary<string,object>)request)["productType"] = productType;
             response = await this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters));
         }
         //
@@ -8634,14 +8652,53 @@ public partial class bitget : Exchange
         //         }
         //     }
         //
+        // privateUtaGetV3PositionCurrentPosition
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1750929905423,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "category": "USDT-FUTURES",
+        //                     "symbol": "BTCUSDT",
+        //                     "marginCoin": "USDT",
+        //                     "holdMode": "hedge_mode",
+        //                     "posSide": "long",
+        //                     "marginMode": "crossed",
+        //                     "positionBalance": "5.435199",
+        //                     "available": "0.001",
+        //                     "frozen": "0",
+        //                     "total": "0.001",
+        //                     "leverage": "20",
+        //                     "curRealisedPnl": "0",
+        //                     "avgPrice": "107410.3",
+        //                     "positionStatus": "normal",
+        //                     "unrealisedPnl": "0.0047",
+        //                     "liquidationPrice": "0",
+        //                     "mmr": "0.004",
+        //                     "profitRate": "0.0008647337475591",
+        //                     "markPrice": "107415.3",
+        //                     "breakEvenPrice": "107539.2",
+        //                     "totalFunding": "0",
+        //                     "openFeeTotal": "-0.06444618",
+        //                     "closeFeeTotal": "0",
+        //                     "createdTime": "1750495670699",
+        //                     "updatedTime": "1750929883465"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         object position = new List<object>() {};
-        if (!isTrue(isHistory))
-        {
-            position = this.safeList(response, "data", new List<object>() {});
-        } else
+        if (isTrue(isTrue(uta) || isTrue(isHistory)))
         {
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             position = this.safeList(data, "list", new List<object>() {});
+        } else
+        {
+            position = this.safeList(response, "data", new List<object>() {});
         }
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))

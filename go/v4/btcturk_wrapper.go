@@ -441,6 +441,9 @@ func (this *Btcturk) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 
 // missing typed methods from base
 // nolint
+func (this *Btcturk) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+	return this.exchangeTyped.LoadMarkets(params...)
+}
 func (this *Btcturk) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }

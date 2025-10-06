@@ -2327,10 +2327,12 @@ class coinbase extends Exchange {
         if ((is_array($ticker) && array_key_exists('bids', $ticker))) {
             $bids = $this->safe_list($ticker, 'bids', array());
             $asks = $this->safe_list($ticker, 'asks', array());
-            $bid = $this->safe_number($bids[0], 'price');
-            $bidVolume = $this->safe_number($bids[0], 'size');
-            $ask = $this->safe_number($asks[0], 'price');
-            $askVolume = $this->safe_number($asks[0], 'size');
+            $firstBid = $this->safe_dict($bids, 0, array());
+            $firstAsk = $this->safe_dict($asks, 0, array());
+            $bid = $this->safe_number($firstBid, 'price');
+            $bidVolume = $this->safe_number($firstBid, 'size');
+            $ask = $this->safe_number($firstAsk, 'price');
+            $askVolume = $this->safe_number($firstAsk, 'size');
         }
         $marketId = $this->safe_string($ticker, 'product_id');
         $market = $this->safe_market($marketId, $market);
@@ -2931,7 +2933,7 @@ class coinbase extends Exchange {
             }
             $accountId = $this->find_account_id($code, $params);
             if ($accountId === null) {
-                throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code);
+                throw new ExchangeError($this->id . ' prepareAccountRequestWithCurrencyCode() could not find account id for ' . $code . '. You might try to generate the deposit address in the website for that coin first.');
             }
         }
         $request = array(
@@ -5041,8 +5043,9 @@ class coinbase extends Exchange {
         return $parsedPositions;
     }
 
-    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null) {
-        // it may not work for v2
+    public function create_auth_token(?int $seconds, ?string $method = null, ?string $url = null, $useEddsa = false) {
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         $uri = null;
         if ($url !== null) {
             $uri = $method . ' ' . str_replace('https://', '', $url);
@@ -5053,20 +5056,33 @@ class coinbase extends Exchange {
                 $uri = mb_substr($uri, 0, $quesPos - 0);
             }
         }
+        // $this->eddsaarray("sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"])
         $nonce = $this->random_bytes(16);
+        $aud = $useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
+        $iss = $useEddsa ? 'cdp' : 'coinbase-cloud';
         $request = array(
-            'aud' => array( 'retail_rest_api_proxy' ),
-            'iss' => 'coinbase-cloud',
+            'aud' => array( $aud ),
+            'iss' => $iss,
             'nbf' => $seconds,
             'exp' => $seconds + 120,
             'sub' => $this->apiKey,
             'iat' => $seconds,
         );
         if ($uri !== null) {
-            $request['uri'] = $uri;
+            if (!$useEddsa) {
+                $request['uri'] = $uri;
+            } else {
+                $request['uris'] = array( $uri );
+            }
         }
-        $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
-        return $token;
+        if ($useEddsa) {
+            $byteArray = base64_decode($this->secret);
+            $seed = $this->array_slice($byteArray, 0, 32);
+            return $this->jwt($request, $seed, 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'EdDSA' ));
+        } else {
+            // $this->ecdsawith p256
+            return $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
+        }
     }
 
     public function nonce() {
@@ -5115,8 +5131,10 @@ class coinbase extends Exchange {
                 // v2 => 'GET' require $payload in the $signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 $isCloudAPiKey = (mb_strpos($this->apiKey, 'organizations/') !== false) || (str_starts_with($this->secret, '-----BEGIN'));
-                if ($isCloudAPiKey) {
-                    if (str_starts_with($this->apiKey, '-----BEGIN')) {
+                // using the size might be fragile, so we add an option to force v2 cloud $api key if needed
+                $isV2CloudAPiKey = strlen($this->secret) === 88 || $this->safe_bool($this->options, 'v2CloudAPiKey', false) || str_ends_with($this->secret, '=');
+                if ($isCloudAPiKey || $isV2CloudAPiKey) {
+                    if ($isCloudAPiKey && str_starts_with($this->apiKey, '-----BEGIN')) {
                         throw new ArgumentsRequired($this->id . ' apiKey should contain the name (eg => organizations/3b910e93....) and not the public key');
                     }
                     // // it may not work for v2
@@ -5137,7 +5155,7 @@ class coinbase extends Exchange {
                     //     'uri' => $uri,
                     //     'iat' => $seconds,
                     // );
-                    $token = $this->create_auth_token($seconds, $method, $url);
+                    $token = $this->create_auth_token($seconds, $method, $url, $isV2CloudAPiKey);
                     // $token = $this->jwt($request, $this->encode($this->secret), 'sha256', false, array( 'kid' => $this->apiKey, 'nonce' => $nonce, 'alg' => 'ES256' ));
                     $authorizationString = 'Bearer ' . $token;
                 } else {

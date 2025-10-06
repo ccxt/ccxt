@@ -54,14 +54,24 @@ export default class gate extends Exchange {
                 },
                 'test': {
                     'public': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                     'private': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                 },
                 'referral': {
@@ -747,6 +757,9 @@ export default class gate extends Exchange {
                     'option': 'options',
                     'options': 'options',
                 },
+                'fetchMarkets': {
+                    'types': [ 'spot', 'swap', 'future', 'option' ],
+                },
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
@@ -1229,22 +1242,26 @@ export default class gate extends Exchange {
         if (this.checkRequiredCredentials (false)) {
             await this.loadUnifiedStatus ();
         }
-        const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
-        let rawPromises = [
-            this.fetchContractMarkets (params),
-            this.fetchOptionMarkets (params),
-        ];
-        if (!sandboxMode) {
-            // gate doesn't have a sandbox for spot markets
-            const mainnetOnly = [ this.fetchSpotMarkets (params) ];
-            rawPromises = this.arrayConcat (rawPromises, mainnetOnly);
+        const rawPromises = [];
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        const types = this.safeList (fetchMarketsOptions, 'types', [ 'spot', 'swap', 'future', 'option' ]);
+        for (let i = 0; i < types.length; i++) {
+            const marketType = types[i];
+            if (marketType === 'spot') {
+                // if (!sandboxMode) {
+                // gate doesn't have a sandbox for spot markets
+                rawPromises.push (this.fetchSpotMarkets (params));
+                // }
+            } else if (marketType === 'swap') {
+                rawPromises.push (this.fetchSwapMarkets (params));
+            } else if (marketType === 'future') {
+                rawPromises.push (this.fetchFutureMarkets (params));
+            } else if (marketType === 'option') {
+                rawPromises.push (this.fetchOptionMarkets (params));
+            }
         }
-        const promises = await Promise.all (rawPromises);
-        const spotMarkets = this.safeValue (promises, 0, []);
-        const contractMarkets = this.safeValue (promises, 1, []);
-        const optionMarkets = this.safeValue (promises, 2, []);
-        const markets = this.arrayConcat (spotMarkets, contractMarkets);
-        return this.arrayConcat (markets, optionMarkets);
+        const results = await Promise.all (rawPromises);
+        return this.arraysConcat (results);
     }
 
     async fetchSpotMarkets (params = {}) {
@@ -1362,10 +1379,12 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params = {}) {
+    async fetchSwapMarkets (params = {}) {
         const result = [];
-        const swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
-        const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
+        let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
+        if (this.options['sandboxMode']) {
+            swapSettlementCurrencies = [ 'usdt' ]; // gate sandbox only has usdt-margined swaps
+        }
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
             const request: Dict = {
@@ -1377,6 +1396,15 @@ export default class gate extends Exchange {
                 result.push (parsedMarket);
             }
         }
+        return result;
+    }
+
+    async fetchFutureMarkets (params = {}) {
+        if (this.options['sandboxMode']) {
+            return []; // right now sandbox does not have inverse swaps
+        }
+        const result = [];
+        const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
             const request: Dict = {
@@ -1420,8 +1448,8 @@ export default class gate extends Exchange {
         //        "leverage_min": "1",
         //        "leverage_max": "100",
         //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
+        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate": "0.00075", // not actual value for regular users
         //        "funding_rate": "0.002053",
         //        "order_size_max": 1000000,
         //        "funding_next_apply": 1610035200,
@@ -1465,8 +1493,8 @@ export default class gate extends Exchange {
         //        "risk_limit_base": "140.726652109199",
         //        "risk_limit_step": "1000000",
         //        "risk_limit_max": "8000000",
-        //        "maker_fee_rate": "-0.00025",
-        //        "taker_fee_rate": "0.00075",
+        //        "maker_fee_rate": "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate": "0.00075", // not actual value for regular users
         //        "ref_discount_rate": "0",
         //        "ref_rebate_rate": "0.2",
         //        "order_price_deviate": "0.5",
@@ -1504,8 +1532,6 @@ export default class gate extends Exchange {
         const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
         const minPrice = Precise.stringMul (minMultiplier, markPrice);
         const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
-        const takerPercent = this.safeString (market, 'taker_fee_rate');
-        const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
         const isLinear = quote === settle;
         let contractSize = this.safeString (market, 'quanto_multiplier');
         // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1531,8 +1557,8 @@ export default class gate extends Exchange {
             'contract': true,
             'linear': isLinear,
             'inverse': !isLinear,
-            'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
-            'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+            'taker': undefined,
+            'maker': undefined,
             'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
@@ -1632,8 +1658,6 @@ export default class gate extends Exchange {
                 const maxMultiplier = Precise.stringAdd ('1', priceDeviate);
                 const minPrice = Precise.stringMul (minMultiplier, markPrice);
                 const maxPrice = Precise.stringMul (maxMultiplier, markPrice);
-                const takerPercent = this.safeString (market, 'taker_fee_rate');
-                const makerPercent = this.safeString (market, 'maker_fee_rate', takerPercent);
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -1653,8 +1677,8 @@ export default class gate extends Exchange {
                     'contract': true,
                     'linear': true,
                     'inverse': false,
-                    'taker': this.parseNumber (Precise.stringDiv (takerPercent, '100')), // Fee is in %, so divide by 100
-                    'maker': this.parseNumber (Precise.stringDiv (makerPercent, '100')),
+                    'taker': undefined,
+                    'maker': undefined,
                     'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
@@ -1852,7 +1876,7 @@ export default class gate extends Exchange {
         // sandbox/testnet only supports future markets
         const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
-            return undefined;
+            return {};
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
@@ -2622,7 +2646,12 @@ export default class gate extends Exchange {
         //
         const [ request, query ] = this.prepareRequest (market, market['type'], params);
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            if (market['spot']) {
+                limit = Math.min (limit, 1000);
+            } else {
+                limit = Math.min (limit, 300);
+            }
+            request['limit'] = limit;
         }
         request['with_id'] = true;
         let response = undefined;
@@ -2930,6 +2959,12 @@ export default class gate extends Exchange {
     /**
      * @method
      * @name gate#fetchBalance
+     * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+     * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+     * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3175,7 +3210,7 @@ export default class gate extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const isolated = marginMode === 'margin';
+        const isolated = marginMode === 'margin' && type === 'spot';
         let data = response;
         if ('balances' in data) { // True for cross_margin and unified
             const flatBalances = [];
