@@ -462,7 +462,10 @@ class lbank extends lbank$1["default"] {
             const networks = {};
             for (let j = 0; j < networksRaw.length; j++) {
                 const networkEntry = networksRaw[j];
-                const networkId = this.safeString(networkEntry, 'chain');
+                let networkId = this.safeString(networkEntry, 'chain');
+                if (networkId === undefined) {
+                    networkId = this.safeString(networkEntry, 'assetCode'); // use type as fallback if networkId is not present
+                }
                 const networkCode = this.networkIdToCode(networkId);
                 networks[networkCode] = {
                     'id': networkId,

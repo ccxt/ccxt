@@ -262,6 +262,14 @@ class bithumb extends Exchange {
                             ),
                         ),
                     ),
+                    'USDT' => array(
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                    ),
                 ),
             ),
             'commonCurrencies' => array(

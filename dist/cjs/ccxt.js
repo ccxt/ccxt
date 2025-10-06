@@ -2,12 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./_virtual/_commonjsHelpers.js');
-require('./_virtual/formats.cjs.js');
-require('./_virtual/index.cjs.js');
-require('./_virtual/parse.cjs.js');
-require('./_virtual/stringify.cjs.js');
-require('./_virtual/utils.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
@@ -192,6 +186,7 @@ var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
 
+// ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 const version = '4.5.7';

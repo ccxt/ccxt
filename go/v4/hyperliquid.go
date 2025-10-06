@@ -4357,6 +4357,7 @@ func (this *hyperliquid) ParseLedgerEntryType(typeVar interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
@@ -4373,8 +4374,8 @@ func (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36148 := (<-this.LoadMarkets())
-		PanicOnError(retRes36148)
+		retRes36158 := (<-this.LoadMarkets())
+		PanicOnError(retRes36158)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4411,7 +4412,25 @@ func (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		// ]
 		//
 		var records interface{} = this.ExtractTypeFromDelta(response)
-		var deposits interface{} = this.FilterByArray(records, "type", []interface{}{"deposit"}, false)
+		var vaultAddress interface{} = nil
+		vaultAddressparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress")
+		vaultAddress = GetValue(vaultAddressparamsVariable, 0)
+		params = GetValue(vaultAddressparamsVariable, 1)
+		vaultAddress = this.FormatVaultAddress(vaultAddress)
+		var deposits interface{} = []interface{}{}
+		if IsTrue(!IsEqual(vaultAddress, nil)) {
+			for i := 0; IsLessThan(i, GetArrayLength(records)); i++ {
+				var record interface{} = GetValue(records, i)
+				if IsTrue(IsEqual(GetValue(record, "type"), "vaultDeposit")) {
+					var delta interface{} = this.SafeDict(record, "delta")
+					if IsTrue(IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress))) {
+						AppendToArray(&deposits, record)
+					}
+				}
+			}
+		} else {
+			deposits = this.FilterByArray(records, "type", []interface{}{"deposit"}, false)
+		}
 
 		ch <- this.ParseTransactions(deposits, nil, since, limit)
 		return nil
@@ -4430,6 +4449,7 @@ func (this *hyperliquid) FetchDeposits(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch withdrawals for
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {string} [params.vaultAddress] vault address
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
 func (this *hyperliquid) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
@@ -4446,8 +4466,8 @@ func (this *hyperliquid) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36648 := (<-this.LoadMarkets())
-		PanicOnError(retRes36648)
+		retRes36828 := (<-this.LoadMarkets())
+		PanicOnError(retRes36828)
 		var userAddress interface{} = nil
 		userAddressparamsVariable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 		userAddress = GetValue(userAddressparamsVariable, 0)
@@ -4481,7 +4501,25 @@ func (this *hyperliquid) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		// ]
 		//
 		var records interface{} = this.ExtractTypeFromDelta(response)
-		var withdrawals interface{} = this.FilterByArray(records, "type", []interface{}{"withdraw"}, false)
+		var vaultAddress interface{} = nil
+		vaultAddressparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress")
+		vaultAddress = GetValue(vaultAddressparamsVariable, 0)
+		params = GetValue(vaultAddressparamsVariable, 1)
+		vaultAddress = this.FormatVaultAddress(vaultAddress)
+		var withdrawals interface{} = []interface{}{}
+		if IsTrue(!IsEqual(vaultAddress, nil)) {
+			for i := 0; IsLessThan(i, GetArrayLength(records)); i++ {
+				var record interface{} = GetValue(records, i)
+				if IsTrue(IsEqual(GetValue(record, "type"), "vaultWithdraw")) {
+					var delta interface{} = this.SafeDict(record, "delta")
+					if IsTrue(IsEqual(GetValue(delta, "vault"), Add("0x", vaultAddress))) {
+						AppendToArray(&withdrawals, record)
+					}
+				}
+			}
+		} else {
+			withdrawals = this.FilterByArray(records, "type", []interface{}{"withdraw"}, false)
+		}
 
 		ch <- this.ParseTransactions(withdrawals, nil, since, limit)
 		return nil
@@ -4508,8 +4546,8 @@ func (this *hyperliquid) FetchOpenInterests(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes37078 := (<-this.LoadMarkets())
-		PanicOnError(retRes37078)
+		retRes37418 := (<-this.LoadMarkets())
+		PanicOnError(retRes37418)
 		symbols = this.MarketSymbols(symbols)
 
 		swapMarkets := (<-this.FetchSwapMarkets())
@@ -4539,8 +4577,8 @@ func (this *hyperliquid) FetchOpenInterest(symbol interface{}, optionalArgs ...i
 		_ = params
 		symbol = this.Symbol(symbol)
 
-		retRes37238 := (<-this.LoadMarkets())
-		PanicOnError(retRes37238)
+		retRes37578 := (<-this.LoadMarkets())
+		PanicOnError(retRes37578)
 
 		ois := (<-this.FetchOpenInterests([]interface{}{symbol}, params))
 		PanicOnError(ois)
@@ -4613,8 +4651,8 @@ func (this *hyperliquid) FetchFundingHistory(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes37758 := (<-this.LoadMarkets())
-		PanicOnError(retRes37758)
+		retRes38098 := (<-this.LoadMarkets())
+		PanicOnError(retRes38098)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)

@@ -255,12 +255,12 @@ func (this *whitebit) V4PrivatePostTradeAccountExecutedHistory(args ...interface
 	return this.callEndpointAsync("v4PrivatePostTradeAccountExecutedHistory", args...)
 }
 
-func (this *whitebit) V4PrivatePostTradeAccountOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v4PrivatePostTradeAccountOrder", args...)
-}
-
 func (this *whitebit) V4PrivatePostTradeAccountOrderHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v4PrivatePostTradeAccountOrderHistory", args...)
+}
+
+func (this *whitebit) V4PrivatePostTradeAccountOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v4PrivatePostTradeAccountOrder", args...)
 }
 
 func (this *whitebit) V4PrivatePostOrderCollateralLimit(args ...interface{}) <-chan interface{} {

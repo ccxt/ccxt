@@ -267,6 +267,14 @@ class bithumb extends bithumb$1["default"] {
                             },
                         },
                     },
+                    'USDT': {
+                        'limits': {
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                    },
                 },
             },
             'commonCurrencies': {

@@ -8094,10 +8094,10 @@ public partial class Exchange
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(topic, "ohlcv")))
         {
-            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
+            object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
             {
-                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
+                object symbolAndTimeFrame = getValue(symbolsAndTimeframes, i);
                 object symbol = this.safeString(symbolAndTimeFrame, 0);
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(isTrue((!isEqual(this.ohlcvs, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
@@ -8131,6 +8131,12 @@ public partial class Exchange
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                     }
+                } else if (isTrue(isEqual(topic, "bidsasks")))
+                {
+                    if (isTrue(inOp(this.bidsasks, symbol)))
+                    {
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
+                    }
                 }
             }
         } else
@@ -8163,6 +8169,17 @@ public partial class Exchange
                     if (isTrue(inOp(this.tickers, tickerSymbol)))
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)tickerSymbol);
+                    }
+                }
+            } else if (isTrue(isTrue(isEqual(topic, "bidsasks")) && isTrue((!isEqual(this.bidsasks, null)))))
+            {
+                object bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(bidsaskSymbols)); postFixIncrement(ref i))
+                {
+                    object bidsaskSymbol = getValue(bidsaskSymbols, i);
+                    if (isTrue(inOp(this.bidsasks, bidsaskSymbol)))
+                    {
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)bidsaskSymbol);
                     }
                 }
             }

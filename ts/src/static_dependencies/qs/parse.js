@@ -1,6 +1,4 @@
-'use strict';
-
-var utils = require('./utils.cjs');
+import * as utils from './utils.js';
 
 var has = Object.prototype.hasOwnProperty;
 
@@ -219,7 +217,7 @@ var normalizeParseOptions = function normalizeParseOptions(opts) {
     };
 };
 
-module.exports = function (str, opts) {
+export default function (str, opts) {
     var options = normalizeParseOptions(opts);
 
     if (str === '' || str === null || typeof str === 'undefined') {
@@ -239,4 +237,4 @@ module.exports = function (str, opts) {
     }
 
     return utils.compact(obj);
-};
+}

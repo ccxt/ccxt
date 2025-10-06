@@ -1884,6 +1884,9 @@
                 "compareToZero":"some of them mare zero",
                 "compareToNextItem": "several rows are same zero"
             },
+            "fetchTickers": {
+                "maxIncrease": "change should be above -price is failing"
+            },
             "fetchOrderBooks": {
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"
             }

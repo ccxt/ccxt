@@ -3416,7 +3416,7 @@ func (this *coinbase) PrepareAccountRequestWithCurrencyCode(optionalArgs ...inte
 			accountId = (<-this.FindAccountId(code, params))
 			PanicOnError(accountId)
 			if IsTrue(IsEqual(accountId, nil)) {
-				panic(ExchangeError(Add(Add(this.Id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code)))
+				panic(ExchangeError(Add(Add(Add(this.Id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code), ". You might try to generate the deposit address in the website for that coin first.")))
 			}
 		}
 		var request interface{} = map[string]interface{}{

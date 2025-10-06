@@ -57,7 +57,7 @@ public partial class hibachi : Exchange
                 { "fetchClosedOrders", false },
                 { "fetchConvertCurrencies", false },
                 { "fetchConvertQuote", false },
-                { "fetchCurrencies", true },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
@@ -177,6 +177,7 @@ public partial class hibachi : Exchange
                     { "taker", this.parseNumber("0.00045") },
                 } },
             } },
+            { "currencies", this.hardcodedCurrencies() },
             { "options", new Dictionary<string, object>() {} },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -369,19 +370,10 @@ public partial class hibachi : Exchange
         return this.parseMarkets(rows);
     }
 
-    /**
-     * @method
-     * @name hibachi#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public virtual object hardcodedCurrencies()
     {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
-        parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
         object networks = new Dictionary<string, object>() {};
         object networkId = "ARBITRUM";

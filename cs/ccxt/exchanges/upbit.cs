@@ -117,6 +117,7 @@ public partial class upbit : Exchange
                         { "ticker", 2 },
                         { "ticker/all", 2 },
                         { "orderbook", 2 },
+                        { "orderbook/instruments", 2 },
                         { "orderbook/supported_levels", 2 },
                     } },
                 } },
@@ -186,14 +187,14 @@ public partial class upbit : Exchange
                         { "timeInForce", new Dictionary<string, object>() {
                             { "IOC", true },
                             { "FOK", true },
-                            { "PO", false },
+                            { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", false },
                         { "leverage", false },
                         { "marketBuyByCost", false },
                         { "marketBuyRequiresPrice", false },
-                        { "selfTradePrevention", false },
+                        { "selfTradePrevention", true },
                         { "trailing", false },
                         { "iceberg", false },
                     } },
@@ -634,7 +635,7 @@ public partial class upbit : Exchange
      * @see https://global-docs.upbit.com/reference/order-book-list
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
-     * @param {int} [limit] not used by upbit fetchOrderBooks ()
+     * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
      */
@@ -654,6 +655,10 @@ public partial class upbit : Exchange
         object request = new Dictionary<string, object>() {
             { "markets", ids },
         };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        }
         object response = await this.publicGetOrderbook(this.extend(request, parameters));
         //
         //     [ {          market:   "BTC-ETH",
@@ -1227,7 +1232,8 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.ordType] this field can be used to place a ‘best’ type order
-     * @param {string} [params.timeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.timeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
+     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1235,6 +1241,15 @@ public partial class upbit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        object customType = this.safeString2(parameters, "ordType", "ord_type");
+        object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
+        object selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
+        if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
+        {
+            throw new ExchangeError ((string)add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+        }
         object orderSide = null;
         if (isTrue(isEqual(side, "buy")))
         {
@@ -1279,7 +1294,6 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        object customType = this.safeString2(parameters, "ordType", "ord_type");
         if (isTrue(isEqual(customType, "best")))
         {
             parameters = this.omit(parameters, new List<object>() {"ordType", "ord_type"});
@@ -1297,27 +1311,30 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
             }
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["identifier"] = clientOrderId;
         }
-        if (isTrue(isTrue(!isEqual(getValue(request, "ord_type"), "market")) && isTrue(!isEqual(getValue(request, "ord_type"), "price"))))
+        if (isTrue(postOnly))
         {
-            object timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            parameters = this.omit(parameters, new List<object>() {"timeInForce"});
-            if (isTrue(!isEqual(timeInForce, null)))
+            if (isTrue(!isEqual(getValue(request, "ord_type"), "limit")))
+            {
+                throw new InvalidOrder ((string)add(this.id, " postOnly orders are only supported for limit orders")) ;
+            }
+            ((IDictionary<string,object>)request)["time_in_force"] = "post_only";
+        }
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            if (isTrue(isTrue(isEqual(timeInForce, "ioc")) || isTrue(isEqual(timeInForce, "fok"))))
             {
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
-            } else
-            {
-                if (isTrue(isEqual(getValue(request, "ord_type"), "best")))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " the best type order in createOrder() is required timeInForce.")) ;
-                }
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "cost"});
+        if (isTrue(isTrue(isEqual(getValue(request, "ord_type"), "best")) && isTrue(isEqual(timeInForce, null))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a timeInForce parameter for best type orders")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type"});
         object response = await this.privatePostOrders(this.extend(request, parameters));
         //
         //     {
@@ -1398,9 +1415,10 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.clientOrderId] to identify the previous order, either the id or this field is required in this method.
      * @param {float} [params.cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the amount.
-     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK'. only for limit or best type orders. this field is required when the order type is 'best'.
+     * @param {string} [params.newTimeInForce] 'IOC' or 'FOK' for limit or best type orders, 'PO' for limit orders. this field is required when the order type is 'best'.
      * @param {string} [params.newClientOrderId] the order ID that the user can define.
      * @param {string} [params.newOrdType] this field only accepts limit, price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
+     * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -1409,6 +1427,15 @@ public partial class upbit : Exchange
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         object prevClientOrderId = this.safeString(parameters, "clientOrderId");
+        object customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
+        object clientOrderId = this.safeString(parameters, "newClientOrderId");
+        object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
+        object timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
+        object selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
+        if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
+        {
+            throw new ExchangeError ((string)add(this.id, " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+        }
         parameters = this.omit(parameters, "clientOrderId");
         if (isTrue(!isEqual(id, null)))
         {
@@ -1449,7 +1476,6 @@ public partial class upbit : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " editOrder() supports only limit or market types in the type argument.")) ;
         }
-        object customType = this.safeString2(parameters, "newOrdType", "new_ord_type");
         if (isTrue(isEqual(customType, "best")))
         {
             parameters = this.omit(parameters, new List<object>() {"newOrdType", "new_ord_type"});
@@ -1467,27 +1493,34 @@ public partial class upbit : Exchange
                 ((IDictionary<string,object>)request)["new_volume"] = this.amountToPrecision(symbol, amount);
             }
         }
-        object clientOrderId = this.safeString(parameters, "newClientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["new_identifier"] = clientOrderId;
         }
-        if (isTrue(isTrue(!isEqual(getValue(request, "new_ord_type"), "market")) && isTrue(!isEqual(getValue(request, "new_ord_type"), "price"))))
+        if (isTrue(!isEqual(selfTradePrevention, null)))
         {
-            object timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
-            parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force"});
-            if (isTrue(!isEqual(timeInForce, null)))
+            ((IDictionary<string,object>)request)["new_smp_type"] = selfTradePrevention;
+        }
+        if (isTrue(postOnly))
+        {
+            if (isTrue(!isEqual(getValue(request, "new_ord_type"), "limit")))
+            {
+                throw new InvalidOrder ((string)add(this.id, " postOnly orders are only supported for limit orders")) ;
+            }
+            ((IDictionary<string,object>)request)["new_time_in_force"] = "post_only";
+        }
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            if (isTrue(isTrue(isEqual(timeInForce, "ioc")) || isTrue(isEqual(timeInForce, "fok"))))
             {
                 ((IDictionary<string,object>)request)["new_time_in_force"] = timeInForce;
-            } else
-            {
-                if (isTrue(isEqual(getValue(request, "new_ord_type"), "best")))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " the best type order is required timeInForce.")) ;
-                }
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"newClientOrderId", "cost"});
+        if (isTrue(isTrue(isEqual(getValue(request, "new_ord_type"), "best")) && isTrue(isEqual(timeInForce, null))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a timeInForce parameter for best type orders")) ;
+        }
+        parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"});
         // console.log ('check the each request params: ', request);
         object response = await this.privatePostOrdersCancelAndNew(this.extend(request, parameters));
         //   {
@@ -1798,48 +1831,36 @@ public partial class upbit : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        //
+        // {
+        //   "market": "KRW-USDT",
+        //   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
+        //   "side": "ask",
+        //   "ord_type": "market",
+        //   "state": "done",
+        //   "created_at": "2025-08-09T16:44:00+09:00",
+        //   "volume": "5.377594",
+        //   "remaining_volume": "0",
+        //   "executed_volume": "5.377594",
+        //   "reserved_fee": "0",
+        //   "remaining_fee": "0",
+        //   "paid_fee": "3.697095875",
+        //   "locked": "0",
+        //   "prevented_volume": "0",
+        //   "prevented_locked": "0",
+        //   "trades_count": 1,
+        //   "trades": [
         //     {
-        //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        //         "side": "bid",
-        //         "ord_type": "limit",
-        //         "price": "17417000.0",
-        //         "state": "done",
-        //         "market": "KRW-BTC",
-        //         "created_at": "2018-04-05T14:09:14+09:00",
-        //         "volume": "1.0",
-        //         "remaining_volume": "0.0",
-        //         "reserved_fee": "26125.5",
-        //         "remaining_fee": "25974.0",
-        //         "paid_fee": "151.5",
-        //         "locked": "17341974.0",
-        //         "executed_volume": "1.0",
-        //         "trades_count": 2,
-        //         "trades": [
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "78162304-1a4d-4524-b9e6-c9a9e14d76c3",
-        //                 "price": "101000.0",
-        //                 "volume": "0.77368323",
-        //                 "funds": "78142.00623",
-        //                 "ask_fee": "117.213009345",
-        //                 "bid_fee": "117.213009345",
-        //                 "created_at": "2018-04-05T14:09:15+09:00",
-        //                 "side": "bid",
-        //             },
-        //             {
-        //                 "market": "KRW-BTC",
-        //                 "uuid": "f73da467-c42f-407d-92fa-e10d86450a20",
-        //                 "price": "101000.0",
-        //                 "volume": "0.22631677",
-        //                 "funds": "22857.99377",
-        //                 "ask_fee": "34.286990655", // missing in market orders
-        //                 "bid_fee": "34.286990655", // missing in market orders
-        //                 "created_at": "2018-04-05T14:09:15+09:00", // missing in market orders
-        //                 "side": "bid",
-        //             },
-        //         ],
+        //       "market": "KRW-USDT",
+        //       "uuid": "795dff29-bba6-49b2-baab-63473ab7931c",
+        //       "price": "1375",
+        //       "volume": "5.377594",
+        //       "funds": "7394.19175",
+        //       "trend": "down",
+        //       "created_at": "2025-08-09T16:44:00.597751+09:00",
+        //       "side": "ask"
         //     }
+        //   ]
+        // }
         //
         // fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
