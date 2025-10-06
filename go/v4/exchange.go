@@ -1921,11 +1921,11 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 
 func (this *Exchange) Close() []error {
 	this.WsClientsMu.Lock()
-	clients := make([]*WSClient, 0, len(this.WsClients))
-	for _, c := range this.WsClients {
+	clients := make([]*WSClient, 0, len(this.Clients))
+	for _, c := range this.Clients {
 		clients = append(clients, c.(*WSClient))
 	}
-	this.WsClients = make(map[string]interface{})
+	this.Clients = make(map[string]interface{})
 	this.WsClientsMu.Unlock()
 	errs := make([]error, 0)
 	for _, c := range clients {
@@ -1933,6 +1933,9 @@ func (this *Exchange) Close() []error {
 			if errVal, ok := (<-future.Await()).(error); ok {
 				errs = append(errs, errVal)
 			}
+
+			userClosedError := ExchangeClosedByUser()
+			c.OnError(userClosedError)
 		}
 	}
 	return errs
