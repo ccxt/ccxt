@@ -2406,6 +2406,7 @@ export default class binance extends binanceRest {
             'subscription': marketType,
         };
         await this.watch (url, messageHash, message, messageHash, subscription);
+        return true;
     }
 
     handleUserDataStreamSubscribe (client: Client, message) {
@@ -2457,6 +2458,7 @@ export default class binance extends binanceRest {
             'subscription': marketType,
         };
         await this.watch (url, messageHash, message, messageHash, subscription);
+        return true;
     }
 
     handleUserDataStreamUnsubscribe (client: Client, message) {
@@ -2550,7 +2552,7 @@ export default class binance extends binanceRest {
             const listenKey = this.safeString (options, 'listenKey');
             if (listenKey === undefined) {
                 // we can't renew a listen key that does not exist.
-                return;
+                return false;
             }
             url = this.urls['api']['ws']['ws-api'][urlType] + '/' + listenKey;
         }
@@ -2573,9 +2575,11 @@ export default class binance extends binanceRest {
         if (type === 'spot') {
             // For spot, unsubscribe from user data stream
             await this.unsubscribeUserDataStream (type, params);
+            return true;
         } else {
             // For other types, stop the user data stream
             await client.close ();
+            return true;
         }
     }
 
