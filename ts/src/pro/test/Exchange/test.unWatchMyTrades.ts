@@ -19,7 +19,6 @@ async function testUnwatchMyTrades (exchange: Exchange, skippedProperties: objec
         myTradesSubscription = await exchange.watchMyTrades (symbol);
         // trigger a trade update
         // Second call uses subscription
-        myTradesSubscription = await exchange.watchMyTrades (symbol);
     } catch (e) {
         if (!testSharedMethods.isTemporaryFailure (e)) {
             throw e;

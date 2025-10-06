@@ -4,7 +4,7 @@ import ccxt, { Exchange } from '../../../../ccxt.js';
 
 async function createOrderAfterDelay (exchange: Exchange) {
     await exchange.sleep (3000);
-    await exchange.createOrder ('BTC/USDT:USDT', 'market', 'buy', 0.001);
+    await exchange.createOrder ('BTC/USDT', 'market', 'buy', 0.001);
 }
 
 async function testUnwatchBalance (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -16,9 +16,6 @@ async function testUnwatchBalance (exchange: Exchange, skippedProperties: object
         // First call uses snapshot
         await exchange.loadMarkets ();
         exchange.spawn (createOrderAfterDelay, exchange);
-        balanceSubscription = await exchange.watchBalance ();
-        // trigger a balance update
-        // Second call uses subscription
         balanceSubscription = await exchange.watchBalance ();
     } catch (e) {
         if (!testSharedMethods.isTemporaryFailure (e)) {
