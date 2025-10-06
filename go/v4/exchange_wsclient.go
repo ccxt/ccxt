@@ -122,7 +122,7 @@ func (this *WSClient) handleMessages() {
 
 		messageType, data, err := this.Connection.ReadMessage()
 		if err != nil {
-			this.OnError(err)
+			this.OnError(NetworkError(err))
 			return
 		}
 
