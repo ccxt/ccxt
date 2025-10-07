@@ -4195,10 +4195,13 @@ public partial class Exchange
         object i_count = 6;
         object tradesLength = getArrayLength(trades);
         object oldest = mathMin(tradesLength, limit);
+        object options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
+        object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (object i = 0; isLessThan(i, oldest); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             object ts = getValue(trade, "timestamp");
+            object price = getValue(trade, "price");
             if (isTrue(isLessThan(ts, since)))
             {
                 continue;
@@ -4210,16 +4213,21 @@ public partial class Exchange
             }
             object ohlcv_length = getArrayLength(ohlcvs);
             object candle = subtract(ohlcv_length, 1);
-            if (isTrue(isTrue((isEqual(candle, -1))) || isTrue((isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms))))))
+            if (isTrue(isTrue(isTrue(skipZeroPrices) && !isTrue((isGreaterThan(price, 0)))) && !isTrue((isLessThan(price, 0)))))
+            {
+                continue;
+            }
+            object isFirstCandle = isEqual(candle, -1);
+            if (isTrue(isTrue(isFirstCandle) || isTrue(isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms)))))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
-                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "amount"), 1});
+                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, price, price, price, price, getValue(trade, "amount"), 1});
             } else
             {
                 // still processing the same timeframe -> update opening trade
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(getValue(getValue(ohlcvs, candle), i_high), getValue(trade, "price"));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(getValue(getValue(ohlcvs, candle), i_low), getValue(trade, "price"));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = getValue(trade, "price");
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(getValue(getValue(ohlcvs, candle), i_high), price);
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(getValue(getValue(ohlcvs, candle), i_low), price);
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = price;
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_volume)] = this.sum(getValue(getValue(ohlcvs, candle), i_volume), getValue(trade, "amount"));
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_count)] = this.sum(getValue(getValue(ohlcvs, candle), i_count), 1);
             }
