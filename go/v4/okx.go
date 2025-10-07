@@ -19,7 +19,7 @@ func (this *okx) Describe() interface{} {
 		"name":      "OKX",
 		"countries": []interface{}{"CN", "US"},
 		"version":   "v5",
-		"rateLimit": Multiply(100, 1.03),
+		"rateLimit": Multiply(100, 1.1),
 		"pro":       true,
 		"certified": true,
 		"has": map[string]interface{}{
