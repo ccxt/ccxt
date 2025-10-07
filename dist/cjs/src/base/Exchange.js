@@ -4698,9 +4698,12 @@ class Exchange {
         const i_count = 6;
         const tradesLength = trades.length;
         const oldest = Math.min(tradesLength, limit);
+        const options = this.safeDict(this.options, 'buildOHLCVC', {});
+        const skipZeroPrices = this.safeBool(options, 'skipZeroPrices', true);
         for (let i = 0; i < oldest; i++) {
             const trade = trades[i];
             const ts = trade['timestamp'];
+            const price = trade['price'];
             if (ts < since) {
                 continue;
             }
@@ -4710,23 +4713,27 @@ class Exchange {
             }
             const ohlcv_length = ohlcvs.length;
             const candle = ohlcv_length - 1;
-            if ((candle === -1) || (openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms))) {
+            if (skipZeroPrices && !(price > 0) && !(price < 0)) {
+                continue;
+            }
+            const isFirstCandle = candle === -1;
+            if (isFirstCandle || openingTime >= this.sum(ohlcvs[candle][i_timestamp], ms)) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.push([
                     openingTime,
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
-                    trade['price'],
+                    price,
+                    price,
+                    price,
+                    price,
                     trade['amount'],
                     1, // count
                 ]);
             }
             else {
                 // still processing the same timeframe -> update opening trade
-                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], trade['price']);
-                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], trade['price']);
-                ohlcvs[candle][i_close] = trade['price'];
+                ohlcvs[candle][i_high] = Math.max(ohlcvs[candle][i_high], price);
+                ohlcvs[candle][i_low] = Math.min(ohlcvs[candle][i_low], price);
+                ohlcvs[candle][i_close] = price;
                 ohlcvs[candle][i_volume] = this.sum(ohlcvs[candle][i_volume], trade['amount']);
                 ohlcvs[candle][i_count] = this.sum(ohlcvs[candle][i_count], 1);
             }

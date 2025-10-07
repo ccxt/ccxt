@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.7';
+$version = '4.5.8';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.7';
+    const VERSION = '4.5.8';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -5789,9 +5789,12 @@ class Exchange {
         $i_count = 6;
         $tradesLength = count($trades);
         $oldest = min ($tradesLength, $limit);
+        $options = $this->safe_dict($this->options, 'buildOHLCVC', array());
+        $skipZeroPrices = $this->safe_bool($options, 'skipZeroPrices', true);
         for ($i = 0; $i < $oldest; $i++) {
             $trade = $trades[$i];
             $ts = $trade['timestamp'];
+            $price = $trade['price'];
             if ($ts < $since) {
                 continue;
             }
@@ -5801,22 +5804,26 @@ class Exchange {
             }
             $ohlcv_length = count($ohlcvs);
             $candle = $ohlcv_length - 1;
-            if (($candle === -1) || ($openingTime >= $this->sum($ohlcvs[$candle][$i_timestamp], $ms))) {
+            if ($skipZeroPrices && !($price > 0) && !($price < 0)) {
+                continue;
+            }
+            $isFirstCandle = $candle === -1;
+            if ($isFirstCandle || $openingTime >= $this->sum($ohlcvs[$candle][$i_timestamp], $ms)) {
                 // moved to a new $timeframe -> create a new $candle from opening $trade
                 $ohlcvs[] = [
                     $openingTime, // timestamp
-                    $trade['price'], // O
-                    $trade['price'], // H
-                    $trade['price'], // L
-                    $trade['price'], // C
+                    $price, // O
+                    $price, // H
+                    $price, // L
+                    $price, // C
                     $trade['amount'], // V
                     1, // count
                 ];
             } else {
                 // still processing the same $timeframe -> update opening $trade
-                $ohlcvs[$candle][$i_high] = max ($ohlcvs[$candle][$i_high], $trade['price']);
-                $ohlcvs[$candle][$i_low] = min ($ohlcvs[$candle][$i_low], $trade['price']);
-                $ohlcvs[$candle][$i_close] = $trade['price'];
+                $ohlcvs[$candle][$i_high] = max ($ohlcvs[$candle][$i_high], $price);
+                $ohlcvs[$candle][$i_low] = min ($ohlcvs[$candle][$i_low], $price);
+                $ohlcvs[$candle][$i_close] = $price;
                 $ohlcvs[$candle][$i_volume] = $this->sum($ohlcvs[$candle][$i_volume], $trade['amount']);
                 $ohlcvs[$candle][$i_count] = $this->sum($ohlcvs[$candle][$i_count], 1);
             }

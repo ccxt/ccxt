@@ -21,7 +21,7 @@ export default class okx extends Exchange {
             'name': 'OKX',
             'countries': [ 'CN', 'US' ],
             'version': 'v5',
-            'rateLimit': 100 * 1.03, // 3% tolerance because of #20229
+            'rateLimit': 100 * 1.10, // 10% tolerance because of #26973
             'pro': true,
             'certified': true,
             'has': {

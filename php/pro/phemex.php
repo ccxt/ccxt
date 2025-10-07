@@ -1177,6 +1177,10 @@ class phemex extends \ccxt\async\phemex {
                 $parsedOrders[] = $parsedOrder;
             }
         } else {
+            $messageLength = count($message);
+            if ($messageLength === 0) {
+                return;
+            }
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
                 $action = $this->safe_string($update, 'action');

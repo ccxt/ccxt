@@ -12,7 +12,7 @@ public partial class okx : Exchange
             { "name", "OKX" },
             { "countries", new List<object>() {"CN", "US"} },
             { "version", "v5" },
-            { "rateLimit", multiply(100, 1.03) },
+            { "rateLimit", multiply(100, 1.1) },
             { "pro", true },
             { "certified", true },
             { "has", new Dictionary<string, object>() {
