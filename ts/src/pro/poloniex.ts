@@ -294,7 +294,7 @@ export default class poloniex extends poloniexRest {
         const request: Dict = {
             'orderIds': ids,
         };
-        return await this.tradeRequest ('cancelOrders', this.extend (request, params));
+        return await this.tradeRequest ('cancelOrders', this.extend (request, params)) as Order[];
     }
 
     /**

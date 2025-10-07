@@ -393,7 +393,7 @@ export default class kraken extends krakenRest {
             },
             'req_id': requestId,
         };
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash) as Order[];
     }
 
     /**

@@ -2259,7 +2259,7 @@ export default class okx extends okxRest {
             'op': 'batch-cancel-orders',
             'args': args,
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     /**
