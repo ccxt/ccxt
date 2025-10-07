@@ -547,7 +547,7 @@ func main() {
 		"clientOrderId": "myOrderId68768678",
 	}
 
-    <-exchange.LoadMarkets()
+    exchange.LoadMarkets()
 
 	order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", 0.001, ccxt.WithCreateOrderPrice(6000), ccxt.WithCreateOrderParams(orderParams))
 	if err != nil {
@@ -652,9 +652,6 @@ Please read the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBU
 We are investing a significant amount of time into the development of this library. If CCXT made your life easier and you want to help us improve it further, or if you want to speed up development of new features and exchanges, please support us with a tip. We appreciate all contributions!
 
 ### Sponsors
-
-
-[![Vitality](https://github.com/user-attachments/assets/0981aae2-3e12-4b57-8d2f-c5ae2b3b8b1c)](https://vitalitycrypto.com/)
 
 Support this project by becoming a sponsor.
 
