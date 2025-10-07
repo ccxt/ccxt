@@ -677,6 +677,7 @@ class coinex extends \ccxt\async\coinex {
                     $messageHashes[] = 'tickers::' . $market['symbol'];
                 }
             } else {
+                $marketIds = array();
                 $messageHashes[] = 'tickers';
             }
             $type = null;
