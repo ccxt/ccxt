@@ -787,6 +787,10 @@ class NewTranspiler {
 
         }
 
+        if (name.startsWith('unWatch')) { // type not unified yet
+            return `interface{}`;
+        }
+
         if (name === 'fetchTime'){
             return ` <- chan int64`; // custom handling for now
         }
@@ -1027,6 +1031,11 @@ class NewTranspiler {
             return `(res).(map[string]interface{})`;
         }
 
+        if (methodName.startsWith('unWatch')) {
+            // type not unified yet
+            return 'res'
+        }
+
         // handle the typescript type Dict
         if (unwrappedType === 'Dict' || unwrappedType === 'map[string]interface{}') {
             return `res.(map[string]interface{})`;
@@ -1225,6 +1234,8 @@ class NewTranspiler {
             emtpyObject = '-1';
         } else if (unwrappedType === 'string') {
             emtpyObject = '""';
+        } else if (unwrappedType === 'interface{}') {
+            emtpyObject = 'nil';
         }
 
         const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
