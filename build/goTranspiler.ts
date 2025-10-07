@@ -402,7 +402,10 @@ const INTERFACE_METHODS = [
     'unWatchOHLCVForSymbols',
     'unWatchOrderBook',
     'unWatchTickers',
+    'unWatchTicker',
     'unWatchOrderBookForSymbols',
+    'unWatchOHLCV',
+    'unWatchOHLCVForSymbols',
 	'watchBalance',
 	'watchBidsAsks',
 	'watchLiquidations',
@@ -949,6 +952,7 @@ class NewTranspiler {
             'transfer',
             'withdraw',
             'watch',
+            'unWatch'
             // 'load',
         ];
         // const allowedPrefixesWs = [
@@ -968,6 +972,11 @@ class NewTranspiler {
             'watchMultiple',
             'watchPrivate',
             'watchPublic',
+            'unWatch',
+            'unWatchMultiple',
+            'unWatchPrivate',
+            'unWatchPublic',
+            'watchPrivateMultiple',
             'watchPublicMultiple',
             'setPositionsCache',
             'setPositionCache',
@@ -1895,34 +1904,34 @@ type IExchange interface {
             'toFixed',
             'throwDynamicException'
         ]);
-      
+
         const files = fs.readdirSync(dirPath);
         for (const file of files) {
             if (file.startsWith('exchange')) {
                 const fullPath = path.join(dirPath, file);
-            
+
                 // Skip directories or non-files
                 const stat = fs.statSync(fullPath);
                 if (!stat.isFile()) continue;
-            
+
                 const content = fs.readFileSync(fullPath, "utf-8");
                 const lines = content.split("\n");
-            
+
                 for (const line of lines) {
                     // Only match lines that start with type or func
                     if (!(
                         /^\s*func\s+/.test(line) ||
                         /^\s*type\s+\w+\s+(?:struct\s*\{|interface\s*\{|func\s*\()/.test(line)
                     )) continue;
-            
+
                     const trimmed = line.trim();
-            
+
                     // Exclude lines that are just "type" or "func"
                     if (/^(type|func)$/.test(trimmed)) continue;
-            
+
                     const parts = trimmed.split(/\s+/);
                     if (parts.length < 2) continue;
-            
+
                     let name = parts[1].split("(")[0]; // keep only before `(`
                     if (name.trim() !== "") results.add(name);
                 }
@@ -1951,11 +1960,13 @@ type IExchange interface {
                     const declarationMatch = line.match(/^(func(?: \(\w+ \*?\w+\))? \w+)\s*(\(.*)/);
                     if (declarationMatch) {
                         const declaration = declarationMatch[1];
-                        return declaration + declarationMatch[2].replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`);
+                        const decMatch = declaration + declarationMatch[2].replace(regex, (match) => `${packageName}.${capitalize(match)}`).replace(variadicRegex, (match) => `${packageName}.${capitalize(match)}`);
+                        return decMatch
                     }
                     return line;
                 }
-                return line.replace(regex, (match) => `${packageName}.${capitalize(match)}`);
+                const lineReplaced = line.replace(regex, (match) => `${packageName}.${capitalize(match)}`);
+                return lineReplaced;
             })
             .join("\n");
     }
