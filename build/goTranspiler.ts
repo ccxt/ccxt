@@ -405,7 +405,6 @@ const INTERFACE_METHODS = [
     'unWatchTicker',
     'unWatchOrderBookForSymbols',
     'unWatchOHLCV',
-    'unWatchOHLCVForSymbols',
 	'watchBalance',
 	'watchBidsAsks',
 	'watchLiquidations',
