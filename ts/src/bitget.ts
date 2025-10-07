@@ -4351,19 +4351,6 @@ export default class bitget extends Exchange {
             //                "cTime": "1759826434145",
             //                "uTime": "1759826434146"
             //            },
-            //            {
-            //                "symbol": "BTCUSDT",
-            //                "coin": "BTC",
-            //                "totalAmount": "0",
-            //                "available": "0",
-            //                "frozen": "0",
-            //                "borrow": "0",
-            //                "interest": "0",
-            //                "net": "0",
-            //                "coupon": "0",
-            //                "cTime": "1759826434145",
-            //                "uTime": "1759826434145"
-            //            }
             //        ]
             //    }
             //
@@ -4534,22 +4521,6 @@ export default class bitget extends Exchange {
         //         "crossedUnrealizedPL": null,
         //         "isolatedUnrealizedPL": null
         //     }
-        //
-        // isolated margin
-        //
-{
-            //                "symbol": "BTCUSDT",
-            //                "coin": "BTC",
-            //                "totalAmount": "0",
-            //                "available": "0",
-            //                "frozen": "0",
-            //                "borrow": "0",
-            //                "interest": "0",
-            //                "net": "0",
-            //                "coupon": "0",
-            //                "cTime": "1759826434145",
-            //                "uTime": "1759826434145"
-            //            }
         //
         // cross & isolated margin
         //
