@@ -4739,9 +4739,12 @@ class Exchange(object):
         i_count = 6
         tradesLength = len(trades)
         oldest = min(tradesLength, limit)
+        options = self.safe_dict(self.options, 'buildOHLCVC', {})
+        skipZeroPrices = self.safe_bool(options, 'skipZeroPrices', True)
         for i in range(0, oldest):
             trade = trades[i]
             ts = trade['timestamp']
+            price = trade['price']
             if ts < since:
                 continue
             openingTime = int(math.floor(ts / ms)) * ms  # shift to the edge of m/h/d(but not M)
@@ -4749,22 +4752,25 @@ class Exchange(object):
                 continue
             ohlcv_length = len(ohlcvs)
             candle = ohlcv_length - 1
-            if (candle == -1) or (openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms)):
+            if skipZeroPrices and not (price > 0) and not (price < 0):
+                continue
+            isFirstCandle = candle == -1
+            if isFirstCandle or openingTime >= self.sum(ohlcvs[candle][i_timestamp], ms):
                 # moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.append([
                     openingTime,  # timestamp
-                    trade['price'],  # O
-                    trade['price'],  # H
-                    trade['price'],  # L
-                    trade['price'],  # C
+                    price,  # O
+                    price,  # H
+                    price,  # L
+                    price,  # C
                     trade['amount'],  # V
                     1,  # count
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], trade['price'])
-                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], trade['price'])
-                ohlcvs[candle][i_close] = trade['price']
+                ohlcvs[candle][i_high] = max(ohlcvs[candle][i_high], price)
+                ohlcvs[candle][i_low] = min(ohlcvs[candle][i_low], price)
+                ohlcvs[candle][i_close] = price
                 ohlcvs[candle][i_volume] = self.sum(ohlcvs[candle][i_volume], trade['amount'])
                 ohlcvs[candle][i_count] = self.sum(ohlcvs[candle][i_count], 1)
         return ohlcvs
