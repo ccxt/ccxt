@@ -4367,9 +4367,11 @@ export default class phemex extends Exchange {
         };
         const isCross = marginMode === 'cross';
         if (this.inArray (market['settle'], ['USDT', 'USDC'])) {
-            const leverageResponse = await this.fetchLeverage (symbol, params);
-            const currentLeverage = this.safeString (leverageResponse, 'leverage');
-            request['leverageRr'] = isCross ? Precise.stringAbs (currentLeverage) : Precise.stringNeg (currentLeverage);
+            const currentLeverage = this.safeString (params, 'leverage');
+            if (currentLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
+            }
+            request['leverageRr'] = isCross ? Precise.stringNeg (Precise.stringAbs (currentLeverage)) : Precise.stringAbs (currentLeverage);
             return await this.privatePutGPositionsLeverage (this.extend (request, params));
         }
         let leverage = this.safeInteger (params, 'leverage');
