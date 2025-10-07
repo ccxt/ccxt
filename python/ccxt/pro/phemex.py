@@ -1097,6 +1097,9 @@ class phemex(ccxt.async_support.phemex):
                 parsedOrder = self.parse_order(rawOrder)
                 parsedOrders.append(parsedOrder)
         else:
+            messageLength = len(message)
+            if messageLength == 0:
+                return
             for i in range(0, len(message)):
                 update = message[i]
                 action = self.safe_string(update, 'action')

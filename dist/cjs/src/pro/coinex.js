@@ -645,7 +645,7 @@ class coinex extends coinex$1["default"] {
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const marketIds = this.marketIds(symbols);
+        let marketIds = this.marketIds(symbols);
         let market = undefined;
         const messageHashes = [];
         const symbolsDefined = (symbols !== undefined);
@@ -657,6 +657,7 @@ class coinex extends coinex$1["default"] {
             }
         }
         else {
+            marketIds = [];
             messageHashes.push('tickers');
         }
         let type = undefined;

@@ -716,6 +716,7 @@ public partial class coinex : ccxt.coinex
             }
         } else
         {
+            marketIds = new List<object>() {};
             ((IList<object>)messageHashes).Add("tickers");
         }
         object type = null;
@@ -800,7 +801,7 @@ public partial class coinex : ccxt.coinex
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object subscriptionHashes = new List<object>() {"trades"};
+        // const subscriptionHashes = [ 'trades' ];
         object subscribe = new Dictionary<string, object>() {
             { "method", "deals.subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -808,7 +809,7 @@ public partial class coinex : ccxt.coinex
             } },
             { "id", this.requestId() },
         };
-        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
+        object trades = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             return trades;
@@ -880,9 +881,9 @@ public partial class coinex : ccxt.coinex
             } },
             { "id", this.requestId() },
         };
-        object subscriptionHashes = this.hash(this.encode(this.json(watchOrderBookSubscriptions)), sha256);
+        // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
-        object orderbooks = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes);
+        object orderbooks = await this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             return orderbooks;
