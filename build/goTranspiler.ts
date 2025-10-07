@@ -55,6 +55,7 @@ const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/v4';
 const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
+const TYPED_WS_INTERFACE_FILE = './go/v4/pro/exchange_typed_interface.go';
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
@@ -1676,6 +1677,51 @@ type IExchange interface {
         fs.writeFileSync (TYPED_INTERFACE_FILE, file);
     }
 
+    // ----- WS specific ----- //
+    createWsTypedInterfaceFile(){
+
+        const interfaceWs = [
+            'type IExchange interface {',
+            '    ccxt.IExchange',
+            '}'
+        ].join('\n');
+
+        const caseStatements = exchangeIdsWs.map(exchange => {
+            const struct = capitalize(exchange);
+            const args = 'options';
+            return`    case "${exchange}":
+        itf := New${struct}(${args})
+        return itf`;
+        });
+
+        const functionDecl = `
+func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExchange {
+    exchangeId = strings.ToLower(exchangeId)
+    switch exchangeId {
+${caseStatements.join('\n')}
+        default:
+            return nil
+    }
+}
+`;
+
+        const file = [
+            'package ccxtpro',
+            'import (',
+            '   "strings"',
+            '   ccxt "github.com/ccxt/ccxt/go/v4"',
+            ')',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            interfaceWs,
+            '',
+            functionDecl,
+        ].join('\n');
+
+        fs.writeFileSync (TYPED_WS_INTERFACE_FILE, file);
+    }
+
 
     camelize(str: string) {
         var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
@@ -1753,6 +1799,8 @@ type IExchange interface {
         this.transpileBaseMethods(TS_BASE_FILE, true);
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true );
         this.createDynamicInstanceFile(true);
+        this.createWsTypedInterfaceFile();
+
     }
 
     async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false) {
