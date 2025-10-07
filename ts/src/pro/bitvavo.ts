@@ -732,7 +732,7 @@ export default class bitvavo extends bitvavoRest {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        return await this.watchRequest ('privateCancelOrders', this.extend (request, params));
+        return await this.watchRequest ('privateCancelOrders', this.extend (request, params)) as Order[];
     }
 
     handleMultipleOrders (client: Client, message) {
