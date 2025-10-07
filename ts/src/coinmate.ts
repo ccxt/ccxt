@@ -1796,6 +1796,7 @@ export default class coinmate extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'] + '/' + path;
+        headers = {};
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -1811,10 +1812,9 @@ export default class coinmate extends Exchange {
                 'publicKey': this.apiKey,
                 'signature': signature.toUpperCase (),
             }, params));
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
+        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
