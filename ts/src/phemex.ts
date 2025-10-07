@@ -4363,10 +4363,10 @@ export default class phemex extends Exchange {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
         const request: Dict = {
-            'symbol': market['id']
+            'symbol': market['id'],
         };
         const isCross = marginMode === 'cross';
-        if (this.inArray (market['settle'], ['USDT', 'USDC'])) {
+        if (this.inArray (market['settle'], [ 'USDT', 'USDC' ])) {
             const currentLeverage = this.safeString (params, 'leverage');
             if (currentLeverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
