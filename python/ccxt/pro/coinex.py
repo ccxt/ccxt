@@ -640,6 +640,7 @@ class coinex(ccxt.async_support.coinex):
                 market = self.market(symbol)
                 messageHashes.append('tickers::' + market['symbol'])
         else:
+            marketIds = []
             messageHashes.append('tickers')
         type = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
