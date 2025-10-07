@@ -1333,8 +1333,11 @@ class NewTranspiler {
         } else {
             let exchangeTyped = ''
             if (!ws) {
-                exchangeTyped =  '*ExchangeTyped';
-
+                if (!isAlias) {
+                    exchangeTyped =  '*ExchangeTyped';
+                } else {
+                    exchangeTyped = '*'+capitalize(this.getParentExchange(exchange));
+                }
             } else {
                 exchangeTyped = !this.isAlias(exchange) ? `*ccxt.${capitizedName}` : '*ccxt.' + capitalize(this.getParentExchange(exchange))
             }
@@ -1368,7 +1371,19 @@ class NewTranspiler {
 
         } else {
             const baseEx = !this.isAlias(exchange) ? 'p.base' : 'p.base.base'
-            const exTyped = !ws ? 'NewExchangeTyped(&p.Exchange)' : `ccxt.New${capitizedName}FromCore(${baseEx})`
+            // const exTyped = !ws ? 'NewExchangeTyped(&p.Exchange)' : `ccxt.New${capitizedName}FromCore(${baseEx})`
+            let exTyped = '';
+            if (!ws) {
+                if (!isAlias) {
+                    exTyped = 'NewExchangeTyped(&p.Exchange)';
+                } else {
+                    const parent = this.isAlias(exchange) ? this.getParentExchange(exchange) : '';
+                    exTyped = `New${capitalize(this.getParentExchange(exchange))}FromCore(&(p.${capitalize(parent)}Core))`;
+                }
+            } else {
+                exTyped = `ccxt.New${capitizedName}FromCore(${baseEx})`
+            }
+
             newMethod = [
                 'func New' + capitizedName + '(userConfig map[string]interface{}) *' + capitizedName + ' {',
                 `   p := New${coreName}()`,
