@@ -26,4 +26,9 @@ public partial class arzplus : Exchange
         return await this.callAsync ("publicGetApiV1MarketDepth",parameters);
     }
 
+    public async Task<object> publicGetApiV1MarketIrtInfo (object parameters = null)
+    {
+        return await this.callAsync ("publicGetApiV1MarketIrtInfo",parameters);
+    }
+
 }

@@ -4,6 +4,7 @@ interface Exchange {
     publicGetApiV1MarketSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetApiV1MarketTradingviewOhlcv(params?: {}): Promise<implicitReturnType>;
     publicGetApiV1MarketDepth(params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1MarketIrtInfo(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

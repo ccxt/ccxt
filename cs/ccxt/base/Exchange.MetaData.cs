@@ -4,7 +4,7 @@ namespace ccxt;
 public partial class Exchange
 {
 <<<<<<< HEAD
-    public static string ccxtVersion = "4.9.2";
+    public static string ccxtVersion = "4.9.3";
 =======
     public static string ccxtVersion = "4.6.2";
 >>>>>>> master

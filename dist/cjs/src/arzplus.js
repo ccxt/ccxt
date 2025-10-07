@@ -104,6 +104,7 @@ class arzplus extends arzplus$1["default"] {
                         'api/v1/market/symbols': 1,
                         'api/v1/market/tradingview/ohlcv': 1,
                         'api/v1/market/depth': 1,
+                        'api/v1/market/irt/info': 1,
                     },
                 },
             },
@@ -131,10 +132,21 @@ class arzplus extends arzplus$1["default"] {
             'enable': 'true',
         };
         const response = await this.publicGetApiV1MarketSymbols(request);
+        const otcMarkets = await this.publicGetApiV1MarketIrtInfo(request);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket(response[i]);
             result.push(market);
+        }
+        for (let i = 0; i < otcMarkets.length; i++) {
+            const marketdata = otcMarkets[i];
+            marketdata['quote'] = 'IRT';
+            marketdata['id'] = 'OTC_' + marketdata['symbol'] + marketdata['quote'];
+            const parsedMarket = this.parseOTCMarkets(marketdata);
+            result.push(parsedMarket);
+        }
+        if (params['type']) {
+            return this.filterByArray(result, 'type', params['type'], false);
         }
         return result;
     }
@@ -234,6 +246,70 @@ class arzplus extends arzplus$1["default"] {
             'info': market,
         };
     }
+    parseOTCMarkets(market) {
+        //  {
+        // symbol: "BTC",
+        // ask: "13877900000",
+        // bid: "13860999995",
+        // name: "bitcoin"
+        // },
+        const baseAsset = this.safeString(market, 'symbol');
+        const quoteAsset = this.safeString(market, 'quote');
+        const baseId = baseAsset;
+        const quoteId = quoteAsset;
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const id = this.safeString(market, 'id');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'otc',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
     async fetchTickers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -248,8 +324,20 @@ class arzplus extends arzplus$1["default"] {
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
         }
-        const response = await this.publicGetApiV1MarketSymbols(params);
         const result = {};
+        if (params['type'] === 'otc') {
+            const otcMarkets = await this.publicGetApiV1MarketIrtInfo(params);
+            for (let i = 0; i < otcMarkets.length; i++) {
+                const marketdata = otcMarkets[i];
+                marketdata['quote'] = 'IRT';
+                marketdata['id'] = 'OTC_' + marketdata['symbol'] + marketdata['quote'];
+                const parsedMarket = this.parseOTCTicker(marketdata);
+                const symbol = parsedMarket['symbol'];
+                result[symbol] = parsedMarket;
+            }
+            return this.filterByArrayTickers(result, 'symbol', symbols);
+        }
+        const response = await this.publicGetApiV1MarketSymbols(params);
         for (let i = 0; i < response.length; i++) {
             const request = {
                 'symbol': response[i]['name'],
@@ -346,6 +434,44 @@ class arzplus extends arzplus$1["default"] {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
+    }
+    parseOTCTicker(ticker, market = undefined) {
+        //        {
+        // id: "BTCUSDT",
+        // symbol: "BTC",
+        // ask: "13877900000",
+        // bid: "13860999995",
+        // name: "bitcoin"
+        // quote: "IRT"
+        // }
+        const marketType = 'otc';
+        const marketId = this.safeString(ticker, 'id');
+        const symbol = this.safeSymbol(marketId, market, undefined, marketType);
+        const bid = this.safeFloat(ticker, 'bid', 0);
+        const ask = this.safeFloat(ticker, 'ask', 0);
+        const last = this.safeFloat(ticker, 'ask', 0);
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': last,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'info': ticker,
         }, market);
     }
