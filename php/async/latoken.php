@@ -1653,6 +1653,7 @@ class latoken extends Exchange {
             'TRANSACTION_STATUS_EXECUTED' => 'ok',
             'TRANSACTION_STATUS_CHECKING' => 'pending',
             'TRANSACTION_STATUS_CANCELLED' => 'canceled',
+            'TRANSACTION_STATUS_FAILED' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
