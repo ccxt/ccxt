@@ -655,7 +655,7 @@ export default class coinex extends coinexRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const marketIds = this.marketIds (symbols);
+        let marketIds = this.marketIds (symbols);
         let market = undefined;
         const messageHashes = [];
         const symbolsDefined = (symbols !== undefined);
@@ -666,6 +666,7 @@ export default class coinex extends coinexRest {
                 messageHashes.push ('tickers::' + market['symbol']);
             }
         } else {
+            marketIds = [];
             messageHashes.push ('tickers');
         }
         let type = undefined;
