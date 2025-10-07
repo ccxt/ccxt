@@ -2864,6 +2864,20 @@ Due to the differences in their internal implementations the exchanges may be fa
 
 If you want to stay on top of the second-order data latency, then you will have to calculate it on your side and beat the exchange engine in speed of doing so. Depending on the needs of your application, it may be tricky, since you will need to handle redundancy, "data holes" in the history, exchange downtimes, and other aspects of data aggregation which is a whole universe in itself that is impossible to fully cover in this Manual.
 
+
+### Build OHLCV bars from trades
+
+As noted in above paragraph, users can build candles manually using `buildOHLCV / build_ohlcv` method. You can see an example file named "build-ohlcv-bars" inside [examples folder](https://github.com/ccxt/ccxt/tree/master/examples). 
+Notes:
+- This method expects the provided trades to be chronologically sorted (newest trade to be the last in array)
+- Due to some possible mistakes inside trade entries (coming from `watch_ohlcv` or other sources) inside `build_ohlcv` method we skip trades that have `0` price, to avoid distorted values for a candle. However, if you don't want to skip such trade items, set an option: 
+
+```
+exchange.options['buildOHLCV'] = {
+    'skipZeroPrices': false
+};
+```
+
 ### OHLCV Structure
 
 The fetchOHLCV method shown above returns a list (a flat array) of OHLCV candles represented by the following structure:
@@ -2933,15 +2947,6 @@ pprint(index_klines)
 ```
 <!-- tabs:end -->
 
-### OHLCV Emulation
-
-Some exchanges don't offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from [Public Trades](#public-trades). In that case you will see `exchange.has['fetchOHLCV'] = 'emulated'`. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
-
-**WARNING: the fetchOHLCV emulation is experimental!**
-
-```text
-UNDER CONSTRUCTION
-```
 
 ## Public Trades
 
