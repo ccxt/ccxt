@@ -45,7 +45,7 @@ class okx(Exchange, ImplicitAPI):
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.03,  # 3% tolerance because of  #20229
+            'rateLimit': 100 * 1.10,  # 10% tolerance because of  #26973
             'pro': True,
             'certified': True,
             'has': {
