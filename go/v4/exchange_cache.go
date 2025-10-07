@@ -251,6 +251,33 @@ func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{}
 	}
 }
 
+// removes all items with the given symbol from the cache
+func (c *ArrayCache) Remove(symbol string) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	
+	// Remove from hashmap
+	delete(c.Hashmap, symbol)
+	
+	// Remove from newUpdatesBySymbol
+	delete(c.newUpdatesBySymbol, symbol)
+	
+	// Remove from clearUpdatesBySymbol
+	delete(c.clearUpdatesBySymbol, symbol)
+	
+	// Filter out items with this symbol from Data
+	var filteredData []interface{}
+	for _, item := range c.Data {
+		if m, ok := item.(map[string]interface{}); ok {
+			if s, ok := m["symbol"].(string); ok && s == symbol {
+				continue // Skip this item
+			}
+		}
+		filteredData = append(filteredData, item)
+	}
+	c.Data = filteredData
+}
+
 // ArrayCacheByTimestamp keeps the most recent N entries identified by their
 // first element (timestamp). We just need Append and ToArray.
 
@@ -353,6 +380,24 @@ func (c *ArrayCacheByTimestamp) GetLimit(symbol interface{}, limit interface{}) 
 	return MathMin(c.newUpdates, limit)
 }
 
+// Remove removes all items with the given symbol from the timestamp cache
+func (c *ArrayCacheByTimestamp) Remove(symbol string) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
+	
+	// Filter out items with this symbol from Data
+	var filteredData []interface{}
+	for _, item := range c.Data {
+		if m, ok := item.(map[string]interface{}); ok {
+			if s, ok := m["symbol"].(string); ok && s == symbol {
+				continue
+			}
+		}
+		filteredData = append(filteredData, item)
+	}
+	c.Data = filteredData
+}
+
 // ArrayCacheBySymbolById nests two levels: symbol → id.
 // It embeds ArrayCache to reuse its logic.
 
@@ -368,6 +413,11 @@ func NewArrayCacheBySymbolById(optionalArgs ...interface{}) *ArrayCacheBySymbolB
 // GetLimit for nested caches delegates to the inner ArrayCache.
 func (c *ArrayCacheBySymbolById) GetLimit(symbol interface{}, limit interface{}) interface{} {
 	return c.ArrayCache.GetLimit(symbol, limit)
+}
+
+// Remove delegates to the inner ArrayCache
+func (c *ArrayCacheBySymbolById) Remove(symbol string) {
+	c.ArrayCache.Remove(symbol)
 }
 
 // ArrayCacheBySymbolBySide keeps the last update per (symbol, side).
@@ -465,6 +515,11 @@ func (c *ArrayCacheBySymbolBySide) Append(item interface{}) {
 
 func (c *ArrayCacheBySymbolBySide) GetLimit(symbol interface{}, limit interface{}) interface{} {
 	return c.ArrayCache.GetLimit(symbol, limit)
+}
+
+// Remove delegates to the inner ArrayCache
+func (c *ArrayCacheBySymbolBySide) Remove(symbol string) {
+	c.ArrayCache.Remove(symbol)
 }
 
 // implement set for size-tracker and others

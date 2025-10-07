@@ -322,14 +322,18 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		keyNum = int(keyNum64)
 	}
 
-	switch v := collection.(type) {
+    switch v := collection.(type) {
 	case map[string]interface{}:
-		if !isStr {
-			return nil
-		}
-		if val, ok := v[keyStr]; ok {
-			return val
-		}
+        if !isStr {
+            return nil
+        }
+        // serialize map reads to avoid races with concurrent writes
+        addElementMu.Lock()
+        val, ok := v[keyStr]
+        addElementMu.Unlock()
+        if ok {
+            return val
+        }
 	case *sync.Map:
 		if v == nil {
 			return nil
@@ -2528,32 +2532,63 @@ func Remove(dict interface{}, key interface{}) {
 		// Panic if the key is not a string
 		panic("provided key is not a string")
 	}
-
-	// Try to handle *sync.Map first
-	if syncMap, ok := dict.(*sync.Map); ok {
+	switch v := dict.(type) {
+	case ArrayCache, *ArrayCache, ArrayCacheByTimestamp, *ArrayCacheByTimestamp, ArrayCacheBySymbolById, *ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, *ArrayCacheBySymbolBySide:
+		v.(interface{ Remove(string) }).Remove(keyStr)
+		return
+	case map[string]*ArrayCache:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case map[string]*ArrayCacheByTimestamp:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case map[string]*ArrayCacheBySymbolById:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case map[string]*ArrayCacheBySymbolBySide:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		if cache := v[keyStr]; cache != nil {
+			cache.Remove(keyStr)
+		}
+		delete(v, keyStr)
+		return
+	case *sync.Map:
 		// Check if the key exists in sync.Map
-		if _, exists := syncMap.Load(keyStr); !exists {
+		if _, exists := v.Load(keyStr); !exists {
 			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
 		}
 		// Remove the key from the sync.Map
-		syncMap.Delete(keyStr)
+		v.Delete(keyStr)
 		return
+	case map[string]interface{}:
+		if _, exists := v[keyStr]; !exists {
+			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
+		}
+		delete(v, keyStr)
+		return
+	default:
+		panic(fmt.Sprintf("exchange_helpers.Remove: provided value type is %T", v))
 	}
-
-	// Attempt to cast the dict to map[string]interface{}
-	castedDict, ok := dict.(map[string]interface{})
-	if !ok {
-		// Panic if the cast fails
-		panic("provided value is not a map[string]interface{} or *sync.Map")
-	}
-
-	// Check if the key exists, panic if it doesn't
-	if _, exists := castedDict[keyStr]; !exists {
-		panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-	}
-
-	// Remove the key from the map
-	delete(castedDict, keyStr)
 }
 
 func Capitalize(s string) string {
