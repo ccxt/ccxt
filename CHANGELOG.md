@@ -1,5 +1,30 @@
 # Changelog
 
+## v4.9.4 - 2025-10-08
+
+### Added
+- **Hamtapay Exchange Integration**: Complete support for Hamtapay exchange across all languages
+  - Market data fetching capabilities
+  - Ticker price endpoints
+  - Implementation in JavaScript, TypeScript, Python, PHP, Go, and C#
+  - API documentation and wiki updates
+- **Arzplus OTC Market**: OTC (Over-The-Counter) market support
+  - New `fetchOTCMarkets` functionality
+  - OTC market data parsing methods
+
+### Fixed
+- **Arzplus**: Corrected spot flag in `parseOTCMarkets` - OTC markets now properly marked as non-spot
+- **Hamtapay**: Updated ticker fetching to use new API endpoint with improved response handling
+
+### Changed
+- **Deployment**: Enhanced Python deployment script
+  - Added virtual environment setup and validation
+  - Included package dependency checks
+  - Improved automated deployment workflow
+
+### Removed
+- Cleaned up unused tester files
+
 ## v4.4.79
 
 - fix(htx): python base & certificates addition [#25886](https://github.com/ccxt/ccxt/pull/25886)
