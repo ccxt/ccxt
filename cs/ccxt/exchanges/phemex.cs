@@ -4624,14 +4624,28 @@ public partial class phemex : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        if (isTrue(isTrue(!isTrue(getValue(market, "swap")) || isTrue(isEqual(getValue(market, "settle"), "USDT"))) || isTrue(isEqual(getValue(market, "settle"), "USDC"))))
+        if (!isTrue(getValue(market, "swap")))
         {
-            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap (non USDT/USDC based) contracts only")) ;
+            throw new BadSymbol ((string)add(this.id, " setMarginMode() supports swap contracts only")) ;
         }
         marginMode = ((string)marginMode).ToLower();
         if (isTrue(isTrue(!isEqual(marginMode, "isolated")) && isTrue(!isEqual(marginMode, "cross"))))
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object isCross = isEqual(marginMode, "cross");
+        if (isTrue(this.inArray(getValue(market, "settle"), new List<object>() {"USDT", "USDC"})))
+        {
+            object currentLeverage = this.safeString(parameters, "leverage");
+            if (isTrue(isEqual(currentLeverage, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
+            }
+            ((IDictionary<string,object>)request)["leverageRr"] = ((bool) isTrue(isCross)) ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage);
+            return await this.privatePutGPositionsLeverage(this.extend(request, parameters));
         }
         object leverage = this.safeInteger(parameters, "leverage");
         if (isTrue(isEqual(marginMode, "cross")))
@@ -4642,10 +4656,7 @@ public partial class phemex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "leverage", leverage },
-        };
+        ((IDictionary<string,object>)request)["leverage"] = leverage;
         return await this.privatePutPositionsLeverage(this.extend(request, parameters));
     }
 
