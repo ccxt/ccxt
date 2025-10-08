@@ -1315,7 +1315,7 @@ class Exchange {
     }
     starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = index$1.sign(msgHash.replace('0x', ''), pri.slice(-64));
+        const signature = index$1.sign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     async getZKContractSignatureObj(seed, params = {}) {

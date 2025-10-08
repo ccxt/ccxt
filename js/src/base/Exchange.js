@@ -1300,7 +1300,7 @@ export default class Exchange {
     }
     starknetSign(msgHash, pri) {
         // TODO: unify to ecdsa
-        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.slice(-64));
+        const signature = starknetCurveSign(msgHash.replace('0x', ''), pri.replace('0x', ''));
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     async getZKContractSignatureObj(seed, params = {}) {

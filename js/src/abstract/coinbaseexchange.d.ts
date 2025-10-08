@@ -47,6 +47,7 @@ interface Exchange {
     privateGetUsersSelfTrailingVolume(params?: {}): Promise<implicitReturnType>;
     privateGetWithdrawalsFeeEstimate(params?: {}): Promise<implicitReturnType>;
     privateGetConversionsConversionId(params?: {}): Promise<implicitReturnType>;
+    privateGetConversions(params?: {}): Promise<implicitReturnType>;
     privateGetConversionsFees(params?: {}): Promise<implicitReturnType>;
     privatePostConversions(params?: {}): Promise<implicitReturnType>;
     privatePostDepositsCoinbaseAccount(params?: {}): Promise<implicitReturnType>;

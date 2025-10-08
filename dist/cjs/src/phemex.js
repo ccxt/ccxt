@@ -4384,12 +4384,24 @@ class phemex extends phemex$1["default"] {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        if (!market['swap'] || market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
         }
         marginMode = marginMode.toLowerCase();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const isCross = marginMode === 'cross';
+        if (this.inArray(market['settle'], ['USDT', 'USDC'])) {
+            const currentLeverage = this.safeString(params, 'leverage');
+            if (currentLeverage === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
+            }
+            request['leverageRr'] = isCross ? Precise["default"].stringNeg(Precise["default"].stringAbs(currentLeverage)) : Precise["default"].stringAbs(currentLeverage);
+            return await this.privatePutGPositionsLeverage(this.extend(request, params));
         }
         let leverage = this.safeInteger(params, 'leverage');
         if (marginMode === 'cross') {
@@ -4398,10 +4410,7 @@ class phemex extends phemex$1["default"] {
         if (leverage === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a leverage parameter');
         }
-        const request = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        };
+        request['leverage'] = leverage;
         return await this.privatePutPositionsLeverage(this.extend(request, params));
     }
     /**
