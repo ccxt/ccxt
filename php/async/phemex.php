@@ -4395,12 +4395,24 @@ class phemex extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            if (!$market['swap'] || $market['settle'] === 'USDT' || $market['settle'] === 'USDC') {
-                throw new BadSymbol($this->id . ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
             }
             $marginMode = strtolower($marginMode);
             if ($marginMode !== 'isolated' && $marginMode !== 'cross') {
                 throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $isCross = $marginMode === 'cross';
+            if ($this->in_array($market['settle'], array( 'USDT', 'USDC' ))) {
+                $currentLeverage = $this->safe_string($params, 'leverage');
+                if ($currentLeverage === null) {
+                    throw new ArgumentsRequired($this->id . ' setMarginMode() requires a "leverage" parameter for USDT markets');
+                }
+                $request['leverageRr'] = $isCross ? Precise::string_neg(Precise::string_abs($currentLeverage)) : Precise::string_abs($currentLeverage);
+                return Async\await($this->privatePutGPositionsLeverage ($this->extend($request, $params)));
             }
             $leverage = $this->safe_integer($params, 'leverage');
             if ($marginMode === 'cross') {
@@ -4409,10 +4421,7 @@ class phemex extends Exchange {
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $leverage parameter');
             }
-            $request = array(
-                'symbol' => $market['id'],
-                'leverage' => $leverage,
-            );
+            $request['leverage'] = $leverage;
             return Async\await($this->privatePutPositionsLeverage ($this->extend($request, $params)));
         }) ();
     }
