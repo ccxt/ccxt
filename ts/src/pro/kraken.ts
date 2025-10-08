@@ -1731,7 +1731,7 @@ export default class kraken extends krakenRest {
         //
         const errorMessage = this.safeString2 (message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
-            const requestId = this.safeString2 (message, 'reqid', 'req_id');
+            const requestId = this.safeNumber2 (message, 'reqid', 'req_id');
             const broad = this.exceptions['ws']['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
             let exception = undefined;
