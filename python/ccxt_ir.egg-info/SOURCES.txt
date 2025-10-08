@@ -80,6 +80,7 @@ ccxt/foxbit.py
 ccxt/gate.py
 ccxt/gateio.py
 ccxt/gemini.py
+ccxt/hamtapay.py
 ccxt/hashkey.py
 ccxt/hibachi.py
 ccxt/hitbtc.py
@@ -217,6 +218,7 @@ ccxt/abstract/foxbit.py
 ccxt/abstract/gate.py
 ccxt/abstract/gateio.py
 ccxt/abstract/gemini.py
+ccxt/abstract/hamtapay.py
 ccxt/abstract/hashkey.py
 ccxt/abstract/hibachi.py
 ccxt/abstract/hitbtc.py
@@ -354,6 +356,7 @@ ccxt/async_support/foxbit.py
 ccxt/async_support/gate.py
 ccxt/async_support/gateio.py
 ccxt/async_support/gemini.py
+ccxt/async_support/hamtapay.py
 ccxt/async_support/hashkey.py
 ccxt/async_support/hibachi.py
 ccxt/async_support/hitbtc.py
