@@ -208,6 +208,7 @@ class coinbaseexchange extends Exchange {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions',
                         'conversions/fees',
                     ),
                     'post' => array(
