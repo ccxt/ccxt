@@ -78,6 +78,7 @@
 	- [foxbit](exchanges/foxbit.md)
 	- [gate](exchanges/gate.md)
 	- [gemini](exchanges/gemini.md)
+	- [hamtapay()](exchanges/hamtapay().md)
 	- [hashkey](exchanges/hashkey.md)
 	- [hibachi](exchanges/hibachi.md)
 	- [hitbtc](exchanges/hitbtc.md)

@@ -18,3 +18,7 @@ func (this *arzplus) PublicGetApiV1MarketTradingviewOhlcv (args ...interface{}) 
 func (this *arzplus) PublicGetApiV1MarketDepth (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("publicGetApiV1MarketDepth", args...)
 }
+
+func (this *arzplus) PublicGetApiV1MarketIrtInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetApiV1MarketIrtInfo", args...)
+}

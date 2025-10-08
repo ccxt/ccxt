@@ -86,6 +86,7 @@ var foxbit = require('./src/foxbit.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
+var hamtapay = require('./src/hamtapay.js');
 var hashkey = require('./src/hashkey.js');
 var hibachi = require('./src/hibachi.js');
 var hitbtc = require('./src/hitbtc.js');
@@ -224,7 +225,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.9.2';
+const version = '4.9.4';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'abantether': abantether["default"],
@@ -301,6 +302,7 @@ const exchanges = {
     'gate': gate["default"],
     'gateio': gateio["default"],
     'gemini': gemini["default"],
+    'hamtapay': hamtapay["default"],
     'hashkey': hashkey["default"],
     'hibachi': hibachi["default"],
     'hitbtc': hitbtc["default"],
@@ -564,6 +566,7 @@ exports.foxbit = foxbit["default"];
 exports.gate = gate["default"];
 exports.gateio = gateio["default"];
 exports.gemini = gemini["default"];
+exports.hamtapay = hamtapay["default"];
 exports.hashkey = hashkey["default"];
 exports.hibachi = hibachi["default"];
 exports.hitbtc = hitbtc["default"];

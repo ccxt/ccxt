@@ -16,6 +16,9 @@ abstract class arzplus extends \ccxt\Exchange {
     public function public_get_api_v1_market_depth($params = array()) {
         return $this->request('api/v1/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_api_v1_market_irt_info($params = array()) {
+        return $this->request('api/v1/market/irt/info', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetApiV1MarketSymbols($params = array()) {
         return $this->request('api/v1/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -24,5 +27,8 @@ abstract class arzplus extends \ccxt\Exchange {
     }
     public function publicGetApiV1MarketDepth($params = array()) {
         return $this->request('api/v1/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetApiV1MarketIrtInfo($params = array()) {
+        return $this->request('api/v1/market/irt/info', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
 }

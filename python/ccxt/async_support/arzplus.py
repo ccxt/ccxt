@@ -103,6 +103,7 @@ class arzplus(Exchange, ImplicitAPI):
                         'api/v1/market/symbols': 1,
                         'api/v1/market/tradingview/ohlcv': 1,
                         'api/v1/market/depth': 1,
+                        'api/v1/market/irt/info': 1,
                     },
                 },
             },
@@ -128,10 +129,19 @@ class arzplus(Exchange, ImplicitAPI):
             'enable': 'true',
         }
         response = await self.publicGetApiV1MarketSymbols(request)
+        otcMarkets = await self.publicGetApiV1MarketIrtInfo(request)
         result = []
         for i in range(0, len(response)):
             market = self.parse_market(response[i])
             result.append(market)
+        for i in range(0, len(otcMarkets)):
+            marketdata = otcMarkets[i]
+            marketdata['quote'] = 'IRT'
+            marketdata['id'] = 'OTC_' + marketdata['symbol'] + marketdata['quote']
+            parsedMarket = self.parse_otc_markets(marketdata)
+            result.append(parsedMarket)
+        if params['type']:
+            return self.filter_by_array(result, 'type', params['type'], False)
         return result
 
     def parse_market(self, market) -> Market:
@@ -230,6 +240,70 @@ class arzplus(Exchange, ImplicitAPI):
             'info': market,
         }
 
+    def parse_otc_markets(self, market) -> Any:
+        #  {
+        # symbol: "BTC",
+        # ask: "13877900000",
+        # bid: "13860999995",
+        # name: "bitcoin"
+        # },
+        baseAsset = self.safe_string(market, 'symbol')
+        quoteAsset = self.safe_string(market, 'quote')
+        baseId = baseAsset
+        quoteId = quoteAsset
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        id = self.safe_string(market, 'id')
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': None,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': None,
+            'type': 'otc',
+            'spot': True,
+            'margin': False,
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': True,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': None,
+                'price': None,
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'created': None,
+            'info': market,
+        }
+
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -241,8 +315,18 @@ class arzplus(Exchange, ImplicitAPI):
         await self.load_markets()
         if symbols is not None:
             symbols = self.market_symbols(symbols)
-        response = await self.publicGetApiV1MarketSymbols(params)
         result = {}
+        if params['type'] == 'otc':
+            otcMarkets = await self.publicGetApiV1MarketIrtInfo(params)
+            for i in range(0, len(otcMarkets)):
+                marketdata = otcMarkets[i]
+                marketdata['quote'] = 'IRT'
+                marketdata['id'] = 'OTC_' + marketdata['symbol'] + marketdata['quote']
+                parsedMarket = self.parse_otc_ticker(marketdata)
+                symbol = parsedMarket['symbol']
+                result[symbol] = parsedMarket
+            return self.filter_by_array_tickers(result, 'symbol', symbols)
+        response = await self.publicGetApiV1MarketSymbols(params)
         for i in range(0, len(response)):
             request = {
                 'symbol': response[i]['name'],
@@ -336,6 +420,44 @@ class arzplus(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market)
+
+    def parse_otc_ticker(self, ticker, market: Market = None) -> Ticker:
+        #        {
+        # id: "BTCUSDT",
+        # symbol: "BTC",
+        # ask: "13877900000",
+        # bid: "13860999995",
+        # name: "bitcoin"
+        # quote: "IRT"
+        # }
+        marketType = 'otc'
+        marketId = self.safe_string(ticker, 'id')
+        symbol = self.safe_symbol(marketId, market, None, marketType)
+        bid = self.safe_float(ticker, 'bid', 0)
+        ask = self.safe_float(ticker, 'ask', 0)
+        last = self.safe_float(ticker, 'ask', 0)
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': None,
+            'datetime': None,
+            'high': None,
+            'low': None,
+            'bid': bid,
+            'bidVolume': None,
+            'ask': ask,
+            'askVolume': None,
+            'vwap': None,
+            'open': last,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': None,
             'info': ticker,
         }, market)
 

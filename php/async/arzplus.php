@@ -104,6 +104,7 @@ class arzplus extends Exchange {
                         'api/v1/market/symbols' => 1,
                         'api/v1/market/tradingview/ohlcv' => 1,
                         'api/v1/market/depth' => 1,
+                        'api/v1/market/irt/info' => 1,
                     ),
                 ),
             ),
@@ -131,10 +132,21 @@ class arzplus extends Exchange {
                 'enable' => 'true',
             );
             $response = Async\await($this->publicGetApiV1MarketSymbols ($request));
+            $otcMarkets = Async\await($this->publicGetApiV1MarketIrtInfo ($request));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $market = $this->parse_market($response[$i]);
                 $result[] = $market;
+            }
+            for ($i = 0; $i < count($otcMarkets); $i++) {
+                $marketdata = $otcMarkets[$i];
+                $marketdata['quote'] = 'IRT';
+                $marketdata['id'] = 'OTC_' . $marketdata['symbol'] . $marketdata['quote'];
+                $parsedMarket = $this->parse_otc_markets($marketdata);
+                $result[] = $parsedMarket;
+            }
+            if ($params['type']) {
+                return $this->filter_by_array($result, 'type', $params['type'], false);
             }
             return $result;
         }) ();
@@ -237,6 +249,71 @@ class arzplus extends Exchange {
         );
     }
 
+    public function parse_otc_markets($market): mixed {
+        //  array(
+        // symbol => "BTC",
+        // ask => "13877900000",
+        // bid => "13860999995",
+        // name => "bitcoin"
+        // ),
+        $baseAsset = $this->safe_string($market, 'symbol');
+        $quoteAsset = $this->safe_string($market, 'quote');
+        $baseId = $baseAsset;
+        $quoteId = $quoteAsset;
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $id = $this->safe_string($market, 'id');
+        return array(
+            'id' => $id,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'otc',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => true,
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => null,
+                'price' => null,
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'created' => null,
+            'info' => $market,
+        );
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
@@ -250,8 +327,20 @@ class arzplus extends Exchange {
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
             }
-            $response = Async\await($this->publicGetApiV1MarketSymbols ($params));
             $result = array();
+            if ($params['type'] === 'otc') {
+                $otcMarkets = Async\await($this->publicGetApiV1MarketIrtInfo ($params));
+                for ($i = 0; $i < count($otcMarkets); $i++) {
+                    $marketdata = $otcMarkets[$i];
+                    $marketdata['quote'] = 'IRT';
+                    $marketdata['id'] = 'OTC_' . $marketdata['symbol'] . $marketdata['quote'];
+                    $parsedMarket = $this->parse_otc_ticker($marketdata);
+                    $symbol = $parsedMarket['symbol'];
+                    $result[$symbol] = $parsedMarket;
+                }
+                return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+            }
+            $response = Async\await($this->publicGetApiV1MarketSymbols ($params));
             for ($i = 0; $i < count($response); $i++) {
                 $request = array(
                     'symbol' => $response[$i]['name'],
@@ -351,6 +440,45 @@ class arzplus extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function parse_otc_ticker($ticker, ?array $market = null): array {
+        //        {
+        // id => "BTCUSDT",
+        // $symbol => "BTC",
+        // $ask => "13877900000",
+        // $bid => "13860999995",
+        // name => "bitcoin"
+        // quote => "IRT"
+        // }
+        $marketType = 'otc';
+        $marketId = $this->safe_string($ticker, 'id');
+        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $bid = $this->safe_float($ticker, 'bid', 0);
+        $ask = $this->safe_float($ticker, 'ask', 0);
+        $last = $this->safe_float($ticker, 'ask', 0);
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => null,
+            'datetime' => null,
+            'high' => null,
+            'low' => null,
+            'bid' => $bid,
+            'bidVolume' => null,
+            'ask' => $ask,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $last,
+            'close' => $last,
+            'last' => $last,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
+            'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
     }
