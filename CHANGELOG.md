@@ -1,5 +1,35 @@
 # Changelog
 
+## v4.9.4 - 2025-10-08
+
+### Added
+
+**Hamtapay Exchange Integration**: Complete support for Hamtapay exchange across all languages
+
+- Market data fetching capabilities
+- Ticker price endpoints
+- Implementation in JavaScript, TypeScript, Python, PHP, Go, and C#
+- API documentation and wiki updates
+- **Arzplus OTC Market**: OTC (Over-The-Counter) market support
+- New `fetchOTCMarkets` functionality
+- OTC market data parsing methods
+
+### Fixed
+
+- **Arzplus**: Corrected spot flag in `parseOTCMarkets` - OTC markets now properly marked as non-spot
+- **Hamtapay**: Updated ticker fetching to use new API endpoint with improved response handling
+
+### Changed
+
+- **Deployment**: Enhanced Python deployment script
+- Added virtual environment setup and validation
+- Included package dependency checks
+- Improved automated deployment workflow
+
+### Removed
+
+- Cleaned up unused tester files
+
 ## v4.4.79
 
 - fix(htx): python base & certificates addition [#25886](https://github.com/ccxt/ccxt/pull/25886)
@@ -29,7 +59,6 @@
 - feat(bitget): type crypto & fiat [#25897](https://github.com/ccxt/ccxt/pull/25897)
 - fix: changelog and release notes [#25431](https://github.com/ccxt/ccxt/pull/25431)
 
-
 ## v4.4.78
 
 - fix(timex): safeTrade ^ [#25827](https://github.com/ccxt/ccxt/pull/25827)
@@ -48,7 +77,7 @@
 - fix(coinlist): currency type ^ [#25847](https://github.com/ccxt/ccxt/pull/25847)
 - fix(coinex): fc type ^ [#25848](https://github.com/ccxt/ccxt/pull/25848)
 - fix(whitebit): crypto type [#25857](https://github.com/ccxt/ccxt/pull/25857)
-- fix(htx): currency type  [#25856](https://github.com/ccxt/ccxt/pull/25856)
+- fix(htx): currency type [#25856](https://github.com/ccxt/ccxt/pull/25856)
 - chore(ace): remove json skip ^ [#25854](https://github.com/ccxt/ccxt/pull/25854)
 - test(skip): several exchanges ^ [#25865](https://github.com/ccxt/ccxt/pull/25865)
 - fix(ascendex): deposit withdraw [#25863](https://github.com/ccxt/ccxt/pull/25863)
@@ -71,7 +100,6 @@
 - fix(docs): table generation [#25891](https://github.com/ccxt/ccxt/pull/25891)
 - fix(cs): handle empty keys/values [#25892](https://github.com/ccxt/ccxt/pull/25892)
 
-
 ## v4.4.77
 
 - apex omni - v3 Merge [#25428](https://github.com/ccxt/ccxt/pull/25428)
@@ -92,7 +120,7 @@
 - fix(bitmex): market states & expiry for perps [#25785](https://github.com/ccxt/ccxt/pull/25785)
 - tradeogre websockets adding [#25775](https://github.com/ccxt/ccxt/pull/25775)
 - fix(precision): base safeCurrencyStructure change for currency wide precision [#25786](https://github.com/ccxt/ccxt/pull/25786)
-- update(upbit): update createOrder  [#25799](https://github.com/ccxt/ccxt/pull/25799)
+- update(upbit): update createOrder [#25799](https://github.com/ccxt/ccxt/pull/25799)
 - test(fetchCurrencies): check for duplicate codes [#25801](https://github.com/ccxt/ccxt/pull/25801)
 - feat(tests): add log with info level [#25804](https://github.com/ccxt/ccxt/pull/25804)
 - test(currencies): fix check ^ [#25809](https://github.com/ccxt/ccxt/pull/25809)
@@ -118,7 +146,6 @@
 - fix(bitget): swap sandbox balance [#25836](https://github.com/ccxt/ccxt/pull/25836)
 - fix(go): disable flaky test [#25837](https://github.com/ccxt/ccxt/pull/25837)
 
-
 ## v4.4.76
 
 - chore(deps): bump golang.org/x/crypto from 0.31.0 to 0.35.0 in /go/v4 [#25745](https://github.com/ccxt/ccxt/pull/25745)
@@ -130,7 +157,6 @@
 - feat(xt): add editOrder [#25751](https://github.com/ccxt/ccxt/pull/25751)
 - fix(okx): preopen sandbox markets parsing [#25761](https://github.com/ccxt/ccxt/pull/25761)
 
-
 ## v4.4.75
 
 - bitrue.has leverage methods = false [#25708](https://github.com/ccxt/ccxt/pull/25708)
@@ -139,7 +165,7 @@
 - feat(tests): add per lang disabled flag [#25716](https://github.com/ccxt/ccxt/pull/25716)
 - chore(deps): bump golang.org/x/crypto from 0.31.0 to 0.35.0 in /go/cli [#25717](https://github.com/ccxt/ccxt/pull/25717)
 - feat(coinlist): add fetchFundingRate [#25719](https://github.com/ccxt/ccxt/pull/25719)
-- fix(binance): deposit address & reversedNetworks  [#25718](https://github.com/ccxt/ccxt/pull/25718)
+- fix(binance): deposit address & reversedNetworks [#25718](https://github.com/ccxt/ccxt/pull/25718)
 - fix(coinex.cs): fetchCurrencies network key [#25722](https://github.com/ccxt/ccxt/pull/25722)
 - test(skips): add type ^ [#25724](https://github.com/ccxt/ccxt/pull/25724)
 - fix(hyperliquid): orderId in watchMyTrades [#25726](https://github.com/ccxt/ccxt/pull/25726)
@@ -150,11 +176,10 @@
 - fix(paradex): fetchTickers [#25735](https://github.com/ccxt/ccxt/pull/25735)
 - chore: update actions/python to v5 [#25744](https://github.com/ccxt/ccxt/pull/25744)
 
-
 ## v4.4.74
 
 - test(market): fix precision issues ^ [#25690](https://github.com/ccxt/ccxt/pull/25690)
-- test(bitmart): skip watchOB bid-ask  ^ [#25691](https://github.com/ccxt/ccxt/pull/25691)
+- test(bitmart): skip watchOB bid-ask ^ [#25691](https://github.com/ccxt/ccxt/pull/25691)
 - test(bitflyer): no settleId ^ [#25693](https://github.com/ccxt/ccxt/pull/25693)
 - fix(safeCurrencyStructure): withdraw/deposit/active [#25698](https://github.com/ccxt/ccxt/pull/25698)
 - bitopro.has leverage methods = false [#25705](https://github.com/ccxt/ccxt/pull/25705)
@@ -165,7 +190,6 @@
 - test(bitopro): skip l2 ^ [#25695](https://github.com/ccxt/ccxt/pull/25695)
 - test(ace): skip temp ^ [#25694](https://github.com/ccxt/ccxt/pull/25694)
 - fix(vss): remove js/ overwrite [#25706](https://github.com/ccxt/ccxt/pull/25706)
-
 
 ## v4.4.73
 
@@ -196,7 +220,7 @@
 - fix(bybit): option currency inference [#25673](https://github.com/ccxt/ccxt/pull/25673)
 - fix(docs) - precisions [#23316](https://github.com/ccxt/ccxt/pull/23316)
 - bitopro skip timestamp ^ [#25675](https://github.com/ccxt/ccxt/pull/25675)
--  ws duplicate trades filtering [#25639](https://github.com/ccxt/ccxt/pull/25639)
+- ws duplicate trades filtering [#25639](https://github.com/ccxt/ccxt/pull/25639)
 - fix(coinlist): support swap markets [#25676](https://github.com/ccxt/ccxt/pull/25676)
 - feat(bitmart): add setPositionMode [#25678](https://github.com/ccxt/ccxt/pull/25678)
 - unskip bitflyer ^ [#25623](https://github.com/ccxt/ccxt/pull/25623)
@@ -211,7 +235,6 @@
 - doc(order): stoploss & params [#25684](https://github.com/ccxt/ccxt/pull/25684)
 - chore: fix js action [#25697](https://github.com/ccxt/ccxt/pull/25697)
 
-
 ## v4.4.72
 
 - bit2c has false methods [#25609](https://github.com/ccxt/ccxt/pull/25609)
@@ -225,7 +248,7 @@
 - chore(bitfinex1) - delist old version [#25621](https://github.com/ccxt/ccxt/pull/25621)
 - tests(bitget): ws orderbook field ^ [#25625](https://github.com/ccxt/ccxt/pull/25625)
 - tests(binance): unskip ticker & precision ^ [#25616](https://github.com/ccxt/ccxt/pull/25616)
-- fix(bitget):  fetchWithdrawals code not required [#25633](https://github.com/ccxt/ccxt/pull/25633)
+- fix(bitget): fetchWithdrawals code not required [#25633](https://github.com/ccxt/ccxt/pull/25633)
 - fix(bitrue): orderbook & retest [#25634](https://github.com/ccxt/ccxt/pull/25634)
 - fix(build): remove bitfinex1 data [#25640](https://github.com/ccxt/ccxt/pull/25640)
 - feat(bybit): define most method types [#25636](https://github.com/ccxt/ccxt/pull/25636)
@@ -237,7 +260,6 @@
 - alpaca.has = false for leverage methods [#25649](https://github.com/ccxt/ccxt/pull/25649)
 - chore(skips): empty entries ^ [#25618](https://github.com/ccxt/ccxt/pull/25618)
 - refactor(base): reorg removeRepeatedElementsFromArray [#25644](https://github.com/ccxt/ccxt/pull/25644)
-
 
 ## v4.4.71
 
@@ -252,7 +274,7 @@
 - fix(bingx): allAccountBalance endpoint [#25575](https://github.com/ccxt/ccxt/pull/25575)
 - fix(derive): update balance [#25581](https://github.com/ccxt/ccxt/pull/25581)
 - fix(derive): rename deriveWalletAddress [#25582](https://github.com/ccxt/ccxt/pull/25582)
-- krakenfutures["has"]: createPostOnlyOrder, createReduceOnlyOrder, ...  = true [#25576](https://github.com/ccxt/ccxt/pull/25576)
+- krakenfutures["has"]: createPostOnlyOrder, createReduceOnlyOrder, ... = true [#25576](https://github.com/ccxt/ccxt/pull/25576)
 - feat(hyperliquid): add createVault [#25577](https://github.com/ccxt/ccxt/pull/25577)
 - refactor & fix(okx) - fetchCurrencies [#25564](https://github.com/ccxt/ccxt/pull/25564)
 - fix(bingx) - unskip tests [#25583](https://github.com/ccxt/ccxt/pull/25583)
@@ -273,7 +295,6 @@
 - fix(woofipro) - inverse false ^ [#25604](https://github.com/ccxt/ccxt/pull/25604)
 - fix(derive) - linear inverse ^ [#25602](https://github.com/ccxt/ccxt/pull/25602)
 - fix(paradex): inverse false ^ [#25603](https://github.com/ccxt/ccxt/pull/25603)
-
 
 ## v4.4.70
 
@@ -297,7 +318,6 @@
 - feat(exchange): remove params['cost'] [#25562](https://github.com/ccxt/ccxt/pull/25562)
 - fix(bingx) - implicit balance endpoint ^ [#25567](https://github.com/ccxt/ccxt/pull/25567)
 
-
 ## v4.4.69
 
 - feat(bybit): update apis [#25513](https://github.com/ccxt/ccxt/pull/25513)
@@ -319,7 +339,6 @@
 - fix(hyperliquid): editOrder price precision [#25540](https://github.com/ccxt/ccxt/pull/25540)
 - feat(bitget): expanded demo trading capabilities [#25541](https://github.com/ccxt/ccxt/pull/25541)
 
-
 ## v4.4.68
 
 - fix(coinbase): commit flag in deposits() [#25489](https://github.com/ccxt/ccxt/pull/25489)
@@ -339,7 +358,6 @@
 - fix(hyperliquid): correct swap balance [#25509](https://github.com/ccxt/ccxt/pull/25509)
 - fix(exchange.py): load_markets exception handling [#25510](https://github.com/ccxt/ccxt/pull/25510)
 
-
 ## v4.4.67
 
 - Update fetchOHLCV with added until parameter [#25454](https://github.com/ccxt/ccxt/pull/25454)
@@ -354,7 +372,6 @@
 - fix(bybit): handleErrors [#25480](https://github.com/ccxt/ccxt/pull/25480)
 - fix(hyperliquid): createOrders in GO [#25483](https://github.com/ccxt/ccxt/pull/25483)
 - fix(coinbase): deposit key [#25485](https://github.com/ccxt/ccxt/pull/25485)
-
 
 ## v4.4.66
 
@@ -380,7 +397,6 @@
 - fix(hyperliquid.go) packb helpers [#25460](https://github.com/ccxt/ccxt/pull/25460)
 - fix(htx): cancelOrder error handling [#25462](https://github.com/ccxt/ccxt/pull/25462)
 
-
 ## v4.4.65
 
 - feat(derive): new exchange [#24762](https://github.com/ccxt/ccxt/pull/24762)
@@ -391,7 +407,6 @@
 - fix(binance): read portfolioMargin from options [#25415](https://github.com/ccxt/ccxt/pull/25415)
 - fix(derive): flip var [#25416](https://github.com/ccxt/ccxt/pull/25416)
 - fix(tests): safe dict wrapper [#25419](https://github.com/ccxt/ccxt/pull/25419)
-
 
 ## v4.4.64
 
@@ -409,17 +424,15 @@
 - Hyperliquid orders 2 [#25408](https://github.com/ccxt/ccxt/pull/25408)
 - typo in py example [#25404](https://github.com/ccxt/ccxt/pull/25404)
 
-
 ## v4.4.63
 
 - fix(bitopro): watchOrderBook [#25375](https://github.com/ccxt/ccxt/pull/25375)
 - fix(vertex): watchOrderBook [#25377](https://github.com/ccxt/ccxt/pull/25377)
 - feat(gate): add ccxt referral to private websocket requests [#25374](https://github.com/ccxt/ccxt/pull/25374)
-- fix(binance)  - spot marginMode [#23694](https://github.com/ccxt/ccxt/pull/23694)
+- fix(binance) - spot marginMode [#23694](https://github.com/ccxt/ccxt/pull/23694)
 - onetrading fetchMarkets static response [#25380](https://github.com/ccxt/ccxt/pull/25380)
 - fix(go): mathFloor type checking [#25381](https://github.com/ccxt/ccxt/pull/25381)
 - feat(binance): add portfolio/pmloan-history [#25382](https://github.com/ccxt/ccxt/pull/25382)
-
 
 ## v4.4.62
 
@@ -435,7 +448,6 @@
 - fix(python) - encode decode latin-1 into utf-8 [#25365](https://github.com/ccxt/ccxt/pull/25365)
 - feat(bybit): revert enableDemoTrading removal [#25369](https://github.com/ccxt/ccxt/pull/25369)
 - fix(phemex) - two loadmarkets [#25366](https://github.com/ccxt/ccxt/pull/25366)
-
 
 ## 4.4.52
 
@@ -459,7 +471,7 @@
 - feat(bybit): add new api [#25310](https://github.com/ccxt/ccxt/pull/25310)
 - fix(phemex) - perps lower [#25320](https://github.com/ccxt/ccxt/pull/25320)
 - fix(kraken) expose askVolume and bidVolume in fetchTicker [#25324](https://github.com/ccxt/ccxt/pull/25324)
-- test(base) - comments * [#25327](https://github.com/ccxt/ccxt/pull/25327)
+- test(base) - comments \* [#25327](https://github.com/ccxt/ccxt/pull/25327)
 - fix(cli) - http response [#25329](https://github.com/ccxt/ccxt/pull/25329)
 - feat(bybit) - fetchBidsAsks [#25328](https://github.com/ccxt/ccxt/pull/25328)
 - feat(bybit): add editOrders [#25311](https://github.com/ccxt/ccxt/pull/25311)
@@ -475,14 +487,12 @@
 - whitebit parseTrade update [#25348](https://github.com/ccxt/ccxt/pull/25348)
 - chore: update release tag [#25349](https://github.com/ccxt/ccxt/pull/25349)
 
-
 ## 4.4.51
 
 - chore: release npm auth [#25072](https://github.com/ccxt/ccxt/pull/25072)
 - deribit - fix 2 [#25064](https://github.com/ccxt/ccxt/pull/25064)
 - feat(base) - handleTriggerDirectionAndParams [#24548](https://github.com/ccxt/ccxt/pull/24548)
 - refactor(test) - remove unused var [#25071](https://github.com/ccxt/ccxt/pull/25071)
-
 
 ## 4.4.50
 
@@ -568,7 +578,6 @@
 - chore: release fixes [#25067](https://github.com/ccxt/ccxt/pull/25067)
 - chore: relesae twine install [#25068](https://github.com/ccxt/ccxt/pull/25068)
 
-
 ## 4.4.49
 
 - fix(binance): fetchOpenOrder docs [#24939](https://github.com/ccxt/ccxt/pull/24939)
@@ -595,7 +604,6 @@
 - fix(binance) - historical trades [#24955](https://github.com/ccxt/ccxt/pull/24955)
 - feat(transpiler): add OpenInterest type [#24973](https://github.com/ccxt/ccxt/pull/24973)
 - build: skip-tests [#24974](https://github.com/ccxt/ccxt/pull/24974)
-
 
 ## 4.4.48
 
@@ -638,7 +646,6 @@
 - feat(oceanex) - features [#24909](https://github.com/ccxt/ccxt/pull/24909)
 - build: skip-tests [#24927](https://github.com/ccxt/ccxt/pull/24927)
 
-
 ## 4.4.47
 
 - feat(coinmetro) - features [#24837](https://github.com/ccxt/ccxt/pull/24837)
@@ -662,7 +669,7 @@
 - feat(upbit) - features [#24855](https://github.com/ccxt/ccxt/pull/24855)
 - feat(poloniex) - features [#24852](https://github.com/ccxt/ccxt/pull/24852)
 - Fix: Corrected Delta Exchange payload signature generation for cancel order [#24853](https://github.com/ccxt/ccxt/pull/24853)
-- feat: adding timeDifference option  [#24639](https://github.com/ccxt/ccxt/pull/24639)
+- feat: adding timeDifference option [#24639](https://github.com/ccxt/ccxt/pull/24639)
 - fix(hyperliquid): update active [#24875](https://github.com/ccxt/ccxt/pull/24875)
 - feat(currencycom) - features [#24865](https://github.com/ccxt/ccxt/pull/24865)
 - feat(defx) - features [#24866](https://github.com/ccxt/ccxt/pull/24866)
@@ -670,7 +677,6 @@
 - refactor(binance): use parseFundingRateHistories [#24876](https://github.com/ccxt/ccxt/pull/24876)
 - fix(bybit): fetchBalance parsing [#24879](https://github.com/ccxt/ccxt/pull/24879)
 - build: skip-tests [#24880](https://github.com/ccxt/ccxt/pull/24880)
-
 
 ## 4.4.46
 
@@ -716,14 +722,13 @@
 - feat(cex) - features [#24807](https://github.com/ccxt/ccxt/pull/24807)
 - fix(bybit) - fetchBalance parsing [#24808](https://github.com/ccxt/ccxt/pull/24808)
 - feat(FAQ): add funding rate FAQ [#24812](https://github.com/ccxt/ccxt/pull/24812)
-- fix(xt): websocket token recreated on each watch_ call, causing 429 error [#24809](https://github.com/ccxt/ccxt/pull/24809)
+- fix(xt): websocket token recreated on each watch\_ call, causing 429 error [#24809](https://github.com/ccxt/ccxt/pull/24809)
 - chore: add github actions [read-only for now] [#24803](https://github.com/ccxt/ccxt/pull/24803)
 - fix(okx): remove params[] [#24814](https://github.com/ccxt/ccxt/pull/24814)
 - fix(hyperliquid): fetchFundingRateHistory required symbol [#24825](https://github.com/ccxt/ccxt/pull/24825)
 - fix(krakenfutures): escape when marginlevels is undefined [#24826](https://github.com/ccxt/ccxt/pull/24826)
 - feat(coinbaseexchange) - features [#24827](https://github.com/ccxt/ccxt/pull/24827)
 - build: skip-tests [#24829](https://github.com/ccxt/ccxt/pull/24829)
-
 
 ## 4.4.45
 
@@ -743,7 +748,6 @@
 - fix(onetrading): order placement [#24755](https://github.com/ccxt/ccxt/pull/24755)
 - fix(hyperliquid): order timestamp [#24756](https://github.com/ccxt/ccxt/pull/24756)
 - build: skip-tests [#24757](https://github.com/ccxt/ccxt/pull/24757)
-
 
 ## 4.4.44
 
@@ -767,7 +771,6 @@
 - tests(lykke) - try with proxy [#24724](https://github.com/ccxt/ccxt/pull/24724)
 - fix(binance) - ws closing signal [#24726](https://github.com/ccxt/ccxt/pull/24726)
 - build: skip-tests [#24731](https://github.com/ccxt/ccxt/pull/24731)
-
 
 ## 4.4.43
 
@@ -798,7 +801,6 @@
 - ndax editOrder static test [#24692](https://github.com/ccxt/ccxt/pull/24692)
 - build: skip-tests [#24699](https://github.com/ccxt/ccxt/pull/24699)
 
-
 ## 4.4.42
 
 - feat(hyperliquid): certify :D [#24624](https://github.com/ccxt/ccxt/pull/24624)
@@ -825,7 +827,6 @@
 - gmp func - 2 [#24646](https://github.com/ccxt/ccxt/pull/24646)
 - build: [skip-tests] [#24645](https://github.com/ccxt/ccxt/pull/24645)
 
-
 ## 4.4.41
 
 - feat(kraken) - features [#24575](https://github.com/ccxt/ccxt/pull/24575)
@@ -846,7 +847,7 @@
 - feat(bitfinex): add fetchOpenInterests [#24611](https://github.com/ccxt/ccxt/pull/24611)
 - oceanex: static tests for fetchBalance, fetchTicker [#24591](https://github.com/ccxt/ccxt/pull/24591)
 - feat(hitbtc): add fetchOpenInterests [#24612](https://github.com/ccxt/ccxt/pull/24612)
-- woo (woox) -  `features` implementation [#24615](https://github.com/ccxt/ccxt/pull/24615)
+- woo (woox) - `features` implementation [#24615](https://github.com/ccxt/ccxt/pull/24615)
 - feat(bitfinex) - `features` [#24617](https://github.com/ccxt/ccxt/pull/24617)
 - feat(woofipro) - `features` implementation [#24616](https://github.com/ccxt/ccxt/pull/24616)
 - ndax static tests [#24573](https://github.com/ccxt/ccxt/pull/24573)
@@ -854,7 +855,6 @@
 - build: skip-tests [#24618](https://github.com/ccxt/ccxt/pull/24618)
 - fix(ndax): tests [skip-tests] [#24620](https://github.com/ccxt/ccxt/pull/24620)
 - fix(blofin): protect data [skip-tests] [#24621](https://github.com/ccxt/ccxt/pull/24621)
-
 
 ## 4.4.40
 
@@ -879,7 +879,6 @@
 - bingx fetchOHLCV fix [#24583](https://github.com/ccxt/ccxt/pull/24583)
 - build: skip-tests [#24586](https://github.com/ccxt/ccxt/pull/24586)
 
-
 ## 4.4.39
 
 - fix(bybit): filter execType [#24528](https://github.com/ccxt/ccxt/pull/24528)
@@ -903,7 +902,6 @@
 - fix(bybit): increase leverage tiers pagination [#24551](https://github.com/ccxt/ccxt/pull/24551)
 - build: skip-tests [#24552](https://github.com/ccxt/ccxt/pull/24552)
 
-
 ## 4.4.38
 
 - fix(mexc): add fetchTradingFee, remove fetchTradingFees [#24505](https://github.com/ccxt/ccxt/pull/24505)
@@ -920,10 +918,9 @@
 - feat(woo): update parseWsOrder and rateLimit [#24518](https://github.com/ccxt/ccxt/pull/24518)
 - build: skip-tests [#24522](https://github.com/ccxt/ccxt/pull/24522)
 
-
 ## 4.4.37
 
-- bitmart - `.features`  [#24404](https://github.com/ccxt/ccxt/pull/24404)
+- bitmart - `.features` [#24404](https://github.com/ccxt/ccxt/pull/24404)
 - ndax static tests [#24477](https://github.com/ccxt/ccxt/pull/24477)
 - Fix (kucoin): make BASE network name unified [#24481](https://github.com/ccxt/ccxt/pull/24481)
 - feat(bithumb): add support for TON coin tag in withdraw method [#24472](https://github.com/ccxt/ccxt/pull/24472)
@@ -939,7 +936,6 @@
 - feat(bingx): adjust fetchMarkOHLCV endpoint and remove private endpoint [#24470](https://github.com/ccxt/ccxt/pull/24470)
 - Update probit.ts [#24497](https://github.com/ccxt/ccxt/pull/24497)
 - fix(ndax): read account: [skip-tests] [#24499](https://github.com/ccxt/ccxt/pull/24499)
-
 
 ## 4.4.36
 
@@ -957,7 +953,6 @@
 - feat(coinbase): change fetchDepositId name to fetchDepositMethodId [#24467](https://github.com/ccxt/ccxt/pull/24467)
 - build: skip-tests [#24468](https://github.com/ccxt/ccxt/pull/24468)
 
-
 ## 4.4.35
 
 - bitopro: update fetchOpenOrders to new api [#24420](https://github.com/ccxt/ccxt/pull/24420)
@@ -974,7 +969,6 @@
 - build: skip-test [#24446](https://github.com/ccxt/ccxt/pull/24446)
 - build: skip-tests [#24447](https://github.com/ccxt/ccxt/pull/24447)
 
-
 ## 4.4.34
 
 - fix(probit): resolve ws auth [#24384](https://github.com/ccxt/ccxt/pull/24384)
@@ -984,7 +978,7 @@
 - feat(hyperliquid): update precision [#24347](https://github.com/ccxt/ccxt/pull/24347)
 - Hyperliquid - fix calculatePricePrecision while-loop [#24392](https://github.com/ccxt/ccxt/pull/24392)
 - feat(bingx): add twap order [#24390](https://github.com/ccxt/ccxt/pull/24390)
-- gate - features  [#24393](https://github.com/ccxt/ccxt/pull/24393)
+- gate - features [#24393](https://github.com/ccxt/ccxt/pull/24393)
 - okx new endpoint [#24400](https://github.com/ccxt/ccxt/pull/24400)
 - xt update rate limits [#24397](https://github.com/ccxt/ccxt/pull/24397)
 - fix(bitrue): correct listenkey [#24402](https://github.com/ccxt/ccxt/pull/24402)
@@ -1003,7 +997,6 @@
 - fix(hyperliquid) - migrate to TICK_SIZE [#24410](https://github.com/ccxt/ccxt/pull/24410)
 - chore: update changelog [#24417](https://github.com/ccxt/ccxt/pull/24417)
 - build: skip-tests [#24418](https://github.com/ccxt/ccxt/pull/24418)
-
 
 ## 4.4.33
 
@@ -1043,7 +1036,6 @@
 - New exchange: Ellipx [#24151](https://github.com/ccxt/ccxt/pull/24151)
 - build: skip-tests [#24383](https://github.com/ccxt/ccxt/pull/24383)
 
-
 ## 4.4.32
 
 - bybit error mapping [#24292](https://github.com/ccxt/ccxt/pull/24292)
@@ -1068,7 +1060,6 @@
 - build: skip-tests [#24322](https://github.com/ccxt/ccxt/pull/24322)
 - fix(bybit): php build: skip-tests [#24324](https://github.com/ccxt/ccxt/pull/24324)
 
-
 ## 4.4.31
 
 - wavesexchange fetchMyTrades docstring @see [#24271](https://github.com/ccxt/ccxt/pull/24271)
@@ -1086,7 +1077,6 @@
 - kucoin: add errors [#24287](https://github.com/ccxt/ccxt/pull/24287)
 - feat(kucoinfutures): transfer from spot account [#24282](https://github.com/ccxt/ccxt/pull/24282)
 - build: skip-tests [#24290](https://github.com/ccxt/ccxt/pull/24290)
-
 
 ## 4.4.30
 
@@ -1109,7 +1099,6 @@
 - fix(indodax): error handling [#24267](https://github.com/ccxt/ccxt/pull/24267)
 - build: skip-tests [#24268](https://github.com/ccxt/ccxt/pull/24268)
 
-
 ## 4.4.29
 
 - bitmart.ts editing with safeValue to safeDict/List [#24173](https://github.com/ccxt/ccxt/pull/24173)
@@ -1126,7 +1115,6 @@
 - fix(deribit): spot market flags [#24235](https://github.com/ccxt/ccxt/pull/24235)
 - build: skip-tests [#24237](https://github.com/ccxt/ccxt/pull/24237)
 - fix(deribit): order parsing [skip-tests] [#24238](https://github.com/ccxt/ccxt/pull/24238)
-
 
 ## 4.4.28
 
@@ -1145,7 +1133,6 @@
 - feat(exchange): add fetchOrderBookWs base [#24214](https://github.com/ccxt/ccxt/pull/24214)
 - build: skip-tests [#24213](https://github.com/ccxt/ccxt/pull/24213)
 
-
 ## 4.4.27
 
 - feat(binance): add option block order endpoints [#24189](https://github.com/ccxt/ccxt/pull/24189)
@@ -1153,7 +1140,6 @@
 - fix(binance): watchPositions type inference [#24195](https://github.com/ccxt/ccxt/pull/24195)
 - fix(kraken) - order parsing [#24192](https://github.com/ccxt/ccxt/pull/24192)
 - wavesexchange fetchOrder docstring [#24197](https://github.com/ccxt/ccxt/pull/24197)
-
 
 ## 4.4.26
 
@@ -1178,7 +1164,6 @@
 - feat(Exchange): add unWatch base implementations [#24185](https://github.com/ccxt/ccxt/pull/24185)
 - fix(build): unwatchOHLCVForSymbols signature [#24186](https://github.com/ccxt/ccxt/pull/24186)
 - build: skip-tests [#24187](https://github.com/ccxt/ccxt/pull/24187)
-
 
 ## 4.4.25
 
@@ -1207,7 +1192,6 @@
 - feat(alpaca): add fetchDepositAddress [#24152](https://github.com/ccxt/ccxt/pull/24152)
 - build: skip-tests [#24153](https://github.com/ccxt/ccxt/pull/24153)
 
-
 ## 4.4.24
 
 - chore: update changelog [#24096](https://github.com/ccxt/ccxt/pull/24096)
@@ -1219,7 +1203,6 @@
 - fix(cs) - this.limits [#24097](https://github.com/ccxt/ccxt/pull/24097)
 - fix(htx) - trigger orders support ^ [#24110](https://github.com/ccxt/ccxt/pull/24110)
 - fix(xt): percentage using Precise [#24112](https://github.com/ccxt/ccxt/pull/24112)
-
 
 ## 4.4.23
 
@@ -1238,7 +1221,6 @@
 - feat(gate): add unified support to spot create, fetch and cancel methods [#24089](https://github.com/ccxt/ccxt/pull/24089)
 - build: skip-tests [#24092](https://github.com/ccxt/ccxt/pull/24092)
 
-
 ## 4.4.22
 
 - Manual: borrowCrossMargin, repayCrossMargin, borrowIsolatedMargin, repayIsolatedMargin [#24069](https://github.com/ccxt/ccxt/pull/24069)
@@ -1248,7 +1230,6 @@
 - has related to funding rate methods [#24066](https://github.com/ccxt/ccxt/pull/24066)
 - feat(coinbase): update fetchMyTrades pagination max entries [#24071](https://github.com/ccxt/ccxt/pull/24071)
 - build: skip-tests [#24072](https://github.com/ccxt/ccxt/pull/24072)
-
 
 ## 4.4.21
 
@@ -1269,7 +1250,6 @@
 - fix(kucoin) - createDepositAddress & static tests [#24057](https://github.com/ccxt/ccxt/pull/24057)
 - build: skip-tests [#24064](https://github.com/ccxt/ccxt/pull/24064)
 
-
 ## 4.4.20
 
 - Bingx withdraw tag fix [#24019](https://github.com/ccxt/ccxt/pull/24019)
@@ -1277,7 +1257,7 @@
 - feat(kucoin): add announcements and avgDealPrice [#24021](https://github.com/ccxt/ccxt/pull/24021)
 - fix(paradex): circular dependencies [#24022](https://github.com/ccxt/ccxt/pull/24022)
 - feat(bybit): add fetchBorrowRateHistory [#24020](https://github.com/ccxt/ccxt/pull/24020)
-- docs(ws) - fixes  [#24032](https://github.com/ccxt/ccxt/pull/24032)
+- docs(ws) - fixes [#24032](https://github.com/ccxt/ccxt/pull/24032)
 - feat(okx) - api updates [#24028](https://github.com/ccxt/ccxt/pull/24028)
 - test(ndax) - skip ^ [#24030](https://github.com/ccxt/ccxt/pull/24030)
 - feat(cli) - request ^ [#24026](https://github.com/ccxt/ccxt/pull/24026)
@@ -1289,7 +1269,6 @@
 - fix: ws memory leak on watchMultiple by using watchable un promise as static dependency [#23988](https://github.com/ccxt/ccxt/pull/23988)
 - build: skip-tests [#24040](https://github.com/ccxt/ccxt/pull/24040)
 
-
 ## 4.4.19
 
 - fix(bybit): fetchOpenInterest pagination [#24006](https://github.com/ccxt/ccxt/pull/24006)
@@ -1300,7 +1279,6 @@
 - fix(staticTests): phemex wrong format [#24015](https://github.com/ccxt/ccxt/pull/24015)
 - build: skip-tests [#24014](https://github.com/ccxt/ccxt/pull/24014)
 - build: skip-tests [#24017](https://github.com/ccxt/ccxt/pull/24017)
-
 
 ## 4.4.18
 
@@ -1315,7 +1293,6 @@
 - feat(networks): bingx/bitget inconsistencies [#24003](https://github.com/ccxt/ccxt/pull/24003)
 - build: skip-tests [#24004](https://github.com/ccxt/ccxt/pull/24004)
 
-
 ## 4.4.17
 
 - fix(bitso) - safeNetwork removal [#23541](https://github.com/ccxt/ccxt/pull/23541)
@@ -1329,7 +1306,6 @@
 - fix(bitget): watchOrders/MyTrades spot wildcard subscription [#23983](https://github.com/ccxt/ccxt/pull/23983)
 - build: skip-tests [#23982](https://github.com/ccxt/ccxt/pull/23982)
 
-
 ## 4.4.16
 
 - feat(base) - parseCurrencies & parseCurrency [#23943](https://github.com/ccxt/ccxt/pull/23943)
@@ -1339,7 +1315,6 @@
 - fix(bybit): update error [#23962](https://github.com/ccxt/ccxt/pull/23962)
 - feat(okx): add fetchMarkPrice [#23956](https://github.com/ccxt/ccxt/pull/23956)
 - build: skip-tests [#23964](https://github.com/ccxt/ccxt/pull/23964)
-
 
 ## 4.4.15
 
@@ -1358,7 +1333,6 @@
 - oxfun ws skip [#23953](https://github.com/ccxt/ccxt/pull/23953)
 - build: skip-tests [#23951](https://github.com/ccxt/ccxt/pull/23951)
 
-
 ## 4.4.14
 
 - Misc fixes [#23919](https://github.com/ccxt/ccxt/pull/23919)
@@ -1368,7 +1342,6 @@
 - feat(vertex): update encoding [#23903](https://github.com/ccxt/ccxt/pull/23903)
 - htx rename FUD [#23927](https://github.com/ccxt/ccxt/pull/23927)
 - build: skip-tests [#23928](https://github.com/ccxt/ccxt/pull/23928)
-
 
 ## 4.4.13
 
@@ -1380,11 +1353,10 @@
 - feat(cryptocom): add v1PublicGetPublicGetRiskParameters [#23907](https://github.com/ccxt/ccxt/pull/23907)
 - build(deps-dev): bump rollup from 2.79.1 to 2.79.2 [#23841](https://github.com/ccxt/ccxt/pull/23841)
 - feat(okx): add watchMarkPrices [#23911](https://github.com/ccxt/ccxt/pull/23911)
-- feat(tests):  unnecessary vars [#23912](https://github.com/ccxt/ccxt/pull/23912)
+- feat(tests): unnecessary vars [#23912](https://github.com/ccxt/ccxt/pull/23912)
 - chore: update changelog [#23914](https://github.com/ccxt/ccxt/pull/23914)
 - fix(mexc): fetchDepositAddress/createDepositAddress network id [#23915](https://github.com/ccxt/ccxt/pull/23915)
 - build: skip-tests [#23916](https://github.com/ccxt/ccxt/pull/23916)
-
 
 ## 4.4.12
 
@@ -1399,7 +1371,6 @@
 - fix(binance): add BNFCR currency [#23899](https://github.com/ccxt/ccxt/pull/23899)
 - build: skip-tests [#23900](https://github.com/ccxt/ccxt/pull/23900)
 
-
 ## 4.4.11
 
 - fix(kraken): createOrder, trailingLimitPercent [#23884](https://github.com/ccxt/ccxt/pull/23884)
@@ -1407,7 +1378,6 @@
 - createOrder: standardize hedged reduceOnly orders [#23871](https://github.com/ccxt/ccxt/pull/23871)
 - fix(okx): fetchDepositAddress [#23885](https://github.com/ccxt/ccxt/pull/23885)
 - build: skip-tests [#23886](https://github.com/ccxt/ccxt/pull/23886)
-
 
 ## 4.4.10
 
@@ -1424,7 +1394,6 @@
 - feat(mexc): unify until [#23880](https://github.com/ccxt/ccxt/pull/23880)
 - build: skip-tests [#23881](https://github.com/ccxt/ccxt/pull/23881)
 
-
 ## 4.4.9
 
 - fix(bybit): add hedged inside position [#23848](https://github.com/ccxt/ccxt/pull/23848)
@@ -1438,7 +1407,6 @@
 - fix(bitget): unify USDT networks [#23863](https://github.com/ccxt/ccxt/pull/23863)
 - feat(deribit): add watchTickers [#23862](https://github.com/ccxt/ccxt/pull/23862)
 - build: skip-tests [#23864](https://github.com/ccxt/ccxt/pull/23864)
-
 
 ## 4.4.8
 
@@ -1458,7 +1426,6 @@
 - feat(bigone):assets to v3 [#23825](https://github.com/ccxt/ccxt/pull/23825)
 - build: skip-tests [#23847](https://github.com/ccxt/ccxt/pull/23847)
 
-
 ## 4.4.7
 
 - fix(binance): margin markets loading [#23808](https://github.com/ccxt/ccxt/pull/23808)
@@ -1471,7 +1438,6 @@
 - feat(bitmart): add watchBidsAsks [#23750](https://github.com/ccxt/ccxt/pull/23750)
 - htx(fetchOrderBook, fetchOrderTrades, fetchSpotOrderTrades): docstrings [#23820](https://github.com/ccxt/ccxt/pull/23820)
 - build: skip-tests [#23821](https://github.com/ccxt/ccxt/pull/23821)
-
 
 ## 4.4.6
 
@@ -1487,7 +1453,6 @@
 - fix(fetchPaginatedCallCursor): search cursor [#23800](https://github.com/ccxt/ccxt/pull/23800)
 - fix(bybit): parseLedgerEntry, parseToNumeric on undefined value [#23801](https://github.com/ccxt/ccxt/pull/23801)
 - build: skip-tests [#23804](https://github.com/ccxt/ccxt/pull/23804)
-
 
 ## 4.4.5
 
@@ -1506,7 +1471,6 @@
 - fix(mexc): bsc-> bep20 mapping [#23783](https://github.com/ccxt/ccxt/pull/23783)
 - build: skip-tests [#23764](https://github.com/ccxt/ccxt/pull/23764)
 
-
 ## 4.4.4
 
 - fix(paradex): update api [#23743](https://github.com/ccxt/ccxt/pull/23743)
@@ -1517,7 +1481,6 @@
 - feat(bitget): add margin in fetchMarkets [#23738](https://github.com/ccxt/ccxt/pull/23738)
 - feat(binanceus): skip margin loading [#23749](https://github.com/ccxt/ccxt/pull/23749)
 - build: skip-tests [#23753](https://github.com/ccxt/ccxt/pull/23753)
-
 
 ## 4.4.3
 
@@ -1545,12 +1508,11 @@
 - fix(python) - unclosed connection leak [#23470](https://github.com/ccxt/ccxt/pull/23470)
 - build: skip-tests [#23742](https://github.com/ccxt/ccxt/pull/23742)
 
-
 ## 4.4.2
 
 - cryptocom: update @see [#23693](https://github.com/ccxt/ccxt/pull/23693)
 - feat(cryptocom): update ws [#23689](https://github.com/ccxt/ccxt/pull/23689)
-- binance - `trigger`  [#23688](https://github.com/ccxt/ccxt/pull/23688)
+- binance - `trigger` [#23688](https://github.com/ccxt/ccxt/pull/23688)
 - feat(phemex): add watchTickers [#23696](https://github.com/ccxt/ccxt/pull/23696)
 - mexc: add watchTickers [#23670](https://github.com/ccxt/ccxt/pull/23670)
 - bybit error mapping [#23697](https://github.com/ccxt/ccxt/pull/23697)
@@ -1564,7 +1526,6 @@
 - fix(c#): rename name [#23709](https://github.com/ccxt/ccxt/pull/23709)
 - fetchPositionMode, setPositionMode docstrings [#23710](https://github.com/ccxt/ccxt/pull/23710)
 - bitstamp update fee tiers [#23708](https://github.com/ccxt/ccxt/pull/23708)
-
 
 ## 4.4.1
 
@@ -1581,12 +1542,10 @@
 - fix(xt): OHLCV spot volume [#23683](https://github.com/ccxt/ccxt/pull/23683)
 - build: skip-tests [#23687](https://github.com/ccxt/ccxt/pull/23687)
 
-
 ## 4.3.98
 
 - chore: update changelog [#23664](https://github.com/ccxt/ccxt/pull/23664)
 - feat(hyperliquid): add unWatchTrades/OrderBook/OHLCV/Tickers [#23665](https://github.com/ccxt/ccxt/pull/23665)
-
 
 ## 4.3.97
 
@@ -1600,7 +1559,6 @@
 - feat(kucoin): add unWatchOrderBook [#23662](https://github.com/ccxt/ccxt/pull/23662)
 - build: skip-tests [#23663](https://github.com/ccxt/ccxt/pull/23663)
 
-
 ## 4.3.96
 
 - feat(gate): add unWatchOrderBook/unWatchTradesForSymbols [#23647](https://github.com/ccxt/ccxt/pull/23647)
@@ -1608,10 +1566,9 @@
 - feat(kucoin): add unWatchTrades [#23554](https://github.com/ccxt/ccxt/pull/23554)
 - fix(binance): use maxLimit when using since+until [#23620](https://github.com/ccxt/ccxt/pull/23620)
 
-
 ## 4.3.95
 
-- feat(hyperliquid):  fetchLedger / fetchDeposits / fetchWithdrawals [#23616](https://github.com/ccxt/ccxt/pull/23616)
+- feat(hyperliquid): fetchLedger / fetchDeposits / fetchWithdrawals [#23616](https://github.com/ccxt/ccxt/pull/23616)
 - fix(bybit): update fetchLedger endpoint for classic accounts [#23630](https://github.com/ccxt/ccxt/pull/23630)
 - feat(binance, bybit): add unWatchOHLCVForSymbols [#23631](https://github.com/ccxt/ccxt/pull/23631)
 - Mexc docstring @see [#23634](https://github.com/ccxt/ccxt/pull/23634)
@@ -1624,7 +1581,6 @@
 - fix(exchange) - remove fetchPermissions [#23642](https://github.com/ccxt/ccxt/pull/23642)
 - build: skip-tests [#23645](https://github.com/ccxt/ccxt/pull/23645)
 
-
 ## 4.3.94
 
 - fix(mexc): withdraw [#23611](https://github.com/ccxt/ccxt/pull/23611)
@@ -1635,12 +1591,10 @@
 - feat(hyperliquid): add fetchOrders/ClosedOrder and other fixes [#23626](https://github.com/ccxt/ccxt/pull/23626)
 - fix(parseOHLCVs): tail cut [#23625](https://github.com/ccxt/ccxt/pull/23625)
 
-
 ## 4.3.93
 
 - fix(bingx): swap reduceOnly order [#23608](https://github.com/ccxt/ccxt/pull/23608)
 - feat(tests) - static data updater [#23612](https://github.com/ccxt/ccxt/pull/23612)
-
 
 ## 4.3.92
 
@@ -1650,7 +1604,6 @@
 - fix(hyperliquid): spot balance parsing [#23606](https://github.com/ccxt/ccxt/pull/23606)
 - build: skip-tests [#23607](https://github.com/ccxt/ccxt/pull/23607)
 
-
 ## 4.3.91
 
 - kucoin - corrections of 'safe' methods [#23590](https://github.com/ccxt/ccxt/pull/23590)
@@ -1658,7 +1611,6 @@
 - fix(kucoin) - static tests [#23593](https://github.com/ccxt/ccxt/pull/23593)
 - fix(hyperliquid): fetchOrder with clientOrderId [#23595](https://github.com/ccxt/ccxt/pull/23595)
 - build: skip-tests [#23598](https://github.com/ccxt/ccxt/pull/23598)
-
 
 ## 4.3.90
 
@@ -1669,7 +1621,6 @@
 - fix(kucoin) - handle HighFrequency (hf) accounts [#23582](https://github.com/ccxt/ccxt/pull/23582)
 - build: skip-tests [#23586](https://github.com/ccxt/ccxt/pull/23586)
 - build: skip-tests [#23588](https://github.com/ccxt/ccxt/pull/23588)
-
 
 ## 4.3.89
 
@@ -1694,7 +1645,6 @@
 - lbank: update doc [#23569](https://github.com/ccxt/ccxt/pull/23569)
 - build: skip-tests [#23573](https://github.com/ccxt/ccxt/pull/23573)
 
-
 ## 4.3.88
 
 - remove cs Sending [#23521](https://github.com/ccxt/ccxt/pull/23521)
@@ -1713,7 +1663,6 @@
 - feat(bybit): unWatchTrades/OrderBook/ticker [#23513](https://github.com/ccxt/ccxt/pull/23513)
 - build: skip-tests [#23545](https://github.com/ccxt/ccxt/pull/23545)
 
-
 ## 4.3.87
 
 - fix(base): paginationTimestamp shoud add one for forward [#23519](https://github.com/ccxt/ccxt/pull/23519)
@@ -1721,7 +1670,6 @@
 - feat: update ws docs [#23508](https://github.com/ccxt/ccxt/pull/23508)
 - fix(c#) - parseToInt [#23506](https://github.com/ccxt/ccxt/pull/23506)
 - feat(kucoin): add "asset/ndbroker/deposit/list" api endpoint under br… [#23520](https://github.com/ccxt/ccxt/pull/23520)
-
 
 ## 4.3.86
 
@@ -1745,7 +1693,6 @@
 - p2b: add watchTradesForSymbols [#23509](https://github.com/ccxt/ccxt/pull/23509)
 - fix(bingx): active flag [#23511](https://github.com/ccxt/ccxt/pull/23511)
 
-
 ## 4.3.85
 
 - fix(binance) - tickers inverse quote volume [#23406](https://github.com/ccxt/ccxt/pull/23406)
@@ -1768,7 +1715,6 @@
 - fix(base): use two parameters when call fetchPaginatedCallCursor in f… [#23484](https://github.com/ccxt/ccxt/pull/23484)
 - build: skip-tests [#23489](https://github.com/ccxt/ccxt/pull/23489)
 
-
 ## 4.3.84
 
 - fix(binance): watchLiquidationsForSymbols should use lowercase id [#23441](https://github.com/ccxt/ccxt/pull/23441)
@@ -1782,17 +1728,15 @@
 - feat(bitget): add unWatchOrderBook [#23464](https://github.com/ccxt/ccxt/pull/23464)
 - build: skip-tests [#23465](https://github.com/ccxt/ccxt/pull/23465)
 
-
 ## 4.3.83
 
 - fix(binance): correct signature for simple-earn [#23428](https://github.com/ccxt/ccxt/pull/23428)
 - fix(bitrue): populate authenticate error [#23433](https://github.com/ccxt/ccxt/pull/23433)
-- bitfinex2: update exchange types  [#23434](https://github.com/ccxt/ccxt/pull/23434)
+- bitfinex2: update exchange types [#23434](https://github.com/ccxt/ccxt/pull/23434)
 - fix(binance): watchOHLCV - exchange-specific id [#23435](https://github.com/ccxt/ccxt/pull/23435)
 - feat(kraken): remove requirement for currency code argument in fetchDeposits [#23432](https://github.com/ccxt/ccxt/pull/23432)
 - fix(gate): handleErrors inside watchMethods [#23436](https://github.com/ccxt/ccxt/pull/23436)
 - build: skip-tests [#23438](https://github.com/ccxt/ccxt/pull/23438)
-
 
 ## 4.3.82
 
@@ -1808,11 +1752,9 @@
 - feat(phemex): add watchBalance flag [#23424](https://github.com/ccxt/ccxt/pull/23424)
 - build: skip-tests [ci deploy] [#23420](https://github.com/ccxt/ccxt/pull/23420)
 
-
 ## 4.3.81
 
 - fix(waves) - createOrder params [#23400](https://github.com/ccxt/ccxt/pull/23400)
-
 
 ## 4.3.80
 
@@ -1822,7 +1764,6 @@
 - fix(yobit) - BCHN to BSV [#23402](https://github.com/ccxt/ccxt/pull/23402)
 - fix(exchange): watchOHLCVForSymbols in dotnet [#23403](https://github.com/ccxt/ccxt/pull/23403)
 - build: skip-tests [#23405](https://github.com/ccxt/ccxt/pull/23405)
-
 
 ## 4.3.79
 
@@ -1835,13 +1776,11 @@
 - fix(bitmart): update createSwapOrderRequest [#23395](https://github.com/ccxt/ccxt/pull/23395)
 - build: skip-tests [#23396](https://github.com/ccxt/ccxt/pull/23396)
 
-
 ## 4.3.78
 
 - fix(py) - remove this [#23382](https://github.com/ccxt/ccxt/pull/23382)
 - fix: watchPositions - handleOption used instead of safeBool to get option for awaitPositionsSnapshot [#23295](https://github.com/ccxt/ccxt/pull/23295)
 - binance: update apis [#23266](https://github.com/ccxt/ccxt/pull/23266)
-
 
 ## 4.3.77
 
@@ -1854,7 +1793,6 @@
 - build: skip-tests [#23378](https://github.com/ccxt/ccxt/pull/23378)
 - fix(build): response tests: skip-tests [#23380](https://github.com/ccxt/ccxt/pull/23380)
 
-
 ## 4.3.76
 
 - fix(woo): watch private [#23359](https://github.com/ccxt/ccxt/pull/23359)
@@ -1863,12 +1801,11 @@
 - feat(bithumb): update doc [#23363](https://github.com/ccxt/ccxt/pull/23363)
 - feat(bybit): add demotrading for ws [#23364](https://github.com/ccxt/ccxt/pull/23364)
 - feat(binance): fix fetchCurrencies return params [#23365](https://github.com/ccxt/ccxt/pull/23365)
-- fix(kraken):  oflags handling [#23366](https://github.com/ccxt/ccxt/pull/23366)
+- fix(kraken): oflags handling [#23366](https://github.com/ccxt/ccxt/pull/23366)
 - fix(bitmart): trigger order placement [#23367](https://github.com/ccxt/ccxt/pull/23367)
 - feat(static): remove typing_extensions static dep [#23368](https://github.com/ccxt/ccxt/pull/23368)
 - fix(json): serialize json, add tests, and fix c# base tests [#23357](https://github.com/ccxt/ccxt/pull/23357)
 - build: skip-tests [#23369](https://github.com/ccxt/ccxt/pull/23369)
-
 
 ## 4.3.75
 
@@ -1881,7 +1818,6 @@
 - fix(liquidations): var declaration [#23350](https://github.com/ccxt/ccxt/pull/23350)
 - build: skip-tests [#23351](https://github.com/ccxt/ccxt/pull/23351)
 
-
 ## 4.3.74
 
 - mexc: update withdraw [#23331](https://github.com/ccxt/ccxt/pull/23331)
@@ -1889,7 +1825,6 @@
 - feat(bybit): add usePrivateInstrumentsInfo option [#23339](https://github.com/ccxt/ccxt/pull/23339)
 - fix(binance) - php parsing [#23340](https://github.com/ccxt/ccxt/pull/23340)
 - build: skip-tests [#23341](https://github.com/ccxt/ccxt/pull/23341)
-
 
 ## 4.3.73
 
@@ -1908,15 +1843,13 @@
 - fix(binance): temporarily disable php test [#23335](https://github.com/ccxt/ccxt/pull/23335)
 - build: skip-tests [#23333](https://github.com/ccxt/ccxt/pull/23333)
 
-
 ## 4.3.72
 
 - fix(exchange): set message queue to false by default [#23311](https://github.com/ccxt/ccxt/pull/23311)
 - fix(kucoin): patch parseWsTrade [#23312](https://github.com/ccxt/ccxt/pull/23312)
-- feat(woo): replace orderbook with orderbookupdate  [#23300](https://github.com/ccxt/ccxt/pull/23300)
+- feat(woo): replace orderbook with orderbookupdate [#23300](https://github.com/ccxt/ccxt/pull/23300)
 - feat(binance) - OHLCV with timezone param support [#23252](https://github.com/ccxt/ccxt/pull/23252)
 - build: skip-tests [#23315](https://github.com/ccxt/ccxt/pull/23315)
-
 
 ## 4.3.71
 
@@ -1928,7 +1861,6 @@
 - fix(package): add starkware module [ci deploy] [#23308](https://github.com/ccxt/ccxt/pull/23308)
 - build: skip-tests [ci deploy] [#23309](https://github.com/ccxt/ccxt/pull/23309)
 
-
 ## 4.3.70
 
 - fix(woo): fetchFundingHistory income parsing [#23278](https://github.com/ccxt/ccxt/pull/23278)
@@ -1937,7 +1869,6 @@
 - fix(test): add -- before --sync in php test [#23285](https://github.com/ccxt/ccxt/pull/23285)
 - New exchange: paradex [#22777](https://github.com/ccxt/ccxt/pull/22777)
 - build: skip-tests [#23304](https://github.com/ccxt/ccxt/pull/23304)
-
 
 ## 4.3.69
 
@@ -1949,7 +1880,6 @@
 - fix(woo): new ws url [#23274](https://github.com/ccxt/ccxt/pull/23274)
 - fix(bybit): fetchMyLiquidations safeMarket call [#23277](https://github.com/ccxt/ccxt/pull/23277)
 - build: skip-tests [#23275](https://github.com/ccxt/ccxt/pull/23275)
-
 
 ## 4.3.68
 
@@ -1966,7 +1896,6 @@
 - fix(btcbox): signature [#23257](https://github.com/ccxt/ccxt/pull/23257)
 - build: skip-tests [#23259](https://github.com/ccxt/ccxt/pull/23259)
 
-
 ## 4.3.67
 
 - bingx: fetchOrder, inverse swap support [#23211](https://github.com/ccxt/ccxt/pull/23211)
@@ -1980,7 +1909,6 @@
 - fix(types.cs): watchBalance type cast [#23224](https://github.com/ccxt/ccxt/pull/23224)
 - defaultNetworkCode fixed [#23226](https://github.com/ccxt/ccxt/pull/23226)
 - build: skip-tests [#23227](https://github.com/ccxt/ccxt/pull/23227)
-
 
 ## 4.3.66
 
@@ -2001,7 +1929,6 @@
 - feat(okx): add sequence check to checksum check in orderbook and fix market reference [#23195](https://github.com/ccxt/ccxt/pull/23195)
 - build: skip-tests [#23204](https://github.com/ccxt/ccxt/pull/23204)
 
-
 ## 4.3.65
 
 - base: fix typo in loadProxyModules (httpsProxyAgentModule) [#23171](https://github.com/ccxt/ccxt/pull/23171)
@@ -2014,7 +1941,6 @@
 - fix(okx): crude messageHash using milliseconds [#23179](https://github.com/ccxt/ccxt/pull/23179)
 - build: skip-tests [#23180](https://github.com/ccxt/ccxt/pull/23180)
 
-
 ## 4.3.64
 
 - build(deps): bump ws from 8.14.2 to 8.17.1 in /examples/ts/nextjs-page-router [#22843](https://github.com/ccxt/ccxt/pull/22843)
@@ -2024,7 +1950,6 @@
 - fix(mexc) - skip vwap test ^Q [#23162](https://github.com/ccxt/ccxt/pull/23162)
 - feat(bigone): add more test [#23167](https://github.com/ccxt/ccxt/pull/23167)
 - feat(ascendex): add more tests [#23166](https://github.com/ccxt/ccxt/pull/23166)
-
 
 ## 4.3.63
 
@@ -2043,7 +1968,6 @@
 - C# OptionChain type: rename variables [#23158](https://github.com/ccxt/ccxt/pull/23158)
 - fix types & comparisons [#23146](https://github.com/ccxt/ccxt/pull/23146)
 - build: skip-tests [#23159](https://github.com/ccxt/ccxt/pull/23159)
-
 
 ## 4.3.62
 
@@ -2067,10 +1991,9 @@
 - fix(xt, coinbaseinternational): type string = undefined updated to STR [#23132](https://github.com/ccxt/ccxt/pull/23132)
 - fix(errors.ts): ChecksumError type [#23128](https://github.com/ccxt/ccxt/pull/23128)
 - bingx: fetchMyLiquidations, inverse swap support [#23130](https://github.com/ccxt/ccxt/pull/23130)
-- fix(cryptocom): fetchOHLCV  [#23140](https://github.com/ccxt/ccxt/pull/23140)
+- fix(cryptocom): fetchOHLCV [#23140](https://github.com/ccxt/ccxt/pull/23140)
 - fix(ace): number comparison php [#23143](https://github.com/ccxt/ccxt/pull/23143)
 - build: skip-tests [#23144](https://github.com/ccxt/ccxt/pull/23144)
-
 
 ## 4.3.61
 
@@ -2090,7 +2013,6 @@
 - bingx: fix currency deposit status and withdraw limits [#23097](https://github.com/ccxt/ccxt/pull/23097)
 - build: skip-tests [#23105](https://github.com/ccxt/ccxt/pull/23105)
 
-
 ## 4.3.60
 
 - hyperliquid: c# fix NullReferenceException when get currency info [#23076](https://github.com/ccxt/ccxt/pull/23076)
@@ -2100,7 +2022,6 @@
 - vertex: c# fix NullReferenceException when get currency info [#23077](https://github.com/ccxt/ccxt/pull/23077)
 - fix(kucoin): watchMyTrades - set method using options [#23078](https://github.com/ccxt/ccxt/pull/23078)
 - mexc: update withdraw [#23065](https://github.com/ccxt/ccxt/pull/23065)
-
 
 ## 4.3.59
 
@@ -2119,7 +2040,7 @@
 - feat(bitso): add sandbox url and static tests [#23055](https://github.com/ccxt/ccxt/pull/23055)
 - fix(cex): handleOrderBookUpdate - use safeInteger instead of safeNumber for incrementalId [#23062](https://github.com/ccxt/ccxt/pull/23062)
 - bingx: setLeverage, add inverse swap support [#23056](https://github.com/ccxt/ccxt/pull/23056)
-- fix(xt) - fetchCurrencies  & watchOHLCV [#23060](https://github.com/ccxt/ccxt/pull/23060)
+- fix(xt) - fetchCurrencies & watchOHLCV [#23060](https://github.com/ccxt/ccxt/pull/23060)
 - bingx: closePosition, closeAllPositions inverse swap support [#23067](https://github.com/ccxt/ccxt/pull/23067)
 - fix(kraken): fetchLedger - timestamp millisecond data parsed correctly [#23061](https://github.com/ccxt/ccxt/pull/23061)
 - cryptocom: update fetchOHLCV [#23069](https://github.com/ccxt/ccxt/pull/23069)
@@ -2127,7 +2048,6 @@
 - fix(php) - test for method [#23058](https://github.com/ccxt/ccxt/pull/23058)
 - fix(bitso): update api url [#23072](https://github.com/ccxt/ccxt/pull/23072)
 - build: skip-tests [#23070](https://github.com/ccxt/ccxt/pull/23070)
-
 
 ## 4.3.58
 
@@ -2142,7 +2062,7 @@
 - feat(FAQ): add createMarketBuyRequiresPrice explanation [#23024](https://github.com/ccxt/ccxt/pull/23024)
 - tests - fix args [#23000](https://github.com/ccxt/ccxt/pull/23000)
 - fix(bybit): typo on variable name [#23030](https://github.com/ccxt/ccxt/pull/23030)
-- fix(bingx)  - watchTrades issue [#23027](https://github.com/ccxt/ccxt/pull/23027)
+- fix(bingx) - watchTrades issue [#23027](https://github.com/ccxt/ccxt/pull/23027)
 - feat(wiki) - taker maker fees [#22974](https://github.com/ccxt/ccxt/pull/22974)
 - fix(digifinex): cancelOrder(s) - unified response [#23032](https://github.com/ccxt/ccxt/pull/23032)
 - feat(xt): websocket implementation [#17814](https://github.com/ccxt/ccxt/pull/17814)
@@ -2153,7 +2073,6 @@
 - fix(btcbox): load markets dynamically [#23035](https://github.com/ccxt/ccxt/pull/23035)
 - fix(xtWs): watchOrderBook [#23036](https://github.com/ccxt/ccxt/pull/23036)
 - build: skip-tests [#23037](https://github.com/ccxt/ccxt/pull/23037)
-
 
 ## 4.3.57
 
@@ -2179,7 +2098,6 @@
 - fix #22996 - remove resolved future when using messageQueue [#23015](https://github.com/ccxt/ccxt/pull/23015)
 - build: skip-tests [#23013](https://github.com/ccxt/ccxt/pull/23013)
 
-
 ## 4.3.56
 
 - fix(bitget): cancelAllOrders - unified response [#22949](https://github.com/ccxt/ccxt/pull/22949)
@@ -2188,7 +2106,6 @@
 - coinone: fix ratelimit and handle errors [#22969](https://github.com/ccxt/ccxt/pull/22969)
 - feat(gate): add cancelOrders and cancelOrdersForSymbols [#22972](https://github.com/ccxt/ccxt/pull/22972)
 - Create message queue for unresolved messages in WS client [#22768](https://github.com/ccxt/ccxt/pull/22768)
-
 
 ## 4.3.55
 
@@ -2212,7 +2129,6 @@
 - fix(bingx): skip 0 timestamp [#22966](https://github.com/ccxt/ccxt/pull/22966)
 - build: skip-tests [#22968](https://github.com/ccxt/ccxt/pull/22968)
 
-
 ## 4.3.54
 
 - okx: fetchPositions returns empty list in some cases [#22929](https://github.com/ccxt/ccxt/pull/22929)
@@ -2235,7 +2151,6 @@
 - fix(woo): response tests [#22944](https://github.com/ccxt/ccxt/pull/22944)
 - build: skip-tests [#22945](https://github.com/ccxt/ccxt/pull/22945)
 
-
 ## 4.3.53
 
 - fix(bingx) - max leverage markets ^Q [#22908](https://github.com/ccxt/ccxt/pull/22908)
@@ -2250,7 +2165,6 @@
 - fix(vertex) - ticker ts [#22924](https://github.com/ccxt/ccxt/pull/22924)
 - build: skip-tests [#22923](https://github.com/ccxt/ccxt/pull/22923)
 
-
 ## 4.3.52
 
 - fix #22794 - fix arraycachebysymbolbyside [#22877](https://github.com/ccxt/ccxt/pull/22877)
@@ -2262,17 +2176,15 @@
 - fix(vertex): correct request id in python [#22907](https://github.com/ccxt/ccxt/pull/22907)
 - build: skip-tests [#22905](https://github.com/ccxt/ccxt/pull/22905)
 
-
 ## 4.3.51
 
 - feat(build): update transpile script [#22881](https://github.com/ccxt/ccxt/pull/22881)
 - feat(okx): add sprd/cancel-all-after [#22888](https://github.com/ccxt/ccxt/pull/22888)
 - fix(okx): keepAlive changed to 18000 to fix ping-pong keepAlive error [#22883](https://github.com/ccxt/ccxt/pull/22883)
 - fix(bybit): add pagination in fetchOpenOrders [#22889](https://github.com/ccxt/ccxt/pull/22889)
-- fix(binance): cancelOrders signature  [#22890](https://github.com/ccxt/ccxt/pull/22890)
+- fix(binance): cancelOrders signature [#22890](https://github.com/ccxt/ccxt/pull/22890)
 - fix(krakenfutures): add history url in test api [#22894](https://github.com/ccxt/ccxt/pull/22894)
 - build: skip-tests [#22895](https://github.com/ccxt/ccxt/pull/22895)
-
 
 ## 4.3.50
 
@@ -2284,7 +2196,6 @@
 - fix(bigone): fix ratelimit. 1200ms -> 20ms delay between requests [#22875](https://github.com/ccxt/ccxt/pull/22875)
 - build: skip-tests [#22880](https://github.com/ccxt/ccxt/pull/22880)
 
-
 ## 4.3.49
 
 - fix (c#) null baseCurrency in market structure [#22862](https://github.com/ccxt/ccxt/pull/22862)
@@ -2292,7 +2203,6 @@
 - feat(trigger): add trigger support [#22865](https://github.com/ccxt/ccxt/pull/22865)
 - fix(base): correct microseconds in c# [#22867](https://github.com/ccxt/ccxt/pull/22867)
 - build: skip-tests [#22868](https://github.com/ccxt/ccxt/pull/22868)
-
 
 ## 4.3.48
 
@@ -2302,13 +2212,12 @@
 - Kraken cancel order [#22753](https://github.com/ccxt/ccxt/pull/22753)
 - fix(kraken): reduceOnly parsing [#22848](https://github.com/ccxt/ccxt/pull/22848)
 - fix(php-syntax) new dex property broke the php syntax checking [#22850](https://github.com/ccxt/ccxt/pull/22850)
-- fix build skips  ^Q [#22851](https://github.com/ccxt/ccxt/pull/22851)
+- fix build skips ^Q [#22851](https://github.com/ccxt/ccxt/pull/22851)
 - fix(hyperliquid): cancelOrder(s) unified response [#22854](https://github.com/ccxt/ccxt/pull/22854)
 - fix(coinbase): cancelOrder - unify response [#22855](https://github.com/ccxt/ccxt/pull/22855)
 - fix(bitso): cancelOrder - unify response [#22856](https://github.com/ccxt/ccxt/pull/22856)
 - fix(coinbaseinternational): loadMarkets at beginning of subscribe and subscribeMultiple [#22853](https://github.com/ccxt/ccxt/pull/22853)
 - build: skip-tests [#22858](https://github.com/ccxt/ccxt/pull/22858)
-
 
 ## 4.3.47
 
@@ -2322,7 +2231,6 @@
 - fix(woo): ohlcv endpoint access [#22841](https://github.com/ccxt/ccxt/pull/22841)
 - build: skip-tests [#22842](https://github.com/ccxt/ccxt/pull/22842)
 
-
 ## 4.3.46
 
 - chore: update changelog [#22822](https://github.com/ccxt/ccxt/pull/22822)
@@ -2332,7 +2240,6 @@
 - fix!(base) - precisionFromString update, to handle `e` and `E` and al… [#22812](https://github.com/ccxt/ccxt/pull/22812)
 - fix(bitget): spot margin with createMarketBuyOrderRequiresPrice = false [#22831](https://github.com/ccxt/ccxt/pull/22831)
 - build: skip-tests [#22830](https://github.com/ccxt/ccxt/pull/22830)
-
 
 ## 4.3.45
 
@@ -2351,7 +2258,6 @@
 - feat(exchange): add dex flag [#22818](https://github.com/ccxt/ccxt/pull/22818)
 - build: skip-tests [#22820](https://github.com/ccxt/ccxt/pull/22820)
 
-
 ## 4.3.44
 
 - feat(exchange): remove cert [#22799](https://github.com/ccxt/ccxt/pull/22799)
@@ -2362,7 +2268,6 @@
 - New exchange: ox.fun [#22354](https://github.com/ccxt/ccxt/pull/22354)
 - build: skip-tests [#22801](https://github.com/ccxt/ccxt/pull/22801)
 
-
 ## 4.3.43
 
 - fix(bitmex): guard handleOrderBook [#22786](https://github.com/ccxt/ccxt/pull/22786)
@@ -2372,7 +2277,6 @@
 - fix(woo): keepAlive set to 9000 to fix ping-pong keepAlive error [#22790](https://github.com/ccxt/ccxt/pull/22790)
 - feat(xt): restore [#22782](https://github.com/ccxt/ccxt/pull/22782)
 - feat(idTests): add xt [#22795](https://github.com/ccxt/ccxt/pull/22795)
-
 
 ## 4.3.42
 
@@ -2394,7 +2298,6 @@
 - build: skip-test [#22787](https://github.com/ccxt/ccxt/pull/22787)
 - build: skip-tests [#22788](https://github.com/ccxt/ccxt/pull/22788)
 
-
 ## 4.3.41
 
 - fix(kraken): cancelOrder(s), cancelAllOrders - unify response [#22745](https://github.com/ccxt/ccxt/pull/22745)
@@ -2408,7 +2311,6 @@
 - fix(upbit): ws options [#22754](https://github.com/ccxt/ccxt/pull/22754)
 - fix(blockchaincom): cancelOrder, cancelAllOrders unified response [#22678](https://github.com/ccxt/ccxt/pull/22678)
 - bitmart: updated the fetchTickers spot endpoint [#22680](https://github.com/ccxt/ccxt/pull/22680)
-
 
 ## 4.3.40
 
@@ -2434,19 +2336,16 @@
 - fix(cs): update charset and fix uuid() [#22740](https://github.com/ccxt/ccxt/pull/22740)
 - build: skip-tests [#22742](https://github.com/ccxt/ccxt/pull/22742)
 
-
 ## 4.3.39
 
 - fix(binance): add swap to accountsByType [#22707](https://github.com/ccxt/ccxt/pull/22707)
 - fix(hitbtc): currency network withdrawal and deposit status [#22705](https://github.com/ccxt/ccxt/pull/22705)
 - Woofipro cancel order [#22709](https://github.com/ccxt/ccxt/pull/22709)
 
-
 ## 4.3.38
 
 - fix(CS): urlencode, handle special cases [#22704](https://github.com/ccxt/ccxt/pull/22704)
 - fix(coinlist): cancelOrders encoding [#22706](https://github.com/ccxt/ccxt/pull/22706)
-
 
 ## 4.3.37
 
@@ -2460,7 +2359,6 @@
 - fix(coinex): cancelAllOrders - unified response [#22691](https://github.com/ccxt/ccxt/pull/22691)
 - feat(bl3p): cancelOrder - response unification [#22676](https://github.com/ccxt/ccxt/pull/22676)
 
-
 ## 4.3.36
 
 - feat(kraken): adjust rl [#22661](https://github.com/ccxt/ccxt/pull/22661)
@@ -2472,7 +2370,6 @@
 - fix(bitmart): remove abs for percentage in ticker [#22674](https://github.com/ccxt/ccxt/pull/22674)
 - fix(kraken): div trading fee by 100 [#22679](https://github.com/ccxt/ccxt/pull/22679)
 - fix(static): disable failing static test [#22682](https://github.com/ccxt/ccxt/pull/22682)
-
 
 ## 4.3.35
 
@@ -2486,7 +2383,6 @@
 - fix(bingx): symbol inference on trades [#22659](https://github.com/ccxt/ccxt/pull/22659)
 - feat(orderbook): type variable [#22660](https://github.com/ccxt/ccxt/pull/22660)
 - fix(bitfinex2) handleOrderBook [#22658](https://github.com/ccxt/ccxt/pull/22658)
-
 
 ## 4.3.34
 
@@ -2502,7 +2398,6 @@
 - fix(okx) - await [#22647](https://github.com/ccxt/ccxt/pull/22647)
 - build: skip-tests [#22646](https://github.com/ccxt/ccxt/pull/22646)
 
-
 ## 4.3.33
 
 - feat(binance): add v1/account/info [#22627](https://github.com/ccxt/ccxt/pull/22627)
@@ -2511,13 +2406,11 @@
 - fix(coinbase) - add usePrivate option [#22579](https://github.com/ccxt/ccxt/pull/22579)
 - build: skip-tests [#22628](https://github.com/ccxt/ccxt/pull/22628)
 
-
 ## 4.3.32
 
 - fix broken docu build [#22620](https://github.com/ccxt/ccxt/pull/22620)
 - chore: update changelog [#22624](https://github.com/ccxt/ccxt/pull/22624)
 - fix(bitget): swap order placement weight adjustment [#22625](https://github.com/ccxt/ccxt/pull/22625)
-
 
 ## 4.3.31
 
@@ -2527,7 +2420,6 @@
 - fix(coinbase) - WS fixes [#22612](https://github.com/ccxt/ccxt/pull/22612)
 - fix(tests) - args [#22613](https://github.com/ccxt/ccxt/pull/22613)
 - fix(base) - handleParamBool & handleParamBool2 [#22611](https://github.com/ccxt/ccxt/pull/22611)
-
 
 ## 4.3.30
 
@@ -2548,7 +2440,6 @@
 - fix(kraken): fetchOHLCV since handling [#22607](https://github.com/ccxt/ccxt/pull/22607)
 - build: skip-tests [#22608](https://github.com/ccxt/ccxt/pull/22608)
 
-
 ## 4.3.29
 
 - fix(manual): browserified version path [#22568](https://github.com/ccxt/ccxt/pull/22568)
@@ -2564,7 +2455,6 @@
 - coinex: fetchIsolatedBorrowRate v2 [#22580](https://github.com/ccxt/ccxt/pull/22580)
 - build: skip-tests [#22587](https://github.com/ccxt/ccxt/pull/22587)
 
-
 ## 4.3.28
 
 - feat(bitmart): add createOrders [#22557](https://github.com/ccxt/ccxt/pull/22557)
@@ -2574,7 +2464,6 @@
 - fix(Orderbook.ts): typescript types [#22564](https://github.com/ccxt/ccxt/pull/22564)
 - fix(npm): browser bundle [#22566](https://github.com/ccxt/ccxt/pull/22566)
 - build: skip-tests [#22567](https://github.com/ccxt/ccxt/pull/22567)
-
 
 ## 4.3.27
 
@@ -2587,11 +2476,9 @@
 - fix(bybit): fetchFundingRateHistory pagination [#22549](https://github.com/ccxt/ccxt/pull/22549)
 - fix(bingx): sl/tp order parsing [#22556](https://github.com/ccxt/ccxt/pull/22556)
 
-
 ## 4.3.25
 
 - build: [ci deploy] [skip-tests] [#22545](https://github.com/ccxt/ccxt/pull/22545)
-
 
 ## 4.3.24
 
@@ -2604,7 +2491,6 @@
 - fix(kraken): usdt market buy with cost [#22526](https://github.com/ccxt/ccxt/pull/22526)
 - fix(editOrderWs): amount should be optional [#22528](https://github.com/ccxt/ccxt/pull/22528)
 - build: skip-tests [#22527](https://github.com/ccxt/ccxt/pull/22527)
-
 
 ## 4.3.23
 
@@ -2620,7 +2506,6 @@
 - build: fix request tests [#22513](https://github.com/ccxt/ccxt/pull/22513)
 - fix(bitrue): php array length [#22515](https://github.com/ccxt/ccxt/pull/22515)
 - build: skip-tests [#22514](https://github.com/ccxt/ccxt/pull/22514)
-
 
 ## 4.3.22
 
@@ -2638,7 +2523,6 @@
 - fix(phemex) - funding fees [#22443](https://github.com/ccxt/ccxt/pull/22443)
 - build: skip-tests [#22499](https://github.com/ccxt/ccxt/pull/22499)
 
-
 ## 4.3.21
 
 - feat(travis): create release [#20535](https://github.com/ccxt/ccxt/pull/20535)
@@ -2648,7 +2532,6 @@
 - fix(phemex): handle PT fees [#22481](https://github.com/ccxt/ccxt/pull/22481)
 - chore: skip-tests [#22483](https://github.com/ccxt/ccxt/pull/22483)
 
-
 ## 4.3.20
 
 - fix(coinex) [#22469](https://github.com/ccxt/ccxt/pull/22469)
@@ -2657,11 +2540,10 @@
 - coinex: addMargin, reduceMargin, fetchMarginAdjustmentHistory v2 [#22473](https://github.com/ccxt/ccxt/pull/22473)
 - fix(deno): ws in deno to use WebSocket API, fix #22440 [#22471](https://github.com/ccxt/ccxt/pull/22471)
 - feat(okx): add sprd endpoints [#22470](https://github.com/ccxt/ccxt/pull/22470)
-- feat(binance): add  fetchPremiumIndexOHLCV [#22474](https://github.com/ccxt/ccxt/pull/22474)
+- feat(binance): add fetchPremiumIndexOHLCV [#22474](https://github.com/ccxt/ccxt/pull/22474)
 - feat(kucoinfutures): add watchOHLCV [#22472](https://github.com/ccxt/ccxt/pull/22472)
 - fix(hyperliquid): update fetchOpenOrders with frontendOrders [#22476](https://github.com/ccxt/ccxt/pull/22476)
 - chore: update changelog [ci skip] [#22475](https://github.com/ccxt/ccxt/pull/22475)
-
 
 ## 4.3.19
 
@@ -2671,7 +2553,6 @@
 - fix(htx): ws authentication error handling [#22467](https://github.com/ccxt/ccxt/pull/22467)
 - bitget assets implicit endpoints, fixes: #22464 [#22468](https://github.com/ccxt/ccxt/pull/22468)
 - coinex: fetchLeverageTiers, fetchMarketLeverageTiers v2 [#22457](https://github.com/ccxt/ccxt/pull/22457)
-
 
 ## 4.3.18
 
@@ -2699,7 +2580,6 @@
 - feat(okx): add watchFundingRate/s [#22458](https://github.com/ccxt/ccxt/pull/22458)
 - bybit: add api [#22456](https://github.com/ccxt/ccxt/pull/22456)
 
-
 ## 4.3.17
 
 - feat(binance): createOrder spot trailingPercent support [#22414](https://github.com/ccxt/ccxt/pull/22414)
@@ -2707,7 +2587,6 @@
 - fix(bybit): WS trade endpoint [#22417](https://github.com/ccxt/ccxt/pull/22417)
 - fix(bybit): WS trade endpoint [#22418](https://github.com/ccxt/ccxt/pull/22418)
 - fix(exchange): networkIdToCode [#22415](https://github.com/ccxt/ccxt/pull/22415)
-
 
 ## 4.3.16
 
@@ -2722,7 +2601,6 @@
 - chore: Precise.ts types [#22370](https://github.com/ccxt/ccxt/pull/22370)
 - fix(okx): error import [#22408](https://github.com/ccxt/ccxt/pull/22408)
 
-
 ## 4.3.15
 
 - chore(transpile.js): transpile typed variables with list type [#22193](https://github.com/ccxt/ccxt/pull/22193)
@@ -2734,7 +2612,6 @@
 - chore: errors.ts types [#22369](https://github.com/ccxt/ccxt/pull/22369)
 - fix(Number.cs): precisioNFromString [#22395](https://github.com/ccxt/ccxt/pull/22395)
 - build: skip-tests [#22394](https://github.com/ccxt/ccxt/pull/22394)
-
 
 ## 4.3.14
 
@@ -2750,7 +2627,6 @@
 - chore: numbers.ts types [#22359](https://github.com/ccxt/ccxt/pull/22359)
 - build: skip idex [#22378](https://github.com/ccxt/ccxt/pull/22378)
 - fix(binance): fetchLastPrices docs [#22380](https://github.com/ccxt/ccxt/pull/22380)
-
 
 ## 4.3.13
 
@@ -2770,11 +2646,9 @@
 - feat(binance): fetchIsolatedBorrowRates [#22206](https://github.com/ccxt/ccxt/pull/22206)
 - build: skip-tests [#22367](https://github.com/ccxt/ccxt/pull/22367)
 
-
 ## 4.3.12
 
 - bybit: add api [#22344](https://github.com/ccxt/ccxt/pull/22344)
-
 
 ## 4.3.11
 
@@ -2801,12 +2675,10 @@
 - fix(poloniex) - skip [#22342](https://github.com/ccxt/ccxt/pull/22342)
 - Update test.ledgerEntry.ts [#22340](https://github.com/ccxt/ccxt/pull/22340)
 
-
 ## 4.3.10
 
 - chore: update changelog [ci skip] [#22316](https://github.com/ccxt/ccxt/pull/22316)
 - feat(blofin): add query-apiKey and affiliate endpoints [#22311](https://github.com/ccxt/ccxt/pull/22311)
-
 
 ## 4.3.9
 
@@ -2818,7 +2690,6 @@
 - fix(kucoinfutures): fetchPositionsHistory signature [#22305](https://github.com/ccxt/ccxt/pull/22305)
 - build: try middle push [#22306](https://github.com/ccxt/ccxt/pull/22306)
 - build: skip-tests [#22308](https://github.com/ccxt/ccxt/pull/22308)
-
 
 ## 4.3.8
 
@@ -2832,7 +2703,6 @@
 - feat(coinmetro): add new endpoint to fetchBalance [#22291](https://github.com/ccxt/ccxt/pull/22291)
 - build: skip-tests [#22258](https://github.com/ccxt/ccxt/pull/22258)
 
-
 ## 4.3.7
 
 - Fix missing clientOrderId for BingX fetchOrders [#22272](https://github.com/ccxt/ccxt/pull/22272)
@@ -2840,16 +2710,14 @@
 - fix(fetchConvertTradeHistory): parseConversions [#22277](https://github.com/ccxt/ccxt/pull/22277)
 - generic.ts types [#22098](https://github.com/ccxt/ccxt/pull/22098)
 
-
 ## 4.3.6
 
 - bybit.pro streaming["keepAlive"] changed from 20000 to 19000 [#22262](https://github.com/ccxt/ccxt/pull/22262)
 - coinex: fetchOHLCV v2 [#22263](https://github.com/ccxt/ccxt/pull/22263)
-- feat(coinbase): public endpoints added for fetchTicker, fetchMarkets,  fetchOHLCV, and fetchOrderBook [#22246](https://github.com/ccxt/ccxt/pull/22246)
+- feat(coinbase): public endpoints added for fetchTicker, fetchMarkets, fetchOHLCV, and fetchOrderBook [#22246](https://github.com/ccxt/ccxt/pull/22246)
 - feat(coinbase): public websocket endpoints for watchOrderBook, watchTicker, watchTickers, watchTrades [#22247](https://github.com/ccxt/ccxt/pull/22247)
 - feat(safe.cs): type some safeMethods [#22266](https://github.com/ccxt/ccxt/pull/22266)
 - feat: new method - fetchPositionHistory [#21942](https://github.com/ccxt/ccxt/pull/21942)
-
 
 ## 4.3.5
 
@@ -2869,7 +2737,6 @@
 - feat(bybit): add cancelOrdersForSymbols [#22259](https://github.com/ccxt/ccxt/pull/22259)
 - feat(all): add cancelAllOrdersAfter [#22100](https://github.com/ccxt/ccxt/pull/22100)
 
-
 ## 4.3.4
 
 - feat(whitebit): add v4 apis [#22153](https://github.com/ccxt/ccxt/pull/22153)
@@ -2880,14 +2747,11 @@
 - chore: update changelog [#22229](https://github.com/ccxt/ccxt/pull/22229)
 - fix(kucoin) - chain id currency, network precisions, etc [#22127](https://github.com/ccxt/ccxt/pull/22127)
 
-
 ## 4.3.3
-
-
 
 ## 4.3.2
 
-- fix(tsx) - ext static depth  [#22202](https://github.com/ccxt/ccxt/pull/22202)
+- fix(tsx) - ext static depth [#22202](https://github.com/ccxt/ccxt/pull/22202)
 - fix(bingx) - minors !Q [#22215](https://github.com/ccxt/ccxt/pull/22215)
 - fix(poloniexfutures) - ts !Q [#22212](https://github.com/ccxt/ccxt/pull/22212)
 - wazirx.handleMessage - replace.inArray with string.includes [#22166](https://github.com/ccxt/ccxt/pull/22166)
@@ -2897,7 +2761,6 @@
 - fix(hyperliquid): load spot on mainnet [#22224](https://github.com/ccxt/ccxt/pull/22224)
 - fix(hyperliquid): watchTrades spot [#22227](https://github.com/ccxt/ccxt/pull/22227)
 - build: skip-tests [#22226](https://github.com/ccxt/ccxt/pull/22226)
-
 
 ## 4.3.1
 
@@ -2913,12 +2776,11 @@
 - build: skip-tests [#22214](https://github.com/ccxt/ccxt/pull/22214)
 - fix(cryptocom): protect against unknown currencies: skip-tests [#22218](https://github.com/ccxt/ccxt/pull/22218)
 
-
 ## 4.2.100
 
 - new method: createConvertTrade [#22167](https://github.com/ccxt/ccxt/pull/22167)
 - fix(kraken): reduceOnly orders over WS [#22185](https://github.com/ccxt/ccxt/pull/22185)
-- feat(cs): add ed25519  [#22183](https://github.com/ccxt/ccxt/pull/22183)
+- feat(cs): add ed25519 [#22183](https://github.com/ccxt/ccxt/pull/22183)
 - fix(bingx): fetchMyLiquidations [#22186](https://github.com/ccxt/ccxt/pull/22186)
 - feat(npmignore): rewrite npmignore [#22174](https://github.com/ccxt/ccxt/pull/22174)
 - docs(kucoin): update some @see links [#22192](https://github.com/ccxt/ccxt/pull/22192)
@@ -2927,14 +2789,12 @@
 - fix(kucoin) - commoncurrencies handled [#22188](https://github.com/ccxt/ccxt/pull/22188)
 - fix(docs) - commoncurrencies [#22198](https://github.com/ccxt/ccxt/pull/22198)
 
-
 ## 4.2.99
 
 - kucoin replacing safeValue to safeDict/List/Bool [#22159](https://github.com/ccxt/ccxt/pull/22159)
 - fix(cs) - RL cost and proper headers handling [#22172](https://github.com/ccxt/ccxt/pull/22172)
 - fix(c#) - throttler [#22177](https://github.com/ccxt/ccxt/pull/22177)
 - ascendex error remapping [#22173](https://github.com/ccxt/ccxt/pull/22173)
-
 
 ## 4.2.98
 
@@ -2944,11 +2804,9 @@
 - build: skip-tests [ci-deploy] [#22163](https://github.com/ccxt/ccxt/pull/22163)
 - build: skip-tests [ci-deploy] [#22168](https://github.com/ccxt/ccxt/pull/22168)
 
-
 ## 4.2.97
 
 - fix(thotler.cs): fix #22141 [#22154](https://github.com/ccxt/ccxt/pull/22154)
-
 
 ## 4.2.96
 
@@ -2961,7 +2819,6 @@
 - fix(deribit): fetchTickers code refactoring [#22149](https://github.com/ccxt/ccxt/pull/22149)
 - build: skip-tests [#22147](https://github.com/ccxt/ccxt/pull/22147)
 
-
 ## 4.2.95
 
 - fix(OrderBookSide): @typescript-eslint/parser 7.6.0 errors on wrong order [#22128](https://github.com/ccxt/ccxt/pull/22128)
@@ -2972,7 +2829,6 @@
 - feat(Coinbase): perpetuals support [#22102](https://github.com/ccxt/ccxt/pull/22102)
 - fix(gemini): conflicting market [#22135](https://github.com/ccxt/ccxt/pull/22135)
 - build: skip-tests [#22137](https://github.com/ccxt/ccxt/pull/22137)
-
 
 ## 4.2.94
 
@@ -2987,7 +2843,6 @@
 - Okx replacing safeValue [#22078](https://github.com/ccxt/ccxt/pull/22078)
 - build: skip-tests [#22126](https://github.com/ccxt/ccxt/pull/22126)
 
-
 ## 4.2.93
 
 - new method: fetchConvertQuote [#22055](https://github.com/ccxt/ccxt/pull/22055)
@@ -3000,13 +2855,11 @@
 - fix(Kucoin): read watchTicker's method from config [#22109](https://github.com/ccxt/ccxt/pull/22109)
 - build: skip-tests [#22111](https://github.com/ccxt/ccxt/pull/22111)
 
-
 ## 4.2.92
 
 - feat(probit): fetchDepositsWithdrawals [#22096](https://github.com/ccxt/ccxt/pull/22096)
 - encode types [#22097](https://github.com/ccxt/ccxt/pull/22097)
 - refactor(exchange): parseLeverageTiers accepts either a dictionary or an array [#22099](https://github.com/ccxt/ccxt/pull/22099)
-
 
 ## 4.2.91
 
@@ -3016,19 +2869,17 @@
 - fix(base) - convertMarketIdExpireDate [#22026](https://github.com/ccxt/ccxt/pull/22026)
 - build: skip-tests [#22094](https://github.com/ccxt/ccxt/pull/22094)
 
-
 ## 4.2.90
 
-- fix(gemini): replace * when fetch market from web [#22068](https://github.com/ccxt/ccxt/pull/22068)
+- fix(gemini): replace \* when fetch market from web [#22068](https://github.com/ccxt/ccxt/pull/22068)
 - fix(kucoinfutures) - fix sub [#22061](https://github.com/ccxt/ccxt/pull/22061)
 - feat(coinbase): add clientorderid prefix [#22071](https://github.com/ccxt/ccxt/pull/22071)
 - feat(kucoin) - watchBidsAsks [#22050](https://github.com/ccxt/ccxt/pull/22050)
 - Okx replacing safeValue to safeBool/Dict/List [#22052](https://github.com/ccxt/ccxt/pull/22052)
 - fix(Exchange): parseToInt string conversion and Crc32 fix [#22082](https://github.com/ccxt/ccxt/pull/22082)
 - feat(bimex): add watchTradesForSymbols [#22080](https://github.com/ccxt/ccxt/pull/22080)
-- revert commonCurrencyCode & fix fDWF currencies  [#22079](https://github.com/ccxt/ccxt/pull/22079)
+- revert commonCurrencyCode & fix fDWF currencies [#22079](https://github.com/ccxt/ccxt/pull/22079)
 - chore: update changelog skip-tests [#22081](https://github.com/ccxt/ccxt/pull/22081)
-
 
 ## 4.2.89
 
@@ -3039,7 +2890,6 @@
 - feat(kucoinfutures): add fetchOpenOrders explicitly [#22059](https://github.com/ccxt/ccxt/pull/22059)
 - coinbase - auth migration [#21817](https://github.com/ccxt/ccxt/pull/21817)
 - build: skip-tests [#22060](https://github.com/ccxt/ccxt/pull/22060)
-
 
 ## 4.2.88
 
@@ -3054,7 +2904,6 @@
 - fix(bitget): watchBalance spot margin [#22040](https://github.com/ccxt/ccxt/pull/22040)
 - fix: common_currency_code python tranpilation no longer causes error 'AttributeError: list object has no attribute "values"' [#22043](https://github.com/ccxt/ccxt/pull/22043)
 - build: skip-tests [#22045](https://github.com/ccxt/ccxt/pull/22045)
-
 
 ## 4.2.87
 
@@ -3076,7 +2925,6 @@
 - krakenfutures - fix markets contractSize [#22012](https://github.com/ccxt/ccxt/pull/22012)
 - build: skip-tests [#22030](https://github.com/ccxt/ccxt/pull/22030)
 
-
 ## 4.2.86
 
 - chore: test files param types [#21622](https://github.com/ccxt/ccxt/pull/21622)
@@ -3091,29 +2939,27 @@
 - fix(bitmex) - skip !Q [#21990](https://github.com/ccxt/ccxt/pull/21990)
 - fix(tests) - types for skippedProps [#21984](https://github.com/ccxt/ccxt/pull/21984)
 - fix(c#) - close sync output [#21983](https://github.com/ccxt/ccxt/pull/21983)
-- tests & fetchOHLCV - fix across multiple exchanges  [#21958](https://github.com/ccxt/ccxt/pull/21958)
+- tests & fetchOHLCV - fix across multiple exchanges [#21958](https://github.com/ccxt/ccxt/pull/21958)
 - feat(benchmark): add script to benchmark all languages [#21987](https://github.com/ccxt/ccxt/pull/21987)
 - fix(kucoin): watchOrderBook in php [#21998](https://github.com/ccxt/ccxt/pull/21998)
 - feat(hyperliquid): add spot fees [#22000](https://github.com/ccxt/ccxt/pull/22000)
 - build: skip-tests [#21999](https://github.com/ccxt/ccxt/pull/21999)
 
-
 ## 4.2.85
 
 - fix - exceptions [#21953](https://github.com/ccxt/ccxt/pull/21953)
-- fix(okcoin) - ohlcv limits  [#21949](https://github.com/ccxt/ccxt/pull/21949)
+- fix(okcoin) - ohlcv limits [#21949](https://github.com/ccxt/ccxt/pull/21949)
 - fix(coinmetro) - spread skip !Q [#21950](https://github.com/ccxt/ccxt/pull/21950)
 - fix(bingx): fetchPosition - notional and collateral values [#21954](https://github.com/ccxt/ccxt/pull/21954)
 - coinex: v2, add endpoints, adjust sign [#21956](https://github.com/ccxt/ccxt/pull/21956)
 - fix(bingx): handle swap cost/amount properly [#21962](https://github.com/ccxt/ccxt/pull/21962)
-- fix(Crypto.cs):  uniformly handling byte[] request parameter [#21961](https://github.com/ccxt/ccxt/pull/21961)
+- fix(Crypto.cs): uniformly handling byte[] request parameter [#21961](https://github.com/ccxt/ccxt/pull/21961)
 - TypeScript types [#21928](https://github.com/ccxt/ccxt/pull/21928)
 - fix(future.cs): check if task is completed successfully [#21963](https://github.com/ccxt/ccxt/pull/21963)
 - fix(bingx): static tests markets [#21965](https://github.com/ccxt/ccxt/pull/21965)
 - fix(bitget): watchBalance in C# [#21964](https://github.com/ccxt/ccxt/pull/21964)
 - fix(Exchange.cs): ws ping [#21967](https://github.com/ccxt/ccxt/pull/21967)
 - build: skip-tests [#21968](https://github.com/ccxt/ccxt/pull/21968)
-
 
 ## 4.2.84
 
@@ -3136,7 +2982,6 @@
 - removal `fetchFundingFee/s` [#14675](https://github.com/ccxt/ccxt/pull/14675)
 - build: skip-tests [#21951](https://github.com/ccxt/ccxt/pull/21951)
 
-
 ## 4.2.83
 
 - fix(test) - contractSize for contracts [#21914](https://github.com/ccxt/ccxt/pull/21914)
@@ -3145,7 +2990,6 @@
 - fix(bitget) - fetchTickers [#21921](https://github.com/ccxt/ccxt/pull/21921)
 - bybit: update [#21929](https://github.com/ccxt/ccxt/pull/21929)
 - htx - fetchtickers minor comments <Q [#21919](https://github.com/ccxt/ccxt/pull/21919)
-
 
 ## 4.2.82
 
@@ -3166,7 +3010,6 @@
 - fix(krakenfutures) - skip contractSize [#21916](https://github.com/ccxt/ccxt/pull/21916)
 - feat(deribit): fetchOHLCV pagination [#21917](https://github.com/ccxt/ccxt/pull/21917)
 
-
 ## 4.2.81
 
 - deribit: parseOption fix currency code bug [#21888](https://github.com/ccxt/ccxt/pull/21888)
@@ -3176,7 +3019,6 @@
 - fix(hyperliquid): reduceOnly order [#21890](https://github.com/ccxt/ccxt/pull/21890)
 - fix(hyperliquid): handlePublicAddress empty handling [#21891](https://github.com/ccxt/ccxt/pull/21891)
 
-
 ## 4.2.80
 
 - binance: add fetchOption [#21877](https://github.com/ccxt/ccxt/pull/21877)
@@ -3185,11 +3027,10 @@
 - fix(okx): withdraw password requirement removal [#21882](https://github.com/ccxt/ccxt/pull/21882)
 - okx - fetchtickers updates [#21871](https://github.com/ccxt/ccxt/pull/21871)
 
-
 ## 4.2.79
 
 - chore(exchange): marketIds, marketSymbols, marketCodes parameter type [#21761](https://github.com/ccxt/ccxt/pull/21761)
-- tests  - symbols selection [#21366](https://github.com/ccxt/ccxt/pull/21366)
+- tests - symbols selection [#21366](https://github.com/ccxt/ccxt/pull/21366)
 - chore(binance): isInverse, isLinear - param types [#21606](https://github.com/ccxt/ccxt/pull/21606)
 - phemex watchMultiple - set to false [#21490](https://github.com/ccxt/ccxt/pull/21490)
 - fix(gate): edit swap sell orders [#21863](https://github.com/ccxt/ccxt/pull/21863)
@@ -3201,7 +3042,6 @@
 - fix(cs): make this.options thread-safe [#21870](https://github.com/ccxt/ccxt/pull/21870)
 - bingx - zero contractSize <Q [#21873](https://github.com/ccxt/ccxt/pull/21873)
 - build: skip-tests [#21872](https://github.com/ccxt/ccxt/pull/21872)
-
 
 ## 4.2.78
 
@@ -3218,7 +3058,6 @@
 - fix(gate): swap edit order amount [#21859](https://github.com/ccxt/ccxt/pull/21859)
 - build: skip-tests [#21858](https://github.com/ccxt/ccxt/pull/21858)
 
-
 ## 4.2.77
 
 - fix(gateio): add loan endpoint for gateio [#21822](https://github.com/ccxt/ccxt/pull/21822)
@@ -3234,7 +3073,6 @@
 - fix(cs): make this.clients threadSafe [#21838](https://github.com/ccxt/ccxt/pull/21838)
 - fix(bybit): add maxNotional in fetchLeverageTiers [#21828](https://github.com/ccxt/ccxt/pull/21828)
 - build: skip-tests [#21839](https://github.com/ccxt/ccxt/pull/21839)
-
 
 ## 4.2.76
 
@@ -3261,21 +3099,19 @@
 - fix(coinbase): increase pagination maxEntriesPerRequest [#21816](https://github.com/ccxt/ccxt/pull/21816)
 - build: skip-tests [#21813](https://github.com/ccxt/ccxt/pull/21813)
 
-
 ## 4.2.75
 
 - bingx: minor update [#21772](https://github.com/ccxt/ccxt/pull/21772)
 - fix(coinbaseinternational): rename errors to exceptions [#21779](https://github.com/ccxt/ccxt/pull/21779)
 - binance: add apis [#21771](https://github.com/ccxt/ccxt/pull/21771)
 - feat(coinbase): add pagination in fetchLedger [#21769](https://github.com/ccxt/ccxt/pull/21769)
-- fix(tests) -  skip maintenance failures [#21773](https://github.com/ccxt/ccxt/pull/21773)
+- fix(tests) - skip maintenance failures [#21773](https://github.com/ccxt/ccxt/pull/21773)
 - bybit: update doc [#21775](https://github.com/ccxt/ccxt/pull/21775)
 - gate: update doc [#21776](https://github.com/ccxt/ccxt/pull/21776)
 - htx: update doc [#21777](https://github.com/ccxt/ccxt/pull/21777)
 - binance: update doc [#21778](https://github.com/ccxt/ccxt/pull/21778)
 - fix(bybit): infer trade symbol correctly [#21781](https://github.com/ccxt/ccxt/pull/21781)
 - build: skip-tests [#21782](https://github.com/ccxt/ccxt/pull/21782)
-
 
 ## 4.2.74
 
@@ -3289,7 +3125,6 @@
 - chore: added type AccountStructure to be returned by fetchAccounts [#21708](https://github.com/ccxt/ccxt/pull/21708)
 - feat(tradeogre): add exchange [#21767](https://github.com/ccxt/ccxt/pull/21767)
 
-
 ## 4.2.73
 
 - fix(bitget) - fetchOHLCV [#21724](https://github.com/ccxt/ccxt/pull/21724)
@@ -3297,13 +3132,12 @@
 - feat(cli): add ccxt global command and raw, update docs [#21733](https://github.com/ccxt/ccxt/pull/21733)
 - fix(coinbaseinternational): update link [#21742](https://github.com/ccxt/ccxt/pull/21742)
 - fix(huobi) - fetchOHLCV [#21686](https://github.com/ccxt/ccxt/pull/21686)
-- fix(krakenfutures) - watchTrades reverse timestamp  [#21744](https://github.com/ccxt/ccxt/pull/21744)
+- fix(krakenfutures) - watchTrades reverse timestamp [#21744](https://github.com/ccxt/ccxt/pull/21744)
 - fix(hyperliquid): precision fix [#21745](https://github.com/ccxt/ccxt/pull/21745)
 - feat(bybit): add fetchLeverageTiers [#21747](https://github.com/ccxt/ccxt/pull/21747)
 - skips - reorg [#21722](https://github.com/ccxt/ccxt/pull/21722)
 - fix(hyperliquid): market orders price precision after slippage [#21748](https://github.com/ccxt/ccxt/pull/21748)
 - build: skip-tests [ci deploy] [#21746](https://github.com/ccxt/ccxt/pull/21746)
-
 
 ## 4.2.72
 
@@ -3316,7 +3150,6 @@
 - btcturk: update timeframes [#21740](https://github.com/ccxt/ccxt/pull/21740)
 - build: skip-tests [ci deploy] [#21738](https://github.com/ccxt/ccxt/pull/21738)
 
-
 ## 4.2.71
 
 - ascendex: add fetchMarginMode and fetchMarginModes [#21719](https://github.com/ccxt/ccxt/pull/21719)
@@ -3326,7 +3159,6 @@
 - bingx: add keepAliveListenKey [#21710](https://github.com/ccxt/ccxt/pull/21710)
 - CLI.md: fixed a few minor typos [#21720](https://github.com/ccxt/ccxt/pull/21720)
 - fix(hitbtc) handle new orderbook snapshot correctly [#21723](https://github.com/ccxt/ccxt/pull/21723)
-
 
 ## 4.2.70
 
@@ -3344,7 +3176,6 @@
 - fix(ascendex) - skip currency-id [QUICK] [#21703](https://github.com/ccxt/ccxt/pull/21703)
 - build: skip-tests [#21706](https://github.com/ccxt/ccxt/pull/21706)
 
-
 ## 4.2.69
 
 - gate: add fetchLeverage and fetchLeverages [#21692](https://github.com/ccxt/ccxt/pull/21692)
@@ -3352,7 +3183,6 @@
 - fix(bitmart) - skip currencyid [#21689](https://github.com/ccxt/ccxt/pull/21689)
 - fix(gate) - skips [#21688](https://github.com/ccxt/ccxt/pull/21688)
 - fix(kucoinfutures) - skip spread [#21687](https://github.com/ccxt/ccxt/pull/21687)
-
 
 ## 4.2.68
 
@@ -3363,12 +3193,11 @@
 - hitbtc: update errors [#21671](https://github.com/ccxt/ccxt/pull/21671)
 - fix(gemini) - fetchmarkets reorg [#21660](https://github.com/ccxt/ccxt/pull/21660)
 - Bitstamp `transfer` method added [#21214](https://github.com/ccxt/ccxt/pull/21214)
-- fix(gemini) - skipWs  [QUICK] [#21676](https://github.com/ccxt/ccxt/pull/21676)
+- fix(gemini) - skipWs [QUICK] [#21676](https://github.com/ccxt/ccxt/pull/21676)
 - build(deps): bump readthedocs-sphinx-search from 0.1.0 to 0.3.2 in /doc [#20842](https://github.com/ccxt/ccxt/pull/20842)
 - fix(gemini) - swap true [#21677](https://github.com/ccxt/ccxt/pull/21677)
 - fix(kucoin): private headers [#21680](https://github.com/ccxt/ccxt/pull/21680)
 - build: skip-tests [#21681](https://github.com/ccxt/ccxt/pull/21681)
-
 
 ## 4.2.67
 
@@ -3378,7 +3207,6 @@
 - krakenfutures - add historical fetchTrades [#21657](https://github.com/ccxt/ccxt/pull/21657)
 - build: skip-tests [ci deploy] [#21662](https://github.com/ccxt/ccxt/pull/21662)
 
-
 ## 4.2.66
 
 - feat(staticTests): add new public request tests [#21639](https://github.com/ccxt/ccxt/pull/21639)
@@ -3386,20 +3214,18 @@
 - fix(exchange): patch error message when call fetchPaginatedCallDynamic [#21654](https://github.com/ccxt/ccxt/pull/21654)
 - fix build issues - 3 [QUICK] [#21655](https://github.com/ccxt/ccxt/pull/21655)
 
-
 ## 4.2.65
 
 - doc: add info in status structure [#21633](https://github.com/ccxt/ccxt/pull/21633)
 - fix(bitfinex2) - funding fees fix [QUICK] [#21632](https://github.com/ccxt/ccxt/pull/21632)
 - fix(bitget) - iteration [QUICK] [#21631](https://github.com/ccxt/ccxt/pull/21631)
 - fix(bitmart) - handling issues [#21627](https://github.com/ccxt/ccxt/pull/21627)
-- fix(bitfinex2) - trades reverse  [#21630](https://github.com/ccxt/ccxt/pull/21630)
+- fix(bitfinex2) - trades reverse [#21630](https://github.com/ccxt/ccxt/pull/21630)
 - fix(transpiler) - reverse [#21629](https://github.com/ccxt/ccxt/pull/21629)
 - bitget: minor update [#21636](https://github.com/ccxt/ccxt/pull/21636)
 - fix(hitbtc): ohlcv since [#21648](https://github.com/ccxt/ccxt/pull/21648)
 - fix(bigone): createOrder [#21649](https://github.com/ccxt/ccxt/pull/21649)
 - build: skip-tests [#21647](https://github.com/ccxt/ccxt/pull/21647)
-
 
 ## 4.2.64
 
@@ -3407,7 +3233,7 @@
 - blofin: add fetchMarginMode [#21600](https://github.com/ccxt/ccxt/pull/21600)
 - delta: add fetchMarginMode [#21601](https://github.com/ccxt/ccxt/pull/21601)
 - docs(exchange, btcmarkets): calculateFee docstring [#21604](https://github.com/ccxt/ccxt/pull/21604)
-- some issues  [#21594](https://github.com/ccxt/ccxt/pull/21594)
+- some issues [#21594](https://github.com/ccxt/ccxt/pull/21594)
 - kucoin: add exchange broker implicit API endpoints [#21602](https://github.com/ccxt/ccxt/pull/21602)
 - base/types.ts remove extra space [#21609](https://github.com/ccxt/ccxt/pull/21609)
 - chore: setSandboxMode - parameter types [#21610](https://github.com/ccxt/ccxt/pull/21610)
@@ -3424,7 +3250,6 @@
 - fix(currencycom) - handle trades [QUICK] [#21624](https://github.com/ccxt/ccxt/pull/21624)
 - fix(bitmex): fetchFundingRateHistory reverse [#21628](https://github.com/ccxt/ccxt/pull/21628)
 - build: skip-tests [#21621](https://github.com/ccxt/ccxt/pull/21621)
-
 
 ## 4.2.63
 
@@ -3447,20 +3272,17 @@
 - feat(krakenfutures): add account-log endpoint [#21592](https://github.com/ccxt/ccxt/pull/21592)
 - build: skip-tests [#21590](https://github.com/ccxt/ccxt/pull/21590)
 
-
 ## 4.2.62
 
 - fix(setup): add python file [ci deploy] skip-tests [#21572](https://github.com/ccxt/ccxt/pull/21572)
 - fix python dist [#21573](https://github.com/ccxt/ccxt/pull/21573)
 
-
 ## 4.2.61
 
 - fix(hyperliquid): url image skip-tests [#21561](https://github.com/ccxt/ccxt/pull/21561)
 - fix(hyperliquid): update logo skip-tests [#21563](https://github.com/ccxt/ccxt/pull/21563)
-- fix(bitget) - fetchOHLCV  reorganization [#21513](https://github.com/ccxt/ccxt/pull/21513)
+- fix(bitget) - fetchOHLCV reorganization [#21513](https://github.com/ccxt/ccxt/pull/21513)
 - fix(pip): include missing json file [ci deploy] skip-tests [#21571](https://github.com/ccxt/ccxt/pull/21571)
-
 
 ## 4.2.60
 
@@ -3477,7 +3299,6 @@
 - New exchange: hyperliquid [#20590](https://github.com/ccxt/ccxt/pull/20590)
 - wazirx: update [#21556](https://github.com/ccxt/ccxt/pull/21556)
 - build: skip-tests [#21559](https://github.com/ccxt/ccxt/pull/21559)
-
 
 ## 4.2.59
 
@@ -3503,7 +3324,6 @@
 - htx parseTrade fee fix [#21540](https://github.com/ccxt/ccxt/pull/21540)
 - build: skip-tests [#21539](https://github.com/ccxt/ccxt/pull/21539)
 
-
 ## 4.2.58
 
 - fix(mexc) - ws ob nonce [#21499](https://github.com/ccxt/ccxt/pull/21499)
@@ -3519,7 +3339,6 @@
 - build: skip-tests [#21510](https://github.com/ccxt/ccxt/pull/21510)
 - feat(mexc): add delete to contentType [#21511](https://github.com/ccxt/ccxt/pull/21511)
 - build: skip-tests [#21512](https://github.com/ccxt/ccxt/pull/21512)
-
 
 ## 4.2.57
 
@@ -3537,7 +3356,6 @@
 - Fix(types.cs): info list [#21498](https://github.com/ccxt/ccxt/pull/21498)
 - build: skip-tests [#21500](https://github.com/ccxt/ccxt/pull/21500)
 
-
 ## 4.2.56
 
 - mexc: fetchLeverage [#21463](https://github.com/ccxt/ccxt/pull/21463)
@@ -3552,7 +3370,6 @@
 - feat(Exchange): type OHLCVS [#21469](https://github.com/ccxt/ccxt/pull/21469)
 - build: skip-tests [#21474](https://github.com/ccxt/ccxt/pull/21474)
 
-
 ## 4.2.55
 
 - woo: add setPositionMode [#21448](https://github.com/ccxt/ccxt/pull/21448)
@@ -3566,7 +3383,6 @@
 - fix(bitget): watchMyTrades without symbol [#21456](https://github.com/ccxt/ccxt/pull/21456)
 - build: skip-tests [ci deploy] [#21458](https://github.com/ccxt/ccxt/pull/21458)
 
-
 ## 4.2.54
 
 - okx: add error code [#21442](https://github.com/ccxt/ccxt/pull/21442)
@@ -3574,7 +3390,6 @@
 - gate: add apis, portfolio rename unified [#21443](https://github.com/ccxt/ccxt/pull/21443)
 - okx: tpOrdKind support [#21434](https://github.com/ccxt/ccxt/pull/21434)
 - few skips [#21449](https://github.com/ccxt/ccxt/pull/21449)
-
 
 ## 4.2.53
 
@@ -3586,7 +3401,6 @@
 - feat(bybit): add fetchLeverage [#21437](https://github.com/ccxt/ccxt/pull/21437)
 - feat(binance): add fetchLeverage [#21438](https://github.com/ccxt/ccxt/pull/21438)
 - build: skip onetrading [skip-tests] [#21439](https://github.com/ccxt/ccxt/pull/21439)
-
 
 ## 4.2.52
 
@@ -3614,7 +3428,6 @@
 - feat(build): add tsBuildFile [#21282](https://github.com/ccxt/ccxt/pull/21282)
 - build: skip-tests [#21428](https://github.com/ccxt/ccxt/pull/21428)
 
-
 ## 4.2.51
 
 - update changelog [#21376](https://github.com/ccxt/ccxt/pull/21376)
@@ -3635,7 +3448,6 @@
 - binance.has false methods [#21393](https://github.com/ccxt/ccxt/pull/21393)
 - build: skip-tests [#21396](https://github.com/ccxt/ccxt/pull/21396)
 
-
 ## 4.2.50
 
 - mexc: invalid content type error [#21367](https://github.com/ccxt/ccxt/pull/21367)
@@ -3646,7 +3458,6 @@
 - fix(manual): typo [#21371](https://github.com/ccxt/ccxt/pull/21371)
 - fix(bitget) - negative open [#21370](https://github.com/ccxt/ccxt/pull/21370)
 - fix build: skip-tests [#21373](https://github.com/ccxt/ccxt/pull/21373)
-
 
 ## 4.2.49
 
@@ -3664,7 +3475,6 @@
 - timex: update [#21346](https://github.com/ccxt/ccxt/pull/21346)
 - build: [skip tests] [#21350](https://github.com/ccxt/ccxt/pull/21350)
 - fix build: skip-tests [#21351](https://github.com/ccxt/ccxt/pull/21351)
-
 
 ## 4.2.48
 
@@ -3692,7 +3502,6 @@
 - fix skip-tests flag [#21326](https://github.com/ccxt/ccxt/pull/21326)
 - update skip-tests [#21327](https://github.com/ccxt/ccxt/pull/21327)
 
-
 ## 4.2.47
 
 - fix(binance): price should not be required if priceMatch is provided [#21270](https://github.com/ccxt/ccxt/pull/21270)
@@ -3701,7 +3510,6 @@
 - idex: update [#21281](https://github.com/ccxt/ccxt/pull/21281)
 - upbit: add fetchDeposit and fetchWithdrawal [#21286](https://github.com/ccxt/ccxt/pull/21286)
 - indodax: update [#21289](https://github.com/ccxt/ccxt/pull/21289)
-
 
 ## 4.2.46
 
@@ -3717,7 +3525,6 @@
 - feat(cs): add ecdsa [#21274](https://github.com/ccxt/ccxt/pull/21274)
 - fix(appveyor): bump to 8.12 [#21276](https://github.com/ccxt/ccxt/pull/21276)
 - update changelog [#21277](https://github.com/ccxt/ccxt/pull/21277)
-
 
 ## 4.2.45
 
@@ -3749,7 +3556,6 @@
 - bitfinex2 HTX mapping [#21261](https://github.com/ccxt/ccxt/pull/21261)
 - coinspot: add @see [#21259](https://github.com/ccxt/ccxt/pull/21259)
 
-
 ## 4.2.44
 
 - fix(hitbtc) watchTickers never receives updates [#21212](https://github.com/ccxt/ccxt/pull/21212)
@@ -3761,7 +3567,6 @@
 - coinbase: fetchCurrencies and fetchDepositAddressesByNetwork [#21215](https://github.com/ccxt/ccxt/pull/21215)
 - fix(bingx)!: fetchDepositAddress renamed to fetchDepositAddressesByNetwork. fetchDepositAddress reimplemented to return a single deposit address structure [#21172](https://github.com/ccxt/ccxt/pull/21172)
 - feat(exchange): fetchDepositAddress uses fetchDepositAddressesByNetwork if fetchDepositAddress is not implemented [#21217](https://github.com/ccxt/ccxt/pull/21217)
-
 
 ## 4.2.43
 
@@ -3776,7 +3581,6 @@
 - fix(coinbase): v2 methods signature [#21209](https://github.com/ccxt/ccxt/pull/21209)
 - fix build: bitflyer [#21211](https://github.com/ccxt/ccxt/pull/21211)
 
-
 ## 4.2.42
 
 - fix(binance): fetchClosedOrders limit [#21194](https://github.com/ccxt/ccxt/pull/21194)
@@ -3784,11 +3588,9 @@
 - feat(exchange): addMargin, setMargin, reduceMargin, parsePosition to return Position type" [#21197](https://github.com/ccxt/ccxt/pull/21197)
 - fix(binanceus) incorrect has-values in pro implementation [#21199](https://github.com/ccxt/ccxt/pull/21199)
 
-
 ## 4.2.41
 
 - feat(exchange): type networkIdToCode and fix usage [#21185](https://github.com/ccxt/ccxt/pull/21185)
-
 
 ## 4.2.40
 
@@ -3797,7 +3599,6 @@
 - binance: fetchMyTrades, add portfolio margin support [#21186](https://github.com/ccxt/ccxt/pull/21186)
 - binance: fetchBorrowInterest, add portfolio margin support [#21187](https://github.com/ccxt/ccxt/pull/21187)
 - fix(timestamps): replace safeNumber [#21188](https://github.com/ccxt/ccxt/pull/21188)
-
 
 ## 4.2.39
 
@@ -3823,7 +3624,6 @@
 - binance: fetchAccountPositions, add portfolio margin support [#21180](https://github.com/ccxt/ccxt/pull/21180)
 - binance: fetchFundingHistory, add portfolio margin support [#21179](https://github.com/ccxt/ccxt/pull/21179)
 
-
 ## 4.2.38
 
 - fix(mexc): watchOrderBook assigns timestamp for contract markets [#21132](https://github.com/ccxt/ccxt/pull/21132)
@@ -3847,12 +3647,10 @@
 - bitmart - subscribe multiple + watchOrderBookForSymbols [#21129](https://github.com/ccxt/ccxt/pull/21129)
 - fix(build): waves precision [ci deploy] [#21155](https://github.com/ccxt/ccxt/pull/21155)
 
-
 ## 4.2.37
 
 - feat(kucoin): watchOrderBook add level2Depth5 & level2Depth50 method [#21128](https://github.com/ccxt/ccxt/pull/21128)
 - Blofin implementation [#20371](https://github.com/ccxt/ccxt/pull/20371)
-
 
 ## 4.2.36
 
@@ -3872,7 +3670,6 @@
 - bitfinex: edit rate limit weights [#21120](https://github.com/ccxt/ccxt/pull/21120)
 - bitmex: add @see [#21127](https://github.com/ccxt/ccxt/pull/21127)
 
-
 ## 4.2.35
 
 - bitfinex: add @see [#21073](https://github.com/ccxt/ccxt/pull/21073)
@@ -3882,7 +3679,6 @@
 - fix(binance): restore ws url port [#21101](https://github.com/ccxt/ccxt/pull/21101)
 - Regression watch ticker binance [#21102](https://github.com/ccxt/ccxt/pull/21102)
 - binance: createOrder, portfolio margin support [#21105](https://github.com/ccxt/ccxt/pull/21105)
-
 
 ## 4.2.34
 
@@ -3895,7 +3691,6 @@
 - fix(Exchange.py): linting [#21096](https://github.com/ccxt/ccxt/pull/21096)
 - fix(watch) regression after c# intervention; watch for binance is broken [#21099](https://github.com/ccxt/ccxt/pull/21099)
 
-
 ## 4.2.33
 
 - Fix image [ci deploy] [#21084](https://github.com/ccxt/ccxt/pull/21084)
@@ -3904,11 +3699,9 @@
 - update package reference [ci deploy] [#21089](https://github.com/ccxt/ccxt/pull/21089)
 - fix build: skip [ci deploy] [#21094](https://github.com/ccxt/ccxt/pull/21094)
 
-
 ## 4.2.32
 
 - fix file permissions [ci deploy] [#21082](https://github.com/ccxt/ccxt/pull/21082)
-
 
 ## 4.2.31
 
@@ -3919,7 +3712,6 @@
 - fix(gate) - tickers default TZ [#21071](https://github.com/ccxt/ccxt/pull/21071)
 - fix(static): gate tests [#21075](https://github.com/ccxt/ccxt/pull/21075)
 - fix(kraken): invalid price [#21078](https://github.com/ccxt/ccxt/pull/21078)
-
 
 ## 4.2.30
 
@@ -3940,13 +3732,12 @@
 - bitfinex2: add the remaining swap support [#21064](https://github.com/ccxt/ccxt/pull/21064)
 - fix(htx) - order parsing and tests [#21060](https://github.com/ccxt/ccxt/pull/21060)
 
-
 ## 4.2.29
 
 - feat(coinbase) - fetchBidsAsks - multi symbol arguments support [#21021](https://github.com/ccxt/ccxt/pull/21021)
 - bitget has [#21026](https://github.com/ccxt/ccxt/pull/21026)
 - feat(coinbase) - fetchtickers with multi symbols support [#21022](https://github.com/ccxt/ccxt/pull/21022)
-- base - exception handling  [#19649](https://github.com/ccxt/ccxt/pull/19649)
+- base - exception handling [#19649](https://github.com/ccxt/ccxt/pull/19649)
 - Bitfinex2: update createOrder [#21028](https://github.com/ccxt/ccxt/pull/21028)
 - fix(hitbtc): reduceMargin, addMargin, can set marginMode [#21025](https://github.com/ccxt/ccxt/pull/21025)
 - fix(exceptions) - Move OperationRejected, NoChange and MarginModeAlreadySet out of BadRequest [#21035](https://github.com/ccxt/ccxt/pull/21035)
@@ -3961,7 +3752,6 @@
 - fix(bybit): set-collateral-switch and set-collateral-switch-batch are both POST [#21039](https://github.com/ccxt/ccxt/pull/21039)
 - build: skip fetchTickers [#21056](https://github.com/ccxt/ccxt/pull/21056)
 
-
 ## 4.2.28
 
 - feat(okx): add full ob endpoint [#21013](https://github.com/ccxt/ccxt/pull/21013)
@@ -3973,7 +3763,6 @@
 - fix(coinbase) - watchTickers for all markets [#21020](https://github.com/ccxt/ccxt/pull/21020)
 - coinmetro header update [#21023](https://github.com/ccxt/ccxt/pull/21023)
 
-
 ## 4.2.27
 
 - feat(Exchange): add class tag [#21001](https://github.com/ccxt/ccxt/pull/21001)
@@ -3981,7 +3770,6 @@
 - has["cancelAllOrders"] [#21005](https://github.com/ccxt/ccxt/pull/21005)
 - Bitfinex2: setMargin [#21008](https://github.com/ccxt/ccxt/pull/21008)
 - bitfinex2: fetchBalance, debt field [#21009](https://github.com/ccxt/ccxt/pull/21009)
-
 
 ## 4.2.26
 
@@ -3991,7 +3779,6 @@
 - Coinmetro integration [ci deploy] [#20297](https://github.com/ccxt/ccxt/pull/20297)
 - fix Static tests [ci deploy] [#20999](https://github.com/ccxt/ccxt/pull/20999)
 
-
 ## 4.2.25
 
 - fix(ws): freezing eror [#20988](https://github.com/ccxt/ccxt/pull/20988)
@@ -3999,12 +3786,10 @@
 - bingx: add watchTicker [#20995](https://github.com/ccxt/ccxt/pull/20995)
 - bingx: add fetchMarkOHLCV [#20994](https://github.com/ccxt/ccxt/pull/20994)
 
-
 ## 4.2.24
 
 - Bitfinex2: fetchLiquidations [#20989](https://github.com/ccxt/ccxt/pull/20989)
 - fix(gate): parse web trade id [#20987](https://github.com/ccxt/ccxt/pull/20987)
-
 
 ## 4.2.23
 
@@ -4013,7 +3798,6 @@
 - bitopro: add watchMyTrades [#20950](https://github.com/ccxt/ccxt/pull/20950)
 - Wrong class on error Bingx [#20979](https://github.com/ccxt/ccxt/pull/20979)
 - fix(phemex): position parsing [#20985](https://github.com/ccxt/ccxt/pull/20985)
-
 
 ## 4.2.22
 
@@ -4025,7 +3809,6 @@
 - feat(phemex): add endpoint to fetchPositions [#20976](https://github.com/ccxt/ccxt/pull/20976)
 - feat(coinex): add history endpoint to fetchPositions [#20975](https://github.com/ccxt/ccxt/pull/20975)
 - feat(hitbtcPro): add sandbox mode [#20978](https://github.com/ccxt/ccxt/pull/20978)
-
 
 ## 4.2.21
 
@@ -4051,7 +3834,6 @@
 - fix(build): poloniex skip tickers build [#20963](https://github.com/ccxt/ccxt/pull/20963)
 - feat(bybit): improve market orders for UTA [#20965](https://github.com/ccxt/ccxt/pull/20965)
 
-
 ## 4.2.20
 
 - feat(bitvavo): ws trading [#18629](https://github.com/ccxt/ccxt/pull/18629)
@@ -4066,7 +3848,6 @@
 - fix(phemex): editOrder & static-tests [#20927](https://github.com/ccxt/ccxt/pull/20927)
 - fix(tests) - timeouts [#20921](https://github.com/ccxt/ccxt/pull/20921)
 
-
 ## 4.2.19
 
 - BingX New error parsed to InsufficientFunds [#20901](https://github.com/ccxt/ccxt/pull/20901)
@@ -4077,7 +3858,6 @@
 - fix(binanceus) - rate limits [#20908](https://github.com/ccxt/ccxt/pull/20908)
 - Bitrue fix build [#20915](https://github.com/ccxt/ccxt/pull/20915)
 - fix(kucoinfutures) - fix funding value [#20899](https://github.com/ccxt/ccxt/pull/20899)
-
 
 ## 4.2.18
 
@@ -4105,13 +3885,12 @@
 - feat(onetrading): rename from bitpanda [#20739](https://github.com/ccxt/ccxt/pull/20739)
 - feat(bitpanda): add alias [#20898](https://github.com/ccxt/ccxt/pull/20898)
 
-
 ## 4.2.17
 
 - feat(coincheck): add pro [#20846](https://github.com/ccxt/ccxt/pull/20846)
 - Bybit: edit cancelAllOrders orderFilter param [#20844](https://github.com/ccxt/ccxt/pull/20844)
 - fix(cryptocom): remove this as any [#20851](https://github.com/ccxt/ccxt/pull/20851)
-- feat(tests) - test WatchTickers &  test fetchTickers updates (single & multi symbol tests) [#20622](https://github.com/ccxt/ccxt/pull/20622)
+- feat(tests) - test WatchTickers & test fetchTickers updates (single & multi symbol tests) [#20622](https://github.com/ccxt/ccxt/pull/20622)
 - bitget: allow books1 channel in watchOrderBookForSymbols [#20850](https://github.com/ccxt/ccxt/pull/20850)
 - fix(BinanceWs): stream limits reading [#20852](https://github.com/ccxt/ccxt/pull/20852)
 - fix(poloniexfutures, kucoin, kucoinfutures): wrap negotiate in try catch and add future to transpile, fix #20835 [#20843](https://github.com/ccxt/ccxt/pull/20843)
@@ -4124,7 +3903,6 @@
 - feat(bingx): add fetchFundingRates [#20864](https://github.com/ccxt/ccxt/pull/20864)
 - Bybit: adjust stop handling for fetchMyTrades, fetchOrders and fetchOpenOrders [#20856](https://github.com/ccxt/ccxt/pull/20856)
 
-
 ## 4.2.16
 
 - feat(binance): add spot/delist-schedule [#20834](https://github.com/ccxt/ccxt/pull/20834)
@@ -4134,7 +3912,6 @@
 - fix(poloniex) - watchTickers multi dict [#20841](https://github.com/ccxt/ccxt/pull/20841)
 - fix(coinsph) - fetchtrades [#20847](https://github.com/ccxt/ccxt/pull/20847)
 - coinlist: add apis [#20848](https://github.com/ccxt/ccxt/pull/20848)
-
 
 ## 4.2.15
 
@@ -4147,13 +3924,11 @@
 - feat(coinone): add ws apis [#20824](https://github.com/ccxt/ccxt/pull/20824)
 - fix(krakenfutures) - watchTickers multi symbols [#20833](https://github.com/ccxt/ccxt/pull/20833)
 
-
 ## 4.2.14
 
 - HTX: correct the status for partially filled orders [#20822](https://github.com/ccxt/ccxt/pull/20822)
 - fix(kraken): takeProfit/stopLoss parsing [#20821](https://github.com/ccxt/ccxt/pull/20821)
 - feat(woo): watchPositions, fix #20790 [#20823](https://github.com/ccxt/ccxt/pull/20823)
-
 
 ## 4.2.13
 
@@ -4169,7 +3944,6 @@
 - fix(kraken): remove reduceOnly [#20819](https://github.com/ccxt/ccxt/pull/20819)
 - exchange: stop, stop loss and take profit functions [#20442](https://github.com/ccxt/ccxt/pull/20442)
 - fix(tests): import [#20820](https://github.com/ccxt/ccxt/pull/20820)
-
 
 ## 4.2.12
 
@@ -4201,11 +3975,10 @@
 - Coinbase: withdraw [#20796](https://github.com/ccxt/ccxt/pull/20796)
 - fix(bitget): historical endpoint until parameter [#20804](https://github.com/ccxt/ccxt/pull/20804)
 
-
 ## 4.2.11
 
 - feat(tests): add assertion key to static messages [#20741](https://github.com/ccxt/ccxt/pull/20741)
-- Alpaca Fees Update  [#20740](https://github.com/ccxt/ccxt/pull/20740)
+- Alpaca Fees Update [#20740](https://github.com/ccxt/ccxt/pull/20740)
 - feat(js) - load modules async [#20685](https://github.com/ccxt/ccxt/pull/20685)
 - bybit: add apis [#20758](https://github.com/ccxt/ccxt/pull/20758)
 - gate: add apis [#20746](https://github.com/ccxt/ccxt/pull/20746)
@@ -4233,16 +4006,14 @@
 - fix(Exchange): watchTickers return type [#20763](https://github.com/ccxt/ccxt/pull/20763)
 - fix(build): run php static tests [#20767](https://github.com/ccxt/ccxt/pull/20767)
 
-
 ## 4.2.10
 
 - Bybit: fix fetchCurrencies RateLimitExceeded error [#20731](https://github.com/ccxt/ccxt/pull/20731)
-- useProxy flag in tests  [#20706](https://github.com/ccxt/ccxt/pull/20706)
+- useProxy flag in tests [#20706](https://github.com/ccxt/ccxt/pull/20706)
 - Bitget: createOrder, one way mode orders [#20732](https://github.com/ccxt/ccxt/pull/20732)
 - feat(kucoin): add hf support to fetchBalance and fetchLedger [#20733](https://github.com/ccxt/ccxt/pull/20733)
 - fix(tests) - useProxy py [#20736](https://github.com/ccxt/ccxt/pull/20736)
 - fix(bingx): tp/sl orders parsing [#20738](https://github.com/ccxt/ccxt/pull/20738)
-
 
 ## 4.2.9
 
@@ -4254,7 +4025,6 @@
 - fix(coibnasepro) - watch tickers filter [#20699](https://github.com/ccxt/ccxt/pull/20699)
 - feat(binance): provide symbols to spot fetchBidsAsks [#20726](https://github.com/ccxt/ccxt/pull/20726)
 
-
 ## 4.2.8
 
 - fix(binance): watchTickers hotfix [#20710](https://github.com/ccxt/ccxt/pull/20710)
@@ -4263,7 +4033,6 @@
 - fix(bitget) - watch tickers filter [#20695](https://github.com/ccxt/ccxt/pull/20695)
 - fix(bybit) - watch tickers filter [#20697](https://github.com/ccxt/ccxt/pull/20697)
 - fix(bitmart): watchTickers hot fix [#20711](https://github.com/ccxt/ccxt/pull/20711)
-
 
 ## 4.2.7
 
@@ -4278,14 +4047,12 @@
 - Binance: createOrder, trailingPercent orders [#20672](https://github.com/ccxt/ccxt/pull/20672)
 - fix test: disable bingx test [#20709](https://github.com/ccxt/ccxt/pull/20709)
 
-
 ## 4.2.6
 
 - feat(phemex): update id [#20675](https://github.com/ccxt/ccxt/pull/20675)
 - fix(php) - clone deep extend [#20676](https://github.com/ccxt/ccxt/pull/20676)
 - fix(py) - timeout [#20678](https://github.com/ccxt/ccxt/pull/20678)
 - bitmex new endpoints [#20488](https://github.com/ccxt/ccxt/pull/20488)
-
 
 ## 4.2.5
 
@@ -4294,7 +4061,6 @@
 - feat(bingx): add clientOrderId to cancelOrder [#20666](https://github.com/ccxt/ccxt/pull/20666)
 - Woo: createOrder, fetchOrders, editOrder trailing support [#20656](https://github.com/ccxt/ccxt/pull/20656)
 - feat(exchange.close()): have exchange.close() close any pending watch functions with an ExchangeClosedByUser error [#20609](https://github.com/ccxt/ccxt/pull/20609)
-
 
 ## 4.2.4
 
@@ -4313,7 +4079,6 @@
 - fix(bingx): clientOrderId handling [#20661](https://github.com/ccxt/ccxt/pull/20661)
 - phemex error mapping [#20660](https://github.com/ccxt/ccxt/pull/20660)
 
-
 ## 4.2.3
 
 - fix(Exchange): skip proxies loading on the browser [#20621](https://github.com/ccxt/ccxt/pull/20621)
@@ -4325,7 +4090,6 @@
 - HTX: trailing percent orders [#20625](https://github.com/ccxt/ccxt/pull/20625)
 - feat(okx): add support to privateGetTradeOrdersHistoryArchive [#20633](https://github.com/ccxt/ccxt/pull/20633)
 
-
 ## 4.2.2
 
 - feat(BingxPro): extend listen Key [#20602](https://github.com/ccxt/ccxt/pull/20602)
@@ -4336,7 +4100,6 @@
 - feat(bingx): unify tp/sl type 3 [#20611](https://github.com/ccxt/ccxt/pull/20611)
 - feat(IdTests): add bingx [#20614](https://github.com/ccxt/ccxt/pull/20614)
 - feat(bingx): add clientOrderIds to cancelOrders [#20618](https://github.com/ccxt/ccxt/pull/20618)
-
 
 ## 4.2.1
 
@@ -4352,7 +4115,6 @@
 - disable proxy tests [#20595](https://github.com/ccxt/ccxt/pull/20595)
 - lykke: remove method [#20588](https://github.com/ccxt/ccxt/pull/20588)
 
-
 ## 4.1.100
 
 - feat(bitmart): watchOrderBook increase channel [#20531](https://github.com/ccxt/ccxt/pull/20531)
@@ -4366,7 +4128,6 @@
 - bitget fetchBalance fix for swap [#20558](https://github.com/ccxt/ccxt/pull/20558)
 - kucoinfutures reduceOnly parse [#20579](https://github.com/ccxt/ccxt/pull/20579)
 
-
 ## 4.1.99
 
 - fix(kucoin): reset url store when token is expired [#20525](https://github.com/ccxt/ccxt/pull/20525)
@@ -4375,7 +4136,6 @@
 - bit.team integration [#20049](https://github.com/ccxt/ccxt/pull/20049)
 - fix(okx): fetchDepositAddressesByNetwork [#20564](https://github.com/ccxt/ccxt/pull/20564)
 - fix(bitteam): remove this.number [ci deploy] [#20565](https://github.com/ccxt/ccxt/pull/20565)
-
 
 ## 4.1.98
 
@@ -4398,7 +4158,6 @@
 - feat(Exchange): emulate fetchClosedOrders [#20532](https://github.com/ccxt/ccxt/pull/20532)
 - coinex: update apis [#20549](https://github.com/ccxt/ccxt/pull/20549)
 
-
 ## 4.1.97
 
 - bitget parseTrade fix [#20507](https://github.com/ccxt/ccxt/pull/20507)
@@ -4415,7 +4174,6 @@
 - fix(bitmart): watchOrders, fix #20524 [#20529](https://github.com/ccxt/ccxt/pull/20529)
 - fix(phemex): setLeverage - can set leverage to values between -1 to -100 (for cross leverage trading) [#20537](https://github.com/ccxt/ccxt/pull/20537)
 
-
 ## 4.1.96
 
 - Static tests exception handling [#20505](https://github.com/ccxt/ccxt/pull/20505)
@@ -4424,7 +4182,6 @@
 - skipWs - bitrue [#20522](https://github.com/ccxt/ccxt/pull/20522)
 - BingX: watchOHLCV, add timestamp for swap markets [#20516](https://github.com/ccxt/ccxt/pull/20516)
 - doc: update limit for all exchanges [#20517](https://github.com/ccxt/ccxt/pull/20517)
-
 
 ## 4.1.95
 
@@ -4471,11 +4228,9 @@
 - tmp comment python env [#20511](https://github.com/ccxt/ccxt/pull/20511)
 - revert push.sh changes [#20512](https://github.com/ccxt/ccxt/pull/20512)
 
-
 ## 4.1.94
 
 - bitget: update fetchOpenOrders [#20438](https://github.com/ccxt/ccxt/pull/20438)
-
 
 ## 4.1.93
 
@@ -4485,11 +4240,9 @@
 - coinbase: add apis [#20428](https://github.com/ccxt/ccxt/pull/20428)
 - fix build: tmp disable release/changelog [#20434](https://github.com/ccxt/ccxt/pull/20434)
 
-
 ## 4.1.92
 
 - fix: travis release [#20433](https://github.com/ccxt/ccxt/pull/20433)
-
 
 ## 4.1.91
 
@@ -4506,7 +4259,6 @@
 - fix build: skip fetchStatus [#20431](https://github.com/ccxt/ccxt/pull/20431)
 - feat(binance): improve fetchTickers spot call [#20430](https://github.com/ccxt/ccxt/pull/20430)
 
-
 ## 4.1.90
 
 - kucoin revert WAXP mapping [#20402](https://github.com/ccxt/ccxt/pull/20402)
@@ -4515,7 +4267,6 @@
 - Binance: createMarketOrderWithCost methods [#20387](https://github.com/ccxt/ccxt/pull/20387)
 - phemex parseTransactions fixes [#20395](https://github.com/ccxt/ccxt/pull/20395)
 - fix(zaif): parseTicker remove timestamp from parsed data [#20405](https://github.com/ccxt/ccxt/pull/20405)
-
 
 ## 4.1.89
 
@@ -4536,7 +4287,6 @@
 - Poloniex: update createMarketBuyOrderRequiresPrice [#20384](https://github.com/ccxt/ccxt/pull/20384)
 - fix(gate): closePosition test/php side [#20401](https://github.com/ccxt/ccxt/pull/20401)
 
-
 ## 4.1.88
 
 - docs: add full changelog [#20369](https://github.com/ccxt/ccxt/pull/20369)
@@ -4549,7 +4299,6 @@
 - Bigone: createMarketBuyOrderWithCost check type [#20367](https://github.com/ccxt/ccxt/pull/20367)
 - okcoin add margin methods to has as false [#20337](https://github.com/ccxt/ccxt/pull/20337)
 - okcoin: createMarketBuyOrderRequiresPrice [#20364](https://github.com/ccxt/ccxt/pull/20364)
-
 
 ## 4.1.87
 
@@ -4567,7 +4316,6 @@
 - Cryptocom: createMarketBuyOrderRequiresPrice [#20345](https://github.com/ccxt/ccxt/pull/20345)
 - Bitget: update to v2 [#19996](https://github.com/ccxt/ccxt/pull/19996)
 
-
 ## 4.1.86
 
 - delist bittrex shutdown [#20338](https://github.com/ccxt/ccxt/pull/20338)
@@ -4578,11 +4326,10 @@
 - fix(ccxt.ts): delist coinbaseprime and coinbasepro [#20343](https://github.com/ccxt/ccxt/pull/20343)
 - Upbit: createMarketBuyOrderWithCost [#20325](https://github.com/ccxt/ccxt/pull/20325)
 
-
 ## 4.1.85
 
 - feat:add eslint for jsdocs [#20313](https://github.com/ccxt/ccxt/pull/20313)
-- Socks proxy support for Websockets  [#20319](https://github.com/ccxt/ccxt/pull/20319)
+- Socks proxy support for Websockets [#20319](https://github.com/ccxt/ccxt/pull/20319)
 - Probit: createMarketBuyOrderWithCost [#20324](https://github.com/ccxt/ccxt/pull/20324)
 - mexc: remove method usage [#20318](https://github.com/ccxt/ccxt/pull/20318)
 - kucoin delete delisted and renamed aliases [#20328](https://github.com/ccxt/ccxt/pull/20328)
@@ -4592,13 +4339,11 @@
 - fix build: skip bit2c orderbook test [#20332](https://github.com/ccxt/ccxt/pull/20332)
 - fix(bit2c) - orderbook test [#20333](https://github.com/ccxt/ccxt/pull/20333)
 
-
 ## 4.1.84
 
 - bingx: update fetchOpenOrders symbol become optional parameter [#20314](https://github.com/ccxt/ccxt/pull/20314)
-- Fix several method definitions  [#20322](https://github.com/ccxt/ccxt/pull/20322)
+- Fix several method definitions [#20322](https://github.com/ccxt/ccxt/pull/20322)
 - feat(bitmart): add websocket support for futures, and spot watchBalance [#20217](https://github.com/ccxt/ccxt/pull/20217)
-
 
 ## 4.1.83
 
@@ -4606,7 +4351,6 @@
 - Htx: createMarketBuyOrderWithCost [#20298](https://github.com/ccxt/ccxt/pull/20298)
 - Coinsph: createMarketBuyOrderWithCost [#20305](https://github.com/ccxt/ccxt/pull/20305)
 - fix(bybit): fetchPositions exchange id handling [#20312](https://github.com/ccxt/ccxt/pull/20312)
-
 
 ## 4.1.82
 
@@ -4617,7 +4361,6 @@
 - fix docs build errors [#20302](https://github.com/ccxt/ccxt/pull/20302)
 - docs: fix scrolling [#20303](https://github.com/ccxt/ccxt/pull/20303)
 - Okx close position [#20265](https://github.com/ccxt/ccxt/pull/20265)
-
 
 ## 4.1.81
 
@@ -4630,7 +4373,6 @@
 - Lbank: update documentation links [#20291](https://github.com/ccxt/ccxt/pull/20291)
 - Manual: fetchGreeks description [#20299](https://github.com/ccxt/ccxt/pull/20299)
 
-
 ## 4.1.80
 
 - whitebit: update apis [#20292](https://github.com/ccxt/ccxt/pull/20292)
@@ -4638,7 +4380,6 @@
 - bybit: add quick repay api [#20286](https://github.com/ccxt/ccxt/pull/20286)
 - Digifinex: createMarketBuyOrderWithCost [#20287](https://github.com/ccxt/ccxt/pull/20287)
 - fix(bybit): fetchTickers [#20293](https://github.com/ccxt/ccxt/pull/20293)
-
 
 ## 4.1.79
 
@@ -4651,14 +4392,12 @@
 - probit fetchCurrencies fee fix [#20264](https://github.com/ccxt/ccxt/pull/20264)
 - mexc update rateLimits [#20263](https://github.com/ccxt/ccxt/pull/20263)
 
-
 ## 4.1.78
 
 - fix(bingx) - percent sign [#20267](https://github.com/ccxt/ccxt/pull/20267)
 - coinbase: add apis [#20270](https://github.com/ccxt/ccxt/pull/20270)
 - cryptocom: add apis [#20271](https://github.com/ccxt/ccxt/pull/20271)
 - fix(ClientTrait.php): fix warning for unused code [#20269](https://github.com/ccxt/ccxt/pull/20269)
-
 
 ## 4.1.77
 
@@ -4668,7 +4407,7 @@
 - fix(okx) - removal of incorrect map (QUICK) [#20248](https://github.com/ccxt/ccxt/pull/20248)
 - gate: update apis [#20219](https://github.com/ccxt/ccxt/pull/20219)
 - fix(gate): change watchTicker optionName to 'name' [#20249](https://github.com/ccxt/ccxt/pull/20249)
-- Mexc: createMarketBuyOrderWithCost  [#20250](https://github.com/ccxt/ccxt/pull/20250)
+- Mexc: createMarketBuyOrderWithCost [#20250](https://github.com/ccxt/ccxt/pull/20250)
 - okx: add monthly statement api [#20253](https://github.com/ccxt/ccxt/pull/20253)
 - binance: add sor.order.test [#20252](https://github.com/ccxt/ccxt/pull/20252)
 - bybit: update broker apis [#20251](https://github.com/ccxt/ccxt/pull/20251)
@@ -4681,7 +4420,6 @@
 - feat(coinbase): infer fee currency [#20260](https://github.com/ccxt/ccxt/pull/20260)
 - docs(bitmart,coinmate) fetchIsolatedBorrowRate docstring fixes [#20258](https://github.com/ccxt/ccxt/pull/20258)
 
-
 ## 4.1.76
 
 - fix(gate): add 2h tf [#20232](https://github.com/ccxt/ccxt/pull/20232)
@@ -4692,7 +4430,6 @@
 - Bingx close all positions [#20241](https://github.com/ccxt/ccxt/pull/20241)
 - Coinbase: createMarketBuyOrderWithCost [#20237](https://github.com/ccxt/ccxt/pull/20237)
 - fix(okx) - ratelimit [#20231](https://github.com/ccxt/ccxt/pull/20231)
-
 
 ## 4.1.75
 
@@ -4706,7 +4443,6 @@
 - fix(errors) - inheritance fix [#20228](https://github.com/ccxt/ccxt/pull/20228)
 - remove debug from proxies [#20226](https://github.com/ccxt/ccxt/pull/20226)
 - cryptocom: remove transfer & fetchtransfer [#20221](https://github.com/ccxt/ccxt/pull/20221)
-
 
 ## 4.1.74
 
@@ -4724,7 +4460,6 @@
 - fix(Client.ts): only decompress binary messages [#20209](https://github.com/ccxt/ccxt/pull/20209)
 - Fix build kraken [#20213](https://github.com/ccxt/ccxt/pull/20213)
 
-
 ## 4.1.73
 
 - Bybit: createMarketBuyOrderRequiresPrice [#20170](https://github.com/ccxt/ccxt/pull/20170)
@@ -4735,12 +4470,10 @@
 - feat(kraken): add implicit endpoints for withdrawMethods and withdrawAddreses [#20190](https://github.com/ccxt/ccxt/pull/20190)
 - Exchange class, create market order with cost methods [#20193](https://github.com/ccxt/ccxt/pull/20193)
 
-
 ## 4.1.72
 
 - latoken: remove method [#20187](https://github.com/ccxt/ccxt/pull/20187)
 - fix(exchange): fetchDeposits and fetchWithdrawals first argument is code instead of symbol [#20183](https://github.com/ccxt/ccxt/pull/20183)
-
 
 ## 4.1.71
 
@@ -4752,7 +4485,6 @@
 - gate transaction statuses [#20177](https://github.com/ccxt/ccxt/pull/20177)
 - Coinex: createMarketBuyOrderRequiresPrice [#20169](https://github.com/ccxt/ccxt/pull/20169)
 
-
 ## 4.1.70
 
 - binance: patch watchOrders [#20163](https://github.com/ccxt/ccxt/pull/20163)
@@ -4760,11 +4492,9 @@
 - gate: remove method [#20155](https://github.com/ccxt/ccxt/pull/20155)
 - coinbase: add apis [#20168](https://github.com/ccxt/ccxt/pull/20168)
 
-
 ## 4.1.69
 
 - Coinex: createOrders, cancelOrders [#20162](https://github.com/ccxt/ccxt/pull/20162)
-
 
 ## 4.1.68
 
@@ -4776,7 +4506,6 @@
 - kuna - temproary skip [#20160](https://github.com/ccxt/ccxt/pull/20160)
 - phemex new endpoints [#20161](https://github.com/ccxt/ccxt/pull/20161)
 
-
 ## 4.1.67
 
 - fix(exchange): watch_positions_for_symbols returning coroutine error [#20136](https://github.com/ccxt/ccxt/pull/20136)
@@ -4787,19 +4516,16 @@
 - fix(transpile): add missing functions [#20148](https://github.com/ccxt/ccxt/pull/20148)
 - exchange: patch safeTicker [#20151](https://github.com/ccxt/ccxt/pull/20151)
 
-
 ## 4.1.66
 
 - feat(coinbase): increase balance limit and stastic tests [#20130](https://github.com/ccxt/ccxt/pull/20130)
 - fix(bingx): copyTrading api [#20135](https://github.com/ccxt/ccxt/pull/20135)
 - base - add `subType` in markets [#18425](https://github.com/ccxt/ccxt/pull/18425)
 
-
 ## 4.1.65
 
 - fix(gate): conflicting markets handling [#20129](https://github.com/ccxt/ccxt/pull/20129)
 - proxy unification for WebSockets & reorganize for REST [#19360](https://github.com/ccxt/ccxt/pull/19360)
-
 
 ## 4.1.64
 
@@ -4812,7 +4538,6 @@
 - fix(luno): remove await from this.checkRequiredCredentials (); [#20120](https://github.com/ccxt/ccxt/pull/20120)
 - fix(PHP): array type [#20126](https://github.com/ccxt/ccxt/pull/20126)
 
-
 ## 4.1.63
 
 - phemex: update apis [#20102](https://github.com/ccxt/ccxt/pull/20102)
@@ -4824,7 +4549,6 @@
 - binanceus margin,swap,future,option:has [#20111](https://github.com/ccxt/ccxt/pull/20111)
 - luno: remove method usage [#20112](https://github.com/ccxt/ccxt/pull/20112)
 
-
 ## 4.1.62
 
 - alpaca: update apis [#20099](https://github.com/ccxt/ccxt/pull/20099)
@@ -4833,7 +4557,6 @@
 - kucoinfutures: remove test api [#20101](https://github.com/ccxt/ccxt/pull/20101)
 - kucoinfutures: remove method [#20104](https://github.com/ccxt/ccxt/pull/20104)
 
-
 ## 4.1.61
 
 - fix(exchange): patch fee update by reference [#20094](https://github.com/ccxt/ccxt/pull/20094)
@@ -4841,7 +4564,6 @@
 - fix(manual) - about margin [#20098](https://github.com/ccxt/ccxt/pull/20098)
 - container: replace python3 setup with pip3 install [#20057](https://github.com/ccxt/ccxt/pull/20057)
 - docs: group api spec by method [#20084](https://github.com/ccxt/ccxt/pull/20084)
-
 
 ## 4.1.60
 
@@ -4857,7 +4579,6 @@
 - alpaca: update apis [#19985](https://github.com/ccxt/ccxt/pull/19985)
 - fix(build): skip paymium and alpaca [#20093](https://github.com/ccxt/ccxt/pull/20093)
 
-
 ## 4.1.59
 
 - fix(htx): watchOrderBook out of sync nonce [#20072](https://github.com/ccxt/ccxt/pull/20072)
@@ -4867,7 +4588,6 @@
 - mexc network update [#20069](https://github.com/ccxt/ccxt/pull/20069)
 - feat(okx) - fetchPositionsForSymbol [#16769](https://github.com/ccxt/ccxt/pull/16769)
 - coinbasepro: add @see [#20078](https://github.com/ccxt/ccxt/pull/20078)
-
 
 ## 4.1.58
 
@@ -4881,9 +4601,8 @@
 - bitget.has: ws non-watch methods [#20065](https://github.com/ccxt/ccxt/pull/20065)
 - bitmart.has: ws non-watch methods [#20066](https://github.com/ccxt/ccxt/pull/20066)
 - fix(docs) - trigger orders, stop loss orders, and some reorganisations [#20068](https://github.com/ccxt/ccxt/pull/20068)
-- feat(exchange): `okex, huobipro, gateio, mexc3`  - removal of old aliases [#17960](https://github.com/ccxt/ccxt/pull/17960)
+- feat(exchange): `okex, huobipro, gateio, mexc3` - removal of old aliases [#17960](https://github.com/ccxt/ccxt/pull/17960)
 - feat(exchange): depreciate borrowMargin for borrowIsolatedMargin and borrowCrossMargin [#20053](https://github.com/ccxt/ccxt/pull/20053)
-
 
 ## 4.1.57
 
@@ -4891,7 +4610,6 @@
 - Bitmart: fetchOHLCV endpoint ratelimit weights [#20056](https://github.com/ccxt/ccxt/pull/20056)
 - bittrex.has ws non-watch methods [#20058](https://github.com/ccxt/ccxt/pull/20058)
 - fix(cli): fix cli.js and cli.ts for parsing large numbers [#20012](https://github.com/ccxt/ccxt/pull/20012)
-
 
 ## 4.1.56
 
@@ -4901,7 +4619,7 @@
 - bybit: add apis [#20018](https://github.com/ccxt/ccxt/pull/20018)
 - bitget: remove after when use spot pair (represent order id) [#20009](https://github.com/ccxt/ccxt/pull/20009)
 - fix(bitvavo): patch fetchMarkets [#20024](https://github.com/ccxt/ccxt/pull/20024)
--  static tests & base & binance bugfixes [#20020](https://github.com/ccxt/ccxt/pull/20020)
+- static tests & base & binance bugfixes [#20020](https://github.com/ccxt/ccxt/pull/20020)
 - feat(crpytocom): add response static tests [#20031](https://github.com/ccxt/ccxt/pull/20031)
 - Bitmart: adjusted some ratelimit weights [#20030](https://github.com/ccxt/ccxt/pull/20030)
 - fix(coinbase): price precision, fix #20026 [#20032](https://github.com/ccxt/ccxt/pull/20032)
@@ -4919,7 +4637,6 @@
 - bitmex - `triggerPrice` unification and static tests [#19939](https://github.com/ccxt/ccxt/pull/19939)
 - fix(setup): typing extensions version [#20052](https://github.com/ccxt/ccxt/pull/20052)
 
-
 ## 4.1.55
 
 - exmo - static tests [#20004](https://github.com/ccxt/ccxt/pull/20004)
@@ -4931,7 +4648,6 @@
 - htx: add apis [#20019](https://github.com/ccxt/ccxt/pull/20019)
 - Okx: createOrder, postOnly, stopLoss and takeProfit [#20013](https://github.com/ccxt/ccxt/pull/20013)
 - Bitmart: parseOrderStatusByType [#20011](https://github.com/ccxt/ccxt/pull/20011)
-
 
 ## 4.1.54
 
@@ -4945,7 +4661,6 @@
 - bitmex - fetchDepositWithdrawFee(s) misnaming [#20001](https://github.com/ccxt/ccxt/pull/20001)
 - coinex - fetchDepositWithdrawFee(s) misnaming [#20002](https://github.com/ccxt/ccxt/pull/20002)
 
-
 ## 4.1.53
 
 - Update build-ohlcv-many-symbols.py [#19902](https://github.com/ccxt/ccxt/pull/19902)
@@ -4954,7 +4669,6 @@
 - Bitget: add V2 endpoints, edit V1 endpoints [ci deploy] [#19978](https://github.com/ccxt/ccxt/pull/19978)
 - base & examples - build bars using WebSockets live data [ci deploy] [#19760](https://github.com/ccxt/ccxt/pull/19760)
 - strict null type checks [#19989](https://github.com/ccxt/ccxt/pull/19989)
-
 
 ## 4.1.52
 
@@ -4966,7 +4680,6 @@
 - poloniexfutures.has rest ws methods [#19975](https://github.com/ccxt/ccxt/pull/19975)
 - Digifinex: createOrders python sign error [#19972](https://github.com/ccxt/ccxt/pull/19972)
 - bingx fixes [#19958](https://github.com/ccxt/ccxt/pull/19958)
-
 
 ## 4.1.51
 
@@ -4992,13 +4705,11 @@
 - bitvavo: update fetchMarkets [#19956](https://github.com/ccxt/ccxt/pull/19956)
 - docs: add awesome section to showcase projects using ccxt [#19947](https://github.com/ccxt/ccxt/pull/19947)
 
-
 ## 4.1.50
 
 - kraken: add start in fetchDeposits [#19935](https://github.com/ccxt/ccxt/pull/19935)
 - fix(krakenfutures): patch watchOrders [#19934](https://github.com/ccxt/ccxt/pull/19934)
 - feat(coinex): add idTest [#19933](https://github.com/ccxt/ccxt/pull/19933)
-
 
 ## 4.1.49
 
@@ -5007,11 +4718,9 @@
 - htx: createOrders [#19923](https://github.com/ccxt/ccxt/pull/19923)
 - fix(bit2c) - skip temporarily [#19932](https://github.com/ccxt/ccxt/pull/19932)
 
-
 ## 4.1.48
 
 - fix(mexc): patch withdraw [#19926](https://github.com/ccxt/ccxt/pull/19926)
-
 
 ## 4.1.47
 
@@ -5020,7 +4729,6 @@
 - feat(bitmart): add id and swap orders [#19916](https://github.com/ccxt/ccxt/pull/19916)
 - fix build: coinspot [#19925](https://github.com/ccxt/ccxt/pull/19925)
 - kraken: update jsdoc [#19921](https://github.com/ccxt/ccxt/pull/19921)
-
 
 ## 4.1.46
 
@@ -5032,7 +4740,6 @@
 - binance: add apis [#19915](https://github.com/ccxt/ccxt/pull/19915)
 - hitbtc: add fetchMarginMode [#19898](https://github.com/ccxt/ccxt/pull/19898)
 
-
 ## 4.1.45
 
 - Okx: add static tests, adjust posSide logic [#19889](https://github.com/ccxt/ccxt/pull/19889)
@@ -5040,11 +4747,10 @@
 - bybit parseSpotTrade fee fix [#19796](https://github.com/ccxt/ccxt/pull/19796)
 - feat(Exchange): add watchPositions [ci deploy] [#15622](https://github.com/ccxt/ccxt/pull/15622)
 
-
 ## 4.1.44
 
 - hitbtc: update apis [#19848](https://github.com/ccxt/ccxt/pull/19848)
-- fix(tests)  - remove unused imports [#19882](https://github.com/ccxt/ccxt/pull/19882)
+- fix(tests) - remove unused imports [#19882](https://github.com/ccxt/ccxt/pull/19882)
 - feat(staticTests): add binance tests [ci skip] [#19871](https://github.com/ccxt/ccxt/pull/19871)
 - Add bulk static tests [#19885](https://github.com/ccxt/ccxt/pull/19885)
 - kuna - add skip prop [#19880](https://github.com/ccxt/ccxt/pull/19880)
@@ -5057,7 +4763,6 @@
 - Bitmart: fetchOHLCV, update the spot endpoint and since logic [#19891](https://github.com/ccxt/ccxt/pull/19891)
 - bybit: add apis [#19890](https://github.com/ccxt/ccxt/pull/19890)
 
-
 ## 4.1.43
 
 - feat(gate): update fetchPositions [#19870](https://github.com/ccxt/ccxt/pull/19870)
@@ -5068,7 +4773,6 @@
 - Mexc: keepAliveListenKey catch error missing ['spot'] from URL [#19872](https://github.com/ccxt/ccxt/pull/19872)
 - Bybit: remove legacy endpoints [#19876](https://github.com/ccxt/ccxt/pull/19876)
 
-
 ## 4.1.41
 
 - fix(tests) - array [#19864](https://github.com/ccxt/ccxt/pull/19864)
@@ -5077,7 +4781,6 @@
 - fix(tests) - relative dir for PHP/PY [#19865](https://github.com/ccxt/ccxt/pull/19865)
 - Coinlist integration [#19680](https://github.com/ccxt/ccxt/pull/19680)
 - Ascendex: createOrders [#19861](https://github.com/ccxt/ccxt/pull/19861)
-
 
 ## 4.1.40
 
@@ -5092,13 +4795,11 @@
 - fix(bittrex): fetchCurrencies - add networks key with value of empty dict to fetchCurrencies response [#19860](https://github.com/ccxt/ccxt/pull/19860)
 - BingX: createOrders [#19819](https://github.com/ccxt/ccxt/pull/19819)
 
-
 ## 4.1.39
 
 - feat(tests): make brokerId tests transpilable [#19839](https://github.com/ccxt/ccxt/pull/19839)
 - fix(huobi): watchBalance timestamp fix #19812" [#19836](https://github.com/ccxt/ccxt/pull/19836)
 - fix(travis): use npm ci instead of npm install [#19843](https://github.com/ccxt/ccxt/pull/19843)
-
 
 ## 4.1.38
 
@@ -5117,7 +4818,6 @@
 - fix(build): static tests [#19842](https://github.com/ccxt/ccxt/pull/19842)
 - feat(exchange): upgrade ast-transpiler [#19841](https://github.com/ccxt/ccxt/pull/19841)
 
-
 ## 4.1.37
 
 - Digifinex: createOrders [#19804](https://github.com/ccxt/ccxt/pull/19804)
@@ -5128,7 +4828,6 @@
 - Digifinex: createMarketBuyOrderRequiresPrice [#19818](https://github.com/ccxt/ccxt/pull/19818)
 - bitforex.has leverage methods [#19817](https://github.com/ccxt/ccxt/pull/19817)
 - wazirx.has margin/contract methods [#19816](https://github.com/ccxt/ccxt/pull/19816)
-
 
 ## 4.1.36
 
@@ -5145,7 +4844,6 @@
 - latoken: has - swap,future == false [#19798](https://github.com/ccxt/ccxt/pull/19798)
 - cli: add str encoding [#19788](https://github.com/ccxt/ccxt/pull/19788)
 
-
 ## 4.1.35
 
 - feat(ccxt): fix transpile of ccxt.pro examples [#19571](https://github.com/ccxt/ccxt/pull/19571)
@@ -5161,7 +4859,6 @@
 - Bitget: add auth error for "Apikey does not exist" [#19778](https://github.com/ccxt/ccxt/pull/19778)
 - feat(tests): add static tests [#19761](https://github.com/ccxt/ccxt/pull/19761)
 
-
 ## 4.1.34
 
 - fix(php8) - promise interface & react update [#19100](https://github.com/ccxt/ccxt/pull/19100)
@@ -5175,7 +4872,6 @@
 - kraken fetchBalance enhancement [#19777](https://github.com/ccxt/ccxt/pull/19777)
 - tidex - delist [#15121](https://github.com/ccxt/ccxt/pull/15121)
 
-
 ## 4.1.33
 
 - feat(woo): remove brokerId from sandbox mode [#19758](https://github.com/ccxt/ccxt/pull/19758)
@@ -5183,7 +4879,6 @@
 - bitget: allow books1 channel [#19746](https://github.com/ccxt/ccxt/pull/19746)
 - feat(errors) - add `InvalidOperation` and `OperationFailed` [#19744](https://github.com/ccxt/ccxt/pull/19744)
 - docs: fix docs errors and and build docs to build command [#19729](https://github.com/ccxt/ccxt/pull/19729)
-
 
 ## 4.1.32
 
@@ -5199,7 +4894,6 @@
 - fix(zonda): withdraw [#19748](https://github.com/ccxt/ccxt/pull/19748)
 - fix(huobi): add check for out of order sequence, fix #19674 [#19747](https://github.com/ccxt/ccxt/pull/19747)
 
-
 ## 4.1.31
 
 - woo: update method [#19718](https://github.com/ccxt/ccxt/pull/19718)
@@ -5208,7 +4902,6 @@
 - feat(bittrex): handle ws errors and check credentials [#19728](https://github.com/ccxt/ccxt/pull/19728)
 - huobi: update balance apis [#19611](https://github.com/ccxt/ccxt/pull/19611)
 - cli: update log [#19734](https://github.com/ccxt/ccxt/pull/19734)
-
 
 ## 4.1.30
 
@@ -5225,7 +4918,6 @@
 - feat(hitbtc): createOrder - unified timeInForce and postOnly [#19723](https://github.com/ccxt/ccxt/pull/19723)
 - gemini: update method [#19719](https://github.com/ccxt/ccxt/pull/19719)
 
-
 ## 4.1.29
 
 - gate: add @see [#19702](https://github.com/ccxt/ccxt/pull/19702)
@@ -5241,7 +4933,6 @@
 - gate: remove method [#19705](https://github.com/ccxt/ccxt/pull/19705)
 - feat(build): speed up single transpilation [ci skip] [#19708](https://github.com/ccxt/ccxt/pull/19708)
 
-
 ## 4.1.28
 
 - okx: add apis [#19679](https://github.com/ccxt/ccxt/pull/19679)
@@ -5252,10 +4943,7 @@
 - fix(krakenfutures): fetchPositions - remove unrealizedPnl and jsdocs [#19681](https://github.com/ccxt/ccxt/pull/19681)
 - fix(bybit): add timestamp to balance [#19684](https://github.com/ccxt/ccxt/pull/19684)
 
-
 ## 4.1.27
-
-
 
 ## 4.1.26
 
@@ -5265,21 +4953,18 @@
 - bitopro: update @see [#19663](https://github.com/ccxt/ccxt/pull/19663)
 - Php websocket interpolation [#19671](https://github.com/ccxt/ccxt/pull/19671)
 
-
 ## 4.1.25
 
 - Bitget: fetchBorrowRate [#19662](https://github.com/ccxt/ccxt/pull/19662)
-
 
 ## 4.1.24
 
 - Bitget: fetchMyLiquidations [#19651](https://github.com/ccxt/ccxt/pull/19651)
 - gate: update apis [#19654](https://github.com/ccxt/ccxt/pull/19654)
 - fix(base): sortBy fix [#19655](https://github.com/ccxt/ccxt/pull/19655)
-- Add createOrders  [#19638](https://github.com/ccxt/ccxt/pull/19638)
+- Add createOrders [#19638](https://github.com/ccxt/ccxt/pull/19638)
 - fix(tests-currencies) - skip flag for FIAT deposit & withdraw for exchange (QUICK) [#19085](https://github.com/ccxt/ccxt/pull/19085)
 - feat: add support for eddsa keys to binance [#19652](https://github.com/ccxt/ccxt/pull/19652)
-
 
 ## 4.1.23
 
@@ -5288,20 +4973,17 @@
 - Krakenfutures :: add cancelOrders and fix signature [#19648](https://github.com/ccxt/ccxt/pull/19648)
 - feat(binance) - remove wapi endpoints [#19650](https://github.com/ccxt/ccxt/pull/19650)
 
-
 ## 4.1.22
 
 - ascendex: add apis [#19642](https://github.com/ccxt/ccxt/pull/19642)
 - feat(docs): add star histoy to readme [ci skip] [#19640](https://github.com/ccxt/ccxt/pull/19640)
 - fix(exchange):IndexedOrderBook order by price and id, fix #19479 [#19641](https://github.com/ccxt/ccxt/pull/19641)
 
-
 ## 4.1.20
 
 - Okcoin update [#19631](https://github.com/ccxt/ccxt/pull/19631)
 - update changelog [ci skip] [#19637](https://github.com/ccxt/ccxt/pull/19637)
 - fix(bitget): cancelAllOrders default marginCoin [#19639](https://github.com/ccxt/ccxt/pull/19639)
-
 
 ## 4.1.19
 
@@ -5314,7 +4996,6 @@
 - fix(python-docs): see section [ci skip] [#19628](https://github.com/ccxt/ccxt/pull/19628)
 - Bitget: fetchMyTrades, add margin support [#19633](https://github.com/ccxt/ccxt/pull/19633)
 
-
 ## 4.1.18
 
 - fix(Exchange.ts): WS error handling [#19616](https://github.com/ccxt/ccxt/pull/19616)
@@ -5323,14 +5004,12 @@
 - feat(binance): update trades and depth RL [#19623](https://github.com/ccxt/ccxt/pull/19623)
 - feat(okx): unify leverage inside setMarginMode [#19622](https://github.com/ccxt/ccxt/pull/19622)
 
-
 ## 4.1.17
 
 - market structure [#19600](https://github.com/ccxt/ccxt/pull/19600)
 - feat(base) - add `safeIntegerMultiplied` (safe_integer_multiplied) method [#19615](https://github.com/ccxt/ccxt/pull/19615)
 - okx: add apis [#19620](https://github.com/ccxt/ccxt/pull/19620)
 - Bitget: cancelOrder, add margin support [#19619](https://github.com/ccxt/ccxt/pull/19619)
-
 
 ## 4.1.16
 
@@ -5341,7 +5020,6 @@
 - bingx: fix parseTrade side [#19608](https://github.com/ccxt/ccxt/pull/19608)
 - fix(bitget,okx): handleUntilOption fix [ci deploy] [#19613](https://github.com/ccxt/ccxt/pull/19613)
 
-
 ## 4.1.15
 
 - feat(bitmex) - pair created ts [#19543](https://github.com/ccxt/ccxt/pull/19543)
@@ -5350,17 +5028,15 @@
 - Fix safe integer product [#19604](https://github.com/ccxt/ccxt/pull/19604)
 - fix(coinone): parseOrder fix [#19603](https://github.com/ccxt/ccxt/pull/19603)
 
-
 ## 4.1.14
 
 - build(deps-dev): bump @babel/traverse from 7.21.3 to 7.23.2 [#19593](https://github.com/ccxt/ccxt/pull/19593)
-- empty  pairs' creation timestamps [#19584](https://github.com/ccxt/ccxt/pull/19584)
+- empty pairs' creation timestamps [#19584](https://github.com/ccxt/ccxt/pull/19584)
 - Bitget: fetchBalance, add margin support [#19594](https://github.com/ccxt/ccxt/pull/19594)
 - btcturk: add apis [#19597](https://github.com/ccxt/ccxt/pull/19597)
 - rename `assertTimestamp` into `assertTimestampAndDatetime` and create a separate method for `assertTimestamp` [#19585](https://github.com/ccxt/ccxt/pull/19585)
 - feat(kucoinfutures) - pair created ts [#19574](https://github.com/ccxt/ccxt/pull/19574)
 - feat(bittrex) - pair created ts [#19544](https://github.com/ccxt/ccxt/pull/19544)
-
 
 ## 4.1.13
 
@@ -5391,14 +5067,12 @@
 - feat(delta) - pair launch time [#19553](https://github.com/ccxt/ccxt/pull/19553)
 - feat(bitmart) - pair created ts [#19542](https://github.com/ccxt/ccxt/pull/19542)
 
-
 ## 4.1.12
 
 - empty `created` timestamps (part 1) [#19545](https://github.com/ccxt/ccxt/pull/19545)
 - New unified methods: fetchLiquidations and fetchMyLiquidations [#19516](https://github.com/ccxt/ccxt/pull/19516)
 - poloniex: update apis [#19550](https://github.com/ccxt/ccxt/pull/19550)
 - tests: fix missing variable and other fixes [#19539](https://github.com/ccxt/ccxt/pull/19539)
-
 
 ## 4.1.11
 
@@ -5411,7 +5085,6 @@
 - fix(bitget): fetchMyTrades, fetchDeposits and fetchWithdrawals ts [#19551](https://github.com/ccxt/ccxt/pull/19551)
 - whitebit fetchMyTrades true [#19535](https://github.com/ccxt/ccxt/pull/19535)
 - Fetchpositions type [#19531](https://github.com/ccxt/ccxt/pull/19531)
-
 
 ## 4.1.10
 
@@ -5431,7 +5104,6 @@
 - Coinspot: fetchMyTrades implementation [#19498](https://github.com/ccxt/ccxt/pull/19498)
 - fix(phemex): Update pro URLs [#19532](https://github.com/ccxt/ccxt/pull/19532)
 
-
 ## 4.1.9
 
 - fix(btcalpha): add warning to createOrder and jsdocs [#19495](https://github.com/ccxt/ccxt/pull/19495)
@@ -5447,14 +5119,12 @@
 - build: add pre-push hook [#19508](https://github.com/ccxt/ccxt/pull/19508)
 - fix(bybit) - temporarily skip tests [#19515](https://github.com/ccxt/ccxt/pull/19515)
 
-
 ## 4.1.8
 
 - feat(Exchange): type fetchFundingRateHistory [#19493](https://github.com/ccxt/ccxt/pull/19493)
 - fix(pagination): restore TS types [#19492](https://github.com/ccxt/ccxt/pull/19492)
 - feat(pagination): broader since and limit filter [#19494](https://github.com/ccxt/ccxt/pull/19494)
 - Bingx ws [ci deploy] [#18650](https://github.com/ccxt/ccxt/pull/18650)
-
 
 ## 4.1.7
 
@@ -5467,18 +5137,15 @@
 - mexc: add apis [#19482](https://github.com/ccxt/ccxt/pull/19482)
 - feat(exmo): handleOrderBook - string math [#19459](https://github.com/ccxt/ccxt/pull/19459)
 
-
 ## 4.1.6
 
 - small pagination fixes [ci skip] [#19480](https://github.com/ccxt/ccxt/pull/19480)
 - php base - minor fixes [#19475](https://github.com/ccxt/ccxt/pull/19475)
 
-
 ## 4.1.5
 
 - fix(kraken): parseOrder - rawTrades [#19474](https://github.com/ccxt/ccxt/pull/19474)
 - add automatic pagination [ci deploy] [#19271](https://github.com/ccxt/ccxt/pull/19271)
-
 
 ## 4.1.4
 
@@ -5488,7 +5155,6 @@
 - feat(coinex): fetchTime - uses safeInteger instead of safeNumber [#19457](https://github.com/ccxt/ccxt/pull/19457)
 - feat(kuna): v4 implicit api paths [#19442](https://github.com/ccxt/ccxt/pull/19442)
 
-
 ## 4.1.3
 
 - fix(kraken): handle raw trades [#19449](https://github.com/ccxt/ccxt/pull/19449)
@@ -5497,7 +5163,6 @@
 - whitebit: fetchOrderBook - parseToInt instead of parseNumber [#19463](https://github.com/ccxt/ccxt/pull/19463)
 - feat(kucoinfutures): fetchTime uses safeInteger instead of safeNumber [#19462](https://github.com/ccxt/ccxt/pull/19462)
 - feat(idex): fetchTime uses safeInteger instead of safeNumber [#19460](https://github.com/ccxt/ccxt/pull/19460)
-
 
 ## 4.1.2
 
@@ -5510,7 +5175,6 @@
 - PHP - feature to add method overload/override [#19444](https://github.com/ccxt/ccxt/pull/19444)
 - fix(bitget): fetchCanceledAndClosedOrders [#19452](https://github.com/ccxt/ccxt/pull/19452)
 
-
 ## 4.1.1
 
 - binance: add @see [ci skip] [#19430](https://github.com/ccxt/ccxt/pull/19430)
@@ -5519,13 +5183,11 @@
 - Coinbasepro: add watchMyTradesForSymbols and watchOrdersForSymbols [#19435](https://github.com/ccxt/ccxt/pull/19435)
 - Bybit: editOrder, triggerPrice, stopLoss and takeProfit strings [#19426](https://github.com/ccxt/ccxt/pull/19426)
 
-
 ## 4.0.112
 
 - fix(kucoin): chain id [#19424](https://github.com/ccxt/ccxt/pull/19424)
 - kucoin: add @see [ci skip] [#19432](https://github.com/ccxt/ccxt/pull/19432)
 - okx: fix handle_my_trades in php [#19431](https://github.com/ccxt/ccxt/pull/19431)
-
 
 ## 4.0.111
 
@@ -5535,14 +5197,12 @@
 - update changelog [ci skip] [#19423](https://github.com/ccxt/ccxt/pull/19423)
 - feat(latoken): createOrder - unified params["stopPrice"], fetchOrder/fetchOpenOrders/fetchOrders/cancelOrder/cancelAllOrders - unified params["stop"] [#19400](https://github.com/ccxt/ccxt/pull/19400)
 
-
 ## 4.0.110
 
 - Bitmart: fetchMyTrades, add swap support [#19409](https://github.com/ccxt/ccxt/pull/19409)
 - feat(bitmart): add cancelorder swap support [#19410](https://github.com/ccxt/ccxt/pull/19410)
 - binance.has fetchL3OrderBook and fetchWithdrawAddresses are false [#19408](https://github.com/ccxt/ccxt/pull/19408)
 - bybit: add new api [#19418](https://github.com/ccxt/ccxt/pull/19418)
-
 
 ## 4.0.109
 
@@ -5551,14 +5211,12 @@
 - Bitget and Bybit: OrderNotFound error for Order not found [#19406](https://github.com/ccxt/ccxt/pull/19406)
 - Bybit: changed the triggerDirection for stop orders [#19393](https://github.com/ccxt/ccxt/pull/19393)
 
-
 ## 4.0.108
 
 - bitflyer: add @see [#19394](https://github.com/ccxt/ccxt/pull/19394)
 - Bitmart: fetchOrder, add swap support [#19392](https://github.com/ccxt/ccxt/pull/19392)
 - fix(bitfinex2): parseLedgerEntryType classification [#19398](https://github.com/ccxt/ccxt/pull/19398)
 - bitget: add @see [#19401](https://github.com/ccxt/ccxt/pull/19401)
-
 
 ## 4.0.107
 
@@ -5568,22 +5226,19 @@
 - fix: watchXForSymbols example [ci skip] [#19389](https://github.com/ccxt/ccxt/pull/19389)
 - bitforex: add @see [#19395](https://github.com/ccxt/ccxt/pull/19395)
 
-
 ## 4.0.106
 
 - feat(exmo): fetchOpenOrders, cancelOrder, editOrder - stop and margin orders [#19117](https://github.com/ccxt/ccxt/pull/19117)
-- feat(binance) - cancelOrders implementation (contract only)  [#19108](https://github.com/ccxt/ccxt/pull/19108)
+- feat(binance) - cancelOrders implementation (contract only) [#19108](https://github.com/ccxt/ccxt/pull/19108)
 - feat(bitget): add watchTickers [#19379](https://github.com/ccxt/ccxt/pull/19379)
 - Bitmart: update several methods to v4 [#19382](https://github.com/ccxt/ccxt/pull/19382)
 - Bitmart: fetchOpenOrders, add swap support [#19386](https://github.com/ccxt/ccxt/pull/19386)
-
 
 ## 4.0.105
 
 - krakenfutures - fix #19372 - add clientOrderId [#19373](https://github.com/ccxt/ccxt/pull/19373)
 - update changelog [ci skip] [#19374](https://github.com/ccxt/ccxt/pull/19374)
 - feat(bybit): add watchTickers [#19375](https://github.com/ccxt/ccxt/pull/19375)
-
 
 ## 4.0.104
 
@@ -5592,13 +5247,11 @@
 - fix(kucoin) - exceptional w/d currency [#19363](https://github.com/ccxt/ccxt/pull/19363)
 - bitvavo - skip quoteVolume & baseVolume (QUICK) [#19371](https://github.com/ccxt/ccxt/pull/19371)
 
-
 ## 4.0.103
 
 - bitfinex2: update apis [#19359](https://github.com/ccxt/ccxt/pull/19359)
 - bitbank: add @see [#19358](https://github.com/ccxt/ccxt/pull/19358)
 - binance: add apis [#19365](https://github.com/ccxt/ccxt/pull/19365)
-
 
 ## 4.0.102
 
@@ -5612,7 +5265,6 @@
 - Bitmart: transfer, fetchTransfers, add swap support [#19354](https://github.com/ccxt/ccxt/pull/19354)
 - docs(bitrue): createOrder - update docstring [#19331](https://github.com/ccxt/ccxt/pull/19331)
 - fix(gate): python linting [#19357](https://github.com/ccxt/ccxt/pull/19357)
-
 
 ## 4.0.101
 
@@ -5632,7 +5284,6 @@
 - fix!(bkex): delist bkex [#19329](https://github.com/ccxt/ccxt/pull/19329)
 - binance WS - pre shadow vars (~QUICK~) [#19316](https://github.com/ccxt/ccxt/pull/19316)
 - fix(coinbasepro) - shadow vars rename (QUICK) [#19290](https://github.com/ccxt/ccxt/pull/19290)
-
 
 ## 4.0.100
 
@@ -5655,7 +5306,6 @@
 - comments across different exchanges (QUICK) [#19321](https://github.com/ccxt/ccxt/pull/19321)
 - fix(phemex) - pre shadow vars (QUICK) [#19319](https://github.com/ccxt/ccxt/pull/19319)
 - fix(bybit): error mapping (InvalidOrder -> BadRequest) [#19327](https://github.com/ccxt/ccxt/pull/19327)
-
 
 ## 4.0.99
 
@@ -5682,12 +5332,10 @@
 - safeOrder check for parsedTrades [#19306](https://github.com/ccxt/ccxt/pull/19306)
 - fix(poloniex) - shadow vars rename (QUICK) [#19296](https://github.com/ccxt/ccxt/pull/19296)
 
-
 ## 4.0.98
 
 - feat(exmo): createOrder - trigger orders and margin orders [#19116](https://github.com/ccxt/ccxt/pull/19116)
 - exmo(fix): ArgumentsRequired import missing [#19307](https://github.com/ccxt/ccxt/pull/19307)
-
 
 ## 4.0.97
 
@@ -5700,7 +5348,6 @@
 - Bitmart: private contract endpoints [#19274](https://github.com/ccxt/ccxt/pull/19274)
 - fix(probit) - bug in fetchCurrencies (QUICK) [#19272](https://github.com/ccxt/ccxt/pull/19272)
 
-
 ## 4.0.96
 
 - fix(deribit) - max trade limit (QUICK) [#19256](https://github.com/ccxt/ccxt/pull/19256)
@@ -5709,7 +5356,6 @@
 - fix(kucoinfutures): fetchFundingRateHistory error handling and others [#19251](https://github.com/ccxt/ccxt/pull/19251)
 - fix(bitfinex2) - max trade limit (QUICK) [#19248](https://github.com/ccxt/ccxt/pull/19248)
 - bybit: migrate to v5 [ci deploy] [#18556](https://github.com/ccxt/ccxt/pull/18556)
-
 
 ## 4.0.95
 
@@ -5721,11 +5367,9 @@
 - fix(wazirx) - max trade limit (QUICK) [#19263](https://github.com/ccxt/ccxt/pull/19263)
 - fix(probit) - trades max limit (QUICK) [#19262](https://github.com/ccxt/ccxt/pull/19262)
 
-
 ## 4.0.94
 
 - Bitmart: fetchOpenInterest [#19245](https://github.com/ccxt/ccxt/pull/19245)
-
 
 ## 4.0.93
 
@@ -5737,13 +5381,11 @@
 - fix(huobi): fix contract clientOrderId type [#19238](https://github.com/ccxt/ccxt/pull/19238)
 - fix(binance): watchOrderBookForSymbols scope var [ci deploy] [#19237](https://github.com/ccxt/ccxt/pull/19237)
 
-
 ## 4.0.91
 
 - feat(manual): fetchSettlementHistory [ci skip] [#19223](https://github.com/ccxt/ccxt/pull/19223)
 - feat(hitbtc): websockets class updated from V1 to V3 [#18027](https://github.com/ccxt/ccxt/pull/18027)
 - gate: add apis [#19235](https://github.com/ccxt/ccxt/pull/19235)
-
 
 ## 4.0.90
 
@@ -5753,13 +5395,11 @@
 - OKX(ws): should login business url [#19186](https://github.com/ccxt/ccxt/pull/19186)
 - fix(exchange.php): is empty return true for countable objects with length 0 [#19173](https://github.com/ccxt/ccxt/pull/19173)
 
-
 ## 4.0.89
 
 - feat(safePosition): get contract size from market when undefined [#19174](https://github.com/ccxt/ccxt/pull/19174)
 - fix(bitmex): add reverse to fetchFundingRateHistory [#19178](https://github.com/ccxt/ccxt/pull/19178)
 - feat(ws): add watchTradesForSymbols, watchOrderBookForSymbols and watchOHLCVForSymbols [ci deploy] [#18739](https://github.com/ccxt/ccxt/pull/18739)
-
 
 ## 4.0.88
 
@@ -5767,13 +5407,11 @@
 - fix(bingx) - public trade limit (QUICK) [#19142](https://github.com/ccxt/ccxt/pull/19142)
 - fix bybit watchMyTrades should filter by symbol [#19128](https://github.com/ccxt/ccxt/pull/19128)
 
-
 ## 4.0.87
 
 - fetchUnderlyingAssets: new options method [#19118](https://github.com/ccxt/ccxt/pull/19118)
 - Composer - remove extra (QUICK) [#19114](https://github.com/ccxt/ccxt/pull/19114)
 - feat(exmo): fetchMyTrades - margin [#19107](https://github.com/ccxt/ccxt/pull/19107)
-
 
 ## 4.0.86
 
@@ -5784,24 +5422,20 @@
 - fix(base) - avoid `const array` issue (QUICK) [#19049](https://github.com/ccxt/ccxt/pull/19049)
 - fix(test) - PHP typo mistake (QUICK) [#19132](https://github.com/ccxt/ccxt/pull/19132)
 
-
 ## 4.0.85
 
 - feat(kucoin) - triggerPriceType (QUICK) [#19115](https://github.com/ccxt/ccxt/pull/19115)
 - fix(bitget): fetchBalance, adjust swap free balance [#19127](https://github.com/ccxt/ccxt/pull/19127)
-
 
 ## 4.0.84
 
 - fix(latoken): parseTicker response values corrected [#19109](https://github.com/ccxt/ccxt/pull/19109)
 - fix(binance): bookTicker swap subscription [#19112](https://github.com/ccxt/ccxt/pull/19112)
 
-
 ## 4.0.83
 
 - fix(base): typo inside Position type [#19104](https://github.com/ccxt/ccxt/pull/19104)
 - fix(base): remove BCHABC from Exchange.py/php [ci deploy] [#19111](https://github.com/ccxt/ccxt/pull/19111)
-
 
 ## 4.0.82
 
@@ -5814,11 +5448,9 @@
 - Bybit: update stopLoss, takeProfit implementation [#19062](https://github.com/ccxt/ccxt/pull/19062)
 - unification - currency `type` [#19094](https://github.com/ccxt/ccxt/pull/19094)
 
-
 ## 4.0.81
 
 - binance: add apis [#19095](https://github.com/ccxt/ccxt/pull/19095)
-
 
 ## 4.0.80
 
@@ -5841,7 +5473,6 @@
 - build: skip bigone check [#19091](https://github.com/ccxt/ccxt/pull/19091)
 - build: skip bithumb [#19093](https://github.com/ccxt/ccxt/pull/19093)
 
-
 ## 4.0.79
 
 - composer: require react/promise-timer [#19046](https://github.com/ccxt/ccxt/pull/19046)
@@ -5853,15 +5484,13 @@
 - fix(gate): watchOHLCV return [#19054](https://github.com/ccxt/ccxt/pull/19054)
 - bybit: add apis [#19059](https://github.com/ccxt/ccxt/pull/19059)
 
-
 ## 4.0.78
 
-- bithumb fetchTrades fix  [#19033](https://github.com/ccxt/ccxt/pull/19033)
+- bithumb fetchTrades fix [#19033](https://github.com/ccxt/ccxt/pull/19033)
 - fix(phemex): side and price fix [#19036](https://github.com/ccxt/ccxt/pull/19036)
 - fix(poloniex): format comments [#19035](https://github.com/ccxt/ccxt/pull/19035)
 - Binance: spot rateLimit changes [#18995](https://github.com/ccxt/ccxt/pull/18995)
 - mexc: add apis [#19044](https://github.com/ccxt/ccxt/pull/19044)
-
 
 ## 4.0.77
 
@@ -5875,13 +5504,11 @@
 - fix(transpile): snakecase handleTriggerPrices [#19028](https://github.com/ccxt/ccxt/pull/19028)
 - bingx: patch signature [#19032](https://github.com/ccxt/ccxt/pull/19032)
 
-
 ## 4.0.76
 
 - fix(okx): watchTickers require list of symbols [#19014](https://github.com/ccxt/ccxt/pull/19014)
 - fix(bingx): fetchTicker fix [#19017](https://github.com/ccxt/ccxt/pull/19017)
 - gate: add apis [#19019](https://github.com/ccxt/ccxt/pull/19019)
-
 
 ## 4.0.75
 
@@ -5894,7 +5521,6 @@
 - fix(bybit) - remove skip for tests [#19001](https://github.com/ccxt/ccxt/pull/19001)
 - feat(bitfinex2): improve parseTicker to handle BID_SIZE and ASK_SIZE [#19003](https://github.com/ccxt/ccxt/pull/19003)
 - fix(kucoinfutures): add loadMarkets to watchBalance [#19006](https://github.com/ccxt/ccxt/pull/19006)
-
 
 ## 4.0.74
 
@@ -5909,12 +5535,10 @@
 - fix(poloniex): handle new ticker structure [#18987](https://github.com/ccxt/ccxt/pull/18987)
 - bitmart: add apis [#18994](https://github.com/ccxt/ccxt/pull/18994)
 
-
 ## 4.0.73
 
 - fix(bingx) - trade side & taker/maker [QUICK] [#18968](https://github.com/ccxt/ccxt/pull/18968)
 - fix(bybit): ws auth [#18917](https://github.com/ccxt/ccxt/pull/18917)
-
 
 ## 4.0.72
 
@@ -5923,13 +5547,11 @@
 - Lbank2: add contract API endpoints [#18835](https://github.com/ccxt/ccxt/pull/18835)
 - fetchMySettlementHistory: new options method [#18973](https://github.com/ccxt/ccxt/pull/18973)
 
-
 ## 4.0.71
 
 - binance: add apis [#18961](https://github.com/ccxt/ccxt/pull/18961)
 - fix(exchange): await ws close [#18949](https://github.com/ccxt/ccxt/pull/18949)
 - fix(cryptocom): ws auth [#18919](https://github.com/ccxt/ccxt/pull/18919)
-
 
 ## 4.0.70
 
@@ -5937,10 +5559,7 @@
 - feat(coinbasepro): improve watchTicker parsing [#18966](https://github.com/ccxt/ccxt/pull/18966)
 - bitget: add apis [#18962](https://github.com/ccxt/ccxt/pull/18962)
 
-
 ## 4.0.69
-
-
 
 ## 4.0.68
 
@@ -5949,7 +5568,6 @@
 - Bitget set margin mode unified names [#18948](https://github.com/ccxt/ccxt/pull/18948)
 - update changelog [ci skip] [#18956](https://github.com/ccxt/ccxt/pull/18956)
 - fix(okx): add new bussiness url to pro [#18957](https://github.com/ccxt/ccxt/pull/18957)
-
 
 ## 4.0.67
 
@@ -5965,13 +5583,11 @@
 - fix(bybit): market() override [#18945](https://github.com/ccxt/ccxt/pull/18945)
 - feat(coinbasepro): add watchTickers [#18951](https://github.com/ccxt/ccxt/pull/18951)
 
-
 ## 4.0.66
 
 - base - remove emulated ohlcv [#18933](https://github.com/ccxt/ccxt/pull/18933)
 - fix(bybit): watchTickers market selection [#18935](https://github.com/ccxt/ccxt/pull/18935)
 - fix(bitget): default ohlcv limit [#18903](https://github.com/ccxt/ccxt/pull/18903)
-
 
 ## 4.0.65
 
@@ -5981,7 +5597,6 @@
 - Bitget: fetchMarkOHLCV, fetchIndexOHLCV [#18929](https://github.com/ccxt/ccxt/pull/18929)
 - feat(hitbtc): params["triggerPrice"] unified [#18885](https://github.com/ccxt/ccxt/pull/18885)
 - fix(ascendex) - skip low [#18934](https://github.com/ccxt/ccxt/pull/18934)
-
 
 ## 4.0.64
 
@@ -5993,19 +5608,16 @@
 - fix(cryptocom): update id [#18908](https://github.com/ccxt/ccxt/pull/18908)
 - has[ws] == false [#18816](https://github.com/ccxt/ccxt/pull/18816)
 
-
 ## 4.0.62
 
 - wavesexchange conditional orders [#18578](https://github.com/ccxt/ccxt/pull/18578)
-
 
 ## 4.0.61
 
 - fix(test) - datetime assertion accuracy [#18887](https://github.com/ccxt/ccxt/pull/18887)
 - bingx: add apis [#18892](https://github.com/ccxt/ccxt/pull/18892)
-- fix!(exmo): createOrder can place market orders, response is parsed using parseOrder  [#18884](https://github.com/ccxt/ccxt/pull/18884)
+- fix!(exmo): createOrder can place market orders, response is parsed using parseOrder [#18884](https://github.com/ccxt/ccxt/pull/18884)
 - fix(skip-tests) - return skipped-exchanges [#18851](https://github.com/ccxt/ccxt/pull/18851)
-
 
 ## 4.0.60
 
@@ -6013,11 +5625,9 @@
 - tokocrypto: createOrder - docstring and has updates [#18886](https://github.com/ccxt/ccxt/pull/18886)
 - fix(kucoin): ws error handling [#18889](https://github.com/ccxt/ccxt/pull/18889)
 
-
 ## 4.0.59
 
 - feat(binance): add sor support for createOrder [#18883](https://github.com/ccxt/ccxt/pull/18883)
-
 
 ## 4.0.58
 
@@ -6025,7 +5635,6 @@
 - fix(gate): parseOrder fixes related to filled and cost being set to 0 [#18866](https://github.com/ccxt/ccxt/pull/18866)
 - update changelog [ci skip] [#18873](https://github.com/ccxt/ccxt/pull/18873)
 - fix(bybit): crash when fetchPosition array is empty [#18875](https://github.com/ccxt/ccxt/pull/18875)
-
 
 ## 4.0.57
 
@@ -6036,12 +5645,10 @@
 - Tokocrypto string math [#18413](https://github.com/ccxt/ccxt/pull/18413)
 - Lbank: sign error for private methods [#18855](https://github.com/ccxt/ccxt/pull/18855)
 
-
 ## 4.0.56
 
 - fix(bingx): signature fix [#18849](https://github.com/ccxt/ccxt/pull/18849)
 - cex Math -> Precise [#14858](https://github.com/ccxt/ccxt/pull/14858)
-
 
 ## 4.0.55
 
@@ -6056,11 +5663,9 @@
 - fix(bug): python pong [#18843](https://github.com/ccxt/ccxt/pull/18843)
 - fix(multiple-exchanges) - rename of maxRetries into snapshotMaxRetries [#18842](https://github.com/ccxt/ccxt/pull/18842)
 
-
 ## 4.0.54
 
 - fix(huobi): authenticate [#18819](https://github.com/ccxt/ccxt/pull/18819)
-
 
 ## 4.0.53
 
@@ -6074,7 +5679,6 @@
 - fix(bybit): postOnly handling [#18829](https://github.com/ccxt/ccxt/pull/18829)
 - fix(test) - handling the temporary connectivity exception [#18825](https://github.com/ccxt/ccxt/pull/18825)
 
-
 ## 4.0.52
 
 - Poloniex - allow multiple subscriptions [#18803](https://github.com/ccxt/ccxt/pull/18803)
@@ -6085,7 +5689,6 @@
 - fix(HuobiWs): authenticated streams in php [#18812](https://github.com/ccxt/ccxt/pull/18812)
 - fix(tests) - remove percentage from trading fees [#18808](https://github.com/ccxt/ccxt/pull/18808)
 
-
 ## 4.0.50
 
 - Mexc: update rateLimit weights [#18796](https://github.com/ccxt/ccxt/pull/18796)
@@ -6094,7 +5697,6 @@
 - update changelog [ci skip] [#18801](https://github.com/ccxt/ccxt/pull/18801)
 - base - move methods into transpilable area [#18790](https://github.com/ccxt/ccxt/pull/18790)
 - fix(bittrex) - cosmetical changes to watchOrderBook [#18779](https://github.com/ccxt/ccxt/pull/18779)
-
 
 ## 4.0.49
 
@@ -6117,7 +5719,6 @@
 - fix(poloniex): cancelOrder error [#18792](https://github.com/ccxt/ccxt/pull/18792)
 - build: skip coinbasepro/coinbaseprime watchOrderBook [#18791](https://github.com/ccxt/ccxt/pull/18791)
 
-
 ## 4.0.48
 
 - kraken: add BalanceEx api [#18751](https://github.com/ccxt/ccxt/pull/18751)
@@ -6128,8 +5729,7 @@
 - Bitfinex2 string math [#18415](https://github.com/ccxt/ccxt/pull/18415)
 - bitget: add apis for copy trading [#18761](https://github.com/ccxt/ccxt/pull/18761)
 - fix(bitfinex): handleOrderBook - string math [#18758](https://github.com/ccxt/ccxt/pull/18758)
-- fix(gate): php parseOrder - fix  [#18757](https://github.com/ccxt/ccxt/pull/18757)
-
+- fix(gate): php parseOrder - fix [#18757](https://github.com/ccxt/ccxt/pull/18757)
 
 ## 4.0.47
 
@@ -6137,7 +5737,6 @@
 - Bitfinex pro parse trade string math [#18742](https://github.com/ccxt/ccxt/pull/18742)
 - fix(blockchaincom): explicit types import [#18752](https://github.com/ccxt/ccxt/pull/18752)
 - fix(bitmexWs): normalize orderbook amounts [#18753](https://github.com/ccxt/ccxt/pull/18753)
-
 
 ## 4.0.46
 
@@ -6149,12 +5748,10 @@
 - Bybit: createExpiredOptionMarket [#18731](https://github.com/ccxt/ccxt/pull/18731)
 - fix(kucoin): disable webApi currencies endpoint [ci deploy] [#18738](https://github.com/ccxt/ccxt/pull/18738)
 
-
 ## 4.0.45
 
 - feat(base): add position type [#18723](https://github.com/ccxt/ccxt/pull/18723)
 - bitflyer.parseTransaction string math [#18728](https://github.com/ccxt/ccxt/pull/18728)
-
 
 ## 4.0.44
 
@@ -6164,7 +5761,6 @@
 - feat(lbank2) - withdraw true [#18720](https://github.com/ccxt/ccxt/pull/18720)
 - feat(examples) - compare two exchange functionalities [#18719](https://github.com/ccxt/ccxt/pull/18719)
 - feat(base) - fetchPositions for/by symbol - init [#18709](https://github.com/ccxt/ccxt/pull/18709)
-
 
 ## 4.0.43
 
@@ -6176,7 +5772,6 @@
 - fix(binanceWs): fetchOpenOrdersWs symbol requirement removal [#18706](https://github.com/ccxt/ccxt/pull/18706)
 - fix(bitfinex): signature [#18707](https://github.com/ccxt/ccxt/pull/18707)
 
-
 ## 4.0.42
 
 - fix(bybit): ws spot orders parsing [#18692](https://github.com/ccxt/ccxt/pull/18692)
@@ -6184,13 +5779,11 @@
 - pong-error handling for cryptocom [#18691](https://github.com/ccxt/ccxt/pull/18691)
 - fix(bybit): update order status [#18697](https://github.com/ccxt/ccxt/pull/18697)
 
-
 ## 4.0.41
 
 - removed delisted exchanges from manual [ci skip] [#18684](https://github.com/ccxt/ccxt/pull/18684)
 - fix(test) - add code [#18689](https://github.com/ccxt/ccxt/pull/18689)
 - Delta: finish swap and option support [#18687](https://github.com/ccxt/ccxt/pull/18687)
-
 
 ## 4.0.40
 
@@ -6202,7 +5795,6 @@
 - feat(bitget): add history OHLCV candles [#18679](https://github.com/ccxt/ccxt/pull/18679)
 - tests - with multiple retries [#18448](https://github.com/ccxt/ccxt/pull/18448)
 - build: remove bybit proxy [#18680](https://github.com/ccxt/ccxt/pull/18680)
-
 
 ## 4.0.39
 
@@ -6219,13 +5811,11 @@
 - Delta: setLeverage [#18655](https://github.com/ccxt/ccxt/pull/18655)
 - feat(bequant): upgrade to v3 [#18669](https://github.com/ccxt/ccxt/pull/18669)
 
-
 ## 4.0.38
 
 - Delta: fetchMarkOHLCV, fetchIndexOHLCV [#18644](https://github.com/ccxt/ccxt/pull/18644)
 - update changelog [ci skip] [#18648](https://github.com/ccxt/ccxt/pull/18648)
 - fix(python-base) - error badresponse [#18646](https://github.com/ccxt/ccxt/pull/18646)
-
 
 ## 4.0.36
 
@@ -6236,12 +5826,10 @@
 - fix(base): protect filterBy agains undefined limit [#18628](https://github.com/ccxt/ccxt/pull/18628)
 - github template - remove duplicate [ci skip] [#18638](https://github.com/ccxt/ccxt/pull/18638)
 
-
 ## 4.0.35
 
 - coinex - ws - fetchOHLCV [#16517](https://github.com/ccxt/ccxt/pull/16517)
 - okx: add apis [#18634](https://github.com/ccxt/ccxt/pull/18634)
-
 
 ## 4.0.34
 
@@ -6251,12 +5839,10 @@
 - bingx - skip [#18623](https://github.com/ccxt/ccxt/pull/18623)
 - okx - deposit tag added [#18622](https://github.com/ccxt/ccxt/pull/18622)
 
-
 ## 4.0.33
 
 - update changelog [ci skip] [#18610](https://github.com/ccxt/ccxt/pull/18610)
 - feat(huobi): fetchOpenInterestHistory default required value [#18613](https://github.com/ccxt/ccxt/pull/18613)
-
 
 ## 4.0.32
 
@@ -6268,12 +5854,10 @@
 - fix(kucoin): add kyc error [#18608](https://github.com/ccxt/ccxt/pull/18608)
 - hollaex - fetchDepositWithdrawFees [#18560](https://github.com/ccxt/ccxt/pull/18560)
 
-
 ## 4.0.31
 
 - hitbtc3 - removal trx [#18595](https://github.com/ccxt/ccxt/pull/18595)
 - fix(bitfinex2): protect handleErrors [#18601](https://github.com/ccxt/ccxt/pull/18601)
-
 
 ## 4.0.30
 
@@ -6287,7 +5871,6 @@
 - fix(base): python exchange ws close [ci deploy] [#18591](https://github.com/ccxt/ccxt/pull/18591)
 - Bump word-wrap from 1.2.3 to 1.2.4 [#18597](https://github.com/ccxt/ccxt/pull/18597)
 
-
 ## 4.0.29
 
 - fix(bitget): margin account endpoints [#18581](https://github.com/ccxt/ccxt/pull/18581)
@@ -6299,17 +5882,13 @@
 - Okx: fetchSettlementHistory, handle expired market id [#18587](https://github.com/ccxt/ccxt/pull/18587)
 - multiple exchanges - removal of networksById [#18575](https://github.com/ccxt/ccxt/pull/18575)
 
-
 ## 4.0.28
 
 - update changelog [ci skip] [#18570](https://github.com/ccxt/ccxt/pull/18570)
 - huobi: add apis [#18579](https://github.com/ccxt/ccxt/pull/18579)
 - binance: add apis [#18577](https://github.com/ccxt/ccxt/pull/18577)
 
-
 ## 4.0.27
-
-
 
 ## 4.0.26
 
@@ -6318,20 +5897,15 @@
 - Okx: editOrder, remove market type restriction [#18564](https://github.com/ccxt/ccxt/pull/18564)
 - kucoin: update margin trading / lending to v3 [#18545](https://github.com/ccxt/ccxt/pull/18545)
 
-
 ## 4.0.24
-
-
 
 ## 4.0.23
 
 - BingX Integration [ci deploy] [#17924](https://github.com/ccxt/ccxt/pull/17924)
 
-
 ## 4.0.22
 
 - feat(okx): watchTickers, watchMyTrades, createOrderWs, cancelOrderWs,… [ci deploy] [#18558](https://github.com/ccxt/ccxt/pull/18558)
-
 
 ## 4.0.21
 
@@ -6343,7 +5917,6 @@
 - Coinbase advanced trade web sockets [#18518](https://github.com/ccxt/ccxt/pull/18518)
 - feat(okx): add eth options [#18557](https://github.com/ccxt/ccxt/pull/18557)
 
-
 ## 4.0.19
 
 - fix(bitmex): parseTransaction network parsing [#18538](https://github.com/ccxt/ccxt/pull/18538)
@@ -6353,7 +5926,6 @@
 - feat(base) - mute web api failure (includes kucoin) [#18534](https://github.com/ccxt/ccxt/pull/18534)
 - Delta: fetchTicker, fetchTickers, add bid and ask data [#18542](https://github.com/ccxt/ccxt/pull/18542)
 
-
 ## 4.0.18
 
 - Bybit: fetchSettlementHistory [#18520](https://github.com/ccxt/ccxt/pull/18520)
@@ -6361,20 +5933,17 @@
 - update changelog [ci skip] [#18529](https://github.com/ccxt/ccxt/pull/18529)
 - bitfinex2 transaction status [#18528](https://github.com/ccxt/ccxt/pull/18528)
 
-
 ## 4.0.17
 
 - binance: update apis [#18505](https://github.com/ccxt/ccxt/pull/18505)
 - feat(kraken): add transfer and transferOut [#18517](https://github.com/ccxt/ccxt/pull/18517)
 - Bybit: option support [#18521](https://github.com/ccxt/ccxt/pull/18521)
 
-
 ## 4.0.16
 
 - fix(huobi): createContractOrder and createSpotOrder casing [#18514](https://github.com/ccxt/ccxt/pull/18514)
 - fix(bybit): v5 :: creatOrder :: option markets [#18516](https://github.com/ccxt/ccxt/pull/18516)
 - fix(Exchange.php): filterByLimit fix [ci deploy] [#18515](https://github.com/ccxt/ccxt/pull/18515)
-
 
 ## 4.0.15
 
@@ -6385,12 +5954,10 @@
 - bitget: add apis [#18508](https://github.com/ccxt/ccxt/pull/18508)
 - Bybit: fetchMarkets, add ETH and SOL option markets [#18502](https://github.com/ccxt/ccxt/pull/18502)
 
-
 ## 4.0.14
 
 - fix(base): add fetchOpenInterest [#18504](https://github.com/ccxt/ccxt/pull/18504)
 - feat(cryptocom): add ws trading api [#18485](https://github.com/ccxt/ccxt/pull/18485)
-
 
 ## 4.0.13
 
@@ -6401,20 +5968,17 @@
 - Crypto.com: migrate websockets to the unified API [#18492](https://github.com/ccxt/ccxt/pull/18492)
 - Huobi create order for margin orders [#18457](https://github.com/ccxt/ccxt/pull/18457)
 
-
 ## 4.0.12
 
 - update changelog [ci skip] [#18493](https://github.com/ccxt/ccxt/pull/18493)
 - Crypto.com: fetchDeposits, migrate to the unified API [#18490](https://github.com/ccxt/ccxt/pull/18490)
 
-
 ## 4.0.11
 
 - deribit - fetchDepositWithdrawFees [#18482](https://github.com/ccxt/ccxt/pull/18482)
 - update manual fee section [#18472](https://github.com/ccxt/ccxt/pull/18472)
-- kucoin - add chains in fetchCurrencies  [#18470](https://github.com/ccxt/ccxt/pull/18470)
+- kucoin - add chains in fetchCurrencies [#18470](https://github.com/ccxt/ccxt/pull/18470)
 - fix(base): ffilterBySinceLimit [ci deploy] [#18486](https://github.com/ccxt/ccxt/pull/18486)
-
 
 ## 4.0.10
 
@@ -6423,12 +5987,10 @@
 - kucoin - networks unification [#16237](https://github.com/ccxt/ccxt/pull/16237)
 - fix(base): protect filterByValueSinceLimit and protect filterBySinceLimit [ci deploy] [#18480](https://github.com/ccxt/ccxt/pull/18480)
 
-
 ## 4.0.9
 
 - Crypto.com: fetchWithdrawals, migrate to the unified API [#18477](https://github.com/ccxt/ccxt/pull/18477)
 - okx: add apis [#18442](https://github.com/ccxt/ccxt/pull/18442)
-
 
 ## 4.0.8
 
@@ -6441,23 +6003,19 @@
 - feat(binance): add support for websocket trading [#18339](https://github.com/ccxt/ccxt/pull/18339)
 - Revert "multilang-edit" [#18453](https://github.com/ccxt/ccxt/pull/18453)
 
-
 ## 4.0.7
 
 - add changelog [ci skip] [#18460](https://github.com/ccxt/ccxt/pull/18460)
 - fix(throttler) - unified names in php [#18436](https://github.com/ccxt/ccxt/pull/18436)
 - probit fetchDepositsWithdrawals true [#18461](https://github.com/ccxt/ccxt/pull/18461)
 
-
 ## 4.0.6
 
 - bitget: add apis [#18458](https://github.com/ccxt/ccxt/pull/18458)
 
-
 ## 4.0.5
 
 - Coinbase: fetchBidsAsks [#18455](https://github.com/ccxt/ccxt/pull/18455)
-
 
 ## 4.0.4
 
@@ -6473,29 +6031,24 @@
 - build: disable ascendex [#18452](https://github.com/ccxt/ccxt/pull/18452)
 - fix(watchOrders): filterBySymbolSinceLimit call [#18450](https://github.com/ccxt/ccxt/pull/18450)
 
-
 ## 4.0.3
 
 - Crypto.com: set swap, future and option to true [#18430](https://github.com/ccxt/ccxt/pull/18430)
 - feat(huobi): add id to implicit calls [#18426](https://github.com/ccxt/ccxt/pull/18426)
 - Crypto.com: withdraw, migrate to the unified API [#18429](https://github.com/ccxt/ccxt/pull/18429)
-- base-  remove old build remnants [ci skip] [#18423](https://github.com/ccxt/ccxt/pull/18423)
+- base- remove old build remnants [ci skip] [#18423](https://github.com/ccxt/ccxt/pull/18423)
 - add changelog manually [ci skip] [#18432](https://github.com/ccxt/ccxt/pull/18432)
 - coinph: add apis [#18397](https://github.com/ccxt/ccxt/pull/18397)
 - feat(gate): fix fetchOpenInterestHistory [#18433](https://github.com/ccxt/ccxt/pull/18433)
-- Proxy  - reorganization [ci skip] [#18409](https://github.com/ccxt/ccxt/pull/18409)
+- Proxy - reorganization [ci skip] [#18409](https://github.com/ccxt/ccxt/pull/18409)
 - Bigone - fetch currencies (+networks unification) [#18299](https://github.com/ccxt/ccxt/pull/18299)
 
-
 ## 3.1.60
-
-
 
 ## 3.1.59
 
 - phemex parseTicker fix [#18424](https://github.com/ccxt/ccxt/pull/18424)
 - Generate docs markdown for each exchange [#18061](https://github.com/ccxt/ccxt/pull/18061)
-
 
 ## 3.1.58
 
@@ -6505,10 +6058,9 @@
 - lbank2 fetchMyTrades fix [#18407](https://github.com/ccxt/ccxt/pull/18407)
 - Update Private API Menu Manual [ci skip] [#18418](https://github.com/ccxt/ccxt/pull/18418)
 - Latoken parse transaction [#18410](https://github.com/ccxt/ccxt/pull/18410)
-- base - python proxies  fix [#18419](https://github.com/ccxt/ccxt/pull/18419)
+- base - python proxies fix [#18419](https://github.com/ccxt/ccxt/pull/18419)
 - fix(okx): signature id fix [ci deploy] [#18421](https://github.com/ccxt/ccxt/pull/18421)
 - feat(base) - transpiler add startsWith endsWith [#18422](https://github.com/ccxt/ccxt/pull/18422)
-
 
 ## 3.1.56
 
@@ -6516,11 +6068,10 @@
 - Crypto.com: fetchPosition, fetchPositions [#18396](https://github.com/ccxt/ccxt/pull/18396)
 - coinbase: add apis [#18398](https://github.com/ccxt/ccxt/pull/18398)
 - phemex parseTrade fix [#18400](https://github.com/ccxt/ccxt/pull/18400)
-- Luno use this.parseNumber in parseLedgerEntry  [#18401](https://github.com/ccxt/ccxt/pull/18401)
+- Luno use this.parseNumber in parseLedgerEntry [#18401](https://github.com/ccxt/ccxt/pull/18401)
 - fix(binance): id fix [ci deploy] [#18403](https://github.com/ccxt/ccxt/pull/18403)
 - build: disable huobijp [ci deploy] [#18405](https://github.com/ccxt/ccxt/pull/18405)
 - fix(okx): add id to sign [ci deploy] [#18406](https://github.com/ccxt/ccxt/pull/18406)
-
 
 ## 3.1.55
 
@@ -6528,17 +6079,15 @@
 - okx - fix limited premature ending [#18264](https://github.com/ccxt/ccxt/pull/18264)
 - build: fix python formatting [#18391](https://github.com/ccxt/ccxt/pull/18391)
 
-
 ## 3.1.54
 
 - examples: all_open_rders => all_open_orders [#18357](https://github.com/ccxt/ccxt/pull/18357)
 - kraken: add create / close a position example [#18356](https://github.com/ccxt/ccxt/pull/18356)
 - examples - stop-loss/take-profit minor correction [#18323](https://github.com/ccxt/ccxt/pull/18323)
-- Woo: add stopOrders support  [#18379](https://github.com/ccxt/ccxt/pull/18379)
+- Woo: add stopOrders support [#18379](https://github.com/ccxt/ccxt/pull/18379)
 - Wavesexchange - fetchDepositWithdrawFees [#18383](https://github.com/ccxt/ccxt/pull/18383)
 - Crypto.com: fetchFundingRateHistory [#18384](https://github.com/ccxt/ccxt/pull/18384)
 - feat(kraken): add postOnly support [#18389](https://github.com/ccxt/ccxt/pull/18389)
-
 
 ## 3.1.53
 
@@ -6549,20 +6098,17 @@
 - bitmex-fetchDepositWithdrawFees [#18324](https://github.com/ccxt/ccxt/pull/18324)
 - fix(bitmex): spot/currencies precisions [ci deploy] [#18089](https://github.com/ccxt/ccxt/pull/18089)
 
-
 ## 3.1.52
 
 - fix(deribit): removed spot duplicated markets [#18348](https://github.com/ccxt/ccxt/pull/18348)
 - kucoin-fetchDepositWithdrawFees [#18326](https://github.com/ccxt/ccxt/pull/18326)
 - fix(Exchange): remove conflicting error message [#18355](https://github.com/ccxt/ccxt/pull/18355)
 
-
 ## 3.1.51
 
 - feat(krakenfutures): add lastUpdateTimestamp [#18341](https://github.com/ccxt/ccxt/pull/18341)
 - fix(mexc): change marginType to marginMode [#18345](https://github.com/ccxt/ccxt/pull/18345)
-- Gemini -  fetchDepositAddress [w] (+ networks) [#18317](https://github.com/ccxt/ccxt/pull/18317)
-
+- Gemini - fetchDepositAddress [w] (+ networks) [#18317](https://github.com/ccxt/ccxt/pull/18317)
 
 ## 3.1.50
 
@@ -6572,7 +6118,6 @@
 - Crypto.com: fetchDepositAddressesByNetwork, migrate to the unified API [#18332](https://github.com/ccxt/ccxt/pull/18332)
 - build: update decimalToPrecision links [#18336](https://github.com/ccxt/ccxt/pull/18336)
 - fix(krakenfutures): charts sandbox api [#18337](https://github.com/ccxt/ccxt/pull/18337)
-
 
 ## 3.1.49
 
@@ -6584,7 +6129,6 @@
 - bitget: add tax apis [#18320](https://github.com/ccxt/ccxt/pull/18320)
 - binance: add new apis [#18319](https://github.com/ccxt/ccxt/pull/18319)
 
-
 ## 3.1.48
 
 - okx - createOrder js doc update type 3 [#18302](https://github.com/ccxt/ccxt/pull/18302)
@@ -6594,7 +6138,6 @@
 - bybit - fetchDepositWithdrawFees [#18308](https://github.com/ccxt/ccxt/pull/18308)
 - Bittrex fetchDepositWithdrawFees [#18295](https://github.com/ccxt/ccxt/pull/18295)
 - Zonda fetch ticker v2 [#18273](https://github.com/ccxt/ccxt/pull/18273)
-
 
 ## 3.1.47
 
@@ -6608,7 +6151,6 @@
 - fix(pro): base exchange import [#18301](https://github.com/ccxt/ccxt/pull/18301)
 - feat(xt): add lastUpdateTimestamp [#18303](https://github.com/ccxt/ccxt/pull/18303)
 - hitbtc/3 - skip id code [#18300](https://github.com/ccxt/ccxt/pull/18300)
-
 
 ## 3.1.46
 
@@ -6626,7 +6168,6 @@
 - Crypto.com: fetchBalance, migrate to the unified API [#18289](https://github.com/ccxt/ccxt/pull/18289)
 - Bitopro fetchDepositWithdrawFees [#18294](https://github.com/ccxt/ccxt/pull/18294)
 
-
 ## 3.1.45
 
 - feat(binance): cancelAllOrders jsdoc [ci skip] [#18270](https://github.com/ccxt/ccxt/pull/18270)
@@ -6637,18 +6178,15 @@
 - kraken - ws - place orders [#16567](https://github.com/ccxt/ccxt/pull/16567)
 - ascendex: add apis [#18278](https://github.com/ccxt/ccxt/pull/18278)
 
-
 ## 3.1.44
 
 - Crypto.com: fetchOrders, migrate to the unified API [#18241](https://github.com/ccxt/ccxt/pull/18241)
 - Crypto.com: fetchOrder, migrate to the unified API [#18239](https://github.com/ccxt/ccxt/pull/18239)
 - fix(binance): php testnet [#18266](https://github.com/ccxt/ccxt/pull/18266)
 
-
 ## 3.1.43
 
 - huobi: add error code [#18262](https://github.com/ccxt/ccxt/pull/18262)
-
 
 ## 3.1.42
 
@@ -6659,7 +6197,6 @@
 - Ws method stubs [#18081](https://github.com/ccxt/ccxt/pull/18081)
 - build: disable currencycom [#18260](https://github.com/ccxt/ccxt/pull/18260)
 
-
 ## 3.1.41
 
 - transpiler makes decision to transpile based on mtime difference in seconds instead of milliseconds [#18229](https://github.com/ccxt/ccxt/pull/18229)
@@ -6668,7 +6205,6 @@
 - xt - fetch currencies [#18202](https://github.com/ccxt/ccxt/pull/18202)
 - bitmex: add apis [#18201](https://github.com/ccxt/ccxt/pull/18201)
 - lbank fetchMarkets fix [#18236](https://github.com/ccxt/ccxt/pull/18236)
-
 
 ## 3.1.40
 
@@ -6679,24 +6215,21 @@
 - bybit: patch fetchOrders ccxt/ccxt#18234 [#18240](https://github.com/ccxt/ccxt/pull/18240)
 - base transpile - replaceAll & trim [#18237](https://github.com/ccxt/ccxt/pull/18237)
 - fix(xt): error handling when response is undefined [#18249](https://github.com/ccxt/ccxt/pull/18249)
-- currencycom & gemini - skip-tests  [#18248](https://github.com/ccxt/ccxt/pull/18248)
+- currencycom & gemini - skip-tests [#18248](https://github.com/ccxt/ccxt/pull/18248)
 - bybit: add broker api [#18246](https://github.com/ccxt/ccxt/pull/18246)
-
 
 ## 3.1.38
 
-- base  - async python math import [#18214](https://github.com/ccxt/ccxt/pull/18214)
+- base - async python math import [#18214](https://github.com/ccxt/ccxt/pull/18214)
 - private tests: fix runtime errors for Python and PHP. [#18220](https://github.com/ccxt/ccxt/pull/18220)
 - build: fix WS regular transpiling [ci skip] [#18224](https://github.com/ccxt/ccxt/pull/18224)
 - fix(bybit): fetchTickers parsing [#18223](https://github.com/ccxt/ccxt/pull/18223)
 - fix(cli.py): support sync calls [ci skip] [#18225](https://github.com/ccxt/ccxt/pull/18225)
 - feat(Crypto.com): fetchMarkets, migrate to the unified API [#18203](https://github.com/ccxt/ccxt/pull/18203)
 
-
 ## 3.1.37
 
 - probit new endpoint [#18210](https://github.com/ccxt/ccxt/pull/18210)
-
 
 ## 3.1.36
 
@@ -6709,12 +6242,10 @@
 - fix(bitfinex2): fix #18169 - fix partially filled status [#18170](https://github.com/ccxt/ccxt/pull/18170)
 - fix(bitget): executePrice not required when type is market [ci deploy] [#18212](https://github.com/ccxt/ccxt/pull/18212)
 
-
 ## 3.1.35
 
 - woo: add apis [#18188](https://github.com/ccxt/ccxt/pull/18188)
 - Gate: change option websocket URL values [#18198](https://github.com/ccxt/ccxt/pull/18198)
-
 
 ## 3.1.34
 
@@ -6723,7 +6254,6 @@
 - bitbank: add apis [#18190](https://github.com/ccxt/ccxt/pull/18190)
 - binance: add apis [#18189](https://github.com/ccxt/ccxt/pull/18189)
 
-
 ## 3.1.33
 
 - Gate: add option support [#18172](https://github.com/ccxt/ccxt/pull/18172)
@@ -6731,12 +6261,10 @@
 - Fix: mexc broker api url in js [#18179](https://github.com/ccxt/ccxt/pull/18179)
 - binance - fetchLastPrices remove bv & qv [#18184](https://github.com/ccxt/ccxt/pull/18184)
 
-
 ## 3.1.32
 
 - Correct FAQ to cite TS as source language [#18173](https://github.com/ccxt/ccxt/pull/18173)
-- feat(bybit): add pagination cursor  [#18174](https://github.com/ccxt/ccxt/pull/18174)
-
+- feat(bybit): add pagination cursor [#18174](https://github.com/ccxt/ccxt/pull/18174)
 
 ## 3.1.31
 
@@ -6746,21 +6274,18 @@
 - Gate: fetchTicker, fetchTickers, add option support [#18158](https://github.com/ccxt/ccxt/pull/18158)
 - binance.addMargin amountToPrecision changed to costToPrecision [#18163](https://github.com/ccxt/ccxt/pull/18163)
 
-
 ## 3.1.30
 
 - bitforex fetchMyTrades since edit [#18141](https://github.com/ccxt/ccxt/pull/18141)
 - bitstamp fetchTickers [#18140](https://github.com/ccxt/ccxt/pull/18140)
 - feat(bybit): add clientOrderId support to fetchOrderTrades [#18149](https://github.com/ccxt/ccxt/pull/18149)
-- waves  - precision prop fix [#14910](https://github.com/ccxt/ccxt/pull/14910)
+- waves - precision prop fix [#14910](https://github.com/ccxt/ccxt/pull/14910)
 - bitmex - fetchticker [#18153](https://github.com/ccxt/ccxt/pull/18153)
 - fix(bybit): restore options loading [#18151](https://github.com/ccxt/ccxt/pull/18151)
-
 
 ## 3.1.29
 
 - binance: update apis [#18144](https://github.com/ccxt/ccxt/pull/18144)
-
 
 ## 3.1.28
 
@@ -6768,28 +6293,23 @@
 - bitforex new endpoints, fetchMyTrades [#18139](https://github.com/ccxt/ccxt/pull/18139)
 - Gate: fetchLedger [#18145](https://github.com/ccxt/ccxt/pull/18145)
 
-
 ## 3.1.27
 
-- fix(base): several typescript types fixes  [#18136](https://github.com/ccxt/ccxt/pull/18136)
-
+- fix(base): several typescript types fixes [#18136](https://github.com/ccxt/ccxt/pull/18136)
 
 ## 3.1.26
 
 - feat(base): watchTicker emulate from watchTickers [#18126](https://github.com/ccxt/ccxt/pull/18126)
 
-
 ## 3.1.25
 
 - Gate: fetchSettlementHistory [#18132](https://github.com/ccxt/ccxt/pull/18132)
-
 
 ## 3.1.24
 
 - fix(xt): swap orders amount precision [#18124](https://github.com/ccxt/ccxt/pull/18124)
 - fix(binance): watchTickers non recurssion [#18123](https://github.com/ccxt/ccxt/pull/18123)
 - bitget: add mix apis [#18119](https://github.com/ccxt/ccxt/pull/18119)
-
 
 ## 3.1.23
 
@@ -6800,12 +6320,10 @@
 - currencycom - fetch order [#18120](https://github.com/ccxt/ccxt/pull/18120)
 - bitget: add swap order fee [#18070](https://github.com/ccxt/ccxt/pull/18070)
 
-
 ## 3.1.21
 
 - examples: fix ccxt and ologog import [ci skip] [#18115](https://github.com/ccxt/ccxt/pull/18115)
 - bitstamp new endpoints [#18116](https://github.com/ccxt/ccxt/pull/18116)
-
 
 ## 3.1.20
 
@@ -6816,7 +6334,6 @@
 - eslint produces errors accoding to its smart rules [ci skip] [#18090](https://github.com/ccxt/ccxt/pull/18090)
 - binance convert/tradeFlow API weigth cost fix. [#18113](https://github.com/ccxt/ccxt/pull/18113)
 
-
 ## 3.1.19
 
 - base - build ohlcvc [#14844](https://github.com/ccxt/ccxt/pull/14844)
@@ -6825,23 +6342,19 @@
 - Gate: fetchOrderBook, add option support [#18106](https://github.com/ccxt/ccxt/pull/18106)
 - bitmex - deposit in parseTransaction [#18105](https://github.com/ccxt/ccxt/pull/18105)
 
-
 ## 3.1.18
 
 - Gate: fetchMyTrades, add option support [#18102](https://github.com/ccxt/ccxt/pull/18102)
 - Gate: fetchPosition, fetchPositions, add option support [#18092](https://github.com/ccxt/ccxt/pull/18092)
 
-
 ## 3.1.17
 
 - kucoin: update hf apis [ci deploy] [#18095](https://github.com/ccxt/ccxt/pull/18095)
-
 
 ## 3.1.16
 
 - fix(whitebit): add pro flag [#18094](https://github.com/ccxt/ccxt/pull/18094)
 - base - missing name [#18093](https://github.com/ccxt/ccxt/pull/18093)
-
 
 ## 3.1.15
 
@@ -6856,9 +6369,8 @@
 - Gate: fetchOrder, fetchOrdersByStatus, add option support [#18085](https://github.com/ccxt/ccxt/pull/18085)
 - mexc: add broker api [#18087](https://github.com/ccxt/ccxt/pull/18087)
 - build: disable stex [ci skip] [#18088](https://github.com/ccxt/ccxt/pull/18088)
-- feat(coinone):  replace endpoint for fetch orders to use query order instead of deprecated endpoint [#17205](https://github.com/ccxt/ccxt/pull/17205)
+- feat(coinone): replace endpoint for fetch orders to use query order instead of deprecated endpoint [#17205](https://github.com/ccxt/ccxt/pull/17205)
 - woo: add broker id [#18084](https://github.com/ccxt/ccxt/pull/18084)
-
 
 ## 3.1.14
 
@@ -6870,7 +6382,6 @@
 - build: okx skip quoteVolume check [#18071](https://github.com/ccxt/ccxt/pull/18071)
 - build: disable ace [#18072](https://github.com/ccxt/ccxt/pull/18072)
 
-
 ## 3.1.13
 
 - fix(coinex): watchTickers - new watchTickers implementation [#18023](https://github.com/ccxt/ccxt/pull/18023)
@@ -6879,14 +6390,12 @@
 - test - typo fixes [#18021](https://github.com/ccxt/ccxt/pull/18021)
 - fix #17749: `watchOHLCV` don't have `timeFrame` param in docs [#18057](https://github.com/ccxt/ccxt/pull/18057)
 
-
 ## 3.1.10
 
 - fix(binance): fix editOrder timestamp update, fix #18028 [#18046](https://github.com/ccxt/ccxt/pull/18046)
 - Gate: parseTradingFee, add discount support [#18045](https://github.com/ccxt/ccxt/pull/18045)
 - bitget- fix ohlcv timeframes [#18048](https://github.com/ccxt/ccxt/pull/18048)
 - yobit - fetchtickers [#18047](https://github.com/ccxt/ccxt/pull/18047)
-
 
 ## 3.1.9
 
@@ -6897,7 +6406,6 @@
 - fix(bitget): watchBalance fix [#18043](https://github.com/ccxt/ccxt/pull/18043)
 - fix(phemex): ohlcv emulated since [#18044](https://github.com/ccxt/ccxt/pull/18044)
 - chore: update readme [ci skip] [#18042](https://github.com/ccxt/ccxt/pull/18042)
-
 
 ## 3.1.8
 
@@ -6915,7 +6423,6 @@
 - build: change cjs test target [ci skip] [#18040](https://github.com/ccxt/ccxt/pull/18040)
 - bybit - copy params [#18035](https://github.com/ccxt/ccxt/pull/18035)
 
-
 ## 3.1.7
 
 - fix(woo): ws order cost - fix #17996 [#18008](https://github.com/ccxt/ccxt/pull/18008)
@@ -6923,7 +6430,6 @@
 - appveyor & travis - build.sh updates [#17976](https://github.com/ccxt/ccxt/pull/17976)
 - okx- skip bid [#18012](https://github.com/ccxt/ccxt/pull/18012)
 - Okx: set option support to true [#18010](https://github.com/ccxt/ccxt/pull/18010)
-
 
 ## 3.1.6
 
@@ -6934,7 +6440,6 @@
 - bybit: update fetchOpenInterestHistory [#18002](https://github.com/ccxt/ccxt/pull/18002)
 - fix(mexc): fix #17511 increase default snapshotDelay [#17569](https://github.com/ccxt/ccxt/pull/17569)
 - added skips - failing build [#18007](https://github.com/ccxt/ccxt/pull/18007)
-
 
 ## 3.1.5
 
@@ -6948,11 +6453,9 @@
 - binance: trailing stop orders don't require stopPrice. [#17978](https://github.com/ccxt/ccxt/pull/17978)
 - build: fix change.sh permissions [#17994](https://github.com/ccxt/ccxt/pull/17994)
 
-
 ## 3.1.4
 
 - fix(coinex): ws authentication flow + watchOrders [ci deploy] [#17981](https://github.com/ccxt/ccxt/pull/17981)
-
 
 ## 3.1.3
 
@@ -6963,20 +6466,17 @@
 - build: improve linting time [#17968](https://github.com/ccxt/ccxt/pull/17968)
 - bybit: update setPositionMode [#17977](https://github.com/ccxt/ccxt/pull/17977)
 
-
 ## 3.1.2
 
 - build: fix return code [ci skip] [#17957](https://github.com/ccxt/ccxt/pull/17957)
 - Bitget: createOrder, add position stop-loss and take-profit [#17944](https://github.com/ccxt/ccxt/pull/17944)
 - bybit: add new position apis [#17965](https://github.com/ccxt/ccxt/pull/17965)
 
-
 ## 3.1.1
 
 - Build: atomic builds and tests inside PR [ci skip] [#17933](https://github.com/ccxt/ccxt/pull/17933)
 - Okx: fetchTrades, add option support [#17954](https://github.com/ccxt/ccxt/pull/17954)
 - Binance: editOrder, add swap and future support [#17936](https://github.com/ccxt/ccxt/pull/17936)
-
 
 ## 3.0.107
 
@@ -6987,19 +6487,16 @@
 - Bump react/http from 1.8.0 to 1.9.0 [#17941](https://github.com/ccxt/ccxt/pull/17941)
 - Bump guzzlehttp/psr7 from 2.4.3 to 2.5.0 [#17611](https://github.com/ccxt/ccxt/pull/17611)
 
-
 ## 3.0.106
 
 - base - precision mode instance methods [#17888](https://github.com/ccxt/ccxt/pull/17888)
 - bitget update apis [#17943](https://github.com/ccxt/ccxt/pull/17943)
-
 
 ## 3.0.105
 
 - bitpanda - websockets [#15286](https://github.com/ccxt/ccxt/pull/15286)
 - xt parseTransaction fixes [#17931](https://github.com/ccxt/ccxt/pull/17931)
 - bitget: add user apis [#17935](https://github.com/ccxt/ccxt/pull/17935)
-
 
 ## 3.0.104
 
@@ -7010,11 +6507,9 @@
 - build: bitso skip fetchOHLCV [ci skip] [#17930](https://github.com/ccxt/ccxt/pull/17930)
 - bitget: update transfer / withdraw to v2 api [#17928](https://github.com/ccxt/ccxt/pull/17928)
 
-
 ## 3.0.103
 
 - fix(phemex): ping pong handling [#17921](https://github.com/ccxt/ccxt/pull/17921)
-
 
 ## 3.0.102
 
@@ -7024,7 +6519,6 @@
 - fix(bitfinex): parseTicker marketId [#17914](https://github.com/ccxt/ccxt/pull/17914)
 - fix(gate): fix status for partial orders and canceled orders [#17913](https://github.com/ccxt/ccxt/pull/17913)
 
-
 ## 3.0.101
 
 - Gate: fetchTrades add option support [#17889](https://github.com/ccxt/ccxt/pull/17889)
@@ -7033,12 +6527,11 @@
 - exchange.currencyStructure -> exchange.safeCurrencyStructure [#17871](https://github.com/ccxt/ccxt/pull/17871)
 - fix build: add safeCurrencyStructure snake case [#17896](https://github.com/ccxt/ccxt/pull/17896)
 - binance: add porfolio margin apis [#17898](https://github.com/ccxt/ccxt/pull/17898)
-- fix(huobi): fetchBalance:  add unified account support [#17894](https://github.com/ccxt/ccxt/pull/17894)
+- fix(huobi): fetchBalance: add unified account support [#17894](https://github.com/ccxt/ccxt/pull/17894)
 - coinmate parseTransaction unification [#16152](https://github.com/ccxt/ccxt/pull/16152)
 - tests - precision [#17658](https://github.com/ccxt/ccxt/pull/17658)
 - kucoinfutures: add missing endpoints [#17904](https://github.com/ccxt/ccxt/pull/17904)
 - ascendex parseOrder fix [#17901](https://github.com/ccxt/ccxt/pull/17901)
-
 
 ## 3.0.100
 
@@ -7050,7 +6543,6 @@
 - xt fetchCurrencies enhancement [#17886](https://github.com/ccxt/ccxt/pull/17886)
 - Coinbase: fetchOrders, fetchOrdersByStatus, fix since [#17890](https://github.com/ccxt/ccxt/pull/17890)
 
-
 ## 3.0.99
 
 - fix(coinex): parse cfx deposit address correctly. fix #17197 [#17225](https://github.com/ccxt/ccxt/pull/17225)
@@ -7060,7 +6552,6 @@
 - Binance: update python option examples [ci skip] [#17868](https://github.com/ccxt/ccxt/pull/17868)
 - feat(cryptocom): add since to cryptocom [#17879](https://github.com/ccxt/ccxt/pull/17879)
 - blockchaincom - ws [#15664](https://github.com/ccxt/ccxt/pull/15664)
-
 
 ## 3.0.98
 
@@ -7076,7 +6567,6 @@
 - bybit: update fetchOpenInterestHistory [#17860](https://github.com/ccxt/ccxt/pull/17860)
 - Binance: fetchTicker, fetchTickers, add option support [#17857](https://github.com/ccxt/ccxt/pull/17857)
 
-
 ## 3.0.97
 
 - Tests: move proxy to skip-tests.json [ci skip] [#17823](https://github.com/ccxt/ccxt/pull/17823)
@@ -7088,14 +6578,12 @@
 - fix(phemex): update posSide doc [ci skip] [#17838](https://github.com/ccxt/ccxt/pull/17838)
 - base - async fetch currecnies [#17836](https://github.com/ccxt/ccxt/pull/17836)
 
-
 ## 3.0.96
 
 - Huobi: cancelOrder, trigger, stop-loss and take-profit support [#17813](https://github.com/ccxt/ccxt/pull/17813)
 - fix: transpile python IndexType [ci skip] [#17819](https://github.com/ccxt/ccxt/pull/17819)
 - Fix build_ohlcvc with single trade [ci skip] [#17816](https://github.com/ccxt/ccxt/pull/17816)
 - fix(deribit): fix #17729 [#17829](https://github.com/ccxt/ccxt/pull/17829)
-
 
 ## 3.0.95
 
@@ -7105,12 +6593,10 @@
 - probit: update links for jsdoc [ci skip] [#17808](https://github.com/ccxt/ccxt/pull/17808)
 - fix(bybit): USDC market orders v1 [#17815](https://github.com/ccxt/ccxt/pull/17815)
 
-
 ## 3.0.94
 
 - feat(xt): remove bigInt usage [#17804](https://github.com/ccxt/ccxt/pull/17804)
 - fix(xt): php signing [ci deploy] [#17809](https://github.com/ccxt/ccxt/pull/17809)
-
 
 ## 3.0.93
 
@@ -7118,18 +6604,16 @@
 - fix(probit): fetchCurrencies networks [#17799](https://github.com/ccxt/ccxt/pull/17799)
 - fix(whitebit): signing in Python [ci deploy] [#17806](https://github.com/ccxt/ccxt/pull/17806)
 
-
 ## 3.0.92
 
 - stex: update links for jsdoc [#17798](https://github.com/ccxt/ccxt/pull/17798)
 - Huobi: fetchOrders, fetchOpenOrders, add trigger, stop-loss and take-profit support [#17795](https://github.com/ccxt/ccxt/pull/17795)
 - huobi fetchCurrencies fix [#17785](https://github.com/ccxt/ccxt/pull/17785)
 
-
 ## 3.0.91
 
 - fix: filterByLimit [#17775](https://github.com/ccxt/ccxt/pull/17775)
-- binance parseWsOrder add reduceOnly.  [#17770](https://github.com/ccxt/ccxt/pull/17770)
+- binance parseWsOrder add reduceOnly. [#17770](https://github.com/ccxt/ccxt/pull/17770)
 - fix(XT): fix active market [#17777](https://github.com/ccxt/ccxt/pull/17777)
 - bitget: update position api [#17746](https://github.com/ccxt/ccxt/pull/17746)
 - feat(Phemex): add USD support to fetchFundingRateHistory [#17778](https://github.com/ccxt/ccxt/pull/17778)
@@ -7141,7 +6625,6 @@
 - bitmart - settleId [#17789](https://github.com/ccxt/ccxt/pull/17789)
 - ast-transpiler update [#17786](https://github.com/ccxt/ccxt/pull/17786)
 - currencycom - type fix [#17788](https://github.com/ccxt/ccxt/pull/17788)
-
 
 ## 3.0.90
 
@@ -7155,23 +6638,19 @@
 - huobi createOrder default stopOperator for stop orders [#17760](https://github.com/ccxt/ccxt/pull/17760)
 - bitget fetchOHLCV docstring @see [#17772](https://github.com/ccxt/ccxt/pull/17772)
 
-
 ## 3.0.89
 
 - CCXT - postinstall ascii art change [#17757](https://github.com/ccxt/ccxt/pull/17757)
 
-
 ## 3.0.88
 
-- Build: fix __init__ inside abstract/ [ci deploy] [#17752](https://github.com/ccxt/ccxt/pull/17752)
-
+- Build: fix **init** inside abstract/ [ci deploy] [#17752](https://github.com/ccxt/ccxt/pull/17752)
 
 ## 3.0.87
 
 - Update huobi.ts [#17737](https://github.com/ccxt/ccxt/pull/17737)
 - filterBySinceLimit and filterByValueSinceLimit both sort before filtering [#17705](https://github.com/ccxt/ccxt/pull/17705)
 - build: fix huobi linting and abstract packaging [ci deploy] [#17751](https://github.com/ccxt/ccxt/pull/17751)
-
 
 ## 3.0.86
 
@@ -7182,7 +6661,6 @@
 - appveyor - use node v16 instead of v14 [#17748](https://github.com/ccxt/ccxt/pull/17748)
 - bitget: add p2p apis [#17745](https://github.com/ccxt/ccxt/pull/17745)
 
-
 ## 3.0.85
 
 - feat(xt): add adjustForTimeDifference option [#17731](https://github.com/ccxt/ccxt/pull/17731)
@@ -7190,13 +6668,11 @@
 - fix(xt): add adjustForTimeDifference inside options [#17734](https://github.com/ccxt/ccxt/pull/17734)
 - ccxt.pro manual removed duplicate watchOrders [#17739](https://github.com/ccxt/ccxt/pull/17739)
 
-
 ## 3.0.84
 
 - bithumb: use currency code rather than currency object [#17714](https://github.com/ccxt/ccxt/pull/17714)
 - bitso: use currency rather than currency code for parseLedger () [#17715](https://github.com/ccxt/ccxt/pull/17715)
 - hitbtc: createDepositAddress () returns a DepositAddressResponse [#17717](https://github.com/ccxt/ccxt/pull/17717)
-
 
 ## 3.0.83
 
@@ -7206,21 +6682,18 @@
 - tokocrypto: add links to jsdoc [#17709](https://github.com/ccxt/ccxt/pull/17709)
 - wazirx: add links to jsdoc [#17708](https://github.com/ccxt/ccxt/pull/17708)
 - yobit: add links to jsdoc [#17707](https://github.com/ccxt/ccxt/pull/17707)
-- zaif: add links to jsdoc  [#17706](https://github.com/ccxt/ccxt/pull/17706)
+- zaif: add links to jsdoc [#17706](https://github.com/ccxt/ccxt/pull/17706)
 - fix - test issues [ci skip] [#17696](https://github.com/ccxt/ccxt/pull/17696)
 - huobi: safeCurrencyCode ()'s second argument is a Currency [#17716](https://github.com/ccxt/ccxt/pull/17716)
-
 
 ## 3.0.82
 
 - Binance: fetchPosition, option support [#17674](https://github.com/ccxt/ccxt/pull/17674)
 
-
 ## 3.0.81
 
 - Huobi: add contract trigger, stop-loss and take-profit orders [#17633](https://github.com/ccxt/ccxt/pull/17633)
 - fix(phemex): watchOrders [ci deploy] [#17702](https://github.com/ccxt/ccxt/pull/17702)
-
 
 ## 3.0.80
 
@@ -7232,13 +6705,11 @@
 - [base] .calculateFee not to return quote currency when feeSide=base [#17683](https://github.com/ccxt/ccxt/pull/17683)
 - chore: route bybit through eu proxy [#17701](https://github.com/ccxt/ccxt/pull/17701)
 
-
 ## 3.0.79
 
 - add missing `networks` across currencies [#17687](https://github.com/ccxt/ccxt/pull/17687)
 - chore: update error codes for binanceusdm.ts [ccxt-pro] [#17677](https://github.com/ccxt/ccxt/pull/17677)
 - fix(webpack): webworkers usage [ci deploy] [#17690](https://github.com/ccxt/ccxt/pull/17690)
-
 
 ## 3.0.78
 
@@ -7253,11 +6724,9 @@
 - merge-derived-csharp-files [#17684](https://github.com/ccxt/ccxt/pull/17684)
 - tests - fix `run-tests` skip [#17678](https://github.com/ccxt/ccxt/pull/17678)
 
-
 ## 3.0.77
 
 - okx fetchCurrencies fix [#17671](https://github.com/ccxt/ccxt/pull/17671)
-
 
 ## 3.0.76
 
@@ -7267,14 +6736,12 @@
 - Binance: add option support to transfer [#17663](https://github.com/ccxt/ccxt/pull/17663)
 - disable btctradeua [#17668](https://github.com/ccxt/ccxt/pull/17668)
 
-
 ## 3.0.75
 
 - fix(bigone): fetchBalance [#17644](https://github.com/ccxt/ccxt/pull/17644)
 - fix(bybit): fetchPositions USDC [#17648](https://github.com/ccxt/ccxt/pull/17648)
 - binance: add api managed-subaccount/deposit/address [#17649](https://github.com/ccxt/ccxt/pull/17649)
 - feat(Deribit): add spot markets [#17654](https://github.com/ccxt/ccxt/pull/17654)
-
 
 ## 3.0.74
 
@@ -7285,17 +6752,15 @@
 - [Binance-USDM] Update error codes [#17640](https://github.com/ccxt/ccxt/pull/17640)
 - tests - fix extend [#17629](https://github.com/ccxt/ccxt/pull/17629)
 
-
 ## 3.0.73
 
 - novadax parseTransaction unification [#17612](https://github.com/ccxt/ccxt/pull/17612)
 - poloniex parseTransaction unification [#17610](https://github.com/ccxt/ccxt/pull/17610)
-- Fix watch_order_book bug on testnet spot  [#17614](https://github.com/ccxt/ccxt/pull/17614)
+- Fix watch_order_book bug on testnet spot [#17614](https://github.com/ccxt/ccxt/pull/17614)
 - fix(phemex): fetchOHLCV [#17618](https://github.com/ccxt/ccxt/pull/17618)
 - fix incorrect content in dist/cjs/package.json [ci deploy] [#17624](https://github.com/ccxt/ccxt/pull/17624)
 - python: fix urlencode bug ccxt/ccxt#17550 [#17586](https://github.com/ccxt/ccxt/pull/17586)
 - fix: ws client send [#17570](https://github.com/ccxt/ccxt/pull/17570)
-
 
 ## 3.0.72
 
@@ -7303,14 +6768,12 @@
 - gate add methods to has [#16512](https://github.com/ccxt/ccxt/pull/16512)
 - woo parseTransaction unification [#17613](https://github.com/ccxt/ccxt/pull/17613)
 
-
 ## 3.0.71
 
 - ndax: patch parseInt [#17602](https://github.com/ccxt/ccxt/pull/17602)
 - bittrex: patch parseInt [#17600](https://github.com/ccxt/ccxt/pull/17600)
 - hollaex: patch parseInt ccxt/ccxt#17597 [#17599](https://github.com/ccxt/ccxt/pull/17599)
 - Bitget: change fetchOpenInterest error type [#17598](https://github.com/ccxt/ccxt/pull/17598)
-
 
 ## 3.0.70
 
@@ -7327,13 +6790,11 @@
 - Skip delta [#17593](https://github.com/ccxt/ccxt/pull/17593)
 - update push.sh [#17596](https://github.com/ccxt/ccxt/pull/17596)
 
-
 ## 3.0.69
 
 - fix xt: logo [ci skip] [#17578](https://github.com/ccxt/ccxt/pull/17578)
 - mexc - fix OHLCV intervals [#17579](https://github.com/ccxt/ccxt/pull/17579)
 - kucoin: add hf [#17538](https://github.com/ccxt/ccxt/pull/17538)
-
 
 ## 3.0.68
 
@@ -7343,22 +6804,18 @@
 - [Binance] Modify error codes [#17566](https://github.com/ccxt/ccxt/pull/17566)
 - New Exchange - XT [ci deploy] [#17118](https://github.com/ccxt/ccxt/pull/17118)
 
-
 ## 3.0.67
 
 - fix(bitfinex2): fix #17540 - bitfinex2 orderbook checksum [#17562](https://github.com/ccxt/ccxt/pull/17562)
-
 
 ## 3.0.66
 
 - poloniex.fetchTrades: side added for public trades [#17565](https://github.com/ccxt/ccxt/pull/17565)
 - bitrue.parseTrade: sanitize input, skip wrong data [#17564](https://github.com/ccxt/ccxt/pull/17564)
 
-
 ## 3.0.65
 
 - fix(bybit): createOrder v3 stopPrice [ci deploy] [#17563](https://github.com/ccxt/ccxt/pull/17563)
-
 
 ## 3.0.64
 
@@ -7367,20 +6824,17 @@
 - types.ts formatting [#17558](https://github.com/ccxt/ccxt/pull/17558)
 - fix build: skip cex [#17561](https://github.com/ccxt/ccxt/pull/17561)
 
-
 ## 3.0.63
 
 - fix(okx): protect withdraw [#17555](https://github.com/ccxt/ccxt/pull/17555)
 - Bybit - postonly fix [#17398](https://github.com/ccxt/ccxt/pull/17398)
 - fix php: WS client [ci deploy] [#17556](https://github.com/ccxt/ccxt/pull/17556)
 
-
 ## 3.0.62
 
 - fix(binance): notional spot testnet [#17546](https://github.com/ccxt/ccxt/pull/17546)
 - fix(bitget): handle future markets [#17548](https://github.com/ccxt/ccxt/pull/17548)
 - fix(gemini): signing [#17553](https://github.com/ccxt/ccxt/pull/17553)
-
 
 ## 3.0.61
 
@@ -7390,13 +6844,11 @@
 - fix(poloniex): fix fetchTransactionsHelper [#17536](https://github.com/ccxt/ccxt/pull/17536)
 - fix(bybit): createMarketBuyOrderRequiresPrice [#17539](https://github.com/ccxt/ccxt/pull/17539)
 
-
 ## 3.0.60
 
 - mexc: add new api (capital/transfer/tranId) [#17529](https://github.com/ccxt/ccxt/pull/17529)
 - bybit: update fetchBalance ccxt/ccxt#17520 [#17528](https://github.com/ccxt/ccxt/pull/17528)
 - fix key_exists: exception handling [ci deploy] [#17531](https://github.com/ccxt/ccxt/pull/17531)
-
 
 ## 3.0.59
 
@@ -7404,22 +6856,18 @@
 - bybit: update editOrder [#17505](https://github.com/ccxt/ccxt/pull/17505)
 - fix(bitget): canceledAndClosed default [#17524](https://github.com/ccxt/ccxt/pull/17524)
 
-
 ## 3.0.58
 
 - [krakenfutures] sign url generation for python [#17519](https://github.com/ccxt/ccxt/pull/17519)
-
 
 ## 3.0.57
 
 - fixes #17508 [#17509](https://github.com/ccxt/ccxt/pull/17509)
 
-
 ## 3.0.56
 
 - bitrue has watchOrderBook [#17501](https://github.com/ccxt/ccxt/pull/17501)
 - Websocket Client - arrayBuffer decode take into account byte length [#17510](https://github.com/ccxt/ccxt/pull/17510)
-
 
 ## 3.0.55
 
@@ -7429,7 +6877,6 @@
 - bybit: omit prices when create order [#17499](https://github.com/ccxt/ccxt/pull/17499)
 - fix python: 3.7 types [#17500](https://github.com/ccxt/ccxt/pull/17500)
 - Revert "fix(kucoin & mexc): removed commonCurrency BiFi->BIFIF" [#17502](https://github.com/ccxt/ccxt/pull/17502)
-
 
 ## 3.0.54
 
@@ -7444,7 +6891,6 @@
 - fix(kucoin & mexc): removed commonCurrency BiFi->BIFIF [#17493](https://github.com/ccxt/ccxt/pull/17493)
 - binance.fetchTrades add until and fetchTradesMethod param, docstring [#17495](https://github.com/ccxt/ccxt/pull/17495)
 
-
 ## 3.0.53
 
 - feat(coinbase): add bid and ask to fetchTicker [#17480](https://github.com/ccxt/ccxt/pull/17480)
@@ -7452,7 +6898,6 @@
 - woo: update [#17481](https://github.com/ccxt/ccxt/pull/17481)
 - bitget: update apis [#17484](https://github.com/ccxt/ccxt/pull/17484)
 - po bitget [#17476](https://github.com/ccxt/ccxt/pull/17476)
-
 
 ## 3.0.52
 
@@ -7466,23 +6911,19 @@
 - bitfinex2 withdraw edits [#17426](https://github.com/ccxt/ccxt/pull/17426)
 - Examples - polish & linting [#17412](https://github.com/ccxt/ccxt/pull/17412)
 
-
 ## 3.0.51
 
 - bigone - fix [#17449](https://github.com/ccxt/ccxt/pull/17449)
 - poloniex handleErrors [#17441](https://github.com/ccxt/ccxt/pull/17441)
 
-
 ## 3.0.50
 
 - coinex has editOrder [#17450](https://github.com/ccxt/ccxt/pull/17450)
 
-
 ## 3.0.49
 
 - fix(gate): fix #17443 [#17445](https://github.com/ccxt/ccxt/pull/17445)
-- Add return types to a few fetch* methods. [#17438](https://github.com/ccxt/ccxt/pull/17438)
-
+- Add return types to a few fetch\* methods. [#17438](https://github.com/ccxt/ccxt/pull/17438)
 
 ## 3.0.48
 
@@ -7493,12 +6934,10 @@
 - fix(binance): setMarginMod exception [#17433](https://github.com/ccxt/ccxt/pull/17433)
 - fix(Phemex): sandbox v2 [#17440](https://github.com/ccxt/ccxt/pull/17440)
 
-
 ## 3.0.47
 
 - krakenfutures: fix signing for private endpoints [#17424](https://github.com/ccxt/ccxt/pull/17424)
-- fix(gate): watchOrders and watchMyTrades  [#17431](https://github.com/ccxt/ccxt/pull/17431)
-
+- fix(gate): watchOrders and watchMyTrades [#17431](https://github.com/ccxt/ccxt/pull/17431)
 
 ## 3.0.46
 
@@ -7506,7 +6945,6 @@
 - fix travis: remove server request [ci skip] [#17421](https://github.com/ccxt/ccxt/pull/17421)
 - safeCurrency - string type fix [#17420](https://github.com/ccxt/ccxt/pull/17420)
 - bitmart: update fetchContractMarkets ccxt/ccxt#17416 [#17419](https://github.com/ccxt/ccxt/pull/17419)
-
 
 ## 3.0.45
 
@@ -7518,11 +6956,9 @@
 - bitget cancelOrders, fetchOpenOrders edits [#17387](https://github.com/ccxt/ccxt/pull/17387)
 - fix(krakenfutures): fix markets clash [#17414](https://github.com/ccxt/ccxt/pull/17414)
 
-
 ## 3.0.44
 
 - fix(types): python3.7 support [ci deploy] [#17407](https://github.com/ccxt/ccxt/pull/17407)
-
 
 ## 3.0.43
 
@@ -7531,13 +6967,11 @@
 - kraken new endpoints [#17391](https://github.com/ccxt/ccxt/pull/17391)
 - fix(ts): remove MessageEvent type due to incompatibility with ts5 [#17402](https://github.com/ccxt/ccxt/pull/17402)
 
-
 ## 3.0.41
 
 - btcex ALT -> ArchLoot [#17378](https://github.com/ccxt/ccxt/pull/17378)
 - phemex fetchSpotMarkets fix [#17376](https://github.com/ccxt/ccxt/pull/17376)
 - mexc3 parseTransaction fixes [#17394](https://github.com/ccxt/ccxt/pull/17394)
-
 
 ## 3.0.40
 
@@ -7549,14 +6983,9 @@
 - bybit: add rsa signature [#17381](https://github.com/ccxt/ccxt/pull/17381)
 - bithumb ALT -> ArchLoot [#17379](https://github.com/ccxt/ccxt/pull/17379)
 
-
 ## 3.0.39
 
-
-
 ## 3.0.38
-
-
 
 ## 3.0.37
 
@@ -7571,17 +7000,14 @@
 - cryptocom - `fetchDepositWithdrawFees` [#17156](https://github.com/ccxt/ccxt/pull/17156)
 - fix(ts): abstract implicit API [ci deploy] [#17366](https://github.com/ccxt/ccxt/pull/17366)
 
-
 ## 3.0.36
 
 - ignore binance in test [#17363](https://github.com/ccxt/ccxt/pull/17363)
-
 
 ## 3.0.35
 
 - bybit: add institutional loan apis ccxt/ccxt#17285 [#17338](https://github.com/ccxt/ccxt/pull/17338)
 - fix(cryptocom): add clientOrderId support [#17350](https://github.com/ccxt/ccxt/pull/17350)
-
 
 ## 3.0.34
 
@@ -7590,15 +7016,11 @@
 - Add Exchang#fetchTime return type. [#17341](https://github.com/ccxt/ccxt/pull/17341)
 - Fix ZB and Hitbtc signing [ci deploy] [#17345](https://github.com/ccxt/ccxt/pull/17345)
 
-
 ## 3.0.33
-
-
 
 ## 3.0.32
 
 - fix coinex: signature [ci deploy] [#17328](https://github.com/ccxt/ccxt/pull/17328)
-
 
 ## 3.0.31
 
@@ -7606,7 +7028,6 @@
 - Exchange: add types from pre-TypeScript conversion ccxt.d.ts. [#17319](https://github.com/ccxt/ccxt/pull/17319)
 - huobijp hostname update [#17321](https://github.com/ccxt/ccxt/pull/17321)
 - binance: Market['strike'] is a number, not a string [#17318](https://github.com/ccxt/ccxt/pull/17318)
-
 
 ## 3.0.30
 
@@ -7616,12 +7037,10 @@
 - [WIP] reduce browser bundle size [#17181](https://github.com/ccxt/ccxt/pull/17181)
 - idex handleTicker string math [#17094](https://github.com/ccxt/ccxt/pull/17094)
 
-
 ## 3.0.29
 
 - fix Exchange: safeMarket [#17310](https://github.com/ccxt/ccxt/pull/17310)
 - fix(bybit,gate): polluting markets loading [#17315](https://github.com/ccxt/ccxt/pull/17315)
-
 
 ## 3.0.27
 
@@ -7637,7 +7056,6 @@
 - fixed bybit stop_loss triggerDirection for Shorts order [#17262](https://github.com/ccxt/ccxt/pull/17262)
 - Export-exchanges: remove ccxt import dependency [ci skip] [#17186](https://github.com/ccxt/ccxt/pull/17186)
 
-
 ## 3.0.26
 
 - Ascendex parse position string math [#17280](https://github.com/ccxt/ccxt/pull/17280)
@@ -7648,11 +7066,9 @@
 - zb parseOrder side fix [#17291](https://github.com/ccxt/ccxt/pull/17291)
 - ccxt.ts: also export Dictionary and MinMax. [#17298](https://github.com/ccxt/ccxt/pull/17298)
 
-
 ## 3.0.25
 
 - fix(kucoin): handlePong [#17286](https://github.com/ccxt/ccxt/pull/17286)
-
 
 ## 3.0.24
 
@@ -7661,7 +7077,6 @@
 - bitstamp parseTrade fix [#17277](https://github.com/ccxt/ccxt/pull/17277)
 - fix: Remove setTimeout_safe [ci deploy] [#17274](https://github.com/ccxt/ccxt/pull/17274)
 
-
 ## 3.0.23
 
 - fix(mexc): GASNEO name as GAS [#17268](https://github.com/ccxt/ccxt/pull/17268)
@@ -7669,16 +7084,13 @@
 - docs: update required node version to 15 to support AbortController [ci skip] [#17267](https://github.com/ccxt/ccxt/pull/17267)
 - gate: add apis [#17247](https://github.com/ccxt/ccxt/pull/17247)
 
-
 ## 3.0.22
 
 - fix(binance): postOnly Orders [ci deploy] [#17264](https://github.com/ccxt/ccxt/pull/17264)
 
-
 ## 3.0.21
 
 - build :: add missing package.json [ci deploy] [#17250](https://github.com/ccxt/ccxt/pull/17250)
-
 
 ## 3.0.20
 
@@ -7688,17 +7100,14 @@
 - bitrue - `fetchDepositWithdrawFees` [#17157](https://github.com/ccxt/ccxt/pull/17157)
 - build: pushback cjs files and more ts types [ci deploy] [#17245](https://github.com/ccxt/ccxt/pull/17245)
 
-
 ## 3.0.19
 
 - fix(ts): add default types [ci skip] [#17233](https://github.com/ccxt/ccxt/pull/17233)
-
 
 ## 3.0.18
 
 - fix(Exchange): markets type and sign discrepancy [ci deploy] [#17222](https://github.com/ccxt/ccxt/pull/17222)
 - fix(abortError): store it as prop [ci deploy] [#17230](https://github.com/ccxt/ccxt/pull/17230)
-
 
 ## 3.0.17
 
@@ -7706,28 +7115,23 @@
 - [krakenfutures] Add `params.clientOrderId` to createOrder [#17229](https://github.com/ccxt/ccxt/pull/17229)
 - exmo order status [#17215](https://github.com/ccxt/ccxt/pull/17215)
 
-
 ## 3.0.16
 
-- Coinsph.ts  [#17217](https://github.com/ccxt/ccxt/pull/17217)
-
+- Coinsph.ts [#17217](https://github.com/ccxt/ccxt/pull/17217)
 
 ## 3.0.15
 
 - feat(okx): fetchOHLCV retrieve base volume [#17198](https://github.com/ccxt/ccxt/pull/17198)
 - parseDepositAddresses undefined result fix [ci deploy] [#17219](https://github.com/ccxt/ccxt/pull/17219)
 
-
 ## 3.0.14
 
 - kucoin parseTransactionStatus [#17206](https://github.com/ccxt/ccxt/pull/17206)
 - fix(kraken): watchOrderbook handleDeltas [ci deploy] [#17214](https://github.com/ccxt/ccxt/pull/17214)
 
-
 ## 3.0.13
 
 - feat(TS): type optional parameters and missing ws methods [ci deploy] [#17211](https://github.com/ccxt/ccxt/pull/17211)
-
 
 ## 3.0.11
 
@@ -7735,40 +7139,32 @@
 - Poloniexfutures parse order cost [#17199](https://github.com/ccxt/ccxt/pull/17199)
 - feat(build): add cjs test [ci skip] [#17204](https://github.com/ccxt/ccxt/pull/17204)
 
-
 ## 3.0.10
 
 - fix(Binance): default settle value [#17192](https://github.com/ccxt/ccxt/pull/17192)
 - fix(PRO): restore exchange export [#17195](https://github.com/ccxt/ccxt/pull/17195)
 - fix: parsePrecision returns precision as a string number that is not scientific notation [#17115](https://github.com/ccxt/ccxt/pull/17115)
 
-
 ## 3.0.9
 
 - bybit: update contract v3 signature ccxt/ccxt#17172 [#17182](https://github.com/ccxt/ccxt/pull/17182)
 - fix(TS): init values for ws structures [ci deploy] [#17188](https://github.com/ccxt/ccxt/pull/17188)
 
-
 ## 3.0.8
 
 - fix - emitTypes [#17168](https://github.com/ccxt/ccxt/pull/17168)
 
-
 ## 3.0.7
-
-
 
 ## 3.0.6
 
 - package.json: set node version to 15.0.0 in engines [#17161](https://github.com/ccxt/ccxt/pull/17161)
 - feat(TS): add more types and stub methods [ci deploy] [#17171](https://github.com/ccxt/ccxt/pull/17171)
 
-
 ## 3.0.5
 
 - fix(bybit): v5 uta spot market buy [#17165](https://github.com/ccxt/ccxt/pull/17165)
 - feat(TS): improve types [ci deploy] [#17169](https://github.com/ccxt/ccxt/pull/17169)
-
 
 ## 3.0.4
 
@@ -7776,18 +7172,11 @@
 - fix(Phemex): add default posSide to editOrder [#17163](https://github.com/ccxt/ccxt/pull/17163)
 - fetch: fix webworker usage [#17166](https://github.com/ccxt/ccxt/pull/17166)
 
-
 ## 3.0.3
-
-
 
 ## 3.0.2
 
-
-
 ## 3.0.1
-
-
 
 ## 2.9.16
 
@@ -7795,11 +7184,9 @@
 - woo: add average price ccxt/ccxt#17143 [#17152](https://github.com/ccxt/ccxt/pull/17152)
 - update node fetch v3 with esm support [#17141](https://github.com/ccxt/ccxt/pull/17141)
 
-
 ## 2.9.15
 
 - fix(bybit,gate): sync market loading + postinstall fix + safeOrder [ci deploy] [#17151](https://github.com/ccxt/ccxt/pull/17151)
-
 
 ## 2.9.14
 
@@ -7810,16 +7197,14 @@
 - Update ccxt.bundle.cjs [#17147](https://github.com/ccxt/ccxt/pull/17147)
 - Add types and fix npm command [ci deploy] [#17148](https://github.com/ccxt/ccxt/pull/17148)
 
-
 ## 2.9.13
 
 - fix(cex): fix uncatchable error [#17124](https://github.com/ccxt/ccxt/pull/17124)
-- Typescript migration (with esm) + architecture refactor  [#14282](https://github.com/ccxt/ccxt/pull/14282)
+- Typescript migration (with esm) + architecture refactor [#14282](https://github.com/ccxt/ccxt/pull/14282)
 - TS : fix build scripts [#17135](https://github.com/ccxt/ccxt/pull/17135)
 - sh: update cleanup.sh [#17139](https://github.com/ccxt/ccxt/pull/17139)
 - npm: update package.json [#17140](https://github.com/ccxt/ccxt/pull/17140)
 - feat: add docsify [#17126](https://github.com/ccxt/ccxt/pull/17126)
-
 
 ## 2.9.12
 
@@ -7827,7 +7212,6 @@
 - gate remove TON mapping [#17122](https://github.com/ccxt/ccxt/pull/17122)
 - fix(Bybit): add reduceOnly to parseOrder [#17129](https://github.com/ccxt/ccxt/pull/17129)
 - fix(Phemex): createOrder usd settled contracts [ci deploy] [#17128](https://github.com/ccxt/ccxt/pull/17128)
-
 
 ## 2.9.11
 
@@ -7838,25 +7222,21 @@
 - bybit: upgrade pro to v5 [#17068](https://github.com/ccxt/ccxt/pull/17068)
 - binance.parseWsTrade string math [#17091](https://github.com/ccxt/ccxt/pull/17091)
 
-
 ## 2.9.10
 
 - fix(Bitfinex2): authenticate and watchOrders [#17104](https://github.com/ccxt/ccxt/pull/17104)
 - bitget: add vip level apis [#17108](https://github.com/ccxt/ccxt/pull/17108)
-
 
 ## 2.9.9
 
 - fix(bybit): spot order amount precision [#17087](https://github.com/ccxt/ccxt/pull/17087)
 - feat(bybit):: add v5 endpoint to fetchBalance [ci deploy] [#17102](https://github.com/ccxt/ccxt/pull/17102)
 
-
 ## 2.9.8
 
 - okx withdraw enhancement [#17074](https://github.com/ccxt/ccxt/pull/17074)
 - btcex error mapping [#17082](https://github.com/ccxt/ccxt/pull/17082)
 - Gate docs [#17089](https://github.com/ccxt/ccxt/pull/17089)
-
 
 ## 2.9.7
 
@@ -7866,7 +7246,6 @@
 - fix(Exchange): fetchstatus info key [#17080](https://github.com/ccxt/ccxt/pull/17080)
 - bithumb fetchTickers fix [#17073](https://github.com/ccxt/ccxt/pull/17073)
 - bitget parseTrade negative fee fix [#17083](https://github.com/ccxt/ccxt/pull/17083)
-
 
 ## 2.9.6
 
@@ -7879,302 +7258,224 @@
 - gate withdraw, parseTransactions fix [#17071](https://github.com/ccxt/ccxt/pull/17071)
 - exchange - Flake8 fix qa [#17078](https://github.com/ccxt/ccxt/pull/17078)
 
-
 ## 2.9.4
-
-
 
 ## 2.9.3
 
-
-
 ## 2.9.2
-
-
 
 ## 2.9.1
 
-
-
 ## 2.8.99
 
-
-
 ## 2.8.98
-
-
 
 ## 2.8.97
 
 - bybit: patch fetchMarketLeverageTiers ccxt/ccxt#17055 [#17061](https://github.com/ccxt/ccxt/pull/17061)
 
-
 ## 2.8.96
 
 - CONTRIBUTING.md: spelling fixes. [#17060](https://github.com/ccxt/ccxt/pull/17060)
 
-
 ## 2.8.95
 
-
-
 ## 2.8.94
-
-
 
 ## 2.8.93
 
 - fix(bybit): parseTicker default type [#17056](https://github.com/ccxt/ccxt/pull/17056)
 
-
 ## 2.8.92
 
 - fix(binance): stream reconnect [#17044](https://github.com/ccxt/ccxt/pull/17044)
 
-
 ## 2.8.91
-
-
 
 ## 2.8.90
 
-
-
 ## 2.8.89
 
-
-
 ## 2.8.88
-
-
 
 ## 2.8.87
 
 - Coinbase Pro: Add bidVolume and askVolume to watchTicker [#17047](https://github.com/ccxt/ccxt/pull/17047)
 
-
 ## 2.8.86
 
-
-
 ## 2.8.85
-
-
 
 ## 2.8.84
 
 - gate: Add mapping for invalid stop order pricing [#17048](https://github.com/ccxt/ccxt/pull/17048)
 
-
 ## 2.8.83
 
 - Bybit balance fix [#17043](https://github.com/ccxt/ccxt/pull/17043)
-
 
 ## 2.8.82
 
 - fix(bybit): setMarginMode leverage type [#17042](https://github.com/ccxt/ccxt/pull/17042)
 
-
 ## 2.8.81
 
 - bybit: update fetchBalance [#17033](https://github.com/ccxt/ccxt/pull/17033)
-
 
 ## 2.8.80
 
 - Bybit and phemex fix [#17039](https://github.com/ccxt/ccxt/pull/17039)
 
-
 ## 2.8.79
-
-
 
 ## 2.8.78
 
 - feat(bybit): v5 add funding balance [#17029](https://github.com/ccxt/ccxt/pull/17029)
 
-
 ## 2.8.77
 
 - fix(whitebit): handle authenticate error [#17018](https://github.com/ccxt/ccxt/pull/17018)
-
 
 ## 2.8.76
 
 - okx: add v5/trade/order-algo [#17022](https://github.com/ccxt/ccxt/pull/17022)
 
-
 ## 2.8.75
 
 - fix(Gate): sandbox markets loading [#17026](https://github.com/ccxt/ccxt/pull/17026)
-
 
 ## 2.8.74
 
 - Fix Dockerfile [#17014](https://github.com/ccxt/ccxt/pull/17014)
 
-
 ## 2.8.73
 
 - cex - incorrect currency precision parsing [#17015](https://github.com/ccxt/ccxt/pull/17015)
-
 
 ## 2.8.72
 
 - fix(ascendex): fix #17010 [#17017](https://github.com/ccxt/ccxt/pull/17017)
 
-
 ## 2.8.71
 
 - bybit: add fetchCanceledOrders [#17020](https://github.com/ccxt/ccxt/pull/17020)
-
 
 ## 2.8.70
 
 - fix(Bybit): add account type options [#17025](https://github.com/ccxt/ccxt/pull/17025)
 
-
 ## 2.8.69
 
 - bybit: update entry price ccxt/ccxt#17021 [#17023](https://github.com/ccxt/ccxt/pull/17023)
-
 
 ## 2.8.68
 
 - base - restore base options [#17016](https://github.com/ccxt/ccxt/pull/17016)
 
-
 ## 2.8.67
 
 - WIP - Phemex swap USDT [#16911](https://github.com/ccxt/ccxt/pull/16911)
-
 
 ## 2.8.66
 
 - fix(Bybit): timeframe parsing [#17012](https://github.com/ccxt/ccxt/pull/17012)
 
-
 ## 2.8.65
 
 - fix(bybit): remove isUnifiedMarginEnabled from ws [#17009](https://github.com/ccxt/ccxt/pull/17009)
-
 
 ## 2.8.64
 
 - fix(bybit): fix fetchOHLCV since [#17008](https://github.com/ccxt/ccxt/pull/17008)
 
-
 ## 2.8.63
 
 - fix(ascendex):make handlePing error catchable [#17001](https://github.com/ccxt/ccxt/pull/17001)
-
 
 ## 2.8.62
 
 - Binance: fetchLedger [#17002](https://github.com/ccxt/ccxt/pull/17002)
 
-
 ## 2.8.61
 
 - coinex - contract markets precisions [#17005](https://github.com/ccxt/ccxt/pull/17005)
-
 
 ## 2.8.60
 
 - bybit: upgrade to v5 api [#16699](https://github.com/ccxt/ccxt/pull/16699)
 
-
 ## 2.8.59
 
 - fix(exmo): watchBalance info [#17000](https://github.com/ccxt/ccxt/pull/17000)
-
 
 ## 2.8.58
 
 - fix(bitrue):watchBalance add info to balance structure [#16970](https://github.com/ccxt/ccxt/pull/16970)
 
-
 ## 2.8.57
 
 - fix(huobi): unhandled errors [#16990](https://github.com/ccxt/ccxt/pull/16990)
-
 
 ## 2.8.56
 
 - binance: add new sapis [#16992](https://github.com/ccxt/ccxt/pull/16992)
 
-
 ## 2.8.55
 
 - fix(gate): reset correctly orderbook after invalid nonce error [#16991](https://github.com/ccxt/ccxt/pull/16991)
-
 
 ## 2.8.54
 
 - fix(Gate): watchOrders without symbol [#16995](https://github.com/ccxt/ccxt/pull/16995)
 - ccxt.d.ts: add setSandboxMode(). [#16993](https://github.com/ccxt/ccxt/pull/16993)
 
-
 ## 2.8.53
 
 - fix(hollaex):watchBalance add info to balance structure [#16965](https://github.com/ccxt/ccxt/pull/16965)
-
 
 ## 2.8.52
 
 - fix(phemex):watchBalance add info to balance structure [#16968](https://github.com/ccxt/ccxt/pull/16968)
 
-
 ## 2.8.51
 
 - fix(coinex):watchBalance add info to balance structure [#16969](https://github.com/ccxt/ccxt/pull/16969)
-
 
 ## 2.8.50
 
 - [krakenfutures] Fix fetchTicker to take market id [#16981](https://github.com/ccxt/ccxt/pull/16981)
 
-
 ## 2.8.49
 
 - fix(cryptocom):watchBalance add info to balance structure [#16966](https://github.com/ccxt/ccxt/pull/16966)
-
 
 ## 2.8.48
 
 - fix(okcoin):watchBalance add info to balance structure [#16967](https://github.com/ccxt/ccxt/pull/16967)
 
-
 ## 2.8.47
 
 - fix(whitebit):watchBalance add info to balance structure [#16973](https://github.com/ccxt/ccxt/pull/16973)
-
 
 ## 2.8.46
 
 - fix(mexc):watchBalance add info to balance structure [#16964](https://github.com/ccxt/ccxt/pull/16964)
 
-
 ## 2.8.45
 
 - fix(wazirx):watchBalance add info to balance structure [#16974](https://github.com/ccxt/ccxt/pull/16974)
-
 
 ## 2.8.44
 
 - fix(gate):watchBalance add info to balance structure [#16975](https://github.com/ccxt/ccxt/pull/16975)
 
-
 ## 2.8.43
 
 - Binance: fetchOpenInterest [#16976](https://github.com/ccxt/ccxt/pull/16976)
 
-
 ## 2.8.42
 
 - fix(bittrex):watchBalance add info to balance structure [#16957](https://github.com/ccxt/ccxt/pull/16957)
-
 
 ## 2.8.41
 
@@ -8182,21 +7483,17 @@
 - fix(huobi):watchBalance add info to balance structure [#16961](https://github.com/ccxt/ccxt/pull/16961)
 - fix(exmo,deribit): watchBalance add info to balance structure [#16958](https://github.com/ccxt/ccxt/pull/16958)
 
-
 ## 2.8.40
 
 - Binance: fetchSettlementHistory [#16946](https://github.com/ccxt/ccxt/pull/16946)
-
 
 ## 2.8.39
 
 - fix(kucoin): watchBalance add info and time to balance structure [#16953](https://github.com/ccxt/ccxt/pull/16953)
 
-
 ## 2.8.38
 
 - bitget.fetchMarkets contract size is 1 [#16954](https://github.com/ccxt/ccxt/pull/16954)
-
 
 ## 2.8.37
 
@@ -8206,31 +7503,25 @@
 - fix(bitopro):watchBalance add info, timestamp and datetime to balance structure [#16956](https://github.com/ccxt/ccxt/pull/16956)
 - krakenfutures : fix build [#16972](https://github.com/ccxt/ccxt/pull/16972)
 
-
 ## 2.8.36
 
 - fix(Kucoin): fix transaction status [#16951](https://github.com/ccxt/ccxt/pull/16951)
-
 
 ## 2.8.35
 
 - fix(Binance): fix parseTrades margin [#16950](https://github.com/ccxt/ccxt/pull/16950)
 
-
 ## 2.8.34
 
 - coinex update rate limit [#16936](https://github.com/ccxt/ccxt/pull/16936)
-
 
 ## 2.8.33
 
 - feat(ccxt.d.ts): add transfer and setLeverage types [#16948](https://github.com/ccxt/ccxt/pull/16948)
 
-
 ## 2.8.32
 
 - bybit: patch fetchTransfers ccxt/ccxt#16945 [#16947](https://github.com/ccxt/ccxt/pull/16947)
-
 
 ## 2.8.31
 
@@ -8239,33 +7530,21 @@
 - btcex fetchMyTrades fix [#16934](https://github.com/ccxt/ccxt/pull/16934)
 - Binance: fetchOrderBook, add option support [#16895](https://github.com/ccxt/ccxt/pull/16895)
 
-
 ## 2.8.30
 
 - [new exchange] krakenfutures (re-added PR) [#15133](https://github.com/ccxt/ccxt/pull/15133)
 - fix(Binance): parseTrade spot margin trades [#16927](https://github.com/ccxt/ccxt/pull/16927)
 - feat(Okx): add positions history method [#16928](https://github.com/ccxt/ccxt/pull/16928)
 
-
 ## 2.8.29
-
-
 
 ## 2.8.28
 
-
-
 ## 2.8.27
-
-
 
 ## 2.8.26
 
-
-
 ## 2.8.25
-
-
 
 ## 2.8.24
 
@@ -8274,20 +7553,15 @@
 - coinbase: fix quote size for market buy order ccxt/ccxt#16918 [#16922](https://github.com/ccxt/ccxt/pull/16922)
 - code - fixes for deposit address [#16923](https://github.com/ccxt/ccxt/pull/16923)
 
-
 ## 2.8.23
 
 - Origin/exbugs [#16916](https://github.com/ccxt/ccxt/pull/16916)
 
-
 ## 2.8.22
-
-
 
 ## 2.8.21
 
 - feat(Binance): add mark/index stream to watchOHLCV [#16917](https://github.com/ccxt/ccxt/pull/16917)
-
 
 ## 2.8.17
 
@@ -8297,119 +7571,93 @@
 - fix(Bitfinex2): fetchTrades symbol parsing [#16908](https://github.com/ccxt/ccxt/pull/16908)
 - fix(Bitfinex2): await client send [#16910](https://github.com/ccxt/ccxt/pull/16910)
 
-
 ## 2.8.16
-
-
 
 ## 2.8.15
 
 - Bitmex : authenticate ws fix [#16891](https://github.com/ccxt/ccxt/pull/16891)
 
-
 ## 2.8.14
 
 - feat(Binance): support different ids in editOrder [#16892](https://github.com/ccxt/ccxt/pull/16892)
-
 
 ## 2.8.13
 
 - Bitget fetchLeverage fetch private account data for market [#16888](https://github.com/ccxt/ccxt/pull/16888)
 
-
 ## 2.8.12
 
 - feat: Add auto Changelog.md [#16792](https://github.com/ccxt/ccxt/pull/16792)
-
 
 ## 2.8.11
 
 - Build : Disable therock [#16889](https://github.com/ccxt/ccxt/pull/16889)
 
-
 ## 2.8.10
 
 - fix: bitget watchBalance swap [#16885](https://github.com/ccxt/ccxt/pull/16885)
-
 
 ## 2.8.9
 
 - Fix bug bitget sandbox mode [#16882](https://github.com/ccxt/ccxt/pull/16882)
 
-
 ## 2.8.8
 
 - hitbtc remove BIT mapping [#16877](https://github.com/ccxt/ccxt/pull/16877)
-
 
 ## 2.8.7
 
 - Update mexc3 [#16874](https://github.com/ccxt/ccxt/pull/16874)
 
-
 ## 2.8.6
 
 - bitflyer: fix markets conflict [#16872](https://github.com/ccxt/ccxt/pull/16872)
-
 
 ## 2.8.5
 
 - okx: add error codes [#16870](https://github.com/ccxt/ccxt/pull/16870)
 
-
 ## 2.8.4
 
 - Vss global flag [#16869](https://github.com/ccxt/ccxt/pull/16869)
-
 
 ## 2.8.3
 
 - Fix browserified version [#16868](https://github.com/ccxt/ccxt/pull/16868)
 
-
 ## 2.8.2
 
 - huobi.fetchFundingHistory: all endpoints can take market symbol [#16863](https://github.com/ccxt/ccxt/pull/16863)
-
 
 ## 2.8.1
 
 - Ndax fetch deposits [#15193](https://github.com/ccxt/ccxt/pull/15193)
 
-
 ## 2.7.108
-
-
 
 ## 2.7.107
 
 - Binance: fetchTrades, add option support [#16852](https://github.com/ccxt/ccxt/pull/16852)
 
-
 ## 2.7.106
 
 - Binance: parseOrder, fix options bug [#16859](https://github.com/ccxt/ccxt/pull/16859)
-
 
 ## 2.7.105
 
 - Binance: fetchBalance, add option support [#16844](https://github.com/ccxt/ccxt/pull/16844)
 
-
 ## 2.7.104
 
 - binance - fix watchOrderbook in testnet [#16861](https://github.com/ccxt/ccxt/pull/16861)
-
 
 ## 2.7.103
 
 - Binance: fetchOpenOrders, add option support [#16819](https://github.com/ccxt/ccxt/pull/16819)
 
-
 ## 2.7.102
 
 - Binance: fetchOrders, add option support [#16820](https://github.com/ccxt/ccxt/pull/16820)
-
 
 ## 2.7.101
 
@@ -8417,51 +7665,41 @@
 - binance: add v4/sub-account/assets [#16837](https://github.com/ccxt/ccxt/pull/16837)
 - Independentreserve - websockets [#16831](https://github.com/ccxt/ccxt/pull/16831)
 
-
 ## 2.7.100
 
 - Binance: cancelAllOrders, add option support [#16829](https://github.com/ccxt/ccxt/pull/16829)
-
 
 ## 2.7.99
 
 - Binance: fetchOrder, add option support [#16817](https://github.com/ccxt/ccxt/pull/16817)
 
-
 ## 2.7.98
 
 - Binance: cancelOrder, add option support [#16828](https://github.com/ccxt/ccxt/pull/16828)
-
 
 ## 2.7.97
 
 - Binance: createOrder, option support [#16816](https://github.com/ccxt/ccxt/pull/16816)
 
-
 ## 2.7.96
 
 - bitget.fetchDepositAddress add network param [#16851](https://github.com/ccxt/ccxt/pull/16851)
-
 
 ## 2.7.95
 
 - okx: support authenticate for public ws ccxt/ccxt#16853 [#16854](https://github.com/ccxt/ccxt/pull/16854)
 
-
 ## 2.7.94
 
 - Bybit :: fix signature [#16850](https://github.com/ccxt/ccxt/pull/16850)
-
 
 ## 2.7.93
 
 - deribit: check whether price is market_price ccxt/ccxt#16842 [#16846](https://github.com/ccxt/ccxt/pull/16846)
 
-
 ## 2.7.92
 
 - Binance :: fix fetchMarkets [#16840](https://github.com/ccxt/ccxt/pull/16840)
-
 
 ## 2.7.91
 
@@ -8470,226 +7708,174 @@
 - coinex - watchTrades - allow subscribe to several symbols [#16810](https://github.com/ccxt/ccxt/pull/16810)
 - Proxy Binance US [#16838](https://github.com/ccxt/ccxt/pull/16838)
 
-
 ## 2.7.90
 
 - Binance: remove options testnet URLS [#16825](https://github.com/ccxt/ccxt/pull/16825)
-
 
 ## 2.7.89
 
 - Coinex :: fix fetchMyTrades [#16826](https://github.com/ccxt/ccxt/pull/16826)
 
-
 ## 2.7.88
 
 - coinex - watchOrderBook - allow multiple subscriptions [#16811](https://github.com/ccxt/ccxt/pull/16811)
-
 
 ## 2.7.87
 
 - Tests :: remove duplicated fetchBorrowInterest entry [#16824](https://github.com/ccxt/ccxt/pull/16824)
 
-
 ## 2.7.86
 
 - docstring - fetchTickers and watchTickers fix to return dictionary [#16809](https://github.com/ccxt/ccxt/pull/16809)
-
 
 ## 2.7.85
 
 - Coinbase: fetchMyTrades, fix since [#16821](https://github.com/ccxt/ccxt/pull/16821)
 
-
 ## 2.7.84
 
 - bybit - fetchOrders - fix #16822 [#16823](https://github.com/ccxt/ccxt/pull/16823)
 
-
 ## 2.7.83
 
-- coinex - watchTickers, fix watchTicker  [#16807](https://github.com/ccxt/ccxt/pull/16807)
-
+- coinex - watchTickers, fix watchTicker [#16807](https://github.com/ccxt/ccxt/pull/16807)
 
 ## 2.7.82
 
 - docstring - replace array for [string] or [object] [#16808](https://github.com/ccxt/ccxt/pull/16808)
 
-
 ## 2.7.81
 
 - transfer method does not add data via extend [#16814](https://github.com/ccxt/ccxt/pull/16814)
-
 
 ## 2.7.80
 
 - huobi.fetchPositions check params for subType [#16815](https://github.com/ccxt/ccxt/pull/16815)
 
-
 ## 2.7.79
 
 - gate: add price_type ccxt/ccxt#16749 [#16806](https://github.com/ccxt/ccxt/pull/16806)
-
 
 ## 2.7.78
 
 - test - reorganize for pre-transpilation stage [#15521](https://github.com/ccxt/ccxt/pull/15521)
 
-
 ## 2.7.77
 
 - Woo :: fix createMarketBuyRequiresPrice [#16804](https://github.com/ccxt/ccxt/pull/16804)
-
 
 ## 2.7.76
 
 - Huobi transfer margin [#16795](https://github.com/ccxt/ccxt/pull/16795)
 - Gate: fetchMarkets, option support [#16798](https://github.com/ccxt/ccxt/pull/16798)
 
-
 ## 2.7.75
 
 - gate: fix parse_order for spot orders [#16793](https://github.com/ccxt/ccxt/pull/16793)
 
-
 ## 2.7.74
-
-
 
 ## 2.7.73
 
 - Binance: fetchMarkets, add option support [#16787](https://github.com/ccxt/ccxt/pull/16787)
 
-
 ## 2.7.72
-
-
 
 ## 2.7.71
 
-
-
 ## 2.7.70
 
-
-
 ## 2.7.69
-
-
 
 ## 2.7.68
 
 - Moved parseIncomes from binance to base exchange [#16764](https://github.com/ccxt/ccxt/pull/16764)
 
-
 ## 2.7.67
 
 - Bitget Websocket private : updated to handle SUMCBL [#16789](https://github.com/ccxt/ccxt/pull/16789)
-
 
 ## 2.7.66
 
 - Add max retries option [#16788](https://github.com/ccxt/ccxt/pull/16788)
 
-
 ## 2.7.65
 
 - Phemex perp hedged - public functions [#16762](https://github.com/ccxt/ccxt/pull/16762)
-
 
 ## 2.7.64
 
 - Probit fetch transaction fee(s) [#16533](https://github.com/ccxt/ccxt/pull/16533)
 
-
 ## 2.7.63
 
 - Bitget : Simulated SUSDT [#16779](https://github.com/ccxt/ccxt/pull/16779)
-
 
 ## 2.7.62
 
 - okx: Fix validation of posSide in setLeverage [#16781](https://github.com/ccxt/ccxt/pull/16781)
 
-
 ## 2.7.60
-
-
 
 ## 2.7.59
 
 - Typo in line 152 fixed [#16772](https://github.com/ccxt/ccxt/pull/16772)
 
-
 ## 2.7.58
 
 - Tests manager :: test [#16759](https://github.com/ccxt/ccxt/pull/16759)
-
 
 ## 2.7.57
 
 - Fix fetchOHLCV [#16778](https://github.com/ccxt/ccxt/pull/16778)
 
-
 ## 2.7.56
 
 - Bitget: createOrder, market trigger order [#16768](https://github.com/ccxt/ccxt/pull/16768)
-
 
 ## 2.7.55
 
 - Typo in comment in line 134 fixed [#16774](https://github.com/ccxt/ccxt/pull/16774)
 
-
 ## 2.7.54
 
 - Woo :: fix swap market orders [#16775](https://github.com/ccxt/ccxt/pull/16775)
-
 
 ## 2.7.53
 
 - JS: private tests fix [#16771](https://github.com/ccxt/ccxt/pull/16771)
 
-
 ## 2.7.52
 
 - Bybit :: add missing order status [#16773](https://github.com/ccxt/ccxt/pull/16773)
-
 
 ## 2.7.51
 
 - Tests python :: restore orders line [#16763](https://github.com/ccxt/ccxt/pull/16763)
 
-
 ## 2.7.50
 
 - Btcex: fetchOrder, swap support [#16658](https://github.com/ccxt/ccxt/pull/16658)
-
 
 ## 2.7.49
 
 - exchange pro base - fix delay to match js [#16751](https://github.com/ccxt/ccxt/pull/16751)
 
-
 ## 2.7.48
 
 - Bitget: fetchCanceledOrders [#16742](https://github.com/ccxt/ccxt/pull/16742)
-
 
 ## 2.7.47
 
 - bitget: fetchFundingHistory [#16745](https://github.com/ccxt/ccxt/pull/16745)
 
-
 ## 2.7.46
 
 - detla - zero fix [#16758](https://github.com/ccxt/ccxt/pull/16758)
 
-
 ## 2.7.45
 
 - ace: new exchange [#15903](https://github.com/ccxt/ccxt/pull/15903)
-
 
 ## 2.7.44
 
@@ -8698,215 +7884,170 @@
 - delta["options"]["fees"] uses string numbers [#16728](https://github.com/ccxt/ccxt/pull/16728)
 - Btcex: createOrder, add swap and stop order support [#16657](https://github.com/ccxt/ccxt/pull/16657)
 
-
 ## 2.7.43
 
 - Bybit fetchDeposits, add until parameter, docstring edits [#16735](https://github.com/ccxt/ccxt/pull/16735)
-
 
 ## 2.7.42
 
 - delta - fix position [#16733](https://github.com/ccxt/ccxt/pull/16733)
 
-
 ## 2.7.41
 
 - binance: update apis [#16740](https://github.com/ccxt/ccxt/pull/16740)
-
 
 ## 2.7.40
 
 - binance: patch ccxt/ccxt#16702 [#16741](https://github.com/ccxt/ccxt/pull/16741)
 
-
 ## 2.7.39
 
 - Tests fix [#16744](https://github.com/ccxt/ccxt/pull/16744)
-
 
 ## 2.7.38
 
 - huobi - fix balance [#16729](https://github.com/ccxt/ccxt/pull/16729)
 
-
 ## 2.7.37
 
-- cli.py -  unicode support [#16730](https://github.com/ccxt/ccxt/pull/16730)
-
+- cli.py - unicode support [#16730](https://github.com/ccxt/ccxt/pull/16730)
 
 ## 2.7.36
 
 - okx - fetchPosition fix [#16731](https://github.com/ccxt/ccxt/pull/16731)
 
-
 ## 2.7.35
 
 - Kucoinfutures fetchFundingRateHistory [#16687](https://github.com/ccxt/ccxt/pull/16687)
 
-
 ## 2.7.34
 
-- fetchcurrencies - removal of address  [#16722](https://github.com/ccxt/ccxt/pull/16722)
-
+- fetchcurrencies - removal of address [#16722](https://github.com/ccxt/ccxt/pull/16722)
 
 ## 2.7.33
 
 - Mexc3 fetch ticker precise [#16725](https://github.com/ccxt/ccxt/pull/16725)
 
-
 ## 2.7.32
-
-
 
 ## 2.7.31
 
 - huobi - implicit api [#16715](https://github.com/ccxt/ccxt/pull/16715)
 
-
 ## 2.7.30
 
 - Run-tests :: options forwarding + old bug fix [#16714](https://github.com/ccxt/ccxt/pull/16714)
-
 
 ## 2.7.29
 
 - Bitmex :: add broker id [#16717](https://github.com/ccxt/ccxt/pull/16717)
 
-
 ## 2.7.28
 
 - fix ParseOrder missing information (related to #14925) [#16703](https://github.com/ccxt/ccxt/pull/16703)
 
-
 ## 2.7.27
 
-- Tests :: small refactor and improvements  [#16711](https://github.com/ccxt/ccxt/pull/16711)
-
+- Tests :: small refactor and improvements [#16711](https://github.com/ccxt/ccxt/pull/16711)
 
 ## 2.7.26
 
 - binance pro parseTrade string math [#16705](https://github.com/ccxt/ccxt/pull/16705)
 
-
 ## 2.7.25
 
 - coinbasepro parseNumber for describe fees [#16706](https://github.com/ccxt/ccxt/pull/16706)
 
-
 ## 2.7.24
 
 - Bitget :: fix parseBalance [#16712](https://github.com/ccxt/ccxt/pull/16712)
-
 
 ## 2.7.23
 
 - bitbns: removed empty timeframes object [#16704](https://github.com/ccxt/ccxt/pull/16704)
 - Bitget :: improve parseOrder [#16713](https://github.com/ccxt/ccxt/pull/16713)
 
-
 ## 2.7.22
 
 - New updates :: initialization fix [#16700](https://github.com/ccxt/ccxt/pull/16700)
-
 
 ## 2.7.21
 
 - fetchOHLCV - accept timeframeId [#16675](https://github.com/ccxt/ccxt/pull/16675)
 
-
 ## 2.7.20
 
 - bybit - fix array [#16694](https://github.com/ccxt/ccxt/pull/16694)
-
 
 ## 2.7.19
 
 - [binance] URL encode RSA signatures [#16634](https://github.com/ccxt/ccxt/pull/16634)
 
-
 ## 2.7.18
 
 - Btcex: fetchOpenInterest [#16690](https://github.com/ccxt/ccxt/pull/16690)
-
 
 ## 2.7.17
 
 - bitget - fetchOHLCV - accept timeframeId [#16665](https://github.com/ccxt/ccxt/pull/16665)
 
-
 ## 2.7.16
 
 - bitget: add fetchTransfers [#16677](https://github.com/ccxt/ccxt/pull/16677)
-
 
 ## 2.7.15
 
 - Btcex: fetchFundingRate, fetchFundingRates [#16678](https://github.com/ccxt/ccxt/pull/16678)
 
-
 ## 2.7.14
 
 - Btcex: transfer [#16664](https://github.com/ccxt/ccxt/pull/16664)
-
 
 ## 2.7.13
 
 - Deribit :: triggerPrice fix [#16681](https://github.com/ccxt/ccxt/pull/16681)
 
-
 ## 2.7.12
 
 - Gate :: fix watchBalance [#16680](https://github.com/ccxt/ccxt/pull/16680)
-
 
 ## 2.7.11
 
 - Kucoin :: fix parseOrder [#16674](https://github.com/ccxt/ccxt/pull/16674)
 
-
 ## 2.7.10
 
 - binance: update parseTransaction ccxt/ccxt#16666 [#16668](https://github.com/ccxt/ccxt/pull/16668)
-
 
 ## 2.7.9
 
 - added 6H timeframe for bitget pro [#16670](https://github.com/ccxt/ccxt/pull/16670)
 
-
 ## 2.7.8
 
 - reenable fetchTickers on binance.us [#16671](https://github.com/ccxt/ccxt/pull/16671)
-
 
 ## 2.7.7
 
 - Btcex: setLeverage [#16659](https://github.com/ccxt/ccxt/pull/16659)
 
-
 ## 2.7.6
 
 - Btcex: setMarginMode [#16660](https://github.com/ccxt/ccxt/pull/16660)
-
 
 ## 2.7.5
 
 - update bit2c fees [#16662](https://github.com/ccxt/ccxt/pull/16662)
 
-
 ## 2.7.4
 
 - Align bybit fetchOrder for futures to other exchanges [#16655](https://github.com/ccxt/ccxt/pull/16655)
-
 
 ## 2.7.3
 
 - has["method"] === undefined mostly replaced with has["method"] === false [#16647](https://github.com/ccxt/ccxt/pull/16647)
 
-
 ## 2.7.1
-
-
 
 ## 2.6.1
 
@@ -8974,7 +8115,6 @@
 - bybit: Add PARTIALLY_FILLED_CANCELLED to bybit order stati [#16639](https://github.com/ccxt/ccxt/pull/16639)
 - bit2c - updated 'parseTrade' to support added field 'isMaker' [#16641](https://github.com/ccxt/ccxt/pull/16641)
 
-
 ## 2.5.1
 
 - refactor gateio pro [#16366](https://github.com/ccxt/ccxt/pull/16366)
@@ -9004,7 +8144,7 @@
 - wavesexchange: update fetchTickers ccxt/ccxt#16229 [#16410](https://github.com/ccxt/ccxt/pull/16410)
 - coinex.parseTransaction string math / updates [#16409](https://github.com/ccxt/ccxt/pull/16409)
 - wazirx pro - string math [#16404](https://github.com/ccxt/ccxt/pull/16404)
-- Bitget: fix spot fetchTickers  [#16418](https://github.com/ccxt/ccxt/pull/16418)
+- Bitget: fix spot fetchTickers [#16418](https://github.com/ccxt/ccxt/pull/16418)
 - Added support for FLR [#16420](https://github.com/ccxt/ccxt/pull/16420)
 - Bybit :: fix default position side [#16424](https://github.com/ccxt/ccxt/pull/16424)
 - ccxt.pro :: update docs [#16421](https://github.com/ccxt/ccxt/pull/16421)
@@ -9030,7 +8170,6 @@
 - Gemini :: fix markets [#16457](https://github.com/ccxt/ccxt/pull/16457)
 - Build :: disable gemini [#16460](https://github.com/ccxt/ccxt/pull/16460)
 - coinex: fix parseFundingRate [#16459](https://github.com/ccxt/ccxt/pull/16459)
-
 
 ## 2.4.1
 
@@ -9070,7 +8209,7 @@
 - travis skip tests [#16256](https://github.com/ccxt/ccxt/pull/16256)
 - coinex - `fetchDepositWithdrawFees()` [#15599](https://github.com/ccxt/ccxt/pull/15599)
 - btcmarkets parseTransaction unification minimum changes [#16150](https://github.com/ccxt/ccxt/pull/16150)
-- Travis :: Optimize tests  [#16260](https://github.com/ccxt/ccxt/pull/16260)
+- Travis :: Optimize tests [#16260](https://github.com/ccxt/ccxt/pull/16260)
 - gateio-pro [#16269](https://github.com/ccxt/ccxt/pull/16269)
 - Exmo parseTransaction unification [#16263](https://github.com/ccxt/ccxt/pull/16263)
 - alpaca- py comments fix [#16273](https://github.com/ccxt/ccxt/pull/16273)
@@ -9091,7 +8230,6 @@
 - binance support for RSA API keys [#16280](https://github.com/ccxt/ccxt/pull/16280)
 - binance stopLoss & takeProfit unification [#13920](https://github.com/ccxt/ccxt/pull/13920)
 
-
 ## 2.2.1
 
 - Bybit :: fix fetchPosition [#15928](https://github.com/ccxt/ccxt/pull/15928)
@@ -9109,7 +8247,7 @@
 - bybit trigger orders [#15946](https://github.com/ccxt/ccxt/pull/15946)
 - precision (TICK_SIZE) updates - changing numbers to sc.notation [#13950](https://github.com/ccxt/ccxt/pull/13950)
 - Poloniex :: fix build [#15950](https://github.com/ccxt/ccxt/pull/15950)
-- Bitget :: pro implementation  [#15380](https://github.com/ccxt/ccxt/pull/15380)
+- Bitget :: pro implementation [#15380](https://github.com/ccxt/ccxt/pull/15380)
 - Bitfinex2 :: fix handleMyTrade [#15951](https://github.com/ccxt/ccxt/pull/15951)
 - bybit fetchSpotOpenOrders fix [#15953](https://github.com/ccxt/ccxt/pull/15953)
 - Bitmart :: fix spot balance [#15966](https://github.com/ccxt/ccxt/pull/15966)
@@ -9161,7 +8299,6 @@
 - exchange.assignDefaultDepositWithdrawFees created [#15867](https://github.com/ccxt/ccxt/pull/15867)
 - digifinex - currency precision [#15379](https://github.com/ccxt/ccxt/pull/15379)
 - exmo fetchMarkets active key set to undefined instead of true [#16065](https://github.com/ccxt/ccxt/pull/16065)
-
 
 ## 2.1.1
 
@@ -9242,7 +8379,6 @@
 - mexc3 - `commonCurrencies` update [#15773](https://github.com/ccxt/ccxt/pull/15773)
 - binance - add streams [#15737](https://github.com/ccxt/ccxt/pull/15737)
 
-
 ## 2.0.1
 
 - okx: update order tag ccxt/ccxt#15367 [#15372](https://github.com/ccxt/ccxt/pull/15372)
@@ -9317,7 +8453,6 @@
 - cryptocom error mapping [#15511](https://github.com/ccxt/ccxt/pull/15511)
 - cryptocom - fix watchOrderBook limit issue and marketId clash [#15515](https://github.com/ccxt/ccxt/pull/15515)
 
-
 ## 1.95.1
 
 - huobi.createOrder market buy string math [#14930](https://github.com/ccxt/ccxt/pull/14930)
@@ -9356,14 +8491,13 @@
 - mexc networks updated to working values [#15252](https://github.com/ccxt/ccxt/pull/15252)
 - fetchOpenInterest: add edits to Manual.md [#15254](https://github.com/ccxt/ccxt/pull/15254)
 - ndax.has["fetchTickers"] == false [#15253](https://github.com/ccxt/ccxt/pull/15253)
-- Build :: disable bitfinex temporarily  [#15257](https://github.com/ccxt/ccxt/pull/15257)
+- Build :: disable bitfinex temporarily [#15257](https://github.com/ccxt/ccxt/pull/15257)
 - huobi - new endpoints [#15152](https://github.com/ccxt/ccxt/pull/15152)
 - Kraken :: add symbol to WS orderbook [#15255](https://github.com/ccxt/ccxt/pull/15255)
 - multiple exchanges - currency-wide precisions [#15132](https://github.com/ccxt/ccxt/pull/15132)
 - Build :: fix build [#15261](https://github.com/ccxt/ccxt/pull/15261)
 - okx.createOrder market buy string math [#14966](https://github.com/ccxt/ccxt/pull/14966)
 - bybit createSpotOrder & parseLedgerEntry string math [#14915](https://github.com/ccxt/ccxt/pull/14915)
-
 
 ## 1.93.1
 
@@ -9402,9 +8536,8 @@
 - lbank2 - network related fixes [#15012](https://github.com/ccxt/ccxt/pull/15012)
 - The Merge - CCXT PRO integration into CCXT free 🔥 [#15085](https://github.com/ccxt/ccxt/pull/15085)
 - Revert "The Merge - CCXT PRO integration into CCXT free 🔥" [#15167](https://github.com/ccxt/ccxt/pull/15167)
-- The Merge - CCXT PRO  [#15170](https://github.com/ccxt/ccxt/pull/15170)
+- The Merge - CCXT PRO [#15170](https://github.com/ccxt/ccxt/pull/15170)
 - Fix vss path [#15172](https://github.com/ccxt/ccxt/pull/15172)
-
 
 ## 1.92.1
 
@@ -9422,7 +8555,7 @@
 - Fix `margin/trade/last` endpoint's scope for kucoin [#14778](https://github.com/ccxt/ccxt/pull/14778)
 - Mexc3 :: fix fetchMyTrades [#14774](https://github.com/ccxt/ccxt/pull/14774)
 - Okx: fetchLedger unify marginMode [#14267](https://github.com/ccxt/ccxt/pull/14267)
-- phemex  - fix order-types comment [#14258](https://github.com/ccxt/ccxt/pull/14258)
+- phemex - fix order-types comment [#14258](https://github.com/ccxt/ccxt/pull/14258)
 - ftx.has["createPostOnlyOrder"] added. fixes:#14742 [#14785](https://github.com/ccxt/ccxt/pull/14785)
 - huobi Math.whatever -> Precise [#14715](https://github.com/ccxt/ccxt/pull/14715)
 - Zb: handleMarginModeAndParams [#14752](https://github.com/ccxt/ccxt/pull/14752)
@@ -9465,7 +8598,6 @@
 - example for binance margin sell [#14843](https://github.com/ccxt/ccxt/pull/14843)
 - hollaex add triggerPrice and omit params [#14842](https://github.com/ccxt/ccxt/pull/14842)
 
-
 ## 1.91.1
 
 - bybit - error codes [#14545](https://github.com/ccxt/ccxt/pull/14545)
@@ -9507,7 +8639,7 @@
 - Binance fetch orders - isolated marginMode [#14399](https://github.com/ccxt/ccxt/pull/14399)
 - Binance cancel order isolated [#14397](https://github.com/ccxt/ccxt/pull/14397)
 - Binance fetchOpenOrders isolated [#14395](https://github.com/ccxt/ccxt/pull/14395)
-- base - `undefined` for  `createMarketOrder`  price [#14255](https://github.com/ccxt/ccxt/pull/14255)
+- base - `undefined` for `createMarketOrder` price [#14255](https://github.com/ccxt/ccxt/pull/14255)
 - binance.createOrder, can specify cross or isolated for marginMode [#14390](https://github.com/ccxt/ccxt/pull/14390)
 - gate: fix ccxt/ccxt#14611 [#14612](https://github.com/ccxt/ccxt/pull/14612)
 - bitflyer: add count when fetch trades [#14616](https://github.com/ccxt/ccxt/pull/14616)
@@ -9521,7 +8653,6 @@
 - okx edit ratelimit [#14632](https://github.com/ccxt/ccxt/pull/14632)
 - poloniex: new spot api [#14592](https://github.com/ccxt/ccxt/pull/14592)
 
-
 ## 1.90.1
 
 - Okx :: fix createOrder [#14246](https://github.com/ccxt/ccxt/pull/14246)
@@ -9534,7 +8665,7 @@
 - FetchTradingFee :: fix exchange parameter [#14274](https://github.com/ccxt/ccxt/pull/14274)
 - ftx - remove `recentPnl` [#14272](https://github.com/ccxt/ccxt/pull/14272)
 - Okx :: fix margin check [#14285](https://github.com/ccxt/ccxt/pull/14285)
-- Ftx :: fix parsePosition  [#14283](https://github.com/ccxt/ccxt/pull/14283)
+- Ftx :: fix parsePosition [#14283](https://github.com/ccxt/ccxt/pull/14283)
 - Binance :: fix parseMarketLeverageTiers [#14301](https://github.com/ccxt/ccxt/pull/14301)
 - add ltc for kucoin [#14298](https://github.com/ccxt/ccxt/pull/14298)
 - Hollaex :: fix fetchOrderBooks [#14302](https://github.com/ccxt/ccxt/pull/14302)
@@ -9590,7 +8721,6 @@
 - binance: fix wrong signature when calling staking ccxt/ccxt#14417 [#14418](https://github.com/ccxt/ccxt/pull/14418)
 - Woo :: fix parseOrder [#14427](https://github.com/ccxt/ccxt/pull/14427)
 - safeOrder omit zero fee currencies [#14422](https://github.com/ccxt/ccxt/pull/14422)
-
 
 ## 1.89.1
 
@@ -9679,7 +8809,6 @@
 - TICK_SIZE - bytetrade [#13580](https://github.com/ccxt/ccxt/pull/13580)
 - binance.has false methods [#14205](https://github.com/ccxt/ccxt/pull/14205)
 
-
 ## 1.88.1
 
 - latoken error mapping [#13987](https://github.com/ccxt/ccxt/pull/13987)
@@ -9736,7 +8865,6 @@
 - timex: add fetchPositionMode & fetchMarginMode [#14064](https://github.com/ccxt/ccxt/pull/14064)
 - Huobi borrowMargin, repayMargin [#14012](https://github.com/ccxt/ccxt/pull/14012)
 
-
 ## 1.87.1
 
 - Manual.md - rename funding fee to transaction fee [#13852](https://github.com/ccxt/ccxt/pull/13852)
@@ -9770,7 +8898,7 @@
 - precision line changes (3) [#13875](https://github.com/ccxt/ccxt/pull/13875)
 - huobi - precision fix [#13874](https://github.com/ccxt/ccxt/pull/13874)
 - ftx funding history - fix start_time and end_time [#13894](https://github.com/ccxt/ccxt/pull/13894)
-- indodax - describe, fetchTransactionFee  [#13863](https://github.com/ccxt/ccxt/pull/13863)
+- indodax - describe, fetchTransactionFee [#13863](https://github.com/ccxt/ccxt/pull/13863)
 - changed params.till -> params.until [#13872](https://github.com/ccxt/ccxt/pull/13872)
 - okx.fetchOHLCV params.until [#13876](https://github.com/ccxt/ccxt/pull/13876)
 - deribit - parseBalance [#13900](https://github.com/ccxt/ccxt/pull/13900)
@@ -9800,7 +8928,6 @@
 - okx - ticksize precision [#13952](https://github.com/ccxt/ccxt/pull/13952)
 - coinmate: add fetchPositionMode & fetchMarginMode [#13941](https://github.com/ccxt/ccxt/pull/13941)
 - coinfalcon: add fetchPositionMode & fetchMarginMode [#13938](https://github.com/ccxt/ccxt/pull/13938)
-
 
 ## 1.86.1
 
@@ -9850,7 +8977,7 @@
 - @see transpile to python [#13765](https://github.com/ccxt/ccxt/pull/13765)
 - Fetch borrow rate histories docs [#13741](https://github.com/ccxt/ccxt/pull/13741)
 - Bitvavo: adding stop-orders [#13729](https://github.com/ccxt/ccxt/pull/13729)
-- TICK_SIZE - idex  [#13619](https://github.com/ccxt/ccxt/pull/13619)
+- TICK_SIZE - idex [#13619](https://github.com/ccxt/ccxt/pull/13619)
 - TICK_SIZE - bit2c [#13560](https://github.com/ccxt/ccxt/pull/13560)
 - TICK_SIZE - coinflex [#13592](https://github.com/ccxt/ccxt/pull/13592)
 - TICK_SIZE - kraken [#13624](https://github.com/ccxt/ccxt/pull/13624)
@@ -9872,7 +8999,6 @@
 - bitget: update doc links [#13804](https://github.com/ccxt/ccxt/pull/13804)
 - ascendex: add fetchPositionMode & fetchMarginMode [#13745](https://github.com/ccxt/ccxt/pull/13745)
 - ftx unify stop orders [#13621](https://github.com/ccxt/ccxt/pull/13621)
-
 
 ## 1.85.1
 
@@ -9934,7 +9060,7 @@
 - signIn docstrings [#13709](https://github.com/ccxt/ccxt/pull/13709)
 - blockchaincom.fetchWithdrawalWhitelist docstring [#13710](https://github.com/ccxt/ccxt/pull/13710)
 - Digifinex fetchBorrowRate, fetchBorrowRates [#13703](https://github.com/ccxt/ccxt/pull/13703)
-- Ascendex: stopPrice + Trigger + timeInForce + postOnly  [#13676](https://github.com/ccxt/ccxt/pull/13676)
+- Ascendex: stopPrice + Trigger + timeInForce + postOnly [#13676](https://github.com/ccxt/ccxt/pull/13676)
 - fetchDepositAddress docstrings [#13652](https://github.com/ccxt/ccxt/pull/13652)
 - fetchTransactionFee docstrings [#13715](https://github.com/ccxt/ccxt/pull/13715)
 - fetchTransactions docstrings [#13714](https://github.com/ccxt/ccxt/pull/13714)
@@ -9949,7 +9075,6 @@
 - fetchOpenOrders docstrings [#13721](https://github.com/ccxt/ccxt/pull/13721)
 - fetchBorrowRates docstrings [#13722](https://github.com/ccxt/ccxt/pull/13722)
 - Transpile base methods [#13457](https://github.com/ccxt/ccxt/pull/13457)
-
 
 ## 1.84.1
 
@@ -9999,7 +9124,6 @@
 - TICK_SIZE - itbit [#13616](https://github.com/ccxt/ccxt/pull/13616)
 - TICK_SIZE - indodax [#13615](https://github.com/ccxt/ccxt/pull/13615)
 
-
 ## 1.83.1
 
 - fetchAccounts unification [#13291](https://github.com/ccxt/ccxt/pull/13291)
@@ -10008,7 +9132,7 @@
 - [DOCS] typo on javascripts' load markets function [#13385](https://github.com/ccxt/ccxt/pull/13385)
 - idex: fix ccxt/ccxt#13367 [#13378](https://github.com/ccxt/ccxt/pull/13378)
 - lbank2: fix market buy orders [#13389](https://github.com/ccxt/ccxt/pull/13389)
-- lbank2: fix amount market buys parseOrder  [#13390](https://github.com/ccxt/ccxt/pull/13390)
+- lbank2: fix amount market buys parseOrder [#13390](https://github.com/ccxt/ccxt/pull/13390)
 - lbank2: change fetchOrderBook endpoint [#13391](https://github.com/ccxt/ccxt/pull/13391)
 - bybit: add new api endpoints [#13384](https://github.com/ccxt/ccxt/pull/13384)
 - liquid update order parsing [#13380](https://github.com/ccxt/ccxt/pull/13380)
@@ -10044,7 +9168,6 @@
 - manual fetchOpenInterestHistory note for okx users [#13425](https://github.com/ccxt/ccxt/pull/13425)
 - woo - fetchAccounts, add name to account structure [#13434](https://github.com/ccxt/ccxt/pull/13434)
 
-
 ## 1.82.1
 
 - CONTRIBUTING.md add safeMethodN reference [#13247](https://github.com/ccxt/ccxt/pull/13247)
@@ -10063,7 +9186,7 @@
 - Bitget fetchOpenOrders [#13296](https://github.com/ccxt/ccxt/pull/13296)
 - Bitmex fetch funding rate history [#13293](https://github.com/ccxt/ccxt/pull/13293)
 - btcmarkets - withdraw [#13280](https://github.com/ccxt/ccxt/pull/13280)
-- Bybit  :: setLeverage update [#13262](https://github.com/ccxt/ccxt/pull/13262)
+- Bybit :: setLeverage update [#13262](https://github.com/ccxt/ccxt/pull/13262)
 - huobi fetchBalance params marginMode [#13283](https://github.com/ccxt/ccxt/pull/13283)
 - Bitmex fetchFundingRates [#13295](https://github.com/ccxt/ccxt/pull/13295)
 - Bybit :: fetchPositions update [#13264](https://github.com/ccxt/ccxt/pull/13264)
@@ -10092,7 +9215,6 @@
 - deribit - transfer, fetchTransfer [#13198](https://github.com/ccxt/ccxt/pull/13198)
 - added huobi error codes [#13331](https://github.com/ccxt/ccxt/pull/13331)
 - fetchFundingFee(s) into fetchTransactionFee(s) [#13327](https://github.com/ccxt/ccxt/pull/13327)
-
 
 ## 1.81.1
 
@@ -10125,7 +9247,7 @@
 - createStopOrder: false [#13137](https://github.com/ccxt/ccxt/pull/13137)
 - okx: add new endpoints [#13139](https://github.com/ccxt/ccxt/pull/13139)
 - Bybit :: fix fetchSpotMarkets [#13145](https://github.com/ccxt/ccxt/pull/13145)
-- Bybit ::  fetchTrades update [#13142](https://github.com/ccxt/ccxt/pull/13142)
+- Bybit :: fetchTrades update [#13142](https://github.com/ccxt/ccxt/pull/13142)
 - Bybit :: fetchOhlcv update [#13143](https://github.com/ccxt/ccxt/pull/13143)
 - Phemex createReduceOnlyOrder [#13148](https://github.com/ccxt/ccxt/pull/13148)
 - Phemex fetchFundingRate [#13149](https://github.com/ccxt/ccxt/pull/13149)
@@ -10151,7 +9273,6 @@
 - Remove DRK as common currency for DASH #13157 [#13196](https://github.com/ccxt/ccxt/pull/13196)
 - Bybit :: fetchOrderBook update [#13146](https://github.com/ccxt/ccxt/pull/13146)
 - kucoin: patch error code InvalidOrder [#13195](https://github.com/ccxt/ccxt/pull/13195)
-
 
 ## 1.80.1
 
@@ -10181,7 +9302,7 @@
 - okx - transfer [#12947](https://github.com/ccxt/ccxt/pull/12947)
 - `urlencodeNested` & kraken updates [#12900](https://github.com/ccxt/ccxt/pull/12900)
 - Export ROUND_UP and ROUND_DOWN constants [#12991](https://github.com/ccxt/ccxt/pull/12991)
-- Kucoin:  new base URL [#12994](https://github.com/ccxt/ccxt/pull/12994)
+- Kucoin: new base URL [#12994](https://github.com/ccxt/ccxt/pull/12994)
 - aax: update ratelimits [#12993](https://github.com/ccxt/ccxt/pull/12993)
 - Coinex fetchTrades [#12997](https://github.com/ccxt/ccxt/pull/12997)
 - more clear instructions for coroutine exchange.close [#13001](https://github.com/ccxt/ccxt/pull/13001)
@@ -10208,11 +9329,10 @@
 - manual - transfer can also be done to emails in certain exchanges [#13036](https://github.com/ccxt/ccxt/pull/13036)
 - paymium - transfer [#13037](https://github.com/ccxt/ccxt/pull/13037)
 - gateio.has[option] = false [#13030](https://github.com/ccxt/ccxt/pull/13030)
-- ascendex: update ratelimits  [#13035](https://github.com/ccxt/ccxt/pull/13035)
+- ascendex: update ratelimits [#13035](https://github.com/ccxt/ccxt/pull/13035)
 - Coinex fetchBalance [#13039](https://github.com/ccxt/ccxt/pull/13039)
 - paymium - createDepositAddress, fetchDepositAddress and fetchDepositAddresses [#13038](https://github.com/ccxt/ccxt/pull/13038)
 - latoken - transfer [#13021](https://github.com/ccxt/ccxt/pull/13021)
-
 
 ## 1.79.1
 
@@ -10246,7 +9366,7 @@
 - binance - refactor transfer [#12801](https://github.com/ccxt/ccxt/pull/12801)
 - leverageTiers.notionalCap renamed to maxNotional and leverageTiers.notionalFloor renamed to minNotional [#12873](https://github.com/ccxt/ccxt/pull/12873)
 - okx - `fetchTransfer` fix from plural to singular [#12876](https://github.com/ccxt/ccxt/pull/12876)
-- mexc & okex  -  `fetchTransfer` signature [#12877](https://github.com/ccxt/ccxt/pull/12877)
+- mexc & okex - `fetchTransfer` signature [#12877](https://github.com/ccxt/ccxt/pull/12877)
 - ascendex - `parseTransfer` for `transfer` [#12878](https://github.com/ccxt/ccxt/pull/12878)
 - cryptocom - parseTransfers [#12874](https://github.com/ccxt/ccxt/pull/12874)
 - hitbtc3 - `parseTransfer` for `transfer` [#12883](https://github.com/ccxt/ccxt/pull/12883)
@@ -10264,7 +9384,7 @@
 - `currencyToPrecision`: argument name change from `currency` to `currencyCode` [#12888](https://github.com/ccxt/ccxt/pull/12888)
 - bitfinex - refactor transfer [#12802](https://github.com/ccxt/ccxt/pull/12802)
 - bitfinex- `parseTransfer` for `transfer` [#12879](https://github.com/ccxt/ccxt/pull/12879)
-- moving examples from  `async-php` into `php` [#12897](https://github.com/ccxt/ccxt/pull/12897)
+- moving examples from `async-php` into `php` [#12897](https://github.com/ccxt/ccxt/pull/12897)
 - oceanex: add safeTrade [#12902](https://github.com/ccxt/ccxt/pull/12902)
 - gemini: add createOrder and cancelOrder to parseOrder [#12903](https://github.com/ccxt/ccxt/pull/12903)
 - bybit.fetchMarkets unified [#12864](https://github.com/ccxt/ccxt/pull/12864)
@@ -10272,7 +9392,6 @@
 - Gateio post only [#12267](https://github.com/ccxt/ccxt/pull/12267)
 - Tests fetch trading fee [#12336](https://github.com/ccxt/ccxt/pull/12336)
 - Bittrex createOrder: unify 'stopPrice' [#12904](https://github.com/ccxt/ccxt/pull/12904)
-
 
 ## 1.78.1
 
@@ -10322,14 +9441,13 @@
 - safeStatus [#12766](https://github.com/ccxt/ccxt/pull/12766)
 - `safeTransfer` for `fetchTransfers` [#12756](https://github.com/ccxt/ccxt/pull/12756)
 - `safeStatus` in `transpile.js` [#12786](https://github.com/ccxt/ccxt/pull/12786)
-- yobit: add ratelimits  [#12789](https://github.com/ccxt/ccxt/pull/12789)
+- yobit: add ratelimits [#12789](https://github.com/ccxt/ccxt/pull/12789)
 - bitmex - transfer [#12788](https://github.com/ccxt/ccxt/pull/12788)
 - Bitfinex2 markets [#12784](https://github.com/ccxt/ccxt/pull/12784)
 - novadax - transfer [#12707](https://github.com/ccxt/ccxt/pull/12707)
 - bitget - transfer [#12740](https://github.com/ccxt/ccxt/pull/12740)
 - zonda - transfer [#12742](https://github.com/ccxt/ccxt/pull/12742)
 - binance.createOrder stoploss unification [#11852](https://github.com/ccxt/ccxt/pull/11852)
-
 
 ## 1.77.1
 
@@ -10388,7 +9506,6 @@
 - poloniex - transfer [#12609](https://github.com/ccxt/ccxt/pull/12609)
 - JS base tests fix removed mocha [#12566](https://github.com/ccxt/ccxt/pull/12566)
 
-
 ## 1.76.1
 
 - Okx :: fix ticker volume / add safeTicker volume calculation [#12358](https://github.com/ccxt/ccxt/pull/12358)
@@ -10432,7 +9549,7 @@
 - bitmart - fix `private` signature [#12420](https://github.com/ccxt/ccxt/pull/12420)
 - Phemex - new public api end point to fetch funding rates [#12419](https://github.com/ccxt/ccxt/pull/12419)
 - FTX: add "Get deposit address list" API endpoint [#12415](https://github.com/ccxt/ccxt/pull/12415)
-- Ascendex is now part of CCXT.Pro 🙂  [#12422](https://github.com/ccxt/ccxt/pull/12422)
+- Ascendex is now part of CCXT.Pro 🙂 [#12422](https://github.com/ccxt/ccxt/pull/12422)
 - deribit.fetchMarkets symbol fix [#12426](https://github.com/ccxt/ccxt/pull/12426)
 - okx fetchPositions fix [#12434](https://github.com/ccxt/ccxt/pull/12434)
 - okx fetchFundingHistory fixes [#12435](https://github.com/ccxt/ccxt/pull/12435)
@@ -10458,7 +9575,6 @@
 - Hitbtc3 fetchMyTrades [#12459](https://github.com/ccxt/ccxt/pull/12459)
 - Hitbtc3 fetchOpenOrders [#12460](https://github.com/ccxt/ccxt/pull/12460)
 - Hitbtc3 fetchOrderTrades [#12461](https://github.com/ccxt/ccxt/pull/12461)
-
 
 ## 1.75.1
 
@@ -10494,14 +9610,14 @@
 - bitflyer - fetchTradingFee [#12286](https://github.com/ccxt/ccxt/pull/12286)
 - gateio.transfer unified response [#12300](https://github.com/ccxt/ccxt/pull/12300)
 - unify accountType names "funding", "spot", "margin", and "future" [#12299](https://github.com/ccxt/ccxt/pull/12299)
-- Gateio ::  fetchMarkets refactor [#12283](https://github.com/ccxt/ccxt/pull/12283)
+- Gateio :: fetchMarkets refactor [#12283](https://github.com/ccxt/ccxt/pull/12283)
 - ZB createOrder [#12275](https://github.com/ccxt/ccxt/pull/12275)
 - independent reserve - fetchTradingFees [#12295](https://github.com/ccxt/ccxt/pull/12295)
 - okcoin: update ratelimits [#12224](https://github.com/ccxt/ccxt/pull/12224)
 - latoken - fetchTradingFees [#12305](https://github.com/ccxt/ccxt/pull/12305)
 - added `react/http` in composer [#12307](https://github.com/ccxt/ccxt/pull/12307)
 - Bitflyer: fix futures market parsing without alias [#12308](https://github.com/ccxt/ccxt/pull/12308)
-- Base  - flag for ssl validation  [#12306](https://github.com/ccxt/ccxt/pull/12306)
+- Base - flag for ssl validation [#12306](https://github.com/ccxt/ccxt/pull/12306)
 - exmo - fetchTradingFees [#12291](https://github.com/ccxt/ccxt/pull/12291)
 - gateio.fetchMarkets php fix [#12314](https://github.com/ccxt/ccxt/pull/12314)
 - fetch_leverage_tiers fix (python) [#12313](https://github.com/ccxt/ccxt/pull/12313)
@@ -10513,7 +9629,6 @@
 - Gateio :: futures testnet and examples [#12310](https://github.com/ccxt/ccxt/pull/12310)
 - New exchange - bkex [#12139](https://github.com/ccxt/ccxt/pull/12139)
 - gateio cancelOrder stop order matches fetchOrder [#12329](https://github.com/ccxt/ccxt/pull/12329)
-
 
 ## 1.74.1
 
@@ -10557,7 +9672,7 @@
 - coinmate - fetchTradingFee [#12168](https://github.com/ccxt/ccxt/pull/12168)
 - blockchaincom: fix fee parsing [#12174](https://github.com/ccxt/ccxt/pull/12174)
 - bitpanda - fetchTradingFees [#12113](https://github.com/ccxt/ccxt/pull/12113)
-- BTC-Alpha  fetchTradingFees [#12178](https://github.com/ccxt/ccxt/pull/12178)
+- BTC-Alpha fetchTradingFees [#12178](https://github.com/ccxt/ccxt/pull/12178)
 - Php Exchange :: Add sleep method [#12176](https://github.com/ccxt/ccxt/pull/12176)
 - bitbns - fetchTradingFee [#12184](https://github.com/ccxt/ccxt/pull/12184)
 - bybit - fetchTradingFees [#12183](https://github.com/ccxt/ccxt/pull/12183)
@@ -10568,7 +9683,7 @@
 - cex - fetchTradingFee [#12187](https://github.com/ccxt/ccxt/pull/12187)
 - bytetrade - fetchTradingFees [#12185](https://github.com/ccxt/ccxt/pull/12185)
 - Bitmex :: fetchTickers and sign fixes [#12190](https://github.com/ccxt/ccxt/pull/12190)
-- Okcoin: add  safeTrade [#12177](https://github.com/ccxt/ccxt/pull/12177)
+- Okcoin: add safeTrade [#12177](https://github.com/ccxt/ccxt/pull/12177)
 - ZB fetchOHLCV [#12172](https://github.com/ccxt/ccxt/pull/12172)
 - zonda - fetchTradingFees [#12191](https://github.com/ccxt/ccxt/pull/12191)
 - zaif - fetchTradingFees [#12192](https://github.com/ccxt/ccxt/pull/12192)
@@ -10577,7 +9692,6 @@
 - Woo - fetchTradingFees [#12196](https://github.com/ccxt/ccxt/pull/12196)
 - ZB fetchMarkOHLCV, fetchIndexOHLCV [#12197](https://github.com/ccxt/ccxt/pull/12197)
 - aax.fetchLeverageTiers [#12094](https://github.com/ccxt/ccxt/pull/12094)
-
 
 ## 1.73.1
 
@@ -10588,11 +9702,11 @@
 - liquid BIFI -> BIFIF [#12023](https://github.com/ccxt/ccxt/pull/12023)
 - market tests [#11837](https://github.com/ccxt/ccxt/pull/11837)
 - Bitvavo: fix trade and transactions parsing [#12038](https://github.com/ccxt/ccxt/pull/12038)
-- DigiFinex: parse correct trade side when *_market trade [#12039](https://github.com/ccxt/ccxt/pull/12039)
+- DigiFinex: parse correct trade side when \*\_market trade [#12039](https://github.com/ccxt/ccxt/pull/12039)
 - bitget: clientOrderId for spot createOrder [#12040](https://github.com/ccxt/ccxt/pull/12040)
 - Update bitget.js [#12041](https://github.com/ccxt/ccxt/pull/12041)
 - DigiFinex: update transaction states parsing [#12042](https://github.com/ccxt/ccxt/pull/12042)
-- Wavesexchange :: New fees mechanism  [#11905](https://github.com/ccxt/ccxt/pull/11905)
+- Wavesexchange :: New fees mechanism [#11905](https://github.com/ccxt/ccxt/pull/11905)
 - okcoin typo fix [#12045](https://github.com/ccxt/ccxt/pull/12045)
 - currencycom - fetchCurrencies [#12050](https://github.com/ccxt/ccxt/pull/12050)
 - currencycom - minor comments [#12051](https://github.com/ccxt/ccxt/pull/12051)
@@ -10611,7 +9725,6 @@
 - latoken GEC -> Geco One [#12084](https://github.com/ccxt/ccxt/pull/12084)
 - fetchLeverageTiers.notionalCurrency renamed to currency [#12083](https://github.com/ccxt/ccxt/pull/12083)
 - gateio.fetchMarkets margin markets fix #12020 [#12079](https://github.com/ccxt/ccxt/pull/12079)
-
 
 ## 1.72.1
 
@@ -10656,7 +9769,7 @@
 - Kucoin: update fetchOrderBook [#11933](https://github.com/ccxt/ccxt/pull/11933)
 - okex notional [#11956](https://github.com/ccxt/ccxt/pull/11956)
 - fix zaif btc/jpy fee [#11958](https://github.com/ccxt/ccxt/pull/11958)
-- coincheck.fetchWithdrawals coincheck.fetchDeposits  [#11951](https://github.com/ccxt/ccxt/pull/11951)
+- coincheck.fetchWithdrawals coincheck.fetchDeposits [#11951](https://github.com/ccxt/ccxt/pull/11951)
 - feat: bitflyer.fetchWithdrawals, bitflyer.fetchDeposits [#11959](https://github.com/ccxt/ccxt/pull/11959)
 - binance.fetchLeverageTiers [#11937](https://github.com/ccxt/ccxt/pull/11937)
 - Kucoinfutures lev tiers [#11943](https://github.com/ccxt/ccxt/pull/11943)
@@ -10665,11 +9778,10 @@
 - has.fetchLeverageTiers: false on spot exchanges [#11946](https://github.com/ccxt/ccxt/pull/11946)
 - fix: coincheck fetchDeposits, fetchWithdrawals, fetchMyTrades [#11962](https://github.com/ccxt/ccxt/pull/11962)
 
-
 ## 1.71.1
 
 - huobi.fetchLedger [#11749](https://github.com/ccxt/ccxt/pull/11749)
-- Fixed fetching OHLC for Waves  [#11754](https://github.com/ccxt/ccxt/pull/11754)
+- Fixed fetching OHLC for Waves [#11754](https://github.com/ccxt/ccxt/pull/11754)
 - fix[Gate.io]: extract settle currency from the correct variable [#11759](https://github.com/ccxt/ccxt/pull/11759)
 - gateio precision fix [#11761](https://github.com/ccxt/ccxt/pull/11761)
 - fix[Gate.io]: assign average cost value to correct variable [#11760](https://github.com/ccxt/ccxt/pull/11760)
@@ -10716,7 +9828,6 @@
 - Bitfinex2 change future to swap [#11820](https://github.com/ccxt/ccxt/pull/11820)
 - Margin mode types [#11806](https://github.com/ccxt/ccxt/pull/11806)
 - Fix kucoin trigger order status [#11824](https://github.com/ccxt/ccxt/pull/11824)
-
 
 ## 1.70.1
 
@@ -10777,7 +9888,6 @@
 - Indodax markets unfied [#11702](https://github.com/ccxt/ccxt/pull/11702)
 - Latoken markets [#11701](https://github.com/ccxt/ccxt/pull/11701)
 
-
 ## 1.69.1
 
 - oceanex markets [#11438](https://github.com/ccxt/ccxt/pull/11438)
@@ -10801,7 +9911,7 @@
 - fix ticker.bid in Exchange#safeTicker [#11599](https://github.com/ccxt/ccxt/pull/11599)
 - CryptoCom: added auth error [#11603](https://github.com/ccxt/ccxt/pull/11603)
 - yobit BAN -> BANcoin [#11596](https://github.com/ccxt/ccxt/pull/11596)
-- Huobi ::  Spot stop limit orders (buy and sell) example [#11602](https://github.com/ccxt/ccxt/pull/11602)
+- Huobi :: Spot stop limit orders (buy and sell) example [#11602](https://github.com/ccxt/ccxt/pull/11602)
 - bittrex: use string in safeTicker ccxt/ccxt#11379 [#11456](https://github.com/ccxt/ccxt/pull/11456)
 - bytetrade: use string in safeTicker ccxt/ccxt#11379 [#11457](https://github.com/ccxt/ccxt/pull/11457)
 - btcturk: use string in safeTicker ccxt/ccxt#11379 [#11459](https://github.com/ccxt/ccxt/pull/11459)
@@ -10881,7 +9991,6 @@
 - Bitget fetchBalance : handleMarketTypeAndParams [#11505](https://github.com/ccxt/ccxt/pull/11505)
 - Ascendex fetchBalance : handleMarketTypeAndParams [#11504](https://github.com/ccxt/ccxt/pull/11504)
 
-
 ## 1.68.1
 
 - blockchaincom.fetchMarkets unified [#11388](https://github.com/ccxt/ccxt/pull/11388)
@@ -10946,7 +10055,6 @@
 - indodax markets [#11434](https://github.com/ccxt/ccxt/pull/11434)
 - novadax markets [#11436](https://github.com/ccxt/ccxt/pull/11436)
 - luno markets [#11437](https://github.com/ccxt/ccxt/pull/11437)
-
 
 ## 1.67.1
 
@@ -11018,7 +10126,6 @@
 - Luno :: add safeTicker [#11292](https://github.com/ccxt/ccxt/pull/11292)
 - Lykke :: add safeTicker [#11293](https://github.com/ccxt/ccxt/pull/11293)
 
-
 ## 1.66.1
 
 - Added has[swap] true to ascendex, ftx, kucoinfutures, mexc [#11156](https://github.com/ccxt/ccxt/pull/11156)
@@ -11071,7 +10178,6 @@
 - Exchange :: Wazirx :: implementation [#11137](https://github.com/ccxt/ccxt/pull/11137)
 - gateio: add deposit/withdraw flag in currencies ccxt/ccxt#11107 [#11212](https://github.com/ccxt/ccxt/pull/11212)
 
-
 ## 1.65.1
 
 - Fix Phemex-positions and clean examples [#11042](https://github.com/ccxt/ccxt/pull/11042)
@@ -11086,14 +10192,14 @@
 - gateio parsePosition fixup [#11058](https://github.com/ccxt/ccxt/pull/11058)
 - Move parseBalance logic [#11064](https://github.com/ccxt/ccxt/pull/11064)
 - Coinspot :: Add missing markets and small sign fix [#11066](https://github.com/ccxt/ccxt/pull/11066)
-- fix python bug  [#11072](https://github.com/ccxt/ccxt/pull/11072)
+- fix python bug [#11072](https://github.com/ccxt/ccxt/pull/11072)
 - ability for fetchCurrencies like in original [#11071](https://github.com/ccxt/ccxt/pull/11071)
 - Ascendex createOrder() Perpetual Swaps [#11073](https://github.com/ccxt/ccxt/pull/11073)
 - parseBalance edits [#11070](https://github.com/ccxt/ccxt/pull/11070)
 - bytetrade remove toWei [#11076](https://github.com/ccxt/ccxt/pull/11076)
 - huobi postOnly limit-maker [#11077](https://github.com/ccxt/ccxt/pull/11077)
 - Added error codes [#11068](https://github.com/ccxt/ccxt/pull/11068)
-- Bitmex ::  Add cancelOrders, fix cancelOrder and example [#11081](https://github.com/ccxt/ccxt/pull/11081)
+- Bitmex :: Add cancelOrders, fix cancelOrder and example [#11081](https://github.com/ccxt/ccxt/pull/11081)
 - Remove colors [#11082](https://github.com/ccxt/ccxt/pull/11082)
 - utf8 encoding support for keys.json [#11084](https://github.com/ccxt/ccxt/pull/11084)
 - implement cryptocom [#11011](https://github.com/ccxt/ccxt/pull/11011)
@@ -11112,7 +10218,6 @@
 - cryptocom style edits [#11097](https://github.com/ccxt/ccxt/pull/11097)
 - remove deprecated futures property derivative [#11098](https://github.com/ccxt/ccxt/pull/11098)
 
-
 ## 1.64.1
 
 - removed manually calculated previousFundingRate timestamps from fetchFundingRate [#10968](https://github.com/ccxt/ccxt/pull/10968)
@@ -11126,7 +10231,7 @@
 - kraken safeOrder [#10975](https://github.com/ccxt/ccxt/pull/10975)
 - Ascendex fetchFundingRate() [#10965](https://github.com/ccxt/ccxt/pull/10965)
 - removed instructions to an obsolete script of git ignore files [#10985](https://github.com/ccxt/ccxt/pull/10985)
-- CLI :: Feature :: Allow authentication using environment variables  [#10981](https://github.com/ccxt/ccxt/pull/10981)
+- CLI :: Feature :: Allow authentication using environment variables [#10981](https://github.com/ccxt/ccxt/pull/10981)
 - ndax safeOrder2 [#10989](https://github.com/ccxt/ccxt/pull/10989)
 - crex24 safeOrder2 [#10990](https://github.com/ccxt/ccxt/pull/10990)
 - wavesexchange.fetchMarkets matches unified structure, added response output [#10992](https://github.com/ccxt/ccxt/pull/10992)
@@ -11149,7 +10254,6 @@
 - poloniex safeOrder2-2 [#11014](https://github.com/ccxt/ccxt/pull/11014)
 - Ascendex cancelAllOrders() Swap Functionality [#10997](https://github.com/ccxt/ccxt/pull/10997)
 
-
 ## 1.63.1
 
 - bitmart error handling [#10841](https://github.com/ccxt/ccxt/pull/10841)
@@ -11160,7 +10264,7 @@
 - hitbtc XMT -> MTL [#10844](https://github.com/ccxt/ccxt/pull/10844)
 - bitmart fetchSpotMarkets precisions [#10848](https://github.com/ccxt/ccxt/pull/10848)
 - yobit XMT -> SummitCoin [#10845](https://github.com/ccxt/ccxt/pull/10845)
--  description change about 'unavailable' methods. [#10850](https://github.com/ccxt/ccxt/pull/10850)
+- description change about 'unavailable' methods. [#10850](https://github.com/ccxt/ccxt/pull/10850)
 - datacenter sentence [#10851](https://github.com/ccxt/ccxt/pull/10851)
 - Replacing verbal repeating of numerical examples [#10856](https://github.com/ccxt/ccxt/pull/10856)
 - Change in "currency VS market" description; also about ip-restrictions [#10852](https://github.com/ccxt/ccxt/pull/10852)
@@ -11189,7 +10293,7 @@
 - Reference PR for Exchange-Specific DOCS creation [#10902](https://github.com/ccxt/ccxt/pull/10902)
 - mexc.fetchContractMarkets symbols are correct, added market properties [#10906](https://github.com/ccxt/ccxt/pull/10906)
 - ftx.com is in BS not HK [#10905](https://github.com/ccxt/ccxt/pull/10905)
-- CoinbasePro  - fetchTickers [#10892](https://github.com/ccxt/ccxt/pull/10892)
+- CoinbasePro - fetchTickers [#10892](https://github.com/ccxt/ccxt/pull/10892)
 - Eqonex safeTrade [#10907](https://github.com/ccxt/ccxt/pull/10907)
 - More details about 'exchange specific params' [#10903](https://github.com/ccxt/ccxt/pull/10903)
 - Has fix [#10877](https://github.com/ccxt/ccxt/pull/10877)
@@ -11197,7 +10301,6 @@
 - mexc fetchTickers fix #10837 [#10897](https://github.com/ccxt/ccxt/pull/10897)
 - Added properties margin, swap, and future to has [#10910](https://github.com/ccxt/ccxt/pull/10910)
 - Adding CLI shorthands & capabilities shorthand [#10904](https://github.com/ccxt/ccxt/pull/10904)
-
 
 ## 1.62.1
 
@@ -11220,7 +10323,7 @@
 - fix typo for cancelAllOrders in gateio.has [#10757](https://github.com/ccxt/ccxt/pull/10757)
 - cex ohlcv timeframes [#10762](https://github.com/ccxt/ccxt/pull/10762)
 - cdax add safeTrade and feeCostString in safeOrder2 [#10764](https://github.com/ccxt/ccxt/pull/10764)
-- Fix timeOut  MAX INTEGER issue [#10763](https://github.com/ccxt/ccxt/pull/10763)
+- Fix timeOut MAX INTEGER issue [#10763](https://github.com/ccxt/ccxt/pull/10763)
 - bybit add safeTrade and feeCost to string for safeOrder2 [#10756](https://github.com/ccxt/ccxt/pull/10756)
 - idex MATIC network [#10775](https://github.com/ccxt/ccxt/pull/10775)
 - cex add safeTrade [#10774](https://github.com/ccxt/ccxt/pull/10774)
@@ -11230,8 +10333,7 @@
 - Added fetchPositions to gateio [#10383](https://github.com/ccxt/ccxt/pull/10383)
 - coinex add cancelAllOrders fix #10738 [#10753](https://github.com/ccxt/ccxt/pull/10753)
 - bitmex safeTrade [#10610](https://github.com/ccxt/ccxt/pull/10610)
-- CDAX api incorrect amount for buy-market orders fix  [#10772](https://github.com/ccxt/ccxt/pull/10772)
-
+- CDAX api incorrect amount for buy-market orders fix [#10772](https://github.com/ccxt/ccxt/pull/10772)
 
 ## 1.61.1
 
@@ -11264,7 +10366,7 @@
 - latoken createOrder, cancelOrder true [#10648](https://github.com/ccxt/ccxt/pull/10648)
 - okex TRADE -> Unitrade [#10646](https://github.com/ccxt/ccxt/pull/10646)
 - add example responses [#10647](https://github.com/ccxt/ccxt/pull/10647)
-- Gateio stoploss  [#10489](https://github.com/ccxt/ccxt/pull/10489)
+- Gateio stoploss [#10489](https://github.com/ccxt/ccxt/pull/10489)
 - Added argumentsrequired for gateio limit orders without price [#10649](https://github.com/ccxt/ccxt/pull/10649)
 - bitfinex1 postOnly [#10651](https://github.com/ccxt/ccxt/pull/10651)
 - bitfinex2 postOnly [#10652](https://github.com/ccxt/ccxt/pull/10652)
@@ -11273,14 +10375,13 @@
 - latoken fetchTrades fix [#10657](https://github.com/ccxt/ccxt/pull/10657)
 - latoken InsufficientFunds mapping [#10658](https://github.com/ccxt/ccxt/pull/10658)
 - kraken network parsing [#10656](https://github.com/ccxt/ccxt/pull/10656)
-- bitget fix market status parsing  [#10665](https://github.com/ccxt/ccxt/pull/10665)
+- bitget fix market status parsing [#10665](https://github.com/ccxt/ccxt/pull/10665)
 - gateio STX remove mapping [#10666](https://github.com/ccxt/ccxt/pull/10666)
 - hitbtc STX remapping [#10667](https://github.com/ccxt/ccxt/pull/10667)
 - ascendex BYN remapping [#10668](https://github.com/ccxt/ccxt/pull/10668)
 - mexc BYN mapping [#10669](https://github.com/ccxt/ccxt/pull/10669)
 - gateio BYN remapping [#10670](https://github.com/ccxt/ccxt/pull/10670)
 - gemini fix #10540 [#10671](https://github.com/ccxt/ccxt/pull/10671)
-
 
 ## 1.60.1
 
@@ -11333,7 +10434,6 @@
 - PROS commonCurrency bittrex [#10545](https://github.com/ccxt/ccxt/pull/10545)
 - gateio fix candlesticks bug for 1000 candles [#10562](https://github.com/ccxt/ccxt/pull/10562)
 
-
 ## 1.59.1
 
 - hitbtc3 implementation [#10327](https://github.com/ccxt/ccxt/pull/10327)
@@ -11381,8 +10481,7 @@
 - btcmarkets safeOrder2 [#10425](https://github.com/ccxt/ccxt/pull/10425)
 - Gate.io fetchOHLCV fixes [#10407](https://github.com/ccxt/ccxt/pull/10407)
 - Remove fee discount from readme [#10427](https://github.com/ccxt/ccxt/pull/10427)
-- okex implement setLeverage setMarginMode setPositionMode  [#10405](https://github.com/ccxt/ccxt/pull/10405)
-
+- okex implement setLeverage setMarginMode setPositionMode [#10405](https://github.com/ccxt/ccxt/pull/10405)
 
 ## 1.58.1
 
@@ -11418,14 +10517,13 @@
 - binance networks fix for eth [#10305](https://github.com/ccxt/ccxt/pull/10305)
 - waves testnet minor fix [#10307](https://github.com/ccxt/ccxt/pull/10307)
 
-
 ## 1.57.1
 
 - bithumb FCT -> FCT2 [#10140](https://github.com/ccxt/ccxt/pull/10140)
 - fix #10146 [#10147](https://github.com/ccxt/ccxt/pull/10147)
 - aax networks [#10149](https://github.com/ccxt/ccxt/pull/10149)
 - Fetch time [#10157](https://github.com/ccxt/ccxt/pull/10157)
-- binance safeOrder2 bug  [#10161](https://github.com/ccxt/ccxt/pull/10161)
+- binance safeOrder2 bug [#10161](https://github.com/ccxt/ccxt/pull/10161)
 - delist coinfloor [#10144](https://github.com/ccxt/ccxt/pull/10144)
 - binance reverse network parsing [#10151](https://github.com/ccxt/ccxt/pull/10151)
 - Bybit setLeverage [#10167](https://github.com/ccxt/ccxt/pull/10167)
@@ -11440,12 +10538,11 @@
 - matic currency network is called polygon [#10183](https://github.com/ccxt/ccxt/pull/10183)
 - safeOrder2 edit [#10185](https://github.com/ccxt/ccxt/pull/10185)
 - Ascendex fetchPositions, setLeverage, setMarginMode [#10159](https://github.com/ccxt/ccxt/pull/10159)
-- ftx fetchFundingHistory bug  [#10193](https://github.com/ccxt/ccxt/pull/10193)
+- ftx fetchFundingHistory bug [#10193](https://github.com/ccxt/ccxt/pull/10193)
 - okex fetchDepositAddressesByNetwork [#10182](https://github.com/ccxt/ccxt/pull/10182)
 - Adding HBAR support for Bitstamp [#10197](https://github.com/ccxt/ccxt/pull/10197)
 - ftx fetchPositons [#10203](https://github.com/ccxt/ccxt/pull/10203)
 - ftx fetchPostions showAvgPrice [#10213](https://github.com/ccxt/ccxt/pull/10213)
-
 
 ## 1.56.1
 
@@ -11470,15 +10567,15 @@
 - ClientOrderId support for Bitstamp and Bittrex [#10020](https://github.com/ccxt/ccxt/pull/10020)
 - binance implement withdraw with multiple networks [#10022](https://github.com/ccxt/ccxt/pull/10022)
 - Binance network [#10024](https://github.com/ccxt/ccxt/pull/10024)
-- binance  add support for network aliases to fetchDepositAddress [#10026](https://github.com/ccxt/ccxt/pull/10026)
+- binance add support for network aliases to fetchDepositAddress [#10026](https://github.com/ccxt/ccxt/pull/10026)
 - bitforex rate limits [#10025](https://github.com/ccxt/ccxt/pull/10025)
 - uncertify kraken and certify okex [#10023](https://github.com/ccxt/ccxt/pull/10023)
 - Hide okex5 from tables [#10029](https://github.com/ccxt/ccxt/pull/10029)
-- poloniex implement withdraw with multiple networks  [#10028](https://github.com/ccxt/ccxt/pull/10028)
+- poloniex implement withdraw with multiple networks [#10028](https://github.com/ccxt/ccxt/pull/10028)
 - Allow Kraken ClientOrderId on fetching open/closed orders and cancelOrder [#10030](https://github.com/ccxt/ccxt/pull/10030)
 - crex24 implement withdraw with multiple networks [#10031](https://github.com/ccxt/ccxt/pull/10031)
 - Fix parsing Deribit balance (use snake case for properties) [#10032](https://github.com/ccxt/ccxt/pull/10032)
-- okex implement withdraw with multiple networks  [#10034](https://github.com/ccxt/ccxt/pull/10034)
+- okex implement withdraw with multiple networks [#10034](https://github.com/ccxt/ccxt/pull/10034)
 - Okex networks [#10035](https://github.com/ccxt/ccxt/pull/10035)
 - relist bytetrade [#10036](https://github.com/ccxt/ccxt/pull/10036)
 - add support for networks to huobi [#10037](https://github.com/ccxt/ccxt/pull/10037)
@@ -11496,7 +10593,6 @@
 - Manual fix table for readthedocs [#10060](https://github.com/ccxt/ccxt/pull/10060)
 - binance portal stop sliding [#10061](https://github.com/ccxt/ccxt/pull/10061)
 - minor docs edit [#10062](https://github.com/ccxt/ccxt/pull/10062)
-
 
 ## 1.55.1
 
@@ -11530,7 +10626,6 @@
 - implement dynamic rate limit for huobi [#9950](https://github.com/ccxt/ccxt/pull/9950)
 - Poloniex: fix Permission denied error [#9954](https://github.com/ccxt/ccxt/pull/9954)
 - okex5 set alias property [#9956](https://github.com/ccxt/ccxt/pull/9956)
-
 
 ## 1.54.1
 
@@ -11574,7 +10669,6 @@
 - exmo transaction statuses [#9814](https://github.com/ccxt/ccxt/pull/9814)
 - idex fetchMarkets enhancement [#9815](https://github.com/ccxt/ccxt/pull/9815)
 
-
 ## 1.53.1
 
 - exmo add fetchWithdrawals [#9615](https://github.com/ccxt/ccxt/pull/9615)
@@ -11612,9 +10706,8 @@
 - exmo update currencies [#9685](https://github.com/ccxt/ccxt/pull/9685)
 - liquid fetchCurrencies name [#9687](https://github.com/ccxt/ccxt/pull/9687)
 - gateio typo fix [#9688](https://github.com/ccxt/ccxt/pull/9688)
-- okex fetchPositions fix contracts field  [#9693](https://github.com/ccxt/ccxt/pull/9693)
+- okex fetchPositions fix contracts field [#9693](https://github.com/ccxt/ccxt/pull/9693)
 - remove hardcoded fees [#9671](https://github.com/ccxt/ccxt/pull/9671)
-
 
 ## 1.52.1
 
@@ -11652,7 +10745,6 @@
 - poloniex parseTransactionStatus statuses [#9570](https://github.com/ccxt/ccxt/pull/9570)
 - probit withdraw refix [#9568](https://github.com/ccxt/ccxt/pull/9568)
 
-
 ## 1.51.1
 
 - bitforex new endpoints [#9367](https://github.com/ccxt/ccxt/pull/9367)
@@ -11688,7 +10780,6 @@
 - precise BN -> BigInt [#9439](https://github.com/ccxt/ccxt/pull/9439)
 - ascendex fetchMarkets fees [#9450](https://github.com/ccxt/ccxt/pull/9450)
 
-
 ## 1.50.1
 
 - huobipro error mapping [#9230](https://github.com/ccxt/ccxt/pull/9230)
@@ -11718,7 +10809,6 @@
 - Add more specific exceptions for FTX [#9315](https://github.com/ccxt/ccxt/pull/9315)
 - FTX: raise ExchangeNotAvailable on "Try again" [#9317](https://github.com/ccxt/ccxt/pull/9317)
 - fix time parameters for fetchOHLCV function [#9322](https://github.com/ccxt/ccxt/pull/9322)
-
 
 ## 1.49.1
 
@@ -11759,7 +10849,6 @@
 - add binance futures fetchTradingFees [#9169](https://github.com/ccxt/ccxt/pull/9169)
 - remove outdated dependencies from the manual [#9175](https://github.com/ccxt/ccxt/pull/9175)
 - binance transfer between spot and futures account support [#9177](https://github.com/ccxt/ccxt/pull/9177)
-
 
 ## 1.48.1
 
@@ -11804,7 +10893,6 @@
 - bitso timestamp [#9069](https://github.com/ccxt/ccxt/pull/9069)
 - bleutrade delist for no volume [#9070](https://github.com/ccxt/ccxt/pull/9070)
 - ftx error mapping [#9074](https://github.com/ccxt/ccxt/pull/9074)
-
 
 ## 1.47.1
 
@@ -11871,7 +10959,6 @@
 - Update binance.js [#8997](https://github.com/ccxt/ccxt/pull/8997)
 - qtrade error handle [#8998](https://github.com/ccxt/ccxt/pull/8998)
 
-
 ## 1.46.1
 
 - fix minPrice type in crex24 fetch_markets [#8805](https://github.com/ccxt/ccxt/pull/8805)
@@ -11935,7 +11022,6 @@
 - hitbtc precise [#8872](https://github.com/ccxt/ccxt/pull/8872)
 - independentreserve precise [#8880](https://github.com/ccxt/ccxt/pull/8880)
 
-
 ## 1.45.1
 
 - Fix to transpile.js for indexOf [#8738](https://github.com/ccxt/ccxt/pull/8738)
@@ -11967,7 +11053,6 @@
 - probit AUTO mapping [#8796](https://github.com/ccxt/ccxt/pull/8796)
 - yobit ONX mapping [#8797](https://github.com/ccxt/ccxt/pull/8797)
 
-
 ## 1.44.1
 
 - kucoin implement transfer [#8701](https://github.com/ccxt/ccxt/pull/8701)
@@ -11992,7 +11077,6 @@
 - aax safeNumber [#8731](https://github.com/ccxt/ccxt/pull/8731)
 - bitbay safeNumber [#8732](https://github.com/ccxt/ccxt/pull/8732)
 - stex MPH mapping [#8734](https://github.com/ccxt/ccxt/pull/8734)
-
 
 ## 1.43.1
 
@@ -12035,7 +11119,6 @@
 - add bybit fetchPositions [#8690](https://github.com/ccxt/ccxt/pull/8690)
 - delist dsx [#8692](https://github.com/ccxt/ccxt/pull/8692)
 - Bitfinex v1 implement transfer [#8693](https://github.com/ccxt/ccxt/pull/8693)
-
 
 ## 1.42.1
 
@@ -12083,7 +11166,6 @@
 - digifinex: update ticker api to v3 [#8593](https://github.com/ccxt/ccxt/pull/8593)
 - add support for postionRisk to fetchPositions binance [#8600](https://github.com/ccxt/ccxt/pull/8600)
 
-
 ## 1.41.1
 
 - [okex] error mapping [#8389](https://github.com/ccxt/ccxt/pull/8389)
@@ -12106,11 +11188,10 @@
 - Update kucoin fetch closed orders example [#8460](https://github.com/ccxt/ccxt/pull/8460)
 - Add REST response intercept [#8459](https://github.com/ccxt/ccxt/pull/8459)
 - timeframe 4h for bitfinex [#8470](https://github.com/ccxt/ccxt/pull/8470)
-- Update bitfinex.js  [#8469](https://github.com/ccxt/ccxt/pull/8469)
+- Update bitfinex.js [#8469](https://github.com/ccxt/ccxt/pull/8469)
 - filterBySymbolSinceLimit propagate tail [#8474](https://github.com/ccxt/ccxt/pull/8474)
 - export python tests for ccxtpro [#8472](https://github.com/ccxt/ccxt/pull/8472)
 - [okex] improved error mapping [#8477](https://github.com/ccxt/ccxt/pull/8477)
-
 
 ## 1.40.1
 
@@ -12129,7 +11210,6 @@
 - [gateio] added fee to parseTransaction [#8335](https://github.com/ccxt/ccxt/pull/8335)
 - Bittrex fee update [#8337](https://github.com/ccxt/ccxt/pull/8337)
 - bitmart COT mapping [#8341](https://github.com/ccxt/ccxt/pull/8341)
-
 
 ## 1.39.1
 
@@ -12150,7 +11230,6 @@
 - Implement coinspot cancelOrder [#8188](https://github.com/ccxt/ccxt/pull/8188)
 - Add fetchOHLCV to bithumb [#8189](https://github.com/ccxt/ccxt/pull/8189)
 
-
 ## 1.38.1
 
 - fix asyncio.TimeoutError being thrown [#8060](https://github.com/ccxt/ccxt/pull/8060)
@@ -12164,7 +11243,6 @@
 - Kraken - Throw rate limit error [#8087](https://github.com/ccxt/ccxt/pull/8087)
 - livecoin TCT mapping [#8101](https://github.com/ccxt/ccxt/pull/8101)
 
-
 ## 1.37.1
 
 - [btcmarkets] fixed net amount for transactions [#7948](https://github.com/ccxt/ccxt/pull/7948)
@@ -12175,7 +11253,6 @@
 - [coinmate] fix parse transaction [#7976](https://github.com/ccxt/ccxt/pull/7976)
 - Coinspot: add missing read-only endpoints [#7980](https://github.com/ccxt/ccxt/pull/7980)
 - Making all the options optional for Exchange class in type definitions file [#7983](https://github.com/ccxt/ccxt/pull/7983)
-
 
 ## 1.36.1
 
@@ -12218,7 +11295,7 @@
 - Update README.md [#7857](https://github.com/ccxt/ccxt/pull/7857)
 - Bump aiohttp version [#7859](https://github.com/ccxt/ccxt/pull/7859)
 - IDEX add support for client order id [#7862](https://github.com/ccxt/ccxt/pull/7862)
-- Fix hitbtc createOrder  response parsing field feeCurrencyCode [#7866](https://github.com/ccxt/ccxt/pull/7866)
+- Fix hitbtc createOrder response parsing field feeCurrencyCode [#7866](https://github.com/ccxt/ccxt/pull/7866)
 - Add OMG support [#7869](https://github.com/ccxt/ccxt/pull/7869)
 - make the fee rate configurable [#7870](https://github.com/ccxt/ccxt/pull/7870)
 - Okex parseMyTrade refix [#7860](https://github.com/ccxt/ccxt/pull/7860)
@@ -12228,7 +11305,6 @@
 - [hitbtc] fix missing fee currency [#7879](https://github.com/ccxt/ccxt/pull/7879)
 - Allow never versions of aiodns [#7880](https://github.com/ccxt/ccxt/pull/7880)
 - coinbase pro - add support for fetchWithdrawals and fetchDeposits [#7881](https://github.com/ccxt/ccxt/pull/7881)
-
 
 ## 1.35.1
 
@@ -12273,7 +11349,6 @@
 - there are maybe '@' in symbol, so split with @Id [#7746](https://github.com/ccxt/ccxt/pull/7746)
 - [kucoin] added withdrawal fee [#7750](https://github.com/ccxt/ccxt/pull/7750)
 - Coinfalcon filterOrdersByStatus [#7751](https://github.com/ccxt/ccxt/pull/7751)
-
 
 ## 1.34.1
 
@@ -12321,7 +11396,6 @@
 - livecoin safeSymbol [#7679](https://github.com/ccxt/ccxt/pull/7679)
 - hbtc safeSymbol [#7677](https://github.com/ccxt/ccxt/pull/7677)
 
-
 ## 1.33.1
 
 - huobipro parseTrade enhancement [#7489](https://github.com/ccxt/ccxt/pull/7489)
@@ -12342,7 +11416,6 @@
 - Bibox parseTrade feeCost fix [#7553](https://github.com/ccxt/ccxt/pull/7553)
 - bybit parse conditional order status [#7555](https://github.com/ccxt/ccxt/pull/7555)
 - Fix typo README.md [#7558](https://github.com/ccxt/ccxt/pull/7558)
-
 
 ## 1.32.1
 
@@ -12369,7 +11442,6 @@
 - bithumb: use safeCurrencyCode in fetchMarkets [#7447](https://github.com/ccxt/ccxt/pull/7447)
 - Fix typo in pro.manual [#7449](https://github.com/ccxt/ccxt/pull/7449)
 - fix a numberToString bug [#7442](https://github.com/ccxt/ccxt/pull/7442)
-
 
 ## 1.31.1
 
@@ -12418,7 +11490,6 @@
 - btctradeua metainfo updates [#7356](https://github.com/ccxt/ccxt/pull/7356)
 - btcturk metainfo updates [#7357](https://github.com/ccxt/ccxt/pull/7357)
 
-
 ## 1.30.1
 
 - [coinbasepro] error mappings [#7174](https://github.com/ccxt/ccxt/pull/7174)
@@ -12429,7 +11500,7 @@
 - Base classes: add signIn to has property with default value false [#7191](https://github.com/ccxt/ccxt/pull/7191)
 - fix divide by zero error [#7197](https://github.com/ccxt/ccxt/pull/7197)
 - fix for waves.exchange orders [#7200](https://github.com/ccxt/ccxt/pull/7200)
-- _1btcxe delisted [#7206](https://github.com/ccxt/ccxt/pull/7206)
+- \_1btcxe delisted [#7206](https://github.com/ccxt/ccxt/pull/7206)
 - huobi OnMaintenance handle [#7210](https://github.com/ccxt/ccxt/pull/7210)
 - Digifinex change urls [#7216](https://github.com/ccxt/ccxt/pull/7216)
 - Luno fetchAccounts and fetchLedger function calls defined [#7208](https://github.com/ccxt/ccxt/pull/7208)
@@ -12447,7 +11518,6 @@
 - bitz fetchTime [#7261](https://github.com/ccxt/ccxt/pull/7261)
 - btcbox doc and logo updated [#7265](https://github.com/ccxt/ccxt/pull/7265)
 
-
 ## 1.29.1
 
 - fix symbol typo from 'BTC/USD' to 'ETH/EUR' [#7085](https://github.com/ccxt/ccxt/pull/7085)
@@ -12463,7 +11533,6 @@
 - Update parseOrder of zaif.js [#7112](https://github.com/ccxt/ccxt/pull/7112)
 - waves alternate fetchDepositAddress implementation [#7114](https://github.com/ccxt/ccxt/pull/7114)
 
-
 ## 1.28.1
 
 - ccxt.d.ts: add parseTimeframe(). [#7005](https://github.com/ccxt/ccxt/pull/7005)
@@ -12475,7 +11544,6 @@
 - Update luno.js with new supported API calls [#7026](https://github.com/ccxt/ccxt/pull/7026)
 - [dsx] metadata [#7041](https://github.com/ccxt/ccxt/pull/7041)
 - A bug in loadMarkets() for Kuna Exchange fixed (GOL quote coin added) [#7046](https://github.com/ccxt/ccxt/pull/7046)
-
 
 ## 1.27.1
 
@@ -12506,7 +11574,6 @@
 - Lykke parseOrder fix [#6973](https://github.com/ccxt/ccxt/pull/6973)
 - Eterbase fees [#6974](https://github.com/ccxt/ccxt/pull/6974)
 
-
 ## 1.26.1
 
 - [bitbay] added url [#6793](https://github.com/ccxt/ccxt/pull/6793)
@@ -12525,7 +11592,6 @@
 - bithumb: minor fixes [#6845](https://github.com/ccxt/ccxt/pull/6845)
 - Implement cancelUnifiedOrder and fetchUnifiedOrder [#6843](https://github.com/ccxt/ccxt/pull/6843)
 - EXMO update fees and limits [#6849](https://github.com/ccxt/ccxt/pull/6849)
-
 
 ## 1.25.1
 
@@ -12559,7 +11625,6 @@
 - aofex add fetchOrderTrades [#6768](https://github.com/ccxt/ccxt/pull/6768)
 - aofex parseOrder, parseTrade, foWithMethod fixes [#6770](https://github.com/ccxt/ccxt/pull/6770)
 
-
 ## 1.24.1
 
 - Okex referral url [#6625](https://github.com/ccxt/ccxt/pull/6625)
@@ -12584,7 +11649,6 @@
 - bitmex referral url [#6670](https://github.com/ccxt/ccxt/pull/6670)
 - Delist btcchina [#6671](https://github.com/ccxt/ccxt/pull/6671)
 
-
 ## 1.23.1
 
 - Gate.io parseTrade enhancement [#6560](https://github.com/ccxt/ccxt/pull/6560)
@@ -12605,7 +11669,6 @@
 - [coinfloor] removed old market [#6605](https://github.com/ccxt/ccxt/pull/6605)
 - Fix python async load_markets [#6606](https://github.com/ccxt/ccxt/pull/6606)
 - OKEX new endpoints [#6607](https://github.com/ccxt/ccxt/pull/6607)
-
 
 ## 1.22.1
 
@@ -12630,7 +11693,6 @@
 - Bugfix okex loadmarkets [#6521](https://github.com/ccxt/ccxt/pull/6521)
 - Support for carrying messages when transferring asset [#6526](https://github.com/ccxt/ccxt/pull/6526)
 
-
 ## 1.21.1
 
 - Adding account history endpoint [#6336](https://github.com/ccxt/ccxt/pull/6336)
@@ -12651,11 +11713,10 @@
 - #6404 Fix cached markets (Proposal 2) [#6406](https://github.com/ccxt/ccxt/pull/6406)
 - Change manual references from gdax to coinbasepro [#6422](https://github.com/ccxt/ccxt/pull/6422)
 
-
 ## 1.20.1
 
 - [kucoin] handle new error message seen today when cancelling an order that's already canceled [#6224](https://github.com/ccxt/ccxt/pull/6224)
-- ONE ticker conflict  [#6232](https://github.com/ccxt/ccxt/pull/6232)
+- ONE ticker conflict [#6232](https://github.com/ccxt/ccxt/pull/6232)
 - add intellisense to python with errorName = None in transpiled error class [#6231](https://github.com/ccxt/ccxt/pull/6231)
 - [poloniex] fixed missing fees bug in fetchMyTrades [#6237](https://github.com/ccxt/ccxt/pull/6237)
 - latoken fetchBalance cleanup [#6240](https://github.com/ccxt/ccxt/pull/6240)
@@ -12670,15 +11731,14 @@
 - Support BCH/BSV/LTC/EOS/DASH/DOGE/ETC coin withdraw [#6266](https://github.com/ccxt/ccxt/pull/6266)
 - Add binance futures listenKey endpoints [#6276](https://github.com/ccxt/ccxt/pull/6276)
 - Add exceptions [#6281](https://github.com/ccxt/ccxt/pull/6281)
-- Stex: Fix safe_* accessors [#6282](https://github.com/ccxt/ccxt/pull/6282)
+- Stex: Fix safe\_\* accessors [#6282](https://github.com/ccxt/ccxt/pull/6282)
 - zb: Invalid parameter should be BadRequest [#6283](https://github.com/ccxt/ccxt/pull/6283)
 - bitMart fetchMyTrades limit fix [#6285](https://github.com/ccxt/ccxt/pull/6285)
-
 
 ## 1.19.1
 
 - [gateio] added transaction status [#6154](https://github.com/ccxt/ccxt/pull/6154)
-- transpile all exchanges if exchanges.json not found (when installing ccxt via npm install)  [#6156](https://github.com/ccxt/ccxt/pull/6156)
+- transpile all exchanges if exchanges.json not found (when installing ccxt via npm install) [#6156](https://github.com/ccxt/ccxt/pull/6156)
 - add space to delete transpile php [#6160](https://github.com/ccxt/ccxt/pull/6160)
 - Exmo new markets [#6159](https://github.com/ccxt/ccxt/pull/6159)
 - Add BigONE V3 API [#5951](https://github.com/ccxt/ccxt/pull/5951)
@@ -12692,12 +11752,11 @@
 - bigONE parseTrade improvement [#6174](https://github.com/ccxt/ccxt/pull/6174)
 - change if x in list(dict.keys()) to if x in dict [#6179](https://github.com/ccxt/ccxt/pull/6179)
 - bitMart createOrder fix [#6181](https://github.com/ccxt/ccxt/pull/6181)
-- bw.com: use safe* accessors [#6183](https://github.com/ccxt/ccxt/pull/6183)
+- bw.com: use safe\* accessors [#6183](https://github.com/ccxt/ccxt/pull/6183)
 - Fix: Add bw.com base files [#6190](https://github.com/ccxt/ccxt/pull/6190)
 - build/push.sh: Add generated php/python files [#6191](https://github.com/ccxt/ccxt/pull/6191)
 - Stex parseTicker fix [#6195](https://github.com/ccxt/ccxt/pull/6195)
 - Update Exchange.js on HttpsProxyAgent usage (the proxy `agent` property) [#6188](https://github.com/ccxt/ccxt/pull/6188)
-
 
 ## 1.18.1
 
@@ -12707,9 +11766,9 @@
 - [cex] improved error handling [#6020](https://github.com/ccxt/ccxt/pull/6020)
 - Fix: transpile removed space between not and the following bracket [#6028](https://github.com/ccxt/ccxt/pull/6028)
 - Bytetrade: parseTransactionStatusByType more readable [#6027](https://github.com/ccxt/ccxt/pull/6027)
-- Rename pow/modulo/divide through integer* [#6026](https://github.com/ccxt/ccxt/pull/6026)
+- Rename pow/modulo/divide through integer\* [#6026](https://github.com/ccxt/ccxt/pull/6026)
 - whitebit: fix handle_error error [#6030](https://github.com/ccxt/ccxt/pull/6030)
-- Bytetrade: remove redundant safe*2 [#6025](https://github.com/ccxt/ccxt/pull/6025)
+- Bytetrade: remove redundant safe\*2 [#6025](https://github.com/ccxt/ccxt/pull/6025)
 - Binary concat array [#6029](https://github.com/ccxt/ccxt/pull/6029)
 - [gateio] removed duplicate error handling, and added a mapping for invalid order (when the placing an order that is too small for example) [#6031](https://github.com/ccxt/ccxt/pull/6031)
 - Indodax: BadSymbol [#6033](https://github.com/ccxt/ccxt/pull/6033)
@@ -12720,14 +11779,13 @@
 - fix async python examples [#6048](https://github.com/ccxt/ccxt/pull/6048)
 - fix aiohttp deprecation issues [#6049](https://github.com/ccxt/ccxt/pull/6049)
 - [okex] added fee ccy [#6051](https://github.com/ccxt/ccxt/pull/6051)
-- Minor Fixes in latoken  [#6052](https://github.com/ccxt/ccxt/pull/6052)
+- Minor Fixes in latoken [#6052](https://github.com/ccxt/ccxt/pull/6052)
 - update import [#6054](https://github.com/ccxt/ccxt/pull/6054)
 - [anxpro] parse order status fix [#6056](https://github.com/ccxt/ccxt/pull/6056)
 - php store cookies in cookiejar without calling curl_close [#6060](https://github.com/ccxt/ccxt/pull/6060)
 - [cex] error handling for RateLimitExceeded [#6061](https://github.com/ccxt/ccxt/pull/6061)
 - fix: futures's judgment after okex updated api [#6069](https://github.com/ccxt/ccxt/pull/6069)
 - [ByteTrade] fetchBalance and createOrder update [#6068](https://github.com/ccxt/ccxt/pull/6068)
-
 
 ## 1.17.1
 
@@ -12755,21 +11813,19 @@
 - Parse bleutrade trade IDs [#4284](https://github.com/ccxt/ccxt/pull/4284)
 - Missing XTZ (Tezos) cryptocurrency from Bitfinex and Kraken [#4283](https://github.com/ccxt/ccxt/pull/4283)
 
-
 ## 1.16.1
 
 - fix fetch_ohlcv of bitz [#3413](https://github.com/ccxt/ccxt/pull/3413)
 - kraken: Support more parseTrade formats. [#3415](https://github.com/ccxt/ccxt/pull/3415)
 - cli: fixed a bug with 'printSupportedExchanges' not called on unknown exchange [#3418](https://github.com/ccxt/ccxt/pull/3418)
 - Add fetchOpenOrders for Gemini [#3419](https://github.com/ccxt/ccxt/pull/3419)
-- Added some cryptocurrency + self.orders['status'] = 'canceled' when we cancel.  [#3420](https://github.com/ccxt/ccxt/pull/3420)
+- Added some cryptocurrency + self.orders['status'] = 'canceled' when we cancel. [#3420](https://github.com/ccxt/ccxt/pull/3420)
 - Fixup fetchOpenOrders when filtering [#3423](https://github.com/ccxt/ccxt/pull/3423)
 - Add fetchMyTrades to Huobi Pro [#3422](https://github.com/ccxt/ccxt/pull/3422)
 - okex: arg name fix in fetchTickers [#3438](https://github.com/ccxt/ccxt/pull/3438)
 - Removed local variable fetchImplementation [#3439](https://github.com/ccxt/ccxt/pull/3439)
 - Second naming example should have a space in it [#3449](https://github.com/ccxt/ccxt/pull/3449)
 - RightBTC: Rewrite XRB to NANO. [#3467](https://github.com/ccxt/ccxt/pull/3467)
-
 
 ## 1.15.1
 
@@ -12781,7 +11837,7 @@
 - Add check for symbol on Bitfinex fetchMyTrades [#3348](https://github.com/ccxt/ccxt/pull/3348)
 - Fix fcoin fetch_order_book() limit bug. [#3342](https://github.com/ccxt/ccxt/pull/3342)
 - Python 3.7 support [#3281](https://github.com/ccxt/ccxt/pull/3281)
-- ParseOrder, FetchOrder, EOS added.  [#3335](https://github.com/ccxt/ccxt/pull/3335)
+- ParseOrder, FetchOrder, EOS added. [#3335](https://github.com/ccxt/ccxt/pull/3335)
 - Fix kucoin order status. [#3356](https://github.com/ccxt/ccxt/pull/3356)
 - okcoinusd (and okex): decode more error codes [#3368](https://github.com/ccxt/ccxt/pull/3368)
 - yobit: better handle some InvalidOrder errors [#3372](https://github.com/ccxt/ccxt/pull/3372)
@@ -12790,7 +11846,6 @@
 - huobipro: map 'invalid-amount' to InvalidOrder [#3371](https://github.com/ccxt/ccxt/pull/3371)
 - livecoin: map errors to InvalidOrder [#3373](https://github.com/ccxt/ccxt/pull/3373)
 - gateio: require symbol in cancelOrder [#3375](https://github.com/ccxt/ccxt/pull/3375)
-
 
 ## 1.14.1
 
@@ -12817,7 +11872,6 @@
 - cex disabled XLM fetchDepositAddress [#3274](https://github.com/ccxt/ccxt/pull/3274)
 - Fixes gemini argument mapping for fetchMyTrades [#3296](https://github.com/ccxt/ccxt/pull/3296)
 - binance proper cost [#3288](https://github.com/ccxt/ccxt/pull/3288)
-
 
 ## 1.13.1
 
@@ -12846,7 +11900,6 @@
 - lbank not all markets have timestamp data - keyerror in python [#2846](https://github.com/ccxt/ccxt/pull/2846)
 - remove duplicated exchanges [#2847](https://github.com/ccxt/ccxt/pull/2847)
 
-
 ## 1.12.1
 
 - gemini add createDepositAddress method [#2519](https://github.com/ccxt/ccxt/pull/2519)
@@ -12866,7 +11919,6 @@
 - qryptos: parseTrade: takerOrMaker [#2582](https://github.com/ccxt/ccxt/pull/2582)
 - On Vaultoro, GLD is actual Gold, not GoldCoin. [#2602](https://github.com/ccxt/ccxt/pull/2602)
 
-
 ## 1.11.1
 
 - Gemini: Fix trade order ID [#2310](https://github.com/ccxt/ccxt/pull/2310)
@@ -12883,7 +11935,6 @@
 - Added fetchMyTrades for qryptos/quoinex [#2354](https://github.com/ccxt/ccxt/pull/2354)
 - bitcoin.co.id → indodax fix #2244 [#2267](https://github.com/ccxt/ccxt/pull/2267)
 
-
 ## 1.10.1
 
 - fix bittrex cancel_order [#2055](https://github.com/ccxt/ccxt/pull/2055)
@@ -12898,7 +11949,6 @@
 - btcturk: new: XRP/TRY market [#2100](https://github.com/ccxt/ccxt/pull/2100)
 - PHP: Exchange: fix typo (fethc > fetch) [#2110](https://github.com/ccxt/ccxt/pull/2110)
 
-
 ## 1.9.1
 
 - Fix typo in bter [#442](https://github.com/ccxt/ccxt/pull/442)
@@ -12910,7 +11960,6 @@
 - Fix hasFetchTickers for btcturk, cex [#459](https://github.com/ccxt/ccxt/pull/459)
 - Add markets, fees for bitfinex2, fix binance typo [#468](https://github.com/ccxt/ccxt/pull/468)
 
-
 ## 1.8.1
 
 - Fix issue 250 cex optional params [#251](https://github.com/ccxt/ccxt/pull/251)
@@ -12919,11 +11968,9 @@
 - fetch_balance() correct arguments [#257](https://github.com/ccxt/ccxt/pull/257)
 - parse_orders() update [#258](https://github.com/ccxt/ccxt/pull/258)
 
-
 ## 1.7.1
 
 - Add new symbol for bitcoincoid markets [#228](https://github.com/ccxt/ccxt/pull/228)
-
 
 ## 1.6.1
 
@@ -12933,5 +11980,3 @@
 - Fixed bitflyer request using query parameters [#187](https://github.com/ccxt/ccxt/pull/187)
 - Use python as main language on travis [#191](https://github.com/ccxt/ccxt/pull/191)
 - travis build config update [#201](https://github.com/ccxt/ccxt/pull/201)
-
-
