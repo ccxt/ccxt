@@ -166,7 +166,7 @@ class coinex extends \ccxt\async\coinex {
             $market = $this->safe_market($marketId, null, null, $defaultType);
             $parsedTicker = $this->parse_ws_ticker($entry, $market);
             $this->tickers[$symbol] = $parsedTicker;
-            $newTickers[] = $parsedTicker;
+            $newTickers[$symbol] = $parsedTicker;
         }
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
