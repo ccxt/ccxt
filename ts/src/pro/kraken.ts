@@ -586,55 +586,56 @@ export default class kraken extends krakenRest {
 
     handleOHLCV (client: Client, message, subscription) {
         //
-        //     [
-        //         216, // channelID
-        //         [
-        //             "1574454214.962096", // Time, seconds since epoch
-        //             "1574454240.000000", // End timestamp of the interval
-        //             "0.020970", // Open price at midnight UTC
-        //             "0.020970", // Intraday high price
-        //             "0.020970", // Intraday low price
-        //             "0.020970", // Closing price at midnight UTC
-        //             "0.020970", // Volume weighted average price
-        //             "0.08636138", // Accumulated volume today
-        //             1, // Number of trades today
-        //         ],
-        //         "ohlc-1", // Channel Name of subscription
-        //         "ETH/XBT", // Asset pair
-        //     ]
+        //     {
+        //         "channel": "ohlc",
+        //         "type": "update",
+        //         "timestamp": "2023-10-04T16:26:30.524394914Z",
+        //         "data": [
+        //             {
+        //                 "symbol": "MATIC/USD",
+        //                 "open": 0.5624,
+        //                 "high": 0.5628,
+        //                 "low": 0.5622,
+        //                 "close": 0.5627,
+        //                 "trades": 12,
+        //                 "volume": 30927.68066226,
+        //                 "vwap": 0.5626,
+        //                 "interval_begin": "2023-10-04T16:25:00.000000000Z",
+        //                 "interval": 5,
+        //                 "timestamp": "2023-10-04T16:30:00.000000Z"
+        //             }
+        //         ]
+        //     }
         //
-        const info = this.safeValue (subscription, 'subscription', {});
-        const interval = this.safeInteger (info, 'interval');
-        const name = this.safeString (info, 'name');
-        const wsName = this.safeString (message, 3);
-        const market = this.safeValue (this.options['marketsByWsName'], wsName);
-        const symbol = market['symbol'];
+        const data = this.safeList (message, 'data', []);
+        const first = data[0];
+        const symbol = this.safeString (first, 'symbol');
+        const interval = this.safeInteger (first, 'interval');
         const timeframe = this.findTimeframe (interval);
-        const duration = this.parseTimeframe (timeframe);
-        if (timeframe !== undefined) {
-            const candle = this.safeValue (message, 1);
-            const messageHash = name + ':' + timeframe + ':' + wsName;
-            let timestamp = this.safeFloat (candle, 1);
-            timestamp -= duration;
-            const ts = this.parseToInt (timestamp * 1000);
-            const result = [
-                ts,
-                this.safeFloat (candle, 2),
-                this.safeFloat (candle, 3),
-                this.safeFloat (candle, 4),
-                this.safeFloat (candle, 5),
-                this.safeFloat (candle, 7),
-            ];
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
-            stored.append (result);
-            client.resolve (stored, messageHash);
+        const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
         }
+        const ohlcvsLength = data.length;
+        for (let i = 0; i < ohlcvsLength; i++) {
+            const candle = data[ohlcvsLength - i - 1];
+            const datetime = this.safeString (candle, 'timestamp');
+            const timestamp = this.parse8601 (datetime);
+            const parsed = [
+                timestamp,
+                this.safeString (candle, 'open'),
+                this.safeString (candle, 'high'),
+                this.safeString (candle, 'low'),
+                this.safeString (candle, 'close'),
+                this.safeString (candle, 'volume'),
+            ];
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash);
     }
 
     requestId () {
@@ -801,7 +802,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/websocket-v1/ohlc
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -814,27 +815,24 @@ export default class kraken extends krakenRest {
         const name = 'ohlc';
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const wsName = this.safeValue (market['info'], 'wsname');
-        const messageHash = name + ':' + timeframe + ':' + wsName;
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws']['publicV2'];
         const requestId = this.requestId ();
+        const messageHash = this.getMessageHash ('ohlcv', undefined, symbol);
         const subscribe: Dict = {
-            'event': 'subscribe',
-            'reqid': requestId,
-            'pair': [
-                wsName,
-            ],
-            'subscription': {
-                'name': name,
+            'method': 'subscribe',
+            'params': {
+                'channel': name,
+                'symbol': [ symbol ],
                 'interval': this.safeValue (this.timeframes, timeframe, timeframe),
             },
+            'req_id': requestId,
         };
         const request = this.deepExtend (subscribe, params);
         const ohlcv = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limit, 'timestamp', true);
     }
 
     async loadMarkets (reload = false, params = {}) {
@@ -1757,8 +1755,6 @@ export default class kraken extends krakenRest {
             const channelName = this.safeString (message, messageLength - 2);
             const name = this.safeString (info, 'name');
             const methods: Dict = {
-                // public
-                'ohlc': this.handleOHLCV,
                 // private
                 'openOrders': this.handleOrders,
                 'ownTrades': this.handleMyTrades,
@@ -1773,6 +1769,7 @@ export default class kraken extends krakenRest {
                 const methods: Dict = {
                     'balances': this.handleBalance,
                     'book': this.handleOrderBook,
+                    'ohlc': this.handleOHLCV,
                     'ticker': this.handleTicker,
                     'trade': this.handleTrades,
                 };
