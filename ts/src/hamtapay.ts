@@ -1,6 +1,5 @@
 
 //  ---------------------------------------------------------------------------
-
 import Exchange from './abstract/hamtapay.js';
 import { Market, Strings, Ticker, Tickers } from './base/types.js';
 
@@ -204,7 +203,7 @@ export default class hamtapay extends Exchange {
          * @method
          * @name hamtapay#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://hamtapay.com/management/all-coins/?format=json
+         * @see https://api.hamtapay.org/financial/api/vitrin/prices
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -213,22 +212,21 @@ export default class hamtapay extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
         }
-        const response = await this.publicGetManagementAllCoins (params);
+        const response = await this.publicGetFinancialApiVitrinPrices (params);
+        const data = this.safeDict (response, 'data', {});
         const result = {};
         const quotes = [ 'IRT', 'USDT' ];
-        for (let i = 0; i < response.length; i++) {
-            const base = this.safeString (response[i], 'symbol');
-            for (let index = 0; index < quotes.length; index++) {
-                const quote = quotes[index];
-                if (base === quote) {
-                    continue;
-                }
-                response[i]['base'] = base;
-                response[i]['quote'] = quote;
-                response[i]['symbol'] = base + quote;
-                const ticker = this.parseTicker (response[i]);
-                const symbol = ticker['symbol'];
-                result[symbol] = ticker;
+        for (let i = 0; i < quotes.length; i++) {
+            const current_qoute = quotes[i];
+            const corresponding_data = this.safeDict (data, current_qoute, {});
+            for (let j = 0; j < Object.keys (corresponding_data).length; j++) {
+                const current_base = Object.keys (corresponding_data)[j];
+                const current_ticker = corresponding_data[current_base];
+                current_ticker['base'] = current_base;
+                current_ticker['quote'] = current_qoute;
+                current_ticker['symbol'] = current_base + '/' + current_qoute;
+                current_ticker['id'] = current_base + '-' + current_qoute;
+                result[current_ticker['symbol']] = this.parseTicker (current_ticker);
             }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
@@ -250,57 +248,48 @@ export default class hamtapay extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         // {
-        //     'symbol': 'USDT',
-        //     'name': 'Tether',
-        //     'categories': [],
-        //     'tetherPrice': '1',
-        //     'priceBuy': '59200.0',
-        //     'priceSell': '58800.0',
-        //     'persianName': '\u062a\u062a\u0631',
-        //     'past24': '0',
-        //     'marketVolume': '1',
-        //     'id': '1',
-        //     'active': true,
-        //     'irtDecimalPoint': '2',
-        //     'tetherDecimalPoint': '6',
-        //     'amountDecimalPoint': '6',
-        //     'past24volume': '767287.60530837810210936763',
-        //     'operationStatus': {
-        //         'buyActive': true,
-        //         'sellActive': true,
-        //         'withdrawalActive': true,
-        //         'depositActive': true,
-        //         'transferActive': true,
-        //     },
-        // };
+        //     "id": "USDT-IRT",
+        //     "symbol": "USDT/IRT",
+        //     "base": "USDT",
+        //     "quote": "IRT",
+        //     "min_price_24h": "111702",
+        //     "max_price_24h": "115872",
+        //     "market_price": "115942",
+        //     "buy_price": "117101",
+        //     "sell_price": "114782",
+        //     "change_rate_24h": 3.29,
+        //     "amount_decimals": 0,
+        //     "price_decimals": 0,
+        //     "status": "ACTIVE"
+        // }
         const marketType = 'otc';
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString (ticker, 'id');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
-        let last = this.safeFloat (ticker, 'tetherPrice', 0);
-        if (ticker['quote'] === 'IRT') {
-            last = this.safeFloat (ticker, 'priceSell', 0);
-        }
-        const change = this.safeFloat (ticker, 'past24', 0);
-        const baseVolume = this.safeFloat (ticker, 'past24volume', 0);
+        const last = this.safeFloat (ticker, 'buy_price', 0);
+        const change = this.safeFloat (ticker, 'change_rate_24h', 0);
+        const ask = this.safeFloat (ticker, 'buy_price', 0);
+        const bid = this.safeFloat (ticker, 'sell_price', 0);
+        const high = this.safeFloat (ticker, 'max_price_24h', 0);
+        const low = this.safeFloat (ticker, 'min_price_24h', 0);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
-            'high': undefined,
-            'low': undefined,
-            'bid': undefined,
+            'high': high,
+            'low': low,
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': change,
             'average': undefined,
-            'baseVolume': baseVolume,
+            'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
