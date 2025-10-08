@@ -162,7 +162,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = self.safe_string(self.options, 'defaultType')
         data = self.safe_dict(message, 'data', {})
         rawTickers = self.safe_list(data, 'state_list', [])
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(rawTickers)):
             entry = rawTickers[i]
             marketId = self.safe_string(entry, 'market')
@@ -170,7 +170,7 @@ class coinex(ccxt.async_support.coinex):
             market = self.safe_market(marketId, None, None, defaultType)
             parsedTicker = self.parse_ws_ticker(entry, market)
             self.tickers[symbol] = parsedTicker
-            newTickers.append(parsedTicker)
+            newTickers[symbol] = parsedTicker
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
