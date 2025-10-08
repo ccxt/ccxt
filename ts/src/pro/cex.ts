@@ -301,14 +301,15 @@ export default class cex extends cexRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        if (symbols === undefined) {
-            symbols = this.symbols;
-        }
         const url = this.urls['api']['ws'];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const messageHash = 'tickers:' + symbols[i];
-            messageHashes.push (messageHash);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const messageHash = 'tickers:' + symbols[i];
+                messageHashes.push (messageHash);
+            }
+        } else {
+            messageHashes.push ('tickers');
         }
         const message: Dict = {
             'e': 'subscribe',
@@ -326,11 +327,6 @@ export default class cex extends cexRest {
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
-    }
-
-    async test () {
-        await this.loadMarkets ();
-        await this.watchTickers ([ 'BTC/USD', 'ETH/USD' ]);
     }
 
     /**
@@ -391,6 +387,7 @@ export default class cex extends cexRest {
             this.tickers[symbol] = ticker;
             client.resolve (ticker, messageHash);
         }
+        client.resolve (ticker, 'tickers');
     }
 
     parseWsTicker (ticker, market = undefined) {
