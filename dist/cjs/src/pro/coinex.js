@@ -150,7 +150,7 @@ class coinex extends coinex$1["default"] {
         const defaultType = this.safeString(this.options, 'defaultType');
         const data = this.safeDict(message, 'data', {});
         const rawTickers = this.safeList(data, 'state_list', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const entry = rawTickers[i];
             const marketId = this.safeString(entry, 'market');
@@ -158,7 +158,7 @@ class coinex extends coinex$1["default"] {
             const market = this.safeMarket(marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker(entry, market);
             this.tickers[symbol] = parsedTicker;
-            newTickers.push(parsedTicker);
+            newTickers[symbol] = parsedTicker;
         }
         const messageHashes = this.findMessageHashes(client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
