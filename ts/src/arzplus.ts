@@ -249,7 +249,7 @@ export default class arzplus extends Exchange {
         };
     }
 
-    parseOTCMarkets (market): any {
+    parseOTCMarkets (market): Market {
         //  {
         // symbol: "BTC",
         // ask: "13877900000",
@@ -273,7 +273,7 @@ export default class arzplus extends Exchange {
             'quoteId': quoteId,
             'settleId': undefined,
             'type': 'otc',
-            'spot': true,
+            'spot': false,
             'margin': false,
             'swap': false,
             'future': false,
