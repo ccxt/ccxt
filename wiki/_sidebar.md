@@ -14,6 +14,7 @@
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
 	- [ascendex](exchanges/ascendex.md)
+	- [astralx](exchanges/astralx.md)
 	- [backpack](exchanges/backpack.md)
 	- [bigone](exchanges/bigone.md)
 	- [binance](exchanges/binance.md)

@@ -67,6 +67,7 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
+from ccxt.async_support.astralx import astralx                                  # noqa: F401
 from ccxt.async_support.backpack import backpack                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
 from ccxt.async_support.bigone import bigone                                    # noqa: F401
@@ -175,6 +176,7 @@ exchanges = [
     'alpaca',
     'apex',
     'ascendex',
+    'astralx',
     'backpack',
     'bequant',
     'bigone',

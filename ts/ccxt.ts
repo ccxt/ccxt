@@ -49,6 +49,7 @@ const version = '4.5.8';
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import ascendex from  './src/ascendex.js'
+import astralx from  './src/astralx.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
 import bigone from  './src/bigone.js'
@@ -233,6 +234,7 @@ const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
     'ascendex':               ascendex,
+    'astralx':                astralx,
     'backpack':               backpack,
     'bequant':                bequant,
     'bigone':                 bigone,
@@ -559,6 +561,7 @@ export {
     alpaca,
     apex,
     ascendex,
+    astralx,
     backpack,
     bequant,
     bigone,
