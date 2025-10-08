@@ -412,6 +412,7 @@ class Exchange {
         'gate',
         'gateio',
         'gemini',
+        'hamtapay',
         'hashkey',
         'hibachi',
         'hitbtc',
