@@ -294,7 +294,7 @@ export default class poloniex extends poloniexRest {
         const request: Dict = {
             'orderIds': ids,
         };
-        return await this.tradeRequest ('cancelOrders', this.extend (request, params));
+        return await this.tradeRequest ('cancelOrders', this.extend (request, params)) as Order[];
     }
 
     /**
@@ -306,7 +306,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         await this.authenticate ();
         return await this.tradeRequest ('cancelAllOrders', params);

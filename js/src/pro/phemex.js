@@ -1144,6 +1144,10 @@ export default class phemex extends phemexRest {
             }
         }
         else {
+            const messageLength = message.length;
+            if (messageLength === 0) {
+                return;
+            }
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
                 const action = this.safeString(update, 'action');

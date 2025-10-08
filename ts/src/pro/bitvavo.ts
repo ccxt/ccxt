@@ -673,7 +673,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        return await this.watchRequest ('privateCreateOrder', request);
+        return await this.watchRequest ('privateCreateOrder', request) as Order;
     }
 
     /**
@@ -711,7 +711,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.cancelOrderRequest (id, symbol, params);
-        return await this.watchRequest ('privateCancelOrder', request);
+        return await this.watchRequest ('privateCancelOrder', request) as Order;
     }
 
     /**
@@ -732,7 +732,7 @@ export default class bitvavo extends bitvavoRest {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        return await this.watchRequest ('privateCancelOrders', this.extend (request, params));
+        return await this.watchRequest ('privateCancelOrders', this.extend (request, params)) as Order[];
     }
 
     handleMultipleOrders (client: Client, message) {

@@ -1043,7 +1043,7 @@ export default class oxfun extends oxfunRest {
             'dataArray': dataArray,
         };
         const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     async authenticate (params = {}) {
