@@ -271,7 +271,7 @@ export default class arzplus extends Exchange {
             'quoteId': quoteId,
             'settleId': undefined,
             'type': 'otc',
-            'spot': true,
+            'spot': false,
             'margin': false,
             'swap': false,
             'future': false,
