@@ -1473,34 +1473,32 @@ func (this *Exchange) Watch(args ...interface{}) <-chan interface{} {
 	// (connection established successfully)
 	if clientSubscription == nil {
 		go func() {
-			select {
-			case result := <-connected.Await():
-				if err, ok := result.(error); ok {
-					delete(client.Subscriptions, subscribeHash.(string))
-					future.Reject(err)
-					return
-				}
-				options := SafeValue(this.Options, "ws", make(map[string]interface{}))
-				cost := SafeValue(options, "cost", 1)
-				if message != nil {
-					if this.EnableRateLimit && client.Throttle != nil {
-						// add cost here |
-						//               |
-						//               V
-						if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
-							if err := throttleFunc(cost); err != nil {
-								client.OnError(err)
-								return
-							}
+			result := <-connected.Await()
+			if err, ok := result.(error); ok {
+				delete(client.Subscriptions, subscribeHash.(string))
+				future.Reject(err)
+				return
+			}
+			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			cost := SafeValue(options, "cost", 1)
+			if message != nil {
+				if this.EnableRateLimit && client.Throttle != nil {
+					// add cost here |
+					//               |
+					//               V
+					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+						if err := throttleFunc(cost); err != nil {
+							client.OnError(err)
+							return
 						}
 					}
-					sendFutureChannel := <-client.Send(message)
-					if err, ok := sendFutureChannel.(error); ok {
-						client.OnError(err)
-						client.SubscriptionsMu.Lock()
-						delete(client.Subscriptions, subscribeHash.(string))
-						client.SubscriptionsMu.Unlock()
-					}
+				}
+				sendFutureChannel := <-client.Send(message)
+				if err, ok := sendFutureChannel.(error); ok {
+					client.OnError(err)
+					client.SubscriptionsMu.Lock()
+					delete(client.Subscriptions, subscribeHash.(string))
+					client.SubscriptionsMu.Unlock()
 				}
 			}
 		}()
@@ -1802,37 +1800,35 @@ func (this *Exchange) WatchMultiple(args ...interface{}) <-chan interface{} {
 	// (connection established successfully)
 	if subscribeHashes == nil || len(missingSubscriptions) > 0 {
 		go func() {
-			select {
-			case result := <-connected.Await():
-				if err, ok := result.(error); ok {
+			result := <-connected.Await()
+			if err, ok := result.(error); ok {
+				for _, subscribeHash := range missingSubscriptions {
+					delete(client.Subscriptions, subscribeHash)
+				}
+				future.Reject(err)
+				return
+			}
+			options := SafeValue(this.Options, "ws", make(map[string]interface{}))
+			cost := SafeValue(options, "cost", 1)
+			if message != nil {
+				if this.EnableRateLimit && client.Throttle != nil {
+					// add cost here |
+					//               |
+					//               V
+					if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
+						if err := throttleFunc(cost); err != nil {
+							client.OnError(err)
+						}
+					}
+				}
+				sendFutureChannel := <-client.Send(message)
+				if err, ok := sendFutureChannel.(error); ok {
+					client.SubscriptionsMu.Lock()
 					for _, subscribeHash := range missingSubscriptions {
 						delete(client.Subscriptions, subscribeHash)
 					}
+					client.SubscriptionsMu.Unlock()
 					future.Reject(err)
-					return
-				}
-				options := SafeValue(this.Options, "ws", make(map[string]interface{}))
-				cost := SafeValue(options, "cost", 1)
-				if message != nil {
-					if this.EnableRateLimit && client.Throttle != nil {
-						// add cost here |
-						//               |
-						//               V
-						if throttleFunc, ok := client.Throttle.(func(interface{}) error); ok {
-							if err := throttleFunc(cost); err != nil {
-								client.OnError(err)
-							}
-						}
-					}
-					sendFutureChannel := <-client.Send(message)
-					if err, ok := sendFutureChannel.(error); ok {
-						client.SubscriptionsMu.Lock()
-						for _, subscribeHash := range missingSubscriptions {
-							delete(client.Subscriptions, subscribeHash)
-						}
-						client.SubscriptionsMu.Unlock()
-						future.Reject(err)
-					}
 				}
 			}
 		}()

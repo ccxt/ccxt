@@ -65,6 +65,8 @@ const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base';
 const GENERATED_TESTS_FOLDER = './go/tests';
+const GO_TYPES_FILE = './go/v4/exchange_types.go';
+const GO_TYPES_FILE_PRO = './go/v4/pro/exchange_types.go';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples';
 const goComments: any = {};
@@ -1814,6 +1816,7 @@ ${caseStatements.join('\n')}
         this.transpileBaseMethods(TS_BASE_FILE, true);
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true );
         this.createDynamicInstanceFile(true);
+        this.transpileProTypes();
         this.createWsTypedInterfaceFile();
 
     }
@@ -2564,6 +2567,23 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '}',
         ].join('\n');
         overwriteFileAndFolder (`${BASE_TESTS_FOLDER}/test.functions.go`, file);
+    }
+
+    transpileProTypes() {
+        const file = fs.readFileSync(GO_TYPES_FILE).toString();
+        const lines = file.split("\n");
+        const structRegex = /^type\s+(\w+)\s+struct\s*{/;
+        const output: string[] = [ 'package ccxtpro', 'import ccxt "github.com/ccxt/ccxt/go/v4"', '', ...this.createGeneratedHeader(), '' ];
+        
+        for (const line of lines) {
+            const match = line.match(structRegex);
+            if (match) {
+                const name = match[1];
+                output.push(`type ${name} = ccxt.${name}`);
+            }
+        }
+        
+        fs.writeFileSync(GO_TYPES_FILE_PRO, output.join("\n") + "\n", "utf8");
     }
 }
 
