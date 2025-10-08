@@ -9,6 +9,7 @@ var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
+var astralx = require('./src/astralx.js');
 var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
@@ -195,6 +196,7 @@ const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'ascendex': ascendex["default"],
+    'astralx': astralx["default"],
     'backpack': backpack["default"],
     'bequant': bequant["default"],
     'bigone': bigone["default"],
@@ -428,6 +430,7 @@ exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.ascendex = ascendex["default"];
+exports.astralx = astralx["default"];
 exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
 exports.bigone = bigone["default"];

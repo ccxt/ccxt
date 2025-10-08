@@ -277,6 +277,7 @@ cancels an open order
 * [alpaca](/exchanges/alpaca.md#alpacacancelorder)
 * [apex](/exchanges/apex.md#apexcancelorder)
 * [ascendex](/exchanges/ascendex.md#ascendexcancelorder)
+* [astralx](/exchanges/astralx.md#astralxcancelorder)
 * [backpack](/exchanges/backpack.md#backpackcancelorder)
 * [bigone](/exchanges/bigone.md#bigonecancelorder)
 * [binance](/exchanges/binance.md#binancecancelorder)
@@ -826,6 +827,7 @@ create a trade order
 * [alpaca](/exchanges/alpaca.md#alpacacreateorder)
 * [apex](/exchanges/apex.md#apexcreateorder)
 * [ascendex](/exchanges/ascendex.md#ascendexcreateorder)
+* [astralx](/exchanges/astralx.md#astralxcreateorder)
 * [backpack](/exchanges/backpack.md#backpackcreateorder)
 * [bigone](/exchanges/bigone.md#bigonecreateorder)
 * [binance](/exchanges/binance.md#binancecreateorder)
@@ -1501,6 +1503,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [alpaca](/exchanges/alpaca.md#alpacafetchbalance)
 * [apex](/exchanges/apex.md#apexfetchbalance)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchbalance)
+* [astralx](/exchanges/astralx.md#astralxfetchbalance)
 * [backpack](/exchanges/backpack.md#backpackfetchbalance)
 * [bigone](/exchanges/bigone.md#bigonefetchbalance)
 * [binance](/exchanges/binance.md#binancefetchbalance)
@@ -2084,6 +2087,7 @@ fetches all available currencies on an exchange
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexfetchcurrencies)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchcurrencies)
+* [astralx](/exchanges/astralx.md#astralxfetchcurrencies)
 * [backpack](/exchanges/backpack.md#backpackfetchcurrencies)
 * [bigone](/exchanges/bigone.md#bigonefetchcurrencies)
 * [binance](/exchanges/binance.md#binancefetchcurrencies)
@@ -2712,7 +2716,7 @@ fetch the deposit and withdrawal limits for a currency
 <a name="fetchFundingRate" id="fetchfundingrate"></a>
 
 ## fetchFundingRate
-fetch the current funding rate
+fetches the current funding rate
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
@@ -2720,10 +2724,11 @@ fetch the current funding rate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxfetchfundingrate)
 * [backpack](/exchanges/backpack.md#backpackfetchfundingrate)
 * [binance](/exchanges/binance.md#binancefetchfundingrate)
 * [bingx](/exchanges/bingx.md#bingxfetchfundingrate)
@@ -3364,6 +3369,7 @@ retrieves data on all markets for alpaca
 * [alpaca](/exchanges/alpaca.md#alpacafetchmarkets)
 * [apex](/exchanges/apex.md#apexfetchmarkets)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchmarkets)
+* [astralx](/exchanges/astralx.md#astralxfetchmarkets)
 * [backpack](/exchanges/backpack.md#backpackfetchmarkets)
 * [bigone](/exchanges/bigone.md#bigonefetchmarkets)
 * [binance](/exchanges/binance.md#binancefetchmarkets)
@@ -3572,6 +3578,7 @@ fetch all trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchmytrades)
 * [apex](/exchanges/apex.md#apexfetchmytrades)
+* [astralx](/exchanges/astralx.md#astralxfetchmytrades)
 * [backpack](/exchanges/backpack.md#backpackfetchmytrades)
 * [bigone](/exchanges/bigone.md#bigonefetchmytrades)
 * [binance](/exchanges/binance.md#binancefetchmytrades)
@@ -3703,6 +3710,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [alpaca](/exchanges/alpaca.md#alpacafetchohlcv)
 * [apex](/exchanges/apex.md#apexfetchohlcv)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchohlcv)
+* [astralx](/exchanges/astralx.md#astralxfetchohlcv)
 * [backpack](/exchanges/backpack.md#backpackfetchohlcv)
 * [bigone](/exchanges/bigone.md#bigonefetchohlcv)
 * [binance](/exchanges/binance.md#binancefetchohlcv)
@@ -3938,6 +3946,7 @@ fetch all unfilled currently open orders
 * [alpaca](/exchanges/alpaca.md#alpacafetchopenorders)
 * [apex](/exchanges/apex.md#apexfetchopenorders)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchopenorders)
+* [astralx](/exchanges/astralx.md#astralxfetchopenorders)
 * [backpack](/exchanges/backpack.md#backpackfetchopenorders)
 * [bigone](/exchanges/bigone.md#bigonefetchopenorders)
 * [binance](/exchanges/binance.md#binancefetchopenorders)
@@ -4139,6 +4148,7 @@ fetches information on an order made by the user
 * [alpaca](/exchanges/alpaca.md#alpacafetchorder)
 * [apex](/exchanges/apex.md#apexfetchorder)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchorder)
+* [astralx](/exchanges/astralx.md#astralxfetchorder)
 * [bigone](/exchanges/bigone.md#bigonefetchorder)
 * [binance](/exchanges/binance.md#binancefetchorder)
 * [bingx](/exchanges/bingx.md#bingxfetchorder)
@@ -4241,6 +4251,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [alpaca](/exchanges/alpaca.md#alpacafetchorderbook)
 * [apex](/exchanges/apex.md#apexfetchorderbook)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchorderbook)
+* [astralx](/exchanges/astralx.md#astralxfetchorderbook)
 * [backpack](/exchanges/backpack.md#backpackfetchorderbook)
 * [bigone](/exchanges/bigone.md#bigonefetchorderbook)
 * [binance](/exchanges/binance.md#binancefetchorderbook)
@@ -4791,6 +4802,7 @@ fetch all open positions
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#apexfetchpositions)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchpositions)
+* [astralx](/exchanges/astralx.md#astralxfetchpositions)
 * [backpack](/exchanges/backpack.md#backpackfetchpositions)
 * [binance](/exchanges/binance.md#binancefetchpositions)
 * [bingx](/exchanges/bingx.md#bingxfetchpositions)
@@ -5009,6 +5021,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [alpaca](/exchanges/alpaca.md#alpacafetchticker)
 * [apex](/exchanges/apex.md#apexfetchticker)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchticker)
+* [astralx](/exchanges/astralx.md#astralxfetchticker)
 * [backpack](/exchanges/backpack.md#backpackfetchticker)
 * [bigone](/exchanges/bigone.md#bigonefetchticker)
 * [binance](/exchanges/binance.md#binancefetchticker)
@@ -5231,6 +5244,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [alpaca](/exchanges/alpaca.md#alpacafetchtime)
 * [apex](/exchanges/apex.md#apexfetchtime)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchtime)
+* [astralx](/exchanges/astralx.md#astralxfetchtime)
 * [backpack](/exchanges/backpack.md#backpackfetchtime)
 * [bigone](/exchanges/bigone.md#bigonefetchtime)
 * [binance](/exchanges/binance.md#binancefetchtime)
@@ -5305,6 +5319,7 @@ get the list of most recent trades for a particular symbol
 * [alpaca](/exchanges/alpaca.md#alpacafetchtrades)
 * [apex](/exchanges/apex.md#apexfetchtrades)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchtrades)
+* [astralx](/exchanges/astralx.md#astralxfetchtrades)
 * [backpack](/exchanges/backpack.md#backpackfetchtrades)
 * [bigone](/exchanges/bigone.md#bigonefetchtrades)
 * [binance](/exchanges/binance.md#binancefetchtrades)
@@ -5864,6 +5879,31 @@ fetch all withdrawals made from an account
 
 ---
 
+<a name="handleErrors" id="handleerrors"></a>
+
+## handleErrors
+handles exchange errors
+
+**Kind**: instance   
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| code | <code>int</code> | the HTTP status code |
+| reason | <code>string</code> | the HTTP reason phrase |
+| url | <code>string</code> | the URL of the request |
+| method | <code>string</code> | the HTTP method used |
+| headers | <code>object</code> | the HTTP headers |
+| body | <code>string</code> | the response body |
+| response | <code>object</code> | the parsed response |
+| requestHeaders | <code>object</code> | the original request headers |
+| requestBody | <code>object</code> | the original request body |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxhandleerrors)
+
+---
+
 <a name="isUnifiedEnabled" id="isunifiedenabled"></a>
 
 ## isUnifiedEnabled
@@ -5939,6 +5979,120 @@ calculates the presumptive fee that would be charged for an order
 
 ##### Supported exchanges
 * [&lt;anonymous&gt;](/exchanges/&lt;anonymous&gt;.md#&lt;anonymous&gt;market)
+
+---
+
+<a name="parseFundingRate" id="parsefundingrate"></a>
+
+## parseFundingRate
+parses a funding rate structure from the exchange response
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| contract | <code>object</code> | Yes | the funding rate data from the exchange |
+| market | <code>object</code> | No | the market to which the funding rate belongs |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxparsefundingrate)
+
+---
+
+<a name="parseOHLCV" id="parseohlcv"></a>
+
+## parseOHLCV
+parses OHLCV data from the exchange response
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;number&gt;</code> - [timestamp, open, high, low, close, volume]
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ohlcv | <code>Array&lt;number&gt;</code> | Yes | the OHLCV data from the exchange |
+| market | <code>object</code> | No | the market to which the OHLCV data belongs |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxparseohlcv)
+
+---
+
+<a name="parseOrder" id="parseorder"></a>
+
+## parseOrder
+parse an order structure from the exchange response
+
+**Kind**: instance   
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| order | <code>object</code> | Yes | the order data from the exchange |
+| marketParam | <code>object</code> | No | the market to which the order belongs |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxparseorder)
+
+---
+
+<a name="parsePosition" id="parseposition"></a>
+
+## parsePosition
+parse a position structure from the exchange response
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| position | <code>object</code> | Yes | the position data from the exchange |
+| marketParam | <code>object</code> | No | the market to which the position belongs |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxparseposition)
+
+---
+
+<a name="parseTicker" id="parseticker"></a>
+
+## parseTicker
+parses a ticker structure from the exchange response
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| ticker | <code>object</code> | Yes | the ticker data from the exchange |
+| market | <code>object</code> | No | the market to which the ticker belongs |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxparseticker)
+
+---
+
+<a name="parseTrade" id="parsetrade"></a>
+
+## parseTrade
+parses a trade structure from the exchange response
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| trade | <code>object</code> | Yes | the trade data from the exchange |
+| market | <code>object</code> | No | the market to which the trade belongs |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxparsetrade)
 
 ---
 
@@ -6241,6 +6395,29 @@ set hedged to true or false for a market
 * [phemex](/exchanges/phemex.md#phemexsetpositionmode)
 * [poloniex](/exchanges/poloniex.md#poloniexsetpositionmode)
 * [woo](/exchanges/woo.md#woosetpositionmode)
+
+---
+
+<a name="sign" id="sign"></a>
+
+## sign
+signs the request with HMAC-SHA256
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the signed request parameters
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| path | <code>string</code> | Yes | the API endpoint path |
+| api | <code>string</code> | Yes | 'public' or 'private' |
+| method | <code>string</code> | Yes | 'GET', 'POST', 'DELETE' |
+| params | <code>object</code> | Yes | the parameters to include in the request |
+| headers | <code>object</code> | No | additional headers to include |
+| body | <code>object</code> | No | the request body |
+
+##### Supported exchanges
+* [astralx](/exchanges/astralx.md#astralxsign)
 
 ---
 

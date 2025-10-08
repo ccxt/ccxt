@@ -341,6 +341,7 @@ class Exchange {
         'alpaca',
         'apex',
         'ascendex',
+        'astralx',
         'backpack',
         'bequant',
         'bigone',
