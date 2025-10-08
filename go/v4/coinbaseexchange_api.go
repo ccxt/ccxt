@@ -191,6 +191,10 @@ func (this *coinbaseexchange) PrivateGetConversionsConversionId(args ...interfac
 	return this.callEndpointAsync("privateGetConversionsConversionId", args...)
 }
 
+func (this *coinbaseexchange) PrivateGetConversions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConversions", args...)
+}
+
 func (this *coinbaseexchange) PrivateGetConversionsFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetConversionsFees", args...)
 }
