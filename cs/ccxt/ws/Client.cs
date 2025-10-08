@@ -54,7 +54,7 @@ public partial class Exchange
 
         public bool decompressBinary = true;
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true, bool nativeKeepAlive = false)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -71,6 +71,13 @@ public partial class Exchange
             {
                 var webProxy = new WebProxy(proxy);
                 webSocket.Options.Proxy = webProxy;
+            }
+
+            // set ws keep-alive, to address issues like https://github.com/ccxt/ccxt/issues/26924
+            if (nativeKeepAlive)
+            {
+                var intervalMs = Math.Max(0, keepA - 1000); // add one second margin
+                webSocket.Options.KeepAliveInterval = TimeSpan.FromMilliseconds(intervalMs);
             }
         }
 
