@@ -241,6 +241,11 @@ public partial class coinbaseexchange : Exchange
         return await this.callAsync ("privateGetConversionsConversionId",parameters);
     }
 
+    public async Task<object> privateGetConversions (object parameters = null)
+    {
+        return await this.callAsync ("privateGetConversions",parameters);
+    }
+
     public async Task<object> privateGetConversionsFees (object parameters = null)
     {
         return await this.callAsync ("privateGetConversionsFees",parameters);
