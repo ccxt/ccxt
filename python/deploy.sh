@@ -43,12 +43,27 @@ else
     echo "twine already installed."
 fi
 
-# Build and upload
+# Build distribution packages
 echo "Building distribution packages..."
 python setup.py sdist bdist_wheel
 
+# Get PyPI token
+if [ -z "${PYPI_TOKEN}" ]; then
+    echo "Please enter your PyPI token:"
+    read -s PYPI_TOKEN
+    
+    # Simple validation to ensure token is not empty
+    while [ -z "${PYPI_TOKEN}" ]; do
+        echo "Token cannot be empty. Please enter your PyPI token:"
+        read -s PYPI_TOKEN
+    done
+else
+    echo "Using PyPI token from environment variable."
+fi
+
+# Upload to PyPI
 echo "Uploading to PyPI..."
-twine upload dist/* -u __token__ -p  ${PYPI_TOKEN}
+twine upload dist/* -u __token__ -p "${PYPI_TOKEN}"
 
 # Deactivate virtual environment
 echo "Deactivating virtual environment..."
