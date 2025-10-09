@@ -6249,11 +6249,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
-    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
 
-    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
     }
 
@@ -6269,7 +6269,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrdersForSymbols() is not supported yet');
     }
 
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }
 
@@ -8218,6 +8218,107 @@ export default class Exchange {
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         throw new NotSupported (this.id + ' fetchTransfers () is not supported yet');
+    }
+
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#unWatchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
+    }
+
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name exchange#watchMarkPrice
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported (this.id + ' watchMarkPrice () is not supported yet');
+    }
+
+    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name exchange#watchMarkPrices
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
+    }
+
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#withdrawWs
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        throw new NotSupported (this.id + ' withdrawWs () is not supported yet');
+    }
+
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#unWatchMyTrades
+         * @description unWatches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        throw new NotSupported (this.id + ' unWatchMyTrades () is not supported yet');
+    }
+
+    async createOrdersWs (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name exchange#createOrdersWs
+         * @description create a list of trade orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        throw new NotSupported (this.id + ' createOrdersWs () is not supported yet');
+    }
+
+    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchOrdersByStatusWs
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        throw new NotSupported (this.id + ' fetchOrdersByStatusWs () is not supported yet');
+    }
+
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#unWatchBidsAsks
+         * @description unWatches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
     cleanUnsubscription (client, subHash: string, unsubHash: string, subHashIsPrefix = false) {

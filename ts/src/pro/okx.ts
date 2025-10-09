@@ -1378,7 +1378,9 @@ export default class okx extends okxRest {
             }
             if (error !== undefined) {
                 delete client.subscriptions[messageHash];
-                delete this.orderbooks[symbol];
+                if (symbol !== undefined) {
+                    delete this.orderbooks[symbol];
+                }
                 client.reject (error, messageHash);
             }
         }
@@ -1532,7 +1534,7 @@ export default class okx extends okxRest {
         const url = this.getUrl ('users', access);
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
@@ -2257,7 +2259,7 @@ export default class okx extends okxRest {
             'op': 'batch-cancel-orders',
             'args': args,
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     /**
@@ -2269,7 +2271,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelAllOrdersWs() requires a symbol argument');
         }

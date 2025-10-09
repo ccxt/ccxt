@@ -2496,7 +2496,7 @@ export default class htx extends htxRest {
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
@@ -2517,7 +2517,7 @@ export default class htx extends htxRest {
                 };
             }
             signatureParams = this.keysort (signatureParams);
-            const auth = this.urlencode (signatureParams);
+            const auth = this.urlencode (signatureParams, true); // true required in go
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             let request = undefined;
