@@ -907,7 +907,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdrawWs (code: string, amount, address, tag = undefined, params = {}) {
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();

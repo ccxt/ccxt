@@ -8309,6 +8309,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrdersByStatusWs () is not supported yet');
     }
 
+    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name exchange#unWatchBidsAsks
+         * @description unWatches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
+    }
+
     cleanUnsubscription (client, subHash: string, unsubHash: string, subHashIsPrefix = false) {
         if (unsubHash in client.subscriptions) {
             delete client.subscriptions[unsubHash];
