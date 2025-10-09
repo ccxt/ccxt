@@ -68,9 +68,9 @@ const GENERATED_TESTS_FOLDER = './go/tests';
 
 // const EXAMPLES_INPUT_FOLDER = './examples/ts';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples';
-const goComments: any = {};
+const goComments: { [key: string]: { [key: string]: string}} = {};
 
-const goTypeOptions: any = {};
+const goTypeOptions: dict = {};
 
 const WRAPPER_METHODS: {} = {};
 
@@ -81,7 +81,7 @@ const imports = [
     'import ccxt "github.com/ccxt/ccxt/go/v4"'
 ];
 
-const VIRTUAL_BASE_METHODS: any = {
+const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
     "createExpiredOptionMarket": false,
     "createOrder": true,
@@ -163,68 +163,76 @@ const VIRTUAL_BASE_METHODS: any = {
     "parseConversion": false,
     "sign": false,
     // ws methods
-    'handleDelta': false,
     'cancelAllOrdersWs': true,
-	'cancelOrdersWs': true,
-	'cancelOrderWs': true,
-	'createLimitBuyOrderWs': true,
-	'createLimitOrderWs': true,
-	'createLimitSellOrderWs': true,
-	'createMarketBuyOrderWs': true,
-	'createMarketOrderWithCostWs': true,
-	'createMarketOrderWs': true,
-	'createMarketSellOrderWs': true,
-	'createOrderWithTakeProfitAndStopLossWs': true,
-	'createOrderWs': true,
-	'createPostOnlyOrderWs': true,
-	'createReduceOnlyOrderWs': true,
-	'createStopLimitOrderWs': true,
-	'createStopLossOrderWs': true,
-	'createStopMarketOrderWs': true,
-	'createStopOrderWs': true,
-	'createTakeProfitOrderWs': true,
-	'createTrailingAmountOrderWs': true,
-	'createTrailingPercentOrderWs': true,
-	'createTriggerOrderWs': true,
-	'editOrderWs': true,
-	'fetchBalanceWs': true,
-	'fetchClosedOrdersWs': true,
-    // 'fetchCurrenciesWs': true,
-	'fetchDepositsWs': true,
-	// 'fetchMarketsWs': true,
-	'fetchMyTradesWs': true,
-	'fetchOHLCVWs': true,
-	'fetchOpenOrdersWs': true,
-	'fetchOrderBookWs': true,
-	'fetchOrdersWs': true,
-	'fetchOrderWs': true,
-	'fetchPositionsForSymbolWs': true,
-	'fetchPositionsWs': true,
-	'fetchPositionWs': true,
-	'fetchTickersWs': true,
-	'fetchTickerWs': true,
-	'fetchTradesWs': true,
-	'fetchTradingFeesWs': true,
-	'fetchWithdrawalsWs': true,
-	'watchBalance': true,
-	'watchBidsAsks': true,
-	'watchLiquidations': true,
-	'watchMyLiquidations': true,
-	'watchMyLiquidationsForSymbols': true,
-	'watchMyTrades': true,
-	'watchOHLCV': true,
-	'watchOHLCVForSymbols': true,
-	'watchOrderBook': true,
-	'watchOrderBookForSymbols': true,
-	'watchOrders': true,
-	'watchOrdersForSymbols': true,
-	'watchPosition': true,
-	'watchPositions': true,
-	'watchTicker': true,
-	'watchTickers': true,
-	'watchTrades': true,
-	'watchTradesForSymbols': true,
+    'cancelOrdersWs': true,
+    'cancelOrderWs': true,
+    'createLimitBuyOrderWs': true,
+    'createLimitOrderWs': true,
+    'createLimitSellOrderWs': true,
+    'createMarketBuyOrderWs': true,
+    'createMarketOrderWithCostWs': true,
+    'createMarketOrderWs': true,
+    'createMarketSellOrderWs': true,
+    'createOrdersWs': true,
+    'createOrderWithTakeProfitAndStopLossWs': true,
+    'createOrderWs': true,
+    'createPostOnlyOrderWs': true,
+    'createReduceOnlyOrderWs': true,
+    'createStopLimitOrderWs': true,
+    'createStopLossOrderWs': true,
+    'createStopMarketOrderWs': true,
+    'createStopOrderWs': true,
+    'createTakeProfitOrderWs': true,
+    'createTrailingAmountOrderWs': true,
+    'createTrailingPercentOrderWs': true,
+    'createTriggerOrderWs': true,
+    'editOrderWs': true,
+    'fetchBalanceWs': true,
+    'fetchClosedOrdersWs': true,
+    'fetchDepositsWs': true,
+    'fetchMyTradesWs': true,
+    'fetchOHLCVWs': true,
+    'fetchOpenOrdersWs': true,
+    'fetchOrderBookWs': true,
+    'fetchOrdersByStatusWs': true,
+    'fetchOrdersWs': true,
+    'fetchOrderWs': true,
+    'fetchPositionsForSymbolWs': true,
+    'fetchPositionsWs': true,
+    'fetchPositionWs': true,
+    'fetchTickersWs': true,
+    'fetchTickerWs': true,
+    'fetchTradesWs': true,
+    'fetchTradingFeesWs': true,
+    'fetchWithdrawalsWs': true,
+    'handleDelta': false,
+    'unWatchBidsAsks': true,
+    'unWatchMyTrades': true,
+    'unWatchOHLCV': true,
+    'watchBalance': true,
+    'watchBidsAsks': true,
+    'watchLiquidations': true,
+    'watchMarkPrice': true,
+    'watchMarkPrices': true,
+    'watchMyLiquidations': true,
+    'watchMyLiquidationsForSymbols': true,
+    'watchMyTrades': true,
+    'watchOHLCV': true,
+    'watchOHLCVForSymbols': true,
+    'watchOrderBook': true,
+    'watchOrderBookForSymbols': true,
+    'watchOrders': true,
+    'watchOrdersForSymbols': true,
+    'watchPosition': true,
+    'watchPositions': true,
+    'watchTicker': true,
+    'watchTickers': true,
+    'watchTrades': true,
+    'watchTradesForSymbols': true,
+    'withdrawWs': true,
     "parseLastPrice": false,
+    // 'fetchCurrenciesWs': true,
+    // 'fetchMarketsWs': true,
 }
 
 const INTERFACE_METHODS = [
@@ -357,74 +365,83 @@ const INTERFACE_METHODS = [
     'withdraw',
     // ws methods
     'cancelAllOrdersWs',
-	'cancelOrdersWs',
-	'cancelOrderWs',
-	'createLimitBuyOrderWs',
-	'createLimitOrderWs',
-	'createLimitSellOrderWs',
-	'createMarketBuyOrderWs',
-	'createMarketOrderWithCostWs',
-	'createMarketOrderWs',
-	'createMarketSellOrderWs',
-	'createOrderWithTakeProfitAndStopLossWs',
-	'createOrderWs',
-	'createPostOnlyOrderWs',
-	'createReduceOnlyOrderWs',
-	'createStopLimitOrderWs',
-	'createStopLossOrderWs',
-	'createStopMarketOrderWs',
-	'createStopOrderWs',
-	'createTakeProfitOrderWs',
-	'createTrailingAmountOrderWs',
-	'createTrailingPercentOrderWs',
-	'createTriggerOrderWs',
-	'editOrderWs',
-	'fetchBalanceWs',
-	'fetchClosedOrdersWs',
+    'cancelOrdersWs',
+    'cancelOrderWs',
+    'createLimitBuyOrderWs',
+    'createLimitOrderWs',
+    'createLimitSellOrderWs',
+    'createMarketBuyOrderWs',
+    'createMarketOrderWithCostWs',
+    'createMarketOrderWs',
+    'createMarketSellOrderWs',
+    'createOrdersWs',
+    'createOrderWithTakeProfitAndStopLossWs',
+    'createOrderWs',
+    'createPostOnlyOrderWs',
+    'createReduceOnlyOrderWs',
+    'createStopLimitOrderWs',
+    'createStopLossOrderWs',
+    'createStopMarketOrderWs',
+    'createStopOrderWs',
+    'createTakeProfitOrderWs',
+    'createTrailingAmountOrderWs',
+    'createTrailingPercentOrderWs',
+    'createTriggerOrderWs',
+    'editOrderWs',
+    'fetchBalanceWs',
+    'fetchClosedOrdersWs',
     // 'fetchCurrenciesWs',
-	'fetchDepositsWs',
-	// 'fetchMarketsWs',
-	'fetchMyTradesWs',
-	'fetchOHLCVWs',
-	'fetchOpenOrdersWs',
-	'fetchOrderBookWs',
-	'fetchOrdersWs',
-	'fetchOrderWs',
-	'fetchPositionsForSymbolWs',
-	'fetchPositionsWs',
-	'fetchPositionWs',
-	'fetchTickersWs',
-	'fetchTickerWs',
-	'fetchTradesWs',
-	'fetchTradingFeesWs',
-	'fetchWithdrawalsWs',
-    'unWatchOrders',
-    'unWatchTrades',
-    'unWatchTradesForSymbols',
+    'fetchDepositsWs',
+    // 'fetchMarketsWs',
+    'fetchMyTradesWs',
+    'fetchOHLCVWs',
+    'fetchOpenOrdersWs',
+    'fetchOrderBookWs',
+    'fetchOrdersByStatusWs',
+    'fetchOrdersWs',
+    'fetchOrderWs',
+    'fetchPositionsForSymbolWs',
+    'fetchPositionsWs',
+    'fetchPositionWs',
+    'fetchTickersWs',
+    'fetchTickerWs',
+    'fetchTradesWs',
+    'fetchTradingFeesWs',
+    'fetchWithdrawalsWs',
+    'unWatchBidsAsks',
+    'unWatchMyTrades',
+    // 'unWatchOHLCV',
+    'unWatchOHLCV',
     'unWatchOHLCVForSymbols',
     'unWatchOrderBook',
-    'unWatchTickers',
-    'unWatchTicker',
     'unWatchOrderBookForSymbols',
-    'unWatchOHLCV',
-	'watchBalance',
-	'watchBidsAsks',
-	'watchLiquidations',
-	'watchMyLiquidations',
-	'watchMyLiquidationsForSymbols',
-	'watchMyTrades',
-	'watchOHLCV',
-	'watchOHLCVForSymbols',
-	'watchOrderBook',
-	'watchOrderBookForSymbols',
-	'watchOrders',
-	'watchOrdersForSymbols',
-	'watchPosition',
-	'watchPositions',
-	'watchTicker',
-	'watchTickers',
-	'watchTrades',
-	'watchTradesForSymbols',
+    'unWatchOrders',
+    'unWatchTicker',
+    'unWatchTickers',
+    'unWatchTrades',
+    'unWatchTradesForSymbols',
+    'watchBalance',
+    'watchBidsAsks',
+    'watchLiquidations',
+    'watchMarkPrice',
+    'watchMarkPrices',
+    'watchMyLiquidations',
+    'watchMyLiquidationsForSymbols',
+    'watchMyTrades',
+    'watchOHLCV',
+    'watchOHLCVForSymbols',
+    'watchOrderBook',
+    'watchOrderBookForSymbols',
+    'watchOrders',
+    'watchOrdersForSymbols',
+    'watchPosition',
+    'watchPositions',
+    'watchTicker',
+    'watchTickers',
+    'watchTrades',
+    'watchTradesForSymbols',
+    'withdrawWs',
+    
 ];
 
 class NewTranspiler {
@@ -778,9 +795,26 @@ class NewTranspiler {
         return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool');
     }
 
-    convertJavascriptTypeToGoType(name: string, type: string, isReturn = false): string | undefined {
+    /**
+     * @description Converts a JavaScript type to a Go type
+     * @param name 
+     * @param type 
+     * @param isReturn 
+     * @returns 
+     */
+    jsTypeToGo(name: string, type: string, isReturn = false): string | undefined {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
+        if (
+            name.startsWith('createOrdersWs') ||
+            name.startsWith('fetchOrdersByStatusWs')
+        ) {
+            return '[]Order'
+        }
+        if (name.startsWith('withdrawWs')) {
+            return 'Transaction'
+        }
+        
         if (name.startsWith('watchOrderBook')) {
             // if (isReturn) {
             //     return `NewOrderBookFromWs`
@@ -867,7 +901,7 @@ class NewTranspiler {
             let valueType = wrappedType.substring(11, wrappedType.length - 1).trim();
 
             // Recursively convert the inner type (handles nested Dictionary and [] types).
-            valueType = this.convertJavascriptTypeToGoType(name, valueType) as any;
+            valueType = this.jsTypeToGo(name, valueType) as any;
 
             return addTaskIfNeeded(`map[string]${valueType}`);
         }
@@ -909,7 +943,7 @@ class NewTranspiler {
         if (param.type == undefined) {
             paramType = 'interface{}';
         } else {
-            paramType = this.convertJavascriptTypeToGoType(name, param.type);
+            paramType = this.jsTypeToGo(name, param.type);
         }
         const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
         if (isNonNullableType) {
@@ -992,6 +1026,13 @@ class NewTranspiler {
             'createVault',
             'fetchCurrenciesWs',
             'fetchMarketsWs',
+            'watchMultiTicker',
+            'watchMultiple',
+            'unWatchChannel',
+            'watchTopics',
+            'unWatchTopics',
+            'unWatchChannel',
+            'unWatchPublicMultiple',
         ]); // improve this later
         if (methodName.toLowerCase().includes('uta')) {
             return false; // skip UTA methods
@@ -1109,61 +1150,72 @@ class NewTranspiler {
         return '    '.repeat(level);
     }
 
-    createOptionsStruct(methodName: string, params: any[]) {
+    createOptionsStruct(methodName: string, params: any[], isWs = false) {
         const capName = capitalize(methodName);
-        const optionalParams = params.filter(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined' || param.initializer === '{}');
-        if (optionalParams.length === 0) {
-            return;
-        }
-        if (capName in goTypeOptions) {
-            return;
-        }
-        if (params.length === 1 && params[0].name === 'params') {
+        const optionalParams = params.filter(param => (
+            param.optional || 
+            param.initializer !== undefined || 
+            param.initializer === 'undefined' || 
+            param.initializer === '{}'
+        ));
+        if (
+            (optionalParams.length === 0) ||
+            (capName in goTypeOptions) ||
+            (params.length === 1 && params[0].name === 'params')
+        ) {
             return;
         }
         const i1 = this.inden(1);
-        const res = [
-            'type ' + capName + 'OptionsStruct struct {'
-        ];
-        for (const param of optionalParams) {
-            const name = capitalize(param.name);
-            const type = this.convertJavascriptTypeToGoType(param.name, param.type);
-            const decl = `${i1}${name} *${type}`;
-            res.push(decl);
-        }
-
-        res.push('}');
-        res.push('');
-        res.push(`type ${capName}Options func(opts *${capName}OptionsStruct)`);
         const one = this.inden(0);
         const two = this.inden(1);
         const three = this.inden(2);
 
-        // here WithX methods with optional parameters, like withPrice, withSince, withParams, etc
-        // example
-        // func WithPrice(price float64) CreateOrderOptions {
-        //     return func(opts *CreateOrderOptionsStruct) {
-        //         opts.Price = &price
-        //     }
-        // }
-        const withMethod = optionalParams.filter(param => param.optional || param.initializer !== undefined).map(param => {
-            const name = capitalize(param.name);
-            const type = this.convertJavascriptTypeToGoType(param.name, param.type);
-            const capName = capitalize(methodName);
-            const structName = capName + 'OptionsStruct';
-            return [
-                '',
-                `${one}func With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${capName}Options {`,
-                `${two}return func(opts *${structName}) {`,
-                `${three}opts.${name} = &${this.safeGoName(param.name)}`,
-                `${two}}`,
-                `${one}}`,
-                ''
+        const options = `${capName}Options`;
+        const optionsStruct = `${capName}OptionsStruct`;
+        
+        if (isWs) {
+            goTypeOptions[capName] = [
+                `type ${optionsStruct} = ccxt.${optionsStruct}`,
+                `var ${options} = ccxt.${options}`,
+                ...optionalParams.map(param => {
+                    const methodName = `With${capName}${capitalize(param.name)}`;
+                    return`var ${methodName} = ccxt.${methodName}`
+                }),
             ].join('\n');
-        });
-        goTypeOptions[capName] = res.concat(withMethod).join("\n");
+        } else {
+            goTypeOptions[capName] = [
+                `type ${optionsStruct} struct {`,
+                ...optionalParams.map((param) => (
+                    `${i1}${capitalize(param.name)} *${this.jsTypeToGo(param.name, param.type)}`
+                )),
+                '}',
+                '',
+                `type ${options} func(opts *${optionsStruct})`,
+                ...optionalParams
+                    .filter((param) => param.optional || param.initializer !== undefined)
+                    .map((param) => {
+                        const name = capitalize(param.name);
+                        const type = this.jsTypeToGo(param.name, param.type);
+                        return [
+                            '',
+                            `${one}func With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${options} {`,
+                            `${two}return func(opts *${optionsStruct}) {`,
+                            `${three}opts.${name} = &${this.safeGoName(param.name)}`,
+                            `${two}}`,
+                            `${one}}`,
+                            ''
+                        ].join('\n');
+                    }),
+                // here WithX methods with optional parameters, like withPrice, withSince, withParams, etc
+                // example
+                // func WithPrice(price float64) CreateOrderOptions {
+                //     return func(opts *CreateOrderOptionsStruct) {
+                //         opts.Price = &price
+                //     }
+                // }
+            ].join('\n');
+        }
     }
-
 
     createMissingMethodWrapper(exchangeName: string, name: string, methodInfo: any) {
         if (!methodInfo) {
@@ -1206,10 +1258,10 @@ class NewTranspiler {
         }
 
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
+        const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
-        this.createOptionsStruct(methodName, methodWrapper.parameters);
+        this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         let params = methodWrapper.parameters.map((param: any) => {
             let parsedParam = this.safeGoName(param.name);
@@ -1304,6 +1356,9 @@ class NewTranspiler {
         const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
         const isAlias = this.isAlias(exchange);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
+        if (ws && path === GLOBAL_WRAPPER_FILE) {
+            return;
+        }
 
         let missingMethodsWrappers = '';
         if (exchange !== 'Exchange') {
@@ -1546,7 +1601,7 @@ ${constStatements.join('\n')}
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
         // create wrappers with specific types
-        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || []);
+        this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [], isWs);
 
         // const exchangeMethods = wrapperMethods['Exchange'];
         // const sortedList = exchangeMethods.sort((a, b) => a.localeCompare(b));
@@ -1892,6 +1947,7 @@ ${caseStatements.join('\n')}
 
         const file = [
             ws ? 'package ccxtpro' : 'package ccxt',
+            ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
             this.createGeneratedHeader().join('\n'),
             ''
         ];
@@ -2571,53 +2627,30 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     transpileProTypes() {
         const GO_TYPES_FILE = "./go/v4/exchange_types.go";
         const GO_TYPES_FILE_PRO = "./go/v4/pro/exchange_types.go";
-        const GO_EXCHANGE_WRAPPER_FILE = "./go/v4/exchange_wrapper_structs.go";
-        const GO_EXCHANGE_WRAPPER_FILE_PRO = "./go/v4/pro/exchange_wrapper_structs.go";
 
-        for (const [restFile, wsFile] of [
-            [GO_TYPES_FILE, GO_TYPES_FILE_PRO],
-            [GO_EXCHANGE_WRAPPER_FILE, GO_EXCHANGE_WRAPPER_FILE_PRO],
-        ]) {
-            const output = [
-                "package ccxtpro",
-                'import ccxt "github.com/ccxt/ccxt/go/v4"',
-                "",
-                ...this.createGeneratedHeader(),
-                "",
-            ];
-            if (restFile === GO_EXCHANGE_WRAPPER_FILE) {
-                output.push ('// * transpiled from go rest, go rest must be transpiled first');
-                output.push ('');
+        const output: string[] = [
+            'package ccxtpro',
+            'import ccxt "github.com/ccxt/ccxt/go/v4"',
+            '',
+            ...this.createGeneratedHeader(),
+            '',
+        ];
+        const file = fs.readFileSync(GO_TYPES_FILE, "utf8");
+        const lines = file.split(/\r?\n/);
+
+        const structRegex = /^type\s+(\w+)\s+struct\s*{/;
+    
+        for (const line of lines) {
+            const structMatch = line.match(structRegex);
+
+            if (structMatch) {
+                output.push(`type ${structMatch[1]} = ccxt.${structMatch[1]}`);
+                continue;
             }
-            const file = fs.readFileSync(restFile, "utf8");
-            const lines = file.split(/\r?\n/);
-    
-            const structRegex = /^type\s+(\w+)\s+struct\s*{/;
-            const typeRegex = /^type\s+(\w+)\s+func\(\w+\s+\*\w+\)\s*$/;
-            const funcRegex = /^func\s+(\w+)\(.*\)\s+\w+\s*{/;
-        
-            for (const line of lines) {
-                const structMatch = line.match(structRegex);
-                const typeMatch = line.match(typeRegex);
-                const funcMatch = line.match(funcRegex);
-    
-                if (structMatch) {
-                    output.push(`type ${structMatch[1]} = ccxt.${structMatch[1]}`);
-                    continue;
-                }
-                if (typeMatch) {
-                    output.push(`type ${typeMatch[1]} = ccxt.${typeMatch[1]}`);
-                    continue;
-                }
-                if (funcMatch) {
-                    output.push(`var ${funcMatch[1]} = ccxt.${funcMatch[1]}`);
-                    continue;
-                }
-            }
-    
-            fs.writeFileSync(wsFile, output.join("\n") + "\n", "utf8");
         }
-    }    
+
+        fs.writeFileSync(GO_TYPES_FILE_PRO, output.join("\n") + "\n", "utf8");
+    }
     
 }
 
