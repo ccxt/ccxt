@@ -379,6 +379,40 @@ export default class astralx extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote + ':' + quote;
             const active = this.safeValue (market, 'canTrade') === true;
+            // 获取tokenFutures中的合约相关信息
+            let contractSize = 1; // 默认值
+            let maxLeverage = undefined;
+            let minLeverage = undefined;
+            let leverageLimits = undefined;
+            if (tokenFutures !== undefined) {
+                contractSize = this.safeNumber (tokenFutures, 'contractMultiplier', 1);
+                maxLeverage = this.safeNumber (tokenFutures, 'maxLeverage');
+                // 处理杠杆范围
+                const levers = this.safeValue (tokenFutures, 'levers', []);
+                if (levers.length > 0) {
+                    let minLever = undefined;
+                    let maxLever = undefined;
+                    for (let j = 0; j < levers.length; j++) {
+                        const lever = this.safeNumber (levers, j);
+                        if (lever !== undefined) {
+                            if (minLever === undefined || lever < minLever) {
+                                minLever = lever;
+                            }
+                            if (maxLever === undefined || lever > maxLever) {
+                                maxLever = lever;
+                            }
+                        }
+                    }
+                    if (minLever !== undefined && maxLever !== undefined) {
+                        minLeverage = minLever;
+                        maxLeverage = maxLever;
+                        leverageLimits = {
+                            'min': minLeverage,
+                            'max': maxLeverage,
+                        };
+                    }
+                }
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -396,16 +430,17 @@ export default class astralx extends Exchange {
                 'contract': true,
                 'settle': quote,
                 'settleId': quoteId,
-                'contractSize': 1, // 默认合约大小为1
+                'contractSize': contractSize, // 使用API返回的contractMultiplier
                 'linear': true,
                 'inverse': false,
                 'taker': this.parseNumber ('0.0006'), // 使用默认费率
                 'maker': this.parseNumber ('0.0002'), // 使用默认费率
                 'percentage': true,
                 'tierBased': false,
+                'maxLeverage': maxLeverage, // 添加最大杠杆信息
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber (market, 'minTradeQuantity'),
+                        'min': this.safeNumber (market, 'minTradeQuantity') * contractSize,
                         'max': undefined,
                     },
                     'price': {
@@ -416,6 +451,7 @@ export default class astralx extends Exchange {
                         'min': this.safeNumber (market, 'minTradeAmount'),
                         'max': undefined,
                     },
+                    'leverage': leverageLimits,
                 },
                 'precision': {
                     'amount': this.safeNumber (market, 'basePrecision'),
