@@ -337,7 +337,7 @@ class kraken extends \ccxt\async\kraken {
         //
         $result = $this->safe_dict($message, 'result', array());
         $order = $this->parse_order($result);
-        $messageHash = $this->safe_value_2($message, 'reqid', 'req_id');
+        $messageHash = $this->safe_string_2($message, 'reqid', 'req_id');
         $client->resolve ($order, $messageHash);
     }
 
@@ -453,7 +453,7 @@ class kraken extends \ccxt\async\kraken {
         //         "time_out" => "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        $reqId = $this->safe_value($message, 'req_id');
+        $reqId = $this->safe_string($message, 'req_id');
         $client->resolve ($message, $reqId);
     }
 
@@ -500,7 +500,7 @@ class kraken extends \ccxt\async\kraken {
         //         "time_out" => "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        $reqId = $this->safe_value($message, 'req_id');
+        $reqId = $this->safe_string($message, 'req_id');
         $client->resolve ($message, $reqId);
     }
 
