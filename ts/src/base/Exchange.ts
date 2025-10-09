@@ -8230,7 +8230,7 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet'); 
+        throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
     }
 
     async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
