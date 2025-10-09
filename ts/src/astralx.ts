@@ -456,6 +456,9 @@ export default class astralx extends Exchange {
                 'precision': {
                     'amount': this.safeNumber (market, 'basePrecision'),
                     'price': this.safeNumber (market, 'quotePrecision'),
+                    'cost': undefined,
+                    'base': undefined,
+                    'quote': undefined,
                 },
                 'info': market,
             });
@@ -935,7 +938,7 @@ export default class astralx extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'type': type.toUpperCase (),
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (symbol, amount / market['contractSize']),
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
