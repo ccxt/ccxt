@@ -65,8 +65,7 @@ const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base';
 const GENERATED_TESTS_FOLDER = './go/tests';
-const GO_TYPES_FILE = './go/v4/exchange_types.go';
-const GO_TYPES_FILE_PRO = './go/v4/pro/exchange_types.go';
+
 // const EXAMPLES_INPUT_FOLDER = './examples/ts';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples';
 const goComments: any = {};
@@ -2570,21 +2569,56 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileProTypes() {
-        const file = fs.readFileSync(GO_TYPES_FILE).toString();
-        const lines = file.split("\n");
-        const structRegex = /^type\s+(\w+)\s+struct\s*{/;
-        const output: string[] = [ 'package ccxtpro', 'import ccxt "github.com/ccxt/ccxt/go/v4"', '', ...this.createGeneratedHeader(), '' ];
-        
-        for (const line of lines) {
-            const match = line.match(structRegex);
-            if (match) {
-                const name = match[1];
-                output.push(`type ${name} = ccxt.${name}`);
+        const GO_TYPES_FILE = "./go/v4/exchange_types.go";
+        const GO_TYPES_FILE_PRO = "./go/v4/pro/exchange_types.go";
+        const GO_EXCHANGE_WRAPPER_FILE = "./go/v4/exchange_wrapper_structs.go";
+        const GO_EXCHANGE_WRAPPER_FILE_PRO = "./go/v4/pro/exchange_wrapper_structs.go";
+
+        for (const [restFile, wsFile] of [
+            [GO_TYPES_FILE, GO_TYPES_FILE_PRO],
+            [GO_EXCHANGE_WRAPPER_FILE, GO_EXCHANGE_WRAPPER_FILE_PRO],
+        ]) {
+            const output = [
+                "package ccxtpro",
+                'import ccxt "github.com/ccxt/ccxt/go/v4"',
+                "",
+                ...this.createGeneratedHeader(),
+                "",
+            ];
+            if (restFile === GO_EXCHANGE_WRAPPER_FILE) {
+                output.push ('// * transpiled from go rest, go rest must be transpiled first');
+                output.push ('');
             }
-        }
+            const file = fs.readFileSync(restFile, "utf8");
+            const lines = file.split(/\r?\n/);
+    
+            const structRegex = /^type\s+(\w+)\s+struct\s*{/;
+            const typeRegex = /^type\s+(\w+)\s+func\(\w+\s+\*\w+\)\s*$/;
+            const funcRegex = /^func\s+(\w+)\(.*\)\s+\w+\s*{/;
         
-        fs.writeFileSync(GO_TYPES_FILE_PRO, output.join("\n") + "\n", "utf8");
-    }
+            for (const line of lines) {
+                const structMatch = line.match(structRegex);
+                const typeMatch = line.match(typeRegex);
+                const funcMatch = line.match(funcRegex);
+    
+                if (structMatch) {
+                    output.push(`type ${structMatch[1]} = ccxt.${structMatch[1]}`);
+                    continue;
+                }
+                if (typeMatch) {
+                    output.push(`type ${typeMatch[1]} = ccxt.${typeMatch[1]}`);
+                    continue;
+                }
+                if (funcMatch) {
+                    output.push(`var ${funcMatch[1]} = ccxt.${funcMatch[1]}`);
+                    continue;
+                }
+            }
+    
+            fs.writeFileSync(wsFile, output.join("\n") + "\n", "utf8");
+        }
+    }    
+    
 }
 
 if (isMainEntry(import.meta.url)) {
