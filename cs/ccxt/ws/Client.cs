@@ -338,8 +338,7 @@ public partial class Exchange
         private void TryHandleMessage(string message)
         {
             object deserializedMessages = message;
-            bool probableJson = message.StartsWith("{") || message.StartsWith("[");
-            if (probableJson)
+            if (isValidJson(message))
             {
                 try
                 {
