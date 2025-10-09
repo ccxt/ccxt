@@ -277,6 +277,7 @@ type ICoreExchange interface {
 	FetchTradesWs(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchTradingFeesWs(optionalArgs ...interface{}) <-chan interface{}
 	FetchWithdrawalsWs(optionalArgs ...interface{}) <-chan interface{}
+	UnWatchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
 	UnWatchMyTrades(optionalArgs ...interface{}) <- chan interface{}
 	UnWatchOHLCV(symbol interface{}, optionalArgs ...interface{}) <- chan interface{}
 	UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{}, optionalArgs ...interface{}) <-chan interface{}
