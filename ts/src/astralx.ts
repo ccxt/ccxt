@@ -454,7 +454,7 @@ export default class astralx extends Exchange {
                     'leverage': leverageLimits,
                 },
                 'precision': {
-                    'amount': this.safeNumber (market, 'basePrecision'),
+                    'amount': this.safeNumber (market, 'basePrecision') * contractSize,
                     'price': this.safeNumber (market, 'quotePrecision'),
                     'cost': undefined,
                     'base': undefined,
@@ -938,7 +938,7 @@ export default class astralx extends Exchange {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'type': type.toUpperCase (),
-            'quantity': this.amountToPrecision (symbol, amount / market['contractSize']),
+            'quantity': this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'],
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
