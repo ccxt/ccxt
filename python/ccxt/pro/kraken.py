@@ -275,7 +275,7 @@ class kraken(ccxt.async_support.kraken):
         market = self.market(symbol)
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'add_order',
             'params': {
@@ -341,7 +341,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'amend_order',
             'params': {
@@ -371,7 +371,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'cancel_order',
             'params': {
@@ -399,7 +399,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'cancel_order',
             'params': {
@@ -442,7 +442,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'cancel_all',
             'params': {
