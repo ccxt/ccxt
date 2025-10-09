@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	ccxt "github.com/ccxt/ccxt/go/v4"
 	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
@@ -15,7 +14,7 @@ func WatchOHLCV() {
 	symbol := "BTC/USDT"
 
 	for {
-		ohlcv, err := binance.WatchOHLCV(symbol, ccxt.WithWatchOHLCVTimeframe("1h"))
+		ohlcv, err := binance.WatchOHLCV(symbol, ccxtpro.WithWatchOHLCVTimeframe("1h"))
 		if err != nil {
 			log.Printf("Error watching OHLCV for %s on %s: %v", symbol, binance.GetId(), err)
 			break
