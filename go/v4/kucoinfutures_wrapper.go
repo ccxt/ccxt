@@ -1,18 +1,25 @@
 package ccxt
 
 type Kucoinfutures struct {
-	*kucoinfutures
-	Core          *kucoinfutures
+	*KucoinfuturesCore
+	Core          *KucoinfuturesCore
 	exchangeTyped *ExchangeTyped
 }
 
 func NewKucoinfutures(userConfig map[string]interface{}) *Kucoinfutures {
-	p := &kucoinfutures{}
+	p := NewKucoinfuturesCore()
 	p.Init(userConfig)
 	return &Kucoinfutures{
-		kucoinfutures: p,
-		Core:          p,
-		exchangeTyped: NewExchangeTyped(&p.Exchange),
+		KucoinfuturesCore: p,
+		Core:              p,
+		exchangeTyped:     NewExchangeTyped(&p.Exchange),
+	}
+}
+func NewKucoinfuturesFromCore(core *KucoinfuturesCore) *Kucoinfutures {
+	return &Kucoinfutures{
+		KucoinfuturesCore: core,
+		Core:              core,
+		exchangeTyped:     NewExchangeTyped(&core.Exchange),
 	}
 }
 
@@ -1644,4 +1651,226 @@ func (this *Kucoinfutures) SetMargin(symbol string, amount float64, options ...S
 }
 func (this *Kucoinfutures) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 	return this.exchangeTyped.Withdraw(code, amount, address, options...)
+}
+func (this *Kucoinfutures) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelAllOrdersWs(options...)
+}
+func (this *Kucoinfutures) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWs(ids, options...)
+}
+func (this *Kucoinfutures) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWs(id, options...)
+}
+func (this *Kucoinfutures) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
+}
+func (this *Kucoinfutures) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)
+}
+func (this *Kucoinfutures) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)
+}
+func (this *Kucoinfutures) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)
+}
+func (this *Kucoinfutures) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)
+}
+func (this *Kucoinfutures) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)
+}
+func (this *Kucoinfutures) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.CreateOrdersWs(orders, options...)
+}
+func (this *Kucoinfutures) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)
+}
+func (this *Kucoinfutures) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)
+}
+func (this *Kucoinfutures) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)
+}
+func (this *Kucoinfutures) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
+}
+func (this *Kucoinfutures) FetchBalanceWs(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.FetchBalanceWs(params...)
+}
+func (this *Kucoinfutures) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchClosedOrdersWs(options...)
+}
+func (this *Kucoinfutures) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchDepositsWs(options...)
+}
+func (this *Kucoinfutures) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchMyTradesWs(options...)
+}
+func (this *Kucoinfutures) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.FetchOHLCVWs(symbol, options...)
+}
+func (this *Kucoinfutures) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOpenOrdersWs(options...)
+}
+func (this *Kucoinfutures) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+	return this.exchangeTyped.FetchOrderBookWs(symbol, options...)
+}
+func (this *Kucoinfutures) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)
+}
+func (this *Kucoinfutures) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+	return this.exchangeTyped.FetchOrdersWs(options...)
+}
+func (this *Kucoinfutures) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWs(id, options...)
+}
+func (this *Kucoinfutures) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)
+}
+func (this *Kucoinfutures) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionsWs(options...)
+}
+func (this *Kucoinfutures) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+	return this.exchangeTyped.FetchPositionWs(symbol, options...)
+}
+func (this *Kucoinfutures) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+	return this.exchangeTyped.FetchTickersWs(options...)
+}
+func (this *Kucoinfutures) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+	return this.exchangeTyped.FetchTickerWs(symbol, options...)
+}
+func (this *Kucoinfutures) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+	return this.exchangeTyped.FetchTradesWs(symbol, options...)
+}
+func (this *Kucoinfutures) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+	return this.exchangeTyped.FetchTradingFeesWs(params...)
+}
+func (this *Kucoinfutures) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+	return this.exchangeTyped.FetchWithdrawalsWs(options...)
+}
+func (this *Kucoinfutures) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchBidsAsks(options...)
+}
+func (this *Kucoinfutures) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchMyTrades(options...)
+}
+func (this *Kucoinfutures) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
+}
+func (this *Kucoinfutures) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Kucoinfutures) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
+}
+func (this *Kucoinfutures) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Kucoinfutures) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchOrders(options...)
+}
+func (this *Kucoinfutures) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTicker(symbol, options...)
+}
+func (this *Kucoinfutures) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTickers(options...)
+}
+func (this *Kucoinfutures) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTrades(symbol, options...)
+}
+func (this *Kucoinfutures) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
+}
+func (this *Kucoinfutures) WatchBalance(params ...interface{}) (Balances, error) {
+	return this.exchangeTyped.WatchBalance(params...)
+}
+func (this *Kucoinfutures) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchBidsAsks(options...)
+}
+func (this *Kucoinfutures) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchLiquidations(symbol, options...)
+}
+func (this *Kucoinfutures) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchMarkPrice(symbol, options...)
+}
+func (this *Kucoinfutures) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchMarkPrices(options...)
+}
+func (this *Kucoinfutures) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidations(symbol, options...)
+}
+func (this *Kucoinfutures) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+	return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)
+}
+func (this *Kucoinfutures) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchMyTrades(options...)
+}
+func (this *Kucoinfutures) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCV(symbol, options...)
+}
+func (this *Kucoinfutures) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+	return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)
+}
+func (this *Kucoinfutures) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBook(symbol, options...)
+}
+func (this *Kucoinfutures) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+	return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)
+}
+func (this *Kucoinfutures) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrders(options...)
+}
+func (this *Kucoinfutures) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+	return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)
+}
+func (this *Kucoinfutures) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+	return this.exchangeTyped.WatchPosition(options...)
+}
+func (this *Kucoinfutures) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+	return this.exchangeTyped.WatchPositions(options...)
+}
+func (this *Kucoinfutures) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+	return this.exchangeTyped.WatchTicker(symbol, options...)
+}
+func (this *Kucoinfutures) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+	return this.exchangeTyped.WatchTickers(options...)
+}
+func (this *Kucoinfutures) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTrades(symbol, options...)
+}
+func (this *Kucoinfutures) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+	return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)
+}
+func (this *Kucoinfutures) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+	return this.exchangeTyped.WithdrawWs(code, amount, address, options...)
 }

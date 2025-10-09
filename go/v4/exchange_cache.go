@@ -255,16 +255,16 @@ func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{}
 func (c *ArrayCache) Remove(symbol string) {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-	
+
 	// Remove from hashmap
 	delete(c.Hashmap, symbol)
-	
+
 	// Remove from newUpdatesBySymbol
 	delete(c.newUpdatesBySymbol, symbol)
-	
+
 	// Remove from clearUpdatesBySymbol
 	delete(c.clearUpdatesBySymbol, symbol)
-	
+
 	// Filter out items with this symbol from Data
 	var filteredData []interface{}
 	for _, item := range c.Data {
@@ -384,7 +384,7 @@ func (c *ArrayCacheByTimestamp) GetLimit(symbol interface{}, limit interface{}) 
 func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-	
+
 	// Filter out items with this symbol from Data
 	var filteredData []interface{}
 	for _, item := range c.Data {

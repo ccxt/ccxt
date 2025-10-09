@@ -65,6 +65,7 @@ type OrderBookSide struct {
 	Side   bool            `json:"-"`    // false is asks, true is bids
 	Mutex  sync.RWMutex    `json:"-"`    // protects concurrent access
 }
+
 func (obs *OrderBookSide) GetValue(key string, defaultValue interface{}) interface{} {
 	switch key {
 	case "Data":
@@ -659,6 +660,7 @@ func (obs *OrderBookSide) Len() int {
 func (obs *OrderBookSide) GetData() [][]interface{} {
 	return obs.Data
 }
+
 // assumes the first two elements are float64 and the third element is a primitive
 func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
 	if obs == nil {
@@ -700,8 +702,6 @@ func (obs *OrderBookSide) GetDataCopy() [][]interface{} {
 
 	return out
 }
-
-
 
 func (ords *OrderBookSide) GetSide() bool {
 	return ords.Side

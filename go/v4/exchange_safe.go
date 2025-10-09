@@ -173,25 +173,25 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 		return defVal
 	}
 
-    // Handle maps
-    if dict, ok := obj.(map[string]interface{}); ok {
-        // serialize map reads to avoid races with concurrent writes elsewhere
-        addElementMu.Lock()
-        for _, key := range keys {
-            if key == nil {
-                continue
-            }
-            keyStr := fmt.Sprintf("%v", key)
-            if value, found := dict[keyStr]; found {
-                if value != nil && value != "" {
-                    addElementMu.Unlock()
-                    return value
-                }
-            }
-        }
-        addElementMu.Unlock()
-        return defVal
-    } else if syncDict, ok := obj.(*sync.Map); ok {
+	// Handle maps
+	if dict, ok := obj.(map[string]interface{}); ok {
+		// serialize map reads to avoid races with concurrent writes elsewhere
+		addElementMu.Lock()
+		for _, key := range keys {
+			if key == nil {
+				continue
+			}
+			keyStr := fmt.Sprintf("%v", key)
+			if value, found := dict[keyStr]; found {
+				if value != nil && value != "" {
+					addElementMu.Unlock()
+					return value
+				}
+			}
+		}
+		addElementMu.Unlock()
+		return defVal
+	} else if syncDict, ok := obj.(*sync.Map); ok {
 		if syncDict == nil {
 			return defVal
 		}
