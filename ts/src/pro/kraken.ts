@@ -329,7 +329,7 @@ export default class kraken extends krakenRest {
         //
         const result = this.safeDict (message, 'result', {});
         const order = this.parseOrder (result);
-        const messageHash = this.safeValue2 (message, 'reqid', 'req_id');
+        const messageHash = this.safeString2 (message, 'reqid', 'req_id');
         client.resolve (order, messageHash);
     }
 
@@ -439,7 +439,7 @@ export default class kraken extends krakenRest {
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        const reqId = this.safeValue (message, 'req_id');
+        const reqId = this.safeString (message, 'req_id');
         client.resolve (message, reqId);
     }
 
@@ -484,7 +484,7 @@ export default class kraken extends krakenRest {
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        const reqId = this.safeValue (message, 'req_id');
+        const reqId = this.safeString (message, 'req_id');
         client.resolve (message, reqId);
     }
 
