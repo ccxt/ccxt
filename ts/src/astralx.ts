@@ -405,7 +405,7 @@ export default class astralx extends Exchange {
                 'tierBased': false,
                 'limits': {
                     'amount': {
-                        'min': undefined,  // minTradeQuantity字段不正确，舍弃
+                        'min': this.safeNumber (market, 'minTradeQuantity'),
                         'max': undefined,
                     },
                     'price': {
@@ -413,7 +413,7 @@ export default class astralx extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,  // minTradeAmount字段不正确，舍弃
+                        'min': this.safeNumber (market, 'minTradeAmount'),
                         'max': undefined,
                     },
                 },
