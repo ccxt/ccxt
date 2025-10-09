@@ -12,7 +12,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
-
+# todo create_order有问题
 class astralx(Exchange, ImplicitAPI):
 
     def describe(self) -> Any:
