@@ -1303,6 +1303,8 @@ export default class okx extends Exchange {
                     'fetchOHLCV': {
                         'limit': 300,
                         'historical': 100,
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
@@ -2480,15 +2482,16 @@ export default class okx extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
         }
-        const price = this.safeString (params, 'price');
+        const priceType = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
         const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         } else {
-            limit = Math.min (limit, 300); // max 100
+            const maxLimit = this.featureValue (symbol, 'fetchOHLCV', priceType, undefined, 300); // default 300, only 100 if 'mark' or 'index'
+            limit = Math.min (limit, maxLimit);
         }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.safeString (this.timeframes, timeframe, timeframe);
@@ -2508,8 +2511,8 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = (price !== undefined) ? 100 : 300;
-                limit = Math.min (limit, maxLimit); // max 300 for historical endpoint
+                const maxLimit = this.featureValue (symbol, 'fetchOHLCV', 'historical', undefined, 100);
+                limit = Math.min (limit, maxLimit); // max 100 for historical endpoint
             }
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
@@ -2525,13 +2528,13 @@ export default class okx extends Exchange {
         params = this.omit (params, 'type');
         const isHistoryCandles = (type === 'HistoryCandles');
         let response = undefined;
-        if (price === 'mark') {
+        if (priceType === 'mark') {
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryMarkPriceCandles (this.extend (request, params));
             } else {
                 response = await this.publicGetMarketMarkPriceCandles (this.extend (request, params));
             }
-        } else if (price === 'index') {
+        } else if (priceType === 'index') {
             request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles (this.extend (request, params));
