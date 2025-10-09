@@ -4325,9 +4325,52 @@ class bitget extends Exchange {
             $request['productType'] = $productType;
             $response = $this->privateMixGetV2MixAccountAccounts ($this->extend($request, $params));
         } elseif ($marginMode === 'isolated') {
-            $response = $this->privateMarginGetMarginV1IsolatedAccountAssets ($this->extend($request, $params));
+            $response = $this->privateMarginGetV2MarginIsolatedAccountAssets ($this->extend($request, $params));
+            //
+            //    {
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => "1759829170717",
+            //        "data" => array(
+            //            array(
+            //                "symbol" => "BTCUSDT",
+            //                "coin" => "USDT",
+            //                "totalAmount" => "0.000001",
+            //                "available" => "0.000001",
+            //                "frozen" => "0",
+            //                "borrow" => "0",
+            //                "interest" => "0",
+            //                "net" => "0.000001",
+            //                "coupon" => "0",
+            //                "cTime" => "1759826434145",
+            //                "uTime" => "1759826434146"
+            //            ),
+            //        )
+            //    }
+            //
         } elseif ($marginMode === 'cross') {
-            $response = $this->privateMarginGetMarginV1CrossAccountAssets ($this->extend($request, $params));
+            $response = $this->privateMarginGetV2MarginCrossedAccountAssets ($this->extend($request, $params));
+            //
+            //    {
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => "1759828519501",
+            //        "data" => array(
+            //            {
+            //                "coin" => "USDT",
+            //                "totalAmount" => "0.01",
+            //                "available" => "0.01",
+            //                "frozen" => "0",
+            //                "borrow" => "0",
+            //                "interest" => "0",
+            //                "net" => "0.01",
+            //                "coupon" => "0",
+            //                "cTime" => "1759828511592",
+            //                "uTime" => "1759828511592"
+            //            }
+            //        )
+            //    }
+            //
         } elseif ($marketType === 'spot') {
             $response = $this->privateSpotGetV2SpotAccountAssets ($this->extend($request, $params));
         } else {
@@ -4374,49 +4417,6 @@ class bitget extends Exchange {
         //                 "crossedUnrealizedPL" => null,
         //                 "isolatedUnrealizedPL" => null
         //             }
-        //         )
-        //     }
-        //
-        // isolated margin
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1697501436571,
-        //         "data" => array(
-        //             array(
-        //                 "symbol" => "BTCUSDT",
-        //                 "coin" => "BTC",
-        //                 "totalAmount" => "0.00021654",
-        //                 "available" => "0.00021654",
-        //                 "transferable" => "0.00021654",
-        //                 "frozen" => "0",
-        //                 "borrow" => "0",
-        //                 "interest" => "0",
-        //                 "net" => "0.00021654",
-        //                 "ctime" => "1697248128071"
-        //             ),
-        //         )
-        //     }
-        //
-        // cross margin
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1697515463804,
-        //         "data" => array(
-        //             array(
-        //                 "coin" => "BTC",
-        //                 "totalAmount" => "0.00024996",
-        //                 "available" => "0.00024996",
-        //                 "transferable" => "0.00004994",
-        //                 "frozen" => "0",
-        //                 "borrow" => "0.0001",
-        //                 "interest" => "0.00000001",
-        //                 "net" => "0.00014995",
-        //                 "ctime" => "1697251265504"
-        //             ),
         //         )
         //     }
         //
@@ -4516,34 +4516,21 @@ class bitget extends Exchange {
         //         "isolatedUnrealizedPL" => null
         //     }
         //
-        // isolated margin
+        // cross & isolated margin
         //
-        //     {
-        //         "symbol" => "BTCUSDT",
-        //         "coin" => "BTC",
-        //         "totalAmount" => "0.00021654",
-        //         "available" => "0.00021654",
-        //         "transferable" => "0.00021654",
-        //         "frozen" => "0",
-        //         "borrow" => "0",
-        //         "interest" => "0",
-        //         "net" => "0.00021654",
-        //         "ctime" => "1697248128071"
-        //     }
-        //
-        // cross margin
-        //
-        //     {
-        //         "coin" => "BTC",
-        //         "totalAmount" => "0.00024995",
-        //         "available" => "0.00024995",
-        //         "transferable" => "0.00004993",
-        //         "frozen" => "0",
-        //         "borrow" => "0.0001",
-        //         "interest" => "0.00000001",
-        //         "net" => "0.00014994",
-        //         "ctime" => "1697251265504"
-        //     }
+        //      {
+        //           "coin" => "USDT",
+        //           "totalAmount" => "0.01",
+        //           "available" => "0.01",
+        //           "frozen" => "0",
+        //           "borrow" => "0",
+        //           "interest" => "0",
+        //           "net" => "0.01",
+        //           "coupon" => "0",
+        //           "cTime" => "1759828511592",
+        //           "uTime" => "1759828511592"
+        //           // "symbol" => "BTCUSDT" // only for isolated margin
+        //       }
         //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
