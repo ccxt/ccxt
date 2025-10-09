@@ -298,7 +298,7 @@ class kraken extends kraken$1["default"] {
         const market = this.market(symbol);
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         let request = {
             'method': 'add_order',
             'params': {
@@ -342,7 +342,7 @@ class kraken extends kraken$1["default"] {
         //
         const result = this.safeDict(message, 'result', {});
         const order = this.parseOrder(result);
-        const messageHash = this.safeValue2(message, 'reqid', 'req_id');
+        const messageHash = this.safeString2(message, 'reqid', 'req_id');
         client.resolve(order, messageHash);
     }
     /**
@@ -364,7 +364,7 @@ class kraken extends kraken$1["default"] {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         let request = {
             'method': 'amend_order',
             'params': {
@@ -395,7 +395,7 @@ class kraken extends kraken$1["default"] {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         const request = {
             'method': 'cancel_order',
             'params': {
@@ -424,7 +424,7 @@ class kraken extends kraken$1["default"] {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         const request = {
             'method': 'cancel_order',
             'params': {
@@ -448,7 +448,7 @@ class kraken extends kraken$1["default"] {
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        const reqId = this.safeValue(message, 'req_id');
+        const reqId = this.safeString(message, 'req_id');
         client.resolve(message, reqId);
     }
     /**
@@ -468,7 +468,7 @@ class kraken extends kraken$1["default"] {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         const request = {
             'method': 'cancel_all',
             'params': {
@@ -491,7 +491,7 @@ class kraken extends kraken$1["default"] {
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        const reqId = this.safeValue(message, 'req_id');
+        const reqId = this.safeString(message, 'req_id');
         client.resolve(message, reqId);
     }
     handleTicker(client, message) {
