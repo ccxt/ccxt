@@ -291,7 +291,7 @@ class kraken extends \ccxt\async\kraken {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'add_order',
                 'params' => array(
@@ -361,7 +361,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'amend_order',
                 'params' => array(
@@ -395,7 +395,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'cancel_order',
                 'params' => array(
@@ -427,7 +427,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'cancel_order',
                 'params' => array(
@@ -475,7 +475,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'cancel_all',
                 'params' => array(
