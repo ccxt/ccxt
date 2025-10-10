@@ -3470,10 +3470,6 @@ public partial class hyperliquid : Exchange
                 { "nonce", nonce },
                 { "signature", transferSig },
             };
-            if (isTrue(!isEqual(vaultAddress, null)))
-            {
-                ((IDictionary<string,object>)transferRequest)["vaultAddress"] = vaultAddress;
-            }
             object transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
