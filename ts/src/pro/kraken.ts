@@ -871,7 +871,7 @@ export default class kraken extends krakenRest {
     async watchHeartbeat (params = {}) {
         await this.loadMarkets ();
         const event = 'heartbeat';
-        const url = this.urls['api']['ws']['public'];
+        const url = this.urls['api']['ws']['publicV2'];
         return await this.watch (url, event);
     }
 
@@ -879,9 +879,9 @@ export default class kraken extends krakenRest {
         //
         // every second (approx) if no other updates are sent
         //
-        //     { "event": "heartbeat" }
+        //     { "channel": "heartbeat" }
         //
-        const event = this.safeString (message, 'event');
+        const event = this.safeString (message, 'channel');
         client.resolve (message, event);
     }
 
