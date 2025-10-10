@@ -1,5 +1,17 @@
 # Changelog
 
+## v4.9.5 - 2025-10-10
+
+### Added
+
+**Cafearz Exchange Integration**: Complete support for Cafearz exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Market data fetching capabilities (`fetchMarkets`)
+- Ticker price endpoints (`fetchTicker`, `fetchTickers`)
+- Type definitions and parsing logic for market data
+- Support for retrieving real-time trading pair information
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
