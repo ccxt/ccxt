@@ -3024,27 +3024,25 @@ class Exchange(object):
                     featureBlock['symbolRequired'] = self.in_array(key, ['createOrder', 'createOrders', 'fetchOHLCV'])
         return featuresObj
 
-    def feature_value(self, symbol: str, methodName: Str = None, paramName: Str = None, subParamName: Str = None, defaultValue: Any = None):
+    def feature_value(self, symbol: str, methodName: Str = None, paramName: Str = None, defaultValue: Any = None):
         """
         self method is a very deterministic to help users to know what feature is supported by the exchange
         :param str [symbol]: unified symbol
         :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
-        :param str [paramName]: unified param value(check docs for supported param names)
-        :param str [subParamName]: unified sub-param value(eg. stopLoss->triggerPriceType)
+        :param str [paramName]: unified param value, like: `triggerPrice`, `stopLoss.triggerPrice`(check docs for supported param names)
         :param dict [defaultValue]: return default value if no result found
         :returns dict: returns feature value
         """
         market = self.market(symbol)
-        return self.feature_value_by_type(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue)
+        return self.feature_value_by_type(market['type'], market['subType'], methodName, paramName, defaultValue)
 
-    def feature_value_by_type(self, marketType: str, subType: Str, methodName: Str = None, paramName: Str = None, subParamName: Str = None, defaultValue: Any = None):
+    def feature_value_by_type(self, marketType: str, subType: Str, methodName: Str = None, paramName: Str = None, defaultValue: Any = None):
         """
         self method is a very deterministic to help users to know what feature is supported by the exchange
         :param str [marketType]: supported only: "spot", "swap", "future"
         :param str [subType]: supported only: "linear", "inverse"
         :param str [methodName]: view currently supported methods: https://docs.ccxt.com/#/README?id=features
         :param str [paramName]: unified param value(check docs for supported param names)
-        :param str [subParamName]: unified sub-param value(eg. stopLoss->triggerPriceType)
         :param dict [defaultValue]: return default value if no result found
         :returns dict: returns feature value
         """
@@ -3079,20 +3077,23 @@ class Exchange(object):
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
             return methodDict
-        if not (paramName in methodDict):
+        splited = paramName.split('.')  # can be only parent key(`stopLoss`) or with child(`stopLoss.triggerPrice`)
+        parentKey = splited[0]
+        subKey = self.safe_string(splited, 1)
+        if not (parentKey in methodDict):
             return defaultValue  # unsupported paramName, check "exchange.features" for details')
-        dictionary = self.safe_dict(methodDict, paramName)
+        dictionary = self.safe_dict(methodDict, parentKey)
         if dictionary is None:
             # if the value is not dictionary but a scalar value(or None), return
-            return methodDict[paramName]
+            return methodDict[parentKey]
         else:
-            # return, when calling without `subParamName` eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
-            if subParamName is None:
-                return methodDict[paramName]
-            # raise an exception for unsupported subParamName
-            if not (subParamName in methodDict[paramName]):
-                return defaultValue  # unsupported subParamName, check "exchange.features" for details
-            return methodDict[paramName][subParamName]
+            # return, when calling without subKey eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
+            if subKey is None:
+                return methodDict[parentKey]
+            # raise an exception for unsupported subKey
+            if not (subKey in methodDict[parentKey]):
+                return defaultValue  # unsupported subKey, check "exchange.features" for details
+            return methodDict[parentKey][subKey]
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'
