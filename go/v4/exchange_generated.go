@@ -2006,7 +2006,7 @@ func (this *Exchange) FeatureValue(symbol interface{}, optionalArgs ...interface
 	 * @description this method is a very deterministic to help users to know what feature is supported by the exchange
 	 * @param {string} [symbol] unified symbol
 	 * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-	 * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names),
+	 * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
 	 * @param {object} [defaultValue] return default value if no result found
 	 * @returns {object} returns feature value
 	 */
