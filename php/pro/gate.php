@@ -353,7 +353,7 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
-    public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              *
