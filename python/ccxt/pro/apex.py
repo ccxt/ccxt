@@ -787,7 +787,7 @@ class apex(ccxt.async_support.apex):
         signature = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret)), hashlib.sha256, 'base64')
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             # auth sign
@@ -915,10 +915,10 @@ class apex(ccxt.async_support.apex):
             self.handle_authenticate(client, message)
 
     def ping(self, client: Client):
-        timeStamp = str(self.milliseconds())
-        client.lastPong = timeStamp  # server won't send a pong, so we set it here
+        timeStamp = self.milliseconds()
+        client.lastPong = timeStamp
         return {
-            'args': [timeStamp],
+            'args': [str(timeStamp)],
             'op': 'ping',
         }
 

@@ -1531,7 +1531,8 @@ class binance extends \ccxt\async\binance {
                 'id' => $requestId,
             );
             $params = $this->omit($params, 'callerMethodName');
-            list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
+            $res = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
+            list($symbol, $timeframe, $candles) = $res;
             if ($this->newUpdates) {
                 $limit = $candles->getLimit ($symbol, $limit);
             }

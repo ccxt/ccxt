@@ -2181,3 +2181,80 @@ class Exchange(BaseExchange):
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
+
+    async def watch_mark_price(self, symbol: str, params={}):
+        """
+        watches a mark price for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
+
+    async def watch_mark_prices(self, symbols: Strings = None, params={}):
+        """
+        watches the mark price for all markets
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
+
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag:
+        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        raise NotSupported(self.id + ' withdrawWs() is not supported yet')
+
+    async def un_watch_my_trades(self, symbol: Str = None, params={}):
+        """
+        unWatches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        raise NotSupported(self.id + ' unWatchMyTrades() is not supported yet')
+
+    async def create_orders_ws(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        raise NotSupported(self.id + ' createOrdersWs() is not supported yet')
+
+    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params={}):
+        """
+        unWatches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')

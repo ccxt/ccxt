@@ -559,7 +559,7 @@ class alpaca(ccxt.async_support.alpaca):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             request = {

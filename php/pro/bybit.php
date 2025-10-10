@@ -1050,6 +1050,7 @@ class bybit extends \ccxt\async\bybit {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
+        $orderbook['symbol'] = $symbol;
         if ($isSnapshot) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
             $orderbook->reset ($snapshot);
@@ -2385,7 +2386,7 @@ class bybit extends \ccxt\async\bybit {
             $this->check_required_credentials();
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $expiresInt = $this->milliseconds() + 10000;

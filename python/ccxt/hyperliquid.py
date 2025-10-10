@@ -3014,8 +3014,6 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'nonce': nonce,
                 'signature': transferSig,
             }
-            if vaultAddress is not None:
-                transferRequest['vaultAddress'] = vaultAddress
             transferResponse = self.privatePostExchange(transferRequest)
             return transferResponse
         # transfer between main account and subaccount

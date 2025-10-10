@@ -1892,7 +1892,7 @@ class gate(ccxt.async_support.gate):
         channel = messageType + '.login'
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             return await self.request_private(url, {}, channel, messageHash)

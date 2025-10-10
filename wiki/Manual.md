@@ -4943,7 +4943,7 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 * Not supported by all exchanges. To check whether stop-loss is supported, use such approach:
 ```
 exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss') // if stopLoss supported
-exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss.price') // if limit price is supported for stoploss
 ```
 
 <!-- tabs:start -->

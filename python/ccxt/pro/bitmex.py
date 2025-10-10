@@ -679,7 +679,7 @@ class bitmex(ccxt.async_support.bitmex):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()

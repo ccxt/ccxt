@@ -1280,7 +1280,8 @@ class okx(ccxt.async_support.okx):
                 error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
             if error is not None:
                 del client.subscriptions[messageHash]
-                del self.orderbooks[symbol]
+                if symbol is not None:
+                    del self.orderbooks[symbol]
                 client.reject(error, messageHash)
         timestamp = self.safe_integer(message, 'ts')
         orderbook['nonce'] = seqId
@@ -1424,7 +1425,7 @@ class okx(ccxt.async_support.okx):
         url = self.get_url('users', access)
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = str(self.seconds())
@@ -2097,7 +2098,7 @@ class okx(ccxt.async_support.okx):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
 
         https://docs.okx.com/websockets/#message-cancelAll

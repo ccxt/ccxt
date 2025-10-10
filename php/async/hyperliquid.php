@@ -3252,9 +3252,6 @@ class hyperliquid extends Exchange {
                     'nonce' => $nonce,
                     'signature' => $transferSig,
                 );
-                if ($vaultAddress !== null) {
-                    $transferRequest['vaultAddress'] = $vaultAddress;
-                }
                 $transferResponse = Async\await($this->privatePostExchange ($transferRequest));
                 return $transferResponse;
             }

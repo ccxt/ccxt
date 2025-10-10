@@ -604,7 +604,7 @@ class alpaca extends \ccxt\async\alpaca {
             $this->check_required_credentials();
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $request = array(

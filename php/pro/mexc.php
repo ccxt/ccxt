@@ -900,6 +900,7 @@ class mexc extends \ccxt\async\mexc {
         }
         $storedOrderBook = $this->orderbooks[$symbol];
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
+        $shouldReturn = false;
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
@@ -917,7 +918,11 @@ class mexc extends \ccxt\async\mexc {
         } catch (Exception $e) {
             unset($client->subscriptions[$messageHash]);
             $client->reject ($e, $messageHash);
-            return;
+            // return;
+            $shouldReturn = true;
+        }
+        if ($shouldReturn) {
+            return; // go requirement
         }
         $client->resolve ($storedOrderBook, $messageHash);
     }

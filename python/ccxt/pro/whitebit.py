@@ -796,7 +796,7 @@ class whitebit(ccxt.async_support.whitebit):
         url = self.urls['api']['ws']
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             authToken = await self.v4PrivatePostProfileWebsocketToken()

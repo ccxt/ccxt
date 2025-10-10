@@ -1422,7 +1422,9 @@ class okx extends \ccxt\async\okx {
             }
             if ($error !== null) {
                 unset($client->subscriptions[$messageHash]);
-                unset($this->orderbooks[$symbol]);
+                if ($symbol !== null) {
+                    unset($this->orderbooks[$symbol]);
+                }
                 $client->reject ($error, $messageHash);
             }
         }
@@ -1577,7 +1579,7 @@ class okx extends \ccxt\async\okx {
             $url = $this->get_url('users', $access);
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->seconds();
@@ -2320,7 +2322,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *

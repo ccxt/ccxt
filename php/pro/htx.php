@@ -2538,7 +2538,7 @@ class htx extends \ccxt\async\htx {
             $messageHash = 'auth';
             $relativePath = str_replace('wss://' . $hostname, '', $url);
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = $this->ymdhms($this->milliseconds(), 'T');
@@ -2559,7 +2559,7 @@ class htx extends \ccxt\async\htx {
                     );
                 }
                 $signatureParams = $this->keysort($signatureParams);
-                $auth = $this->urlencode($signatureParams);
+                $auth = $this->urlencode($signatureParams, true); // true required in go
                 $payload = implode("\n", array('GET', $hostname, $relativePath, $auth)); // eslint-disable-line quotes
                 $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256', 'base64');
                 $request = null;

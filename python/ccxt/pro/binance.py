@@ -1400,7 +1400,8 @@ class binance(ccxt.async_support.binance):
             'id': requestId,
         }
         params = self.omit(params, 'callerMethodName')
-        symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscribe)
+        res = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscribe)
+        symbol, timeframe, candles = res
         if self.newUpdates:
             limit = candles.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)

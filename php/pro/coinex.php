@@ -1443,7 +1443,7 @@ class coinex extends \ccxt\async\coinex {
             $time = $this->milliseconds();
             $timestamp = (string) $time;
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated !== null) {
                 return Async\await($future);

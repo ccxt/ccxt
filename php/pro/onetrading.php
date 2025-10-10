@@ -1372,7 +1372,7 @@ class onetrading extends \ccxt\async\onetrading {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ('authenticated');
+            $future = $client->reusableFuture ('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

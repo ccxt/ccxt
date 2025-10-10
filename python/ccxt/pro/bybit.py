@@ -967,6 +967,7 @@ class bybit(ccxt.async_support.bybit):
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
+        orderbook['symbol'] = symbol
         if isSnapshot:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
             orderbook.reset(snapshot)
@@ -2174,7 +2175,7 @@ class bybit(ccxt.async_support.bybit):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             expiresInt = self.milliseconds() + 10000
