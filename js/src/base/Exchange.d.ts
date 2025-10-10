@@ -937,10 +937,10 @@ export default class Exchange {
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<void>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<{}>;
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<void>;
+    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
