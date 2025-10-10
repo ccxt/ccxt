@@ -792,7 +792,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $isAuthenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($isAuthenticated === null) {
                 $this->check_required_credentials();

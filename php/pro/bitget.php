@@ -2528,7 +2528,7 @@ class bitget extends \ccxt\async\bitget {
             $url = $this->safe_string($params, 'url');
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->seconds();

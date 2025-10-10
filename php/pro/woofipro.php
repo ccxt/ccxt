@@ -84,7 +84,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($messageHash, $message) {
             // the default $id
             $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-            if ($this->accountId !== null) {
+            if ($this->accountId !== null && $this->accountId !== '') {
                 $id = $this->accountId;
             }
             $url = $this->urls['api']['ws']['public'] . '/' . $id;
@@ -629,7 +629,7 @@ class woofipro extends \ccxt\async\woofipro {
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $event = 'auth';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $ts = (string) $this->nonce();

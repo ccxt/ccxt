@@ -878,7 +878,7 @@ class apex extends \ccxt\async\apex {
             $signature = $this->hmac($this->encode($messageString), $this->encode(base64_encode($this->secret)), 'sha256', 'base64');
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 // auth sign
@@ -1022,10 +1022,10 @@ class apex extends \ccxt\async\apex {
     }
 
     public function ping(Client $client) {
-        $timeStamp = (string) $this->milliseconds();
-        $client->lastPong = $timeStamp; // server won't send a pong, so we set it here
+        $timeStamp = $this->milliseconds();
+        $client->lastPong = $timeStamp;
         return array(
-            'args' => array( $timeStamp ),
+            'args' => array( (string) $timeStamp ),
             'op' => 'ping',
         );
     }

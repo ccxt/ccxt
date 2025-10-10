@@ -2112,7 +2112,7 @@ class gate extends \ccxt\async\gate {
             $channel = $messageType . '.login';
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 return Async\await($this->request_private($url, array(), $channel, $messageHash));

@@ -927,7 +927,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function withdraw_ws(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
