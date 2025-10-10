@@ -156,7 +156,7 @@ class astralx extends astralx$1["default"] {
                         'openapi/contract/position/riskLimit': 1,
                     },
                     'delete': {
-                        'openapi/contract/order': 1,
+                        'openapi/contract/order/cancel': 1,
                         'openapi/contract/batchOrders': 1,
                         'openapi/contract/allOpenOrders': 1,
                     },
@@ -969,16 +969,18 @@ class astralx extends astralx$1["default"] {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market(symbol);
         const request = {
             'orderId': id,
+            'symbol': market['id'],
+            'orderType': 'LIMIT', // 根据API文档，必需参数，默认LIMIT
         };
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            request['symbol'] = market['id'];
-        }
-        const response = await this.privateDeleteOpenapiContractOrder(this.extend(request, params));
-        const order = this.safeValue(response, 'data', {});
-        return this.parseOrder(order);
+        const response = await this.privateDeleteOpenapiContractOrderCancel(this.extend(request, params));
+        const order = this.safeValue(response, 'data', response);
+        return this.parseOrder(order, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

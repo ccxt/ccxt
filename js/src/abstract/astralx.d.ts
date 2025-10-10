@@ -33,7 +33,7 @@ interface Exchange {
     privatePostOpenapiContractLeverage(params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractPositionMargin(params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractPositionRiskLimit(params?: {}): Promise<implicitReturnType>;
-    privateDeleteOpenapiContractOrder(params?: {}): Promise<implicitReturnType>;
+    privateDeleteOpenapiContractOrderCancel(params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractBatchOrders(params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractAllOpenOrders(params?: {}): Promise<implicitReturnType>;
 }

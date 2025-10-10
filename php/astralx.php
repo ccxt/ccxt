@@ -151,7 +151,7 @@ class astralx extends Exchange {
                         'openapi/contract/position/riskLimit' => 1,
                     ),
                     'delete' => array(
-                        'openapi/contract/order' => 1,
+                        'openapi/contract/order/cancel' => 1,
                         'openapi/contract/batchOrders' => 1,
                         'openapi/contract/allOpenOrders' => 1,
                     ),
@@ -945,16 +945,18 @@ class astralx extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
         $request = array(
             'orderId' => $id,
+            'symbol' => $market['id'],
+            'orderType' => 'LIMIT', // 根据API文档，必需参数，默认LIMIT
         );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $response = $this->privateDeleteOpenapiContractOrder ($this->extend($request, $params));
-        $order = $this->safe_value($response, 'data', array());
-        return $this->parse_order($order);
+        $response = $this->privateDeleteOpenapiContractOrderCancel ($this->extend($request, $params));
+        $order = $this->safe_value($response, 'data', $response);
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

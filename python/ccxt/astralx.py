@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Any, Currencies, Int, Market, Num, OrderBook, OrderSide, OrderType, Position, Str, Strings, FundingRate, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -156,7 +157,7 @@ class astralx(Exchange, ImplicitAPI):
                         'openapi/contract/position/riskLimit': 1,
                     },
                     'delete': {
-                        'openapi/contract/order': 1,
+                        'openapi/contract/order/cancel': 1,
                         'openapi/contract/batchOrders': 1,
                         'openapi/contract/allOpenOrders': 1,
                     },
@@ -898,15 +899,17 @@ class astralx(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+        market = self.market(symbol)
         request = {
             'orderId': id,
+            'symbol': market['id'],
+            'orderType': 'LIMIT',  # 根据API文档，必需参数，默认LIMIT
         }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        response = self.privateDeleteOpenapiContractOrder(self.extend(request, params))
-        order = self.safe_value(response, 'data', {})
-        return self.parse_order(order)
+        response = self.privateDeleteOpenapiContractOrderCancel(self.extend(request, params))
+        order = self.safe_value(response, 'data', response)
+        return self.parse_order(order, market)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

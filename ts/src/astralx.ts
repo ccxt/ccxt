@@ -7,7 +7,7 @@
 
 import Exchange from './abstract/astralx.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Market, Num, OHLCV, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Position, Currencies, FundingRate } from './base/types.js';
@@ -160,7 +160,7 @@ export default class astralx extends Exchange {
                         'openapi/contract/position/riskLimit': 1,
                     },
                     'delete': {
-                        'openapi/contract/order': 1,
+                        'openapi/contract/order/cancel': 1,
                         'openapi/contract/batchOrders': 1,
                         'openapi/contract/allOpenOrders': 1,
                     },
@@ -984,16 +984,18 @@ export default class astralx extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
         const request = {
             'orderId': id,
+            'symbol': market['id'],
+            'orderType': 'LIMIT', // 根据API文档，必需参数，默认LIMIT
         };
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        const response = await this.privateDeleteOpenapiContractOrder (this.extend (request, params));
-        const order = this.safeValue (response, 'data', {});
-        return this.parseOrder (order);
+        const response = await this.privateDeleteOpenapiContractOrderCancel (this.extend (request, params));
+        const order = this.safeValue (response, 'data', response);
+        return this.parseOrder (order, market);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {

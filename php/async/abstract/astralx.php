@@ -103,8 +103,8 @@ abstract class astralx extends \ccxt\async\Exchange {
     public function private_post_openapi_contract_position_risklimit($params = array()) {
         return $this->request('openapi/contract/position/riskLimit', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_delete_openapi_contract_order($params = array()) {
-        return $this->request('openapi/contract/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    public function private_delete_openapi_contract_order_cancel($params = array()) {
+        return $this->request('openapi/contract/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_openapi_contract_batchorders($params = array()) {
         return $this->request('openapi/contract/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -208,8 +208,8 @@ abstract class astralx extends \ccxt\async\Exchange {
     public function privatePostOpenapiContractPositionRiskLimit($params = array()) {
         return $this->request('openapi/contract/position/riskLimit', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privateDeleteOpenapiContractOrder($params = array()) {
-        return $this->request('openapi/contract/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    public function privateDeleteOpenapiContractOrderCancel($params = array()) {
+        return $this->request('openapi/contract/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteOpenapiContractBatchOrders($params = array()) {
         return $this->request('openapi/contract/batchOrders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
