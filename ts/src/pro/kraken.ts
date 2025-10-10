@@ -645,27 +645,6 @@ export default class kraken extends krakenRest {
         return reqid;
     }
 
-    async watchPublic (name, symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const wsName = this.safeValue (market['info'], 'wsname');
-        const messageHash = name + ':' + wsName;
-        const url = this.urls['api']['ws']['public'];
-        const requestId = this.requestId ();
-        const subscribe: Dict = {
-            'event': 'subscribe',
-            'reqid': requestId,
-            'pair': [
-                wsName,
-            ],
-            'subscription': {
-                'name': name,
-            },
-        };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
-    }
-
     /**
      * @method
      * @name kraken#watchTicker
