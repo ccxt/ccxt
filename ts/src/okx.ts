@@ -2490,7 +2490,7 @@ export default class okx extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 300
         } else {
-            const maxLimit = this.featureValue (symbol, 'fetchOHLCV', priceType, undefined, 300); // default 300, only 100 if 'mark' or 'index'
+            const maxLimit = this.featureValue (symbol, 'fetchOHLCV', priceType, 300); // default 300, only 100 if 'mark' or 'index'
             limit = Math.min (limit, maxLimit);
         }
         const duration = this.parseTimeframe (timeframe);
@@ -2511,7 +2511,7 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = this.featureValue (symbol, 'fetchOHLCV', 'historical', undefined, 100);
+                const maxLimit = this.featureValue (symbol, 'fetchOHLCV', 'historical', 100);
                 limit = Math.min (limit, maxLimit); // max 100 for historical endpoint
             }
             const startTime = Math.max (since - 1, 0);
