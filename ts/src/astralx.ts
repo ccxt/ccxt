@@ -934,14 +934,39 @@ export default class astralx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // 处理side参数映射：buy/sell -> BUY_OPEN/SELL_OPEN
+        let apiSide = side.toUpperCase ();
+        if (apiSide === 'BUY') {
+            apiSide = 'BUY_OPEN';
+        } else if (apiSide === 'SELL') {
+            apiSide = 'SELL_OPEN';
+        }
+        // 处理type参数映射：market/limit -> MARKET/LIMIT
+        const apiType = type.toUpperCase ();
+        let priceType = 'INPUT';
+        if (apiType === 'MARKET') {
+            priceType = 'MARKET';
+        } else if (apiType === 'LIMIT') {
+            priceType = 'INPUT';
+        }
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase (),
-            'type': type.toUpperCase (),
+            'side': apiSide,
+            'orderType': 'LIMIT',
             'quantity': this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'],
+            'priceType': priceType, // 默认输入价格类型
+            'leverage': '10',     // 默认10倍杠杆
+            'timeInForce': 'GTC', // 默认取消前有效
+            'isCross': 'true',    // 默认全仓模式
         };
+        // 限价单需要价格参数
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        }
+        // 处理额外参数
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['clientOrderId'] = this.milliseconds ().toString ();
         }
         const response = await this.privatePostOpenapiContractOrder (this.extend (request, params));
         const order = this.safeValue (response, 'data', {});
