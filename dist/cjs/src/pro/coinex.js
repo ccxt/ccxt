@@ -1398,7 +1398,7 @@ class coinex extends coinex$1["default"] {
         const time = this.milliseconds();
         const timestamp = time.toString();
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated !== undefined) {
             return await future;

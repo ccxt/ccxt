@@ -2476,7 +2476,7 @@ class bitget extends bitget$1["default"] {
         const url = this.safeString(params, 'url');
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds().toString();

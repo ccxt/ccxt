@@ -535,8 +535,8 @@ export default class Exchange {
     initRestRateLimiter(): void;
     featuresGenerator(): void;
     featuresMapper(initialFeatures: any, marketType: Str, subType?: Str): any;
-    featureValue(symbol: string, methodName?: Str, paramName?: Str, subParamName?: Str, defaultValue?: any): any;
-    featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, subParamName?: Str, defaultValue?: any): any;
+    featureValue(symbol: string, methodName?: Str, paramName?: Str, defaultValue?: any): any;
+    featureValueByType(marketType: string, subType: Str, methodName?: Str, paramName?: Str, defaultValue?: any): any;
     orderbookChecksumMessage(symbol: Str): string;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {
@@ -766,12 +766,12 @@ export default class Exchange {
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<{}>;
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<{}>;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<{}>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelUnifiedOrder(order: any, params?: {}): Promise<{}>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -934,6 +934,14 @@ export default class Exchange {
     parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<void>;
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
+    createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<void>;
+    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
 }

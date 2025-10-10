@@ -3146,9 +3146,6 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'nonce': nonce,
                 'signature': transferSig,
             };
-            if (vaultAddress !== undefined) {
-                transferRequest['vaultAddress'] = vaultAddress;
-            }
             const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }
