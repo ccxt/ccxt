@@ -3082,23 +3082,22 @@ export default class Exchange {
         return featuresObj;
     }
 
-    featureValue (symbol: string, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined, defaultValue: any = undefined): any {
+    featureValue (symbol: string, methodName: Str = undefined, paramName: Str = undefined, defaultValue: any = undefined): any {
         /**
          * @method
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names), 
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         const market = this.market (symbol);
-        return this.featureValueByType (market['type'], market['subType'], methodName, paramName, subParamName, defaultValue);
+        return this.featureValueByType (market['type'], market['subType'], methodName, paramName, defaultValue);
     }
 
-    featureValueByType (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, subParamName: Str = undefined, defaultValue: any = undefined): any {
+    featureValueByType (marketType: string, subType: Str, methodName: Str = undefined, paramName: Str = undefined, defaultValue: any = undefined): any {
         /**
          * @method
          * @name exchange#featureValueByType
@@ -3107,7 +3106,6 @@ export default class Exchange {
          * @param {string} [subType] supported only: "linear", "inverse"
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
@@ -3153,23 +3151,26 @@ export default class Exchange {
         if (paramName === undefined) {
             return methodDict;
         }
-        if (!(paramName in methodDict)) {
+        const splited = paramName.split ('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        const parentKey = splited[0];
+        const subKey = this.safeString (splited, 1);
+        if (!(parentKey in methodDict)) {
             return defaultValue; // unsupported paramName, check "exchange.features" for details');
         }
-        const dictionary = this.safeDict (methodDict, paramName);
+        const dictionary = this.safeDict (methodDict, parentKey);
         if (dictionary === undefined) {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return methodDict[paramName];
+            return methodDict[parentKey];
         } else {
-            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
-            if (subParamName === undefined) {
-                return methodDict[paramName];
+            // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (subKey === undefined) {
+                return methodDict[parentKey];
             }
-            // throw an exception for unsupported subParamName
-            if (!(subParamName in methodDict[paramName])) {
-                return defaultValue; // unsupported subParamName, check "exchange.features" for details
+            // throw an exception for unsupported subKey
+            if (!(subKey in methodDict[parentKey])) {
+                return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
-            return methodDict[paramName][subParamName];
+            return methodDict[parentKey][subKey];
         }
     }
 

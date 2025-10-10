@@ -898,7 +898,7 @@ class woo extends \ccxt\async\woo {
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $event = 'auth';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $ts = (string) $this->nonce();

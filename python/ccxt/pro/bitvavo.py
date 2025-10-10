@@ -824,7 +824,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
-    async def withdraw_ws(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

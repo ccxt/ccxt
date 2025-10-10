@@ -984,7 +984,7 @@ class oxfun(ccxt.async_support.oxfun):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_dict(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()

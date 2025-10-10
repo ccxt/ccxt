@@ -712,7 +712,7 @@ class bitmex extends \ccxt\async\bitmex {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

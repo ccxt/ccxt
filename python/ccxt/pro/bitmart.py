@@ -1413,7 +1413,7 @@ class bitmart(ccxt.async_support.bitmart):
         url = self.implode_hostname(self.urls['api']['ws'][type]['private'])
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = str(self.milliseconds())

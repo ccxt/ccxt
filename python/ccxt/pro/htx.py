@@ -2331,7 +2331,7 @@ class htx(ccxt.async_support.htx):
         messageHash = 'auth'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
@@ -2351,7 +2351,7 @@ class htx(ccxt.async_support.htx):
                     'Timestamp': timestamp,
                 }
             signatureParams = self.keysort(signatureParams)
-            auth = self.urlencode(signatureParams)
+            auth = self.urlencode(signatureParams, True)  # True required in go
             payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None

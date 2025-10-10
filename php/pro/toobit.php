@@ -1156,7 +1156,7 @@ class toobit extends \ccxt\async\toobit {
         return Async\async(function () use ($params) {
             $client = $this->client($this->get_user_stream_url());
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

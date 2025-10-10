@@ -426,7 +426,7 @@ class kraken(ccxt.async_support.kraken):
         reqId = self.safe_string(message, 'req_id')
         client.resolve(message, reqId)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders
 

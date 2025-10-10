@@ -843,6 +843,7 @@ class mexc(ccxt.async_support.mexc):
             self.orderbooks[symbol] = self.order_book()
         storedOrderBook = self.orderbooks[symbol]
         nonce = self.safe_integer(storedOrderBook, 'nonce')
+        shouldReturn = False
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
@@ -858,7 +859,10 @@ class mexc(ccxt.async_support.mexc):
         except Exception as e:
             del client.subscriptions[messageHash]
             client.reject(e, messageHash)
-            return
+            # return
+            shouldReturn = True
+        if shouldReturn:
+            return  # go requirement
         client.resolve(storedOrderBook, messageHash)
 
     def handle_bookside_delta(self, bookside, bidasks):

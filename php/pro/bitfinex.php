@@ -1019,7 +1019,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $url = $this->urls['api']['ws']['private'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $nonce = $this->milliseconds();

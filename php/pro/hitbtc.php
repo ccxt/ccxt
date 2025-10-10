@@ -94,7 +94,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $url = $this->urls['api']['ws']['private'];
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = $this->milliseconds();
@@ -1189,7 +1189,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         }) ();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
