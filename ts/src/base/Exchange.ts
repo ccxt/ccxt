@@ -8258,7 +8258,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<{}> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -8297,7 +8297,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrdersWs () is not supported yet');
     }
 
-    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name exchange#fetchOrdersByStatusWs
