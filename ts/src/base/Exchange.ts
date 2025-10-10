@@ -3089,7 +3089,7 @@ export default class Exchange {
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names), 
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
@@ -8285,7 +8285,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchMyTrades () is not supported yet');
     }
 
-    async createOrdersWs (orders: OrderRequest[], params = {}) {
+    async createOrdersWs (orders: OrderRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name exchange#createOrdersWs
