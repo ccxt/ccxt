@@ -373,6 +373,40 @@ class astralx extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote . ':' . $quote;
                 $active = $this->safe_value($market, 'canTrade') === true;
+                // 获取$tokenFutures中的合约相关信息
+                $contractSize = 1; // 默认值
+                $maxLeverage = null;
+                $minLeverage = null;
+                $leverageLimits = null;
+                if ($tokenFutures !== null) {
+                    $contractSize = $this->safe_number($tokenFutures, 'contractMultiplier', 1);
+                    $maxLeverage = $this->safe_number($tokenFutures, 'maxLeverage');
+                    // 处理杠杆范围
+                    $levers = $this->safe_value($tokenFutures, 'levers', array());
+                    if (strlen($levers) > 0) {
+                        $minLever = null;
+                        $maxLever = null;
+                        for ($j = 0; $j < count($levers); $j++) {
+                            $lever = $this->safe_number($levers, $j);
+                            if ($lever !== null) {
+                                if ($minLever === null || $lever < $minLever) {
+                                    $minLever = $lever;
+                                }
+                                if ($maxLever === null || $lever > $maxLever) {
+                                    $maxLever = $lever;
+                                }
+                            }
+                        }
+                        if ($minLever !== null && $maxLever !== null) {
+                            $minLeverage = $minLever;
+                            $maxLeverage = $maxLever;
+                            $leverageLimits = array(
+                                'min' => $minLeverage,
+                                'max' => $maxLeverage,
+                            );
+                        }
+                    }
+                }
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -390,16 +424,17 @@ class astralx extends Exchange {
                     'contract' => true,
                     'settle' => $quote,
                     'settleId' => $quoteId,
-                    'contractSize' => 1, // 默认合约大小为1
+                    'contractSize' => $contractSize, // 使用API返回的contractMultiplier
                     'linear' => true,
                     'inverse' => false,
                     'taker' => $this->parse_number('0.0006'), // 使用默认费率
                     'maker' => $this->parse_number('0.0002'), // 使用默认费率
                     'percentage' => true,
                     'tierBased' => false,
+                    'maxLeverage' => $maxLeverage, // 添加最大杠杆信息
                     'limits' => array(
                         'amount' => array(
-                            'min' => $this->safe_number($market, 'minTradeQuantity'),
+                            'min' => $this->safe_number($market, 'minTradeQuantity') * $contractSize,
                             'max' => null,
                         ),
                         'price' => array(
@@ -410,10 +445,14 @@ class astralx extends Exchange {
                             'min' => $this->safe_number($market, 'minTradeAmount'),
                             'max' => null,
                         ),
+                        'leverage' => $leverageLimits,
                     ),
                     'precision' => array(
-                        'amount' => $this->safe_number($market, 'basePrecision'),
+                        'amount' => $this->safe_number($market, 'basePrecision') * $contractSize,
                         'price' => $this->safe_number($market, 'quotePrecision'),
+                        'cost' => null,
+                        'base' => null,
+                        'quote' => null,
                     ),
                     'info' => $market,
                 );
@@ -870,29 +909,54 @@ class astralx extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
-             * create a trade $order
-             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            // 处理$side参数映射：buy/sell -> BUY_OPEN/SELL_OPEN
+            $apiSide = strtoupper($side);
+            if ($apiSide === 'BUY') {
+                $apiSide = 'BUY_OPEN';
+            } elseif ($apiSide === 'SELL') {
+                $apiSide = 'SELL_OPEN';
+            }
+            // 处理$type参数映射：market/limit -> MARKET/LIMIT
+            $apiType = strtoupper($type);
+            $priceType = 'INPUT';
+            if ($apiType === 'MARKET') {
+                $priceType = 'MARKET';
+            } elseif ($apiType === 'LIMIT') {
+                $priceType = 'INPUT';
+            }
             $request = array(
                 'symbol' => $market['id'],
-                'side' => strtoupper($side),
-                'type' => strtoupper($type),
-                'quantity' => $this->amount_to_precision($symbol, $amount),
+                'side' => $apiSide,
+                'orderType' => 'LIMIT',
+                'quantity' => $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'],
+                'priceType' => $priceType, // 默认输入价格类型
+                'leverage' => '10',     // 默认10倍杠杆
+                'timeInForce' => 'GTC', // 默认取消前有效
+                'isCross' => 'true',    // 默认全仓模式
             );
+            // 限价单需要价格参数
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
+            // 处理额外参数
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['clientOrderId'] = (string) $this->milliseconds();
+            }
             $response = Async\await($this->privatePostOpenapiContractOrder ($this->extend($request, $params)));
-            $order = $this->safe_value($response, 'data', array());
-            return $this->parse_order($order, $market);
+            // API响应直接返回订单数据，不需要提取data字段
+            return $this->parse_order($response, $market);
         }) ();
     }
 
@@ -1082,14 +1146,24 @@ class astralx extends Exchange {
          * @param {array} [$marketParam] the $market to which the $order belongs
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
-        $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $marketParam);
+        // 直接使用传入的$market参数，避免重新查找
+        $market = $marketParam !== null ? $marketParam : $this->safe_market($this->safe_string($order, 'symbol'));
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'time');
         $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'origQty');
-        // Astralx API使用executeQty而不是executedQty
-        $filled = $this->safe_number($order, 'executedQty');
+        // 需要将$origQty乘以contractSize来还原实际数量
+        $origQtyString = $this->safe_string($order, 'origQty');
+        $amount = null;
+        if ($origQtyString !== null) {
+            $origQty = floatval($origQtyString);
+            $amount = $origQty * $market['contractSize'];
+        }
+        $executedQtyString = $this->safe_string($order, 'executedQty');
+        $filled = null;
+        if ($executedQtyString !== null) {
+            $executedQty = floatval($executedQtyString);
+            $filled = $executedQty * $market['contractSize'];
+        }
         $remaining = null;
         if ($amount !== null && $filled !== null) {
             $remaining = max (0, $amount - $filled);
@@ -1111,7 +1185,14 @@ class astralx extends Exchange {
         } elseif ($side === 'SELL_OPEN' || $side === 'SELL_CLOSE') {
             $side = 'sell';
         }
-        $type = $this->safe_string_lower($order, 'orderType'); // 注意：API返回的是orderType
+        // 根据$priceType确定订单类型：INPUT -> limit, MARKET -> $market
+        $priceType = $this->safe_string($order, 'priceType');
+        $type = 'limit'; // 默认限价单
+        if ($priceType === 'MARKET') {
+            $type = 'market';
+        } elseif ($priceType === 'INPUT') {
+            $type = 'limit';
+        }
         $id = $this->safe_string($order, 'orderId');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $average = $this->safe_number($order, 'avgPrice');

@@ -374,6 +374,40 @@ class astralx extends astralx$1["default"] {
             const quote = this.safeCurrencyCode(quoteId);
             const symbol = base + '/' + quote + ':' + quote;
             const active = this.safeValue(market, 'canTrade') === true;
+            // 获取tokenFutures中的合约相关信息
+            let contractSize = 1; // 默认值
+            let maxLeverage = undefined;
+            let minLeverage = undefined;
+            let leverageLimits = undefined;
+            if (tokenFutures !== undefined) {
+                contractSize = this.safeNumber(tokenFutures, 'contractMultiplier', 1);
+                maxLeverage = this.safeNumber(tokenFutures, 'maxLeverage');
+                // 处理杠杆范围
+                const levers = this.safeValue(tokenFutures, 'levers', []);
+                if (levers.length > 0) {
+                    let minLever = undefined;
+                    let maxLever = undefined;
+                    for (let j = 0; j < levers.length; j++) {
+                        const lever = this.safeNumber(levers, j);
+                        if (lever !== undefined) {
+                            if (minLever === undefined || lever < minLever) {
+                                minLever = lever;
+                            }
+                            if (maxLever === undefined || lever > maxLever) {
+                                maxLever = lever;
+                            }
+                        }
+                    }
+                    if (minLever !== undefined && maxLever !== undefined) {
+                        minLeverage = minLever;
+                        maxLeverage = maxLever;
+                        leverageLimits = {
+                            'min': minLeverage,
+                            'max': maxLeverage,
+                        };
+                    }
+                }
+            }
             result.push({
                 'id': id,
                 'symbol': symbol,
@@ -391,16 +425,17 @@ class astralx extends astralx$1["default"] {
                 'contract': true,
                 'settle': quote,
                 'settleId': quoteId,
-                'contractSize': 1,
+                'contractSize': contractSize,
                 'linear': true,
                 'inverse': false,
                 'taker': this.parseNumber('0.0006'),
                 'maker': this.parseNumber('0.0002'),
                 'percentage': true,
                 'tierBased': false,
+                'maxLeverage': maxLeverage,
                 'limits': {
                     'amount': {
-                        'min': this.safeNumber(market, 'minTradeQuantity'),
+                        'min': this.safeNumber(market, 'minTradeQuantity') * contractSize,
                         'max': undefined,
                     },
                     'price': {
@@ -411,10 +446,14 @@ class astralx extends astralx$1["default"] {
                         'min': this.safeNumber(market, 'minTradeAmount'),
                         'max': undefined,
                     },
+                    'leverage': leverageLimits,
                 },
                 'precision': {
-                    'amount': this.safeNumber(market, 'basePrecision'),
+                    'amount': this.safeNumber(market, 'basePrecision') * contractSize,
                     'price': this.safeNumber(market, 'quotePrecision'),
+                    'cost': undefined,
+                    'base': undefined,
+                    'quote': undefined,
                 },
                 'info': market,
             });
@@ -879,18 +918,45 @@ class astralx extends astralx$1["default"] {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        // 处理side参数映射：buy/sell -> BUY_OPEN/SELL_OPEN
+        let apiSide = side.toUpperCase();
+        if (apiSide === 'BUY') {
+            apiSide = 'BUY_OPEN';
+        }
+        else if (apiSide === 'SELL') {
+            apiSide = 'SELL_OPEN';
+        }
+        // 处理type参数映射：market/limit -> MARKET/LIMIT
+        const apiType = type.toUpperCase();
+        let priceType = 'INPUT';
+        if (apiType === 'MARKET') {
+            priceType = 'MARKET';
+        }
+        else if (apiType === 'LIMIT') {
+            priceType = 'INPUT';
+        }
         const request = {
             'symbol': market['id'],
-            'side': side.toUpperCase(),
-            'type': type.toUpperCase(),
-            'quantity': this.amountToPrecision(symbol, amount),
+            'side': apiSide,
+            'orderType': 'LIMIT',
+            'quantity': this.parseNumber(this.amountToPrecision(symbol, amount)) / market['contractSize'],
+            'priceType': priceType,
+            'leverage': '10',
+            'timeInForce': 'GTC',
+            'isCross': 'true', // 默认全仓模式
         };
+        // 限价单需要价格参数
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
+        // 处理额外参数
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['clientOrderId'] = this.milliseconds().toString();
+        }
         const response = await this.privatePostOpenapiContractOrder(this.extend(request, params));
-        const order = this.safeValue(response, 'data', {});
-        return this.parseOrder(order, market);
+        // API响应直接返回订单数据，不需要提取data字段
+        return this.parseOrder(response, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1077,14 +1143,24 @@ class astralx extends astralx$1["default"] {
          * @param {object} [marketParam] the market to which the order belongs
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const marketId = this.safeString(order, 'symbol');
-        const market = this.safeMarket(marketId, marketParam);
+        // 直接使用传入的market参数，避免重新查找
+        const market = marketParam !== undefined ? marketParam : this.safeMarket(this.safeString(order, 'symbol'));
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(order, 'time');
         const price = this.safeNumber(order, 'price');
-        const amount = this.safeNumber(order, 'origQty');
-        // Astralx API使用executeQty而不是executedQty
-        const filled = this.safeNumber(order, 'executedQty');
+        // 需要将origQty乘以contractSize来还原实际数量
+        const origQtyString = this.safeString(order, 'origQty');
+        let amount = undefined;
+        if (origQtyString !== undefined) {
+            const origQty = parseFloat(origQtyString);
+            amount = origQty * market['contractSize'];
+        }
+        const executedQtyString = this.safeString(order, 'executedQty');
+        let filled = undefined;
+        if (executedQtyString !== undefined) {
+            const executedQty = parseFloat(executedQtyString);
+            filled = executedQty * market['contractSize'];
+        }
         let remaining = undefined;
         if (amount !== undefined && filled !== undefined) {
             remaining = Math.max(0, amount - filled);
@@ -1110,7 +1186,15 @@ class astralx extends astralx$1["default"] {
         else if (side === 'SELL_OPEN' || side === 'SELL_CLOSE') {
             side = 'sell';
         }
-        const type = this.safeStringLower(order, 'orderType'); // 注意：API返回的是orderType
+        // 根据priceType确定订单类型：INPUT -> limit, MARKET -> market
+        const priceType = this.safeString(order, 'priceType');
+        let type = 'limit'; // 默认限价单
+        if (priceType === 'MARKET') {
+            type = 'market';
+        }
+        else if (priceType === 'INPUT') {
+            type = 'limit';
+        }
         const id = this.safeString(order, 'orderId');
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const average = this.safeNumber(order, 'avgPrice');

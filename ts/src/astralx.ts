@@ -969,8 +969,8 @@ export default class astralx extends Exchange {
             request['clientOrderId'] = this.milliseconds ().toString ();
         }
         const response = await this.privatePostOpenapiContractOrder (this.extend (request, params));
-        const order = this.safeValue (response, 'data', {});
-        return this.parseOrder (order, market);
+        // API响应直接返回订单数据，不需要提取data字段
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1163,14 +1163,24 @@ export default class astralx extends Exchange {
          * @param {object} [marketParam] the market to which the order belongs
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const marketId = this.safeString (order, 'symbol');
-        const market = this.safeMarket (marketId, marketParam);
+        // 直接使用传入的market参数，避免重新查找
+        const market = marketParam !== undefined ? marketParam : this.safeMarket (this.safeString (order, 'symbol'));
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'time');
         const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'origQty');
-        // Astralx API使用executeQty而不是executedQty
-        const filled = this.safeNumber (order, 'executedQty');
+        // 需要将origQty乘以contractSize来还原实际数量
+        const origQtyString = this.safeString (order, 'origQty');
+        let amount = undefined;
+        if (origQtyString !== undefined) {
+            const origQty = parseFloat (origQtyString);
+            amount = origQty * market['contractSize'];
+        }
+        const executedQtyString = this.safeString (order, 'executedQty');
+        let filled = undefined;
+        if (executedQtyString !== undefined) {
+            const executedQty = parseFloat (executedQtyString);
+            filled = executedQty * market['contractSize'];
+        }
         let remaining = undefined;
         if (amount !== undefined && filled !== undefined) {
             remaining = Math.max (0, amount - filled);
@@ -1192,7 +1202,14 @@ export default class astralx extends Exchange {
         } else if (side === 'SELL_OPEN' || side === 'SELL_CLOSE') {
             side = 'sell';
         }
-        const type = this.safeStringLower (order, 'orderType'); // 注意：API返回的是orderType
+        // 根据priceType确定订单类型：INPUT -> limit, MARKET -> market
+        const priceType = this.safeString (order, 'priceType');
+        let type = 'limit'; // 默认限价单
+        if (priceType === 'MARKET') {
+            type = 'market';
+        } else if (priceType === 'INPUT') {
+            type = 'limit';
+        }
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const average = this.safeNumber (order, 'avgPrice');
