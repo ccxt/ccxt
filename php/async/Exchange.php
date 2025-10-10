@@ -1702,28 +1702,26 @@ class Exchange extends \ccxt\Exchange {
         return $featuresObj;
     }
 
-    public function feature_value(string $symbol, ?string $methodName = null, ?string $paramName = null, ?string $subParamName = null, mixed $defaultValue = null) {
+    public function feature_value(string $symbol, ?string $methodName = null, ?string $paramName = null, mixed $defaultValue = null) {
         /**
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$symbol] unified $symbol
          * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
-         * @param {string} [$paramName] unified param value (check docs for supported param names)
-         * @param {string} [$subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {string} [$paramName] unified param value, like => `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names), 
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value
          */
         $market = $this->market($symbol);
-        return $this->feature_value_by_type($market['type'], $market['subType'], $methodName, $paramName, $subParamName, $defaultValue);
+        return $this->feature_value_by_type($market['type'], $market['subType'], $methodName, $paramName, $defaultValue);
     }
 
-    public function feature_value_by_type(string $marketType, ?string $subType, ?string $methodName = null, ?string $paramName = null, ?string $subParamName = null, mixed $defaultValue = null) {
+    public function feature_value_by_type(string $marketType, ?string $subType, ?string $methodName = null, ?string $paramName = null, mixed $defaultValue = null) {
         /**
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$marketType] supported only => "spot", "swap", "future"
          * @param {string} [$subType] supported only => "linear", "inverse"
          * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
          * @param {string} [$paramName] unified param value (check docs for supported param names)
-         * @param {string} [$subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value
          */
@@ -1769,23 +1767,26 @@ class Exchange extends \ccxt\Exchange {
         if ($paramName === null) {
             return $methodDict;
         }
-        if (!(is_array($methodDict) && array_key_exists($paramName, $methodDict))) {
+        $splited = explode('.', $paramName); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        $parentKey = $splited[0];
+        $subKey = $this->safe_string($splited, 1);
+        if (!(is_array($methodDict) && array_key_exists($parentKey, $methodDict))) {
             return $defaultValue; // unsupported $paramName, check "exchange.features" for details');
         }
-        $dictionary = $this->safe_dict($methodDict, $paramName);
+        $dictionary = $this->safe_dict($methodDict, $parentKey);
         if ($dictionary === null) {
             // if the value is not $dictionary but a scalar value (or null), return
-            return $methodDict[$paramName];
+            return $methodDict[$parentKey];
         } else {
-            // return, when calling without `$subParamName` eg => featureValueByType('spot', null, 'createOrder', 'stopLoss')
-            if ($subParamName === null) {
-                return $methodDict[$paramName];
+            // return, when calling without $subKey eg => featureValueByType('spot', null, 'createOrder', 'stopLoss')
+            if ($subKey === null) {
+                return $methodDict[$parentKey];
             }
-            // throw an exception for unsupported $subParamName
-            if (!(is_array($methodDict[$paramName]) && array_key_exists($subParamName, $methodDict[$paramName]))) {
-                return $defaultValue; // unsupported $subParamName, check "exchange.features" for details
+            // throw an exception for unsupported $subKey
+            if (!(is_array($methodDict[$parentKey]) && array_key_exists($subKey, $methodDict[$parentKey]))) {
+                return $defaultValue; // unsupported $subKey, check "exchange.features" for details
             }
-            return $methodDict[$paramName][$subParamName];
+            return $methodDict[$parentKey][$subKey];
         }
     }
 
