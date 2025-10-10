@@ -8284,7 +8284,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchMyTrades () is not supported yet');
     }
 
-    async createOrdersWs (orders: OrderRequest[], params = {}) {
+    async createOrdersWs (orders: OrderRequest[], params = {}): Promise<Order[]> {
         /**
          * @method
          * @name exchange#createOrdersWs
