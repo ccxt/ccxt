@@ -1280,7 +1280,7 @@ class onetrading(ccxt.async_support.onetrading):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()

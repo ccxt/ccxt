@@ -810,7 +810,7 @@ class woo(ccxt.async_support.woo):
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             ts = str(self.nonce())

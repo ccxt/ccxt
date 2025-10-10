@@ -1341,7 +1341,7 @@ class coinex(ccxt.async_support.coinex):
         time = self.milliseconds()
         timestamp = str(time)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is not None:
             return await future

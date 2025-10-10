@@ -2342,7 +2342,7 @@ class bitget(ccxt.async_support.bitget):
         url = self.safe_string(params, 'url')
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = str(self.seconds())
