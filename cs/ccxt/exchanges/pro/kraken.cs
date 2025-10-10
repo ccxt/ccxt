@@ -323,7 +323,7 @@ public partial class kraken : ccxt.kraken
         object market = this.market(symbol);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = requestId;
+        object messageHash = this.numberToString(requestId);
         object request = new Dictionary<string, object>() {
             { "method", "add_order" },
             { "params", new Dictionary<string, object>() {
@@ -371,7 +371,7 @@ public partial class kraken : ccxt.kraken
         //
         object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         object order = this.parseOrder(result);
-        object messageHash = this.safeValue2(message, "reqid", "req_id");
+        object messageHash = this.safeString2(message, "reqid", "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
 
@@ -396,7 +396,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = requestId;
+        object messageHash = this.numberToString(requestId);
         object request = new Dictionary<string, object>() {
             { "method", "amend_order" },
             { "params", new Dictionary<string, object>() {
@@ -433,7 +433,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = requestId;
+        object messageHash = this.numberToString(requestId);
         object request = new Dictionary<string, object>() {
             { "method", "cancel_order" },
             { "params", new Dictionary<string, object>() {
@@ -466,7 +466,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = requestId;
+        object messageHash = this.numberToString(requestId);
         object request = new Dictionary<string, object>() {
             { "method", "cancel_order" },
             { "params", new Dictionary<string, object>() {
@@ -492,7 +492,7 @@ public partial class kraken : ccxt.kraken
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        object reqId = this.safeValue(message, "req_id");
+        object reqId = this.safeString(message, "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, reqId});
     }
 
@@ -516,7 +516,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         object requestId = this.requestId();
-        object messageHash = requestId;
+        object messageHash = this.numberToString(requestId);
         object request = new Dictionary<string, object>() {
             { "method", "cancel_all" },
             { "params", new Dictionary<string, object>() {
@@ -541,7 +541,7 @@ public partial class kraken : ccxt.kraken
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        object reqId = this.safeValue(message, "req_id");
+        object reqId = this.safeString(message, "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, reqId});
     }
 

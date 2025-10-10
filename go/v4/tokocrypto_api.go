@@ -7,134 +7,134 @@
 
 package ccxt
 
-func (this *TokocryptoCore) BinanceGetPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetPing", args...)
+func (this *TokocryptoCore) BinanceGetPing (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetPing", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTime", args...)
+func (this *TokocryptoCore) BinanceGetTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetTime", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetDepth", args...)
+func (this *TokocryptoCore) BinanceGetDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetDepth", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTrades", args...)
+func (this *TokocryptoCore) BinanceGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetTrades", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetAggTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetAggTrades", args...)
+func (this *TokocryptoCore) BinanceGetAggTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetAggTrades", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetHistoricalTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetHistoricalTrades", args...)
+func (this *TokocryptoCore) BinanceGetHistoricalTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetHistoricalTrades", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetKlines", args...)
+func (this *TokocryptoCore) BinanceGetKlines (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetKlines", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetTicker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTicker24hr", args...)
+func (this *TokocryptoCore) BinanceGetTicker24hr (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetTicker24hr", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetTickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTickerPrice", args...)
+func (this *TokocryptoCore) BinanceGetTickerPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetTickerPrice", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetTickerBookTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetTickerBookTicker", args...)
+func (this *TokocryptoCore) BinanceGetTickerBookTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetTickerBookTicker", args...)
 }
 
-func (this *TokocryptoCore) BinanceGetExchangeInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceGetExchangeInfo", args...)
+func (this *TokocryptoCore) BinanceGetExchangeInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceGetExchangeInfo", args...)
 }
 
-func (this *TokocryptoCore) BinancePutUserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binancePutUserDataStream", args...)
+func (this *TokocryptoCore) BinancePutUserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binancePutUserDataStream", args...)
 }
 
-func (this *TokocryptoCore) BinancePostUserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binancePostUserDataStream", args...)
+func (this *TokocryptoCore) BinancePostUserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binancePostUserDataStream", args...)
 }
 
-func (this *TokocryptoCore) BinanceDeleteUserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("binanceDeleteUserDataStream", args...)
+func (this *TokocryptoCore) BinanceDeleteUserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("binanceDeleteUserDataStream", args...)
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1CommonTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1CommonTime", args...)
+func (this *TokocryptoCore) PublicGetOpenV1CommonTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenV1CommonTime", args...)
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1CommonSymbols(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1CommonSymbols", args...)
+func (this *TokocryptoCore) PublicGetOpenV1CommonSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenV1CommonSymbols", args...)
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketDepth(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketDepth", args...)
+func (this *TokocryptoCore) PublicGetOpenV1MarketDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenV1MarketDepth", args...)
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketTrades", args...)
+func (this *TokocryptoCore) PublicGetOpenV1MarketTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenV1MarketTrades", args...)
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketAggTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketAggTrades", args...)
+func (this *TokocryptoCore) PublicGetOpenV1MarketAggTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenV1MarketAggTrades", args...)
 }
 
-func (this *TokocryptoCore) PublicGetOpenV1MarketKlines(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetOpenV1MarketKlines", args...)
+func (this *TokocryptoCore) PublicGetOpenV1MarketKlines (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenV1MarketKlines", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1OrdersDetail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1OrdersDetail", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1OrdersDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1OrdersDetail", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1Orders", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1Orders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1Orders", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1AccountSpot(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1AccountSpot", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1AccountSpot (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1AccountSpot", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1AccountSpotAsset(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1AccountSpotAsset", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1AccountSpotAsset (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1AccountSpotAsset", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1OrdersTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1OrdersTrades", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1OrdersTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1OrdersTrades", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1Withdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1Withdraws", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1Withdraws (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1Withdraws", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1Deposits(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1Deposits", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1Deposits (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1Deposits", args...)
 }
 
-func (this *TokocryptoCore) PrivateGetOpenV1DepositsAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOpenV1DepositsAddress", args...)
+func (this *TokocryptoCore) PrivateGetOpenV1DepositsAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenV1DepositsAddress", args...)
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1Orders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1Orders", args...)
+func (this *TokocryptoCore) PrivatePostOpenV1Orders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenV1Orders", args...)
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1OrdersCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1OrdersCancel", args...)
+func (this *TokocryptoCore) PrivatePostOpenV1OrdersCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenV1OrdersCancel", args...)
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1OrdersOco(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1OrdersOco", args...)
+func (this *TokocryptoCore) PrivatePostOpenV1OrdersOco (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenV1OrdersOco", args...)
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1Withdraws(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1Withdraws", args...)
+func (this *TokocryptoCore) PrivatePostOpenV1Withdraws (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenV1Withdraws", args...)
 }
 
-func (this *TokocryptoCore) PrivatePostOpenV1UserDataStream(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOpenV1UserDataStream", args...)
+func (this *TokocryptoCore) PrivatePostOpenV1UserDataStream (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenV1UserDataStream", args...)
 }

@@ -7,94 +7,94 @@
 
 package ccxt
 
-func (this *BitvavoCore) PublicGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTime", args...)
+func (this *BitvavoCore) PublicGetTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarkets", args...)
+func (this *BitvavoCore) PublicGetMarkets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *BitvavoCore) PublicGetAssets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetAssets", args...)
+func (this *BitvavoCore) PublicGetAssets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetAssets", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarketBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketBook", args...)
+func (this *BitvavoCore) PublicGetMarketBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketBook", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarketTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketTrades", args...)
+func (this *BitvavoCore) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *BitvavoCore) PublicGetMarketCandles(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetMarketCandles", args...)
+func (this *BitvavoCore) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *BitvavoCore) PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickerPrice", args...)
+func (this *BitvavoCore) PublicGetTickerPrice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTickerPrice", args...)
 }
 
-func (this *BitvavoCore) PublicGetTickerBook(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickerBook", args...)
+func (this *BitvavoCore) PublicGetTickerBook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTickerBook", args...)
 }
 
-func (this *BitvavoCore) PublicGetTicker24h(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTicker24h", args...)
+func (this *BitvavoCore) PublicGetTicker24h (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTicker24h", args...)
 }
 
-func (this *BitvavoCore) PrivateGetAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAccount", args...)
+func (this *BitvavoCore) PrivateGetAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *BitvavoCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrder", args...)
+func (this *BitvavoCore) PrivateGetOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *BitvavoCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrders", args...)
+func (this *BitvavoCore) PrivateGetOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *BitvavoCore) PrivateGetOrdersOpen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetOrdersOpen", args...)
+func (this *BitvavoCore) PrivateGetOrdersOpen (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOrdersOpen", args...)
 }
 
-func (this *BitvavoCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetTrades", args...)
+func (this *BitvavoCore) PrivateGetTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *BitvavoCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetBalance", args...)
+func (this *BitvavoCore) PrivateGetBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *BitvavoCore) PrivateGetDeposit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDeposit", args...)
+func (this *BitvavoCore) PrivateGetDeposit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetDeposit", args...)
 }
 
-func (this *BitvavoCore) PrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetDepositHistory", args...)
+func (this *BitvavoCore) PrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
-func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
+func (this *BitvavoCore) PrivateGetWithdrawalHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
 }
 
-func (this *BitvavoCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostOrder", args...)
+func (this *BitvavoCore) PrivatePostOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *BitvavoCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdrawal", args...)
+func (this *BitvavoCore) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *BitvavoCore) PrivatePutOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePutOrder", args...)
+func (this *BitvavoCore) PrivatePutOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePutOrder", args...)
 }
 
-func (this *BitvavoCore) PrivateDeleteOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteOrder", args...)
+func (this *BitvavoCore) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *BitvavoCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateDeleteOrders", args...)
+func (this *BitvavoCore) PrivateDeleteOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateDeleteOrders", args...)
 }
