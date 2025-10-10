@@ -330,7 +330,7 @@ class gate(ccxt.async_support.gate):
         """
         return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
 
-    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
         https://www.gate.io/docs/developers/futures/ws/en/#order-list
