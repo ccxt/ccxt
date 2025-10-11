@@ -86,6 +86,9 @@ class Client(object):
     def reusable_future(self, message_hash):
         return self.future(message_hash)  # only used in go
 
+    def reusableFuture(self, message_hash):
+        return self.future(message_hash)  # only used in go
+
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
