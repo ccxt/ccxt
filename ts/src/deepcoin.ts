@@ -496,7 +496,8 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
+        const timestamp = this.milliseconds ();
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
     /**
