@@ -1194,7 +1194,13 @@ kucoinfutures.watchOHLCV (symbol, timeframe[, since, limit, params])
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
-watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data  1. After receiving the websocket Level 2 data flow, cache the data.  2. Initiate a REST request to get the snapshot data of Level 2 order book.  3. Playback the cached Level 2 data flow.  4. Apply the new Level 2 data flow to the local snapshot to ensure that the sequence of the new Level 2 update lines up with the sequence of the previous Level 2 data. Discard all the message prior to that sequence, and then playback the change to snapshot.  5. Update the level2 full data based on sequence according to the size. If the price is 0, ignore the messages and update the sequence. If the size=0, update the sequence and remove the price of which the size is 0 out of level 2. For other cases, please update the price.  6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+  1. After receiving the websocket Level 2 data flow, cache the data.
+  2. Initiate a REST request to get the snapshot data of Level 2 order book.
+  3. Playback the cached Level 2 data flow.
+  4. Apply the new Level 2 data flow to the local snapshot to ensure that the sequence of the new Level 2 update lines up with the sequence of the previous Level 2 data. Discard all the message prior to that sequence, and then playback the change to snapshot.
+  5. Update the level2 full data based on sequence according to the size. If the price is 0, ignore the messages and update the sequence. If the size=0, update the sequence and remove the price of which the size is 0 out of level 2. For other cases, please update the price.
+  6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
 
 **Kind**: instance method of [<code>kucoinfutures</code>](#kucoinfutures)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols

@@ -29,6 +29,7 @@ var bingx = require('./src/bingx.js');
 var bit24 = require('./src/bit24.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
+var bitbarg = require('./src/bitbarg.js');
 var bitbns = require('./src/bitbns.js');
 var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
@@ -54,6 +55,8 @@ var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
+var bydfi = require('./src/bydfi.js');
+var cafearz = require('./src/cafearz.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
 var coinbaseadvanced = require('./src/coinbaseadvanced.js');
@@ -245,6 +248,7 @@ const exchanges = {
     'bit24': bit24["default"],
     'bit2c': bit2c["default"],
     'bitbank': bitbank["default"],
+    'bitbarg': bitbarg["default"],
     'bitbns': bitbns["default"],
     'bitfinex': bitfinex["default"],
     'bitflyer': bitflyer["default"],
@@ -270,6 +274,8 @@ const exchanges = {
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
     'bybit': bybit["default"],
+    'bydfi': bydfi["default"],
+    'cafearz': cafearz["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
     'coinbaseadvanced': coinbaseadvanced["default"],
@@ -509,6 +515,7 @@ exports.bingx = bingx["default"];
 exports.bit24 = bit24["default"];
 exports.bit2c = bit2c["default"];
 exports.bitbank = bitbank["default"];
+exports.bitbarg = bitbarg["default"];
 exports.bitbns = bitbns["default"];
 exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
@@ -534,6 +541,8 @@ exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
 exports.bybit = bybit["default"];
+exports.bydfi = bydfi["default"];
+exports.cafearz = cafearz["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];
 exports.coinbaseadvanced = coinbaseadvanced["default"];

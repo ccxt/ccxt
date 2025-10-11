@@ -349,7 +349,13 @@ ellipx.fetchOrderTrades (id, symbol[, since, limit, params])
 fetches a crypto deposit address for a specific currency
 
 **Kind**: instance method of [<code>ellipx</code>](#ellipx)  
-**Returns**: <code>object</code> - an address structure {    'currency': string, // unified currency code    'address': string, // the address for deposits    'tag': string|undefined, // tag/memo for deposits if needed    'network': object, // network object from currency info    'info': object // raw response from exchange}
+**Returns**: <code>object</code> - an address structure {
+    'currency': string, // unified currency code
+    'address': string, // the address for deposits
+    'tag': string|undefined, // tag/memo for deposits if needed
+    'network': object, // network object from currency info
+    'info': object // raw response from exchange
+}
 
 **Throws**:
 
@@ -374,7 +380,15 @@ ellipx.fetchDepositAddress (code[, params])
 Fetches the current trading fees (maker and taker) applicable to the user.
 
 **Kind**: instance method of [<code>ellipx</code>](#ellipx)  
-**Returns**: <code>Promise.&lt;object&gt;</code> - A promise resolving to a unified trading fee structure:{    'info': object,        // the raw response from the exchange    'symbol': undefined,   // symbol is not used for this exchange    'maker': number,       // maker fee rate in decimal form    'taker': number,       // taker fee rate in decimal form    'percentage': true,    // indicates fees are in percentage    'tierBased': false,    // indicates fees do not vary by volume tiers}
+**Returns**: <code>Promise.&lt;object&gt;</code> - A promise resolving to a unified trading fee structure:
+{
+    'info': object,        // the raw response from the exchange
+    'symbol': undefined,   // symbol is not used for this exchange
+    'maker': number,       // maker fee rate in decimal form
+    'taker': number,       // taker fee rate in decimal form
+    'percentage': true,    // indicates fees are in percentage
+    'tierBased': false,    // indicates fees do not vary by volume tiers
+}
 
 **See**: https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.kki5jay2c8it  
 

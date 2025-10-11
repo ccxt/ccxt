@@ -101,6 +101,7 @@ from ccxt.bingx import bingx                                          # noqa: F4
 from ccxt.bit24 import bit24                                          # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
+from ccxt.bitbarg import bitbarg                                      # noqa: F401
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
@@ -126,6 +127,8 @@ from ccxt.btcbox import btcbox                                        # noqa: F4
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
+from ccxt.bydfi import bydfi                                          # noqa: F401
+from ccxt.cafearz import cafearz                                      # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
 from ccxt.coinbase import coinbase                                    # noqa: F401
 from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
@@ -240,6 +243,7 @@ exchanges = [
     'bit24',
     'bit2c',
     'bitbank',
+    'bitbarg',
     'bitbns',
     'bitfinex',
     'bitflyer',
@@ -265,6 +269,8 @@ exchanges = [
     'btcmarkets',
     'btcturk',
     'bybit',
+    'bydfi',
+    'cafearz',
     'cex',
     'coinbase',
     'coinbaseadvanced',

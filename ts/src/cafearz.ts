@@ -23,7 +23,6 @@ export default class cafearz extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': false,
-                'otc': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -79,6 +78,7 @@ export default class cafearz extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
+                'otc': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,

@@ -52,9 +52,9 @@
 
 - [Watch Orderbook For Symbols](./examples/ts/watch-OrderBook-For-Symbols.md)
 
-- [Watch Tickers](./examples/ts/watch-tickers.md)
-
 - [Watch Trades For Symbols](./examples/ts/watch-Trades-For-Symbols.md)
+
+- [Watch Tickers](./examples/ts/watch-tickers.md)
 
 - [Watchpositions Many Exchanges Continuosly](./examples/ts/watchPositions-many-exchanges-continuosly.md)
 

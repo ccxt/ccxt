@@ -81,6 +81,7 @@ from ccxt.async_support.bingx import bingx                                      
 from ccxt.async_support.bit24 import bit24                                      # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                      # noqa: F401
 from ccxt.async_support.bitbank import bitbank                                  # noqa: F401
+from ccxt.async_support.bitbarg import bitbarg                                  # noqa: F401
 from ccxt.async_support.bitbns import bitbns                                    # noqa: F401
 from ccxt.async_support.bitfinex import bitfinex                                # noqa: F401
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
@@ -106,6 +107,8 @@ from ccxt.async_support.btcbox import btcbox                                    
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
+from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
+from ccxt.async_support.cafearz import cafearz                                  # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseadvanced import coinbaseadvanced                # noqa: F401
@@ -220,6 +223,7 @@ exchanges = [
     'bit24',
     'bit2c',
     'bitbank',
+    'bitbarg',
     'bitbns',
     'bitfinex',
     'bitflyer',
@@ -245,6 +249,8 @@ exchanges = [
     'btcmarkets',
     'btcturk',
     'bybit',
+    'bydfi',
+    'cafearz',
     'cex',
     'coinbase',
     'coinbaseadvanced',

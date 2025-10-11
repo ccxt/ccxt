@@ -63,6 +63,7 @@ import bingx from  './src/bingx.js'
 import bit24 from  './src/bit24.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
+import bitbarg from  './src/bitbarg.js'
 import bitbns from  './src/bitbns.js'
 import bitfinex from  './src/bitfinex.js'
 import bitflyer from  './src/bitflyer.js'
@@ -88,6 +89,8 @@ import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
 import bybit from  './src/bybit.js'
+import bydfi from  './src/bydfi.js'
+import cafearz from  './src/cafearz.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseadvanced from  './src/coinbaseadvanced.js'
@@ -277,6 +280,7 @@ const exchanges = {
     'bit24':                  bit24,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
+    'bitbarg':                bitbarg,
     'bitbns':                 bitbns,
     'bitfinex':               bitfinex,
     'bitflyer':               bitflyer,
@@ -302,6 +306,8 @@ const exchanges = {
     'btcmarkets':             btcmarkets,
     'btcturk':                btcturk,
     'bybit':                  bybit,
+    'bydfi':                  bydfi,
+    'cafearz':                cafearz,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseadvanced':       coinbaseadvanced,
@@ -634,6 +640,7 @@ export {
     bit24,
     bit2c,
     bitbank,
+    bitbarg,
     bitbns,
     bitfinex,
     bitflyer,
@@ -659,6 +666,8 @@ export {
     btcmarkets,
     btcturk,
     bybit,
+    bydfi,
+    cafearz,
     cex,
     coinbase,
     coinbaseadvanced,
