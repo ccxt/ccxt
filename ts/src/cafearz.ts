@@ -212,13 +212,12 @@ export default class cafearz extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const ticker = {
+            const ticker = this.extend ({
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'id': baseId + '-' + quoteId,
-                ...coinData,
-            };
+            }, coinData);
             result[symbol] = this.parseTicker (ticker);
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
