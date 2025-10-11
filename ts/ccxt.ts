@@ -100,6 +100,7 @@ import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
+import digitra from  './src/digitra.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
@@ -284,6 +285,7 @@ const exchanges = {
     'deribit':                deribit,
     'derive':                 derive,
     'digifinex':              digifinex,
+    'digitra':                digitra,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
@@ -610,6 +612,7 @@ export {
     deribit,
     derive,
     digifinex,
+    digitra,
     exmo,
     fmfwio,
     foxbit,
