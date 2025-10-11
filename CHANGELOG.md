@@ -21,6 +21,32 @@
 - Support for retrieving real-time trading pair information with IRT quote
 - Integration with Bitbarg API v1 (https://api.bitbarg.com/api/v1/currencies)
 
+**Bydfi Exchange Integration**: Complete spot trading support for Bydfi exchange
+
+- Initial implementation with abstract class and dual API endpoints architecture
+  - `public` API endpoint: https://www.bydfi.com
+  - `quote` API endpoint: https://quote.bydfi.pro
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market metadata including base/quote coins, precision settings, trading limits
+  - Supports active market filtering based on visibility and trading permissions
+- CSV-formatted ticker parsing with comprehensive price data (`fetchTicker`, `fetchTickers`)
+  - Parses semicolon-separated ticker data with 11 fields per market
+  - Includes last price, 24h high/low, volume, bid/ask prices, price change percentage
+- Order book depth data (`fetchOrderBook`) with bid/ask information
+  - Supports configurable depth limit
+  - Returns price and amount for each order level
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M
+  - TradingView-compatible historical data format
+  - Returns open, high, low, close, volume, and timestamp arrays
+- Type definitions and parsing logic for spot markets
+- Proper API method routing using `quoteGetTickers` and `quoteGetMkpaiDepthV2` for quote endpoint
+- Integration with Bydfi API v1:
+  - Markets: https://www.bydfi.com/api/spot/product/list
+  - Tickers: https://quote.bydfi.pro/tickers
+  - Order Book: https://quote.bydfi.pro/mkpai/depth-v2
+  - OHLCV: https://www.bydfi.com/api/tv/tradingView/history
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
