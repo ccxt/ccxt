@@ -978,6 +978,7 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
+                "precision": "not provided",
                 "activeMajorCurrencies": "todo"
             },
             "loadMarkets": "strike is set when option is not true",
