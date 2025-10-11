@@ -153,7 +153,7 @@ export default class deepcoin extends Exchange {
                     'get': {
                         'deepcoin/market/books': 1,
                         'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 1,
+                        'deepcoin/market/instruments': 5, // done
                         'deepcoin/market/tickers': 1,
                         'deepcoin/market/index-candles': 1,
                         'deepcoin/market/trades': 1,
@@ -407,10 +407,10 @@ export default class deepcoin extends Exchange {
             'spot': spot,
             'margin': spot && (Precise.stringGt (maxLeverage, '1')),
             'swap': swap,
-            'future': undefined,
-            'option': undefined,
+            'future': false,
+            'option': false,
             'active': true,
-            'contract': undefined,
+            'contract': false,
             'linear': swap ? (quoteId === settleId) : undefined,
             'inverse': swap ? (baseId === settleId) : undefined,
             'contractSize': swap ? this.safeNumber (market, 'ctVal') : undefined,
