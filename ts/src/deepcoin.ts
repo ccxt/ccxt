@@ -17,11 +17,11 @@ export default class deepcoin extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'deepcoin',
-            'name': 'Deepcoin',
+            'name': 'DeepCoin',
             'countries': [ 'SG' ], // Singapore
             'rateLimit': 50, // 20 times per second
             'version': 'v1',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -83,7 +83,7 @@ export default class deepcoin extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
