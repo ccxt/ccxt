@@ -112,6 +112,104 @@ export default class cafearz extends Exchange {
         });
     }
 
+    parseMarket (market): Market {
+        // {
+        //     "symbol": "BTC",
+        //     "name": "Bitcoin",
+        //     "title": "بیت کوین",
+        //     "service_id": 14,
+        //     "rank": 1,
+        //     "price": {
+        //         "buy": 12726581792.3999996185302734375,
+        //         "sell": 12571941095.936672210693359375,
+        //         "dollar": 110387.5599999999976716935634613037109375
+        //     },
+        //     "chart": {
+        //         "changes": "down",
+        //         "changes_percentage": 107.0799999999999982946974341757595539093017578125,
+        //         "data": {
+        //             "1404/07/05": "109643.46000000",
+        //             "1404/07/06": "109635.85000000",
+        //             "1404/07/07": "112163.95000000",
+        //             "1404/07/08": "114311.96000000",
+        //             "1404/07/09": "114048.93000000",
+        //             "1404/07/10": "118594.99000000",
+        //             "1404/07/11": "120529.35000000",
+        //             "1404/07/12": "122232.00000000",
+        //             "1404/07/13": "122391.00000000",
+        //             "1404/07/14": "123482.31000000",
+        //             "1404/07/15": "124658.54000000",
+        //             "1404/07/16": "121332.95000000",
+        //             "1404/07/17": "123306.00000000",
+        //             "1404/07/18": "121662.40000000",
+        //             "1404/07/19": "113613.18000000"
+        //         }
+        //     },
+        //     "decimal_digit": "5",
+        //     "market_cap": 2018807729876.182861328125,
+        //     "volume_24h": 57479298399.76000213623046875,
+        //     "percent_change_1h": 0.00643466000000000003244959856374407536350190639495849609375,
+        //     "percent_change_24h": -3.013435680000000171929741554777137935161590576171875,
+        //     "percent_change_7d": -3.848675339999999778228811919689178466796875,
+        //     "base_icon": "https://api2.cafearz.com/assets/images/coins/1.png",
+        //     "icon": "https://storage.cafearz.com/wp-content/uploads/coins/BTC.png"
+        // },
+        const baseId = this.safeString (market, 'symbol');
+        const quoteId = 'IRT';
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const id = baseId + '/' + quoteId;
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'otc',
+            'spot': false,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
+
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
@@ -127,60 +225,7 @@ export default class cafearz extends Exchange {
         const symbols = Object.keys (prices);
         // Create markets for each symbol with IRT quote
         for (let i = 0; i < symbols.length; i++) {
-            const baseId = symbols[i];
-            const base = this.safeCurrencyCode (baseId);
-            const quoteId = 'IRT';
-            const quote = this.safeCurrencyCode (quoteId);
-            const id = baseId + '-' + quoteId;
-            const market = {
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'otc',
-                'spot': false,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': undefined,
-                    'price': undefined,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': prices[baseId],
-            };
+            const market = this.parseMarket (prices[symbols[i]]);
             result.push (market);
         }
         return result;
@@ -216,7 +261,7 @@ export default class cafearz extends Exchange {
                 'symbol': symbol,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'id': baseId + '-' + quoteId,
+                'id': baseId + '/' + quoteId,
             }, coinData);
             result[symbol] = this.parseTicker (ticker);
         }
