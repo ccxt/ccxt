@@ -22,7 +22,8 @@ export default class cafearz extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
+                'otc': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
