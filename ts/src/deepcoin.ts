@@ -431,7 +431,7 @@ export default class deepcoin extends Exchange {
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
-            'created': this.safeInteger (market, 'listTime'),
+            'created': undefined,
             'precision': {
                 'amount': this.safeNumber (market, 'lotSz'),
                 'price': this.safeNumber (market, 'tickSz'),
