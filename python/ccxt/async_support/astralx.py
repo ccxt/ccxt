@@ -980,13 +980,25 @@ class astralx(Exchange, ImplicitAPI):
         :returns Position[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
-        response = await self.privateGetOpenapiContractPositions(params)
+        request = {}
+        # 如果指定了symbols参数，只查询指定symbol的仓位
+        if symbols is not None:
+            # 只支持查询一个symbol的仓位
+            if len(symbols) == 1:
+                market = self.market(symbols[0])
+                request['symbol'] = market['id']
+        response = await self.privateGetOpenapiContractPositions(self.extend(request, params))
         # API直接返回数组格式的仓位数据
         positions = response
         result = []
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
             result.append(position)
+        # 当传入symbols参数时，确保返回数组格式
+        if symbols is not None:
+            filtered = self.filter_by_array(result, 'symbol', symbols)
+            # 将过滤后的对象转换为数组
+            return list(filtered.values())
         return result
 
     def parse_position(self, position, marketParam=None):
@@ -1006,19 +1018,33 @@ class astralx(Exchange, ImplicitAPI):
             positionSide = 'long'
         elif side == 'short':
             positionSide = 'short'
-        amount = self.safe_number(position, 'position')
-        entryPrice = self.safe_number(position, 'avgPrice')
-        unrealizedPnl = self.safe_number(position, 'unrealizedPnL')
-        leverage = self.safe_number(position, 'leverage')
-        liquidationPriceRaw = self.safe_number(position, 'flp')
+        # 根据API文档和示例数据解析字段
+        amount = self.safe_number(position, 'position')  # 总数量（单位：张）
+        available = self.safe_number(position, 'available')  # 可用数量（单位：张）
+        contracts = amount is not amount if None else available  # 使用总数量作为合约数量
+        entryPrice = self.safe_number(position, 'avgPrice')  # 开仓均价
+        unrealizedPnl = self.safe_number(position, 'unrealizedPnL')  # 未实现盈亏
+        leverage = self.safe_number(position, 'leverage')  # 杠杆
+        liquidationPriceRaw = self.safe_number(position, 'flp')  # 强平价格
         liquidationPrice = None
         if liquidationPriceRaw != 0:
             liquidationPrice = liquidationPriceRaw
-        markPrice = self.safe_number(position, 'lastPrice')
-        margin = self.safe_number(position, 'margin')
-        positionValue = self.safe_number(position, 'positionValue')
-        timestamp = self.milliseconds()  # 使用当前时间作为时间戳
-        marginRate = self.safe_number(position, 'marginRate')
+        markPrice = self.safe_number(position, 'lastPrice')  # 标记价格
+        margin = self.safe_number(position, 'margin')  # 仓位保证金
+        positionValue = self.safe_number(position, 'positionValue')  # 持仓价值
+        marginRate = self.safe_number(position, 'marginRate')  # 保证金率
+        realizedPnl = self.safe_number(position, 'realizedPnL')  # 已实现盈亏
+        percentage = self.safe_number(position, 'profitRate')  # 持仓收益率
+        # 使用API返回的时间戳，如果没有则使用当前时间
+        timestamp = self.safe_integer(position, 'timestamp', self.milliseconds())
+        # 计算实际合约数量（考虑合约大小）
+        actualContracts = contracts
+        if contracts is not None and market['contractSize'] is not None:
+            actualContracts = contracts * market['contractSize']
+        # 计算名义价值
+        notional = positionValue
+        if notional is None and entryPrice is not None and contracts is not None:
+            notional = entryPrice * contracts * market['contractSize']
         return self.safe_position({
             'info': position,
             'symbol': symbol,
@@ -1029,12 +1055,12 @@ class astralx(Exchange, ImplicitAPI):
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'entryPrice': entryPrice,
-            'notional': positionValue,
+            'notional': notional,
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
-            'contracts': amount,
+            'contracts': actualContracts,
             'contractSize': market['contractSize'],
-            'realizedPnl': self.safe_number(position, 'realizedPnL'),
+            'realizedPnl': realizedPnl,
             'side': positionSide,
             'hedged': None,
             'marginMode': 'cross',
@@ -1042,7 +1068,7 @@ class astralx(Exchange, ImplicitAPI):
             'markPrice': markPrice,
             'collateral': margin,
             'initialCollateral': margin,
-            'percentage': self.safe_number(position, 'profitRate'),
+            'percentage': percentage,
             'marginRatio': marginRate,
         })
 

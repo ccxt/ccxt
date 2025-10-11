@@ -1065,18 +1065,33 @@ class astralx extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
-             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Position[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetOpenapiContractPositions ($params));
+            $request = array();
+            // 如果指定了$symbols参数，只查询指定symbol的仓位
+            if ($symbols !== null) {
+                // 只支持查询一个symbol的仓位
+                if (strlen($symbols) === 1) {
+                    $market = $this->market($symbols[0]);
+                    $request['symbol'] = $market['id'];
+                }
+            }
+            $response = Async\await($this->privateGetOpenapiContractPositions ($this->extend($request, $params)));
             // API直接返回数组格式的仓位数据
             $positions = $response;
             $result = array();
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $this->parse_position($positions[$i]);
                 $result[] = $position;
+            }
+            // 当传入$symbols参数时，确保返回数组格式
+            if ($symbols !== null) {
+                $filtered = $this->filter_by_array($result, 'symbol', $symbols);
+                // 将过滤后的对象转换为数组
+                return is_array($filtered) ? array_values($filtered) : array();
             }
             return $result;
         }) ();
@@ -1100,20 +1115,36 @@ class astralx extends Exchange {
         } elseif ($side === 'short') {
             $positionSide = 'short';
         }
-        $amount = $this->safe_number($position, 'position');
-        $entryPrice = $this->safe_number($position, 'avgPrice');
-        $unrealizedPnl = $this->safe_number($position, 'unrealizedPnL');
-        $leverage = $this->safe_number($position, 'leverage');
-        $liquidationPriceRaw = $this->safe_number($position, 'flp');
+        // 根据API文档和示例数据解析字段
+        $amount = $this->safe_number($position, 'position'); // 总数量（单位：张）
+        $available = $this->safe_number($position, 'available'); // 可用数量（单位：张）
+        $contracts = $amount !== null ? $amount : $available; // 使用总数量作为合约数量
+        $entryPrice = $this->safe_number($position, 'avgPrice'); // 开仓均价
+        $unrealizedPnl = $this->safe_number($position, 'unrealizedPnL'); // 未实现盈亏
+        $leverage = $this->safe_number($position, 'leverage'); // 杠杆
+        $liquidationPriceRaw = $this->safe_number($position, 'flp'); // 强平价格
         $liquidationPrice = null;
         if ($liquidationPriceRaw !== 0) {
             $liquidationPrice = $liquidationPriceRaw;
         }
-        $markPrice = $this->safe_number($position, 'lastPrice');
-        $margin = $this->safe_number($position, 'margin');
-        $positionValue = $this->safe_number($position, 'positionValue');
-        $timestamp = $this->milliseconds(); // 使用当前时间作为时间戳
-        $marginRate = $this->safe_number($position, 'marginRate');
+        $markPrice = $this->safe_number($position, 'lastPrice'); // 标记价格
+        $margin = $this->safe_number($position, 'margin'); // 仓位保证金
+        $positionValue = $this->safe_number($position, 'positionValue'); // 持仓价值
+        $marginRate = $this->safe_number($position, 'marginRate'); // 保证金率
+        $realizedPnl = $this->safe_number($position, 'realizedPnL'); // 已实现盈亏
+        $percentage = $this->safe_number($position, 'profitRate'); // 持仓收益率
+        // 使用API返回的时间戳，如果没有则使用当前时间
+        $timestamp = $this->safe_integer($position, 'timestamp', $this->milliseconds());
+        // 计算实际合约数量（考虑合约大小）
+        $actualContracts = $contracts;
+        if ($contracts !== null && $market['contractSize'] !== null) {
+            $actualContracts = $contracts * $market['contractSize'];
+        }
+        // 计算名义价值
+        $notional = $positionValue;
+        if ($notional === null && $entryPrice !== null && $contracts !== null) {
+            $notional = $entryPrice * $contracts * $market['contractSize'];
+        }
         return $this->safe_position(array(
             'info' => $position,
             'symbol' => $symbol,
@@ -1124,12 +1155,12 @@ class astralx extends Exchange {
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'entryPrice' => $entryPrice,
-            'notional' => $positionValue,
+            'notional' => $notional,
             'leverage' => $leverage,
             'unrealizedPnl' => $unrealizedPnl,
-            'contracts' => $amount,
+            'contracts' => $actualContracts,
             'contractSize' => $market['contractSize'],
-            'realizedPnl' => $this->safe_number($position, 'realizedPnL'),
+            'realizedPnl' => $realizedPnl,
             'side' => $positionSide,
             'hedged' => null,
             'marginMode' => 'cross',
@@ -1137,7 +1168,7 @@ class astralx extends Exchange {
             'markPrice' => $markPrice,
             'collateral' => $margin,
             'initialCollateral' => $margin,
-            'percentage' => $this->safe_number($position, 'profitRate'),
+            'percentage' => $percentage,
             'marginRatio' => $marginRate,
         ));
     }

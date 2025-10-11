@@ -1068,13 +1068,28 @@ export default class astralx extends Exchange {
          * @returns {Position[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
-        const response = await this.privateGetOpenapiContractPositions(params);
+        const request = {};
+        // 如果指定了symbols参数，只查询指定symbol的仓位
+        if (symbols !== undefined) {
+            // 只支持查询一个symbol的仓位
+            if (symbols.length === 1) {
+                const market = this.market(symbols[0]);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.privateGetOpenapiContractPositions(this.extend(request, params));
         // API直接返回数组格式的仓位数据
         const positions = response;
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);
             result.push(position);
+        }
+        // 当传入symbols参数时，确保返回数组格式
+        if (symbols !== undefined) {
+            const filtered = this.filterByArray(result, 'symbol', symbols);
+            // 将过滤后的对象转换为数组
+            return Object.values(filtered);
         }
         return result;
     }
@@ -1099,20 +1114,36 @@ export default class astralx extends Exchange {
         else if (side === 'short') {
             positionSide = 'short';
         }
-        const amount = this.safeNumber(position, 'position');
-        const entryPrice = this.safeNumber(position, 'avgPrice');
-        const unrealizedPnl = this.safeNumber(position, 'unrealizedPnL');
-        const leverage = this.safeNumber(position, 'leverage');
-        const liquidationPriceRaw = this.safeNumber(position, 'flp');
+        // 根据API文档和示例数据解析字段
+        const amount = this.safeNumber(position, 'position'); // 总数量（单位：张）
+        const available = this.safeNumber(position, 'available'); // 可用数量（单位：张）
+        const contracts = amount !== undefined ? amount : available; // 使用总数量作为合约数量
+        const entryPrice = this.safeNumber(position, 'avgPrice'); // 开仓均价
+        const unrealizedPnl = this.safeNumber(position, 'unrealizedPnL'); // 未实现盈亏
+        const leverage = this.safeNumber(position, 'leverage'); // 杠杆
+        const liquidationPriceRaw = this.safeNumber(position, 'flp'); // 强平价格
         let liquidationPrice = undefined;
         if (liquidationPriceRaw !== 0) {
             liquidationPrice = liquidationPriceRaw;
         }
-        const markPrice = this.safeNumber(position, 'lastPrice');
-        const margin = this.safeNumber(position, 'margin');
-        const positionValue = this.safeNumber(position, 'positionValue');
-        const timestamp = this.milliseconds(); // 使用当前时间作为时间戳
-        const marginRate = this.safeNumber(position, 'marginRate');
+        const markPrice = this.safeNumber(position, 'lastPrice'); // 标记价格
+        const margin = this.safeNumber(position, 'margin'); // 仓位保证金
+        const positionValue = this.safeNumber(position, 'positionValue'); // 持仓价值
+        const marginRate = this.safeNumber(position, 'marginRate'); // 保证金率
+        const realizedPnl = this.safeNumber(position, 'realizedPnL'); // 已实现盈亏
+        const percentage = this.safeNumber(position, 'profitRate'); // 持仓收益率
+        // 使用API返回的时间戳，如果没有则使用当前时间
+        const timestamp = this.safeInteger(position, 'timestamp', this.milliseconds());
+        // 计算实际合约数量（考虑合约大小）
+        let actualContracts = contracts;
+        if (contracts !== undefined && market['contractSize'] !== undefined) {
+            actualContracts = contracts * market['contractSize'];
+        }
+        // 计算名义价值
+        let notional = positionValue;
+        if (notional === undefined && entryPrice !== undefined && contracts !== undefined) {
+            notional = entryPrice * contracts * market['contractSize'];
+        }
         return this.safePosition({
             'info': position,
             'symbol': symbol,
@@ -1123,12 +1154,12 @@ export default class astralx extends Exchange {
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'entryPrice': entryPrice,
-            'notional': positionValue,
+            'notional': notional,
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
-            'contracts': amount,
+            'contracts': actualContracts,
             'contractSize': market['contractSize'],
-            'realizedPnl': this.safeNumber(position, 'realizedPnL'),
+            'realizedPnl': realizedPnl,
             'side': positionSide,
             'hedged': undefined,
             'marginMode': 'cross',
@@ -1136,7 +1167,7 @@ export default class astralx extends Exchange {
             'markPrice': markPrice,
             'collateral': margin,
             'initialCollateral': margin,
-            'percentage': this.safeNumber(position, 'profitRate'),
+            'percentage': percentage,
             'marginRatio': marginRate,
         });
     }
