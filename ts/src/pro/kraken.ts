@@ -1086,24 +1086,26 @@ export default class kraken extends krakenRest {
     async watchPrivate (name, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const token = await this.authenticate ();
-        const subscriptionHash = name;
+        const subscriptionHash = 'executions';
         let messageHash = name;
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const url = this.urls['api']['ws']['private'];
+        const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId ();
         const subscribe: Dict = {
-            'event': 'subscribe',
-            'reqid': requestId,
-            'subscription': {
-                'name': name,
+            'method': 'subscribe',
+            'params': {
+                'channel': 'executions',
                 'token': token,
             },
+            'req_id': requestId,
         };
-        const request = this.deepExtend (subscribe, params);
-        const result = await this.watch (url, messageHash, request, subscriptionHash);
+        if (params !== undefined) {
+            subscribe['params'] = this.deepExtend (subscribe['params'], params);
+        }
+        const result = await this.watch (url, messageHash, subscribe, subscriptionHash);
         if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
@@ -1114,7 +1116,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v1/owntrades
+     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1122,49 +1124,43 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
+        params['snap_trades'] = true;
+        return await this.watchPrivate ('myTrades', symbol, since, limit, params);
     }
 
     handleMyTrades (client: Client, message, subscription = undefined) {
         //
-        //     [
-        //         [
+        //     {
+        //         "channel": "executions",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "TT5UC3-GOIRW-6AZZ6R": {
-        //                     "cost": "1493.90107",
-        //                     "fee": "3.88415",
-        //                     "margin": "0.00000",
-        //                     "ordertxid": "OTLAS3-RRHUF-NDWH5A",
-        //                     "ordertype": "market",
-        //                     "pair": "XBT/USDT",
-        //                     "postxid": "TKH2SE-M7IF5-CFI7LT",
-        //                     "price": "6851.50005",
-        //                     "time": "1586822919.335498",
-        //                     "type": "sell",
-        //                     "vol": "0.21804000"
-        //                 }
-        //             },
-        //             {
-        //                 "TIY6G4-LKLAI-Y3GD4A": {
-        //                     "cost": "22.17134",
-        //                     "fee": "0.05765",
-        //                     "margin": "0.00000",
-        //                     "ordertxid": "ODQXS7-MOLK6-ICXKAA",
-        //                     "ordertype": "market",
-        //                     "pair": "ETH/USD",
-        //                     "postxid": "TKH2SE-M7IF5-CFI7LT",
-        //                     "price": "169.97999",
-        //                     "time": "1586340530.895739",
-        //                     "type": "buy",
-        //                     "vol": "0.13043500"
-        //                 }
-        //             },
+        //                 "order_id": "O6NTZC-K6FRH-ATWBCK",
+        //                 "exec_id": "T5DIUI-5N4KO-Z5BPXK",
+        //                 "exec_type": "trade",
+        //                 "trade_id": 8253473,
+        //                 "symbol": "USDC/USD",
+        //                 "side": "sell",
+        //                 "last_qty": 15.44,
+        //                 "last_price": 1.0002,
+        //                 "liquidity_ind": "t",
+        //                 "cost": 15.443088,
+        //                 "order_userref": 0,
+        //                 "order_status": "filled",
+        //                 "order_type": "market",
+        //                 "fee_usd_equiv": 0.03088618,
+        //                 "fees": [
+        //                     {
+        //                         "asset": "USD",
+        //                         "qty": 0.3458
+        //                     }
+        //                 ]
+        //             }
         //         ],
-        //         "ownTrades",
-        //         { sequence: 1 }
-        //     ]
+        //         "sequence": 10
+        //     }
         //
-        const allTrades = this.safeValue (message, 0, []);
+        const allTrades = this.safeList (message, 'data', []);
         const allTradesLength = allTrades.length;
         if (allTradesLength > 0) {
             if (this.myTrades === undefined) {
@@ -1174,18 +1170,13 @@ export default class kraken extends krakenRest {
             const stored = this.myTrades;
             const symbols: Dict = {};
             for (let i = 0; i < allTrades.length; i++) {
-                const trades = this.safeValue (allTrades, i, {});
-                const ids = Object.keys (trades);
-                for (let j = 0; j < ids.length; j++) {
-                    const id = ids[j];
-                    const trade = trades[id];
-                    const parsed = this.parseWsTrade (this.extend ({ 'id': id }, trade));
-                    stored.append (parsed);
-                    const symbol = parsed['symbol'];
-                    symbols[symbol] = true;
-                }
+                const trade = this.safeDict (allTrades, i, {});
+                const parsed = this.parseWsTrade (trade);
+                stored.append (parsed);
+                const symbol = parsed['symbol'];
+                symbols[symbol] = true;
             }
-            const name = 'ownTrades';
+            const name = 'myTrades';
             client.resolve (this.myTrades, name);
             const keys = Object.keys (symbols);
             for (let i = 0; i < keys.length; i++) {
@@ -1198,79 +1189,57 @@ export default class kraken extends krakenRest {
     parseWsTrade (trade, market = undefined) {
         //
         //     {
-        //         "id": "TIMIRG-WUNNE-RRJ6GT", // injected from outside
-        //         "ordertxid": "OQRPN2-LRHFY-HIFA7D",
-        //         "postxid": "TKH2SE-M7IF5-CFI7LT",
-        //         "pair": "USDCUSDT",
-        //         "time": 1586340086.457,
-        //         "type": "sell",
-        //         "ordertype": "market",
-        //         "price": "0.99860000",
-        //         "cost": "22.16892001",
-        //         "fee": "0.04433784",
-        //         "vol": "22.20000000",
-        //         "margin": "0.00000000",
-        //         "misc": ''
+        //         "order_id": "O6NTZC-K6FRH-ATWBCK",
+        //         "exec_id": "T5DIUI-5N4KO-Z5BPXK",
+        //         "exec_type": "trade",
+        //         "trade_id": 8253473,
+        //         "symbol": "USDC/USD",
+        //         "side": "sell",
+        //         "last_qty": 15.44,
+        //         "last_price": 1.0002,
+        //         "liquidity_ind": "t",
+        //         "cost": 15.443088,
+        //         "order_userref": 0,
+        //         "order_status": "filled",
+        //         "order_type": "market",
+        //         "fee_usd_equiv": 0.03088618,
+        //         "fees": [
+        //             {
+        //                 "asset": "USD",
+        //                 "qty": 0.3458
+        //             }
+        //         ]
         //     }
         //
-        //     {
-        //         "id": "TIY6G4-LKLAI-Y3GD4A",
-        //         "cost": "22.17134",
-        //         "fee": "0.05765",
-        //         "margin": "0.00000",
-        //         "ordertxid": "ODQXS7-MOLK6-ICXKAA",
-        //         "ordertype": "market",
-        //         "pair": "ETH/USD",
-        //         "postxid": "TKH2SE-M7IF5-CFI7LT",
-        //         "price": "169.97999",
-        //         "time": "1586340530.895739",
-        //         "type": "buy",
-        //         "vol": "0.13043500"
-        //     }
-        //
-        const wsName = this.safeString (trade, 'pair');
-        market = this.safeValue (this.options['marketsByWsName'], wsName, market);
-        let symbol = undefined;
-        const orderId = this.safeString (trade, 'ordertxid');
-        const id = this.safeString2 (trade, 'id', 'postxid');
-        const timestamp = this.safeTimestamp (trade, 'time');
-        const side = this.safeString (trade, 'type');
-        const type = this.safeString (trade, 'ordertype');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'vol');
-        let cost = undefined;
-        let fee = undefined;
-        if ('fee' in trade) {
-            let currency = undefined;
-            if (market !== undefined) {
-                currency = market['quote'];
-            }
-            fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': currency,
-            };
-        }
+        let symbol = this.safeString (trade, 'symbol');
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
+        let fee = undefined;
+        if ('fees' in trade) {
+            const fees = this.safeList (trade, 'fees', []);
+            const firstFee = this.safeDict (fees, 0, {});
+            fee = {
+                'cost': this.safeNumber (firstFee, 'qty'),
+                'currency': this.safeString (firstFee, 'asset'),
+            };
         }
+        const datetime = this.safeString (trade, 'timestamp');
+        const liquidityIndicator = this.safeString (trade, 'liquidity_ind');
+        const takerOrMaker = (liquidityIndicator === 't') ? 'taker' : 'maker';
         return {
-            'id': id,
-            'order': orderId,
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (trade, 'exec_id'),
+            'order': this.safeString (trade, 'order_id'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'symbol': symbol,
-            'type': type,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'type': this.safeString (trade, 'order_type'),
+            'side': this.safeString (trade, 'side'),
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeNumber (trade, 'last_price'),
+            'amount': this.safeNumber (trade, 'last_qty'),
+            'cost': this.safeNumber (trade, 'cost'),
             'fee': fee,
         };
     }
@@ -1278,8 +1247,8 @@ export default class kraken extends krakenRest {
     /**
      * @method
      * @name kraken#watchOrders
-     * @see https://docs.kraken.com/api/docs/websocket-v1/openorders
      * @description watches information on multiple orders made by the user
+     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
@@ -1287,88 +1256,39 @@ export default class kraken extends krakenRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        return await this.watchPrivate ('openOrders', symbol, since, limit, params);
+        params['snap_orders'] = true;
+        return await this.watchPrivate ('orders', symbol, since, limit, params);
     }
 
     handleOrders (client: Client, message, subscription = undefined) {
         //
-        //     [
-        //         [
+        //     {
+        //         "channel": "executions",
+        //         "type": "update",
+        //         "data": [
         //             {
-        //                 "OGTT3Y-C6I3P-XRI6HX": {
-        //                     "cost": "0.00000",
-        //                     "descr": {
-        //                         "close": "",
-        //                         "leverage": "0:1",
-        //                         "order": "sell 10.00345345 XBT/EUR @ limit 34.50000 with 0:1 leverage",
-        //                         "ordertype": "limit",
-        //                         "pair": "XBT/EUR",
-        //                         "price": "34.50000",
-        //                         "price2": "0.00000",
-        //                         "type": "sell"
-        //                     },
-        //                     "expiretm": "0.000000",
-        //                     "fee": "0.00000",
-        //                     "limitprice": "34.50000",
-        //                     "misc": "",
-        //                     "oflags": "fcib",
-        //                     "opentm": "0.000000",
-        //                     "price": "34.50000",
-        //                     "refid": "OKIVMP-5GVZN-Z2D2UA",
-        //                     "starttm": "0.000000",
-        //                     "status": "open",
-        //                     "stopprice": "0.000000",
-        //                     "userref": 0,
-        //                     "vol": "10.00345345",
-        //                     "vol_exec": "0.00000000"
-        //                 }
-        //             },
-        //             {
-        //                 "OGTT3Y-C6I3P-XRI6HX": {
-        //                     "cost": "0.00000",
-        //                     "descr": {
-        //                         "close": "",
-        //                         "leverage": "0:1",
-        //                         "order": "sell 0.00000010 XBT/EUR @ limit 5334.60000 with 0:1 leverage",
-        //                         "ordertype": "limit",
-        //                         "pair": "XBT/EUR",
-        //                         "price": "5334.60000",
-        //                         "price2": "0.00000",
-        //                         "type": "sell"
-        //                     },
-        //                     "expiretm": "0.000000",
-        //                     "fee": "0.00000",
-        //                     "limitprice": "5334.60000",
-        //                     "misc": "",
-        //                     "oflags": "fcib",
-        //                     "opentm": "0.000000",
-        //                     "price": "5334.60000",
-        //                     "refid": "OKIVMP-5GVZN-Z2D2UA",
-        //                     "starttm": "0.000000",
-        //                     "status": "open",
-        //                     "stopprice": "0.000000",
-        //                     "userref": 0,
-        //                     "vol": "0.00000010",
-        //                     "vol_exec": "0.00000000"
-        //                 }
-        //             },
+        //                 "order_id": "OK4GJX-KSTLS-7DZZO5",
+        //                 "order_userref": 3,
+        //                 "symbol": "BTC/USD",
+        //                 "order_qty": 0.005,
+        //                 "cum_cost": 0.0,
+        //                 "time_in_force": "GTC",
+        //                 "exec_type": "pending_new",
+        //                 "side": "sell",
+        //                 "order_type": "limit",
+        //                 "limit_price_type": "static",
+        //                 "limit_price": 26500.0,
+        //                 "stop_price": 0.0,
+        //                 "order_status": "pending_new",
+        //                 "fee_usd_equiv": 0.0,
+        //                 "fee_ccy_pref": "fciq",
+        //                 "timestamp": "2023-09-22T10:33:05.709950Z"
+        //             }
         //         ],
-        //         "openOrders",
-        //         { "sequence": 234 }
-        //     ]
+        //         "sequence": 8
+        //     }
         //
-        // status-change
-        //
-        //     [
-        //         [
-        //             { "OGTT3Y-C6I3P-XRI6HX": { "status": "closed" }},
-        //             { "OGTT3Y-C6I3P-XRI6HX": { "status": "closed" }},
-        //         ],
-        //         "openOrders",
-        //         { "sequence": 59342 }
-        //     ]
-        //
-        const allOrders = this.safeValue (message, 0, []);
+        const allOrders = this.safeList (message, 'data', []);
         const allOrdersLength = allOrders.length;
         if (allOrdersLength > 0) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -1378,42 +1298,29 @@ export default class kraken extends krakenRest {
             const stored = this.orders;
             const symbols: Dict = {};
             for (let i = 0; i < allOrders.length; i++) {
-                const orders = this.safeValue (allOrders, i, {});
-                const ids = Object.keys (orders);
-                for (let j = 0; j < ids.length; j++) {
-                    const id = ids[j];
-                    const order = orders[id];
-                    const parsed = this.parseWsOrder (order);
-                    parsed['id'] = id;
-                    let symbol = undefined;
-                    const symbolsByOrderId = this.safeValue (this.options, 'symbolsByOrderId', {});
-                    if (parsed['symbol'] !== undefined) {
-                        symbol = parsed['symbol'];
-                        symbolsByOrderId[id] = symbol;
-                        this.options['symbolsByOrderId'] = symbolsByOrderId;
-                    } else {
-                        symbol = this.safeString (symbolsByOrderId, id);
-                    }
-                    const previousOrders = this.safeValue (stored.hashmap, symbol);
-                    const previousOrder = this.safeValue (previousOrders, id);
-                    let newOrder = parsed;
-                    if (previousOrder !== undefined) {
-                        const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
-                        newOrder = this.parseWsOrder (newRawOrder);
-                        newOrder['id'] = id;
-                    }
-                    const length = stored.length;
-                    if (length === limit && (previousOrder === undefined)) {
-                        const first = stored[0];
-                        if (first['id'] in symbolsByOrderId) {
-                            delete symbolsByOrderId[first['id']];
-                        }
-                    }
-                    stored.append (newOrder);
-                    symbols[symbol] = true;
+                const order = this.safeDict (allOrders, i, {});
+                const id = this.safeString (order, 'order_id');
+                const parsed = this.parseWsOrder (order);
+                const symbol = this.safeString (order, 'symbol');
+                const previousOrders = this.safeValue (stored.hashmap, symbol);
+                const previousOrder = this.safeValue (previousOrders, id);
+                let newOrder = parsed;
+                if (previousOrder !== undefined) {
+                    const newRawOrder = this.extend (previousOrder['info'], newOrder['info']);
+                    newOrder = this.parseWsOrder (newRawOrder);
                 }
+                const length = stored.length;
+                if (length === limit && (previousOrder === undefined)) {
+                    const first = stored[0];
+                    const symbolsByOrderId = this.safeValue (this.options, 'symbolsByOrderId', {});
+                    if (first['id'] in symbolsByOrderId) {
+                        delete symbolsByOrderId[first['id']];
+                    }
+                }
+                stored.append (newOrder);
+                symbols[symbol] = true;
             }
-            const name = 'openOrders';
+            const name = 'orders';
             client.resolve (this.orders, name);
             const keys = Object.keys (symbols);
             for (let i = 0; i < keys.length; i++) {
@@ -1425,121 +1332,73 @@ export default class kraken extends krakenRest {
 
     parseWsOrder (order, market = undefined) {
         //
-        // createOrder
-        //    {
-        //        "avg_price": "0.00000",
-        //        "cost": "0.00000",
-        //        "descr": {
-        //            "close": null,
-        //            "leverage": null,
-        //            "order": "sell 0.01000000 ETH/USDT @ limit 1900.00000",
-        //            "ordertype": "limit",
-        //            "pair": "ETH/USDT",
-        //            "price": "1900.00000",
-        //            "price2": "0.00000",
-        //            "type": "sell"
-        //        },
-        //        "expiretm": null,
-        //        "fee": "0.00000",
-        //        "limitprice": "0.00000",
-        //        "misc": '',
-        //        "oflags": "fciq",
-        //        "opentm": "1667522705.757622",
-        //        "refid": null,
-        //        "starttm": null,
-        //        "status": "open",
-        //        "stopprice": "0.00000",
-        //        "timeinforce": "GTC",
-        //        "userref": 0,
-        //        "vol": "0.01000000",
-        //        "vol_exec": "0.00000000"
-        //    }
+        // watchOrders
         //
-        const description = this.safeValue (order, 'descr', {});
-        const orderDescription = this.safeString (description, 'order');
-        let side = undefined;
-        let type = undefined;
-        let wsName = undefined;
-        let price = undefined;
-        let amount = undefined;
-        if (orderDescription !== undefined) {
-            const parts = orderDescription.split (' ');
-            side = this.safeString (parts, 0);
-            amount = this.safeString (parts, 1);
-            wsName = this.safeString (parts, 2);
-            type = this.safeString (parts, 4);
-            price = this.safeString (parts, 5);
-        }
-        side = this.safeString (description, 'type', side);
-        type = this.safeString (description, 'ordertype', type);
-        wsName = this.safeString (description, 'pair', wsName);
-        market = this.safeValue (this.options['marketsByWsName'], wsName, market);
-        let symbol = undefined;
-        const timestamp = this.safeTimestamp (order, 'opentm');
-        amount = this.safeString (order, 'vol', amount);
-        const filled = this.safeString (order, 'vol_exec');
-        let fee = undefined;
-        const cost = this.safeString (order, 'cost');
-        price = this.safeString (description, 'price', price);
-        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
-            price = this.safeString (description, 'price2');
-        }
-        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
-            price = this.safeString (order, 'price', price);
-        }
-        const average = this.safeString2 (order, 'avg_price', 'price');
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            if ('fee' in order) {
-                const flags = order['oflags'];
-                const feeCost = this.safeString (order, 'fee');
-                fee = {
-                    'cost': feeCost,
-                    'rate': undefined,
-                };
-                if (flags.indexOf ('fciq') >= 0) {
-                    fee['currency'] = market['quote'];
-                } else if (flags.indexOf ('fcib') >= 0) {
-                    fee['currency'] = market['base'];
-                }
-            }
-        }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let id = this.safeString (order, 'id');
-        if (id === undefined) {
-            const txid = this.safeValue (order, 'txid');
-            id = this.safeString (txid, 0);
-        }
-        const clientOrderId = this.safeString (order, 'userref');
-        const rawTrades = this.safeValue (order, 'trades');
-        let trades = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
-        }
-        const stopPrice = this.safeNumber (order, 'stopprice');
+        // open order
+        //     {
+        //         "order_id": "OK4GJX-KSTLS-7DZZO5",
+        //         "order_userref": 3,
+        //         "symbol": "BTC/USD",
+        //         "order_qty": 0.005,
+        //         "cum_cost": 0.0,
+        //         "time_in_force": "GTC",
+        //         "exec_type": "pending_new",
+        //         "side": "sell",
+        //         "order_type": "limit",
+        //         "limit_price_type": "static",
+        //         "limit_price": 26500.0,
+        //         "stop_price": 0.0,
+        //         "order_status": "pending_new",
+        //         "fee_usd_equiv": 0.0,
+        //         "fee_ccy_pref": "fciq",
+        //         "timestamp": "2023-09-22T10:33:05.709950Z"
+        //     }
+        //
+        // canceled order
+        //
+        //     {
+        //         "timestamp": "2025-10-11T15:11:47.695226Z",
+        //         "order_status": "canceled",
+        //         "exec_type": "canceled",
+        //         "order_userref": 0,
+        //         "order_id": "OGAB7Y-BKX5F-PTK5RW",
+        //         "cum_qty": 0,
+        //         "cum_cost": 0,
+        //         "fee_usd_equiv": 0,
+        //         "avg_price": 0,
+        //         "cancel_reason": "User requested",
+        //         "reason": "User requested"
+        //     }
+        //
+        const fee = {
+            'cost': this.safeString (order, 'fee_usd_equiv'),
+            'currency': 'USD',
+        };
+        const stopPrice = this.safeString (order, 'stop_price');
+        const datetime = this.safeString (order, 'timestamp');
         return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.safeString (order, 'order_userref'),
             'info': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'order_status')),
+            'symbol': this.safeString (order, 'symbol'),
+            'type': this.safeString (order, 'order_type'),
+            'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': undefined,
-            'side': side,
-            'price': price,
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'limit_price'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'average': average,
+            'cost': this.safeString (order, 'cum_cost'),
+            'amount': this.safeString2 (order, 'order_qty', 'cum_qty'),
+            'filled': undefined,
+            'average': this.safeString (order, 'avg_price'),
             'remaining': undefined,
             'fee': fee,
-            'trades': trades,
+            'trades': undefined,
         });
     }
 
@@ -1726,53 +1585,44 @@ export default class kraken extends krakenRest {
     }
 
     handleMessage (client: Client, message) {
-        if (Array.isArray (message)) {
-            const channelId = this.safeString (message, 0);
-            const subscription = this.safeValue (client.subscriptions, channelId, {});
-            const info = this.safeValue (subscription, 'subscription', {});
-            const messageLength = message.length;
-            const channelName = this.safeString (message, messageLength - 2);
-            const name = this.safeString (info, 'name');
+        let channel = this.safeString (message, 'channel');
+        if (channel !== undefined) {
+            if (channel === 'executions') {
+                const data = this.safeList (message, 'data', []);
+                const first = this.safeDict (data, 0, {});
+                const execType = this.safeString (first, 'exec_type');
+                channel = (execType === 'trade') ? 'myTrades' : 'orders';
+            }
             const methods: Dict = {
+                'balances': this.handleBalance,
+                'book': this.handleOrderBook,
+                'ohlc': this.handleOHLCV,
+                'ticker': this.handleTicker,
+                'trade': this.handleTrades,
                 // private
-                'openOrders': this.handleOrders,
-                'ownTrades': this.handleMyTrades,
+                'myTrades': this.handleMyTrades,
+                'orders': this.handleOrders,
             };
-            const method = this.safeValue2 (methods, name, channelName);
+            const method = this.safeValue (methods, channel);
             if (method !== undefined) {
-                method.call (this, client, message, subscription);
+                method.call (this, client, message);
             }
-        } else {
-            const channel = this.safeString (message, 'channel');
-            if (channel !== undefined) {
-                const methods: Dict = {
-                    'balances': this.handleBalance,
-                    'book': this.handleOrderBook,
-                    'ohlc': this.handleOHLCV,
-                    'ticker': this.handleTicker,
-                    'trade': this.handleTrades,
-                };
-                const method = this.safeValue (methods, channel);
-                if (method !== undefined) {
-                    method.call (this, client, message);
-                }
-            }
-            if (this.handleErrorMessage (client, message)) {
-                const event = this.safeString2 (message, 'event', 'method');
-                const methods: Dict = {
-                    'heartbeat': this.handleHeartbeat,
-                    'systemStatus': this.handleSystemStatus,
-                    'subscriptionStatus': this.handleSubscriptionStatus,
-                    'add_order': this.handleCreateEditOrder,
-                    'amend_order': this.handleCreateEditOrder,
-                    'cancel_order': this.handleCancelOrder,
-                    'cancel_all': this.handleCancelAllOrders,
-                    'pong': this.handlePong,
-                };
-                const method = this.safeValue (methods, event);
-                if (method !== undefined) {
-                    method.call (this, client, message);
-                }
+        }
+        if (this.handleErrorMessage (client, message)) {
+            const event = this.safeString2 (message, 'event', 'method');
+            const methods: Dict = {
+                'heartbeat': this.handleHeartbeat,
+                'systemStatus': this.handleSystemStatus,
+                'subscriptionStatus': this.handleSubscriptionStatus,
+                'add_order': this.handleCreateEditOrder,
+                'amend_order': this.handleCreateEditOrder,
+                'cancel_order': this.handleCancelOrder,
+                'cancel_all': this.handleCancelAllOrders,
+                'pong': this.handlePong,
+            };
+            const method = this.safeValue (methods, event);
+            if (method !== undefined) {
+                method.call (this, client, message);
             }
         }
     }
