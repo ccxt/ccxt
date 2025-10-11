@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Market, Str } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -375,8 +375,8 @@ export default class deepcoin extends Exchange {
         const contract = swap;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy', '');
-        const settleId = this.safeString (market, 'quoteCcy'); // todo but I think that we use quoteId as settleId for swap markets
-        const settle = this.safeCurrencyCode (settleId);
+        let settleId = undefined;
+        let settle = undefined;
         const underlying = this.safeString (market, 'uly');
         if ((underlying !== undefined) && !spot) {
             const parts = underlying.split ('-');
@@ -387,6 +387,8 @@ export default class deepcoin extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
         if (contract) {
+            settleId = this.safeString (market, 'quoteCcy'); // todo but I think that we use quoteId as settleId for swap markets
+            settle = this.safeCurrencyCode (settleId);
             if (settle !== undefined) {
                 symbol = symbol + ':' + settle;
             }
@@ -444,6 +446,47 @@ export default class deepcoin extends Exchange {
             },
             'info': market,
         });
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.deepcoin.com/docs/DeepCoinMarket/marketBooks
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request: Dict = {
+            'instId': market['id'],
+            'sz': limit,
+        };
+        const response = await this.publicGetDeepcoinMarketBooks (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "bids": [
+        //                 ["3732.21", "99.6"],
+        //                 ["3732.2", "54.7"]
+        //             ],
+        //             "asks": [
+        //                 ["3732.22", "85.1"],
+        //                 ["3732.23", "49.4"]
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
