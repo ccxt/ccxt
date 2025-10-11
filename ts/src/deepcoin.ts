@@ -271,7 +271,7 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const types = [ 'spot','swap' ];
+        const types = [ 'spot', 'swap' ];
         let promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
