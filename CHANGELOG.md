@@ -1,3 +1,15 @@
+<a id="v4.5.10"></a>
+# [v4.5.10](https://github.com/ccxt/ccxt/releases/tag/v4.5.10) - 2025-10-11
+
+## What's Changed
+* fix(py,php): add reusableFuture wrapper by [@carlosmiei](https://github.com/carlosmiei) in [#27033](https://github.com/ccxt/ccxt/pull/27033)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.9...v4.5.10
+
+[Changes][v4.5.10]
+
+
 <a id="v4.5.9"></a>
 # [v4.5.9](https://github.com/ccxt/ccxt/releases/tag/v4.5.9) - 2025-10-10
 
@@ -10547,6 +10559,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.10]: https://github.com/ccxt/ccxt/compare/v4.5.9...v4.5.10
 [v4.5.9]: https://github.com/ccxt/ccxt/compare/v4.5.8...v4.5.9
 [v4.5.8]: https://github.com/ccxt/ccxt/compare/v4.5.7...v4.5.8
 [v4.5.7]: https://github.com/ccxt/ccxt/compare/v4.5.6...v4.5.7
