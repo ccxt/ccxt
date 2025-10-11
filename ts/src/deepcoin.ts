@@ -372,6 +372,7 @@ export default class deepcoin extends Exchange {
         const type = this.safeStringLower (market, 'instType');
         const spot = (type === 'spot');
         const swap = (type === 'swap');
+        const contract = swap;
         let baseId = this.safeString (market, 'baseCcy');
         let quoteId = this.safeString (market, 'quoteCcy', '');
         const settleId = this.safeString (market, 'quoteCcy'); // todo but I think that we use quoteId as settleId for swap markets
@@ -385,7 +386,7 @@ export default class deepcoin extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        if (swap) {
+        if (contract) {
             if (settle !== undefined) {
                 symbol = symbol + ':' + settle;
             }
@@ -410,7 +411,7 @@ export default class deepcoin extends Exchange {
             'future': false,
             'option': false,
             'active': true,
-            'contract': false,
+            'contract': contract,
             'linear': swap ? (quoteId === settleId) : undefined,
             'inverse': swap ? (baseId === settleId) : undefined,
             'contractSize': swap ? this.safeNumber (market, 'ctVal') : undefined,
