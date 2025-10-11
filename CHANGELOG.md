@@ -12,6 +12,15 @@
 - Type definitions and parsing logic for market data
 - Support for retrieving real-time trading pair information
 
+**Bitbarg Exchange Integration**: Complete support for Bitbarg exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Market data fetching capabilities (`fetchMarkets`)
+- Ticker price endpoints (`fetchTicker`, `fetchTickers`)
+- Type definitions and parsing logic for market data
+- Support for retrieving real-time trading pair information with IRT quote
+- Integration with Bitbarg API v1 (https://api.bitbarg.com/api/v1/currencies)
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
