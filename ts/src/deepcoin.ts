@@ -21,7 +21,7 @@ export default class deepcoin extends Exchange {
             'countries': [ 'SG' ], // Singapore
             'rateLimit': 50, // 20 times per second
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
