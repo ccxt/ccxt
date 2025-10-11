@@ -152,6 +152,7 @@ import xt from  './src/xt.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zonda from  './src/zonda.js'
+import zebpay from  './src/zebpay.js'
 
 
 // pro exchanges
@@ -336,6 +337,7 @@ const exchanges = {
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zonda':                  zonda,
+    'zebpay':                 zebpay,
 }
 
 const pro = {
@@ -661,7 +663,8 @@ export {
     xt,
     yobit,
     zaif,
-    zonda,    
+    zonda,
+    zebpay,    
 }
 
 export default ccxt;
