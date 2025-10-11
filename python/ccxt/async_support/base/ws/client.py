@@ -85,7 +85,7 @@ class Client(object):
 
     def reusable_future(self, message_hash):
         return self.future(message_hash)  # only used in go
-    
+
     def reusableFuture(self, message_hash):
         return self.future(message_hash)  # only used in go
 
