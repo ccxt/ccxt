@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Market, OrderBook, Str } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -86,13 +86,13 @@ export default class deepcoin extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -123,20 +123,16 @@ export default class deepcoin extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
-                '3m': '3m',
                 '5m': '5m',
                 '15': '15m',
                 '30': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1month',
+                '1h': '1H',
+                '4h': '4H',
+                '12h': '12H',
+                '1d': '1D',
+                '1w': '1W',
+                '1M': '1M',
+                '1y': '1Y',
             },
             'urls': {
                 'logo': '',
@@ -151,13 +147,13 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1,
-                        'deepcoin/market/candles': 1,
-                        'deepcoin/market/instruments': 5, // done
+                        'deepcoin/market/books': 1 / 2, // done
+                        'deepcoin/market/candles': 1 / 2,
+                        'deepcoin/market/instruments': 1 / 2, // done
                         'deepcoin/market/tickers': 1,
-                        'deepcoin/market/index-candles': 1,
+                        'deepcoin/market/index-candles': 1 / 2, // done
                         'deepcoin/market/trades': 1,
-                        'deepcoin/market/mark-price-candles': 1,
+                        'deepcoin/market/mark-price-candles': 1 / 2, // done
                         'deepcoin/market/step-margin': 1,
                     },
                 },
@@ -247,21 +243,6 @@ export default class deepcoin extends Exchange {
         });
     }
 
-    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
-        const instType = this.safeString (params, 'instType');
-        params = this.omit (params, 'instType');
-        const type = this.safeString (params, 'type');
-        if ((type === undefined) && (instType !== undefined)) {
-            params['type'] = instType;
-        }
-        return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
-    }
-
-    convertToInstrumentType (type) {
-        const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
-        return this.safeString (exchangeTypes, type, type);
-    }
-
     /**
      * @method
      * @name deepcoin#fetchMarkets
@@ -271,26 +252,61 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const types = [ 'spot', 'swap' ];
-        let promises = [];
-        let result = [];
-        for (let i = 0; i < types.length; i++) {
-            promises.push (this.fetchMarketsByType (types[i], params));
-        }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat (result, promises[i]);
-        }
-        return result;
+        const promisesUnresolved = [
+            this.fetchSpotMarkets (params),
+            this.fetchContractMarkets (params),
+        ];
+        const promises = await Promise.all (promisesUnresolved);
+        const spotMarkets = promises[0];
+        const swapMarkets = promises[1];
+        return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
-    async fetchMarketsByType (type, params = {}) {
+    async fetchSpotMarkets (params = {}) {
         const request: Dict = {
-            'instType': this.convertToInstrumentType (type),
+            'instType': 'SPOT',
         };
         const response = await this.publicGetDeepcoinMarketInstruments (this.extend (request, params));
         //
-        // spot, future, swap, option
+        // spot
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "A-USDT",
+        //                 "uly": "",
+        //                 "baseCcy": "A",
+        //                 "quoteCcy": "USDT",
+        //                 "ctVal": "1",
+        //                 "ctValCcy": "",
+        //                 "listTime": "0",
+        //                 "lever": "1",
+        //                 "tickSz": "0.0001",
+        //                 "lotSz": "0.001",
+        //                 "minSz": "0.5",
+        //                 "ctType": "",
+        //                 "alias": "",
+        //                 "state": "live",
+        //                 "maxLmtSz": "7692307",
+        //                 "maxMktSz": "7692307"
+        //             }
+        //         ]
+        //     }
+        //
+        const dataResponse = this.safeList (response, 'data', []);
+        return this.parseMarkets (dataResponse);
+    }
+
+    async fetchContractMarkets (params = {}) {
+        const request: Dict = {
+            'instType': 'SWAP',
+        };
+        const response = await this.publicGetDeepcoinMarketInstruments (this.extend (request, params));
+        //
+        // swap
         //
         //     {
         //         "code": "0",
@@ -373,16 +389,10 @@ export default class deepcoin extends Exchange {
         const spot = (type === 'spot');
         const swap = (type === 'swap');
         const contract = swap;
-        let baseId = this.safeString (market, 'baseCcy');
-        let quoteId = this.safeString (market, 'quoteCcy', '');
+        const baseId = this.safeString (market, 'baseCcy');
+        const quoteId = this.safeString (market, 'quoteCcy', '');
         let settleId = undefined;
         let settle = undefined;
-        const underlying = this.safeString (market, 'uly');
-        if ((underlying !== undefined) && !spot) {
-            const parts = underlying.split ('-');
-            baseId = this.safeString (parts, 0);
-            quoteId = this.safeString (parts, 1);
-        }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
@@ -485,8 +495,81 @@ export default class deepcoin extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getKlineData
+     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getIndexKlineData
+     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarkKlineData
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        if (limit === undefined) {
+            limit = 100; // default 100, max 300
+        }
+        const bar = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'instId': market['id'],
+            'bar': bar,
+            'limit': limit,
+        };
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+            params = this.omit (params, 'until');
+        }
+        let response = undefined;
+        if (price === 'mark') {
+            response = await this.publicGetDeepcoinMarketMarkPriceCandles (this.extend (request, params));
+        } else if (price === 'index') {
+            response = await this.publicGetDeepcoinMarketIndexCandles (this.extend (request, params));
+        } else {
+            response = await this.publicGetDeepcoinMarketCandles (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data":[
+        //             [
+        //                 "1760221800000",
+        //                 "3739.08",
+        //                 "3741.95",
+        //                 "3737.75",
+        //                 "3740.1",
+        //                 "2849",
+        //                 "1065583.744"
+        //             ],
+        //             [
+        //                 "1760221740000",
+        //                 "3742.36",
+        //                 "3743.01",
+        //                 "3736.83",
+        //                 "3739.08",
+        //                 "2723",
+        //                 "1018290.723"
+        //             ]
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
