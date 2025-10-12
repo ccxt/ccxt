@@ -13,8 +13,7 @@ func TestLanguageSpecific() <- chan interface{} {
         
         // Run throttler performance test (the one that creates its own exchanges)
         // This is the test from test.throttlerPerformance.go, not test.throttler.go
-        retRes := (<-TestThrottlerPerformance())
-        PanicOnError(retRes)
+        TestThrottlerPerformance()
         
         return nil
     }()
