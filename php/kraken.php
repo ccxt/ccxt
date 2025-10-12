@@ -1740,6 +1740,10 @@ class kraken extends Exchange {
         $statuses = array(
             'pending' => 'open', // order pending book entry
             'open' => 'open',
+            'pending_new' => 'open',
+            'new' => 'open',
+            'partially_filled' => 'open',
+            'filled' => 'closed',
             'closed' => 'closed',
             'canceled' => 'canceled',
             'expired' => 'expired',
