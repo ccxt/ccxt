@@ -5,7 +5,8 @@ package base
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func BaseTestsInit()  {
-    TestLanguageSpecific()
+    retRes := (<-TestLanguageSpecific())
+    PanicOnError(retRes)
     TestAfterConstructor()
     TestExtend()
     TestDeepExtend()
