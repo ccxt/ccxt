@@ -463,7 +463,7 @@ func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.ICoreExch
 		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
 	}
 	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
-	if success == false {
+	if !success {
 		return nil
 	}
 	globalSettings := SafeValue(options, 0, map[string]interface{}{}).(map[string]interface{})
