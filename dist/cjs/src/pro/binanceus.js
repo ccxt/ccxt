@@ -1,14 +1,16 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 var binanceus$1 = require('../binanceus.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceus extends binance {
+class binanceus extends binance["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binanceus$1();
+        const restInstance = new binanceus$1["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);
@@ -48,4 +50,4 @@ class binanceus extends binance {
     }
 }
 
-module.exports = binanceus;
+exports["default"] = binanceus;

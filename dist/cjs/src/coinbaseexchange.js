@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinbaseexchange$1 = require('./abstract/coinbaseexchange.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class coinbaseexchange
  * @augments Exchange
  */
-class coinbaseexchange extends coinbaseexchange$1 {
+class coinbaseexchange extends coinbaseexchange$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinbaseexchange',
@@ -211,7 +213,19 @@ class coinbaseexchange extends coinbaseexchange$1 {
                         'users/self/trailing-volume',
                         'withdrawals/fee-estimate',
                         'conversions/{conversion_id}',
+                        'conversions',
                         'conversions/fees',
+                        'loans/lending-overview',
+                        'loans/lending-overview-xm',
+                        'loans/loan-preview',
+                        'loans/loan-preview-xm',
+                        'loans/repayment-preview',
+                        'loans/repayment-preview-xm',
+                        'loans/interest/{loan_id}',
+                        'loans/interest/history/{loan_id}',
+                        'loans/interest',
+                        'loans/assets',
+                        'loans',
                     ],
                     'post': [
                         'conversions',
@@ -228,6 +242,9 @@ class coinbaseexchange extends coinbaseexchange$1 {
                         'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
+                        'loans/open',
+                        'loans/repay-interest',
+                        'loans/repay-principal',
                     ],
                     'delete': [
                         'orders',
@@ -2123,4 +2140,4 @@ class coinbaseexchange extends coinbaseexchange$1 {
     }
 }
 
-module.exports = coinbaseexchange;
+exports["default"] = coinbaseexchange;

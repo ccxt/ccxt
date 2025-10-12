@@ -294,7 +294,7 @@ class paradex extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
-                'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
+                'paradexAccount' => null, // add array("privateKey" => "copy Paradex Private Key from UI", "publicKey" => "used when onboard (optional)", "address" => "copy Paradex Address from UI")
                 'broker' => 'CCXT',
             ),
             'features' => array(
@@ -2050,6 +2050,7 @@ class paradex extends Exchange {
             'contracts' => null,
             'contractSize' => null,
             'price' => null,
+            'side' => null,
             'baseValue' => null,
             'quoteValue' => null,
             'timestamp' => $timestamp,
@@ -2368,7 +2369,7 @@ class paradex extends Exchange {
         return $this->safe_string($modes, $mode, $mode);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

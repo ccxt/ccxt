@@ -75,6 +75,7 @@ class kraken extends \ccxt\async\kraken {
                     'broad' => array(
                         'Already subscribed' => '\\ccxt\\BadRequest',
                         'Currency pair not in ISO 4217-A3 format' => '\\ccxt\\BadSymbol',
+                        'Currency pair not supported' => '\\ccxt\\BadSymbol',
                         'Malformed request' => '\\ccxt\\BadRequest',
                         'Pair field must be an array' => '\\ccxt\\BadRequest',
                         'Pair field unsupported for this subscription type' => '\\ccxt\\BadRequest',
@@ -290,7 +291,7 @@ class kraken extends \ccxt\async\kraken {
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'add_order',
                 'params' => array(
@@ -336,7 +337,7 @@ class kraken extends \ccxt\async\kraken {
         //
         $result = $this->safe_dict($message, 'result', array());
         $order = $this->parse_order($result);
-        $messageHash = $this->safe_value_2($message, 'reqid', 'req_id');
+        $messageHash = $this->safe_string_2($message, 'reqid', 'req_id');
         $client->resolve ($order, $messageHash);
     }
 
@@ -360,7 +361,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'amend_order',
                 'params' => array(
@@ -394,7 +395,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'cancel_order',
                 'params' => array(
@@ -426,7 +427,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'cancel_order',
                 'params' => array(
@@ -452,11 +453,11 @@ class kraken extends \ccxt\async\kraken {
         //         "time_out" => "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        $reqId = $this->safe_value($message, 'req_id');
+        $reqId = $this->safe_string($message, 'req_id');
         $client->resolve ($message, $reqId);
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -474,7 +475,7 @@ class kraken extends \ccxt\async\kraken {
             $token = Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $requestId = $this->request_id();
-            $messageHash = $requestId;
+            $messageHash = $this->number_to_string($requestId);
             $request = array(
                 'method' => 'cancel_all',
                 'params' => array(
@@ -499,7 +500,7 @@ class kraken extends \ccxt\async\kraken {
         //         "time_out" => "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        $reqId = $this->safe_value($message, 'req_id');
+        $reqId = $this->safe_string($message, 'req_id');
         $client->resolve ($message, $reqId);
     }
 
@@ -1780,7 +1781,7 @@ class kraken extends \ccxt\async\kraken {
         //
         $errorMessage = $this->safe_string_2($message, 'errorMessage', 'error');
         if ($errorMessage !== null) {
-            // $requestId = $this->safe_value_2($message, 'reqid', 'req_id');
+            $requestId = $this->safe_string_2($message, 'reqid', 'req_id');
             $broad = $this->exceptions['ws']['broad'];
             $broadKey = $this->find_broadly_matched_key($broad, $errorMessage);
             $exception = null;
@@ -1789,11 +1790,9 @@ class kraken extends \ccxt\async\kraken {
             } else {
                 $exception = new $broad[$broadKey] ($errorMessage);
             }
-            // if ($requestId !== null) {
-            //     $client->reject ($exception, $requestId);
-            // } else {
-            $client->reject ($exception);
-            // }
+            if ($requestId !== null) {
+                $client->reject ($exception, $requestId);
+            }
             return false;
         }
         return true;

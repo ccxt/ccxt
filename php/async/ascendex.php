@@ -1656,7 +1656,7 @@ class ascendex extends Exchange {
             //         "code" => "0",
             //         "data" => {
             //           "domain" => "spot",
-            //           "userUID" => "U1479576458",
+            //           "userUID" => "U1479576457",
             //           "vipLevel" => "0",
             //           "fees" => array(
             //             array( $symbol => 'HT/USDT', $fee => array( taker => '0.001', maker => "0.001" ) ),
@@ -3138,7 +3138,7 @@ class ascendex extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

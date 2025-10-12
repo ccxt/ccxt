@@ -6,7 +6,6 @@
 
 //  ---------------------------------------------------------------------------
 import hyperliquidRest from '../hyperliquid.js';
-import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class hyperliquid extends hyperliquidRest {
@@ -14,6 +13,8 @@ export default class hyperliquid extends hyperliquidRest {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'cancelOrderWs': true,
+                'cancelOrdersWs': true,
                 'createOrderWs': true,
                 'createOrdersWs': true,
                 'editOrderWs': true,
@@ -98,10 +99,12 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets();
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
+        const ordersLength = orders.length;
+        if (ordersLength === 0) {
+            // not sure why but it is happening sometimes
+            return this.safeOrder({});
+        }
         const parsedOrder = orders[0];
-        const orderInfo = this.safeDict(parsedOrder, 'info');
-        // handle potential error here
-        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
         return parsedOrder;
     }
     /**
@@ -140,10 +143,57 @@ export default class hyperliquid extends hyperliquidRest {
         const statuses = this.safeList(dataObject, 'statuses', []);
         const first = this.safeDict(statuses, 0, {});
         const parsedOrder = this.parseOrder(first, market);
-        const orderInfo = this.safeDict(parsedOrder, 'info');
-        // handle potential error here
-        this.handleErrors(undefined, undefined, undefined, undefined, undefined, this.json(orderInfo), orderInfo, undefined, undefined);
         return parsedOrder;
+    }
+    /**
+     * @method
+     * @name hyperliquid#cancelOrdersWs
+     * @description cancel multiple orders using WebSocket post request
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests
+     * @param {string[]} ids list of order ids to cancel
+     * @param {string} symbol unified symbol of the market the orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderId] list of client order ids to cancel instead of order ids
+     * @param {string} [params.vaultAddress] the vault address for order cancellation
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrdersWs(ids, symbol = undefined, params = {}) {
+        this.checkRequiredCredentials();
+        await this.loadMarkets();
+        const request = this.cancelOrdersRequest(ids, symbol, params);
+        const url = this.urls['api']['ws']['public'];
+        const wrapped = this.wrapAsPostAction(request);
+        const wsRequest = this.safeDict(wrapped, 'request', {});
+        const requestId = this.safeString(wrapped, 'requestId');
+        const response = await this.watch(url, requestId, wsRequest, requestId);
+        const responseObj = this.safeDict(response, 'response', {});
+        const data = this.safeDict(responseObj, 'data', {});
+        const statuses = this.safeList(data, 'statuses', []);
+        const orders = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const status = statuses[i];
+            orders.push(this.safeOrder({
+                'info': status,
+                'status': status,
+            }));
+        }
+        return orders;
+    }
+    /**
+     * @method
+     * @name hyperliquid#cancelOrderWs
+     * @description cancel a single order using WebSocket post request
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests
+     * @param {string} id order id to cancel
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id to cancel instead of order id
+     * @param {string} [params.vaultAddress] the vault address for order cancellation
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrderWs(id, symbol = undefined, params = {}) {
+        const orders = await this.cancelOrdersWs([id], symbol, params);
+        return this.safeDict(orders, 0);
     }
     /**
      * @method
@@ -840,19 +890,68 @@ export default class hyperliquid extends hyperliquidRest {
     }
     handleErrorMessage(client, message) {
         //
-        //     {
+        //    {
+        //      "channel": "post",
+        //      "data": {
+        //        "id": 1,
+        //        "response": {
+        //          "type": "action",
+        //          "payload": {
+        //            "status": "ok",
+        //            "response": {
+        //              "type": "order",
+        //              "data": {
+        //                "statuses": [
+        //                  {
+        //                    "error": "Order price cannot be more than 80% away from the reference price"
+        //                  }
+        //                ]
+        //              }
+        //            }
+        //          }
+        //        }
+        //      }
+        //    }
+        //
+        //    {
         //         "channel": "error",
         //         "data": "Error parsing JSON into valid websocket request: { \"type\": \"allMids\" }"
         //     }
         //
         const channel = this.safeString(message, 'channel', '');
-        const ret_msg = this.safeString(message, 'data', '');
         if (channel === 'error') {
-            throw new ExchangeError(this.id + ' ' + ret_msg);
+            const ret_msg = this.safeString(message, 'data', '');
+            const errorMsg = this.id + ' ' + ret_msg;
+            client.reject(errorMsg);
+            return true;
         }
-        else {
-            return false;
+        const data = this.safeDict(message, 'data', {});
+        let id = this.safeString(message, 'id');
+        if (id === undefined) {
+            id = this.safeString(data, 'id');
         }
+        const response = this.safeDict(data, 'response', {});
+        const payload = this.safeDict(response, 'payload', {});
+        const status = this.safeString(payload, 'status');
+        if (status !== undefined && status !== 'ok') {
+            const errorMsg = this.id + ' ' + this.json(payload);
+            client.reject(errorMsg, id);
+            return true;
+        }
+        const type = this.safeString(payload, 'type');
+        if (type === 'error') {
+            const error = this.id + ' ' + this.json(payload);
+            client.reject(error, id);
+            return true;
+        }
+        try {
+            this.handleErrors(0, '', '', '', {}, this.json(payload), payload, {}, {});
+        }
+        catch (e) {
+            client.reject(e, id);
+            return true;
+        }
+        return false;
     }
     handleOrderBookUnsubscription(client, subscription) {
         //

@@ -537,7 +537,7 @@ class digifinex extends Exchange {
                 $networks = array();
                 for ($j = 0; $j < count($networkEntries); $j++) {
                     $networkEntry = $networkEntries[$j];
-                    $networkId = $this->safe_string($networkEntry, 'chain');
+                    $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
                     $networkCode = $this->network_id_to_code($networkId);
                     $networks[$networkCode] = array(
                         'id' => $networkId,
@@ -3119,7 +3119,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3853,7 +3853,7 @@ class digifinex extends Exchange {
         ));
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

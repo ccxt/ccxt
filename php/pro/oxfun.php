@@ -1003,7 +1003,7 @@ class oxfun extends \ccxt\async\oxfun {
             $method = $this->safe_string($message, 'event');
             $stringMsg = $this->json($message);
             $code = $this->safe_integer($message, 'code');
-            $this->handle_errors($code, null, $client->url, $method, null, $stringMsg, $message, null, null);
+            $this->handle_errors($code, '', $client->url, $method, array(), $stringMsg, $message, array(), array());
         }
         $data = $this->safe_value($message, 'data', array());
         $order = $this->parse_order($data);
@@ -1088,7 +1088,7 @@ class oxfun extends \ccxt\async\oxfun {
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_dict($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();

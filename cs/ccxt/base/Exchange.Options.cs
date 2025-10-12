@@ -70,7 +70,7 @@ public partial class Exchange
     public bool isSandboxModeEnabled { get; set; } = false;
 
     public object markets { get; set; } = null;
-    public object currencies { get; set; } = null;
+    public object currencies { get; set; } = new dict();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
     public object timeframes { get; set; } = new dict();
@@ -284,7 +284,12 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
-        this.paddingMode = ((int)SafeInteger(extendedProperties, "paddingMode", this.paddingMode));
+        var paddingModeOp = SafeInteger(extendedProperties, "paddingMode", this.paddingMode);
+        if (paddingModeOp != null)
+        {
+            this.paddingMode = ((int)paddingModeOp);
+
+        }
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;

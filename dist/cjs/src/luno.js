@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var luno$1 = require('./abstract/luno.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -11,7 +13,7 @@ var number = require('./base/functions/number.js');
  * @class luno
  * @augments Exchange
  */
-class luno extends luno$1 {
+class luno extends luno$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'luno',
@@ -223,6 +225,9 @@ class luno extends luno$1 {
             'features': {
                 'spot': {
                     'sandbox': false,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
@@ -309,7 +314,7 @@ class luno extends luno$1 {
      */
     async fetchCurrencies(params = {}) {
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         const response = await this.privateGetSendNetworks(params);
         //
@@ -1475,4 +1480,4 @@ class luno extends luno$1 {
     }
 }
 
-module.exports = luno;
+exports["default"] = luno;

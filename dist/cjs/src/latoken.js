@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var latoken$1 = require('./abstract/latoken.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class latoken
  * @augments Exchange
  */
-class latoken extends latoken$1 {
+class latoken extends latoken$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'latoken',
@@ -1603,6 +1605,7 @@ class latoken extends latoken$1 {
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
+            'TRANSACTION_STATUS_FAILED': 'failed',
         };
         return this.safeString(statuses, status, status);
     }
@@ -1820,4 +1823,4 @@ class latoken extends latoken$1 {
     }
 }
 
-module.exports = latoken;
+exports["default"] = latoken;

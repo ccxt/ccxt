@@ -59,6 +59,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -272,6 +273,14 @@ class bithumb(Exchange, ImplicitAPI):
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
+                            },
+                        },
+                    },
+                    'USDT': {
+                        'limits': {
+                            'cost': {
+                                'min': None,
+                                'max': None,
                             },
                         },
                     },
@@ -1094,7 +1103,7 @@ class bithumb(Exchange, ImplicitAPI):
         }
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

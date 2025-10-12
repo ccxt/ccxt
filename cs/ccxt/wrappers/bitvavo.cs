@@ -338,7 +338,7 @@ public partial class bitvavo
     /// <item>
     /// <term>params.selfTradePrevention</term>
     /// <description>
-    /// string : "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+    /// string : one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
     /// </description>
     /// </item>
     /// <item>
@@ -626,7 +626,7 @@ public partial class bitvavo
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

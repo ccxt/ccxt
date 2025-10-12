@@ -86,6 +86,7 @@ class kraken(ccxt.async_support.kraken):
                     'broad': {
                         'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Currency pair not supported': BadSymbol,
                         'Malformed request': BadRequest,
                         'Pair field must be an array': BadRequest,
                         'Pair field unsupported for self subscription type': BadRequest,
@@ -274,7 +275,7 @@ class kraken(ccxt.async_support.kraken):
         market = self.market(symbol)
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'add_order',
             'params': {
@@ -318,7 +319,7 @@ class kraken(ccxt.async_support.kraken):
         #
         result = self.safe_dict(message, 'result', {})
         order = self.parse_order(result)
-        messageHash = self.safe_value_2(message, 'reqid', 'req_id')
+        messageHash = self.safe_string_2(message, 'reqid', 'req_id')
         client.resolve(order, messageHash)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
@@ -340,7 +341,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'amend_order',
             'params': {
@@ -370,7 +371,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'cancel_order',
             'params': {
@@ -398,7 +399,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'cancel_order',
             'params': {
@@ -422,10 +423,10 @@ class kraken(ccxt.async_support.kraken):
         #         "time_out": "2023-09-21T14:36:57.437952Z"
         #     }
         #
-        reqId = self.safe_value(message, 'req_id')
+        reqId = self.safe_string(message, 'req_id')
         client.resolve(message, reqId)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
         cancel all open orders
 
@@ -441,7 +442,7 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         requestId = self.request_id()
-        messageHash = requestId
+        messageHash = self.number_to_string(requestId)
         request: dict = {
             'method': 'cancel_all',
             'params': {
@@ -464,7 +465,7 @@ class kraken(ccxt.async_support.kraken):
         #         "time_out": "2023-09-21T14:36:57.437952Z"
         #     }
         #
-        reqId = self.safe_value(message, 'req_id')
+        reqId = self.safe_string(message, 'req_id')
         client.resolve(message, reqId)
 
     def handle_ticker(self, client, message):
@@ -1612,7 +1613,7 @@ class kraken(ccxt.async_support.kraken):
         #
         errorMessage = self.safe_string_2(message, 'errorMessage', 'error')
         if errorMessage is not None:
-            # requestId = self.safe_value_2(message, 'reqid', 'req_id')
+            requestId = self.safe_string_2(message, 'reqid', 'req_id')
             broad = self.exceptions['ws']['broad']
             broadKey = self.find_broadly_matched_key(broad, errorMessage)
             exception = None
@@ -1620,11 +1621,8 @@ class kraken(ccxt.async_support.kraken):
                 exception = ExchangeError(errorMessage)  # c# requirement to convert the errorMessage to string
             else:
                 exception = broad[broadKey](errorMessage)
-            # if requestId is not None:
-            #     client.reject(exception, requestId)
-            # else:
-            client.reject(exception)
-            # }
+            if requestId is not None:
+                client.reject(exception, requestId)
             return False
         return True
 

@@ -16,7 +16,7 @@ class okx extends Exchange {
             'name' => 'OKX',
             'countries' => array( 'CN', 'US' ),
             'version' => 'v5',
-            'rateLimit' => 100 * 1.03, // 3% tolerance because of #20229
+            'rateLimit' => 100 * 1.10, // 10% tolerance because of #26973
             'pro' => true,
             'certified' => true,
             'has' => array(
@@ -208,6 +208,7 @@ class okx extends Exchange {
                         'market/open-oracle' => 50,
                         'market/exchange-rate' => 20,
                         'market/index-components' => 1,
+                        'public/market-data-history' => 4,
                         'public/economic-calendar' => 50,
                         'market/block-tickers' => 1,
                         'market/block-ticker' => 1,
@@ -359,7 +360,7 @@ class okx extends Exchange {
                         'account/fixed-loan/borrowing-limit' => 4,
                         'account/fixed-loan/borrowing-quote' => 5,
                         'account/fixed-loan/borrowing-orders-list' => 5,
-                        'account/spot-manual-borrow-repay' => 10,
+                        'account/spot-manual-borrow-repay' => 30,
                         'account/set-auto-repay' => 4,
                         'account/spot-borrow-repay-history' => 4,
                         'account/move-positions-history' => 10,
@@ -501,6 +502,7 @@ class okx extends Exchange {
                         'account/fixed-loan/repay-borrowing-order' => 5,
                         'account/bills-history-archive' => 72000, // 12 req/day
                         'account/move-positions' => 10,
+                        'account/set-settle-currency' => 1,
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
@@ -658,7 +660,7 @@ class okx extends Exchange {
                     '51005' => '\\ccxt\\InvalidOrder', // Order amount exceeds the limit
                     '51006' => '\\ccxt\\InvalidOrder', // Order price out of the limit
                     '51007' => '\\ccxt\\InvalidOrder', // Order placement failed. Order amount should be at least 1 contract (showing up when placing an order with less than 1 contract)
-                    '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance
+                    '51008' => '\\ccxt\\InsufficientFunds', // Order placement failed due to insufficient balance or margin
                     '51009' => '\\ccxt\\AccountSuspended', // Order placement function is blocked by the platform
                     '51010' => '\\ccxt\\AccountNotEnabled', // Account level too low array("code":"1","data":[array("clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support this API interface. ","tag":"")],"msg":"Operation failed.")
                     '51011' => '\\ccxt\\InvalidOrder', // Duplicated order ID
@@ -683,6 +685,7 @@ class okx extends Exchange {
                     '51031' => '\\ccxt\\InvalidOrder', // This order price is not within the closing price range
                     '51046' => '\\ccxt\\InvalidOrder', // The take profit trigger price must be higher than the order price
                     '51047' => '\\ccxt\\InvalidOrder', // The stop loss trigger price must be lower than the order price
+                    '51051' => '\\ccxt\\InvalidOrder', // Your SL price should be lower than the primary order price
                     '51072' => '\\ccxt\\InvalidOrder', // As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073' => '\\ccxt\\InvalidOrder', // As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074' => '\\ccxt\\InvalidOrder', // Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
@@ -799,7 +802,7 @@ class okx extends Exchange {
                     '51410' => '\\ccxt\\CancelPending', // Cancellation failed order is already under cancelling status
                     '51500' => '\\ccxt\\ExchangeError', // Either order price or amount is required
                     '51501' => '\\ccxt\\ExchangeError', // Maximum {0} orders can be modified
-                    '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin
+                    '51502' => '\\ccxt\\InsufficientFunds', // Order modification failed for insufficient margin or balance
                     '51503' => '\\ccxt\\ExchangeError', // Order modification failed order does not exist
                     '51506' => '\\ccxt\\ExchangeError', // Order modification unavailable for the order type
                     '51508' => '\\ccxt\\ExchangeError', // Orders are not allowed to be modified during the call auction
@@ -823,6 +826,9 @@ class okx extends Exchange {
                     '54008' => '\\ccxt\\InvalidOrder', // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009' => '\\ccxt\\InvalidOrder', // The range of {param0} should be [{param1}, {param2}].
                     '54011' => '\\ccxt\\InvalidOrder', // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54072' => '\\ccxt\\ExchangeError', // This contract is currently view-only and not tradable.
+                    '54073' => '\\ccxt\\BadRequest', // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
+                    '54074' => '\\ccxt\\ExchangeError', // Your settings failed have positions, bot or open orders for USD contracts.
                     // Trading bot Error Code from 55100 to 55999
                     '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
                     '55101' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be within the range of {parameter1}-{parameter2}
@@ -928,6 +934,9 @@ class okx extends Exchange {
                     '59519' => '\\ccxt\\ExchangeError', // You can’t use this function/feature while it's frozen, due to => {freezereason}
                     '59642' => '\\ccxt\\BadRequest', // Lead and copy traders can only use margin-free or single-currency margin account modes
                     '59643' => '\\ccxt\\ExchangeError', // Couldn’t switch account modes’re currently copying spot trades
+                    '59683' => '\\ccxt\\ExchangeError', // Set this crypto collateral crypto before selecting it settlement currency.
+                    '59684' => '\\ccxt\\BadRequest', // Borrowing isn’t supported for this currency.
+                    '59686' => '\\ccxt\\BadRequest', // This crypto can’t be set settlement currency.
                     // WebSocket error Codes from 60000-63999
                     '60001' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_KEY" can not be empty
                     '60002' => '\\ccxt\\AuthenticationError', // "OK_ACCESS_SIGN" can not be empty
@@ -1215,7 +1224,7 @@ class okx extends Exchange {
                     'FUTURES' => 'FUTURES',
                     'OPTION' => 'OPTION',
                 ),
-                'brokerId' => 'e847386590ce4dBC',
+                'brokerId' => '6b9ad766b55dBCDE',
             ),
             'features' => array(
                 'default' => array(
@@ -1294,6 +1303,9 @@ class okx extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                 ),
                 'swap' => array(
                     'linear' => array(
@@ -1501,19 +1513,38 @@ class okx extends Exchange {
         //
         //     {
         //         "code" => "0",
-        //         "data" => array(
+        //         "data" => [
         //             {
         //                 "acctLv" => "2",
+        //                 "acctStpMode" => "cancel_maker",
         //                 "autoLoan" => false,
         //                 "ctIsoMode" => "automatic",
+        //                 "enableSpotBorrow" => false,
         //                 "greeksType" => "PA",
+        //                 "feeType" => "0",
+        //                 "ip" => "",
+        //                 "type" => "0",
+        //                 "kycLv" => "3",
+        //                 "label" => "v5 test",
         //                 "level" => "Lv1",
         //                 "levelTmp" => "",
+        //                 "liquidationGear" => "-1",
+        //                 "mainUid" => "44705892343619584",
         //                 "mgnIsoMode" => "automatic",
+        //                 "opAuth" => "1",
+        //                 "perm" => "read_only,withdraw,trade",
         //                 "posMode" => "long_short_mode",
-        //                 "uid" => "88018754289672195"
+        //                 "roleType" => "0",
+        //                 "spotBorrowAutoRepay" => false,
+        //                 "spotOffsetType" => "",
+        //                 "spotRoleType" => "0",
+        //                 "spotTraderInsts" => array(),
+        //                 "traderInsts" => array(),
+        //                 "uid" => "44705892343619584",
+        //                 "settleCcy" => "USDT",
+        //                 "settleCcyList" => ["USD", "USDC", "USDG"],
         //             }
-        //         ),
+        //         ],
         //         "msg" => ""
         //     }
         //
@@ -1796,7 +1827,7 @@ class okx extends Exchange {
         // and fallback to generating the currencies from the markets
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
         if (!$this->check_required_credentials(false) || $isSandboxMode) {
-            return null;
+            return array();
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -2425,6 +2456,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks-history
          * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks
          * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks-history
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-candlesticks-history
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -2433,6 +2465,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @param {string} [$params->type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -2447,6 +2480,7 @@ class okx extends Exchange {
         $params = $this->omit($params, 'price');
         $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $timezone = $this->safe_string($options, 'timezone', 'UTC');
+        $limitIsUndefined = ($limit === null);
         if ($limit === null) {
             $limit = 100; // default 100, max 100
         } else {
@@ -2470,7 +2504,8 @@ class okx extends Exchange {
             $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
             if ($since < $historyBorder) {
                 $defaultType = 'HistoryCandles';
-                $limit = min ($limit, 100); // max 100 for historical endpoint
+                $maxLimit = ($price !== null) ? 100 : 300;
+                $limit = min ($limit, $maxLimit); // max 300 for historical endpoint
             }
             $startTime = max ($since - 1, 0);
             $request['before'] = $startTime;
@@ -2501,6 +2536,10 @@ class okx extends Exchange {
             }
         } else {
             if ($isHistoryCandles) {
+                if ($limitIsUndefined && ($limit === 100)) {
+                    $limit = 300;
+                    $request['limit'] = 300; // reassign to 300, but this whole logic needs to be simplified...
+                }
                 $response = $this->publicGetMarketHistoryCandles ($this->extend($request, $params));
             } else {
                 $response = $this->publicGetMarketCandles ($this->extend($request, $params));
@@ -2849,10 +2888,10 @@ class okx extends Exchange {
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
+         * create a $market buy order by providing the $symbol and $cost
          *
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
          *
-         * create a $market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2872,10 +2911,10 @@ class okx extends Exchange {
 
     public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
+         * create a $market buy order by providing the $symbol and $cost
          *
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
          *
-         * create a $market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2938,6 +2977,8 @@ class okx extends Exchange {
         $takeProfitDefined = ($takeProfit !== null);
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callbackRatio');
         $isTrailingPercentOrder = $trailingPercent !== null;
+        $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
+        $isTrailingPriceOrder = $trailingPrice !== null;
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $isReduceOnly = $this->safe_value($params, 'reduceOnly', false);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
@@ -3044,14 +3085,19 @@ class okx extends Exchange {
             $convertedTrailingPercent = Precise::string_div($trailingPercent, '100');
             $request['callbackRatio'] = $convertedTrailingPercent;
             $request['ordType'] = 'move_order_stop';
+        } elseif ($isTrailingPriceOrder) {
+            $request['callbackSpread'] = $trailingPrice;
+            $request['ordType'] = 'move_order_stop';
         } elseif ($stopLossDefined || $takeProfitDefined) {
+            $attachAlgoOrd = array();
             if ($stopLossDefined) {
                 $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"], or $params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 $slTriggerPx = $this->price_to_precision($symbol, $stopLossTriggerPrice);
-                $request['slTriggerPx'] = $slTriggerPx;
+                $slOrder = array();
+                $slOrder['slTriggerPx'] = $slTriggerPx;
                 $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type');
                 if ($stopLossOrderType !== null) {
@@ -3063,30 +3109,32 @@ class okx extends Exchange {
                         if ($stopLossLimitPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["stopLoss"]["price"] or $params["stopLoss"]["slOrdPx"] for a stop loss limit order');
                         } else {
-                            $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
+                            $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice);
                         }
                     } elseif ($stopLossOrderType === 'market') {
-                        $request['slOrdPx'] = '-1';
+                        $slOrder['slOrdPx'] = '-1';
                     }
                 } elseif ($stopLossLimitPrice !== null) {
-                    $request['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
+                    $slOrder['slOrdPx'] = $this->price_to_precision($symbol, $stopLossLimitPrice); // limit sl order
                 } else {
-                    $request['slOrdPx'] = '-1'; // $market sl order
+                    $slOrder['slOrdPx'] = '-1'; // $market sl order
                 }
                 $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if ($stopLossTriggerPriceType !== null) {
                     if (($stopLossTriggerPriceType !== 'last') && ($stopLossTriggerPriceType !== 'index') && ($stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() stop loss $trigger $price $type must be one of "last", "index" or "mark"');
                     }
-                    $request['slTriggerPxType'] = $stopLossTriggerPriceType;
+                    $slOrder['slTriggerPxType'] = $stopLossTriggerPriceType;
                 }
+                $attachAlgoOrd = $this->extend($attachAlgoOrd, $slOrder);
             }
             if ($takeProfitDefined) {
                 $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
                 if ($takeProfitTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"], or $params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
-                $request['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
+                $tpOrder = array();
+                $tpOrder['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                 $takeProfitLimitPrice = $this->safe_value_n($takeProfit, array( 'price', 'takeProfitPrice', 'tpOrdPx' ));
                 $takeProfitOrderType = $this->safe_string_2($takeProfit, 'type', 'tpOrdKind');
                 if ($takeProfitOrderType !== null) {
@@ -3098,27 +3146,35 @@ class okx extends Exchange {
                         if ($takeProfitLimitPrice === null) {
                             throw new InvalidOrder($this->id . ' createOrder() requires a limit $price in $params["takeProfit"]["price"] or $params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         } else {
-                            $request['tpOrdKind'] = $takeProfitOrderType;
-                            $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
+                            $tpOrder['tpOrdKind'] = $takeProfitOrderType;
+                            $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice);
                         }
                     } elseif ($takeProfitOrderType === 'market') {
-                        $request['tpOrdPx'] = '-1';
+                        $tpOrder['tpOrdPx'] = '-1';
                     }
                 } elseif ($takeProfitLimitPrice !== null) {
-                    $request['tpOrdKind'] = 'limit';
-                    $request['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
+                    $tpOrder['tpOrdKind'] = 'limit';
+                    $tpOrder['tpOrdPx'] = $this->price_to_precision($symbol, $takeProfitLimitPrice); // limit tp order
                 } else {
-                    $request['tpOrdPx'] = '-1'; // $market tp order
+                    $tpOrder['tpOrdPx'] = '-1'; // $market tp order
                 }
                 $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if ($takeProfitTriggerPriceType !== null) {
                     if (($takeProfitTriggerPriceType !== 'last') && ($takeProfitTriggerPriceType !== 'index') && ($takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder($this->id . ' createOrder() take profit $trigger $price $type must be one of "last", "index" or "mark"');
                     }
-                    $request['tpTriggerPxType'] = $takeProfitTriggerPriceType;
+                    $tpOrder['tpTriggerPxType'] = $takeProfitTriggerPriceType;
                 }
+                $attachAlgoOrd = $this->extend($attachAlgoOrd, $tpOrder);
             }
-        } elseif ($trigger) {
+            $attachOrdKeys = is_array($attachAlgoOrd) ? array_keys($attachAlgoOrd) : array();
+            $attachOrdLen = count($attachOrdKeys);
+            if ($attachOrdLen > 0) {
+                $request['attachAlgoOrds'] = array( $attachAlgoOrd );
+            }
+        }
+        // algo order details
+        if ($trigger) {
             $request['ordType'] = 'trigger';
             $request['triggerPx'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['orderPx'] = $isMarketOrder ? '-1' : $this->price_to_precision($symbol, $price);
@@ -3561,10 +3617,17 @@ class okx extends Exchange {
             }
         } else {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
-                $request[] = array(
-                    'instId' => $market['id'],
-                    'clOrdId' => $clientOrderIds[$i],
-                );
+                if ($trailing || $trigger) {
+                    $request[] = array(
+                        'instId' => $market['id'],
+                        'algoClOrdId' => $clientOrderIds[$i],
+                    );
+                } else {
+                    $request[] = array(
+                        'instId' => $market['id'],
+                        'clOrdId' => $clientOrderIds[$i],
+                    );
+                }
             }
         }
         $response = null;
@@ -3640,7 +3703,11 @@ class okx extends Exchange {
             if ($isStopOrTrailing) {
                 $idKey = 'algoId';
             } elseif ($clientOrderId !== null) {
-                $idKey = 'clOrdId';
+                if ($isStopOrTrailing) {
+                    $idKey = 'algoClOrdId';
+                } else {
+                    $idKey = 'clOrdId';
+                }
             }
             $requestItem = array(
                 'instId' => $market['id'],
@@ -5178,7 +5245,7 @@ class okx extends Exchange {
         return $this->safe_dict($response, $first);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -6293,7 +6360,7 @@ class okx extends Exchange {
             $this->check_required_credentials();
             // inject id in implicit $api call
             if ($method === 'POST' && ($path === 'trade/batch-orders' || $path === 'trade/order-algo' || $path === 'trade/order')) {
-                $brokerId = $this->safe_string($this->options, 'brokerId', 'e847386590ce4dBC');
+                $brokerId = $this->safe_string($this->options, 'brokerId', '6b9ad766b55dBCDE');
                 if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
                     for ($i = 0; $i < count($params); $i++) {
                         $entry = $params[$i];
@@ -6659,7 +6726,7 @@ class okx extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

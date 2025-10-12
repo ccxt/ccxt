@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var coinmetro$1 = require('./abstract/coinmetro.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var Precise = require('./base/Precise.js');
  * @class coinmetro
  * @augments Exchange
  */
-class coinmetro extends coinmetro$1 {
+class coinmetro extends coinmetro$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'coinmetro',
@@ -563,6 +565,17 @@ class coinmetro extends coinmetro$1 {
                     }
                     break;
                 }
+            }
+        }
+        if (baseId === undefined || quoteId === undefined) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (marketId.endsWith('USDT')) {
+                baseId = marketId.replace('USDT', '');
+                quoteId = 'USDT';
+            }
+            if (marketId.endsWith('USD')) {
+                baseId = marketId.replace('USD', '');
+                quoteId = 'USD';
             }
         }
         const result = {
@@ -2020,4 +2033,4 @@ class coinmetro extends coinmetro$1 {
     }
 }
 
-module.exports = coinmetro;
+exports["default"] = coinmetro;

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var ellipx$1 = require('./abstract/ellipx.js');
 var errors = require('./base/errors.js');
 var ed25519 = require('./static_dependencies/noble-curves/ed25519.js');
@@ -14,7 +16,7 @@ var number = require('./base/functions/number.js');
  * @class ellipx
  * @augments Exchange
  */
-class ellipx extends ellipx$1 {
+class ellipx extends ellipx$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'ellipx',
@@ -2067,4 +2069,4 @@ class ellipx extends ellipx$1 {
     }
 }
 
-module.exports = ellipx;
+exports["default"] = ellipx;

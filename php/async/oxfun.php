@@ -269,7 +269,12 @@ class oxfun extends Exchange {
                         'leverage' => false,
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => false,
-                        'selfTradePrevention' => true, // todo
+                        'selfTradePrevention' => array(
+                            'EXPIRE_MAKER' => true,
+                            'EXPIRE_TAKER' => true,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => true,
+                        ),
                         'iceberg' => true, // todo
                     ),
                     'createOrders' => array(
@@ -2138,7 +2143,7 @@ class oxfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2341,7 +2346,7 @@ class oxfun extends Exchange {
              * @param {float} [$params->limitPrice] Limit $price for the STOP_LIMIT $order
              * @param {bool} [$params->postOnly] if true, the $order will only be posted if it will be a maker $order
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices $order to the best maker only $price if the specified $price were to lead to a taker trade)
-             * @param {string} [$params->selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here array(@link https://docs.ox.fun/?json#self-trade-prevention-modes)
+             * @param {string} [$params->selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here array(@link https://docs.ox.fun/?json#self-trade-prevention-modes)
              * @param {string} [$params->displayQuantity] for an iceberg $order, pass both quantity and displayQuantity fields in the $order $request
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
@@ -2533,7 +2538,7 @@ class oxfun extends Exchange {
          * @param {float} [$params->limitPrice] Limit $price for the STOP_LIMIT order
          * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
          * @param {string} [$params->timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only $price if the specified $price were to lead to a taker trade)
-         * @param {string} [$params->selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here array(@link https://docs.ox.fun/?json#self-trade-prevention-modes)
+         * @param {string} [$params->selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here array(@link https://docs.ox.fun/?json#self-trade-prevention-modes)
          * @param {string} [$params->displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order $request
          */
         $market = $this->market($symbol);
@@ -2572,6 +2577,11 @@ class oxfun extends Exchange {
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($postOnly && ($timeInForce !== 'MAKER_ONLY_REPRICE')) {
             $request['timeInForce'] = 'MAKER_ONLY';
+        }
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        if ($selfTradePrevention !== null) {
+            $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention);
         }
         return $this->extend($request, $params);
     }

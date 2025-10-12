@@ -79,7 +79,7 @@ public partial class modetrade : ccxt.modetrade
     {
         // the default id
         object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
-        if (isTrue(!isEqual(this.accountId, null)))
+        if (isTrue(isTrue(!isEqual(this.accountId, null)) && isTrue(!isEqual(this.accountId, ""))))
         {
             id = this.accountId;
         }
@@ -648,7 +648,7 @@ public partial class modetrade : ccxt.modetrade
         var client = this.client(url);
         object messageHash = "authenticated";
         object eventVar = "auth";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

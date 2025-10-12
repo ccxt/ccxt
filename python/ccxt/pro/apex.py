@@ -122,9 +122,10 @@ class apex(ccxt.async_support.apex):
         #                 "v": "0.001",
         #                 "p": "16578.50",
         #                 "L": "PlusTick",
-        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         #                 "BT": False
-        #             }
+        #             },
+        #             # sorted by newest first
         #         ]
         #     }
         #
@@ -140,8 +141,10 @@ class apex(ccxt.async_support.apex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        for j in range(0, len(trades)):
-            parsed = self.parse_ws_trade(trades[j], market)
+        length = len(trades)
+        for j in range(0, length):
+            index = length - j - 1
+            parsed = self.parse_ws_trade(trades[index], market)
             stored.append(parsed)
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
@@ -784,7 +787,7 @@ class apex(ccxt.async_support.apex):
         signature = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret)), hashlib.sha256, 'base64')
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             # auth sign
@@ -912,9 +915,10 @@ class apex(ccxt.async_support.apex):
             self.handle_authenticate(client, message)
 
     def ping(self, client: Client):
-        timeStamp = str(self.milliseconds())
+        timeStamp = self.milliseconds()
+        client.lastPong = timeStamp
         return {
-            'args': [timeStamp],
+            'args': [str(timeStamp)],
             'op': 'ping',
         }
 

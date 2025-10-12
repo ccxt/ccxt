@@ -1,6 +1,11 @@
 package base
 
+
 func TestLanguageSpecific() <- chan interface{} {
+	TestFutures()
+	TestStructs()
+
+    // ---------------------- TestThrottlerPerformance ----------------------
     ch := make(chan interface{})
     go func() interface{} {
         defer close(ch)
@@ -14,4 +19,6 @@ func TestLanguageSpecific() <- chan interface{} {
         return nil
     }()
     return ch
+    // ---------------------- TestThrottlerPerformance ----------------------
 }
+

@@ -85,7 +85,7 @@ class foxbit extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ba1435eb-1d59-4393-8de7-0db10a002fb3',
+                'logo' => 'https://github.com/user-attachments/assets/1f8faca2-ae2f-4222-b33e-5671e7d873dd',
                 'api' => array(
                     'public' => 'https://api.foxbit.com.br',
                     'private' => 'https://api.foxbit.com.br',
@@ -1587,7 +1587,7 @@ class foxbit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * Make a withdrawal.
@@ -1769,7 +1769,7 @@ class foxbit extends Exchange {
             'percentage' => $this->safe_string($rolling_24h, 'price_change_percent'),
             'average' => null,
             'baseVolume' => $this->safe_string($rolling_24h, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_string($rolling_24h, 'quote_volume'),
             'info' => $ticker,
         ), $market);
     }

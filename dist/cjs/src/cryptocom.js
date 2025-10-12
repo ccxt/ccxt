@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cryptocom$1 = require('./abstract/cryptocom.js');
 var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
@@ -11,7 +13,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class cryptocom
  * @augments Exchange
  */
-class cryptocom extends cryptocom$1 {
+class cryptocom extends cryptocom$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'cryptocom',
@@ -436,6 +438,9 @@ class cryptocom extends cryptocom$1 {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -530,13 +535,13 @@ class cryptocom extends cryptocom$1 {
     async fetchCurrencies(params = {}) {
         // this endpoint requires authentication
         if (!this.checkRequiredCredentials(false)) {
-            return undefined;
+            return {};
         }
         let skipFetchCurrencies = false;
         [skipFetchCurrencies, params] = this.handleOptionAndParams(params, 'fetchCurrencies', 'skipFetchCurrencies', false);
         if (skipFetchCurrencies) {
             // sub-accounts can't access this endpoint
-            return undefined;
+            return {};
         }
         let response = {};
         try {
@@ -546,7 +551,7 @@ class cryptocom extends cryptocom$1 {
             if (e instanceof errors.ExchangeError) {
                 // sub-accounts can't access this endpoint
                 // {"code":"10001","msg":"SYS_ERROR"}
-                return undefined;
+                return {};
             }
             throw e;
             // do nothing
@@ -3545,4 +3550,4 @@ class cryptocom extends cryptocom$1 {
     }
 }
 
-module.exports = cryptocom;
+exports["default"] = cryptocom;

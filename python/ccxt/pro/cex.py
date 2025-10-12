@@ -988,6 +988,7 @@ class cex(ccxt.async_support.cex):
         if incrementalId != storedOrderBook['nonce'] + 1:
             del client.subscriptions[messageHash]
             client.reject(self.id + ' watchOrderBook() skipped a message', messageHash)
+            return
         timestamp = self.safe_integer(data, 'time')
         asks = self.safe_value(data, 'asks', [])
         bids = self.safe_value(data, 'bids', [])
@@ -1456,7 +1457,7 @@ class cex(ccxt.async_support.cex):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()
@@ -1471,5 +1472,5 @@ class cex(ccxt.async_support.cex):
                     'timestamp': nonce,
                 },
             }
-            await self.watch(url, messageHash, self.extend(request, params), messageHash)
+            self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future

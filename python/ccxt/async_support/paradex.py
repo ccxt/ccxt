@@ -304,7 +304,7 @@ class paradex(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': None,  # add {"privateKey": A, "publicKey": B, "address": C}
+                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard(optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -1971,6 +1971,7 @@ class paradex(Exchange, ImplicitAPI):
             'contracts': None,
             'contractSize': None,
             'price': None,
+            'side': None,
             'baseValue': None,
             'quoteValue': None,
             'timestamp': timestamp,
@@ -2268,7 +2269,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(modes, mode, mode)
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

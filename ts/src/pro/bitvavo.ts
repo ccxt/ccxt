@@ -34,18 +34,18 @@ export default class bitvavo extends bitvavoRest {
                 'editOrderWs': true,
                 'fetchBalanceWs': true,
                 'fetchCurrenciesWS': true,
-                'fetchDepositAddressWs': true,
+                'fetchDepositAddressWs': false,
                 'fetchDepositsWs': true,
-                'fetchDepositWithdrawFeesWs': true,
+                'fetchDepositWithdrawFeesWs': false,
                 'fetchMyTradesWs': true,
                 'fetchOHLCVWs': true,
                 'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
-                'fetchOrderBookWs': true,
+                'fetchOrderBookWs': false,
                 'fetchOrdersWs': true,
-                'fetchTickerWs': true,
-                'fetchTickersWs': true,
-                'fetchTimeWs': true,
+                'fetchTickerWs': false,
+                'fetchTickersWs': false,
+                'fetchTimeWs': false,
                 'fetchTradingFeesWs': true,
                 'fetchWithdrawalsWs': true,
                 'withdrawWs': true,
@@ -673,7 +673,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
-        return await this.watchRequest ('privateCreateOrder', request);
+        return await this.watchRequest ('privateCreateOrder', request) as Order;
     }
 
     /**
@@ -711,7 +711,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const request = this.cancelOrderRequest (id, symbol, params);
-        return await this.watchRequest ('privateCancelOrder', request);
+        return await this.watchRequest ('privateCancelOrder', request) as Order;
     }
 
     /**
@@ -732,7 +732,7 @@ export default class bitvavo extends bitvavoRest {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        return await this.watchRequest ('privateCancelOrders', this.extend (request, params));
+        return await this.watchRequest ('privateCancelOrders', this.extend (request, params)) as Order[];
     }
 
     handleMultipleOrders (client: Client, message) {
@@ -907,7 +907,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdrawWs (code: string, amount, address, tag = undefined, params = {}) {
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
@@ -1407,7 +1407,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors (code, error, client.url, '', {}, error, message, {}, {});
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);

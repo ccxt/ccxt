@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitmart$1 = require('./abstract/bitmart.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
@@ -12,7 +14,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitmart
  * @augments Exchange
  */
-class bitmart extends bitmart$1 {
+class bitmart extends bitmart$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitmart',
@@ -5635,4 +5637,4 @@ class bitmart extends bitmart$1 {
     }
 }
 
-module.exports = bitmart;
+exports["default"] = bitmart;

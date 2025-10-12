@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var deribit$1 = require('./abstract/deribit.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
@@ -13,7 +15,7 @@ var totp = require('./base/functions/totp.js');
  * @class deribit
  * @augments Exchange
  */
-class deribit extends deribit$1 {
+class deribit extends deribit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'deribit',
@@ -2708,8 +2710,9 @@ class deribit extends deribit$1 {
             'notional': this.parseNumber(notionalStringAbs),
             'leverage': this.safeInteger(position, 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealizedPnl),
-            'contracts': undefined,
-            'contractSize': this.safeNumber(market, 'contractSize'),
+            'realizedPnl': this.safeNumber(position, 'realized_profit_loss'),
+            'contracts': this.safeNumber(position, 'size'),
+            'contractSize': this.safeNumber(position, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'estimated_liquidation_price'),
             'markPrice': this.safeNumber(position, 'mark_price'),
@@ -3786,4 +3789,4 @@ class deribit extends deribit$1 {
     }
 }
 
-module.exports = deribit;
+exports["default"] = deribit;

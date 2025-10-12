@@ -970,7 +970,7 @@ export default class oxfun extends oxfunRest {
             const method = this.safeString (message, 'event');
             const stringMsg = this.json (message);
             const code = this.safeInteger (message, 'code');
-            this.handleErrors (code, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors (code, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const data = this.safeValue (message, 'data', {});
         const order = this.parseOrder (data);
@@ -1043,14 +1043,14 @@ export default class oxfun extends oxfunRest {
             'dataArray': dataArray,
         };
         const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeDict (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();

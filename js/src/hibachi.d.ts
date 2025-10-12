@@ -17,15 +17,7 @@ export default class hibachi extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    /**
-     * @method
-     * @name hibachi#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    fetchCurrencies(params?: {}): Promise<Currencies>;
+    hardcodedCurrencies(): Currencies;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -182,7 +174,7 @@ export default class hibachi extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     nonce(): number;
     signMessage(message: any, privateKey: any): any;
     /**

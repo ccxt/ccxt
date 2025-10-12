@@ -1,11 +1,12 @@
 'use strict';
 
-require('../ccxt.js');
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var Precise = require('./base/Precise.js');
 var foxbit$1 = require('./abstract/foxbit.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var Precise = require('./base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -13,7 +14,7 @@ var Precise = require('./base/Precise.js');
  * @class foxbit
  * @augments Exchange
  */
-class foxbit extends foxbit$1 {
+class foxbit extends foxbit$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'foxbit',
@@ -83,7 +84,7 @@ class foxbit extends foxbit$1 {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/ba1435eb-1d59-4393-8de7-0db10a002fb3',
+                'logo': 'https://github.com/user-attachments/assets/1f8faca2-ae2f-4222-b33e-5671e7d873dd',
                 'api': {
                     'public': 'https://api.foxbit.com.br',
                     'private': 'https://api.foxbit.com.br',
@@ -1684,7 +1685,7 @@ class foxbit extends foxbit$1 {
             'percentage': this.safeString(rolling_24h, 'price_change_percent'),
             'average': undefined,
             'baseVolume': this.safeString(rolling_24h, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString(rolling_24h, 'quote_volume'),
             'info': ticker,
         }, market);
     }
@@ -2013,4 +2014,4 @@ class foxbit extends foxbit$1 {
     }
 }
 
-module.exports = foxbit;
+exports["default"] = foxbit;

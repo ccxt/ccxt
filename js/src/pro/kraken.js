@@ -70,6 +70,7 @@ export default class kraken extends krakenRest {
                     'broad': {
                         'Already subscribed': BadRequest,
                         'Currency pair not in ISO 4217-A3 format': BadSymbol,
+                        'Currency pair not supported': BadSymbol,
                         'Malformed request': BadRequest,
                         'Pair field must be an array': BadRequest,
                         'Pair field unsupported for this subscription type': BadRequest,
@@ -298,7 +299,7 @@ export default class kraken extends krakenRest {
         const market = this.market(symbol);
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         let request = {
             'method': 'add_order',
             'params': {
@@ -342,7 +343,7 @@ export default class kraken extends krakenRest {
         //
         const result = this.safeDict(message, 'result', {});
         const order = this.parseOrder(result);
-        const messageHash = this.safeValue2(message, 'reqid', 'req_id');
+        const messageHash = this.safeString2(message, 'reqid', 'req_id');
         client.resolve(order, messageHash);
     }
     /**
@@ -364,7 +365,7 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         let request = {
             'method': 'amend_order',
             'params': {
@@ -395,7 +396,7 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         const request = {
             'method': 'cancel_order',
             'params': {
@@ -424,7 +425,7 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         const request = {
             'method': 'cancel_order',
             'params': {
@@ -448,7 +449,7 @@ export default class kraken extends krakenRest {
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        const reqId = this.safeValue(message, 'req_id');
+        const reqId = this.safeString(message, 'req_id');
         client.resolve(message, reqId);
     }
     /**
@@ -468,7 +469,7 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
-        const messageHash = requestId;
+        const messageHash = this.numberToString(requestId);
         const request = {
             'method': 'cancel_all',
             'params': {
@@ -491,7 +492,7 @@ export default class kraken extends krakenRest {
         //         "time_out": "2023-09-21T14:36:57.437952Z"
         //     }
         //
-        const reqId = this.safeValue(message, 'req_id');
+        const reqId = this.safeString(message, 'req_id');
         client.resolve(message, reqId);
     }
     handleTicker(client, message) {
@@ -1709,7 +1710,7 @@ export default class kraken extends krakenRest {
         //
         const errorMessage = this.safeString2(message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
-            // const requestId = this.safeValue2 (message, 'reqid', 'req_id');
+            const requestId = this.safeString2(message, 'reqid', 'req_id');
             const broad = this.exceptions['ws']['broad'];
             const broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             let exception = undefined;
@@ -1719,11 +1720,9 @@ export default class kraken extends krakenRest {
             else {
                 exception = new broad[broadKey](errorMessage);
             }
-            // if (requestId !== undefined) {
-            //     client.reject (exception, requestId);
-            // } else {
-            client.reject(exception);
-            // }
+            if (requestId !== undefined) {
+                client.reject(exception, requestId);
+            }
             return false;
         }
         return true;

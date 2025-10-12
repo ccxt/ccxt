@@ -1,0 +1,844 @@
+{
+    "exchange": "toobit",
+    "skipKeys": [],
+    "methods": {
+        "cancelOrders": [
+            {
+                "disabled": true,
+                "description": "cancelOrders type perp (disabled bcz of timestamp in url)",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/futures/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037127702314513408"
+                    ],
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "ids=2037127702314513408&recvWindow=5000&timestamp=1757622450113&signature=c972f36f60f40f24cb3d6705ad9ee96cb9de27a7225a7a0dbd9446a5f8f319e2"
+            },
+            {
+                "disabled": true,
+                "description": "cancelOrders type spot (disabled bcz of timestamp in url)",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/spot/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037173542953448448"
+                    ],
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "ids=2037173542953448448&recvWindow=5000&timestamp=1757622440190&signature=cab94dcd49cf528aa65f9aece08fb4715e96d91b884fbfd1d3258d87f90627b4"
+            },
+            {
+                "disabled": true,
+                "description": "cancelOrders symbol perp (disabled bcz of timestamp in url)",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/futures/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037127702314513408"
+                    ],
+                    "ETH/USDT:USDT"
+                ],
+                "output": "ids=2037127702314513408&symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757622432014&signature=5eec0bdf6560547ef65a921b93f8925274d8cfa8f3d4f1f5d0f70edc4b0d62ea"
+            },
+            {
+                "disabled": true,
+                "description": "cancelOrders symbol spot (disabled bcz of timestamp in url)",
+                "method": "cancelOrders",
+                "url": "https://api.toobit.com/api/v1/spot/cancelOrderByIds",
+                "input": [
+                    [
+                        "2037173542953448448"
+                    ],
+                    "ETH/USDT"
+                ],
+                "output": "ids=2037173542953448448&symbol=ETHUSDT&recvWindow=5000&timestamp=1757622423710&signature=672dcc9d2e2af39ef62102f6630a823980f3e7a6295b442fa9737c7096e84439"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "disabled": true,
+                "description": "cancelOrder symbol perp (disabled bcz of timestamp in url)",
+                "method": "cancelOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "2037458701057622272",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "orderId=2037458701057622272&recvWindow=5000&timestamp=1757623009123&signature=39908f71b1536972d40a82bc5194aeed2fa225cafcbc7b76be9bac0723d2cd2a"
+            },
+            {
+                "disabled": true,
+                "description": "cancelOrder symbol spot (disabled bcz of timestamp in url)",
+                "method": "cancelOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "2037173542953448448",
+                    "ETH/USDT"
+                ],
+                "output": "orderId=2037173542953448448&recvWindow=5000&timestamp=1757586505225&signature=cbdc7f40f081ca203dd963191ea8e4587ab9262390e8d94df4efc45b9142410a"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "disabled": true,
+                "description": "fetchMyTrades symbol perp (disabled bcz of timestamp in url)",
+                "method": "fetchMyTrades",
+                "url": "https://api.toobit.com/api/v1/futures/userTrades?symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757586403376&signature=5ef63bdf8b46a08dd99f0b171225329fe1a84e4110181974cdd18d9f5a0c0359",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchMyTrades symbol spot (disabled bcz of timestamp in url)",
+                "method": "fetchMyTrades",
+                "url": "https://api.toobit.com/api/v1/account/trades?symbol=ETHUSDT&recvWindow=5000&timestamp=1757586394745&signature=370e37e11cc546d6d0a3e08edde1693b0252ee00fc5cce9e01e449276fce2e14",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "disabled": true,
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.toobit.com/api/v1/account/deposit/address?coin=BTC&chainType=BTC&recvWindow=5000&timestamp=1757567774020&signature=dae890a3004f89a05ae8a9e00299bd1747c04d6c5519e2ebd60f447b5e8887ef",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchDepositAddress ETH on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.toobit.com/api/v1/account/deposit/address?coin=ETH&chainType=ETH&recvWindow=5000&timestamp=1757567765468&signature=975609932e29cade97647e4cfae0ff5cd3d3e6462b265d7b793a35592a964076",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.toobit.com/api/v1/account/deposit/address?coin=ETH&chainType=ETH&recvWindow=5000&timestamp=1757567756680&signature=3f008950fedc605c0b59a0c7bff4c8908f236376d73d7f206523a24ed477ea59",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.toobit.com/api/v1/account/deposit/address?coin=USDT&chainType=ETH&recvWindow=5000&timestamp=1757567747590&signature=a75fe81b9d40e26a88ed14651041a2e6a55641be2e846e878177131ffc123f79",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.toobit.com/api/v1/account/deposit/address?coin=USDT&chainType=ETH&recvWindow=5000&timestamp=1757567737305&signature=4aeb08822fec4ab8ca9ff32e5dc4d1753fdebe50d7b46043d95063fb03f15a4e",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "disabled": true,
+                "description": "fetchPositions with symbols",
+                "method": "fetchPositions",
+                "url": "https://api.toobit.com/api/v1/futures/positions?symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757586636381&signature=7e67ba94cce78a937a2ba6a295082c8e1a7bff953fd210c20c0559eae13d908b",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchPositions no args",
+                "method": "fetchPositions",
+                "url": "https://api.toobit.com/api/v1/futures/positions?recvWindow=5000&timestamp=1757566842653&signature=a2dbb45f949c43aa37d316d24fde458726cea10ce0d3dda83af9bda65b60426d",
+                "input": [],
+                "output": null
+            }
+        ],
+        "setLeverage": [
+            {
+                "disabled": true,
+                "description": "setLeverage 3x",
+                "method": "setLeverage",
+                "url": "https://api.toobit.com/api/v1/futures/leverage",
+                "input": [
+                    3,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTC-SWAP-USDT&leverage=3&recvWindow=5000&timestamp=1757566834222&signature=7dfe29e2079c79fd8804cc49df9f7a3de45562ca39c181372d1509c17e712ff8"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "disabled": true,
+                "description": "fetchOpenOrders symbol perp",
+                "method": "fetchOpenOrders",
+                "url": "https://api.toobit.com/api/v1/futures/openOrders?symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757619841633&signature=ff44b1304fc7f9a84b6977ca21ac39be1666b69336e76df11d2c7bd7429b432e",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchOpenOrders symbol spot",
+                "method": "fetchOpenOrders",
+                "url": "https://api.toobit.com/api/v1/spot/openOrders?symbol=ETHUSDT&recvWindow=5000&timestamp=1757619823899&signature=1abf0f69d75bb6b886dbcafdd0dd3cd672d9ebeb2237e77f342d9040d27c4dd7",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchOpenOrders symbol spot",
+                "method": "fetchOpenOrders",
+                "url": "https://api.toobit.com/api/v1/spot/openOrders?symbol=BTCUSDT&recvWindow=5000&timestamp=1757566753921&signature=dee658743b3b9c3c762ec4aa2cdf091d7ccace5e5d7a76a013b5155fe2d92ca8",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchOpenOrders no args",
+                "method": "fetchOpenOrders",
+                "url": "https://api.toobit.com/api/v1/spot/openOrders?recvWindow=5000&timestamp=1757566745892&signature=e3e4df8cabb0ab91f045e2d2000826406d38f7ddd4628b2a315fa4d3a7243f26",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "disabled": true,
+                "description": "fetchOrders symbol spot",
+                "method": "fetchOrders",
+                "url": "https://api.toobit.com/api/v1/spot/tradeOrders?symbol=BTCUSDT&recvWindow=5000&timestamp=1757566708192&signature=fee0075b31a5a7ab0dfc242c33911cac3d90b648761257c03ebf8b75950857b8",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchOrders no args",
+                "method": "fetchOrders",
+                "url": "https://api.toobit.com/api/v1/spot/tradeOrders?recvWindow=5000&timestamp=1757566700296&signature=3030e06da62a6ac6bca6a392135d2fadd5adf6b4d3fb211325a77a61806644e8",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "disabled": true,
+                "description": "fetchWithdrawals with currency",
+                "method": "fetchWithdrawals",
+                "url": "https://api.toobit.com/api/v1/account/withdrawOrders?coin=USDT&recvWindow=5000&timestamp=1757566663096&signature=2966a7ad2aed3b9623a94fcdf7eb29ce0ce4a51d47c7fd078c8aeabc231eb72b",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchWithdrawals no args",
+                "method": "fetchWithdrawals",
+                "url": "https://api.toobit.com/api/v1/account/withdrawOrders?recvWindow=5000&timestamp=1757566655137&signature=3e7049f40a938bf4b7fd3cbaef88ea3344211d639858572d49385a2baaa50ee7",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "disabled": true,
+                "description": "fetchDeposits with currency",
+                "method": "fetchDeposits",
+                "url": "https://api.toobit.com/api/v1/account/depositOrders?coin=USDT&recvWindow=5000&timestamp=1757566632627&signature=1d622ecd043810a4f9f00f479ca2cfe0b2f2acdc5bc8bffe88e56076a117007e",
+                "input": [
+                    "USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchDeposits no args",
+                "method": "fetchDeposits",
+                "url": "https://api.toobit.com/api/v1/account/depositOrders?recvWindow=5000&timestamp=1757566625156&signature=4bcbd07b02d876e194c58b9f8954b70e6b64d9aadad078e389a66c9b8d4f7d0c",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "disabled": true,
+                "description": "fetchClosedOrders symbol perp",
+                "method": "fetchClosedOrders",
+                "url": "https://api.toobit.com/api/v1/futures/historyOrders?symbol=BTC-SWAP-USDT&recvWindow=5000&timestamp=1757566506477&signature=a3c93cc9ea08b36a70caa4aad3f835446576980b66ff46a207f3eda5847e97de",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "disabled": true,
+                "description": "fetchBalance no args",
+                "method": "fetchBalance",
+                "url": "https://api.toobit.com/api/v1/account?recvWindow=5000&timestamp=1757586327504&signature=1585fa5875edf21ebace929266a4aec5fa3825b9d9fcd7d4e22b5951e1cc6229",
+                "input": [],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchBalance type spot",
+                "method": "fetchBalance",
+                "url": "https://api.toobit.com/api/v1/account?recvWindow=5000&timestamp=1757584959171&signature=b554c9d862c7f28b50e518788d65dfc13c26f76a6d67feae27f514f75a3e4e92",
+                "input": [
+                    "{type:\\\"spot\\\"}"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchBalance type perp",
+                "method": "fetchBalance",
+                "url": "https://api.toobit.com/api/v1/futures/balance?recvWindow=5000&timestamp=1757566484080&signature=0e21998f9c0151b3f84f3ac43b906e36d2ee01f4eaf36eb1831492d7ea509a82",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "disabled": true,
+                "description": "cancelAllOrders symbol perp",
+                "method": "cancelAllOrders",
+                "url": "https://api.toobit.com/api/v1/futures/batchOrders",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": "symbol=ETH-SWAP-USDT&recvWindow=5000&timestamp=1757586495195&signature=cd3cb2b046c2161e5acff00f5c339f9209134c723b386ba474ec661586e3cdb8"
+            },
+            {
+                "disabled": true,
+                "description": "cancelAllOrders symbol spot",
+                "method": "cancelAllOrders",
+                "url": "https://api.toobit.com/api/v1/spot/openOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "recvWindow=5000&timestamp=1757566374569&signature=e9c2d21edd8222f7483c1367eae005946be69469213e4b58b16c8cfb4dd87885"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "disabled": true,
+                "description": "fetchOrder symbol spot",
+                "method": "fetchOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order?orderId=2037173542953448448&recvWindow=5000&timestamp=1757586450618&signature=f9c13f3a2f9ba615b8e96376408ef027cbcff40edcbc209648cdb672e6f340e9",
+                "input": [
+                    "2037173542953448448",
+                    "ETH/USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "fetchOrder symbol perp",
+                "method": "fetchOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order?orderId=2037002207614807296&recvWindow=5000&timestamp=1757567872734&signature=6f99d214cfc33088ab30e7847f9aaef2fad7f57c18738060434191fc7aa831af",
+                "input": [
+                    "2037002207614807296",
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "disabled": true,
+                "description": "symbol spot",
+                "method": "fetchOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order?orderId=2036967690002858240&recvWindow=5000&timestamp=1757561675258&signature=1f6ce68f15e2e45de2a71a8d4d9db91ac546041aefe91def72604375a6dd861f",
+                "input": [
+                    "2036967690002858240",
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "disabled": true,
+                "description": "createOrder perp sell limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    7234
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=7234&side=SELL_OPEN&type=LIMIT&newClientOrderId=177e1c59-2dc9-4287-86be-f86264c6c76c&recvWindow=5000&timestamp=1757622368443&signature=eb246a10f4578910202c11412d32aded4a324f02c4572748c8f951bc323bea8a"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder perp buy market",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "buy",
+                    1
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&side=BUY_OPEN&type=LIMIT&priceType=MARKET&newClientOrderId=95304ae6-10a6-4b60-81f2-48f94dcb290c&recvWindow=5000&timestamp=1757621429647&signature=9c6dfed6ed946cba87344f89439569db3890311ec440bbe4d28797dd01cdc3bb"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder spot buy market",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    null,
+                    null,
+                    {
+                        "cost": 5
+                    }
+                ],
+                "output": "symbol=ETHUSDT&side=BUY&quantity=5&type=MARKET&recvWindow=5000&timestamp=1757621240280&signature=5d36bc9820868372f18e7f1aca35c56faa3d4fdec28e5a60ec7cd632013821d1"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder perp buy limit with triggerPrice",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234,
+                    {
+                        "triggerPrice": 1434
+                    }
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_OPEN&type=LIMIT&stopPrice=1434&newClientOrderId=2ed3f1ad-ed45-43c5-8c85-1a23c574f4a5&recvWindow=5000&timestamp=1757620041611&signature=0af4cd4c75da5f646d31c9af6172a4e9fe7c669c0fed992efd62395fc5f3c5d9"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder perp buy limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/futures/order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    1234
+                ],
+                "output": "symbol=ETH-SWAP-USDT&quantity=1&price=1234&side=BUY_OPEN&type=LIMIT&newClientOrderId=2487475c-1f0b-4543-be20-643cfe28eae6&recvWindow=5000&timestamp=1757620003849&signature=8c9d2e52380e4b2a0955c0ecc1c2814d8d5d47c0551d859424a0b379a6dfebd5"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder spot sell limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "sell",
+                    0.01,
+                    8234
+                ],
+                "output": "symbol=ETHUSDT&side=SELL&quantity=0.01&price=8234&type=LIMIT&recvWindow=5000&timestamp=1757619794776&signature=c7010788706313dc1cd15298db718cc147d48115bed9880f9f31a540c5e4c213"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder spot buy limit",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.005,
+                    1234
+                ],
+                "output": "symbol=ETHUSDT&side=BUY&quantity=0.005&price=1234&type=LIMIT&recvWindow=5000&timestamp=1757588577501&signature=b0ea6a396ba5afcc050ca6a5b0efa650c6f8fd1937bef5dfd7abb9419ca8f4b8"
+            },
+            {
+                "disabled": true,
+                "description": "createOrder spot sell market",
+                "method": "createOrder",
+                "url": "https://api.toobit.com/api/v1/spot/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "output": "symbol=ETHUSDT&side=SELL&quantity=0.001&type=MARKET&recvWindow=5000&timestamp=1757586671089&signature=7ae3a5a3e77f4a441d4dc3f9272fcb5b88698b0d340123185b74bc97a44b6391"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker symbol perp",
+                "method": "fetchTicker",
+                "url": "https://api.toobit.com/quote/v1/contract/ticker/24hr?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTicker symbol spot",
+                "method": "fetchTicker",
+                "url": "https://api.toobit.com/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetchBidsAsks symbol perp",
+                "method": "fetchBidsAsks",
+                "url": "https://api.toobit.com/quote/v1/ticker/bookTicker?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchBidsAsks symbol spot",
+                "method": "fetchBidsAsks",
+                "url": "https://api.toobit.com/quote/v1/ticker/bookTicker?symbol=BTCUSDT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchBidsAsks no args",
+                "method": "fetchBidsAsks",
+                "url": "https://api.toobit.com/quote/v1/ticker/bookTicker",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates perp symbol",
+                "method": "fetchFundingRates",
+                "url": "https://api.toobit.com/api/v1/futures/fundingRate?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchFundingRates no args",
+                "method": "fetchFundingRates",
+                "url": "https://api.toobit.com/api/v1/futures/fundingRate",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory perp symbol",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.toobit.com/api/v1/futures/historyFundingRate?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers symbol perp",
+                "method": "fetchTickers",
+                "url": "https://api.toobit.com/quote/v1/contract/ticker/24hr?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTickers symbol spot",
+                "method": "fetchTickers",
+                "url": "https://api.toobit.com/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTickers no args",
+                "method": "fetchTickers",
+                "url": "https://api.toobit.com/quote/v1/ticker/24hr",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetchLastPrices symbol swap",
+                "method": "fetchLastPrices",
+                "url": "https://api.toobit.com/quote/v1/ticker/price?symbol=BTC-SWAP-USDT",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLastPrices symbol spot",
+                "method": "fetchLastPrices",
+                "url": "https://api.toobit.com/quote/v1/ticker/price?symbol=BTCUSDT",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLastPrices no args",
+                "method": "fetchLastPrices",
+                "url": "https://api.toobit.com/quote/v1/ticker/price",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades symbol spot",
+                "method": "fetchTrades",
+                "url": "https://api.toobit.com/quote/v1/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTrades symbol perp",
+                "method": "fetchTrades",
+                "url": "https://api.toobit.com/quote/v1/trades?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook spot + limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.toobit.com/quote/v1/depth?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook perp + limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.toobit.com/quote/v1/depth?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.toobit.com/quote/v1/depth?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOrderBook perp",
+                "method": "fetchOrderBook",
+                "url": "https://api.toobit.com/quote/v1/depth?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1d perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTC-SWAP-USDT&interval=1d",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1d"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1d spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTCUSDT&interval=1d",
+                "input": [
+                    "BTC/USDT",
+                    "1d"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1m perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTC-SWAP-USDT&interval=1m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1h spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTCUSDT&interval=1h",
+                "input": [
+                    "BTC/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1m spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTCUSDT&interval=1m",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV 1h perp",
+                "method": "fetchOHLCV",
+                "url": "https://api.toobit.com/quote/v1/klines?symbol=BTC-SWAP-USDT&interval=1h",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate with symbol",
+                "method": "fetchFundingRate",
+                "url": "https://api.toobit.com/api/v1/futures/fundingRate?symbol=BTC-SWAP-USDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets no args",
+                "method": "fetchMarkets",
+                "url": "https://api.toobit.com/api/v1/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies no args",
+                "method": "fetchCurrencies",
+                "url": "https://api.toobit.com/api/v1/exchangeInfo",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime no args",
+                "method": "fetchTime",
+                "url": "https://api.toobit.com/api/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus no args",
+                "method": "fetchStatus",
+                "url": "https://api.toobit.com/api/v1/ping",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var independentreserve$1 = require('./abstract/independentreserve.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var errors = require('./base/errors.js');
  * @class independentreserve
  * @augments Exchange
  */
-class independentreserve extends independentreserve$1 {
+class independentreserve extends independentreserve$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'independentreserve',
@@ -50,6 +52,7 @@ class independentreserve extends independentreserve$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -1111,4 +1114,4 @@ class independentreserve extends independentreserve$1 {
     }
 }
 
-module.exports = independentreserve;
+exports["default"] = independentreserve;

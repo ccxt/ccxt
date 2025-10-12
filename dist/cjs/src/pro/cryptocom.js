@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var cryptocom$1 = require('../cryptocom.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class cryptocom extends cryptocom$1 {
+class cryptocom extends cryptocom$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -1353,7 +1355,7 @@ class cryptocom extends cryptocom$1 {
         const url = this.urls['api']['ws']['private'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const method = 'public/auth';
@@ -1410,4 +1412,4 @@ class cryptocom extends cryptocom$1 {
     }
 }
 
-module.exports = cryptocom;
+exports["default"] = cryptocom;

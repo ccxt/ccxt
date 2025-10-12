@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitbank$1 = require('./abstract/bitbank.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class bitbank
  * @augments Exchange
  */
-class bitbank extends bitbank$1 {
+class bitbank extends bitbank$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitbank',
@@ -46,6 +48,7 @@ class bitbank extends bitbank$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -934,7 +937,7 @@ class bitbank extends bitbank$1 {
         const address = this.safeString(firstAccount, 'address');
         return {
             'info': response,
-            'currency': currency,
+            'currency': currency['code'],
             'network': undefined,
             'address': address,
             'tag': undefined,
@@ -1142,4 +1145,4 @@ class bitbank extends bitbank$1 {
     }
 }
 
-module.exports = bitbank;
+exports["default"] = bitbank;

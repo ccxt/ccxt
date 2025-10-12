@@ -68,7 +68,7 @@ class hibachi(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchConvertCurrencies': False,
                 'fetchConvertQuote': False,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
@@ -188,6 +188,7 @@ class hibachi(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.00045'),
                 },
             },
+            'currencies': self.hardcoded_currencies(),
             'options': {
             },
             'features': {
@@ -374,15 +375,7 @@ class hibachi(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'futureContracts')
         return self.parse_markets(rows)
 
-    def fetch_currencies(self, params={}) -> Currencies:
-        """
-        fetches all available currencies on an exchange
-
-        https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an associative dictionary of currencies
-        """
+    def hardcoded_currencies(self) -> Currencies:
         # Hibachi only supports USDT on Arbitrum at self time
         # We don't have an API endpoint to expose self information yet
         result: dict = {}
@@ -1148,7 +1141,7 @@ class hibachi(Exchange, ImplicitAPI):
         message = self.binary_concat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
         return message
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -1561,7 +1554,7 @@ class hibachi(Exchange, ImplicitAPI):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
-        headers = {}
+        headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}
         if method == 'GET':
             request = self.omit(params, self.extract_params(path))
             query = self.urlencode(request)

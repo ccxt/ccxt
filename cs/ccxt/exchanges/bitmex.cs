@@ -3258,6 +3258,7 @@ public partial class bitmex : Exchange
             { "contracts", null },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "price") },
+            { "side", this.safeStringLower(liquidation, "side") },
             { "baseValue", null },
             { "quoteValue", null },
             { "timestamp", null },

@@ -2338,34 +2338,44 @@ public partial class coinbase : Exchange
         // fetchTickersV3
         //
         //     [
-        //         {
-        //             "product_id": "TONE-USD",
-        //             "price": "0.01523",
-        //             "price_percentage_change_24h": "1.94109772423025",
-        //             "volume_24h": "19773129",
-        //             "volume_percentage_change_24h": "437.0170530929949",
-        //             "base_increment": "1",
-        //             "quote_increment": "0.00001",
-        //             "quote_min_size": "1",
-        //             "quote_max_size": "10000000",
-        //             "base_min_size": "26.7187147229469674",
-        //             "base_max_size": "267187147.2294696735908216",
-        //             "base_name": "TE-FOOD",
-        //             "quote_name": "US Dollar",
-        //             "watched": false,
-        //             "is_disabled": false,
-        //             "new": false,
-        //             "status": "online",
-        //             "cancel_only": false,
-        //             "limit_only": false,
-        //             "post_only": false,
-        //             "trading_disabled": false,
-        //             "auction_mode": false,
-        //             "product_type": "SPOT",
-        //             "quote_currency_id": "USD",
-        //             "base_currency_id": "TONE",
-        //             "fcm_trading_session_details": null,
-        //             "mid_market_price": ""
+        //        {
+        //            "product_id": "ETH-USD",
+        //            "price": "4471.59",
+        //            "price_percentage_change_24h": "0.14243387238731",
+        //            "volume_24h": "87329.92990204",
+        //            "volume_percentage_change_24h": "-60.7789801794578",
+        //            "base_increment": "0.00000001",
+        //            "quote_increment": "0.01",
+        //            "quote_min_size": "1",
+        //            "quote_max_size": "150000000",
+        //            "base_min_size": "0.00000001",
+        //            "base_max_size": "42000",
+        //            "base_name": "Ethereum",
+        //            "quote_name": "US Dollar",
+        //            "watched": false,
+        //            "is_disabled": false,
+        //            "new": false,
+        //            "status": "online",
+        //            "cancel_only": false,
+        //            "limit_only": false,
+        //            "post_only": false,
+        //            "trading_disabled": false,
+        //            "auction_mode": false,
+        //            "product_type": "SPOT",
+        //            "quote_currency_id": "USD",
+        //            "base_currency_id": "ETH",
+        //            "fcm_trading_session_details": null,
+        //            "mid_market_price": "",
+        //            "alias": "",
+        //            "alias_to": [ "ETH-USDC" ],
+        //            "base_display_symbol": "ETH",
+        //            "quote_display_symbol": "USD",
+        //            "view_only": false,
+        //            "price_increment": "0.01",
+        //            "display_name": "ETH-USD",
+        //            "product_venue": "CBE",
+        //            "approximate_quote_24h_volume": "390503641.25",
+        //            "new_at": "2023-01-01T00:00:00Z"
         //         },
         //         ...
         //     ]
@@ -2397,10 +2407,12 @@ public partial class coinbase : Exchange
         {
             object bids = this.safeList(ticker, "bids", new List<object>() {});
             object asks = this.safeList(ticker, "asks", new List<object>() {});
-            bid = this.safeNumber(getValue(bids, 0), "price");
-            bidVolume = this.safeNumber(getValue(bids, 0), "size");
-            ask = this.safeNumber(getValue(asks, 0), "price");
-            askVolume = this.safeNumber(getValue(asks, 0), "size");
+            object firstBid = this.safeDict(bids, 0, new Dictionary<string, object>() {});
+            object firstAsk = this.safeDict(asks, 0, new Dictionary<string, object>() {});
+            bid = this.safeNumber(firstBid, "price");
+            bidVolume = this.safeNumber(firstBid, "size");
+            ask = this.safeNumber(firstAsk, "price");
+            askVolume = this.safeNumber(firstAsk, "size");
         }
         object marketId = this.safeString(ticker, "product_id");
         market = this.safeMarket(marketId, market);
@@ -2424,8 +2436,8 @@ public partial class coinbase : Exchange
             { "change", null },
             { "percentage", this.safeNumber(ticker, "price_percentage_change_24h") },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", null },
+            { "baseVolume", this.safeNumber(ticker, "volume_24h") },
+            { "quoteVolume", this.safeNumber(ticker, "approximate_quote_24h_volume") },
             { "info", ticker },
         }, market);
     }
@@ -3052,7 +3064,7 @@ public partial class coinbase : Exchange
             accountId = await this.findAccountId(code, parameters);
             if (isTrue(isEqual(accountId, null)))
             {
-                throw new ExchangeError ((string)add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code)) ;
+                throw new ExchangeError ((string)add(add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code), ". You might try to generate the deposit address in the website for that coin first.")) ;
             }
         }
         object request = new Dictionary<string, object>() {
@@ -5379,9 +5391,11 @@ public partial class coinbase : Exchange
         return parsedPositions;
     }
 
-    public virtual object createAuthToken(object seconds, object method = null, object url = null)
+    public virtual object createAuthToken(object seconds, object method = null, object url = null, object useEddsa = null)
     {
-        // it may not work for v2
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
+        useEddsa ??= false;
         object uri = null;
         if (isTrue(!isEqual(url, null)))
         {
@@ -5394,10 +5408,13 @@ public partial class coinbase : Exchange
                 uri = slice(uri, 0, quesPos);
             }
         }
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         object nonce = this.randomBytes(16);
+        object aud = ((bool) isTrue(useEddsa)) ? "cdp_service" : "retail_rest_api_proxy";
+        object iss = ((bool) isTrue(useEddsa)) ? "cdp" : "coinbase-cloud";
         object request = new Dictionary<string, object>() {
-            { "aud", new List<object>() {"retail_rest_api_proxy"} },
-            { "iss", "coinbase-cloud" },
+            { "aud", new List<object>() {aud} },
+            { "iss", iss },
             { "nbf", seconds },
             { "exp", add(seconds, 120) },
             { "sub", this.apiKey },
@@ -5405,14 +5422,32 @@ public partial class coinbase : Exchange
         };
         if (isTrue(!isEqual(uri, null)))
         {
-            ((IDictionary<string,object>)request)["uri"] = uri;
+            if (!isTrue(useEddsa))
+            {
+                ((IDictionary<string,object>)request)["uri"] = uri;
+            } else
+            {
+                ((IDictionary<string,object>)request)["uris"] = new List<object>() {uri};
+            }
         }
-        object token = jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
-            { "kid", this.apiKey },
-            { "nonce", nonce },
-            { "alg", "ES256" },
-        });
-        return token;
+        if (isTrue(useEddsa))
+        {
+            object byteArray = this.base64ToBinary(this.secret);
+            object seed = this.arraySlice(byteArray, 0, 32);
+            return jwt(request, seed, sha256, false, new Dictionary<string, object>() {
+                { "kid", this.apiKey },
+                { "nonce", nonce },
+                { "alg", "EdDSA" },
+            });
+        } else
+        {
+            // ecdsa with p256
+            return jwt(request, this.encode(this.secret), sha256, false, new Dictionary<string, object>() {
+                { "kid", this.apiKey },
+                { "nonce", nonce },
+                { "alg", "ES256" },
+            });
+        }
     }
 
     public override object nonce()
@@ -5477,9 +5512,11 @@ public partial class coinbase : Exchange
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 object isCloudAPiKey = isTrue((isGreaterThanOrEqual(getIndexOf(this.apiKey, "organizations/"), 0))) || isTrue((((string)this.secret).StartsWith(((string)"-----BEGIN"))));
-                if (isTrue(isCloudAPiKey))
+                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+                object isV2CloudAPiKey = isTrue(isTrue(isEqual(((string)this.secret).Length, 88)) || isTrue(this.safeBool(this.options, "v2CloudAPiKey", false))) || isTrue(((string)this.secret).EndsWith(((string)"=")));
+                if (isTrue(isTrue(isCloudAPiKey) || isTrue(isV2CloudAPiKey)))
                 {
-                    if (isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN"))))
+                    if (isTrue(isTrue(isCloudAPiKey) && isTrue(((string)this.apiKey).StartsWith(((string)"-----BEGIN")))))
                     {
                         throw new ArgumentsRequired ((string)add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }
@@ -5501,7 +5538,7 @@ public partial class coinbase : Exchange
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    object token = this.createAuthToken(seconds, method, url);
+                    object token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = add("Bearer ", token);
                 } else

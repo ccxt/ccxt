@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var indodax$1 = require('./abstract/indodax.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -12,7 +14,7 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class indodax
  * @augments Exchange
  */
-class indodax extends indodax$1 {
+class indodax extends indodax$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'indodax',
@@ -54,6 +56,7 @@ class indodax extends indodax$1 {
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDeposit': false,
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': true,
@@ -195,6 +198,16 @@ class indodax extends indodax$1 {
                     'Minimum order': errors.InvalidOrder,
                 },
             },
+            'timeframes': {
+                '1m': '1',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+            },
             // exchange-specific options
             'options': {
                 'recvWindow': 5 * 1000,
@@ -217,16 +230,6 @@ class indodax extends indodax$1 {
                     // 'ZRC2': 'zrc2'
                     // 'ETH': 'eth'
                     // 'BASE': 'base'
-                },
-                'timeframes': {
-                    '1m': '1',
-                    '15m': '15',
-                    '30m': '30',
-                    '1h': '60',
-                    '4h': '240',
-                    '1d': '1D',
-                    '3d': '3D',
-                    '1w': '1W',
                 },
             },
             'features': {
@@ -363,7 +366,7 @@ class indodax extends indodax$1 {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString(market, 'ticker_id');
+            const id = this.safeString(market, 'id');
             const baseId = this.safeString(market, 'traded_currency');
             const quoteId = this.safeString(market, 'base_currency');
             const base = this.safeCurrencyCode(baseId);
@@ -502,7 +505,7 @@ class indodax extends indodax$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const orderbook = await this.publicGetApiDepthPair(this.extend(request, params));
         return this.parseOrderBook(orderbook, market['symbol'], undefined, 'buy', 'sell');
@@ -561,7 +564,7 @@ class indodax extends indodax$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const response = await this.publicGetApiTickerPair(this.extend(request, params));
         //
@@ -610,7 +613,17 @@ class indodax extends indodax$1 {
         //
         const response = await this.publicGetApiTickerAll(params);
         const tickers = this.safeDict(response, 'tickers', {});
-        return this.parseTickers(tickers, symbols);
+        const keys = Object.keys(tickers);
+        const parsedTickers = {};
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const rawTicker = tickers[key];
+            const marketId = key.replace('_', '');
+            const market = this.safeMarket(marketId);
+            const parsed = this.parseTicker(rawTicker, market);
+            parsedTickers[marketId] = parsed;
+        }
+        return this.filterByArray(parsedTickers, 'symbol', symbols);
     }
     parseTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'date');
@@ -645,7 +658,7 @@ class indodax extends indodax$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
-            'pair': market['base'] + market['quote'],
+            'pair': market['id'],
         };
         const response = await this.publicGetApiTradesPair(this.extend(request, params));
         return this.parseTrades(response, market, since, limit);
@@ -685,15 +698,14 @@ class indodax extends indodax$1 {
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const timeframes = this.options['timeframes'];
-        const selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        const selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
         const now = this.seconds();
         const until = this.safeInteger(params, 'until', now);
         params = this.omit(params, ['until']);
         const request = {
             'to': until,
             'tf': selectedTimeframe,
-            'symbol': market['base'] + market['quote'],
+            'symbol': market['id'],
         };
         if (limit === undefined) {
             limit = 1000;
@@ -1450,4 +1462,4 @@ class indodax extends indodax$1 {
     }
 }
 
-module.exports = indodax;
+exports["default"] = indodax;

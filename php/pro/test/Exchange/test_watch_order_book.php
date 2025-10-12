@@ -19,6 +19,7 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
+            $success = true;
             try {
                 $response = Async\await($exchange->watch_order_book($symbol));
             } catch(\Throwable $e) {
@@ -26,12 +27,16 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
-            $now = $exchange->milliseconds();
-            test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
+            if ($success === true) {
+                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+                assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return an object. ' . $exchange->json($response));
+                $now = $exchange->milliseconds();
+                test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
+            }
         }
+        return true;
     }) ();
 }

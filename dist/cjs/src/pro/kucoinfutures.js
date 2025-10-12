@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var kucoinfutures$1 = require('../kucoinfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class kucoinfutures extends kucoinfutures$1 {
+class kucoinfutures extends kucoinfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -79,16 +81,16 @@ class kucoinfutures extends kucoinfutures$1 {
     async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
-        const spawaned = this.safeValue(urls, connectId);
-        if (spawaned !== undefined) {
-            return await spawaned;
+        let future = this.safeValue(urls, connectId);
+        if (future !== undefined) {
+            return await future;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params); // we have to wait here otherwsie in c# will not work
         this.options['urls'] = urls;
-        const future = urls[connectId];
+        future = urls[connectId];
         return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {
@@ -1241,7 +1243,7 @@ class kucoinfutures extends kucoinfutures$1 {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors(undefined, undefined, client.url, undefined, undefined, data, message, undefined, undefined);
+        this.handleErrors(1, '', client.url, '', {}, data, message, {}, {});
         return true;
     }
     handleSubscriptionStatus(client, message) {
@@ -1291,4 +1293,4 @@ class kucoinfutures extends kucoinfutures$1 {
     }
 }
 
-module.exports = kucoinfutures;
+exports["default"] = kucoinfutures;

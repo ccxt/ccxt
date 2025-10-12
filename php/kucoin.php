@@ -1391,7 +1391,6 @@ class kucoin extends Exchange {
         //
         $currenciesData = $this->safe_list($response, 'data', array());
         $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
-        $otherFiats = $this->safe_list($this->options, 'fiats', array( 'KWD', 'IRR', 'PKR' ));
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
             $entry = $currenciesData[$i];
@@ -1432,7 +1431,7 @@ class kucoin extends Exchange {
             // kucoin has determined 'fiat' currencies with below logic
             $rawPrecision = $this->safe_string($entry, 'precision');
             $precision = $this->parse_number($this->parse_precision($rawPrecision));
-            $isFiat = $this->in_array($id, $otherFiats) || (($rawPrecision === '2') && ($chainsLength === 0));
+            $isFiat = $chainsLength === 0;
             $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'name' => $this->safe_string($entry, 'fullName'),
@@ -3512,7 +3511,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *
@@ -5017,7 +5016,7 @@ class kucoin extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
          *

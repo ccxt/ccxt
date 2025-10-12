@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitmex$1 = require('../bitmex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class bitmex extends bitmex$1 {
+class bitmex extends bitmex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -684,7 +686,7 @@ class bitmex extends bitmex$1 {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
@@ -1754,4 +1756,4 @@ class bitmex extends bitmex$1 {
     }
 }
 
-module.exports = bitmex;
+exports["default"] = bitmex;

@@ -20,7 +20,7 @@ type Throttler struct {
 	Mutex      sync.Mutex
 }
 
-func NewThrottler(config map[string]interface{}) Throttler {
+func NewThrottler(config map[string]interface{}) *Throttler {
 	defaultConfig := map[string]interface{}{
 		"refillRate":  1.0,					// leaky bucket refill rate in tokens per second
 		"delay":       0.001,				// leaky bucket seconds before checking the queue after waiting
@@ -37,7 +37,7 @@ func NewThrottler(config map[string]interface{}) Throttler {
 		config["maxWeight"] = config["windowSize"].(float64) / config["rateLimit"].(float64)
 	}
 
-	return Throttler{
+	return &Throttler{
 		Queue:   NewQueue(),
 		Running: false,
 		Config:  config,

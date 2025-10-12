@@ -807,9 +807,9 @@ class apex(Exchange, ImplicitAPI):
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         request['limit'] = limit  # max 200, default 200
-        request, params = self.handle_until_option('end', request, params)
+        request, params = self.handle_until_option('end', request, params, 0.001)
         if since is not None:
-            request['start'] = since
+            request['start'] = int(math.floor(since / 1000))
         response = self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         OHLCVs = self.safe_list(data, market['id2'], [])
@@ -1735,7 +1735,7 @@ class apex(Exchange, ImplicitAPI):
             'rate': self.safe_number(income, 'rate'),
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

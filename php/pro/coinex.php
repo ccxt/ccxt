@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -165,7 +166,7 @@ class coinex extends \ccxt\async\coinex {
             $market = $this->safe_market($marketId, null, null, $defaultType);
             $parsedTicker = $this->parse_ws_ticker($entry, $market);
             $this->tickers[$symbol] = $parsedTicker;
-            $newTickers[] = $parsedTicker;
+            $newTickers[$symbol] = $parsedTicker;
         }
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
@@ -676,6 +677,7 @@ class coinex extends \ccxt\async\coinex {
                     $messageHashes[] = 'tickers::' . $market['symbol'];
                 }
             } else {
+                $marketIds = array();
                 $messageHashes[] = 'tickers';
             }
             $type = null;
@@ -748,13 +750,13 @@ class coinex extends \ccxt\async\coinex {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params($callerMethodName, $market, $params);
             $url = $this->urls['api']['ws'][$type];
-            $subscriptionHashes = array( 'trades' );
+            // $subscriptionHashes = array( 'trades' );
             $subscribe = array(
                 'method' => 'deals.subscribe',
                 'params' => array( 'market_list' => $subscribedSymbols ),
                 'id' => $this->request_id(),
             );
-            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $subscriptionHashes));
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $messageHashes));
             if ($this->newUpdates) {
                 return $trades;
             }
@@ -782,7 +784,6 @@ class coinex extends \ccxt\async\coinex {
             $type = null;
             $callerMethodName = null;
             list($callerMethodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOrderBookForSymbols');
-            list($type, $params) = $this->handle_market_type_and_params($callerMethodName, null, $params);
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
             $limits = $this->safe_list($options, 'limits', array());
             if ($limit === null) {
@@ -799,25 +800,25 @@ class coinex extends \ccxt\async\coinex {
             }
             $params = $this->omit($params, 'aggregation');
             $symbolsDefined = ($symbols !== null);
-            if ($symbolsDefined) {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $market = $this->market($symbol);
-                    $messageHashes[] = 'orderbook:' . $market['symbol'];
-                    $watchOrderBookSubscriptions[$symbol] = [ $market['id'], $limit, $aggregation, true ];
-                }
-            } else {
-                $messageHashes[] = 'orderbook';
+            if (!$symbolsDefined) {
+                throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a $symbol argument');
             }
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->market($symbol);
+                $messageHashes[] = 'orderbook:' . $market['symbol'];
+                $watchOrderBookSubscriptions[$symbol] = [ $market['id'], $limit, $aggregation, true ];
+            }
+            list($type, $params) = $this->handle_market_type_and_params($callerMethodName, $market, $params);
             $marketList = is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array();
             $subscribe = array(
                 'method' => 'depth.subscribe',
                 'params' => array( 'market_list' => $marketList ),
                 'id' => $this->request_id(),
             );
-            $subscriptionHashes = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)), 'sha256');
+            // $subscriptionHashes = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)), 'sha256');
             $url = $this->urls['api']['ws'][$type];
-            $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $subscriptionHashes));
+            $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $messageHashes));
             if ($this->newUpdates) {
                 return $orderbooks;
             }
@@ -882,7 +883,8 @@ class coinex extends \ccxt\async\coinex {
         //         "id" => null
         //     }
         //
-        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $isSpot = mb_strpos($client->url, 'spot') > -1;
+        $defaultType = $isSpot ? 'spot' : 'swap';
         $data = $this->safe_dict($message, 'data', array());
         $depth = $this->safe_dict($data, 'depth', array());
         $marketId = $this->safe_string($data, 'market');
@@ -1346,7 +1348,7 @@ class coinex extends \ccxt\async\coinex {
         $method = $this->safe_string($message, 'method');
         $error = $this->safe_string($message, 'message');
         if ($error !== null) {
-            $this->handle_errors(null, null, $client->url, $method, null, $this->json($error), $message, null, null);
+            $this->handle_errors(1, '', $client->url, $method, array(), $this->json($error), $message, array(), array());
         }
         $handlers = array(
             'state.update' => array($this, 'handle_ticker'),
@@ -1441,7 +1443,7 @@ class coinex extends \ccxt\async\coinex {
             $time = $this->milliseconds();
             $timestamp = (string) $time;
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated !== null) {
                 return Async\await($future);

@@ -234,7 +234,7 @@ class bitmart extends \ccxt\async\bitmart {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ),
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ),
@@ -1554,7 +1554,7 @@ class bitmart extends \ccxt\async\bitmart {
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->milliseconds();

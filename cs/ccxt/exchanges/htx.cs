@@ -599,7 +599,7 @@ public partial class htx : Exchange
                             { "api/v1/contract_batchorder", 1 },
                             { "api/v1/contract_cancel", 1 },
                             { "api/v1/contract_cancelall", 1 },
-                            { "api/v1/contract_switch_lever_rate", 1 },
+                            { "api/v1/contract_switch_lever_rate", 30 },
                             { "api/v1/lightning_close_position", 1 },
                             { "api/v1/contract_order_info", 1 },
                             { "api/v1/contract_order_detail", 1 },
@@ -655,7 +655,7 @@ public partial class htx : Exchange
                             { "swap-api/v1/swap_cancel", 1 },
                             { "swap-api/v1/swap_cancelall", 1 },
                             { "swap-api/v1/swap_lightning_close_position", 1 },
-                            { "swap-api/v1/swap_switch_lever_rate", 1 },
+                            { "swap-api/v1/swap_switch_lever_rate", 30 },
                             { "swap-api/v1/swap_order_info", 1 },
                             { "swap-api/v1/swap_order_detail", 1 },
                             { "swap-api/v1/swap_openorders", 1 },
@@ -726,8 +726,8 @@ public partial class htx : Exchange
                             { "linear-swap-api/v1/swap_cross_cancel", 1 },
                             { "linear-swap-api/v1/swap_cancelall", 1 },
                             { "linear-swap-api/v1/swap_cross_cancelall", 1 },
-                            { "linear-swap-api/v1/swap_switch_lever_rate", 1 },
-                            { "linear-swap-api/v1/swap_cross_switch_lever_rate", 1 },
+                            { "linear-swap-api/v1/swap_switch_lever_rate", 30 },
+                            { "linear-swap-api/v1/swap_cross_switch_lever_rate", 30 },
                             { "linear-swap-api/v1/swap_lightning_close_position", 1 },
                             { "linear-swap-api/v1/swap_cross_lightning_close_position", 1 },
                             { "linear-swap-api/v1/swap_order_info", 1 },
@@ -2738,7 +2738,18 @@ public partial class htx : Exchange
                 { "currency", feeCurrency },
             };
         }
-        object id = this.safeStringN(trade, new List<object>() {"trade_id", "trade-id", "id"});
+        // htx's multi-market trade-id is a bit complex to parse accordingly.
+        // - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2 (this happens mostly for contract markets)
+        // - otherwise the least priority is given to the `id` key
+        object id = null;
+        object safeId = this.safeString(trade, "id");
+        if (isTrue(isTrue(!isEqual(safeId, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(safeId, "-"), 0))))
+        {
+            id = safeId;
+        } else
+        {
+            id = this.safeStringN(trade, new List<object>() {"trade_id", "trade-id", "id"});
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -9687,6 +9698,7 @@ public partial class htx : Exchange
             { "contracts", this.safeNumber(liquidation, "volume") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "price") },
+            { "side", this.safeStringLower(liquidation, "direction") },
             { "baseValue", this.safeNumber(liquidation, "amount") },
             { "quoteValue", this.safeNumber(liquidation, "trade_turnover") },
             { "timestamp", timestamp },

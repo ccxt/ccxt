@@ -10,6 +10,7 @@ use ccxt\async\abstract\hyperliquid as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\OrderNotFound;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use \React\Async;
@@ -1770,7 +1771,7 @@ class hyperliquid extends Exchange {
              * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
              *
              * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol
+             * @param {string} [$symbol] unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string|string[]} [$params->clientOrderId] client order $ids, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address
@@ -1782,51 +1783,7 @@ class hyperliquid extends Exchange {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
-            $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
-            $nonce = $this->milliseconds();
-            $request = array(
-                'nonce' => $nonce,
-                // 'vaultAddress' => $vaultAddress,
-            );
-            $cancelReq = array();
-            $cancelAction = array(
-                'type' => '',
-                'cancels' => array(),
-            );
-            $baseId = $this->parse_to_numeric($market['baseId']);
-            if ($clientOrderId !== null) {
-                if (gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId))) {
-                    $clientOrderId = array( $clientOrderId );
-                }
-                $cancelAction['type'] = 'cancelByCloid';
-                for ($i = 0; $i < count($clientOrderId); $i++) {
-                    $cancelReq[] = array(
-                        'asset' => $baseId,
-                        'cloid' => $clientOrderId[$i],
-                    );
-                }
-            } else {
-                $cancelAction['type'] = 'cancel';
-                for ($i = 0; $i < count($ids); $i++) {
-                    $cancelReq[] = array(
-                        'a' => $baseId,
-                        'o' => $this->parse_to_numeric($ids[$i]),
-                    );
-                }
-            }
-            $cancelAction['cancels'] = $cancelReq;
-            $vaultAddress = null;
-            list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
-            $vaultAddress = $this->format_vault_address($vaultAddress);
-            $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
-            $request['action'] = $cancelAction;
-            $request['signature'] = $signature;
-            if ($vaultAddress !== null) {
-                $params = $this->omit($params, 'vaultAddress');
-                $request['vaultAddress'] = $vaultAddress;
-            }
+            $request = $this->cancel_orders_request($ids, $symbol, $params);
             $response = Async\await($this->privatePostExchange ($request));
             //
             //     {
@@ -1854,6 +1811,64 @@ class hyperliquid extends Exchange {
             }
             return $orders;
         }) ();
+    }
+
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array ()): array {
+        /**
+         * build the $request payload for cancelling multiple orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params]
+         * @return {array} the raw $request object to be sent to the exchange
+         */
+        $market = $this->market($symbol);
+        $clientOrderId = $this->safe_value_2($params, 'clientOrderId', 'client_id');
+        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $nonce = $this->milliseconds();
+        $request = array(
+            'nonce' => $nonce,
+            // 'vaultAddress' => $vaultAddress,
+        );
+        $cancelReq = array();
+        $cancelAction = array(
+            'type' => '',
+            'cancels' => array(),
+        );
+        $baseId = $this->parse_to_numeric($market['baseId']);
+        if ($clientOrderId !== null) {
+            if (gettype($clientOrderId) !== 'array' || array_keys($clientOrderId) !== array_keys(array_keys($clientOrderId))) {
+                $clientOrderId = array( $clientOrderId );
+            }
+            $cancelAction['type'] = 'cancelByCloid';
+            for ($i = 0; $i < count($clientOrderId); $i++) {
+                $cancelReq[] = array(
+                    'asset' => $baseId,
+                    'cloid' => $clientOrderId[$i],
+                );
+            }
+        } else {
+            $cancelAction['type'] = 'cancel';
+            for ($i = 0; $i < count($ids); $i++) {
+                $cancelReq[] = array(
+                    'a' => $baseId,
+                    'o' => $this->parse_to_numeric($ids[$i]),
+                );
+            }
+        }
+        $cancelAction['cancels'] = $cancelReq;
+        $vaultAddress = null;
+        list($vaultAddress, $params) = $this->handle_option_and_params_2($params, 'cancelOrders', 'vaultAddress', 'subAccountAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddress);
+        $signature = $this->sign_l1_action($cancelAction, $nonce, $vaultAddress);
+        $request['action'] = $cancelAction;
+        $request['signature'] = $signature;
+        if ($vaultAddress !== null) {
+            $params = $this->omit($params, 'vaultAddress');
+            $request['vaultAddress'] = $vaultAddress;
+        }
+        return $request;
     }
 
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
@@ -2446,6 +2461,7 @@ class hyperliquid extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @param {string} [$params->subAccountAddress] sub account user address
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2454,12 +2470,19 @@ class hyperliquid extends Exchange {
             list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
             Async\await($this->load_markets());
             $market = $this->safe_market($symbol);
-            $isClientOrderId = strlen($id) >= 34;
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
             $request = array(
                 'type' => 'orderStatus',
-                'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
+                // 'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
                 'user' => $userAddress,
             );
+            if ($clientOrderId !== null) {
+                $params = $this->omit($params, 'clientOrderId');
+                $request['oid'] = $clientOrderId;
+            } else {
+                $isClientOrderId = strlen($id) >= 34;
+                $request['oid'] = $isClientOrderId ? $id : $this->parse_to_numeric($id);
+            }
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
             //
             //     {
@@ -2653,6 +2676,9 @@ class hyperliquid extends Exchange {
     }
 
     public function parse_order_status(?string $status) {
+        if ($status === null) {
+            return null;
+        }
         $statuses = array(
             'triggered' => 'open',
             'filled' => 'closed',
@@ -2661,6 +2687,12 @@ class hyperliquid extends Exchange {
             'rejected' => 'rejected',
             'marginCanceled' => 'canceled',
         );
+        if (str_ends_with($status, 'Rejected')) {
+            return 'rejected';
+        }
+        if (str_ends_with($status, 'Canceled')) {
+            return 'canceled';
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -3017,7 +3049,7 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3220,9 +3252,6 @@ class hyperliquid extends Exchange {
                     'nonce' => $nonce,
                     'signature' => $transferSig,
                 );
-                if ($vaultAddress !== null) {
-                    $transferRequest['vaultAddress'] = $vaultAddress;
-                }
                 $transferResponse = Async\await($this->privatePostExchange ($transferRequest));
                 return $transferResponse;
             }
@@ -3297,7 +3326,7 @@ class hyperliquid extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal (only support USDC)
@@ -3634,6 +3663,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
              * @param {string} [$params->subAccountAddress] sub account user address
+             * @param {string} [$params->vaultAddress] vault address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -3648,6 +3678,9 @@ class hyperliquid extends Exchange {
             }
             $until = $this->safe_integer($params, 'until');
             if ($until !== null) {
+                if ($since === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchDeposits requires $since while $until is set');
+                }
                 $request['endTime'] = $until;
                 $params = $this->omit($params, array( 'until' ));
             }
@@ -3666,7 +3699,23 @@ class hyperliquid extends Exchange {
             // )
             //
             $records = $this->extract_type_from_delta($response);
-            $deposits = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
+            $vaultAddress = null;
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $deposits = array();
+            if ($vaultAddress !== null) {
+                for ($i = 0; $i < count($records); $i++) {
+                    $record = $records[$i];
+                    if ($record['type'] === 'vaultDeposit') {
+                        $delta = $this->safe_dict($record, 'delta');
+                        if ($delta['vault'] === '0x' . $vaultAddress) {
+                            $deposits[] = $record;
+                        }
+                    }
+                }
+            } else {
+                $deposits = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
+            }
             return $this->parse_transactions($deposits, null, $since, $limit);
         }) ();
     }
@@ -3681,6 +3730,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $withdrawals for
              * @param {string} [$params->subAccountAddress] sub account user address
+             * @param {string} [$params->vaultAddress] vault address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
@@ -3713,7 +3763,23 @@ class hyperliquid extends Exchange {
             // )
             //
             $records = $this->extract_type_from_delta($response);
-            $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
+            $vaultAddress = null;
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'fetchDepositsWithdrawals', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $withdrawals = array();
+            if ($vaultAddress !== null) {
+                for ($i = 0; $i < count($records); $i++) {
+                    $record = $records[$i];
+                    if ($record['type'] === 'vaultWithdraw') {
+                        $delta = $this->safe_dict($record, 'delta');
+                        if ($delta['vault'] === '0x' . $vaultAddress) {
+                            $withdrawals[] = $record;
+                        }
+                    }
+                }
+            } else {
+                $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
+            }
             return $this->parse_transactions($withdrawals, null, $since, $limit);
         }) ();
     }
@@ -3871,6 +3937,30 @@ class hyperliquid extends Exchange {
         );
     }
 
+    public function reserve_request_weight(?float $weight, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($weight, $params) {
+            /**
+             * Instead of trading to increase the address based rate limits, this $action allows reserving additional actions for 0.0005 USDC per $request-> The cost is paid from the Perps balance.
+             * @param {number} $weight the $weight to reserve, 1 $weight = 1 $action, 0.0005 USDC per $action
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a $response object
+             */
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $action = array(
+                'type' => 'reserveRequestWeight',
+                'weight' => $weight,
+            );
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            return $response;
+        }) ();
+    }
+
     public function extract_type_from_delta($data = []) {
         $records = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -3924,19 +4014,27 @@ class hyperliquid extends Exchange {
         //     }
         // array("status":"ok","response":array("type":"order","data":array("statuses":[array("error":"Insufficient margin to place order. asset=84")])))
         //
+        // array("status":"unknownOid")
+        //
         $status = $this->safe_string($response, 'status', '');
         $error = $this->safe_string($response, 'error');
         $message = null;
         if ($status === 'err') {
             $message = $this->safe_string($response, 'response');
+        } elseif ($status === 'unknownOid') {
+            throw new OrderNotFound($this->id . ' ' . $body); // array("status":"unknownOid")
         } elseif ($error !== null) {
             $message = $error;
         } else {
             $responsePayload = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responsePayload, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
-            $firstStatus = $this->safe_dict($statuses, 0);
-            $message = $this->safe_string($firstStatus, 'error');
+            for ($i = 0; $i < count($statuses); $i++) {
+                $message = $this->safe_string($statuses[$i], 'error');
+                if ($message !== null) {
+                    break;
+                }
+            }
         }
         $feedback = $this->id . ' ' . $body;
         $nonEmptyMessage = (($message !== null) && ($message !== ''));

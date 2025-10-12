@@ -469,6 +469,8 @@ class lbank(Exchange, ImplicitAPI):
             for j in range(0, len(networksRaw)):
                 networkEntry = networksRaw[j]
                 networkId = self.safe_string(networkEntry, 'chain')
+                if networkId is None:
+                    networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'id': networkId,
@@ -967,7 +969,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         if market['swap']:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 1, 0)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -2234,7 +2236,7 @@ class lbank(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 

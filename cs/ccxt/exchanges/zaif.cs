@@ -25,6 +25,7 @@ public partial class zaif : Exchange
                 { "createOrder", true },
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
+                { "fetchCurrencies", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },

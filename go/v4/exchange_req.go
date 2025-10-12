@@ -45,18 +45,23 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			panic("headers must be a map[string]interface{}")
 		}
 
-		if this.Verbose {
-			fmt.Println("Headers:", headersMap)
-			fmt.Printf("\n\n\n")
-			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
-			fmt.Printf("\n\n\n")
-			fmt.Printf("Body: %v\n", body)
-			fmt.Printf("\n\n\n")
-		}
-
 		headersStrMap := make(map[string]string)
 		for k, v := range headersMap {
 			headersStrMap[k] = fmt.Sprintf("%v", v)
+		}
+
+		headersOptions, ok := this.Options.Load("headers")
+		if ok {
+			if headersOptions != nil {
+				for key, value := range headersOptions.(map[string]interface{}) {
+					if _, exists := headersStrMap[key]; !exists {
+						headersStrMap[key] = fmt.Sprintf("%v", value)
+					}
+				}
+			} else {
+				panic("headersOptions should be a map[string]interface{}")
+			}
+
 		}
 
 		// Marshal the body to JSON if not nil
@@ -121,6 +126,15 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// Set headers
 		for key, value := range headersStrMap {
 			req.Header.Set(key, value)
+		}
+
+		if this.Verbose {
+			fmt.Println("Headers:", req.Header)
+			fmt.Printf("\n\n\n")
+			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
+			fmt.Printf("\n\n\n")
+			fmt.Printf("Body: %v\n", body)
+			fmt.Printf("\n\n\n")
 		}
 
 		// strings.NewReader()

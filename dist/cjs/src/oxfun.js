@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var oxfun$1 = require('./abstract/oxfun.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,7 +13,7 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class oxfun
  * @augments Exchange
  */
-class oxfun extends oxfun$1 {
+class oxfun extends oxfun$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'oxfun',
@@ -264,7 +266,12 @@ class oxfun extends oxfun$1 {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': true,
+                        },
                         'iceberg': true, // todo
                     },
                     'createOrders': {
@@ -2253,7 +2260,7 @@ class oxfun extends oxfun$1 {
      * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-     * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+     * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
      * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2441,7 +2448,7 @@ class oxfun extends oxfun$1 {
          * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
          * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
          * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-         * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+         * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
          * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
          */
         const market = this.market(symbol);
@@ -2483,6 +2490,11 @@ class oxfun extends oxfun$1 {
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         if (postOnly && (timeInForce !== 'MAKER_ONLY_REPRICE')) {
             request['timeInForce'] = 'MAKER_ONLY';
+        }
+        let selfTradePrevention = undefined;
+        [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
+        if (selfTradePrevention !== undefined) {
+            request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase();
         }
         return this.extend(request, params);
     }
@@ -2916,4 +2928,4 @@ class oxfun extends oxfun$1 {
     }
 }
 
-module.exports = oxfun;
+exports["default"] = oxfun;

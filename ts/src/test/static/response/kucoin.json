@@ -704,6 +704,7 @@
                   "USDT",
                   3,
                   "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  null,
                   {
                     "network": "OP"
                   }
