@@ -22,7 +22,7 @@ export default class okx extends Exchange {
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.03,
+            'rateLimit': 100 * 1.10,
             'pro': true,
             'certified': true,
             'has': {
@@ -508,6 +508,7 @@ export default class okx extends Exchange {
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,
                         'account/move-positions': 10,
+                        'account/set-settle-currency': 1,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -690,6 +691,7 @@ export default class okx extends Exchange {
                     '51031': InvalidOrder,
                     '51046': InvalidOrder,
                     '51047': InvalidOrder,
+                    '51051': InvalidOrder,
                     '51072': InvalidOrder,
                     '51073': InvalidOrder,
                     '51074': InvalidOrder,
@@ -829,6 +831,9 @@ export default class okx extends Exchange {
                     '54008': InvalidOrder,
                     '54009': InvalidOrder,
                     '54011': InvalidOrder,
+                    '54072': ExchangeError,
+                    '54073': BadRequest,
+                    '54074': ExchangeError,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,
                     '55101': InvalidOrder,
@@ -934,6 +939,9 @@ export default class okx extends Exchange {
                     '59519': ExchangeError,
                     '59642': BadRequest,
                     '59643': ExchangeError,
+                    '59683': ExchangeError,
+                    '59684': BadRequest,
+                    '59686': BadRequest,
                     // WebSocket error Codes from 60000-63999
                     '60001': AuthenticationError,
                     '60002': AuthenticationError,
@@ -1300,6 +1308,9 @@ export default class okx extends Exchange {
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1507,14 +1518,33 @@ export default class okx extends Exchange {
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -1796,7 +1826,7 @@ export default class okx extends Exchange {
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
-            return undefined;
+            return {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -3066,13 +3096,15 @@ export default class okx extends Exchange {
             request['ordType'] = 'move_order_stop';
         }
         else if (stopLossDefined || takeProfitDefined) {
+            let attachAlgoOrd = {};
             if (stopLossDefined) {
                 const stopLossTriggerPrice = this.safeValueN(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx']);
                 if (stopLossTriggerPrice === undefined) {
                     throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 const slTriggerPx = this.priceToPrecision(symbol, stopLossTriggerPrice);
-                request['slTriggerPx'] = slTriggerPx;
+                const slOrder = {};
+                slOrder['slTriggerPx'] = slTriggerPx;
                 const stopLossLimitPrice = this.safeValueN(stopLoss, ['price', 'stopLossPrice', 'slOrdPx']);
                 const stopLossOrderType = this.safeString(stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
@@ -3086,33 +3118,35 @@ export default class okx extends Exchange {
                             throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["stopLoss"]["price"] or params["stopLoss"]["slOrdPx"] for a stop loss limit order');
                         }
                         else {
-                            request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);
+                            slOrder['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice);
                         }
                     }
                     else if (stopLossOrderType === 'market') {
-                        request['slOrdPx'] = '-1';
+                        slOrder['slOrdPx'] = '-1';
                     }
                 }
                 else if (stopLossLimitPrice !== undefined) {
-                    request['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
+                    slOrder['slOrdPx'] = this.priceToPrecision(symbol, stopLossLimitPrice); // limit sl order
                 }
                 else {
-                    request['slOrdPx'] = '-1'; // market sl order
+                    slOrder['slOrdPx'] = '-1'; // market sl order
                 }
                 const stopLossTriggerPriceType = this.safeString2(stopLoss, 'triggerPriceType', 'slTriggerPxType', 'last');
                 if (stopLossTriggerPriceType !== undefined) {
                     if ((stopLossTriggerPriceType !== 'last') && (stopLossTriggerPriceType !== 'index') && (stopLossTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder(this.id + ' createOrder() stop loss trigger price type must be one of "last", "index" or "mark"');
                     }
-                    request['slTriggerPxType'] = stopLossTriggerPriceType;
+                    slOrder['slTriggerPxType'] = stopLossTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, slOrder);
             }
             if (takeProfitDefined) {
                 const takeProfitTriggerPrice = this.safeValueN(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx']);
                 if (takeProfitTriggerPrice === undefined) {
                     throw new InvalidOrder(this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
-                request['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                const tpOrder = {};
+                tpOrder['tpTriggerPx'] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 const takeProfitLimitPrice = this.safeValueN(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx']);
                 const takeProfitOrderType = this.safeString2(takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
@@ -3126,31 +3160,38 @@ export default class okx extends Exchange {
                             throw new InvalidOrder(this.id + ' createOrder() requires a limit price in params["takeProfit"]["price"] or params["takeProfit"]["tpOrdPx"] for a take profit limit order');
                         }
                         else {
-                            request['tpOrdKind'] = takeProfitOrderType;
-                            request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice);
+                            tpOrder['tpOrdKind'] = takeProfitOrderType;
+                            tpOrder['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice);
                         }
                     }
                     else if (takeProfitOrderType === 'market') {
-                        request['tpOrdPx'] = '-1';
+                        tpOrder['tpOrdPx'] = '-1';
                     }
                 }
                 else if (takeProfitLimitPrice !== undefined) {
-                    request['tpOrdKind'] = 'limit';
-                    request['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
+                    tpOrder['tpOrdKind'] = 'limit';
+                    tpOrder['tpOrdPx'] = this.priceToPrecision(symbol, takeProfitLimitPrice); // limit tp order
                 }
                 else {
-                    request['tpOrdPx'] = '-1'; // market tp order
+                    tpOrder['tpOrdPx'] = '-1'; // market tp order
                 }
                 const takeProfitTriggerPriceType = this.safeString2(takeProfit, 'triggerPriceType', 'tpTriggerPxType', 'last');
                 if (takeProfitTriggerPriceType !== undefined) {
                     if ((takeProfitTriggerPriceType !== 'last') && (takeProfitTriggerPriceType !== 'index') && (takeProfitTriggerPriceType !== 'mark')) {
                         throw new InvalidOrder(this.id + ' createOrder() take profit trigger price type must be one of "last", "index" or "mark"');
                     }
-                    request['tpTriggerPxType'] = takeProfitTriggerPriceType;
+                    tpOrder['tpTriggerPxType'] = takeProfitTriggerPriceType;
                 }
+                attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
+            }
+            const attachOrdKeys = Object.keys(attachAlgoOrd);
+            const attachOrdLen = attachOrdKeys.length;
+            if (attachOrdLen > 0) {
+                request['attachAlgoOrds'] = [attachAlgoOrd];
             }
         }
-        else if (trigger) {
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);
@@ -3601,10 +3642,18 @@ export default class okx extends Exchange {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                request.push({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                });
+                if (trailing || trigger) {
+                    request.push({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    });
+                }
+                else {
+                    request.push({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    });
+                }
             }
         }
         let response = undefined;
@@ -3681,7 +3730,12 @@ export default class okx extends Exchange {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
-                idKey = 'clOrdId';
+                if (isStopOrTrailing) {
+                    idKey = 'algoClOrdId';
+                }
+                else {
+                    idKey = 'clOrdId';
+                }
             }
             const requestItem = {
                 'instId': market['id'],

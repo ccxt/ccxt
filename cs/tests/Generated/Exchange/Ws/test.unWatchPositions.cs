@@ -13,7 +13,7 @@ public partial class testMainClass : BaseTest
         await exchange.sleep(3000);
         await exchange.createOrder("BTC/USDT:USDT", "market", "buy", 0.001);
     }
-    async static public Task testUnwatchPositions(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testUnWatchPositions(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "unWatchPositions";
         exchange.setSandboxMode(true);
@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
                 throw e;
             }
             // If we can't subscribe, we can't test unsubscribe, so skip this test
-            return;
+            return false;
         }
         // Verify that we have a subscription
         assert(((positionsSubscription is IList<object>) || (positionsSubscription.GetType().IsGenericType && positionsSubscription.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(exchange.id, " "), method), " requires a valid positions subscription to test unsubscribe"));
@@ -80,6 +80,7 @@ public partial class testMainClass : BaseTest
         }
         // Verify resubscription works
         assert(((resubscribeResponse is IList<object>) || (resubscribeResponse.GetType().IsGenericType && resubscribeResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must allow resubscription after unwatch, returned "), exchange.json(resubscribeResponse)));
+        return true;
     }
 
 }

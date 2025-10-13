@@ -94,7 +94,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         url = self.urls['api']['ws']['private']
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.milliseconds()
@@ -1094,7 +1094,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         else:
             return await self.trade_request('spot_cancel_order', request)
 
-    async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
+    async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
 
         https://api.hitbtc.com/#cancel-spot-orders

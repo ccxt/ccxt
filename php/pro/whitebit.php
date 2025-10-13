@@ -874,7 +874,7 @@ class whitebit extends \ccxt\async\whitebit {
             $url = $this->urls['api']['ws'];
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ('authenticated');
+            $future = $client->reusableFuture ('authenticated');
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $authToken = Async\await($this->v4PrivatePostProfileWebsocketToken ());

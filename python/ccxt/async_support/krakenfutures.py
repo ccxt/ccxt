@@ -65,6 +65,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -494,7 +495,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'future': future,
                 'option': False,
                 'index': index,
-                'active': None,
+                'active': self.safe_bool(market, 'tradeable'),
                 'contract': contract,
                 'linear': linear,
                 'inverse': inverse,

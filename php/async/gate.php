@@ -1470,8 +1470,8 @@ class gate extends Exchange {
         //        "leverage_min" => "1",
         //        "leverage_max" => "100",
         //        "risk_limit_max" => "8000000",
-        //        "maker_fee_rate" => "-0.00025",
-        //        "taker_fee_rate" => "0.00075",
+        //        "maker_fee_rate" => "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate" => "0.00075", // not actual value for regular users
         //        "funding_rate" => "0.002053",
         //        "order_size_max" => 1000000,
         //        "funding_next_apply" => 1610035200,
@@ -1515,8 +1515,8 @@ class gate extends Exchange {
         //        "risk_limit_base" => "140.726652109199",
         //        "risk_limit_step" => "1000000",
         //        "risk_limit_max" => "8000000",
-        //        "maker_fee_rate" => "-0.00025",
-        //        "taker_fee_rate" => "0.00075",
+        //        "maker_fee_rate" => "-0.00025", // not actual value for regular users
+        //        "taker_fee_rate" => "0.00075", // not actual value for regular users
         //        "ref_discount_rate" => "0",
         //        "ref_rebate_rate" => "0.2",
         //        "order_price_deviate" => "0.5",
@@ -1554,8 +1554,6 @@ class gate extends Exchange {
         $maxMultiplier = Precise::string_add('1', $priceDeviate);
         $minPrice = Precise::string_mul($minMultiplier, $markPrice);
         $maxPrice = Precise::string_mul($maxMultiplier, $markPrice);
-        $takerPercent = $this->safe_string($market, 'taker_fee_rate');
-        $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
         $isLinear = $quote === $settle;
         $contractSize = $this->safe_string($market, 'quanto_multiplier');
         // exception only for one $market => https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1581,8 +1579,8 @@ class gate extends Exchange {
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
-            'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
-            'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
+            'taker' => null,
+            'maker' => null,
             'contractSize' => $this->parse_number($contractSize),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1683,8 +1681,6 @@ class gate extends Exchange {
                     $maxMultiplier = Precise::string_add('1', $priceDeviate);
                     $minPrice = Precise::string_mul($minMultiplier, $markPrice);
                     $maxPrice = Precise::string_mul($maxMultiplier, $markPrice);
-                    $takerPercent = $this->safe_string($market, 'taker_fee_rate');
-                    $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
                     $result[] = array(
                         'id' => $id,
                         'symbol' => $symbol,
@@ -1704,8 +1700,8 @@ class gate extends Exchange {
                         'contract' => true,
                         'linear' => true,
                         'inverse' => false,
-                        'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')), // Fee is in %, so divide by 100
-                        'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
+                        'taker' => null,
+                        'maker' => null,
                         'contractSize' => $this->parse_number('1'),
                         'expiry' => $expiry,
                         'expiryDatetime' => $this->iso8601($expiry),
@@ -1899,7 +1895,7 @@ class gate extends Exchange {
             // sandbox/testnet only supports future markets
             $apiBackup = $this->safe_value($this->urls, 'apiBackup');
             if ($apiBackup !== null) {
-                return null;
+                return array();
             }
             $response = Async\await($this->publicSpotGetCurrencies ($params));
             //
@@ -3007,6 +3003,14 @@ class gate extends Exchange {
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
+             * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+             * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+             * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+             * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+             * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+             * @see https://www.gate.com/docs/developers/apiv4/en/#$query-account-information
+             *
              * @param {array} [$params] exchange specific parameters
              * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3251,7 +3255,7 @@ class gate extends Exchange {
             $result = array(
                 'info' => $response,
             );
-            $isolated = $marginMode === 'margin';
+            $isolated = $marginMode === 'margin' && $type === 'spot';
             $data = $response;
             if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
                 $flatBalances = array();

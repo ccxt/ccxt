@@ -7,254 +7,254 @@
 
 package ccxt
 
-func (this *coinone) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderbook", args...)
+func (this *CoinoneCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *coinone) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *CoinoneCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *coinone) PublicGetTickerUtc (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTickerUtc", args...)
+func (this *CoinoneCore) PublicGetTickerUtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerUtc", args...)
 }
 
-func (this *coinone) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *CoinoneCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *coinone) V2PublicGetRangeUnits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetRangeUnits", args...)
+func (this *CoinoneCore) V2PublicGetRangeUnits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetRangeUnits", args...)
 }
 
-func (this *coinone) V2PublicGetMarketsQuoteCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetMarketsQuoteCurrency", args...)
+func (this *CoinoneCore) V2PublicGetMarketsQuoteCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetMarketsQuoteCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetMarketsQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetMarketsQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2PublicGetMarketsQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetMarketsQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetOrderbookQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetOrderbookQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2PublicGetOrderbookQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrderbookQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTradesQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetTradesQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2PublicGetTradesQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTradesQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerNewQuoteCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetTickerNewQuoteCurrency", args...)
+func (this *CoinoneCore) V2PublicGetTickerNewQuoteCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerNewQuoteCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerNewQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetTickerNewQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2PublicGetTickerNewQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerNewQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerUtcNewQuoteCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetTickerUtcNewQuoteCurrency", args...)
+func (this *CoinoneCore) V2PublicGetTickerUtcNewQuoteCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerUtcNewQuoteCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetCurrencies", args...)
+func (this *CoinoneCore) V2PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetCurrencies", args...)
 }
 
-func (this *coinone) V2PublicGetCurrenciesCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetCurrenciesCurrency", args...)
+func (this *CoinoneCore) V2PublicGetCurrenciesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetCurrenciesCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetChartQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetChartQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2PublicGetChartQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetChartQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) PrivatePostAccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountDepositAddress", args...)
+func (this *CoinoneCore) PrivatePostAccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountDepositAddress", args...)
 }
 
-func (this *coinone) PrivatePostAccountBtcDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountBtcDepositAddress", args...)
+func (this *CoinoneCore) PrivatePostAccountBtcDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBtcDepositAddress", args...)
 }
 
-func (this *coinone) PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountBalance", args...)
+func (this *CoinoneCore) PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBalance", args...)
 }
 
-func (this *coinone) PrivatePostAccountDailyBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountDailyBalance", args...)
+func (this *CoinoneCore) PrivatePostAccountDailyBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountDailyBalance", args...)
 }
 
-func (this *coinone) PrivatePostAccountUserInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountUserInfo", args...)
+func (this *CoinoneCore) PrivatePostAccountUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountUserInfo", args...)
 }
 
-func (this *coinone) PrivatePostAccountVirtualAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostAccountVirtualAccount", args...)
+func (this *CoinoneCore) PrivatePostAccountVirtualAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountVirtualAccount", args...)
 }
 
-func (this *coinone) PrivatePostOrderCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCancelAll", args...)
+func (this *CoinoneCore) PrivatePostOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancelAll", args...)
 }
 
-func (this *coinone) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCancel", args...)
+func (this *CoinoneCore) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *coinone) PrivatePostOrderLimitBuy (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderLimitBuy", args...)
+func (this *CoinoneCore) PrivatePostOrderLimitBuy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderLimitBuy", args...)
 }
 
-func (this *coinone) PrivatePostOrderLimitSell (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderLimitSell", args...)
+func (this *CoinoneCore) PrivatePostOrderLimitSell(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderLimitSell", args...)
 }
 
-func (this *coinone) PrivatePostOrderCompleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCompleteOrders", args...)
+func (this *CoinoneCore) PrivatePostOrderCompleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCompleteOrders", args...)
 }
 
-func (this *coinone) PrivatePostOrderLimitOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderLimitOrders", args...)
+func (this *CoinoneCore) PrivatePostOrderLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderLimitOrders", args...)
 }
 
-func (this *coinone) PrivatePostOrderOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderOrderInfo", args...)
+func (this *CoinoneCore) PrivatePostOrderOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrderInfo", args...)
 }
 
-func (this *coinone) PrivatePostTransactionAuthNumber (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransactionAuthNumber", args...)
+func (this *CoinoneCore) PrivatePostTransactionAuthNumber(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionAuthNumber", args...)
 }
 
-func (this *coinone) PrivatePostTransactionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransactionHistory", args...)
+func (this *CoinoneCore) PrivatePostTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionHistory", args...)
 }
 
-func (this *coinone) PrivatePostTransactionKrwHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransactionKrwHistory", args...)
+func (this *CoinoneCore) PrivatePostTransactionKrwHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionKrwHistory", args...)
 }
 
-func (this *coinone) PrivatePostTransactionBtc (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransactionBtc", args...)
+func (this *CoinoneCore) PrivatePostTransactionBtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionBtc", args...)
 }
 
-func (this *coinone) PrivatePostTransactionCoin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostTransactionCoin", args...)
+func (this *CoinoneCore) PrivatePostTransactionCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionCoin", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAccountBalance", args...)
+func (this *CoinoneCore) V2PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountBalance", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAccountDepositAddress", args...)
+func (this *CoinoneCore) V2PrivatePostAccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountDepositAddress", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountUserInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAccountUserInfo", args...)
+func (this *CoinoneCore) V2PrivatePostAccountUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountUserInfo", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountVirtualAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostAccountVirtualAccount", args...)
+func (this *CoinoneCore) V2PrivatePostAccountVirtualAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountVirtualAccount", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostOrderCancel", args...)
+func (this *CoinoneCore) V2PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderCancel", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderLimitBuy (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostOrderLimitBuy", args...)
+func (this *CoinoneCore) V2PrivatePostOrderLimitBuy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderLimitBuy", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderLimitSell (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostOrderLimitSell", args...)
+func (this *CoinoneCore) V2PrivatePostOrderLimitSell(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderLimitSell", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderLimitOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostOrderLimitOrders", args...)
+func (this *CoinoneCore) V2PrivatePostOrderLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderLimitOrders", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderCompleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostOrderCompleteOrders", args...)
+func (this *CoinoneCore) V2PrivatePostOrderCompleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderCompleteOrders", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderQueryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostOrderQueryOrder", args...)
+func (this *CoinoneCore) V2PrivatePostOrderQueryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderQueryOrder", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionAuthNumber (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostTransactionAuthNumber", args...)
+func (this *CoinoneCore) V2PrivatePostTransactionAuthNumber(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionAuthNumber", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionBtc (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostTransactionBtc", args...)
+func (this *CoinoneCore) V2PrivatePostTransactionBtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionBtc", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostTransactionHistory", args...)
+func (this *CoinoneCore) V2PrivatePostTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionHistory", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionKrwHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostTransactionKrwHistory", args...)
+func (this *CoinoneCore) V2PrivatePostTransactionKrwHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionKrwHistory", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountBalanceAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostAccountBalanceAll", args...)
+func (this *CoinoneCore) V2_1PrivatePostAccountBalanceAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountBalanceAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostAccountBalance", args...)
+func (this *CoinoneCore) V2_1PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountBalance", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountTradeFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostAccountTradeFee", args...)
+func (this *CoinoneCore) V2_1PrivatePostAccountTradeFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountTradeFee", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency", args...)
+func (this *CoinoneCore) V2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderLimit", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderLimit", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderCancel", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCancel", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderCancelAll", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCancelAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderOpenOrders", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderOpenOrders", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderOpenOrdersAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderOpenOrdersAll", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderOpenOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderOpenOrdersAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCompleteOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderCompleteOrders", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderCompleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCompleteOrders", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCompleteOrdersAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderCompleteOrdersAll", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderCompleteOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCompleteOrdersAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostOrderInfo", args...)
+func (this *CoinoneCore) V2_1PrivatePostOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderInfo", args...)
 }
 
-func (this *coinone) V2_1PrivatePostTransactionKrwHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostTransactionKrwHistory", args...)
+func (this *CoinoneCore) V2_1PrivatePostTransactionKrwHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostTransactionKrwHistory", args...)
 }
 
-func (this *coinone) V2_1PrivatePostTransactionCoinHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostTransactionCoinHistory", args...)
+func (this *CoinoneCore) V2_1PrivatePostTransactionCoinHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostTransactionCoinHistory", args...)
 }
 
-func (this *coinone) V2_1PrivatePostTransactionCoinWithdrawalLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2_1PrivatePostTransactionCoinWithdrawalLimit", args...)
+func (this *CoinoneCore) V2_1PrivatePostTransactionCoinWithdrawalLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostTransactionCoinWithdrawalLimit", args...)
 }

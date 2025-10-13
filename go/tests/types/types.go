@@ -207,6 +207,26 @@ func testBalance(exchange *ccxt.Binance) {
 	Assert(*typed.Balances["USDT"].Used > 0)
 }
 
+func testWsOrderBook(exchange *ccxt.Binance) {
+	Blue("Testing WS OrderBook type")
+	obFile := GetRootDir() + BASE_DIR + "orderbook.json"
+	obFileContent := IoFileRead(obFile, true)
+
+	wsOrderBook := exchange.OrderBook()
+	parsedOb := exchange.ParseOrderBook(obFileContent, "BTC/USDT")
+	wsOrderBook.Reset(parsedOb)
+	typedOb := ccxt.NewOrderBookFromWs(wsOrderBook)
+	Assert(wsOrderBook != nil)
+	Assert(wsOrderBook.Symbol == "BTC/USDT")
+	Assert(wsOrderBook.Bids != nil)
+	Assert(wsOrderBook.Asks != nil)
+	Assert(*typedOb.Symbol == "BTC/USDT")
+	Assert(len(typedOb.Asks) > 0)
+	Assert(len(typedOb.Bids) > 0)
+	Assert(typedOb.Asks[0][0] > 0)
+	Assert(typedOb.Asks[0][1] > 0)
+}
+
 func initExchangeOffline() *ccxt.Binance {
 	exchange := ccxt.NewBinance(nil)
 	marketsFile := GetRootDir() + "ts/src/test/static/markets/binance.json"
@@ -226,6 +246,7 @@ func main() {
 	testOrder(exchange)
 	testPosition(exchange)
 	testBalance(exchange)
+	testWsOrderBook(exchange)
 
 	Green("All tests passed")
 }

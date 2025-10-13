@@ -39,18 +39,18 @@ class bitvavo(ccxt.async_support.bitvavo):
                 'editOrderWs': True,
                 'fetchBalanceWs': True,
                 'fetchCurrenciesWS': True,
-                'fetchDepositAddressWs': True,
+                'fetchDepositAddressWs': False,
                 'fetchDepositsWs': True,
-                'fetchDepositWithdrawFeesWs': True,
+                'fetchDepositWithdrawFeesWs': False,
                 'fetchMyTradesWs': True,
                 'fetchOHLCVWs': True,
                 'fetchOpenOrdersWs': True,
                 'fetchOrderWs': True,
-                'fetchOrderBookWs': True,
+                'fetchOrderBookWs': False,
                 'fetchOrdersWs': True,
-                'fetchTickerWs': True,
-                'fetchTickersWs': True,
-                'fetchTimeWs': True,
+                'fetchTickerWs': False,
+                'fetchTickersWs': False,
+                'fetchTimeWs': False,
                 'fetchTradingFeesWs': True,
                 'fetchWithdrawalsWs': True,
                 'withdrawWs': True,
@@ -824,7 +824,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
-    async def withdraw_ws(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code

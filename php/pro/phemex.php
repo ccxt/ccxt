@@ -121,7 +121,7 @@ class phemex extends \ccxt\async\phemex {
             $average = $this->parse_number(Precise::string_div(Precise::string_add($lastString, $openString), '2'));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_sub(Precise::string_div($lastString, $openString), '1'), '100'));
         }
-        $result = array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -144,8 +144,7 @@ class phemex extends \ccxt\async\phemex {
             'markPrice' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'markPrice'), $market)),
             'indexPrice' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'indexPrice'), $market)),
             'info' => $ticker,
-        );
-        return $result;
+        ));
     }
 
     public function parse_perpetual_ticker($ticker, $market = null) {
@@ -182,7 +181,7 @@ class phemex extends \ccxt\async\phemex {
             $average = $this->parse_number(Precise::string_div(Precise::string_add($lastString, $openString), '2'));
             $percentage = $this->parse_number(Precise::string_mul(Precise::string_sub(Precise::string_div($lastString, $openString), '1'), '100'));
         }
-        $result = array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
@@ -203,8 +202,7 @@ class phemex extends \ccxt\async\phemex {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        );
-        return $result;
+        ));
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -1179,6 +1177,10 @@ class phemex extends \ccxt\async\phemex {
                 $parsedOrders[] = $parsedOrder;
             }
         } else {
+            $messageLength = count($message);
+            if ($messageLength === 0) {
+                return;
+            }
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
                 $action = $this->safe_string($update, 'action');

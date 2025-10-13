@@ -559,6 +559,14 @@ class coinmetro(Exchange, ImplicitAPI):
                         baseId = restId
                         quoteId = currencyId
                     break
+        if baseId is None or quoteId is None:
+            # https://github.com/ccxt/ccxt/issues/26820
+            if marketId.endswith('USDT'):
+                baseId = marketId.replace('USDT', '')
+                quoteId = 'USDT'
+            if marketId.endswith('USD'):
+                baseId = marketId.replace('USD', '')
+                quoteId = 'USD'
         result: dict = {
             'baseId': baseId,
             'quoteId': quoteId,

@@ -449,7 +449,7 @@ public partial class Exchange
         }
         else if (a.GetType() == typeof(double))
         {
-            return (double)a - (double)b;
+            return (double)a - Convert.ToDouble(b);
         }
         else
         {

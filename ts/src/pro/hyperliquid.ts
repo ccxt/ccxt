@@ -182,7 +182,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'status': status,
             }));
         }
-        return orders;
+        return orders as Order[];
     }
 
     /**

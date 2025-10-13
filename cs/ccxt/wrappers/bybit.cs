@@ -1744,6 +1744,12 @@ public partial class bybit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.accountType</term>
+    /// <description>
+    /// string : 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>

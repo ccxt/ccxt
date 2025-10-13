@@ -544,7 +544,7 @@ class digifinex(Exchange, ImplicitAPI):
             networks = {}
             for j in range(0, len(networkEntries)):
                 networkEntry = networkEntries[j]
-                networkId = self.safe_string(networkEntry, 'chain')
+                networkId = self.safe_string_2(networkEntry, 'chain', 'currency')
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'id': networkId,

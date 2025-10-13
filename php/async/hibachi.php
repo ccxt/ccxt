@@ -66,7 +66,7 @@ class hibachi extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchConvertCurrencies' => false,
                 'fetchConvertQuote' => false,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
@@ -186,6 +186,7 @@ class hibachi extends Exchange {
                     'taker' => $this->parse_number('0.00045'),
                 ),
             ),
+            'currencies' => $this->hardcoded_currencies(),
             'options' => array(
             ),
             'features' => array(
@@ -378,15 +379,7 @@ class hibachi extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
-        /**
-         * fetches all available currencies on an exchange
-         *
-         * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-         *
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an associative dictionary of currencies
-         */
+    public function hardcoded_currencies(): ?array {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         $result = array();

@@ -333,6 +333,9 @@ export default class bybit extends bybitRest {
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
+        }
         const orderRequest = this.cancelOrderRequest (id, symbol, params);
         const url = this.urls['api']['ws']['private']['trade'];
         await this.authenticate (url);
@@ -1007,6 +1010,7 @@ export default class bybit extends bybitRest {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
+        orderbook['symbol'] = symbol;
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             orderbook.reset (snapshot);
@@ -2311,7 +2315,7 @@ export default class bybit extends bybitRest {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const expiresInt = this.milliseconds () + 10000;

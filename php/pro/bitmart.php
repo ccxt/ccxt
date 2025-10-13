@@ -1554,7 +1554,7 @@ class bitmart extends \ccxt\async\bitmart {
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['private']);
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->milliseconds();

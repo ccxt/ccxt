@@ -60,6 +60,7 @@ class bithumb(Exchange, ImplicitAPI):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchFundingHistory': False,
                 'fetchFundingInterval': False,
                 'fetchFundingIntervals': False,
@@ -273,6 +274,14 @@ class bithumb(Exchange, ImplicitAPI):
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
+                            },
+                        },
+                    },
+                    'USDT': {
+                        'limits': {
+                            'cost': {
+                                'min': None,
+                                'max': None,
                             },
                         },
                     },

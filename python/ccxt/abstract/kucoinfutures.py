@@ -215,6 +215,7 @@ class ImplicitAPI:
     futuresprivate_post_sub_api_key_update = futuresPrivatePostSubApiKeyUpdate = Entry('sub/api-key/update', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_changecrossuserleverage = futuresPrivatePostChangeCrossUserLeverage = Entry('changeCrossUserLeverage', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_post_position_changemarginmode = futuresPrivatePostPositionChangeMarginMode = Entry('position/changeMarginMode', 'futuresPrivate', 'POST', {'cost': 1})
+    futuresprivate_post_position_switchpositionmode = futuresPrivatePostPositionSwitchPositionMode = Entry('position/switchPositionMode', 'futuresPrivate', 'POST', {'cost': 1})
     futuresprivate_delete_orders_orderid = futuresPrivateDeleteOrdersOrderId = Entry('orders/{orderId}', 'futuresPrivate', 'DELETE', {'cost': 1})
     futuresprivate_delete_orders_client_order_clientoid = futuresPrivateDeleteOrdersClientOrderClientOid = Entry('orders/client-order/{clientOid}', 'futuresPrivate', 'DELETE', {'cost': 1})
     futuresprivate_delete_orders = futuresPrivateDeleteOrders = Entry('orders', 'futuresPrivate', 'DELETE', {'cost': 4.44})

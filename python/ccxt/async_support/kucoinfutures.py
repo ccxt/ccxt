@@ -115,6 +115,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchWithdrawals': True,
                 'setLeverage': False,
                 'setMarginMode': True,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': None,
             },
@@ -209,6 +210,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'sub/api-key/update': 1,
                         'changeCrossUserLeverage': 1,
                         'position/changeMarginMode': 1,
+                        'position/switchPositionMode': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -353,6 +355,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                             'transfer-out': 'v2',
                             'changeCrossUserLeverage': 'v2',
                             'position/changeMarginMode': 'v2',
+                            'position/switchPositionMode': 'v2',
                         },
                     },
                     'futuresPublic': {
@@ -568,7 +571,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             market = data[i]
             id = self.safe_string(market, 'symbol')
             expiry = self.safe_integer(market, 'expireDate')
-            future = True if expiry else False
+            future = self.safe_string(market, 'nextFundingRateTime') is None
             swap = not future
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
@@ -1512,6 +1515,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
         :param float [params.cost]: the cost of the order in units of USDT
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'isolated'
+        :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode, default is False
  ----------------- Exchange Specific Parameters -----------------
         :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
@@ -1521,7 +1525,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str [params.stopPriceType]: exchange-specific alternative for triggerPriceType: TP, IP or MP
         :param bool [params.closeOrder]: set to True to close position
         :param bool [params.test]: set to True to use the test order endpoint(does not submit order, use to validate params)
-        :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
+        :param bool [params.forceHold]: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.\
+        :param str [params.positionSide]: *swap and future only* hedged two-way position side, LONG or SHORT
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1680,7 +1685,19 @@ class kucoinfutures(kucoin, ImplicitAPI):
             visibleSize = self.safe_value(params, 'visibleSize')
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
-        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
+        reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+        hedged = None
+        hedged, params = self.handle_param_bool(params, 'hedged', False)
+        if reduceOnly:
+            request['reduceOnly'] = reduceOnly
+            if hedged:
+                reduceOnlyPosSide = 'LONG' if (side == 'sell') else 'SHORT'
+                request['positionSide'] = reduceOnlyPosSide
+        else:
+            if hedged:
+                posSide = 'LONG' if (side == 'buy') else 'SHORT'
+                request['positionSide'] = posSide
+        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
         return self.extend(request, params)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -3183,6 +3200,33 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
+
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
+        """
+        set hedged to True or False for a market
+
+        https://www.kucoin.com/docs-new/3475097e0
+
+        :param bool hedged: set to True to use two way position
+        :param str [symbol]: not used by bybit setPositionMode()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response from the exchange
+        """
+        await self.load_markets()
+        posMode = '1' if hedged else '0'
+        request: dict = {
+            'positionMode': posMode,
+        }
+        response = await self.futuresPrivatePostPositionSwitchPositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": {
+        #             "positionMode": 1
+        #         }
+        #     }
+        #
+        return response
 
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """

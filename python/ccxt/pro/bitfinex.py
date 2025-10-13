@@ -930,7 +930,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             nonce = self.milliseconds()

@@ -294,7 +294,7 @@ class paradex extends Exchange {
             'commonCurrencies' => array(
             ),
             'options' => array(
-                'paradexAccount' => null, // add array("privateKey" => A, "publicKey" => B, "address" => C)
+                'paradexAccount' => null, // add array("privateKey" => "copy Paradex Private Key from UI", "publicKey" => "used when onboard (optional)", "address" => "copy Paradex Address from UI")
                 'broker' => 'CCXT',
             ),
             'features' => array(

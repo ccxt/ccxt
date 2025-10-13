@@ -291,6 +291,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivateGetSelfSymbols",parameters);
     }
 
+    public async Task<object> spotPrivateGetAssetInternalTransferRecord (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateGetAssetInternalTransferRecord",parameters);
+    }
+
     public async Task<object> spotPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostOrder",parameters);

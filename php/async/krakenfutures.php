@@ -53,6 +53,7 @@ class krakenfutures extends Exchange {
                 'fetchClosedOrders' => true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -488,7 +489,7 @@ class krakenfutures extends Exchange {
                     'future' => $future,
                     'option' => false,
                     'index' => $index,
-                    'active' => null,
+                    'active' => $this->safe_bool($market, 'tradeable'),
                     'contract' => $contract,
                     'linear' => $linear,
                     'inverse' => $inverse,

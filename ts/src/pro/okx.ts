@@ -173,6 +173,8 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTrades
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -187,11 +189,14 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTradesForSymbols
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -201,7 +206,8 @@ export default class okx extends okxRest {
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const channel = 'trades';
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -218,7 +224,12 @@ export default class okx extends okxRest {
             'op': 'subscribe',
             'args': topics,
         };
-        const url = this.getUrl (channel, 'public');
+        let access = 'public';
+        if (channel === 'trades-all') {
+            access = 'business';
+            await this.authenticate ({ 'access': access });
+        }
+        const url = this.getUrl (channel, access);
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
@@ -234,17 +245,19 @@ export default class okx extends okxRest {
      * @description unWatches from the stream channel
      * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
-        const channel = 'trades';
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
         const topics = [];
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            messageHashes.push ('unsubscribe:trades:' + symbol);
+            messageHashes.push ('unsubscribe:' + channel + symbol);
             const marketId = this.marketId (symbol);
             const topic: Dict = {
                 'channel': channel,
@@ -256,7 +269,12 @@ export default class okx extends okxRest {
             'op': 'unsubscribe',
             'args': topics,
         };
-        const url = this.getUrl (channel, 'public');
+        let access = 'public';
+        if (channel === 'trades-all') {
+            access = 'business';
+            await this.authenticate ({ 'access': access });
+        }
+        const url = this.getUrl (channel, access);
         return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
@@ -284,6 +302,23 @@ export default class okx extends okxRest {
         //                 "sz": "0.00001186",
         //                 "side": "buy",
         //                 "ts": "1626531038288"
+        //             }
+        //         ]
+        //     }
+        //     {
+        //         "arg": {
+        //             "channel": "trades-all",
+        //             "instId": "BTC-USDT"
+        //         },
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT",
+        //                 "tradeId": "130639474",
+        //                 "px": "42219.9",
+        //                 "sz": "0.12060306",
+        //                 "side": "buy",
+        //                 "source": "0",
+        //                 "ts": "1630048897897"
         //             }
         //         ]
         //     }
@@ -1343,7 +1378,9 @@ export default class okx extends okxRest {
             }
             if (error !== undefined) {
                 delete client.subscriptions[messageHash];
-                delete this.orderbooks[symbol];
+                if (symbol !== undefined) {
+                    delete this.orderbooks[symbol];
+                }
                 client.reject (error, messageHash);
             }
         }
@@ -1497,7 +1534,7 @@ export default class okx extends okxRest {
         const url = this.getUrl ('users', access);
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds ().toString ();
@@ -2222,7 +2259,7 @@ export default class okx extends okxRest {
             'op': 'batch-cancel-orders',
             'args': args,
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     /**
@@ -2234,7 +2271,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelAllOrdersWs() requires a symbol argument');
         }
@@ -2443,6 +2480,7 @@ export default class okx extends okxRest {
                 'sprd-tickers': this.handleTicker,
                 'block-tickers': this.handleTicker,
                 'trades': this.handleTrades,
+                'trades-all': this.handleTrades,
                 'account': this.handleBalance,
                 'funding-rate': this.handleFundingRate,
                 // 'margin_account': this.handleBalance,
@@ -2462,9 +2500,9 @@ export default class okx extends okxRest {
         }
     }
 
-    handleUnSubscriptionTrades (client: Client, symbol: string) {
-        const subMessageHash = 'trades:' + symbol;
-        const messageHash = 'unsubscribe:trades:' + symbol;
+    handleUnSubscriptionTrades (client: Client, symbol: string, channel: string) {
+        const subMessageHash = channel + ':' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.trades) {
             delete this.trades[symbol];
@@ -2515,8 +2553,8 @@ export default class okx extends okxRest {
         const channel = this.safeString (arg, 'channel', '');
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
-        if (channel === 'trades') {
-            this.handleUnSubscriptionTrades (client, symbol);
+        if (channel === 'trades' || channel === 'trades-all') {
+            this.handleUnSubscriptionTrades (client, symbol, channel);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {
             this.handleUnsubscriptionOrderBook (client, symbol, channel);
         } else if (channel.indexOf ('tickers') > -1) {

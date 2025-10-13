@@ -9,7 +9,7 @@
 import { base16, base58, base64, utf8 } from "../../static_dependencies/scure-base/index.js";
 import { numberToBytesBE, numberToBytesLE, concatBytes } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import { serialize } from '../../static_dependencies/messagepack/msgpack.js';
-import qs from '../../static_dependencies/qs/index.cjs';
+import qs from '../../static_dependencies/qs/index.js';
 /*  ------------------------------------------------------------------------ */
 const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedObject = (object) => ((typeof object === 'string') &&
     (object.length >= 2) &&

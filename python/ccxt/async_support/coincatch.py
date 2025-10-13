@@ -4632,7 +4632,7 @@ class coincatch(Exchange, ImplicitAPI):
         params['methodName'] = 'addMargin'
         return await self.modify_margin_helper(symbol, amount, 'add', params)
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -4653,7 +4653,7 @@ class coincatch(Exchange, ImplicitAPI):
                 position = positions[i]
                 if position['side'] == side:
                     return position
-        return positions[0]
+        return self.safe_dict(positions, 0, {})
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
         """

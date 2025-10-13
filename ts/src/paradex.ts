@@ -302,7 +302,7 @@ export default class paradex extends Exchange {
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': undefined, // add {"privateKey": A, "publicKey": B, "address": C}
+                'paradexAccount': undefined, // add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {

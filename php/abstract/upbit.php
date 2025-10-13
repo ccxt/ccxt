@@ -70,6 +70,9 @@ abstract class upbit extends \ccxt\Exchange {
     public function public_get_orderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function public_get_orderbook_instruments($params = array()) {
+        return $this->request('orderbook/instruments', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_orderbook_supported_levels($params = array()) {
         return $this->request('orderbook/supported_levels', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -222,6 +225,9 @@ abstract class upbit extends \ccxt\Exchange {
     }
     public function publicGetOrderbook($params = array()) {
         return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetOrderbookInstruments($params = array()) {
+        return $this->request('orderbook/instruments', 'public', 'GET', $params, null, null, array("cost" => 2));
     }
     public function publicGetOrderbookSupportedLevels($params = array()) {
         return $this->request('orderbook/supported_levels', 'public', 'GET', $params, null, null, array("cost" => 2));
