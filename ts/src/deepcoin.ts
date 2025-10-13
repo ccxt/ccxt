@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -104,9 +104,9 @@ export default class deepcoin extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
@@ -150,9 +150,9 @@ export default class deepcoin extends Exchange {
                         'deepcoin/market/books': 1 / 2, // done
                         'deepcoin/market/candles': 1 / 2, // done
                         'deepcoin/market/instruments': 1 / 2, // done
-                        'deepcoin/market/tickers': 1,
+                        'deepcoin/market/tickers': 1, // done
                         'deepcoin/market/index-candles': 1 / 2, // done
-                        'deepcoin/market/trades': 1,
+                        'deepcoin/market/trades': 1, // done
                         'deepcoin/market/mark-price-candles': 1 / 2, // done
                         'deepcoin/market/step-margin': 1,
                     },
@@ -239,6 +239,7 @@ export default class deepcoin extends Exchange {
                 'exact': {
                     // { code: '51', msg: 'The instType field is required', data: null }
                     // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
+                    // {"code":"51","msg":"The productGroup field is required","data":null}
                 },
                 'broad': {},
             },
@@ -597,22 +598,12 @@ export default class deepcoin extends Exchange {
         //
         // spot
         //     {
-        //         "instType": "SPOT",
-        //         "instId": "A-USDT",
-        //         "last": "0.3136",
-        //         "lastSz": "",
-        //         "askPx": "0.3139",
-        //         "askSz": "24107.5",
-        //         "bidPx": "0.3134",
-        //         "bidSz": "28792.6",
-        //         "open24h": "0.301",
-        //         "high24h": "0.3197",
-        //         "low24h": "0.3012",
-        //         "volCcy24h": "375579.4111479",
-        //         "vol24h": "2421658.14399969",
-        //         "sodUtc0": "",
-        //         "sodUtc8": "",
-        //         "ts": "1760366196000"
+        //         "instId": "ETH-USDT",
+        //         "tradeId": "1001056388761321",
+        //         "px": "4095.66",
+        //         "sz": "0.01311251",
+        //         "side": "sell",
+        //         "ts": "1760367870000"
         //     }
         //
         // swap
@@ -669,6 +660,89 @@ export default class deepcoin extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productGroup] 'Spot', 'Swap', 'SwapU' for USDT-margined
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 500
+        }
+        let productGroup = undefined;
+        if (market['spot']) {
+            productGroup = 'Spot';
+        } else if (market['swap']) {
+            productGroup = 'SwapU'; // todo 'SwapU' for USDT-margined
+        }
+        request['productGroup'] = productGroup;
+        params = this.omit (params, 'productGroup');
+        const response = await this.publicGetDeepcoinMarketTrades (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "instId": "ETH-BTC",
+        //         "side": "sell",
+        //         "sz": "0.119501",
+        //         "px": "0.07065",
+        //         "tradeId": "15826757",
+        //         "ts": "1621446178316"
+        //     }
+        //
+        // swap: fetchTrades
+        //
+        //     {
+        //         "instId": "ETH-USDT-SWAP",
+        //         "tradeId": "1000296976413010",
+        //         "px": "4119.32",
+        //         "sz": "2",
+        //         "side": "sell",
+        //         "ts": "1760370136000"
+        //     }
+        //
+        const id = this.safeString (trade, 'tradeId');
+        const marketId = this.safeString (trade, 'instId');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (trade, 'ts');
+        const price = this.safeString2 (trade, 'fillPx', 'px');
+        const amount = this.safeString2 (trade, 'fillSz', 'sz');
+        const side = this.safeString (trade, 'side');
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
