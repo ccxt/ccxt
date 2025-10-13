@@ -964,14 +964,16 @@ class mexc(ccxt.async_support.mexc):
         # swap
         #     {
         #         "symbol": "BTC_USDT",
-        #         "data": {
-        #             "p": 27307.3,
-        #             "v": 5,
-        #             "T": 2,
-        #             "O": 3,
-        #             "M": 1,
-        #             "t": 1680055941870
-        #         },
+        #         "data": [
+        #            {
+        #                "p": 114350.4,
+        #                "v": 4,
+        #                "T": 2,
+        #                "O": 3,
+        #                "M": 2,
+        #                "t": 1760368563597
+        #            }
+        #         ],
         #         "channel": "push.deal",
         #         "ts": 1680055941870
         #     }
@@ -985,8 +987,10 @@ class mexc(ccxt.async_support.mexc):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
             self.trades[symbol] = stored
-        d = self.safe_dict_n(message, ['d', 'data', 'publicAggreDeals'])
+        d = self.safe_dict_n(message, ['d', 'publicAggreDeals'])
         trades = self.safe_list_2(d, 'deals', 'dealsList', [d])
+        if d is None:
+            trades = self.safe_list(message, 'data', [])
         for j in range(0, len(trades)):
             parsedTrade = None
             if market['spot']:
