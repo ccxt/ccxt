@@ -77,6 +77,15 @@
 - Improved number parsing robustness using `asFloat` with comma removal for price data
 - Enhanced ticker price parsing to handle formatted number strings correctly
 
+**Twox Exchange**: Enhanced ticker data parsing with complete price information
+
+- Fixed `parseTicker` to properly extract and map `sellPrice`, `buyPrice`, and `latestPrice` fields
+- Added proper bid/ask price population based on quote currency type
+- Implemented correct last price logic (uses `sellPrice` for IRT pairs, `latestPrice` for USDT pairs)
+- Added price change tracking with separate `sellPriceChange` and `buyPriceChange` handling
+- Populated percentage field with `priceChangePercent` from API response
+- Updated example comment to reflect actual API response structure
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
