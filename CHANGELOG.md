@@ -1,5 +1,62 @@
 # Changelog
 
+## v4.9.7 - 2025-10-13
+
+### Fixed
+
+**Twox Exchange**: Enhanced ticker data parsing with complete price information
+
+- Fixed `parseTicker` to properly extract and map `sellPrice`, `buyPrice`, and `latestPrice` fields
+- Added proper bid/ask price population based on quote currency type
+- Implemented correct last price logic (uses `sellPrice` for IRT pairs, `latestPrice` for USDT pairs)
+- Added price change tracking with separate `sellPriceChange` and `buyPriceChange` handling
+- Populated percentage field with `priceChangePercent` from API response
+- Updated example comment to reflect actual API response structure
+
+**Afratether Exchange**: Updated market and ticker parsing for USDT/IRR pairs
+
+- Changed market type from `spot` to `otc` to reflect OTC trading model
+- Updated `parseMarket` to use fixed quote currency (IRR) instead of dynamic quote from API
+- Modified `parseTicker` to extract bid/ask prices from `prices.IRR` object structure
+- Implemented proper price parsing with `price_sell` and `price_buy` fields
+- Added 24h change rate tracking with `changeRate24h` field
+- Fixed symbol construction to use proper format (base/quote)
+- Updated example comments to reflect new API response structure with IRR pricing
+
+## v4.9.6 - 2025-10-12
+
+### Added
+
+**Kifpool Exchange Integration**: Complete spot trading support for Kifpool exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market data for multiple quote currencies (USDT and IRT)
+  - Creates separate markets for each base/quote pair combination
+  - Support for retrieving all available trading pairs
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches buy and sell prices for specified symbols
+  - Supports filtering by specific symbols or fetching all tickers
+  - Parses bid/ask prices from market data
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Supports custom time ranges via fromTs and toTs parameters
+  - Configurable limit for number of candles returned
+- Type definitions and parsing logic for spot markets
+- Integration with Kifpool API:
+  - Markets/Tickers: https://api.kifpool.app/api/spot/price
+  - OHLCV: https://api.kifpool.app/api/spot/tickers/1m
+
+### Fixed
+
+**Tetherland Exchange**: Critical fixes for API endpoint and data parsing
+
+- Updated public API endpoint from `api.teterlands.com` to `service.tetherland.com`
+- Fixed market data parsing by replacing `safeDict` with `safeList` for array responses
+- Improved number parsing robustness using `asFloat` with comma removal for price data
+- Enhanced ticker price parsing to handle formatted number strings correctly
+
 ## v4.9.5 - 2025-10-10
 
 ### Added
@@ -46,55 +103,6 @@
   - Tickers: https://quote.bydfi.pro/tickers
   - Order Book: https://quote.bydfi.pro/mkpai/depth-v2
   - OHLCV: https://www.bydfi.com/api/tv/tradingView/history
-
-**Kifpool Exchange Integration**: Complete spot trading support for Kifpool exchange
-
-- Initial implementation with abstract class and public API endpoint
-- Spot market data fetching capabilities (`fetchMarkets`)
-  - Parses market data for multiple quote currencies (USDT and IRT)
-  - Creates separate markets for each base/quote pair combination
-  - Support for retrieving all available trading pairs
-- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
-  - Fetches buy and sell prices for specified symbols
-  - Supports filtering by specific symbols or fetching all tickers
-  - Parses bid/ask prices from market data
-- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
-  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
-  - Fetches historical price data with open, high, low, close, and volume
-  - Supports custom time ranges via fromTs and toTs parameters
-  - Configurable limit for number of candles returned
-- Type definitions and parsing logic for spot markets
-- Integration with Kifpool API:
-  - Markets/Tickers: https://api.kifpool.app/api/spot/price
-  - OHLCV: https://api.kifpool.app/api/spot/tickers/1m
-
-### Fixed
-
-**Tetherland Exchange**: Critical fixes for API endpoint and data parsing
-
-- Updated public API endpoint from `api.teterlands.com` to `service.tetherland.com`
-- Fixed market data parsing by replacing `safeDict` with `safeList` for array responses
-- Improved number parsing robustness using `asFloat` with comma removal for price data
-- Enhanced ticker price parsing to handle formatted number strings correctly
-
-**Twox Exchange**: Enhanced ticker data parsing with complete price information
-
-- Fixed `parseTicker` to properly extract and map `sellPrice`, `buyPrice`, and `latestPrice` fields
-- Added proper bid/ask price population based on quote currency type
-- Implemented correct last price logic (uses `sellPrice` for IRT pairs, `latestPrice` for USDT pairs)
-- Added price change tracking with separate `sellPriceChange` and `buyPriceChange` handling
-- Populated percentage field with `priceChangePercent` from API response
-- Updated example comment to reflect actual API response structure
-
-**Afratether Exchange**: Updated market and ticker parsing for USDT/IRR pairs
-
-- Changed market type from `spot` to `otc` to reflect OTC trading model
-- Updated `parseMarket` to use fixed quote currency (IRR) instead of dynamic quote from API
-- Modified `parseTicker` to extract bid/ask prices from `prices.IRR` object structure
-- Implemented proper price parsing with `price_sell` and `price_buy` fields
-- Added 24h change rate tracking with `changeRate24h` field
-- Fixed symbol construction to use proper format (base/quote)
-- Updated example comments to reflect new API response structure with IRR pricing
 
 ## v4.9.4 - 2025-10-08
 
