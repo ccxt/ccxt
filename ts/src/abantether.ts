@@ -23,7 +23,8 @@ export default class abantether extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
+                'otc': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -88,7 +89,7 @@ export default class abantether extends Exchange {
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/abantether/64x64.png',
                 'api': {
-                    'public': 'https://abantether.com',
+                    'public': 'https://api.abantether.com',
                 },
                 'www': 'https://abantether.com',
                 'doc': [
@@ -98,7 +99,7 @@ export default class abantether extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'management/all-coins/': 1,
+                        'manager/coins/data': 1,
                     },
                 },
             },
@@ -118,23 +119,24 @@ export default class abantether extends Exchange {
          * @method
          * @name abantether#fetchMarkets
          * @description retrieves data on all markets for abantether
-         * @see https://abantether.com/management/all-coins/?format=json
+         * @see https://api.abantether.com/manager/coins/data
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetManagementAllCoins (params);
+        const response = await this.publicGetManagerCoinsData (params);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         const quotes = [ 'IRT', 'USDT' ];
-        for (let i = 0; i < response.length; i++) {
-            const base = this.safeString (response[i], 'symbol');
+        for (let i = 0; i < data.length; i++) {
+            const base = this.safeString (data[i], 'symbol');
             for (let index = 0; index < quotes.length; index++) {
                 const quote = quotes[index];
-                response[i]['base'] = base;
-                response[i]['quote'] = quote;
+                data[i]['base'] = base;
+                data[i]['quote'] = quote;
                 if (base === quote) {
                     continue;
                 }
-                const market = this.parseMarket (response[i]);
+                const market = this.parseMarket (data[i]);
                 result.push (market);
             }
         }
@@ -143,29 +145,38 @@ export default class abantether extends Exchange {
 
     parseMarket (market): Market {
         // {
-        //     'symbol': 'USDT',
-        //     'name': 'Tether',
-        //     'categories': [],
-        //     'tetherPrice': '1',
-        //     'priceBuy': '59200.0',
-        //     'priceSell': '58800.0',
-        //     'persianName': '\u062a\u062a\u0631',
-        //     'past24': '0',
-        //     'marketVolume': '1',
-        //     'id': '1',
-        //     'active': true,
-        //     'irtDecimalPoint': '2',
-        //     'tetherDecimalPoint': '6',
-        //     'amountDecimalPoint': '6',
-        //     'past24volume': '767287.60530837810210936763',
-        //     'operationStatus': {
-        //         'buyActive': true,
-        //         'sellActive': true,
-        //         'withdrawalActive': true,
-        //         'depositActive': true,
-        //         'transferActive': true,
-        //     },
-        // };
+        //     "id": 1,
+        //     "name": "Tether USDt",
+        //     "symbol": "USDT",
+        //     "persian_name": "تتر",
+        //     "is_active": true,
+        //     "is_withdrawal_active": true,
+        //     "is_deposit_active": true,
+        //     "is_mid_wallet_transfer_active": true,
+        //     "is_buy_active": true,
+        //     "is_sell_active": true,
+        //     "is_credit_active": true,
+        //     "min_trade": "1.00",
+        //     "max_trade": "100000.00",
+        //     "tether_price": "1",
+        //     "price_buy": "113540.0",
+        //     "price_sell": "112630.0",
+        //     "volume24h": "225163179366.25",
+        //     "percent_change_1h": "0.00",
+        //     "percent_change_24h": "0.00",
+        //     "percent_change_7d": "0.04",
+        //     "market_cap": "179884960573.99",
+        //     "coin_type": "COIN",
+        //     "exchange_type": "fake",
+        //     "icon": "f71021586005413ea6f3a0bd1f7d8a55",
+        //     "fund_tether_buy": "0",
+        //     "fund_tether_sell": "0",
+        //     "irt_decimal_point": 2,
+        //     "tether_decimal_point": 6,
+        //     "amount_decimal_point": 6,
+        //     "base": "BTC",
+        //     "qoute": "USDT",
+        // },
         let baseId = this.safeString (market, 'base');
         let quoteId = this.safeString (market, 'quote');
         const base = this.safeCurrencyCode (baseId);
@@ -229,7 +240,7 @@ export default class abantether extends Exchange {
          * @method
          * @name abantether#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://abantether.com/management/all-coins/?format=json
+         * @see https://api.abantether.com/manager/coins/data
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -238,20 +249,21 @@ export default class abantether extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
         }
-        const response = await this.publicGetManagementAllCoins (params);
+        const response = await this.publicGetManagerCoinsData (params);
+        const data = this.safeList (response, 'data', []);
         const result = {};
         const quotes = [ 'IRT', 'USDT' ];
-        for (let i = 0; i < response.length; i++) {
-            const base = this.safeString (response[i], 'symbol');
+        for (let i = 0; i < data.length; i++) {
+            const base = this.safeString (data[i], 'symbol');
             for (let index = 0; index < quotes.length; index++) {
                 const quote = quotes[index];
                 if (base === quote) {
                     continue;
                 }
-                response[i]['base'] = base;
-                response[i]['quote'] = quote;
-                response[i]['symbol'] = base + quote;
-                const ticker = this.parseTicker (response[i]);
+                data[i]['base'] = base;
+                data[i]['quote'] = quote;
+                data[i]['symbol'] = base + quote;
+                const ticker = this.parseTicker (data[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
@@ -264,7 +276,7 @@ export default class abantether extends Exchange {
          * @method
          * @name abantether#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://abantether.com/management/all-coins/?format=json
+         * @see https://api.abantether.com/manager/coins/data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -275,38 +287,45 @@ export default class abantether extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         // {
-        //     'symbol': 'USDT',
-        //     'name': 'Tether',
-        //     'categories': [],
-        //     'tetherPrice': '1',
-        //     'priceBuy': '59200.0',
-        //     'priceSell': '58800.0',
-        //     'persianName': '\u062a\u062a\u0631',
-        //     'past24': '0',
-        //     'marketVolume': '1',
-        //     'id': '1',
-        //     'active': true,
-        //     'irtDecimalPoint': '2',
-        //     'tetherDecimalPoint': '6',
-        //     'amountDecimalPoint': '6',
-        //     'past24volume': '767287.60530837810210936763',
-        //     'operationStatus': {
-        //         'buyActive': true,
-        //         'sellActive': true,
-        //         'withdrawalActive': true,
-        //         'depositActive': true,
-        //         'transferActive': true,
-        //     },
-        // };
+        //     "id": 2,
+        //     "name": "Bitcoin",
+        //     "symbol": "BTC",
+        //     "persian_name": "بیت کوین",
+        //     "is_active": true,
+        //     "is_withdrawal_active": true,
+        //     "is_deposit_active": true,
+        //     "is_mid_wallet_transfer_active": true,
+        //     "is_buy_active": true,
+        //     "is_sell_active": true,
+        //     "is_credit_active": true,
+        //     "min_trade": "1.00",
+        //     "max_trade": "65000.00",
+        //     "tether_price": "114909.43000000",
+        //     "price_buy": "13049114870.800000000",
+        //     "price_sell": "12944547289.500000000",
+        //     "volume24h": "93585526493.26",
+        //     "percent_change_1h": "-0.29",
+        //     "percent_change_24h": "3.22",
+        //     "percent_change_7d": "-7.19",
+        //     "market_cap": "2292874615411.72",
+        //     "coin_type": "COIN",
+        //     "exchange_type": "binance",
+        //     "icon": "561aa10abc0c45f7aa4499f48d618c80",
+        //     "fund_tether_buy": "0",
+        //     "fund_tether_sell": "0",
+        //     "irt_decimal_point": 0,
+        //     "tether_decimal_point": 2,
+        //     "amount_decimal_point": 9
+        // },
         const marketType = 'otc';
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
-        let last = this.safeFloat (ticker, 'tetherPrice', 0);
+        let last = this.safeFloat (ticker, 'tether_price', 0);
         if (ticker['quote'] === 'IRT') {
-            last = this.safeFloat (ticker, 'priceSell', 0);
+            last = this.safeFloat (ticker, 'price_buy', 0);
         }
-        const change = this.safeFloat (ticker, 'past24', 0);
-        const baseVolume = this.safeFloat (ticker, 'past24volume', 0);
+        const change = this.safeFloat (ticker, 'percent_change_24h', 0);
+        const baseVolume = this.safeFloat (ticker, 'volume24h', 0);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
