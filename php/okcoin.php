@@ -1186,7 +1186,7 @@ class okcoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks

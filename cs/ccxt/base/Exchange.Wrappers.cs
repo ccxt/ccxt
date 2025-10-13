@@ -6,10 +6,10 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public async Task<Dictionary<string, object>> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
+    public async Task<Currencies> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesWs(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Currencies(res);
     }
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
@@ -786,7 +786,7 @@ public partial class Exchange
         var res = await this.cancelAllOrdersWs(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, object>> CancelUnifiedOrder(object order, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> CancelUnifiedOrder(Order order, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelUnifiedOrder(order, parameters);
         return ((Dictionary<string, object>)res);

@@ -1,5 +1,5 @@
 import bitvavoRest from '../bitvavo.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Strings, Tickers, Bool } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Strings, Tickers, Bool, Currencies } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitvavo extends bitvavoRest {
     describe(): any;
@@ -293,7 +293,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    fetchCurrenciesWs(params?: {}): Promise<any>;
+    fetchCurrenciesWs(params?: {}): Promise<Currencies>;
     handleFetchCurrencies(client: Client, message: any): void;
     handleTradingFees(client: any, message: any): void;
     /**

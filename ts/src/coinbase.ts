@@ -280,6 +280,7 @@ export default class coinbase extends Exchange {
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
                             'brokerage/payment_methods': 1,
                             'brokerage/payment_methods/{payment_method_id}': 1,
+                            'brokerage/key_permissions': 1,
                         },
                         'post': {
                             'brokerage/orders': 1,
@@ -3795,7 +3796,7 @@ export default class coinbase extends Exchange {
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const maxLimit = 300;
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);

@@ -1007,7 +1007,7 @@ class onetrading(ccxt.async_support.onetrading):
         self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://developers.bitpanda.com/exchange/#candlesticks-channel

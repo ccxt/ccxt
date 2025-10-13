@@ -355,7 +355,7 @@ export default class Exchange {
      */
     loadMarkets(reload?: boolean, params?: object): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    fetchCurrenciesWs(params?: {}): Promise<unknown>;
+    fetchCurrenciesWs(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsWs(params?: {}): Promise<Market[]>;
     checkRequiredDependencies(): void;
@@ -772,7 +772,7 @@ export default class Exchange {
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelUnifiedOrder(order: any, params?: {}): Promise<{}>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;

@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -286,7 +286,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -990,7 +990,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
         const action = 'getCandles';
@@ -1073,7 +1073,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the bitvavo api endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrenciesWs (params = {}) {
+    async fetchCurrenciesWs (params = {}): Promise<Currencies> {
         await this.loadMarkets ();
         return await this.watchRequest ('getAssets', params);
     }

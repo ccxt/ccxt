@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.9'
+__version__ = '4.5.10'
 
 # -----------------------------------------------------------------------------
 
@@ -2182,7 +2182,7 @@ class Exchange(BaseExchange):
         """
         raise NotSupported(self.id + ' fetchTransfers() is not supported yet')
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}):
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

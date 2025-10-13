@@ -1108,7 +1108,7 @@ export default class Exchange {
         });
     }
 
-    async fetchCurrenciesWs (params = {}) {
+    async fetchCurrenciesWs (params = {}): Promise<Currencies> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -6254,6 +6254,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
     }
@@ -6274,7 +6278,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }
 
-    async cancelUnifiedOrder (order, params = {}): Promise<{}> {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
         return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
@@ -8221,7 +8225,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTransfers () is not supported yet');
     }
 
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         /**
          * @method
          * @name exchange#unWatchOHLCV

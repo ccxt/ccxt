@@ -1725,7 +1725,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
