@@ -6254,6 +6254,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
     }
