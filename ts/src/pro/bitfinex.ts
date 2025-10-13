@@ -148,7 +148,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}) {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
