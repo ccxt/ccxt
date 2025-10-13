@@ -2,10 +2,10 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/deepcoin.js';
-import { } from './base/errors.js';
+import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Str } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -148,7 +148,7 @@ export default class deepcoin extends Exchange {
                 'public': {
                     'get': {
                         'deepcoin/market/books': 1 / 2, // done
-                        'deepcoin/market/candles': 1 / 2,
+                        'deepcoin/market/candles': 1 / 2, // done
                         'deepcoin/market/instruments': 1 / 2, // done
                         'deepcoin/market/tickers': 1,
                         'deepcoin/market/index-candles': 1 / 2, // done
@@ -241,6 +241,21 @@ export default class deepcoin extends Exchange {
                 'broad': {},
             },
         });
+    }
+
+    handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
+        const instType = this.safeString (params, 'instType');
+        params = this.omit (params, 'instType');
+        const type = this.safeString (params, 'type');
+        if ((type === undefined) && (instType !== undefined)) {
+            params['type'] = instType;
+        }
+        return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
+    }
+
+    convertToInstrumentType (type) {
+        const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
+        return this.safeString (exchangeTypes, type, type);
     }
 
     /**
@@ -571,6 +586,117 @@ export default class deepcoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.deepcoin.com/docs/DeepCoinMarket/getMarketTickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const market = this.getMarketFromSymbols (symbols);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const request: Dict = {
+            'instType': 'SWAP',
+        };
+        if (marketType === 'swap') {
+            const defaultUnderlying = this.safeString (this.options, 'defaultUnderlying', 'BTC-USD');
+            const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
+            if (currencyId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
+            } else {
+                request['uly'] = currencyId;
+            }
+        }
+        const response = await this.publicGetDeepcoinMarketTickers (this.extend (request, params));
+        const tickers = this.safeList (response, 'data', []);
+        return this.parseTickers (tickers, symbols);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        // spot
+        //     {
+        //         "instType": "SPOT",
+        //         "instId": "A-USDT",
+        //         "last": "0.3136",
+        //         "lastSz": "",
+        //         "askPx": "0.3139",
+        //         "askSz": "24107.5",
+        //         "bidPx": "0.3134",
+        //         "bidSz": "28792.6",
+        //         "open24h": "0.301",
+        //         "high24h": "0.3197",
+        //         "low24h": "0.3012",
+        //         "volCcy24h": "375579.4111479",
+        //         "vol24h": "2421658.14399969",
+        //         "sodUtc0": "",
+        //         "sodUtc8": "",
+        //         "ts": "1760366196000"
+        //     }
+        //
+        // swap
+        //     {
+        //         "instType": "SWAP",
+        //         "instId": "1BTC-USD-SWAP",
+        //         "last": "114113.3",
+        //         "lastSz": "",
+        //         "askPx": "114113.5",
+        //         "askSz": "56280",
+        //         "bidPx": "114113.2",
+        //         "bidSz": "63220",
+        //         "open24h": "113214.7",
+        //         "high24h": "116039.2",
+        //         "low24h": "113214.7",
+        //         "volCcy24h": "73.31475724",
+        //         "vol24h": "8406739",
+        //         "sodUtc0": "",
+        //         "sodUtc8": "",
+        //         "ts": "1760367816000"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const marketId = this.safeString (ticker, 'instId');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open24h');
+        const spot = this.safeBool (market, 'spot', false);
+        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
+        const baseVolume = this.safeString (ticker, 'vol24h');
+        const high = this.safeString (ticker, 'high24h');
+        const low = this.safeString (ticker, 'low24h');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': this.safeString (ticker, 'bidPx'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString (ticker, 'askPx'),
+            'askVolume': this.safeString (ticker, 'askSz'),
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
