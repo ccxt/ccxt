@@ -3568,7 +3568,8 @@ export default class mexc extends Exchange {
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined, // TODO: this might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': this.parseOrderType (typeRaw),
