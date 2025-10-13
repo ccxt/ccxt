@@ -23,7 +23,8 @@ export default class twox extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
+                'otc': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -281,51 +282,75 @@ export default class twox extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         //         {
-        // sellPrice: 0,
-        // buyPrice: 0,
-        // latestPrice: 0,
-        // weeklyChart: "https://cdn.twox.trade/currencies/charts/7d/irt_toman.svg?v=2024061017",
-        // priceChangePercent: 0,
-        // minAmount: 10000,
+        // sellPrice: 113201.0,
+        // buyPrice: 112151.0,
+        // latestPrice: 1.0,
+        // weeklyChart: "https://cdn.twox.info/resource/w/tether.webp?v=101313",
+        // priceChangePercent: 0.0,
+        // sellPriceChange: 0.00,
+        // buyPriceChange: 0.00,
+        // minAmount: 2.0,
         // tags: [ ],
         // marketCategories: [ ],
-        // id: 1,
-        // symbol: "IRT",
-        // name: "Toman",
-        // icon: "https://cdn.twox.trade/currencies/icons/128x128/irt_toman.png",
-        // persianName: "تومان",
-        // isStableCoin: false,
+        // id: 2,
+        // symbol: "USDT",
+        // name: "Tether USDt",
+        // icon: "https://cdn.twox.info/resource/c/tether.webp",
+        // persianName: "تتر",
+        // isStableCoin: true,
         // isActive: true,
-        // colorCode: null,
-        // type: 0,
+        // type: 2,
         // isNeedRiskWarning: false,
-        // assetPrecision: 0,
-        // isLeveragedToken: false,
-        // commissionPrecision: 0,
+        // assetPrecision: 2,
         // isDepositAllEnable: true,
-        // isTrading: true,
+        // tradeStatus: 1,
         // isWithdrawAllEnable: true,
-        // currencySlug: "IRT_Toman",
-        // marketCurrencyId: 0,
-        // order: 0
+        // currencySlug: "tether",
+        // marketCurrencyId: 825,
+        // order: 1,
+        // isTrading: true,
+        // commissionPrecision: 8,
+        // isDepositNeedManualConfirm: false,
+        // supportedBy: [ ]
         // },
         const marketType = 'otc';
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
-        let last = this.safeFloat (ticker, 'latestPrice', 0);
+        const sellPrice = this.safeFloat (ticker, 'sellPrice');
+        const buyPrice = this.safeFloat (ticker, 'buyPrice');
+        const latestPrice = this.safeFloat (ticker, 'latestPrice');
+        let last = undefined;
+        let bid = undefined;
+        let ask = undefined;
         if (ticker['quote'] === 'IRT') {
-            last = this.safeFloat (ticker, 'sell_price', 0);
+            // For IRT pairs, sellPrice is what user pays (ask), buyPrice is what user receives (bid)
+            last = sellPrice;
+            bid = buyPrice;
+            ask = sellPrice;
+        } else {
+            // For USDT pairs, use latestPrice
+            last = latestPrice;
+            bid = buyPrice;
+            ask = sellPrice;
         }
-        const change = this.safeFloat (ticker, 'priceChangePercent', 0);
+        const percentage = this.safeFloat (ticker, 'priceChangePercent');
+        const sellPriceChange = this.safeFloat (ticker, 'sellPriceChange');
+        const buyPriceChange = this.safeFloat (ticker, 'buyPriceChange');
+        let change = undefined;
+        if (ticker['quote'] === 'IRT') {
+            change = sellPriceChange;
+        } else {
+            change = buyPriceChange;
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
             'low': undefined,
-            'bid': undefined,
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -333,7 +358,7 @@ export default class twox extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': undefined,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
