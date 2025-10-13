@@ -21,6 +21,7 @@ export default class oxfun extends Exchange {
             'countries': [ 'PA' ], // Panama todo check
             'version': 'v3',
             'rateLimit': 120, // 100 requests per second and 25000 per 5 minutes
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

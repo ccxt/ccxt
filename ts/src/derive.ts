@@ -24,6 +24,7 @@ export default class derive extends Exchange {
             'countries': [],
             'version': 'v1',
             'rateLimit': 50,
+            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             'dex': true,

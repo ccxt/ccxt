@@ -32,6 +32,7 @@ export default class coinex extends Exchange {
             // 20 per 2 seconds => 10 per second => weight = 40
             // v1 is per 2 seconds and v2 is per 1 second
             'rateLimit': 2.5,
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'certified': true,
             'has': {

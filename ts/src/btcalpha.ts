@@ -21,6 +21,7 @@ export default class btcalpha extends Exchange {
             'name': 'BTC-Alpha',
             'countries': [ 'US' ],
             'version': 'v1',
+            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

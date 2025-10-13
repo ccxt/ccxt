@@ -21,6 +21,7 @@ export default class htx extends Exchange {
             'name': 'HTX',
             'countries': [ 'CN' ],
             'rateLimit': 100,
+            'rollingWindowSize': 60000.0,
             'userAgent': this.userAgents['chrome100'],
             'certified': true,
             'version': 'v1',

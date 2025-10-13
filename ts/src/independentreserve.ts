@@ -21,6 +21,7 @@ export default class independentreserve extends Exchange {
             'name': 'Independent Reserve',
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
             'rateLimit': 1000,
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

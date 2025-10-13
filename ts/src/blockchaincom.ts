@@ -19,6 +19,7 @@ export default class blockchaincom extends Exchange {
             'name': 'Blockchain.com',
             'countries': [ 'LX' ],
             'rateLimit': 500, // prev 1000
+            'rollingWindowSize': 60000.0,
             'version': 'v3',
             'pro': true,
             'has': {

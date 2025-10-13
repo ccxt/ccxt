@@ -24,6 +24,7 @@ export default class bybit extends Exchange {
             'version': 'v5',
             'userAgent': undefined,
             'rateLimit': 20,
+            'rollingWindowSize': 60000.0,
             'hostname': 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': true,
             'certified': true,

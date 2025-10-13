@@ -20,6 +20,7 @@ export default class cryptocom extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v2',
             'rateLimit': 10, // 100 requests per second
+            'rollingWindowSize': 60000.0,
             'certified': true,
             'pro': true,
             'has': {

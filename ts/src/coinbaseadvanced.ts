@@ -10,6 +10,7 @@ export default class coinbaseadvanced extends coinbase {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseadvanced',
             'name': 'Coinbase Advanced',
+            'rollingWindowSize': 60000.0,
             'alias': true,
         });
     }

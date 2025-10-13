@@ -29,6 +29,7 @@ export default class coinbase extends Exchange {
             // DATA API    : https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/rate-limiting
             // - max 10000 req/hour (to prevent userland mistakes we apply ~3 req/second RL per call
             'rateLimit': 34,
+            'rollingWindowSize': 60000.0,
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'headers': {

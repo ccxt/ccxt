@@ -21,6 +21,7 @@ export default class coinspot extends Exchange {
             'name': 'CoinSpot',
             'countries': [ 'AU' ], // Australia
             'rateLimit': 1000,
+            'rollingWindowSize': 60000.0,
             'pro': false,
             'has': {
                 'CORS': undefined,

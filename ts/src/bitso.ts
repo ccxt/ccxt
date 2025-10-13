@@ -21,6 +21,7 @@ export default class bitso extends Exchange {
             'name': 'Bitso',
             'countries': [ 'MX' ], // Mexico
             'rateLimit': 2000, // 30 requests per minute
+            'rollingWindowSize': 60000.0,
             'version': 'v3',
             'has': {
                 'CORS': undefined,

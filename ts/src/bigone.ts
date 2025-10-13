@@ -23,6 +23,7 @@ export default class bigone extends Exchange {
             'countries': [ 'CN' ],
             'version': 'v3',
             'rateLimit': 20, // 500 requests per 10 seconds
+            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

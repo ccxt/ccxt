@@ -17,6 +17,7 @@ export default class coinsph extends Exchange {
             'countries': [ 'PH' ], // Philippines
             'version': 'v1',
             'rateLimit': 50, // 1200 per minute
+            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': false,
             'has': {

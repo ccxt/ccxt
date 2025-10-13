@@ -21,6 +21,7 @@ export default class coincatch extends Exchange {
             'name': 'CoinCatch',
             'countries': [ 'VG' ], // British Virgin Islands
             'rateLimit': 50, // 20 times per second
+            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': false,
             'pro': true,

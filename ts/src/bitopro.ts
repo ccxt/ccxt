@@ -22,6 +22,7 @@ export default class bitopro extends Exchange {
             'countries': [ 'TW' ], // Taiwan
             'version': 'v3',
             'rateLimit': 100,
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

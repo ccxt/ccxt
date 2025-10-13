@@ -24,6 +24,7 @@ export default class okcoin extends Exchange {
             // cheapest endpoint is 100 requests per 2 seconds
             // 50 requests per second => 1000 / 50 = 20ms
             'rateLimit': 20,
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

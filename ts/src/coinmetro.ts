@@ -21,6 +21,7 @@ export default class coinmetro extends Exchange {
             'countries': [ 'EE' ], // Republic of Estonia
             'version': 'v1',
             'rateLimit': 200, // 1 request per 200 ms, 20 per minute, 300 per hour, 1k per day
+            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': false,
             'has': {

@@ -21,6 +21,7 @@ export default class paymium extends Exchange {
             'name': 'Paymium',
             'countries': [ 'FR', 'EU' ],
             'rateLimit': 2000,
+            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'has': {
                 'CORS': true,

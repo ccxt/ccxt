@@ -19,6 +19,7 @@ export default class bitfinex extends Exchange {
             'name': 'Bitfinex',
             'countries': [ 'VG' ],
             'version': 'v2',
+            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             // new metainfo interface

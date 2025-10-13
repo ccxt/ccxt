@@ -21,6 +21,7 @@ export default class defx extends Exchange {
             'name': 'Defx X',
             // 'countries': [ '' ],
             'rateLimit': 100,
+            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': false,
             'pro': false,

@@ -10,6 +10,7 @@ export default class binancecoinm extends binance {
         return this.deepExtend (super.describe (), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
+            'rollingWindowSize': 60000.0,
             'urls': {
                 'logo': 'https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c',
                 'doc': [

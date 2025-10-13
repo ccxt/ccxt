@@ -16,6 +16,7 @@ export default class timex extends Exchange {
             'countries': [ 'AU' ],
             'version': 'v1',
             'rateLimit': 1500,
+            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': undefined,
                 'spot': true,

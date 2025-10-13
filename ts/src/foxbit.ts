@@ -22,6 +22,7 @@ export default class foxbit extends Exchange {
             // 300 requests per 10 seconds = 30 requests per second
             // rateLimit = 1000 ms / 30 requests ~= 33.334
             'rateLimit': 33.334,
+            'rollingWindowSize': 60000.0,
             'version': '1',
             'comment': 'Foxbit Exchange',
             'certified': false,

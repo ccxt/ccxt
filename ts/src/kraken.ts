@@ -27,6 +27,7 @@ export default class kraken extends Exchange {
             // for public: 1 req/s
             // for private: every second 0.33 weight added to your allowed capacity (some private endpoints need 1 weight, some need 2)
             'rateLimit': 1000,
+            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             'has': {

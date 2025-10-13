@@ -21,6 +21,7 @@ export default class zonda extends Exchange {
             'name': 'Zonda',
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 1000,
+            'rollingWindowSize': 60000.0,
             'has': {
                 'CORS': true,
                 'spot': true,

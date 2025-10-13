@@ -20,6 +20,7 @@ export default class probit extends Exchange {
             'name': 'ProBit',
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': true,

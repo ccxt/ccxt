@@ -25,6 +25,7 @@ export default class deribit extends Exchange {
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': true,

@@ -21,6 +21,7 @@ export default class alpaca extends Exchange {
             // 150 req/s for subscribers: https://alpaca.markets/data
             // for brokers: https://alpaca.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
+            'rollingWindowSize': 60000.0,
             'hostname': 'alpaca.markets',
             'pro': true,
             'urls': {

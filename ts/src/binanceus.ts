@@ -13,6 +13,7 @@ export default class binanceus extends binance {
             'countries': [ 'US' ], // US
             'hostname': 'binance.us',
             'rateLimit': 50, // 1200 req per min
+            'rollingWindowSize': 60000.0,
             'certified': false,
             'pro': true,
             'urls': {

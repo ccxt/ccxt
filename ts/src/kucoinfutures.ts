@@ -20,6 +20,7 @@ export default class kucoinfutures extends kucoin {
             'name': 'KuCoin Futures',
             'countries': [ 'SC' ],
             'rateLimit': 75,
+            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': true,
             'pro': true,

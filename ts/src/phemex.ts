@@ -21,6 +21,7 @@ export default class phemex extends Exchange {
             'name': 'Phemex',
             'countries': [ 'CN' ], // China
             'rateLimit': 120.5,
+            'rollingWindowSize': 60000.0,
             'version': 'v1',
             'certified': false,
             'pro': true,

@@ -22,6 +22,7 @@ export default class blofin extends Exchange {
             'countries': [ 'US' ],
             'version': 'v1',
             'rateLimit': 100,
+            'rollingWindowSize': 60000.0,
             'pro': true,
             'has': {
                 'CORS': undefined,

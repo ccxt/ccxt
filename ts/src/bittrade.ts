@@ -21,6 +21,7 @@ export default class bittrade extends Exchange {
             'name': 'BitTrade',
             'countries': [ 'JP' ],
             'rateLimit': 100,
+            'rollingWindowSize': 60000.0,
             'userAgent': this.userAgents['chrome39'],
             'certified': false,
             'version': 'v1',
