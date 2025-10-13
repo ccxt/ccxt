@@ -1108,7 +1108,7 @@ export default class Exchange {
         });
     }
 
-    async fetchCurrenciesWs (params = {}) {
+    async fetchCurrenciesWs (params = {}): Promise<Currencies> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -6274,7 +6274,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }
 
-    async cancelUnifiedOrder (order, params = {}): Promise<{}> {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
         return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 

@@ -1138,7 +1138,7 @@ export default class bithumb extends Exchange {
         });
     }
 
-    async cancelUnifiedOrder (order, params = {}) {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
         const request: Dict = {
             'side': order['side'],
         };
