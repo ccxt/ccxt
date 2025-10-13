@@ -3196,7 +3196,7 @@ func (this *ExchangeTyped) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions
 	}
 	return NewOrderArray(res), nil
 }
-func (this *ExchangeTyped) CancelUnifiedOrder(order interface{}, options ...CancelUnifiedOrderOptions) (map[string]interface{}, error) {
+func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (map[string]interface{}, error) {
 
 	opts := CancelUnifiedOrderOptionsStruct{}
 
