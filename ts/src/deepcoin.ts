@@ -230,6 +230,8 @@ export default class deepcoin extends Exchange {
                 'exchangeType': {
                     'spot': 'SPOT',
                     'swap': 'SWAP',
+                    'SPOT': 'SPOT',
+                    'SWAP': 'SWAP',
                 },
             },
             'commonCurrencies': {},
@@ -267,61 +269,32 @@ export default class deepcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const promisesUnresolved = [
-            this.fetchSpotMarkets (params),
-            this.fetchContractMarkets (params),
-        ];
-        const promises = await Promise.all (promisesUnresolved);
-        const spotMarkets = promises[0];
-        const swapMarkets = promises[1];
-        return this.arrayConcat (spotMarkets, swapMarkets);
+        let types = [ 'spot', 'swap' ];
+        const fetchMarketsOption = this.safeDict (this.options, 'fetchMarkets');
+        if (fetchMarketsOption !== undefined) {
+            types = this.safeList (fetchMarketsOption, 'types', types);
+        } else {
+            types = this.safeList (this.options, 'fetchMarkets', types); // backward-support
+        }
+        let promises = [];
+        let result = [];
+        for (let i = 0; i < types.length; i++) {
+            promises.push (this.fetchMarketsByType (types[i], params));
+        }
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            result = this.arrayConcat (result, promises[i]);
+        }
+        return result;
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchMarketsByType (type, params = {}) {
         const request: Dict = {
-            'instType': 'SPOT',
+            'instType': this.convertToInstrumentType (type),
         };
         const response = await this.publicGetDeepcoinMarketInstruments (this.extend (request, params));
         //
         // spot
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "",
-        //         "data": [
-        //             {
-        //                 "instType": "SPOT",
-        //                 "instId": "A-USDT",
-        //                 "uly": "",
-        //                 "baseCcy": "A",
-        //                 "quoteCcy": "USDT",
-        //                 "ctVal": "1",
-        //                 "ctValCcy": "",
-        //                 "listTime": "0",
-        //                 "lever": "1",
-        //                 "tickSz": "0.0001",
-        //                 "lotSz": "0.001",
-        //                 "minSz": "0.5",
-        //                 "ctType": "",
-        //                 "alias": "",
-        //                 "state": "live",
-        //                 "maxLmtSz": "7692307",
-        //                 "maxMktSz": "7692307"
-        //             }
-        //         ]
-        //     }
-        //
-        const dataResponse = this.safeList (response, 'data', []);
-        return this.parseMarkets (dataResponse);
-    }
-
-    async fetchContractMarkets (params = {}) {
-        const request: Dict = {
-            'instType': 'SWAP',
-        };
-        const response = await this.publicGetDeepcoinMarketInstruments (this.extend (request, params));
-        //
-        // swap
         //
         //     {
         //         "code": "0",
@@ -604,9 +577,9 @@ export default class deepcoin extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request: Dict = {
-            'instType': 'SWAP',
+            'instType': this.convertToInstrumentType (marketType),
         };
-        if (marketType === 'swap') {
+        if (marketType === 'contract') {
             const defaultUnderlying = this.safeString (this.options, 'defaultUnderlying', 'BTC-USD');
             const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
             if (currencyId === undefined) {
