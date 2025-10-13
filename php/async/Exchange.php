@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.8';
+$version = '4.5.10';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.8';
+    const VERSION = '4.5.10';
 
     public $browser;
     public $marketsLoading = null;
@@ -6925,7 +6925,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()) {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()) {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for

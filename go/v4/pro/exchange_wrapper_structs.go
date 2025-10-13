@@ -648,6 +648,11 @@ type CancelOrderWsOptions = ccxt.CancelOrderWsOptions
 var WithCancelOrderWsSymbol = ccxt.WithCancelOrderWsSymbol
 var WithCancelOrderWsParams = ccxt.WithCancelOrderWsParams
 
+type CancelOrdersOptionsStruct = ccxt.CancelOrdersOptionsStruct
+type CancelOrdersOptions = ccxt.CancelOrdersOptions
+var WithCancelOrdersSymbol = ccxt.WithCancelOrdersSymbol
+var WithCancelOrdersParams = ccxt.WithCancelOrdersParams
+
 type CancelOrdersWsOptionsStruct = ccxt.CancelOrdersWsOptionsStruct
 type CancelOrdersWsOptions = ccxt.CancelOrdersWsOptions
 var WithCancelOrdersWsSymbol = ccxt.WithCancelOrdersWsSymbol
