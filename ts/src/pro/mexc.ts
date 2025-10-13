@@ -1039,7 +1039,7 @@ export default class mexc extends mexcRest {
         }
         const d = this.safeDictN (message, [ 'd', 'publicAggreDeals' ]);
         let trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
-        if (trades === undefined) {
+        if (d === undefined) {
             trades = this.safeList (message, 'data', []);
         }
         for (let j = 0; j < trades.length; j++) {
