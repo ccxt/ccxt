@@ -1654,6 +1654,10 @@ public partial class Exchange
         {
             return defaultValue;
         }
+        if (isTrue(isEqual(marketType, null)))
+        {
+            return defaultValue;  // marketType is required
+        }
         // if marketType (e.g. 'option') does not exist in features
         if (!isTrue((inOp(this.features, marketType))))
         {
@@ -1687,7 +1691,7 @@ public partial class Exchange
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (isTrue(isEqual(methodName, null)))
         {
-            return methodsContainer;
+            return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodsContainer;
         }
         if (!isTrue((inOp(methodsContainer, methodName))))
         {
@@ -1701,7 +1705,7 @@ public partial class Exchange
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (isTrue(isEqual(paramName, null)))
         {
-            return methodDict;
+            return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodDict;
         }
         object splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         object parentKey = getValue(splited, 0);
