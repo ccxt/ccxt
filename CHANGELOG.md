@@ -4,6 +4,30 @@
 
 ### Added
 
+**Pingi Exchange Integration**: Complete OTC trading support for Pingi exchange
+
+- Initial implementation with abstract class and public API endpoints
+- OTC market data fetching capabilities (`fetchMarkets`)
+  - Parses market data from prices endpoint with real-time trading statistics
+  - Supports multiple quote currencies including IRT (Iranian Toman) and USDT
+  - Extracts market volume, price ranges (min/max), and current price data
+  - Handles market identification via underscore-separated format (BASE_QUOTE)
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches 24h market statistics for all available symbols
+  - Includes price change tracking (absolute and percentage calculated from start/current price)
+  - Provides high/low prices, open/close prices, and volume data
+  - Returns current market price with 24h price movement
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Uses UDF (Universal Data Feed) format for chart data
+  - Supports custom time ranges via from and to parameters
+  - Returns properly formatted OHLCV arrays for charting
+- Type definitions and parsing logic for OTC markets
+- Integration with Pingi API v5:
+  - Markets/Tickers: https://api5.pingi.co/trading/market/prices/
+  - OHLCV: https://api5.pingi.co/trading/udf/history/
+
 **Mazdax Exchange Integration**: Complete OTC trading support for Mazdax exchange
 
 - Initial implementation with abstract class and public API endpoints
