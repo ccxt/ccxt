@@ -1013,14 +1013,16 @@ export default class mexc extends mexcRest {
         // swap
         //     {
         //         "symbol": "BTC_USDT",
-        //         "data": {
-        //             "p": 27307.3,
-        //             "v": 5,
-        //             "T": 2,
-        //             "O": 3,
-        //             "M": 1,
-        //             "t": 1680055941870
-        //         },
+        //         "data": [
+        //            {
+        //                "p": 114350.4,
+        //                "v": 4,
+        //                "T": 2,
+        //                "O": 3,
+        //                "M": 2,
+        //                "t": 1760368563597
+        //            }
+        //         ],
         //         "channel": "push.deal",
         //         "ts": 1680055941870
         //     }
@@ -1035,8 +1037,11 @@ export default class mexc extends mexcRest {
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const d = this.safeDictN (message, [ 'd', 'data', 'publicAggreDeals' ]);
-        const trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
+        const d = this.safeDictN (message, [ 'd', 'publicAggreDeals' ]);
+        let trades = this.safeList2 (d, 'deals', 'dealsList', [ d ]);
+        if (d === undefined) {
+            trades = this.safeList (message, 'data', []);
+        }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade = undefined;
             if (market['spot']) {
