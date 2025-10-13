@@ -150,7 +150,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/market/books': 1 / 2, // done
                         'deepcoin/market/candles': 1 / 2, // done
                         'deepcoin/market/instruments': 1 / 2, // done
-                        'deepcoin/market/tickers': 1, // done
+                        'deepcoin/market/tickers': 1 / 2, // done
                         'deepcoin/market/index-candles': 1 / 2, // done
                         'deepcoin/market/trades': 1, // done
                         'deepcoin/market/mark-price-candles': 1 / 2, // done
