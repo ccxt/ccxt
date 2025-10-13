@@ -1283,7 +1283,7 @@ class zonda(Exchange, ImplicitAPI):
             self.safe_number(first, 'v'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.zondacrypto.exchange/reference/candles-chart
