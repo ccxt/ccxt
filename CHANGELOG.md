@@ -47,6 +47,27 @@
   - Order Book: https://quote.bydfi.pro/mkpai/depth-v2
   - OHLCV: https://www.bydfi.com/api/tv/tradingView/history
 
+**Kifpool Exchange Integration**: Complete spot trading support for Kifpool exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market data for multiple quote currencies (USDT and IRT)
+  - Creates separate markets for each base/quote pair combination
+  - Support for retrieving all available trading pairs
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches buy and sell prices for specified symbols
+  - Supports filtering by specific symbols or fetching all tickers
+  - Parses bid/ask prices from market data
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Supports custom time ranges via fromTs and toTs parameters
+  - Configurable limit for number of candles returned
+- Type definitions and parsing logic for spot markets
+- Integration with Kifpool API:
+  - Markets/Tickers: https://api.kifpool.app/api/spot/price
+  - OHLCV: https://api.kifpool.app/api/spot/tickers/1m
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
