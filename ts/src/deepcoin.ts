@@ -596,17 +596,6 @@ export default class deepcoin extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
-        // spot
-        //     {
-        //         "instId": "ETH-USDT",
-        //         "tradeId": "1001056388761321",
-        //         "px": "4095.66",
-        //         "sz": "0.01311251",
-        //         "side": "sell",
-        //         "ts": "1760367870000"
-        //     }
-        //
-        // swap
         //     {
         //         "instType": "SWAP",
         //         "instId": "1BTC-USD-SWAP",
@@ -702,23 +691,12 @@ export default class deepcoin extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "instId": "ETH-BTC",
+        //         "instId": "ETH-USDT",
+        //         "tradeId": "1001056388761321",
+        //         "px": "4095.66",
+        //         "sz": "0.01311251",
         //         "side": "sell",
-        //         "sz": "0.119501",
-        //         "px": "0.07065",
-        //         "tradeId": "15826757",
-        //         "ts": "1621446178316"
-        //     }
-        //
-        // swap: fetchTrades
-        //
-        //     {
-        //         "instId": "ETH-USDT-SWAP",
-        //         "tradeId": "1000296976413010",
-        //         "px": "4119.32",
-        //         "sz": "2",
-        //         "side": "sell",
-        //         "ts": "1760370136000"
+        //         "ts": "1760367870000"
         //     }
         //
         const id = this.safeString (trade, 'tradeId');
