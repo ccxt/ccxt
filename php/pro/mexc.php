@@ -1037,12 +1037,14 @@ class mexc extends \ccxt\async\mexc {
         //     {
         //         "symbol" => "BTC_USDT",
         //         "data" => array(
-        //             "p" => 27307.3,
-        //             "v" => 5,
-        //             "T" => 2,
-        //             "O" => 3,
-        //             "M" => 1,
-        //             "t" => 1680055941870
+        //            {
+        //                "p" => 114350.4,
+        //                "v" => 4,
+        //                "T" => 2,
+        //                "O" => 3,
+        //                "M" => 2,
+        //                "t" => 1760368563597
+        //            }
         //         ),
         //         "channel" => "push.deal",
         //         "ts" => 1680055941870
@@ -1058,8 +1060,11 @@ class mexc extends \ccxt\async\mexc {
             $stored = new ArrayCache ($limit);
             $this->trades[$symbol] = $stored;
         }
-        $d = $this->safe_dict_n($message, array( 'd', 'data', 'publicAggreDeals' ));
+        $d = $this->safe_dict_n($message, array( 'd', 'publicAggreDeals' ));
         $trades = $this->safe_list_2($d, 'deals', 'dealsList', array( $d ));
+        if ($d === null) {
+            $trades = $this->safe_list($message, 'data', array());
+        }
         for ($j = 0; $j < count($trades); $j++) {
             $parsedTrade = null;
             if ($market['spot']) {
