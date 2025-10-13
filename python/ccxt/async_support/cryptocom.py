@@ -455,6 +455,9 @@ class cryptocom(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -549,12 +552,12 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         # self endpoint requires authentication
         if not self.check_required_credentials(False):
-            return None
+            return {}
         skipFetchCurrencies = False
         skipFetchCurrencies, params = self.handle_option_and_params(params, 'fetchCurrencies', 'skipFetchCurrencies', False)
         if skipFetchCurrencies:
             # sub-accounts can't access self endpoint
-            return None
+            return {}
         response = {}
         try:
             response = await self.v1PrivatePostPrivateGetCurrencyNetworks(params)
@@ -562,7 +565,7 @@ class cryptocom(Exchange, ImplicitAPI):
             if isinstance(e, ExchangeError):
                 # sub-accounts can't access self endpoint
                 # {"code":"10001","msg":"SYS_ERROR"}
-                return None
+                return {}
             raise e
             # do nothing
             # sub-accounts can't access self endpoint
@@ -1050,7 +1053,7 @@ class cryptocom(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

@@ -14,7 +14,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.iso8601(514862627000), "1986-04-26T01:23:47.000Z"));
             Assert(isEqual(exchange.iso8601(514862627559), "1986-04-26T01:23:47.559Z"));
             Assert(isEqual(exchange.iso8601(514862627062), "1986-04-26T01:23:47.062Z"));
-            Assert(isEqual(exchange.iso8601(0), "1970-01-01T00:00:00.000Z"));
+            Assert(isEqual(exchange.iso8601(1), "1970-01-01T00:00:00.001Z"));
             Assert(isEqual(exchange.iso8601(-1), null));
             // Assert (exchange.iso8601 () === undefined);
             // todo: Assert (exchange.iso8601 () === undefined);

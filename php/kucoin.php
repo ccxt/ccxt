@@ -1391,7 +1391,6 @@ class kucoin extends Exchange {
         //
         $currenciesData = $this->safe_list($response, 'data', array());
         $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
-        $otherFiats = $this->safe_list($this->options, 'fiats', array( 'KWD', 'IRR', 'PKR' ));
         $result = array();
         for ($i = 0; $i < count($currenciesData); $i++) {
             $entry = $currenciesData[$i];
@@ -1432,7 +1431,7 @@ class kucoin extends Exchange {
             // kucoin has determined 'fiat' currencies with below logic
             $rawPrecision = $this->safe_string($entry, 'precision');
             $precision = $this->parse_number($this->parse_precision($rawPrecision));
-            $isFiat = $this->in_array($id, $otherFiats) || (($rawPrecision === '2') && ($chainsLength === 0));
+            $isFiat = $chainsLength === 0;
             $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
                 'name' => $this->safe_string($entry, 'fullName'),
@@ -1921,7 +1920,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *

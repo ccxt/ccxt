@@ -1398,7 +1398,6 @@ class kucoin(Exchange, ImplicitAPI):
         #
         currenciesData = self.safe_list(response, 'data', [])
         brokenCurrencies = self.safe_list(self.options, 'brokenCurrencies', ['00', 'OPEN_ERROR', 'HUF', 'BDT'])
-        otherFiats = self.safe_list(self.options, 'fiats', ['KWD', 'IRR', 'PKR'])
         result: dict = {}
         for i in range(0, len(currenciesData)):
             entry = currenciesData[i]
@@ -1437,7 +1436,7 @@ class kucoin(Exchange, ImplicitAPI):
             # kucoin has determined 'fiat' currencies with below logic
             rawPrecision = self.safe_string(entry, 'precision')
             precision = self.parse_number(self.parse_precision(rawPrecision))
-            isFiat = self.in_array(id, otherFiats) or ((rawPrecision == '2') and (chainsLength == 0))
+            isFiat = chainsLength == 0
             result[code] = self.safe_currency_structure({
                 'id': id,
                 'name': self.safe_string(entry, 'fullName'),
@@ -1904,7 +1903,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

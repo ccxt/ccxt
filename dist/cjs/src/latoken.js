@@ -1605,6 +1605,7 @@ class latoken extends latoken$1["default"] {
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CHECKING': 'pending',
             'TRANSACTION_STATUS_CANCELLED': 'canceled',
+            'TRANSACTION_STATUS_FAILED': 'failed',
         };
         return this.safeString(statuses, status, status);
     }

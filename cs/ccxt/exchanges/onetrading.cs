@@ -448,34 +448,81 @@ public partial class onetrading : Exchange
 
     public override object parseMarket(object market)
     {
-        object baseAsset = this.safeValue(market, "base", new Dictionary<string, object>() {});
-        object quoteAsset = this.safeValue(market, "quote", new Dictionary<string, object>() {});
+        //
+        //   {
+        //      "base":{
+        //         "code":"BTC",
+        //         "precision":"5"
+        //      },
+        //      "quote":{
+        //         "code":"USDC",
+        //         "precision":"2"
+        //      },
+        //      "amount_precision":"5",
+        //      "market_precision":"2",
+        //      "min_size":"10.0",
+        //      "min_price":"1000",
+        //      "max_price":"10000000",
+        //      "id":"BTC_USDC",
+        //      "type":"SPOT",
+        //      "state":"ACTIVE"
+        //   }
+        //
+        //
+        //  {
+        //      "base": {
+        //          "code": "BTC",
+        //          "precision": 5
+        //      },
+        //      "quote": {
+        //          "code": "EUR",
+        //          "precision": 2
+        //      },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_EUR_P",
+        //      "type": "PERP",
+        //      "state": "ACTIVE"
+        //  }
+        //
+        object baseAsset = this.safeDict(market, "base", new Dictionary<string, object>() {});
+        object quoteAsset = this.safeDict(market, "quote", new Dictionary<string, object>() {});
         object baseId = this.safeString(baseAsset, "code");
         object quoteId = this.safeString(quoteAsset, "code");
-        object id = add(add(baseId, "_"), quoteId);
+        object id = this.safeString(market, "id");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
+        object type = this.safeString(market, "type");
+        object isPerp = isEqual(type, "PERP");
+        object symbol = add(add(bs, "/"), quote);
+        if (isTrue(isPerp))
+        {
+            symbol = add(add(symbol, ":"), quote);
+        }
         return new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", symbol },
             { "base", bs },
             { "quote", quote },
-            { "settle", null },
+            { "settle", ((bool) isTrue(isPerp)) ? quote : null },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", null },
-            { "type", "spot" },
-            { "spot", true },
+            { "settleId", ((bool) isTrue(isPerp)) ? quoteId : null },
+            { "type", ((bool) isTrue(isPerp)) ? "swap" : "spot" },
+            { "spot", !isTrue(isPerp) },
             { "margin", false },
-            { "swap", false },
+            { "swap", isPerp },
             { "future", false },
             { "option", false },
             { "active", (isEqual(state, "ACTIVE")) },
-            { "contract", false },
-            { "linear", null },
-            { "inverse", null },
-            { "contractSize", null },
+            { "contract", isPerp },
+            { "linear", ((bool) isTrue(isPerp)) ? true : null },
+            { "inverse", ((bool) isTrue(isPerp)) ? false : null },
+            { "contractSize", ((bool) isTrue(isPerp)) ? this.parseNumber("1") : null },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -514,6 +561,7 @@ public partial class onetrading : Exchange
      * @see https://docs.onetrading.com/#fee-groups
      * @see https://docs.onetrading.com/#fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -544,40 +592,69 @@ public partial class onetrading : Exchange
         await this.loadMarkets();
         object response = await this.publicGetFees(parameters);
         //
-        //     [
-        //         {
-        //             "fee_group_id":"default",
-        //             "display_text":"The standard fee plan.",
-        //             "fee_tiers":[
-        //                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
-        //                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
-        //                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
-        //                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
-        //                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
-        //                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
-        //                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
-        //             ],
-        //             "fee_discount_rate":"25.0",
-        //             "minimum_price_value":"0.12"
-        //         }
-        //     ]
+        // [
+        //     {
+        //         'fee_group_id': 'SPOT',
+        //         'display_text': 'The fee plan for spot trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        //     {
+        //         'fee_group_id': 'FUTURES',
+        //         'display_text': 'The fee plan for futures trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        // ];
         //
-        object first = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object feeTiers = this.safeValue(first, "fee_tiers");
-        object tiers = this.parseFeeTiers(feeTiers);
-        object firstTier = this.safeValue(feeTiers, 0, new Dictionary<string, object>() {});
+        object spotFees = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        object futuresFees = this.safeDict(response, 1, new Dictionary<string, object>() {});
+        object spotFeeTiers = this.safeList(spotFees, "fee_tiers", new List<object>() {});
+        object futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new List<object>() {});
+        object spotTiers = this.parseFeeTiers(spotFeeTiers);
+        object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
+        object firstSpotTier = this.safeDict(spotTiers, 0, new Dictionary<string, object>() {});
+        object firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object tierObject = ((bool) isTrue((getValue(market, "spot")))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
-                { "info", first },
+                { "info", spotFees },
                 { "symbol", symbol },
-                { "maker", this.safeNumber(firstTier, "maker_fee") },
-                { "taker", this.safeNumber(firstTier, "taker_fee") },
+                { "maker", this.safeNumber(tierObject, "maker_fee") },
+                { "taker", this.safeNumber(tierObject, "taker_fee") },
                 { "percentage", true },
                 { "tierBased", true },
-                { "tiers", tiers },
+                { "tiers", spotTiers },
             };
         }
         return result;
@@ -589,37 +666,56 @@ public partial class onetrading : Exchange
         await this.loadMarkets();
         object response = await this.privateGetAccountFees(parameters);
         //
-        //     {
-        //         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
-        //         "running_trading_volume": "0.0",
-        //         "fee_group_id": "default",
-        //         "collect_fees_in_best": false,
-        //         "fee_discount_rate": "25.0",
-        //         "minimum_price_value": "0.12",
-        //         "fee_tiers": [
-        //             { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" },
-        //             { "volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1" },
-        //             { "volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1" },
-        //             { "volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09" },
-        //             { "volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08" },
-        //             { "volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07" },
-        //             { "volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06" },
-        //             { "volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05" }
-        //         ],
-        //         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
-        //     }
+        // {
+        //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+        //    "running_volumes":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       }
+        //    ],
+        //    "active_fee_tiers":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       }
+        //    ]
+        // }
         //
-        object activeFeeTier = this.safeValue(response, "active_fee_tier", new Dictionary<string, object>() {});
-        object makerFee = this.safeString(activeFeeTier, "maker_fee");
-        object takerFee = this.safeString(activeFeeTier, "taker_fee");
-        makerFee = Precise.stringDiv(makerFee, "100");
-        takerFee = Precise.stringDiv(takerFee, "100");
-        object feeTiers = this.safeValue(response, "fee_tiers");
+        object activeFeeTier = this.safeList(response, "active_fee_tiers");
+        object spotFees = this.safeDict(activeFeeTier, 0, new Dictionary<string, object>() {});
+        object futuresFees = this.safeDict(activeFeeTier, 1, new Dictionary<string, object>() {});
+        object spotMakerFee = this.safeString(spotFees, "maker_fee");
+        object spotTakerFee = this.safeString(spotFees, "taker_fee");
+        spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
+        spotTakerFee = Precise.stringDiv(spotTakerFee, "100");
+        // const feeTiers = this.safeValue (response, 'fee_tiers');
+        object futuresMakerFee = this.safeString(futuresFees, "maker_fee");
+        object futuresTakerFee = this.safeString(futuresFees, "taker_fee");
+        futuresMakerFee = Precise.stringDiv(futuresMakerFee, "100");
+        futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
         object result = new Dictionary<string, object>() {};
-        object tiers = this.parseFeeTiers(feeTiers);
+        // const tiers = this.parseFeeTiers (feeTiers);
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object makerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotMakerFee : futuresMakerFee;
+            object takerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -627,7 +723,7 @@ public partial class onetrading : Exchange
                 { "taker", this.parseNumber(takerFee) },
                 { "percentage", true },
                 { "tierBased", true },
-                { "tiers", tiers },
+                { "tiers", null },
             };
         }
         return result;
@@ -1403,7 +1499,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

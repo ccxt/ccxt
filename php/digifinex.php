@@ -523,7 +523,7 @@ class digifinex extends Exchange {
             $networks = array();
             for ($j = 0; $j < count($networkEntries); $j++) {
                 $networkEntry = $networkEntries[$j];
-                $networkId = $this->safe_string($networkEntry, 'chain');
+                $networkId = $this->safe_string_2($networkEntry, 'chain', 'currency');
                 $networkCode = $this->network_id_to_code($networkId);
                 $networks[$networkCode] = array(
                     'id' => $networkId,
@@ -1517,7 +1517,7 @@ class digifinex extends Exchange {
         }
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *

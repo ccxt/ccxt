@@ -61,7 +61,7 @@ class hibachi extends Exchange {
                 'fetchClosedOrders' => false,
                 'fetchConvertCurrencies' => false,
                 'fetchConvertQuote' => false,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
@@ -181,6 +181,7 @@ class hibachi extends Exchange {
                     'taker' => $this->parse_number('0.00045'),
                 ),
             ),
+            'currencies' => $this->hardcoded_currencies(),
             'options' => array(
             ),
             'features' => array(
@@ -371,15 +372,7 @@ class hibachi extends Exchange {
         return $this->parse_markets($rows);
     }
 
-    public function fetch_currencies($params = array ()): ?array {
-        /**
-         * fetches all available currencies on an exchange
-         *
-         * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-         *
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an associative dictionary of currencies
-         */
+    public function hardcoded_currencies(): ?array {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         $result = array();
@@ -1457,7 +1450,7 @@ class hibachi extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
@@ -1616,7 +1609,7 @@ class hibachi extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
-        $headers = array();
+        $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
         if ($method === 'GET') {
             $request = $this->omit($params, $this->extract_params($path));
             $query = $this->urlencode($request);

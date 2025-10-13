@@ -789,7 +789,7 @@ class apex extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -813,9 +813,9 @@ class apex extends Exchange {
             $limit = 200; // default is 200 when requested with `$since`
         }
         $request['limit'] = $limit; // max 200, default 200
-        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        list($request, $params) = $this->handle_until_option('end', $request, $params, 0.001);
         if ($since !== null) {
-            $request['start'] = $since;
+            $request['start'] = (int) floor($since / 1000);
         }
         $response = $this->publicGetV3Klines ($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', array());

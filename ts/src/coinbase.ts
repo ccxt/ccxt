@@ -280,6 +280,7 @@ export default class coinbase extends Exchange {
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
                             'brokerage/payment_methods': 1,
                             'brokerage/payment_methods/{payment_method_id}': 1,
+                            'brokerage/key_permissions': 1,
                         },
                         'post': {
                             'brokerage/orders': 1,
@@ -2265,34 +2266,44 @@ export default class coinbase extends Exchange {
         // fetchTickersV3
         //
         //     [
-        //         {
-        //             "product_id": "TONE-USD",
-        //             "price": "0.01523",
-        //             "price_percentage_change_24h": "1.94109772423025",
-        //             "volume_24h": "19773129",
-        //             "volume_percentage_change_24h": "437.0170530929949",
-        //             "base_increment": "1",
-        //             "quote_increment": "0.00001",
-        //             "quote_min_size": "1",
-        //             "quote_max_size": "10000000",
-        //             "base_min_size": "26.7187147229469674",
-        //             "base_max_size": "267187147.2294696735908216",
-        //             "base_name": "TE-FOOD",
-        //             "quote_name": "US Dollar",
-        //             "watched": false,
-        //             "is_disabled": false,
-        //             "new": false,
-        //             "status": "online",
-        //             "cancel_only": false,
-        //             "limit_only": false,
-        //             "post_only": false,
-        //             "trading_disabled": false,
-        //             "auction_mode": false,
-        //             "product_type": "SPOT",
-        //             "quote_currency_id": "USD",
-        //             "base_currency_id": "TONE",
-        //             "fcm_trading_session_details": null,
-        //             "mid_market_price": ""
+        //        {
+        //            "product_id": "ETH-USD",
+        //            "price": "4471.59",
+        //            "price_percentage_change_24h": "0.14243387238731",
+        //            "volume_24h": "87329.92990204",
+        //            "volume_percentage_change_24h": "-60.7789801794578",
+        //            "base_increment": "0.00000001",
+        //            "quote_increment": "0.01",
+        //            "quote_min_size": "1",
+        //            "quote_max_size": "150000000",
+        //            "base_min_size": "0.00000001",
+        //            "base_max_size": "42000",
+        //            "base_name": "Ethereum",
+        //            "quote_name": "US Dollar",
+        //            "watched": false,
+        //            "is_disabled": false,
+        //            "new": false,
+        //            "status": "online",
+        //            "cancel_only": false,
+        //            "limit_only": false,
+        //            "post_only": false,
+        //            "trading_disabled": false,
+        //            "auction_mode": false,
+        //            "product_type": "SPOT",
+        //            "quote_currency_id": "USD",
+        //            "base_currency_id": "ETH",
+        //            "fcm_trading_session_details": null,
+        //            "mid_market_price": "",
+        //            "alias": "",
+        //            "alias_to": [ "ETH-USDC" ],
+        //            "base_display_symbol": "ETH",
+        //            "quote_display_symbol": "USD",
+        //            "view_only": false,
+        //            "price_increment": "0.01",
+        //            "display_name": "ETH-USD",
+        //            "product_venue": "CBE",
+        //            "approximate_quote_24h_volume": "390503641.25",
+        //            "new_at": "2023-01-01T00:00:00Z"
         //         },
         //         ...
         //     ]
@@ -2323,10 +2334,12 @@ export default class coinbase extends Exchange {
         if (('bids' in ticker)) {
             const bids = this.safeList (ticker, 'bids', []);
             const asks = this.safeList (ticker, 'asks', []);
-            bid = this.safeNumber (bids[0], 'price');
-            bidVolume = this.safeNumber (bids[0], 'size');
-            ask = this.safeNumber (asks[0], 'price');
-            askVolume = this.safeNumber (asks[0], 'size');
+            const firstBid = this.safeDict (bids, 0, {});
+            const firstAsk = this.safeDict (asks, 0, {});
+            bid = this.safeNumber (firstBid, 'price');
+            bidVolume = this.safeNumber (firstBid, 'size');
+            ask = this.safeNumber (firstAsk, 'price');
+            askVolume = this.safeNumber (firstAsk, 'size');
         }
         const marketId = this.safeString (ticker, 'product_id');
         market = this.safeMarket (marketId, market);
@@ -2350,8 +2363,8 @@ export default class coinbase extends Exchange {
             'change': undefined,
             'percentage': this.safeNumber (ticker, 'price_percentage_change_24h'),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
+            'quoteVolume': this.safeNumber (ticker, 'approximate_quote_24h_volume'),
             'info': ticker,
         }, market);
     }
@@ -2927,7 +2940,7 @@ export default class coinbase extends Exchange {
             }
             accountId = await this.findAccountId (code, params);
             if (accountId === undefined) {
-                throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
+                throw new ExchangeError (this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.');
             }
         }
         const request: Dict = {
@@ -3783,7 +3796,7 @@ export default class coinbase extends Exchange {
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const maxLimit = 300;
         limit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
@@ -5037,8 +5050,9 @@ export default class coinbase extends Exchange {
         return parsedPositions;
     }
 
-    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined) {
-        // it may not work for v2
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+        // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
+        // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         let uri = undefined;
         if (url !== undefined) {
             uri = method + ' ' + url.replace ('https://', '');
@@ -5049,20 +5063,33 @@ export default class coinbase extends Exchange {
                 uri = uri.slice (0, quesPos);
             }
         }
+        // eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
         const nonce = this.randomBytes (16);
+        const aud = useEddsa ? 'cdp_service' : 'retail_rest_api_proxy';
+        const iss = useEddsa ? 'cdp' : 'coinbase-cloud';
         const request: Dict = {
-            'aud': [ 'retail_rest_api_proxy' ],
-            'iss': 'coinbase-cloud',
+            'aud': [ aud ],
+            'iss': iss,
             'nbf': seconds,
             'exp': seconds + 120,
             'sub': this.apiKey,
             'iat': seconds,
         };
         if (uri !== undefined) {
-            request['uri'] = uri;
+            if (!useEddsa) {
+                request['uri'] = uri;
+            } else {
+                request['uris'] = [ uri ];
+            }
         }
-        const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
-        return token;
+        if (useEddsa) {
+            const byteArray = this.base64ToBinary (this.secret);
+            const seed = this.arraySlice (byteArray, 0, 32);
+            return jwt (request, seed, sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'EdDSA' });
+        } else {
+            // ecdsa with p256
+            return jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
+        }
     }
 
     nonce () {
@@ -5111,8 +5138,10 @@ export default class coinbase extends Exchange {
                 // v2: 'GET' require payload in the signature
                 // https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication
                 const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
-                if (isCloudAPiKey) {
-                    if (this.apiKey.startsWith ('-----BEGIN')) {
+                // using the size might be fragile, so we add an option to force v2 cloud api key if needed
+                const isV2CloudAPiKey = this.secret.length === 88 || this.safeBool (this.options, 'v2CloudAPiKey', false) || this.secret.endsWith ('=');
+                if (isCloudAPiKey || isV2CloudAPiKey) {
+                    if (isCloudAPiKey && this.apiKey.startsWith ('-----BEGIN')) {
                         throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
                     }
                     // // it may not work for v2
@@ -5133,7 +5162,7 @@ export default class coinbase extends Exchange {
                     //     'uri': uri,
                     //     'iat': seconds,
                     // };
-                    const token = this.createAuthToken (seconds, method, url);
+                    const token = this.createAuthToken (seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
                     authorizationString = 'Bearer ' + token;
                 } else {

@@ -784,7 +784,7 @@ class apex(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -807,9 +807,9 @@ class apex(Exchange, ImplicitAPI):
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         request['limit'] = limit  # max 200, default 200
-        request, params = self.handle_until_option('end', request, params)
+        request, params = self.handle_until_option('end', request, params, 0.001)
         if since is not None:
-            request['start'] = since
+            request['start'] = int(math.floor(since / 1000))
         response = self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         OHLCVs = self.safe_list(data, market['id2'], [])

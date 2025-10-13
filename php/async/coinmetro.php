@@ -575,6 +575,17 @@ class coinmetro extends Exchange {
                 }
             }
         }
+        if ($baseId === null || $quoteId === null) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (str_ends_with($marketId, 'USDT')) {
+                $baseId = str_replace('USDT', '', $marketId);
+                $quoteId = 'USDT';
+            }
+            if (str_ends_with($marketId, 'USD')) {
+                $baseId = str_replace('USD', '', $marketId);
+                $quoteId = 'USD';
+            }
+        }
         $result = array(
             'baseId' => $baseId,
             'quoteId' => $quoteId,
@@ -595,7 +606,7 @@ class coinmetro extends Exchange {
         return $result;
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

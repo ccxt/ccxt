@@ -206,7 +206,7 @@ class phemex(Exchange, ImplicitAPI):
                         # swap
                         'accounts/accountPositions': 1,  # ?currency=<currency>
                         'g-accounts/accountPositions': 1,  # ?currency=<currency>
-                        'accounts/positions': 25,  # ?currency=<currency>
+                        'g-accounts/positions': 25,  # ?currency=<currency>
                         'api-data/futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/futures/orders': 5,  # ?symbol=<symbol>
@@ -1268,7 +1268,7 @@ class phemex(Exchange, ImplicitAPI):
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
 
-    def to_ev(self, amount, market: Market = None):
+    def to_ev(self, amount, market: dict = None):
         if (amount is None) or (market is None):
             return amount
         return self.to_en(amount, market['valueScale'])
@@ -1329,7 +1329,7 @@ class phemex(Exchange, ImplicitAPI):
             baseVolume,
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3594,7 +3594,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -3630,7 +3630,7 @@ class phemex(Exchange, ImplicitAPI):
             if method == 'privateGetGAccountsAccountPositions':
                 response = await self.privateGetGAccountsAccountPositions(self.extend(request, params))
             else:
-                response = await self.privateGetAccountsPositions(self.extend(request, params))
+                response = await self.privateGetGAccountsPositions(self.extend(request, params))
         else:
             response = await self.privateGetAccountsAccountPositions(self.extend(request, params))
         #
@@ -3800,7 +3800,7 @@ class phemex(Exchange, ImplicitAPI):
         initialMarginPercentageString = Precise.string_div(initialMarginString, notionalString)
         liquidationPrice = self.safe_number_2(position, 'liquidationPrice', 'liquidationPriceRp')
         markPriceString = self.safe_string_2(position, 'markPrice', 'markPriceRp')
-        contracts = self.safe_string(position, 'size')
+        contracts = self.safe_string_2(position, 'size', 'sizeRq')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
@@ -3809,9 +3809,12 @@ class phemex(Exchange, ImplicitAPI):
         side = None
         if rawSide is not None:
             side = 'long' if (rawSide == 'Buy') else 'short'
+        # Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
+        # Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
+        # Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
+        # Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         priceDiff = None
-        currency = self.safe_string(position, 'currency')
-        if currency == 'USD':
+        if market['linear']:
             if side == 'long':
                 priceDiff = Precise.string_sub(markPriceString, entryPriceString)
             else:
@@ -3823,15 +3826,18 @@ class phemex(Exchange, ImplicitAPI):
             else:
                 priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
         unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
+        # the unrealizedPnl is only available in a specific endpoint which much higher RL limits
+        apiUnrealizedPnl = self.safe_string(position, 'unRealisedPnlRv', unrealizedPnl)
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
         isCross = self.safe_value(position, 'crossMargin')
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'execSeq'),
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
-            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'realizedPnl': self.safe_number(position, 'curTermRealisedPnlRv'),
+            'unrealizedPnl': self.parse_number(apiUnrealizedPnl),
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
             'collateral': self.parse_number(collateral),
@@ -3840,7 +3846,7 @@ class phemex(Exchange, ImplicitAPI):
             'lastPrice': None,
             'entryPrice': self.parse_number(entryPriceString),
             'timestamp': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer_product(position, 'transactTimeNs', 0.000001),
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -3849,7 +3855,7 @@ class phemex(Exchange, ImplicitAPI):
             'datetime': None,
             'marginMode': 'cross' if isCross else 'isolated',
             'side': side,
-            'hedged': False,
+            'hedged': self.safe_string(position, 'posMode') == 'Hedged',
             'percentage': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
@@ -4124,20 +4130,27 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        if not market['swap'] or market['settle'] == 'USDT' or market['settle'] == 'USDC':
-            raise BadSymbol(self.id + ' setMarginMode() supports swap(non USDT/USDC based) contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        isCross = marginMode == 'cross'
+        if self.in_array(market['settle'], ['USDT', 'USDC']):
+            currentLeverage = self.safe_string(params, 'leverage')
+            if currentLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a "leverage" parameter for USDT markets')
+            request['leverageRr'] = Precise.string_neg(Precise.string_abs(currentLeverage)) if isCross else Precise.string_abs(currentLeverage)
+            return await self.privatePutGPositionsLeverage(self.extend(request, params))
         leverage = self.safe_integer(params, 'leverage')
         if marginMode == 'cross':
             leverage = 0
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        request: dict = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        }
+        request['leverage'] = leverage
         return await self.privatePutPositionsLeverage(self.extend(request, params))
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):

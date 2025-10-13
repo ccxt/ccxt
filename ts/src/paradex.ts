@@ -302,7 +302,7 @@ export default class paradex extends Exchange {
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': undefined, // add {"privateKey": A, "publicKey": B, "address": C}
+                'paradexAccount': undefined, // add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
@@ -637,7 +637,7 @@ export default class paradex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -2058,6 +2058,7 @@ export default class paradex extends Exchange {
             'contracts': undefined,
             'contractSize': undefined,
             'price': undefined,
+            'side': undefined,
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': timestamp,

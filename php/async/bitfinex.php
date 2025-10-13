@@ -1530,7 +1530,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -3784,12 +3784,15 @@ class bitfinex extends Exchange {
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseValue = Precise::string_mul($contracts, $contractSize);
         $price = $this->safe_string($entry, 11);
+        $sideFlag = $this->safe_integer($entry, 8);
+        $side = ($sideFlag === 1) ? 'buy' : 'sell';
         return $this->safe_liquidation(array(
             'info' => $entry,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $this->parse_number($contractSize),
             'price' => $this->parse_number($price),
+            'side' => $side,
             'baseValue' => $this->parse_number($baseValue),
             'quoteValue' => $this->parse_number(Precise::string_mul($baseValue, $price)),
             'timestamp' => $timestamp,

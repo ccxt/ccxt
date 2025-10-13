@@ -72,14 +72,24 @@ class gate(Exchange, ImplicitAPI):
                 },
                 'test': {
                     'public': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                     'private': {
-                        'futures': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'delivery': 'https://fx-api-testnet.gateio.ws/api/v4',
-                        'options': 'https://fx-api-testnet.gateio.ws/api/v4',
+                        'futures': 'https://api-testnet.gateapi.io/api/v4',
+                        'delivery': 'https://api-testnet.gateapi.io/api/v4',
+                        'options': 'https://api-testnet.gateapi.io/api/v4',
+                        'spot': 'https://api-testnet.gateapi.io/api/v4',
+                        'wallet': 'https://api-testnet.gateapi.io/api/v4',
+                        'margin': 'https://api-testnet.gateapi.io/api/v4',
+                        'sub_accounts': 'https://api-testnet.gateapi.io/api/v4',
+                        'account': 'https://api-testnet.gateapi.io/api/v4',
                     },
                 },
                 'referral': {
@@ -765,6 +775,9 @@ class gate(Exchange, ImplicitAPI):
                     'option': 'options',
                     'options': 'options',
                 },
+                'fetchMarkets': {
+                    'types': ['spot', 'swap', 'future', 'option'],
+                },
                 'swap': {
                     'fetchMarkets': {
                         'settlementCurrencies': ['usdt', 'btc'],
@@ -1234,21 +1247,24 @@ class gate(Exchange, ImplicitAPI):
             await self.load_time_difference()
         if self.check_required_credentials(False):
             await self.load_unified_status()
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        rawPromises = [
-            self.fetch_contract_markets(params),
-            self.fetch_option_markets(params),
-        ]
-        if not sandboxMode:
-            # gate doesn't have a sandbox for spot markets
-            mainnetOnly = [self.fetch_spot_markets(params)]
-            rawPromises = self.array_concat(rawPromises, mainnetOnly)
-        promises = await asyncio.gather(*rawPromises)
-        spotMarkets = self.safe_value(promises, 0, [])
-        contractMarkets = self.safe_value(promises, 1, [])
-        optionMarkets = self.safe_value(promises, 2, [])
-        markets = self.array_concat(spotMarkets, contractMarkets)
-        return self.array_concat(markets, optionMarkets)
+        rawPromises = []
+        fetchMarketsOptions = self.safe_dict(self.options, 'fetchMarkets')
+        types = self.safe_list(fetchMarketsOptions, 'types', ['spot', 'swap', 'future', 'option'])
+        for i in range(0, len(types)):
+            marketType = types[i]
+            if marketType == 'spot':
+                # if not sandboxMode:
+                # gate doesn't have a sandbox for spot markets
+                rawPromises.append(self.fetch_spot_markets(params))
+                # }
+            elif marketType == 'swap':
+                rawPromises.append(self.fetch_swap_markets(params))
+            elif marketType == 'future':
+                rawPromises.append(self.fetch_future_markets(params))
+            elif marketType == 'option':
+                rawPromises.append(self.fetch_option_markets(params))
+        results = await asyncio.gather(*rawPromises)
+        return self.arrays_concat(results)
 
     async def fetch_spot_markets(self, params={}):
         marginPromise = self.publicMarginGetCurrencyPairs(params)
@@ -1363,10 +1379,11 @@ class gate(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_contract_markets(self, params={}):
+    async def fetch_swap_markets(self, params={}):
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
-        futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
+        if self.options['sandboxMode']:
+            swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
             request: dict = {
@@ -1376,6 +1393,13 @@ class gate(Exchange, ImplicitAPI):
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
+        return result
+
+    async def fetch_future_markets(self, params={}):
+        if self.options['sandboxMode']:
+            return []  # right now sandbox does not have inverse swaps
+        result = []
+        futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(futureSettlementCurrencies)):
             settleId = futureSettlementCurrencies[c]
             request: dict = {
@@ -1416,8 +1440,8 @@ class gate(Exchange, ImplicitAPI):
         #        "leverage_min": "1",
         #        "leverage_max": "100",
         #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",
-        #        "taker_fee_rate": "0.00075",
+        #        "maker_fee_rate": "-0.00025",  # not actual value for regular users
+        #        "taker_fee_rate": "0.00075",  # not actual value for regular users
         #        "funding_rate": "0.002053",
         #        "order_size_max": 1000000,
         #        "funding_next_apply": 1610035200,
@@ -1461,8 +1485,8 @@ class gate(Exchange, ImplicitAPI):
         #        "risk_limit_base": "140.726652109199",
         #        "risk_limit_step": "1000000",
         #        "risk_limit_max": "8000000",
-        #        "maker_fee_rate": "-0.00025",
-        #        "taker_fee_rate": "0.00075",
+        #        "maker_fee_rate": "-0.00025",  # not actual value for regular users
+        #        "taker_fee_rate": "0.00075",  # not actual value for regular users
         #        "ref_discount_rate": "0",
         #        "ref_rebate_rate": "0.2",
         #        "order_price_deviate": "0.5",
@@ -1499,8 +1523,6 @@ class gate(Exchange, ImplicitAPI):
         maxMultiplier = Precise.string_add('1', priceDeviate)
         minPrice = Precise.string_mul(minMultiplier, markPrice)
         maxPrice = Precise.string_mul(maxMultiplier, markPrice)
-        takerPercent = self.safe_string(market, 'taker_fee_rate')
-        makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
         isLinear = quote == settle
         contractSize = self.safe_string(market, 'quanto_multiplier')
         # exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
@@ -1525,8 +1547,8 @@ class gate(Exchange, ImplicitAPI):
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
-            'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
-            'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+            'taker': None,
+            'maker': None,
             'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1625,8 +1647,6 @@ class gate(Exchange, ImplicitAPI):
                 maxMultiplier = Precise.string_add('1', priceDeviate)
                 minPrice = Precise.string_mul(minMultiplier, markPrice)
                 maxPrice = Precise.string_mul(maxMultiplier, markPrice)
-                takerPercent = self.safe_string(market, 'taker_fee_rate')
-                makerPercent = self.safe_string(market, 'maker_fee_rate', takerPercent)
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -1646,8 +1666,8 @@ class gate(Exchange, ImplicitAPI):
                     'contract': True,
                     'linear': True,
                     'inverse': False,
-                    'taker': self.parse_number(Precise.string_div(takerPercent, '100')),  # Fee is in %, so divide by 100
-                    'maker': self.parse_number(Precise.string_div(makerPercent, '100')),
+                    'taker': None,
+                    'maker': None,
                     'contractSize': self.parse_number('1'),
                     'expiry': expiry,
                     'expiryDatetime': self.iso8601(expiry),
@@ -1813,7 +1833,7 @@ class gate(Exchange, ImplicitAPI):
         # sandbox/testnet only supports future markets
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
-            return None
+            return {}
         response = await self.publicSpotGetCurrencies(params)
         #
         #    [
@@ -2543,7 +2563,11 @@ class gate(Exchange, ImplicitAPI):
         #
         request, query = self.prepare_request(market, market['type'], params)
         if limit is not None:
-            request['limit'] = limit  # default 10, max 100
+            if market['spot']:
+                limit = min(limit, 1000)
+            else:
+                limit = min(limit, 300)
+            request['limit'] = limit
         request['with_id'] = True
         response = None
         if market['spot'] or market['margin']:
@@ -2833,6 +2857,14 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
+
+        https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
+        https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+        https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
+        https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
+        https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-account-information
+
         :param dict [params]: exchange specific parameters
         :param str [params.type]: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -3073,7 +3105,7 @@ class gate(Exchange, ImplicitAPI):
         result: dict = {
             'info': response,
         }
-        isolated = marginMode == 'margin'
+        isolated = marginMode == 'margin' and type == 'spot'
         data = response
         if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []
@@ -3106,7 +3138,7 @@ class gate(Exchange, ImplicitAPI):
         returnResult = result if isolated else self.safe_balance(result)
         return returnResult
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -7212,12 +7244,27 @@ class gate(Exchange, ImplicitAPI):
         quoteValueString = self.safe_string(liquidation, 'pnl')
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
+        # --- derive side ---
+        # 1) options payload has explicit 'side': 'long' | 'short'
+        optPos = self.safe_string_lower(liquidation, 'side')
+        side: Str = None
+        if optPos == 'long':
+            side = 'buy'
+        elif optPos == 'short':
+            side = 'sell'
+        else:
+            if size is not None:  # 2) futures/perpetual(and fallback for options): infer from size
+                if Precise.string_gt(size, '0'):
+                    side = 'buy'
+                elif Precise.string_lt(size, '0'):
+                    side = 'sell'
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),
             'contracts': self.parse_number(contractsString),
             'contractSize': self.parse_number(contractSizeString),
             'price': self.parse_number(priceString),
+            'side': side,
             'baseValue': self.parse_number(baseValueString),
             'quoteValue': self.parse_number(Precise.string_abs(quoteValueString)),
             'timestamp': timestamp,

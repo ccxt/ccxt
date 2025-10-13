@@ -333,6 +333,9 @@ class coinsph extends Exchange {
             'features' => array(
                 'spot' => array(
                     'sandbox' => false,
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'marginMode' => false,
                         'triggerPrice' => true,
@@ -530,7 +533,7 @@ class coinsph extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             if (!$this->check_required_credentials(false)) {
-                return null;
+                return array();
             }
             $response = Async\await($this->privateGetOpenapiWalletV1ConfigGetall ($params));
             //
@@ -1045,7 +1048,7 @@ class coinsph extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

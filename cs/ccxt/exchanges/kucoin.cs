@@ -1216,7 +1216,6 @@ public partial class kucoin : Exchange
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
         object brokenCurrencies = this.safeList(this.options, "brokenCurrencies", new List<object>() {"00", "OPEN_ERROR", "HUF", "BDT"});
-        object otherFiats = this.safeList(this.options, "fiats", new List<object>() {"KWD", "IRR", "PKR"});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
@@ -1260,7 +1259,7 @@ public partial class kucoin : Exchange
             // kucoin has determined 'fiat' currencies with below logic
             object rawPrecision = this.safeString(entry, "precision");
             object precision = this.parseNumber(this.parsePrecision(rawPrecision));
-            object isFiat = isTrue(this.inArray(id, otherFiats)) || isTrue((isTrue((isEqual(rawPrecision, "2"))) && isTrue((isEqual(chainsLength, 0)))));
+            object isFiat = isEqual(chainsLength, 0);
             ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "name", this.safeString(entry, "fullName") },

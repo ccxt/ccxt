@@ -39,18 +39,18 @@ class bitvavo(ccxt.async_support.bitvavo):
                 'editOrderWs': True,
                 'fetchBalanceWs': True,
                 'fetchCurrenciesWS': True,
-                'fetchDepositAddressWs': True,
+                'fetchDepositAddressWs': False,
                 'fetchDepositsWs': True,
-                'fetchDepositWithdrawFeesWs': True,
+                'fetchDepositWithdrawFeesWs': False,
                 'fetchMyTradesWs': True,
                 'fetchOHLCVWs': True,
                 'fetchOpenOrdersWs': True,
                 'fetchOrderWs': True,
-                'fetchOrderBookWs': True,
+                'fetchOrderBookWs': False,
                 'fetchOrdersWs': True,
-                'fetchTickerWs': True,
-                'fetchTickersWs': True,
-                'fetchTimeWs': True,
+                'fetchTickerWs': False,
+                'fetchTickersWs': False,
+                'fetchTimeWs': False,
                 'fetchTradingFeesWs': True,
                 'fetchWithdrawalsWs': True,
                 'withdrawWs': True,
@@ -262,7 +262,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -824,7 +824,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
-    async def withdraw_ws(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -900,7 +900,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         withdrawals = self.parse_transactions(response, None, None, None, {'type': 'withdrawal'})
         client.resolve(withdrawals, messageHash)
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
@@ -1300,7 +1300,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId', buildMessage)
         rejected = False
         try:
-            self.handle_errors(code, error, client.url, None, None, error, message, None, None)
+            self.handle_errors(code, error, client.url, '', {}, error, message, {}, {})
         except Exception as e:
             rejected = True
             client.reject(e, messageHash)

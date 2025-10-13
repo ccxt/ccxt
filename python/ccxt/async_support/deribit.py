@@ -1386,7 +1386,7 @@ class deribit(Exchange, ImplicitAPI):
             tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2613,8 +2613,9 @@ class deribit(Exchange, ImplicitAPI):
             'notional': self.parse_number(notionalStringAbs),
             'leverage': self.safe_integer(position, 'leverage'),
             'unrealizedPnl': self.parse_number(unrealizedPnl),
-            'contracts': None,
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'realizedPnl': self.safe_number(position, 'realized_profit_loss'),
+            'contracts': self.safe_number(position, 'size'),
+            'contractSize': self.safe_number(position, 'contractSize'),
             'marginRatio': None,
             'liquidationPrice': self.safe_number(position, 'estimated_liquidation_price'),
             'markPrice': self.safe_number(position, 'mark_price'),

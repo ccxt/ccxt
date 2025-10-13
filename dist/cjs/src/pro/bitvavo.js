@@ -33,18 +33,18 @@ class bitvavo extends bitvavo$1["default"] {
                 'editOrderWs': true,
                 'fetchBalanceWs': true,
                 'fetchCurrenciesWS': true,
-                'fetchDepositAddressWs': true,
+                'fetchDepositAddressWs': false,
                 'fetchDepositsWs': true,
-                'fetchDepositWithdrawFeesWs': true,
+                'fetchDepositWithdrawFeesWs': false,
                 'fetchMyTradesWs': true,
                 'fetchOHLCVWs': true,
                 'fetchOpenOrdersWs': true,
                 'fetchOrderWs': true,
-                'fetchOrderBookWs': true,
+                'fetchOrderBookWs': false,
                 'fetchOrdersWs': true,
-                'fetchTickerWs': true,
-                'fetchTickersWs': true,
-                'fetchTimeWs': true,
+                'fetchTickerWs': false,
+                'fetchTickersWs': false,
+                'fetchTimeWs': false,
                 'fetchTradingFeesWs': true,
                 'fetchWithdrawalsWs': true,
                 'withdrawWs': true,
@@ -1347,7 +1347,7 @@ class bitvavo extends bitvavo$1["default"] {
         const messageHash = this.safeString(message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors(code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            this.handleErrors(code, error, client.url, '', {}, error, message, {}, {});
         }
         catch (e) {
             rejected = true;

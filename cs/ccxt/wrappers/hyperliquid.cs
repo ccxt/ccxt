@@ -478,6 +478,27 @@ public partial class hyperliquid
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
+    /// build the request payload for cancelling multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s"/>  <br/>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :          * @returns {object} the raw request object to be sent to the exchange
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the raw request object to be sent to the exchange.</returns>
+    public Dictionary<string, object> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = this.cancelOrdersRequest(ids, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// cancel multiple orders for multiple symbols
     /// </summary>
     /// <remarks>
@@ -922,6 +943,12 @@ public partial class hyperliquid
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.user</term>
     /// <description>
     /// string : user address, will default to this.walletAddress if not provided
@@ -1278,6 +1305,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -1321,6 +1354,12 @@ public partial class hyperliquid
     /// <term>params.subAccountAddress</term>
     /// <description>
     /// string : sub account user address
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : vault address
     /// </description>
     /// </item>
     /// </list>

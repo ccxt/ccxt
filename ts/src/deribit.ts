@@ -1433,7 +1433,7 @@ export default class deribit extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch ohlcv for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -2720,8 +2720,9 @@ export default class deribit extends Exchange {
             'notional': this.parseNumber (notionalStringAbs),
             'leverage': this.safeInteger (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
-            'contracts': undefined,
-            'contractSize': this.safeNumber (market, 'contractSize'),
+            'realizedPnl': this.safeNumber (position, 'realized_profit_loss'),
+            'contracts': this.safeNumber (position, 'size'),
+            'contractSize': this.safeNumber (position, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'estimated_liquidation_price'),
             'markPrice': this.safeNumber (position, 'mark_price'),

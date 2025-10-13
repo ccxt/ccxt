@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -29,6 +30,11 @@ class woo extends \ccxt\async\woo {
                 'watchTrades' => true,
                 'watchTradesForSymbols' => false,
                 'watchPositions' => true,
+                'unWatchTicker' => true,
+                'unWatchTickers' => true,
+                'unWatchOrderBook' => true,
+                'unWatchOHLCV' => true,
+                'unWatchTrades' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -93,6 +99,34 @@ class woo extends \ccxt\async\woo {
         }) ();
     }
 
+    public function unwatch_public(string $subHash, string $symbol, string $topic, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($subHash, $symbol, $topic, $params) {
+            $urlUid = ($this->uid) ? '/' . $this->uid : '';
+            $url = $this->urls['api']['ws']['public'] . $urlUid;
+            $requestId = $this->request_id($url);
+            $unsubHash = 'unsubscribe::' . $subHash;
+            $message = array(
+                'id' => $requestId,
+                'event' => 'unsubscribe',
+                'topic' => $subHash,
+            );
+            $subscription = array(
+                'id' => (string) $requestId,
+                'unsubscribe' => true,
+                'symbols' => array( $symbol ),
+                'topic' => $topic,
+                'subMessageHashes' => array( $subHash ),
+                'unsubMessageHashes' => array( $unsubHash ),
+            );
+            $symbolsAndTimeframes = $this->safe_list($params, 'symbolsAndTimeframes');
+            if ($symbolsAndTimeframes !== null) {
+                $subscription['symbolsAndTimeframes'] = $symbolsAndTimeframes;
+                $params = $this->omit($params, 'symbolsAndTimeframes');
+            }
+            return Async\await($this->watch($url, $unsubHash, $this->extend($message, $params), $unsubHash, $subscription));
+        }) ();
+    }
+
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
@@ -123,7 +157,7 @@ class woo extends \ccxt\async\woo {
             $subscription = array(
                 'id' => (string) $requestId,
                 'name' => $method,
-                'symbol' => $symbol,
+                'symbol' => $market['symbol'],
                 'limit' => $limit,
                 'params' => $params,
             );
@@ -132,6 +166,28 @@ class woo extends \ccxt\async\woo {
             }
             $orderbook = Async\await($this->watch($url, $topic, $this->extend($request, $params), $topic, $subscription));
             return $orderbook->limit ();
+        }) ();
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://docs.woox.io/#orderbookupdate
+             * @see https://docs.woox.io/#orderbook
+             *
+             * @param {string} $symbol unified $symbol of the $market
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'method', 'orderbook');
+            $market = $this->market($symbol);
+            $subHash = $market['id'] . '@' . $method;
+            $topic = 'orderbook';
+            return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
         }) ();
     }
 
@@ -289,6 +345,24 @@ class woo extends \ccxt\async\woo {
         }) ();
     }
 
+    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'watchTicker', 'method', 'ticker');
+            $market = $this->market($symbol);
+            $subHash = $market['id'] . '@' . $method;
+            $topic = 'ticker';
+            return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
+        }) ();
+    }
+
     public function parse_ws_ticker($ticker, $market = null) {
         //
         //     {
@@ -381,6 +455,27 @@ class woo extends \ccxt\async\woo {
         }) ();
     }
 
+    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             *
+             * @see https://docs.woox.io/#24h-tickers
+             *
+             * stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} $symbols unified symbol of the market to stop fetching the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            if ($symbols !== null) {
+                throw new NotSupported($this->id . ' unWatchTickers() does not support a $symbols argument. Only unwatch all tickers at once');
+            }
+            $topic = 'ticker';
+            $subHash = 'tickers';
+            return Async\await($this->unwatch_public($subHash, null, $topic, $params));
+        }) ();
+    }
+
     public function handle_tickers(Client $client, $message) {
         //
         //     {
@@ -432,12 +527,12 @@ class woo extends \ccxt\async\woo {
              * @see https://docs.woox.io/#bbos
              *
              * watches best bid & ask for $symbols
-             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols, null, false);
+            $symbols = $this->market_symbols($symbols);
             $name = 'bbos';
             $topic = $name;
             $request = array(
@@ -445,11 +540,32 @@ class woo extends \ccxt\async\woo {
                 'topic' => $topic,
             );
             $message = $this->extend($request, $params);
-            $tickers = Async\await($this->watch_public($topic, $message));
+            $bidsasks = Async\await($this->watch_public($topic, $message));
             if ($this->newUpdates) {
-                return $tickers;
+                return $bidsasks;
             }
             return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function un_watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             *
+             * @see https://docs.woox.io/#bbos
+             *
+             * unWatches best bid & ask for $symbols
+             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for (not used by woo)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            if ($symbols !== null) {
+                throw new NotSupported($this->id . ' unWatchBidsAsks() does not support a $symbols argument. Only unwatch all bidsAsks at once');
+            }
+            $subHash = 'bbos';
+            $topic = 'bidsasks';
+            return Async\await($this->unwatch_public($subHash, null, $topic, $params));
         }) ();
     }
 
@@ -501,7 +617,7 @@ class woo extends \ccxt\async\woo {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -533,6 +649,30 @@ class woo extends \ccxt\async\woo {
                 $limit = $ohlcv->getLimit ($market['symbol'], $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://docs.woox.io/#k-line
+             *
+             * @param {string} $symbol unified $symbol of the $market
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+            $topic = 'ohlcv';
+            $name = 'kline';
+            $subHash = $market['id'] . '@' . $name . '_' . $interval;
+            $params['symbolsAndTimeframes'] = [ [ $market['symbol'], $timeframe ] ];
+            return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
         }) ();
     }
 
@@ -608,6 +748,25 @@ class woo extends \ccxt\async\woo {
                 $limit = $trades->getLimit ($market['symbol'], $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
+             * @see https://docs.woox.io/#trade
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $topic = 'trades';
+            $subHash = $market['id'] . '@trade';
+            return Async\await($this->unwatch_public($subHash, $market['symbol'], $topic, $params));
         }) ();
     }
 
@@ -739,7 +898,7 @@ class woo extends \ccxt\async\woo {
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $event = 'auth';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $ts = (string) $this->nonce();
@@ -1300,6 +1459,29 @@ class woo extends \ccxt\async\woo {
         }
     }
 
+    public function handle_un_subscription(Client $client, $message) {
+        //
+        //     {
+        //         "id" => "2",
+        //         "event" => "unsubscribe",
+        //         "success" => true,
+        //         "ts" => 1759568478343,
+        //         "data" => "SPOT_BTC_USDT@orderbook"
+        //     }
+        //
+        $subscribeHash = $this->safe_string($message, 'data');
+        $unsubscribeHash = 'unsubscribe::' . $subscribeHash;
+        $subscription = $this->safe_dict($client->subscriptions, $unsubscribeHash, array());
+        $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
+        $unsubMessageHashes = $this->safe_list($subscription, 'unsubMessageHashes', array());
+        for ($i = 0; $i < count($subMessageHashes); $i++) {
+            $subHash = $subMessageHashes[$i];
+            $unsubHash = $unsubMessageHashes[$i];
+            $this->clean_unsubscription($client, $subHash, $unsubHash);
+        }
+        $this->clean_cache($subscription);
+    }
+
     public function handle_message(Client $client, $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
@@ -1308,6 +1490,7 @@ class woo extends \ccxt\async\woo {
             'ping' => array($this, 'handle_ping'),
             'pong' => array($this, 'handle_pong'),
             'subscribe' => array($this, 'handle_subscribe'),
+            'unsubscribe' => array($this, 'handle_un_subscription'),
             'orderbook' => array($this, 'handle_order_book'),
             'orderbookupdate' => array($this, 'handle_order_book'),
             'ticker' => array($this, 'handle_ticker'),

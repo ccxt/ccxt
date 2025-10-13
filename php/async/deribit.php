@@ -1442,7 +1442,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2773,8 +2773,9 @@ class deribit extends Exchange {
             'notional' => $this->parse_number($notionalStringAbs),
             'leverage' => $this->safe_integer($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
-            'contracts' => null,
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'realizedPnl' => $this->safe_number($position, 'realized_profit_loss'),
+            'contracts' => $this->safe_number($position, 'size'),
+            'contractSize' => $this->safe_number($position, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),

@@ -68,7 +68,7 @@ class hibachi extends hibachi$1["default"] {
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -188,6 +188,7 @@ class hibachi extends hibachi$1["default"] {
                     'taker': this.parseNumber('0.00045'),
                 },
             },
+            'currencies': this.hardcodedCurrencies(),
             'options': {},
             'features': {
                 'default': {
@@ -372,15 +373,7 @@ class hibachi extends hibachi$1["default"] {
         const rows = this.safeList(response, 'futureContracts');
         return this.parseMarkets(rows);
     }
-    /**
-     * @method
-     * @name hibachi#fetchCurrencies
-     * @description fetches all available currencies on an exchange
-     * @see https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an associative dictionary of currencies
-     */
-    async fetchCurrencies(params = {}) {
+    hardcodedCurrencies() {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
         const result = {};
@@ -1595,7 +1588,7 @@ class hibachi extends hibachi$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + endpoint;
-        headers = {};
+        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit(params, this.extractParams(path));
             const query = this.urlencode(request);

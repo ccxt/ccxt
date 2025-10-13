@@ -272,6 +272,10 @@ func mathMax(a, b interface{}) interface{} {
 	return ccxt.MathMax(a, b)
 }
 
+func mathAbs(a interface{}) interface{} {
+	return ccxt.MathAbs(a)
+}
+
 func parseInt(input interface{}) interface{} {
 	return ccxt.ParseInt(input)
 }

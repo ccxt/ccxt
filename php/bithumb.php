@@ -45,6 +45,7 @@ class bithumb extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -258,6 +259,14 @@ class bithumb extends Exchange {
                             'cost' => array(
                                 'min' => 500,
                                 'max' => 5000000000,
+                            ),
+                        ),
+                    ),
+                    'USDT' => array(
+                        'limits' => array(
+                            'cost' => array(
+                                'min' => null,
+                                'max' => null,
                             ),
                         ),
                     ),
@@ -664,7 +673,7 @@ class bithumb extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *

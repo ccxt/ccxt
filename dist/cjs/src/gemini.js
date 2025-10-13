@@ -263,7 +263,7 @@ class gemini extends gemini$1["default"] {
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
-                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL'],
+                    'quoteCurrencies': ['USDT', 'GUSD', 'USD', 'DAI', 'EUR', 'GBP', 'SGD', 'BTC', 'ETH', 'LTC', 'BCH', 'SOL', 'USDC'],
                 },
                 'fetchMarkets': {
                     'webApiEnable': true,
@@ -297,6 +297,7 @@ class gemini extends gemini$1["default"] {
                         'quote': 'USD',
                     },
                 },
+                'brokenPairs': ['efilusd', 'maticrlusd', 'maticusdc', 'eurusdc', 'maticgusd', 'maticusd', 'efilfil', 'eurusd'],
             },
             'features': {
                 'default': {
@@ -387,7 +388,7 @@ class gemini extends gemini$1["default"] {
     async fetchCurrenciesFromWeb(params = {}) {
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         //    {
@@ -629,10 +630,10 @@ class gemini extends gemini$1["default"] {
         //
         const result = [];
         const options = this.safeDict(this.options, 'fetchMarketsFromAPI', {});
-        const bugSymbol = 'efilfil'; // we skip this inexistent test symbol, which bugs other functions
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
         const marketIds = [];
         for (let i = 0; i < marketIdsRaw.length; i++) {
-            if (marketIdsRaw[i] !== bugSymbol) {
+            if (!this.inArray(marketIdsRaw[i], brokenPairs)) {
                 marketIds.push(marketIdsRaw[i]);
             }
         }
@@ -669,15 +670,17 @@ class gemini extends gemini$1["default"] {
                 const indexedTradingPairs = this.indexBy(tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
-                    const tradingPair = this.safeList(indexedTradingPairs, marketId.toUpperCase());
-                    if (tradingPair !== undefined) {
-                        result.push(this.parseMarket(tradingPair));
+                    const pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase());
+                    if (pairInfo !== undefined && !this.inArray(marketId, brokenPairs)) {
+                        result.push(this.parseMarket(pairInfo));
                     }
                 }
             }
             else {
                 for (let i = 0; i < marketIds.length; i++) {
-                    result.push(this.parseMarket(marketIds[i]));
+                    if (!this.inArray(marketIds[i], brokenPairs)) {
+                        result.push(this.parseMarket(marketIds[i]));
+                    }
                 }
             }
         }
@@ -693,8 +696,8 @@ class gemini extends gemini$1["default"] {
         //
         //     [
         //         'BTCUSD',   // symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -713,7 +716,7 @@ class gemini extends gemini$1["default"] {
         //         "wrap_enabled": false
         //         "product_type": "swap", // only in perps
         //         "contract_type": "linear", // only in perps
-        //         "contract_price_currency": "GUSD" // only in perps
+        //         "contract_price_currency": "GUSD"
         //     }
         //
         let marketId = undefined;
@@ -1063,7 +1066,9 @@ class gemini extends gemini$1["default"] {
         //         },
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        const result = this.parseTickers(response, symbols);
+        const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
+        return this.removeKeysFromDict(result, brokenPairs);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1452,7 +1457,7 @@ class gemini extends gemini$1["default"] {
         //          "is_hidden":false,
         //          "was_forced":false,
         //          "executed_amount":"0",
-        //          "client_order_id":"1650398445709",
+        //          "client_order_id":"1650398445701",
         //          "options":[],
         //          "price":"2000.00",
         //          "original_amount":"0.01",

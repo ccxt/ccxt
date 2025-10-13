@@ -1473,7 +1473,7 @@ class bitfinex(Exchange, ImplicitAPI):
             tradesList.append({'result': trades[i]})  # convert to array of dicts to match parseOrder signature
         return self.parse_trades(tradesList, market, None, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = 100, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3542,12 +3542,15 @@ class bitfinex(Exchange, ImplicitAPI):
         contractSize = self.safe_string(market, 'contractSize')
         baseValue = Precise.string_mul(contracts, contractSize)
         price = self.safe_string(entry, 11)
+        sideFlag = self.safe_integer(entry, 8)
+        side = 'buy' if (sideFlag == 1) else 'sell'
         return self.safe_liquidation({
             'info': entry,
             'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'contracts': self.parse_number(contracts),
             'contractSize': self.parse_number(contractSize),
             'price': self.parse_number(price),
+            'side': side,
             'baseValue': self.parse_number(baseValue),
             'quoteValue': self.parse_number(Precise.string_mul(baseValue, price)),
             'timestamp': timestamp,

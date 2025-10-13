@@ -390,6 +390,12 @@ public partial class bingx
     /// boolean : whether to fetch standard contract balances
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : the type of balance to fetch (spot, swap, funding) default is `spot`
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
