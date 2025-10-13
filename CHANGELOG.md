@@ -1,5 +1,38 @@
 # Changelog
 
+## v4.9.10 - 2025-10-13
+
+### Added
+
+**Mazdax Exchange Integration**: Complete OTC trading support for Mazdax exchange
+
+- Initial implementation with abstract class and public API endpoints
+- OTC market data fetching capabilities (`fetchMarkets`)
+  - Parses market data from symbols endpoint with detailed trading parameters
+  - Supports IRR (Iranian Rial) as quote currency
+  - Extracts market precision, fees (taker/maker), and order size limits
+  - Handles active/tradable market status filtering
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches 24h rolling price statistics for all available symbols
+  - Includes price change tracking (absolute and percentage)
+  - Provides bid/ask prices, open/high/low prices, and volume data
+  - Supports timestamp-based data freshness
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Supports custom time ranges via starttime and endtime parameters
+  - Configurable limit for number of candles returned (up to 1000)
+- Order book depth (`fetchOrderBook`)
+  - Fetches bid/ask levels with price and quantity information
+  - Configurable depth limit for order book entries
+  - Real-time order book snapshots
+- Type definitions and parsing logic for OTC markets
+- Integration with Mazdax API:
+  - Markets: https://api.mazdax.ir/market/symbols
+  - Tickers: https://api.mazdax.ir/market/rollingprice
+  - OHLCV: https://api.mazdax.ir/market/candle
+  - Order Book: https://api.mazdax.ir/market/order
+
 ## v4.9.8 - 2025-10-13
 
 ### Added
