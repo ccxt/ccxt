@@ -86,6 +86,16 @@
 - Populated percentage field with `priceChangePercent` from API response
 - Updated example comment to reflect actual API response structure
 
+**Afratether Exchange**: Updated market and ticker parsing for USDT/IRR pairs
+
+- Changed market type from `spot` to `otc` to reflect OTC trading model
+- Updated `parseMarket` to use fixed quote currency (IRR) instead of dynamic quote from API
+- Modified `parseTicker` to extract bid/ask prices from `prices.IRR` object structure
+- Implemented proper price parsing with `price_sell` and `price_buy` fields
+- Added 24h change rate tracking with `changeRate24h` field
+- Fixed symbol construction to use proper format (base/quote)
+- Updated example comments to reflect new API response structure with IRR pricing
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
