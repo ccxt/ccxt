@@ -5557,6 +5557,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " cancelOrderWs() is not supported yet")) ;
     }
 
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
+    }
+
     public async virtual Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
