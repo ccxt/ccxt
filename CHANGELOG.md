@@ -68,6 +68,15 @@
   - Markets/Tickers: https://api.kifpool.app/api/spot/price
   - OHLCV: https://api.kifpool.app/api/spot/tickers/1m
 
+### Fixed
+
+**Tetherland Exchange**: Critical fixes for API endpoint and data parsing
+
+- Updated public API endpoint from `api.teterlands.com` to `service.tetherland.com`
+- Fixed market data parsing by replacing `safeDict` with `safeList` for array responses
+- Improved number parsing robustness using `asFloat` with comma removal for price data
+- Enhanced ticker price parsing to handle formatted number strings correctly
+
 ## v4.9.4 - 2025-10-08
 
 ### Added
