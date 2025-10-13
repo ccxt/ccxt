@@ -1,5 +1,32 @@
 # Changelog
 
+## v4.9.8 - 2025-10-13
+
+### Added
+
+**Pooleno Exchange Integration**: Complete spot trading support for Pooleno exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market data from payload array with baseAsset/quoteAsset pairs
+  - Supports multiple quote currencies including TMN (Toman) and USDT
+  - Creates markets based on API-provided asset pairs
+  - Supports retrieving all available trading pairs
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches current prices for all available symbols
+  - Supports filtering by specific symbols or fetching all tickers
+  - Parses price data with separate handling for TMN and USDT pairs
+  - Includes 24h price change (absolute and percentage) from sparkline data
+  - Provides market data including 24h high/low, volume, and market cap
+- Type definitions and parsing logic for spot markets
+- Integration with Pooleno API v1:
+  - Markets/Tickers: https://api-beta.pooleno.ir/api/v1/tokens/public
+- Comprehensive price data parsing:
+  - For TMN pairs: Uses `priceTMN` field
+  - For USDT pairs: Uses `price` field with `volume24h`
+  - Extracts sparkline data for change tracking
+  - Parses market metadata including high24h, low24h, volume24h, and marketCap
+
 ## v4.9.7 - 2025-10-13
 
 ### Fixed
