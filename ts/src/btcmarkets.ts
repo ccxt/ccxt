@@ -1031,7 +1031,8 @@ export default class btcmarkets extends Exchange {
         await this.loadMarkets ();
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            numericIds[i] = parseInt (ids[i]);
+            // numericIds[i] = parseInt (ids[i]);
+            numericIds.push (parseInt (ids[i]));
         }
         const request: Dict = {
             'ids': numericIds,

@@ -105,6 +105,15 @@ type UnWatchTickerOptionsStruct = ccxt.UnWatchTickerOptionsStruct
 type UnWatchTickerOptions = ccxt.UnWatchTickerOptions
 var WithUnWatchTickerParams = ccxt.WithUnWatchTickerParams
 
+type UnWatchMarkPriceOptionsStruct = ccxt.UnWatchMarkPriceOptionsStruct
+type UnWatchMarkPriceOptions = ccxt.UnWatchMarkPriceOptions
+var WithUnWatchMarkPriceParams = ccxt.WithUnWatchMarkPriceParams
+
+type UnWatchMarkPricesOptionsStruct = ccxt.UnWatchMarkPricesOptionsStruct
+type UnWatchMarkPricesOptions = ccxt.UnWatchMarkPricesOptions
+var WithUnWatchMarkPricesSymbols = ccxt.WithUnWatchMarkPricesSymbols
+var WithUnWatchMarkPricesParams = ccxt.WithUnWatchMarkPricesParams
+
 type FetchDepositAddressesOptionsStruct = ccxt.FetchDepositAddressesOptionsStruct
 type FetchDepositAddressesOptions = ccxt.FetchDepositAddressesOptions
 var WithFetchDepositAddressesCodes = ccxt.WithFetchDepositAddressesCodes

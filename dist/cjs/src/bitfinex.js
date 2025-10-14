@@ -1985,7 +1985,8 @@ class bitfinex extends bitfinex$1["default"] {
         await this.loadMarkets();
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            numericIds[i] = this.parseToNumeric(ids[i]);
+            // numericIds[i] = this.parseToNumeric (ids[i]);
+            numericIds.push(this.parseToNumeric(ids[i]));
         }
         const request = {
             'id': numericIds,

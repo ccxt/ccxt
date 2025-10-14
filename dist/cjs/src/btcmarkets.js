@@ -1014,7 +1014,8 @@ class btcmarkets extends btcmarkets$1["default"] {
         await this.loadMarkets();
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            numericIds[i] = parseInt(ids[i]);
+            // numericIds[i] = parseInt (ids[i]);
+            numericIds.push(parseInt(ids[i]));
         }
         const request = {
             'ids': numericIds,

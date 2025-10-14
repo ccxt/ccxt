@@ -981,7 +981,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -993,10 +993,12 @@ class btcmarkets(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        numericIds = []
         for i in range(0, len(ids)):
-            ids[i] = int(ids[i])
+            # numericIds[i] = int(ids[i])
+            numericIds.append(int(ids[i]))
         request: dict = {
-            'ids': ids,
+            'ids': numericIds,
         }
         response = self.privateDeleteBatchordersIds(self.extend(request, params))
         #

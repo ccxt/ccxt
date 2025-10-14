@@ -390,7 +390,7 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	}
 	return NewOrder(res), nil
 }
-func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (map[string]interface{}, error) {
+func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
 
 	opts := CancelUnifiedOrderOptionsStruct{}
 
@@ -404,9 +404,9 @@ func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrd
 	}
 	res := <-this.Core.CancelUnifiedOrder(order, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return Order{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return NewOrder(res), nil
 }
 
 /**
