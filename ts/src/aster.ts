@@ -17,6 +17,7 @@ export default class aster extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'aster',
             'name': 'Aster',
+            'dex': true,
             'countries': [ 'US' ],
             // 3 req/s for free
             // 150 req/s for subscribers: https://aster.markets/data
@@ -25,13 +26,17 @@ export default class aster extends Exchange {
             'hostname': 'aster.markets',
             'pro': true,
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/3826defc-d654-43e6-99e5-f06cedd7085e',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'rest': 'https://fapi.asterdex.com',
                 },
                 'doc': 'https://github.com/asterdex/api-docs',
                 'fees': 'https://docs.asterdex.com/product/asterex-simple/fees-and-slippage',
+                'referral': {
+                    'url': 'https://www.asterdex.com/en/referral/aA1c2B',
+                    'discount': 0.1,
+                },
             },
             'has': {
                 'CORS': undefined,
