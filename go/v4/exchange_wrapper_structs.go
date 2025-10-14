@@ -2531,6 +2531,25 @@ func WithCancelOrderWsParams(params map[string]interface{}) CancelOrderWsOptions
 	}
 }
 
+type CancelOrdersOptionsStruct struct {
+	Symbol *string
+	Params *map[string]interface{}
+}
+
+type CancelOrdersOptions func(opts *CancelOrdersOptionsStruct)
+
+func WithCancelOrdersSymbol(symbol string) CancelOrdersOptions {
+	return func(opts *CancelOrdersOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithCancelOrdersParams(params map[string]interface{}) CancelOrdersOptions {
+	return func(opts *CancelOrdersOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type CancelOrdersWsOptionsStruct struct {
 	Symbol *string
 	Params *map[string]interface{}
@@ -4499,25 +4518,6 @@ func WithFetchCanceledOrdersLimit(limit int64) FetchCanceledOrdersOptions {
 
 func WithFetchCanceledOrdersParams(params map[string]interface{}) FetchCanceledOrdersOptions {
 	return func(opts *FetchCanceledOrdersOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
-type CancelOrdersOptionsStruct struct {
-	Symbol *string
-	Params *map[string]interface{}
-}
-
-type CancelOrdersOptions func(opts *CancelOrdersOptionsStruct)
-
-func WithCancelOrdersSymbol(symbol string) CancelOrdersOptions {
-	return func(opts *CancelOrdersOptionsStruct) {
-		opts.Symbol = &symbol
-	}
-}
-
-func WithCancelOrdersParams(params map[string]interface{}) CancelOrdersOptions {
-	return func(opts *CancelOrdersOptionsStruct) {
 		opts.Params = &params
 	}
 }

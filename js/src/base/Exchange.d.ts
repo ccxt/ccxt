@@ -355,7 +355,7 @@ export default class Exchange {
      */
     loadMarkets(reload?: boolean, params?: object): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    fetchCurrenciesWs(params?: {}): Promise<unknown>;
+    fetchCurrenciesWs(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsWs(params?: {}): Promise<Market[]>;
     checkRequiredDependencies(): void;
@@ -767,12 +767,13 @@ export default class Exchange {
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
     cancelOrdersForSymbols(orders: CancellationRequest[], params?: {}): Promise<Order[]>;
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    cancelUnifiedOrder(order: any, params?: {}): Promise<{}>;
+    cancelUnifiedOrder(order: Order, params?: {}): Promise<{}>;
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -937,10 +938,10 @@ export default class Exchange {
     unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<void>;
+    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<{}>;
     unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     createOrdersWs(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<void>;
+    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;

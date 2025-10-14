@@ -858,7 +858,7 @@ class probit extends probit$1["default"] {
         //         "data":[
         //             {
         //                 "id":"ETH-BTC:3331886",
-        //                 "price":"0.022981",
+        //                 "price":"0.022982",
         //                 "quantity":"12.337",
         //                 "time":"2020-04-12T20:55:42.371Z",
         //                 "side":"sell",

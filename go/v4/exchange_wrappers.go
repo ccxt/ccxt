@@ -3091,6 +3091,29 @@ func (this *ExchangeTyped) CancelOrderWs(id string, options ...CancelOrderWsOpti
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+
+	opts := CancelOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrders(ids, symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
 func (this *ExchangeTyped) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
 
 	opts := CancelOrdersWsOptionsStruct{}
@@ -3196,7 +3219,7 @@ func (this *ExchangeTyped) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions
 	}
 	return NewOrderArray(res), nil
 }
-func (this *ExchangeTyped) CancelUnifiedOrder(order interface{}, options ...CancelUnifiedOrderOptions) (map[string]interface{}, error) {
+func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (map[string]interface{}, error) {
 
 	opts := CancelUnifiedOrderOptionsStruct{}
 

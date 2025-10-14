@@ -384,7 +384,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -2754,7 +2754,7 @@ public partial class htx : ccxt.htx
         object messageHash = "auth";
         object relativePath = ((string)url).Replace((string)add("wss://", hostname), (string)"");
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -2778,7 +2778,7 @@ public partial class htx : ccxt.htx
                 };
             }
             signatureParams = this.keysort(signatureParams);
-            object auth = this.urlencode(signatureParams);
+            object auth = this.urlencode(signatureParams, true); // true required in go
             object payload = String.Join("\n", ((IList<object>)new List<object>() {"GET", hostname, relativePath, auth}).ToArray()); // eslint-disable-line quotes
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             object request = null;

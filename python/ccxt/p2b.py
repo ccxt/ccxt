@@ -742,7 +742,7 @@ class p2b(Exchange, ImplicitAPI):
             },
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
