@@ -5147,7 +5147,8 @@ export default class Exchange {
         if (reload) {
             this.accounts = await this.fetchAccounts (params);
         } else {
-            if (this.accounts) {
+            const accountsLength = this.accounts.length;
+            if (accountsLength > 0) {
                 return this.accounts;
             } else {
                 this.accounts = await this.fetchAccounts (params);
