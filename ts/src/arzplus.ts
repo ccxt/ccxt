@@ -119,7 +119,7 @@ export default class arzplus extends Exchange {
         });
     }
 
-    async fetchMarkets (params = { 'type': 'spot' }): Promise<Market[]> {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name arzplus#fetchMarkets
@@ -326,7 +326,7 @@ export default class arzplus extends Exchange {
         };
     }
 
-    async fetchTickers (symbols: Strings = undefined, params = { 'type': 'spot' }): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name arzplus#fetchTickers
@@ -367,7 +367,7 @@ export default class arzplus extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = { 'type': 'spot' }): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name arzplus#fetchTicker
