@@ -1,12 +1,12 @@
 
 // ---------------------------------------------------------------------------
 
-import { stat } from 'fs';
 import Exchange from './abstract/deepcoin.js';
 import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -217,6 +217,9 @@ export default class deepcoin extends Exchange {
             'features': {
             },
             'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -728,11 +731,31 @@ export default class deepcoin extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        let query: Str = undefined;
-        query = this.urlencode (params);
-        if (query.length !== 0) {
-            url += '?' + query;
+        let requestPath = path;
+        if (method === 'GET') {
+            const query = this.urlencode (params);
+            if (query.length) {
+                requestPath += '?' + query;
+            }
+        }
+        const url = this.urls['api'][api] + '/' + requestPath;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            const dateTime = this.iso8601 (timestamp);
+            let payload = dateTime + method + '/' + requestPath;
+            headers = {
+                'DC-ACCESS-KEY': this.apiKey,
+                'DC-ACCESS-TIMESTAMP': dateTime,
+                'DC-ACCESS-PASSPHRASE': this.password,
+            };
+            if (method !== 'GET') {
+                body = this.json (params);
+                headers['Content-Type'] = 'application/json';
+                payload += body;
+            }
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
+            headers['DC-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
