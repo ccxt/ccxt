@@ -1108,7 +1108,7 @@ export default class Exchange {
         });
     }
 
-    async fetchCurrenciesWs (params = {}) {
+    async fetchCurrenciesWs (params = {}): Promise<Currencies> {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
@@ -3113,6 +3113,9 @@ export default class Exchange {
         if (this.features === undefined) {
             return defaultValue;
         }
+        if (marketType === undefined) {
+            return defaultValue; // marketType is required
+        }
         // if marketType (e.g. 'option') does not exist in features
         if (!(marketType in this.features)) {
             return defaultValue; // unsupported marketType, check "exchange.features" for details
@@ -3138,7 +3141,7 @@ export default class Exchange {
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
-            return methodsContainer;
+            return (defaultValue !== undefined) ? defaultValue : methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
@@ -3149,7 +3152,7 @@ export default class Exchange {
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
-            return methodDict;
+            return (defaultValue !== undefined) ? defaultValue : methodDict;
         }
         const splited = paramName.split ('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         const parentKey = splited[0];
@@ -6254,6 +6257,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
 
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrdersWs() is not supported yet');
     }
@@ -6274,7 +6281,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }
 
-    async cancelUnifiedOrder (order, params = {}): Promise<{}> {
+    async cancelUnifiedOrder (order: Order, params = {}): Promise<{}> {
         return this.cancelOrder (this.safeString (order, 'id'), this.safeString (order, 'symbol'), params);
     }
 
@@ -8221,7 +8228,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTransfers () is not supported yet');
     }
 
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         /**
          * @method
          * @name exchange#unWatchOHLCV
@@ -8258,7 +8265,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
     }
 
-    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
+    async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<{}> {
         /**
          * @method
          * @name exchange#withdrawWs
@@ -8297,7 +8304,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrdersWs () is not supported yet');
     }
 
-    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatusWs (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name exchange#fetchOrdersByStatusWs
