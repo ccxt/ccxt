@@ -1608,7 +1608,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const clientOrderIds = this.safeValue2 (params, 'clientOrderIds', 'client-order-ids');
         params = this.omit (params, [ 'clientOrderIds', 'client-order-ids' ]);
@@ -1651,7 +1651,7 @@ export default class bittrade extends Exchange {
         //         }
         //     }
         //
-        return this.parseCancelOrders (response);
+        return this.parseCancelOrders (response) as Order[];
     }
 
     parseCancelOrders (orders) {

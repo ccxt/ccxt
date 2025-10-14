@@ -2711,7 +2711,7 @@ export default class coinex extends Exchange {
      * @param {boolean} [params.trigger] set to true for canceling stop orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -2878,7 +2878,7 @@ export default class coinex extends Exchange {
             const order = this.parseOrder (item, market);
             results.push (order);
         }
-        return results;
+        return results as Order[];
     }
 
     /**

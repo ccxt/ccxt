@@ -1779,7 +1779,7 @@ export default class hyperliquid extends Exchange {
                 'status': status,
             }));
         }
-        return orders;
+        return orders as Order[];
     }
 
     cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}): Dict {
