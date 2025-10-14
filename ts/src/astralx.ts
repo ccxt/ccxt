@@ -966,7 +966,7 @@ export default class astralx extends Exchange {
         // 处理额外参数
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            request['clientOrderId'] = this.milliseconds ().toString ();
+            request['clientOrderId'] = this.uuid ();
         }
         const response = await this.privatePostOpenapiContractOrder (this.extend (request, params));
         // API响应直接返回订单数据，不需要提取data字段

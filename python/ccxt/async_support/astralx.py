@@ -885,7 +885,7 @@ class astralx(Exchange, ImplicitAPI):
         # 处理额外参数
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
-            request['clientOrderId'] = str(self.milliseconds())
+            request['clientOrderId'] = self.uuid()
         response = await self.privatePostOpenapiContractOrder(self.extend(request, params))
         # API响应直接返回订单数据，不需要提取data字段
         return self.parse_order(response, market)

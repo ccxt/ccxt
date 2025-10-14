@@ -929,7 +929,7 @@ class astralx extends Exchange {
         // 处理额外参数
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId === null) {
-            $request['clientOrderId'] = (string) $this->milliseconds();
+            $request['clientOrderId'] = $this->uuid();
         }
         $response = $this->privatePostOpenapiContractOrder ($this->extend($request, $params));
         // API响应直接返回订单数据，不需要提取data字段
