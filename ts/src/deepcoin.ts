@@ -19,7 +19,7 @@ export default class deepcoin extends Exchange {
             'id': 'deepcoin',
             'name': 'DeepCoin',
             'countries': [ 'SG' ], // Singapore
-            'rateLimit': 50, // 20 times per second
+            'rateLimit': 200, // 5 times per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -147,63 +147,63 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 4, // done
-                        'deepcoin/market/candles': 4, // done
-                        'deepcoin/market/instruments': 4, // done
-                        'deepcoin/market/tickers': 4, // done
-                        'deepcoin/market/index-candles': 1 / 2, // done
-                        'deepcoin/market/trades': 20, // done
-                        'deepcoin/market/mark-price-candles': 1 / 2, // done
-                        'deepcoin/market/step-margin': 20,
+                        'deepcoin/market/books': 1, // done
+                        'deepcoin/market/candles': 1, // done
+                        'deepcoin/market/instruments': 1, // done
+                        'deepcoin/market/tickers': 1, // done
+                        'deepcoin/market/index-candles': 1, // done
+                        'deepcoin/market/trades': 1, // done
+                        'deepcoin/market/mark-price-candles': 1, // done
+                        'deepcoin/market/step-margin': 5,
                     },
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 1,
-                        'deepcoin/account/bills': 1,
-                        'deepcoin/account/positions': 1,
-                        'deepcoin/trade/fills': 1,
-                        'deepcoin/trade/orderByID': 1,
-                        'deepcoin/trade/finishOrderByID': 1,
-                        'deepcoin/trade/orders-history': 1,
-                        'deepcoin/trade/v2/orders-pending': 1,
-                        'deepcoin/trade/funding-rate': 1,
-                        'deepcoin/trade/fund-rate/current-funding-rate': 1,
-                        'deepcoin/trade/fund-rate/history': 1,
-                        'deepcoin/trade/trigger-orders-pending': 1,
-                        'deepcoin/trade/trigger-orders-history': 1,
-                        'deepcoin/copytrading/support-contracts': 1,
-                        'deepcoin/copytrading/leader-position': 1,
-                        'deepcoin/copytrading/estimate-profit': 1,
-                        'deepcoin/copytrading/history-profit': 1,
-                        'deepcoin/copytrading/follower-rank': 1,
-                        'deepcoin/internal-transfer/support': 1,
-                        'deepcoin/internal-transfer/history-order': 1,
-                        'deepcoin/rebate/config': 1,
-                        'deepcoin/agents/users': 1,
-                        'deepcoin/agents/users/rebate-list': 1,
-                        'deepcoin/agents/users/rebates': 1,
-                        'deepcoin/asset/deposit-list': 1,
-                        'deepcoin/asset/withdraw-list': 1,
-                        'deepcoin/asset/recharge-chain-list': 1,
+                        'deepcoin/account/balances': 5,
+                        'deepcoin/account/bills': 5,
+                        'deepcoin/account/positions': 5,
+                        'deepcoin/trade/fills': 5,
+                        'deepcoin/trade/orderByID': 5,
+                        'deepcoin/trade/finishOrderByID': 5,
+                        'deepcoin/trade/orders-history': 5,
+                        'deepcoin/trade/v2/orders-pending': 5,
+                        'deepcoin/trade/funding-rate': 5,
+                        'deepcoin/trade/fund-rate/current-funding-rate': 5,
+                        'deepcoin/trade/fund-rate/history': 5,
+                        'deepcoin/trade/trigger-orders-pending': 5,
+                        'deepcoin/trade/trigger-orders-history': 5,
+                        'deepcoin/copytrading/support-contracts': 5,
+                        'deepcoin/copytrading/leader-position': 5,
+                        'deepcoin/copytrading/estimate-profit': 5,
+                        'deepcoin/copytrading/history-profit': 5,
+                        'deepcoin/copytrading/follower-rank': 5,
+                        'deepcoin/internal-transfer/support': 5,
+                        'deepcoin/internal-transfer/history-order': 5,
+                        'deepcoin/rebate/config': 5,
+                        'deepcoin/agents/users': 5,
+                        'deepcoin/agents/users/rebate-list': 5,
+                        'deepcoin/agents/users/rebates': 5,
+                        'deepcoin/asset/deposit-list': 5,
+                        'deepcoin/asset/withdraw-list': 5,
+                        'deepcoin/asset/recharge-chain-list': 5,
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 1,
-                        'deepcoin/trade/order': 1,
-                        'deepcoin/trade/replace-order': 1,
-                        'deepcoin/trade/cancel-order': 1,
-                        'deepcoin/trade/batch-cancel-order': 1,
-                        'deepcoin/trade/cancel-trigger-order': 1,
-                        'deepcoin/trade/swap/cancel-all': 1,
-                        'deepcoin/trade/trigger-order': 1,
-                        'deepcoin/trade/batch-close-position': 1,
-                        'deepcoin/trade/replace-order-sltp': 1,
-                        'deepcoin/trade/close-position-by-ids': 1,
-                        'deepcoin/copytrading/leader-settings': 1,
-                        'deepcoin/copytrading/set-contracts': 1,
-                        'deepcoin/internal-transfer': 1,
-                        'deepcoin/rebate/config': 1,
-                        'deepcoin/asset/transfer': 1,
+                        'deepcoin/account/set-leverage': 5,
+                        'deepcoin/trade/order': 5,
+                        'deepcoin/trade/replace-order': 5,
+                        'deepcoin/trade/cancel-order': 5,
+                        'deepcoin/trade/batch-cancel-order': 5,
+                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
+                        'deepcoin/trade/swap/cancel-all': 5,
+                        'deepcoin/trade/trigger-order': 5,
+                        'deepcoin/trade/batch-close-position': 5,
+                        'deepcoin/trade/replace-order-sltp': 5,
+                        'deepcoin/trade/close-position-by-ids': 5,
+                        'deepcoin/copytrading/leader-settings': 5,
+                        'deepcoin/copytrading/set-contracts': 5,
+                        'deepcoin/internal-transfer': 5,
+                        'deepcoin/rebate/config': 5,
+                        'deepcoin/asset/transfer': 5,
                     },
                 },
             },
