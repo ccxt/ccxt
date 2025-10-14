@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/arzplus.js';
-import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import { Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ export default class arzplus extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    async fetchMarkets (params = { 'type': 'spot' }): Promise<Market[]> {
         /**
          * @method
          * @name arzplus#fetchMarkets
@@ -132,8 +132,15 @@ export default class arzplus extends Exchange {
             'stats': '1',
             'enable': 'true',
         };
-        const response = await this.publicGetApiV1MarketSymbols (request);
-        const otcMarkets = await this.publicGetApiV1MarketIrtInfo (request);
+        const typedRequest = this.safeString (params, 'type', 'spot');
+        let response = [];
+        let otcMarkets = [];
+        if (typedRequest === 'otc') {
+            otcMarkets = await this.publicGetApiV1MarketIrtInfo (request);
+        } else {
+            response = await this.publicGetApiV1MarketSymbols (request);
+            otcMarkets = await this.publicGetApiV1MarketIrtInfo (request);
+        }
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = this.parseMarket (response[i]);
@@ -146,13 +153,17 @@ export default class arzplus extends Exchange {
             const parsedMarket = this.parseOTCMarkets (marketdata);
             result.push (parsedMarket);
         }
-        if (params['type']) {
-            return this.filterByArray (result, 'type', params['type'], false);
-        }
         return result;
     }
 
-    parseMarket (market): Market {
+    parseMarket (market, type: MarketType = 'spot'): Market {
+        if (type === 'otc') {
+            return this.parseOTCMarkets (market);
+        }
+        return this.parseSpotMarket (market);
+    }
+
+    parseSpotMarket (market): Market {
         // {
         //     'name': 'USDTIRT',
         //     'asset': {
@@ -364,7 +375,7 @@ export default class arzplus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
+        await this.loadMarkets (false, { 'type': 'spot' });
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
