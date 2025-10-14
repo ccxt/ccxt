@@ -30,6 +30,7 @@ class astralx extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
@@ -903,6 +904,58 @@ class astralx extends Exchange {
             $apiSide = 'BUY_OPEN';
         } elseif ($apiSide === 'SELL') {
             $apiSide = 'SELL_OPEN';
+        }
+        // 处理$type参数映射：market/limit -> MARKET/LIMIT
+        $apiType = strtoupper($type);
+        $priceType = 'INPUT';
+        if ($apiType === 'MARKET') {
+            $priceType = 'MARKET';
+        } elseif ($apiType === 'LIMIT') {
+            $priceType = 'INPUT';
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $apiSide,
+            'orderType' => 'LIMIT',
+            'quantity' => $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'],
+            'priceType' => $priceType, // 默认输入价格类型
+            'leverage' => '10',     // 默认10倍杠杆
+            'timeInForce' => 'GTC', // 默认取消前有效
+            'isCross' => 'true',    // 默认全仓模式
+        );
+        // 限价单需要价格参数
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        // 处理额外参数
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId === null) {
+            $request['clientOrderId'] = $this->uuid();
+        }
+        $response = $this->privatePostOpenapiContractOrder ($this->extend($request, $params));
+        // API响应直接返回订单数据，不需要提取data字段
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_reduce_only_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        /**
+         * create a reduce-only order to close a position
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        // 处理$side参数映射：buy/sell -> BUY_CLOSE/SELL_CLOSE (平仓方向)
+        $apiSide = strtoupper($side);
+        if ($apiSide === 'BUY') {
+            $apiSide = 'BUY_CLOSE';
+        } elseif ($apiSide === 'SELL') {
+            $apiSide = 'SELL_CLOSE';
         }
         // 处理$type参数映射：market/limit -> MARKET/LIMIT
         $apiType = strtoupper($type);

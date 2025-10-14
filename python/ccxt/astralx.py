@@ -36,6 +36,7 @@ class astralx(Exchange, ImplicitAPI):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
@@ -862,6 +863,53 @@ class astralx(Exchange, ImplicitAPI):
             apiSide = 'BUY_OPEN'
         elif apiSide == 'SELL':
             apiSide = 'SELL_OPEN'
+        # 处理type参数映射：market/limit -> MARKET/LIMIT
+        apiType = type.upper()
+        priceType = 'INPUT'
+        if apiType == 'MARKET':
+            priceType = 'MARKET'
+        elif apiType == 'LIMIT':
+            priceType = 'INPUT'
+        request = {
+            'symbol': market['id'],
+            'side': apiSide,
+            'orderType': 'LIMIT',
+            'quantity': self.parse_number(self.amount_to_precision(symbol, amount)) / market['contractSize'],
+            'priceType': priceType,  # 默认输入价格类型
+            'leverage': '10',     # 默认10倍杠杆
+            'timeInForce': 'GTC',  # 默认取消前有效
+            'isCross': 'true',    # 默认全仓模式
+        }
+        # 限价单需要价格参数
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
+        # 处理额外参数
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            request['clientOrderId'] = self.uuid()
+        response = self.privatePostOpenapiContractOrder(self.extend(request, params))
+        # API响应直接返回订单数据，不需要提取data字段
+        return self.parse_order(response, market)
+
+    def create_reduce_only_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a reduce-only order to close a position
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        # 处理side参数映射：buy/sell -> BUY_CLOSE/SELL_CLOSE(平仓方向)
+        apiSide = side.upper()
+        if apiSide == 'BUY':
+            apiSide = 'BUY_CLOSE'
+        elif apiSide == 'SELL':
+            apiSide = 'SELL_CLOSE'
         # 处理type参数映射：market/limit -> MARKET/LIMIT
         apiType = type.upper()
         priceType = 'INPUT'

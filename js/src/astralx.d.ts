@@ -38,6 +38,7 @@ export default class astralx extends Exchange {
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchBalance(params?: {}): Promise<import("./base/types.js").Balances>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<import("./base/types.js").Order>;
+    createReduceOnlyOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;

@@ -19,6 +19,7 @@
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchBalance](#fetchbalance)
 * [createOrder](#createorder)
+* [createReduceOnlyOrder](#createreduceonlyorder)
 * [cancelOrder](#cancelorder)
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
@@ -312,6 +313,30 @@ create a trade order
 
 ```javascript
 astralx.createOrder (symbol, type, side, amount[, price, params])
+```
+
+
+<a name="createReduceOnlyOrder" id="createreduceonlyorder"></a>
+
+### createReduceOnlyOrder{docsify-ignore}
+create a reduce-only order to close a position
+
+**Kind**: instance method of [<code>astralx</code>](#astralx)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+astralx.createReduceOnlyOrder (symbol, type, side, amount[, price, params])
 ```
 
 

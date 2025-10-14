@@ -35,6 +35,7 @@ class astralx extends astralx$1["default"] {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -925,6 +926,61 @@ class astralx extends astralx$1["default"] {
         }
         else if (apiSide === 'SELL') {
             apiSide = 'SELL_OPEN';
+        }
+        // 处理type参数映射：market/limit -> MARKET/LIMIT
+        const apiType = type.toUpperCase();
+        let priceType = 'INPUT';
+        if (apiType === 'MARKET') {
+            priceType = 'MARKET';
+        }
+        else if (apiType === 'LIMIT') {
+            priceType = 'INPUT';
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': apiSide,
+            'orderType': 'LIMIT',
+            'quantity': this.parseNumber(this.amountToPrecision(symbol, amount)) / market['contractSize'],
+            'priceType': priceType,
+            'leverage': '10',
+            'timeInForce': 'GTC',
+            'isCross': 'true', // 默认全仓模式
+        };
+        // 限价单需要价格参数
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision(symbol, price);
+        }
+        // 处理额外参数
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['clientOrderId'] = this.uuid();
+        }
+        const response = await this.privatePostOpenapiContractOrder(this.extend(request, params));
+        // API响应直接返回订单数据，不需要提取data字段
+        return this.parseOrder(response, market);
+    }
+    async createReduceOnlyOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name astralx#createReduceOnlyOrder
+         * @description create a reduce-only order to close a position
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        // 处理side参数映射：buy/sell -> BUY_CLOSE/SELL_CLOSE (平仓方向)
+        let apiSide = side.toUpperCase();
+        if (apiSide === 'BUY') {
+            apiSide = 'BUY_CLOSE';
+        }
+        else if (apiSide === 'SELL') {
+            apiSide = 'SELL_CLOSE';
         }
         // 处理type参数映射：market/limit -> MARKET/LIMIT
         const apiType = type.toUpperCase();
