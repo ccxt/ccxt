@@ -1241,7 +1241,7 @@ export default class astralx extends Exchange {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(order, 'time');
         const price = this.safeNumber(order, 'price');
-        // 需要将origQty乘以contractSize来还原实际数量
+        // 需要将origQty乘以contractSize来还原实际数量（API返回的是合约张数）
         const origQtyString = this.safeString(order, 'origQty');
         let amount = undefined;
         if (origQtyString !== undefined) {
@@ -1272,13 +1272,16 @@ export default class astralx extends Exchange {
             status = 'open';
         }
         // Astralx使用BUY_OPEN/SELL_OPEN等方向值，需要映射到标准的buy/sell
-        let side = this.safeString(order, 'side');
-        if (side === 'BUY_OPEN' || side === 'BUY_CLOSE') {
+        const apiSide = this.safeString(order, 'side');
+        let side = apiSide;
+        if (apiSide === 'BUY_OPEN' || apiSide === 'BUY_CLOSE') {
             side = 'buy';
         }
-        else if (side === 'SELL_OPEN' || side === 'SELL_CLOSE') {
+        else if (apiSide === 'SELL_OPEN' || apiSide === 'SELL_CLOSE') {
             side = 'sell';
         }
+        // 判断是否为reduce-only订单（平仓订单）
+        const reduceOnly = (apiSide === 'BUY_CLOSE' || apiSide === 'SELL_CLOSE');
         // 根据priceType确定订单类型：INPUT -> limit, MARKET -> market
         const priceType = this.safeString(order, 'priceType');
         let type = 'limit'; // 默认限价单
@@ -1313,6 +1316,7 @@ export default class astralx extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
+            'reduceOnly': reduceOnly,
         });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -1132,7 +1132,7 @@ class astralx(Exchange, ImplicitAPI):
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'time')
         price = self.safe_number(order, 'price')
-        # 需要将origQty乘以contractSize来还原实际数量
+        # 需要将origQty乘以contractSize来还原实际数量（API返回的是合约张数）
         origQtyString = self.safe_string(order, 'origQty')
         amount = None
         if origQtyString is not None:
@@ -1156,11 +1156,14 @@ class astralx(Exchange, ImplicitAPI):
         elif status == 'PARTIALLY_FILLED':
             status = 'open'
         # Astralx使用BUY_OPEN/SELL_OPEN等方向值，需要映射到标准的buy/sell
-        side = self.safe_string(order, 'side')
-        if side == 'BUY_OPEN' or side == 'BUY_CLOSE':
+        apiSide = self.safe_string(order, 'side')
+        side = apiSide
+        if apiSide == 'BUY_OPEN' or apiSide == 'BUY_CLOSE':
             side = 'buy'
-        elif side == 'SELL_OPEN' or side == 'SELL_CLOSE':
+        elif apiSide == 'SELL_OPEN' or apiSide == 'SELL_CLOSE':
             side = 'sell'
+        # 判断是否为reduce-only订单（平仓订单）
+        reduceOnly = (apiSide == 'BUY_CLOSE' or apiSide == 'SELL_CLOSE')
         # 根据priceType确定订单类型：INPUT -> limit, MARKET -> market
         priceType = self.safe_string(order, 'priceType')
         type = 'limit'  # 默认限价单
@@ -1193,6 +1196,7 @@ class astralx(Exchange, ImplicitAPI):
             'status': status,
             'fee': None,
             'trades': None,
+            'reduceOnly': reduceOnly,
         })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

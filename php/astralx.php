@@ -1203,7 +1203,7 @@ class astralx extends Exchange {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'time');
         $price = $this->safe_number($order, 'price');
-        // 需要将$origQty乘以contractSize来还原实际数量
+        // 需要将$origQty乘以contractSize来还原实际数量（API返回的是合约张数）
         $origQtyString = $this->safe_string($order, 'origQty');
         $amount = null;
         if ($origQtyString !== null) {
@@ -1231,12 +1231,15 @@ class astralx extends Exchange {
             $status = 'open';
         }
         // Astralx使用BUY_OPEN/SELL_OPEN等方向值，需要映射到标准的buy/sell
-        $side = $this->safe_string($order, 'side');
-        if ($side === 'BUY_OPEN' || $side === 'BUY_CLOSE') {
+        $apiSide = $this->safe_string($order, 'side');
+        $side = $apiSide;
+        if ($apiSide === 'BUY_OPEN' || $apiSide === 'BUY_CLOSE') {
             $side = 'buy';
-        } elseif ($side === 'SELL_OPEN' || $side === 'SELL_CLOSE') {
+        } elseif ($apiSide === 'SELL_OPEN' || $apiSide === 'SELL_CLOSE') {
             $side = 'sell';
         }
+        // 判断是否为reduce-only订单（平仓订单）
+        $reduceOnly = ($apiSide === 'BUY_CLOSE' || $apiSide === 'SELL_CLOSE');
         // 根据$priceType确定订单类型：INPUT -> limit, MARKET -> $market
         $priceType = $this->safe_string($order, 'priceType');
         $type = 'limit'; // 默认限价单
@@ -1270,6 +1273,7 @@ class astralx extends Exchange {
             'status' => $status,
             'fee' => null,
             'trades' => null,
+            'reduceOnly' => $reduceOnly,
         ));
     }
 
