@@ -286,7 +286,7 @@ type ICoreExchange interface {
 	UnWatchOrders(optionalArgs ...interface{}) <-chan interface{}
 	UnWatchPositions(optionalArgs ...interface{}) <-chan interface{}
 	UnWatchTickers(optionalArgs ...interface{}) <-chan interface{}
-	UnWatchMarkPrice(symboloptionalArgs ...interface{}) <-chan interface{}
+	UnWatchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	UnWatchMarkPrices(optionalArgs ...interface{}) <-chan interface{}
 	UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
