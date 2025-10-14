@@ -617,9 +617,13 @@ export default class deepcoin extends Exchange {
         const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
-        const spot = this.safeBool (market, 'spot', false);
-        const quoteVolume = spot ? this.safeString (ticker, 'volCcy24h') : undefined;
-        const baseVolume = this.safeString (ticker, 'vol24h');
+        let quoteVolume = this.safeString (ticker, 'volCcy24h');
+        let baseVolume = this.safeString (ticker, 'vol24h');
+        if (market['swap'] && market['inverse']) {
+            const temp = baseVolume;
+            baseVolume = quoteVolume;
+            quoteVolume = temp;
+        }
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');
         return this.safeTicker ({
