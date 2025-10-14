@@ -180,9 +180,7 @@ let protobufMexc = undefined;
  * @class Exchange
  */
 export default class Exchange {
-    options: {
-        [key: string]: any;
-    };
+    options: Dict;
 
     isSandboxModeEnabled: boolean = false;
 
@@ -209,8 +207,8 @@ export default class Exchange {
     socks_proxy: string;
     socksProxyCallback: any;
     socks_proxy_callback: any;
-    userAgent: { 'User-Agent': string } | false = undefined;
-    user_agent: { 'User-Agent': string } | false = undefined;
+    userAgent: Str = undefined;
+    user_agent: Str = undefined;
     wsProxy: string;
     ws_proxy: string;
     wssProxy: string;
@@ -227,7 +225,7 @@ export default class Exchange {
     headers: Dictionary<string> = {};
     returnResponseHeaders: boolean = false;
     origin: string = '*';  // CORS origin
-    MAX_VALUE: Num = Number.MAX_VALUE;
+    MAX_VALUE: number = Number.MAX_VALUE;
     //
     agent: any = undefined;  // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -304,7 +302,7 @@ export default class Exchange {
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response: string = undefined;
+    last_http_response: any = undefined;
     last_json_response: any = undefined;
     last_response_headers: Dictionary<string> = undefined;
     last_request_headers: Dictionary<string> = undefined;
@@ -367,27 +365,27 @@ export default class Exchange {
     };
 
     markets_by_id: Dictionary<any> = undefined;
-    symbols: string[] = undefined;
-    ids: string[] = undefined;
+    symbols: Strings = undefined;
+    ids: Strings = undefined;
     currencies: Currencies = {};
 
     baseCurrencies: Dictionary<CurrencyInterface> = undefined;
     quoteCurrencies: Dictionary<CurrencyInterface> = undefined;
     currencies_by_id: Dictionary<CurrencyInterface> = undefined;
-    codes: string[] = undefined;
+    codes: Strings = undefined;
 
-    reloadingMarkets: boolean = undefined;
-    marketsLoading: Promise<Dictionary<Market>> = undefined;
+    reloadingMarkets: Bool = undefined;
+    marketsLoading: Promise<Dictionary<any>> = undefined;
 
-    accounts: Account[] = undefined;
-    accountsById: Dictionary<Account> = undefined;
+    accounts: Account[] = [];
+    accountsById: Dictionary<Account> = {};
 
     commonCurrencies: Dictionary<string> = undefined;
 
     hostname: Str = undefined;
 
-    precisionMode: Num = undefined;
-    paddingMode: Num = undefined;
+    precisionMode: Int = undefined;
+    paddingMode: Int = undefined;
 
     exceptions: Dictionary<string> = {};
     timeframes: Dictionary<number | string> = {};
@@ -398,7 +396,7 @@ export default class Exchange {
 
     name: Str = undefined;
 
-    lastRestRequestTimestamp: number;
+    lastRestRequestTimestamp: int;
 
     targetAccount: string = undefined;
 
