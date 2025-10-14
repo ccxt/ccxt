@@ -457,7 +457,7 @@ func (this *Bitfinex) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Bitfinex) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]Order, error) {
+func (this *Bitfinex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
