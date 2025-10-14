@@ -29,7 +29,7 @@ retrieves data on all markets for abantether
 **Kind**: instance method of [<code>abantether</code>](#abantether)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://abantether.com/management/all-coins/?format=json  
+**See**: https://api.abantether.com/manager/coins/data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -49,7 +49,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>abantether</code>](#abantether)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://abantether.com/management/all-coins/?format=json  
+**See**: https://api.abantether.com/manager/coins/data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -70,7 +70,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>abantether</code>](#abantether)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
-**See**: https://abantether.com/management/all-coins/?format=json  
+**See**: https://api.abantether.com/manager/coins/data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

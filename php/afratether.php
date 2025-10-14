@@ -21,7 +21,7 @@ class afratether extends Exchange {
             'pro' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
+                'spot' => false,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
@@ -77,6 +77,7 @@ class afratether extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => false,
+                'otc' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -136,21 +137,43 @@ class afratether extends Exchange {
 
     public function parse_market($market): array {
         // {
-        //     "currencyAbb" => "BTC",
-        //     "nameEn" => "Bitcoin",
-        //     "nameFa" => "بیت کوین",
-        //     "icon" => "/assets/crypto/BTC.png",
-        //     "currency" => "BTC",
-        //     "prices" => array(
+        //     "currencyAbb" => "USDT",
+        //     "nameEn" => "Tether",
+        //     "nameFa" => "تتر",
+        //     "icon" => "/assets/crypto/usdt.png",
+        //     "round" => 1000000,
+        //     "currency" => "USDT",
+        //     "changeRate24h" => "-0.0065",
+        //     "Klines" => array(
         //         array(
-        //             "currency" => "USDT",
-        //             "price" => "67797.1"
+        //             "1760227200000",
+        //             "1147500",
+        //             "1140000",
+        //             "1145500",
+        //             "1125000",
+        //             "0",
+        //             "0"
+        //         ),
+        //     ),
+        //     "info" => array(
+        //         "birth_date" => 1412553600000,
+        //         "open_24h" => 1,
+        //         "open_1w" => 1,
+        //         "open_3M" => 1,
+        //         "open_1y" => 1
+        //     ),
+        //     "prices" => {
+        //         "USDT" => array(
+        //             "price" => "1"
+        //         ),
+        //         "IRR" => {
+        //             "price_sell" => 1135000,
+        //             "price_buy" => 1123000
         //         }
-        //     )
-        // ),
-        $details = $this->safe_list($market, 'prices');
+        //     }
+        // }
         $baseId = $this->safe_string($market, 'currency');
-        $quoteId = $this->safe_string($details[0], 'currency');
+        $quoteId = 'IRR';
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $id = $base . $quote;
@@ -165,8 +188,8 @@ class afratether extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'settleId' => null,
-            'type' => 'spot',
-            'spot' => true,
+            'type' => 'otc',
+            'spot' => false,
             'margin' => false,
             'swap' => false,
             'future' => false,
@@ -248,41 +271,66 @@ class afratether extends Exchange {
 
     public function parse_ticker($ticker, ?array $market = null): array {
         // {
-        //     "currencyAbb" => "BTC",
-        //     "nameEn" => "Bitcoin",
-        //     "nameFa" => "بیت کوین",
-        //     "icon" => "/assets/crypto/BTC.png",
-        //     "currency" => "BTC",
-        //     "prices" => array(
+        //     "currencyAbb" => "USDT",
+        //     "nameEn" => "Tether",
+        //     "nameFa" => "تتر",
+        //     "icon" => "/assets/crypto/usdt.png",
+        //     "round" => 1000000,
+        //     "currency" => "USDT",
+        //     "changeRate24h" => "-0.0065",
+        //     "Klines" => array(
         //         array(
-        //             "currency" => "USDT",
-        //             "price" => "67797.1"
+        //             "1760227200000",
+        //             "1147500",
+        //             "1140000",
+        //             "1145500",
+        //             "1125000",
+        //             "0",
+        //             "0"
+        //         ),
+        //     ),
+        //     "info" => array(
+        //         "birth_date" => 1412553600000,
+        //         "open_24h" => 1,
+        //         "open_1w" => 1,
+        //         "open_3M" => 1,
+        //         "open_1y" => 1
+        //     ),
+        //     "prices" => {
+        //         "USDT" => array(
+        //             "price" => "1"
+        //         ),
+        //         "IRR" => {
+        //             "price_sell" => 1135000,
+        //             "price_buy" => 1123000
         //         }
-        //     )
-        // ),
+        //     }
+        // }
         $marketType = 'otc';
-        $details = $this->safe_list($ticker, 'prices');
         $base = $this->safe_string($ticker, 'currency');
-        $quote = $this->safe_string($details[0], 'currency');
-        $marketId = $base . $quote;
+        $quote = 'IRR';
+        $marketId = $base . '/' . $quote;
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $last = $this->safe_float($details[0], 'price', 0);
+        $prices = $this->safe_dict($ticker, 'prices', array());
+        $irrPrices = $this->safe_dict($prices, 'IRR', array());
+        $sell = $this->safe_float($irrPrices, 'price_sell', 0);
+        $buy = $this->safe_float($irrPrices, 'price_buy', 0);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
             'high' => null,
             'low' => null,
-            'bid' => null,
+            'bid' => $sell,
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $buy,
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => $last,
-            'last' => $last,
+            'close' => $buy,
+            'last' => $buy,
             'previousClose' => null,
-            'change' => null,
+            'change' => $this->safe_float($ticker, 'changeRate24h', null),
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,

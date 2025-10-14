@@ -13,4 +13,4 @@ interface Exchange {
 }
 abstract class Exchange extends _Exchange {}
 
-export default Exchange;
+export default Exchange

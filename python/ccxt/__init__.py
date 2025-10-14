@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.9.4'
+__version__ = '4.9.10'
 
 # ----------------------------------------------------------------------------
 
@@ -174,6 +174,7 @@ from ccxt.independentreserve import independentreserve                # noqa: F4
 from ccxt.indodax import indodax                                      # noqa: F401
 from ccxt.jibitex import jibitex                                      # noqa: F401
 from ccxt.kcex import kcex                                            # noqa: F401
+from ccxt.kifpoolme import kifpoolme                                  # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
@@ -181,6 +182,7 @@ from ccxt.kucoinfutures import kucoinfutures                          # noqa: F4
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
+from ccxt.mazdax import mazdax                                        # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.modetrade import modetrade                                  # noqa: F401
@@ -200,7 +202,9 @@ from ccxt.p2b import p2b                                              # noqa: F4
 from ccxt.paradex import paradex                                      # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
+from ccxt.pingi import pingi                                          # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
+from ccxt.pooleno import pooleno                                      # noqa: F401
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.ramzinex import ramzinex                                    # noqa: F401
 from ccxt.sarmayex import sarmayex                                    # noqa: F401
@@ -316,6 +320,7 @@ exchanges = [
     'indodax',
     'jibitex',
     'kcex',
+    'kifpoolme',
     'kraken',
     'krakenfutures',
     'kucoin',
@@ -323,6 +328,7 @@ exchanges = [
     'latoken',
     'lbank',
     'luno',
+    'mazdax',
     'mercado',
     'mexc',
     'modetrade',
@@ -342,7 +348,9 @@ exchanges = [
     'paradex',
     'paymium',
     'phemex',
+    'pingi',
     'poloniex',
+    'pooleno',
     'probit',
     'ramzinex',
     'sarmayex',

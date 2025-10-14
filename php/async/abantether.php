@@ -23,7 +23,7 @@ class abantether extends Exchange {
             'pro' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
+                'spot' => false,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
@@ -79,6 +79,7 @@ class abantether extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => false,
+                'otc' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -88,7 +89,7 @@ class abantether extends Exchange {
             'urls' => array(
                 'logo' => 'https://cdn.arz.digital/cr-odin/img/exchanges/abantether/64x64.png',
                 'api' => array(
-                    'public' => 'https://abantether.com',
+                    'public' => 'https://api.abantether.com',
                 ),
                 'www' => 'https://abantether.com',
                 'doc' => array(
@@ -98,7 +99,7 @@ class abantether extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'management/all-coins/' => 1,
+                        'manager/coins/data' => 1,
                     ),
                 ),
             ),
@@ -116,24 +117,25 @@ class abantether extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all markets for abantether
-             * @see https://abantether.com/management/all-coins/?format=json
+             * retrieves $data on all markets for abantether
+             * @see https://api.abantether.com/manager/coins/data
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing $market data
+             * @return {array[]} an array of objects representing $market $data
              */
-            $response = Async\await($this->publicGetManagementAllCoins ($params));
+            $response = Async\await($this->publicGetManagerCoinsData ($params));
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
             $quotes = array( 'IRT', 'USDT' );
-            for ($i = 0; $i < count($response); $i++) {
-                $base = $this->safe_string($response[$i], 'symbol');
+            for ($i = 0; $i < count($data); $i++) {
+                $base = $this->safe_string($data[$i], 'symbol');
                 for ($index = 0; $index < count($quotes); $index++) {
                     $quote = $quotes[$index];
-                    $response[$i]['base'] = $base;
-                    $response[$i]['quote'] = $quote;
+                    $data[$i]['base'] = $base;
+                    $data[$i]['quote'] = $quote;
                     if ($base === $quote) {
                         continue;
                     }
-                    $market = $this->parse_market($response[$i]);
+                    $market = $this->parse_market($data[$i]);
                     $result[] = $market;
                 }
             }
@@ -143,29 +145,38 @@ class abantether extends Exchange {
 
     public function parse_market($market): array {
         // array(
-        //     'symbol' => 'USDT',
-        //     'name' => 'Tether',
-        //     'categories' => array(),
-        //     'tetherPrice' => '1',
-        //     'priceBuy' => '59200.0',
-        //     'priceSell' => '58800.0',
-        //     'persianName' => '\u062a\u062a\u0631',
-        //     'past24' => '0',
-        //     'marketVolume' => '1',
-        //     'id' => '1',
-        //     'active' => true,
-        //     'irtDecimalPoint' => '2',
-        //     'tetherDecimalPoint' => '6',
-        //     'amountDecimalPoint' => '6',
-        //     'past24volume' => '767287.60530837810210936763',
-        //     'operationStatus' => array(
-        //         'buyActive' => true,
-        //         'sellActive' => true,
-        //         'withdrawalActive' => true,
-        //         'depositActive' => true,
-        //         'transferActive' => true,
-        //     ),
-        // );
+        //     "id" => 1,
+        //     "name" => "Tether USDt",
+        //     "symbol" => "USDT",
+        //     "persian_name" => "تتر",
+        //     "is_active" => true,
+        //     "is_withdrawal_active" => true,
+        //     "is_deposit_active" => true,
+        //     "is_mid_wallet_transfer_active" => true,
+        //     "is_buy_active" => true,
+        //     "is_sell_active" => true,
+        //     "is_credit_active" => true,
+        //     "min_trade" => "1.00",
+        //     "max_trade" => "100000.00",
+        //     "tether_price" => "1",
+        //     "price_buy" => "113540.0",
+        //     "price_sell" => "112630.0",
+        //     "volume24h" => "225163179366.25",
+        //     "percent_change_1h" => "0.00",
+        //     "percent_change_24h" => "0.00",
+        //     "percent_change_7d" => "0.04",
+        //     "market_cap" => "179884960573.99",
+        //     "coin_type" => "COIN",
+        //     "exchange_type" => "fake",
+        //     "icon" => "f71021586005413ea6f3a0bd1f7d8a55",
+        //     "fund_tether_buy" => "0",
+        //     "fund_tether_sell" => "0",
+        //     "irt_decimal_point" => 2,
+        //     "tether_decimal_point" => 6,
+        //     "amount_decimal_point" => 6,
+        //     "base" => "BTC",
+        //     "qoute" => "USDT",
+        // ),
         $baseId = $this->safe_string($market, 'base');
         $quoteId = $this->safe_string($market, 'quote');
         $base = $this->safe_currency_code($baseId);
@@ -228,7 +239,7 @@ class abantether extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             * @see https://abantether.com/management/all-coins/?format=json
+             * @see https://api.abantether.com/manager/coins/data
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -237,20 +248,21 @@ class abantether extends Exchange {
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
             }
-            $response = Async\await($this->publicGetManagementAllCoins ($params));
+            $response = Async\await($this->publicGetManagerCoinsData ($params));
+            $data = $this->safe_list($response, 'data', array());
             $result = array();
             $quotes = array( 'IRT', 'USDT' );
-            for ($i = 0; $i < count($response); $i++) {
-                $base = $this->safe_string($response[$i], 'symbol');
+            for ($i = 0; $i < count($data); $i++) {
+                $base = $this->safe_string($data[$i], 'symbol');
                 for ($index = 0; $index < count($quotes); $index++) {
                     $quote = $quotes[$index];
                     if ($base === $quote) {
                         continue;
                     }
-                    $response[$i]['base'] = $base;
-                    $response[$i]['quote'] = $quote;
-                    $response[$i]['symbol'] = $base . $quote;
-                    $ticker = $this->parse_ticker($response[$i]);
+                    $data[$i]['base'] = $base;
+                    $data[$i]['quote'] = $quote;
+                    $data[$i]['symbol'] = $base . $quote;
+                    $ticker = $this->parse_ticker($data[$i]);
                     $symbol = $ticker['symbol'];
                     $result[$symbol] = $ticker;
                 }
@@ -263,7 +275,7 @@ class abantether extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @see https://abantether.com/management/all-coins/?format=json
+             * @see https://api.abantether.com/manager/coins/data
              * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -275,38 +287,45 @@ class abantether extends Exchange {
 
     public function parse_ticker($ticker, ?array $market = null): array {
         // array(
-        //     'symbol' => 'USDT',
-        //     'name' => 'Tether',
-        //     'categories' => array(),
-        //     'tetherPrice' => '1',
-        //     'priceBuy' => '59200.0',
-        //     'priceSell' => '58800.0',
-        //     'persianName' => '\u062a\u062a\u0631',
-        //     'past24' => '0',
-        //     'marketVolume' => '1',
-        //     'id' => '1',
-        //     'active' => true,
-        //     'irtDecimalPoint' => '2',
-        //     'tetherDecimalPoint' => '6',
-        //     'amountDecimalPoint' => '6',
-        //     'past24volume' => '767287.60530837810210936763',
-        //     'operationStatus' => array(
-        //         'buyActive' => true,
-        //         'sellActive' => true,
-        //         'withdrawalActive' => true,
-        //         'depositActive' => true,
-        //         'transferActive' => true,
-        //     ),
-        // );
+        //     "id" => 2,
+        //     "name" => "Bitcoin",
+        //     "symbol" => "BTC",
+        //     "persian_name" => "بیت کوین",
+        //     "is_active" => true,
+        //     "is_withdrawal_active" => true,
+        //     "is_deposit_active" => true,
+        //     "is_mid_wallet_transfer_active" => true,
+        //     "is_buy_active" => true,
+        //     "is_sell_active" => true,
+        //     "is_credit_active" => true,
+        //     "min_trade" => "1.00",
+        //     "max_trade" => "65000.00",
+        //     "tether_price" => "114909.43000000",
+        //     "price_buy" => "13049114870.800000000",
+        //     "price_sell" => "12944547289.500000000",
+        //     "volume24h" => "93585526493.26",
+        //     "percent_change_1h" => "-0.29",
+        //     "percent_change_24h" => "3.22",
+        //     "percent_change_7d" => "-7.19",
+        //     "market_cap" => "2292874615411.72",
+        //     "coin_type" => "COIN",
+        //     "exchange_type" => "binance",
+        //     "icon" => "561aa10abc0c45f7aa4499f48d618c80",
+        //     "fund_tether_buy" => "0",
+        //     "fund_tether_sell" => "0",
+        //     "irt_decimal_point" => 0,
+        //     "tether_decimal_point" => 2,
+        //     "amount_decimal_point" => 9
+        // ),
         $marketType = 'otc';
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $last = $this->safe_float($ticker, 'tetherPrice', 0);
+        $last = $this->safe_float($ticker, 'tether_price', 0);
         if ($ticker['quote'] === 'IRT') {
-            $last = $this->safe_float($ticker, 'priceSell', 0);
+            $last = $this->safe_float($ticker, 'price_buy', 0);
         }
-        $change = $this->safe_float($ticker, 'past24', 0);
-        $baseVolume = $this->safe_float($ticker, 'past24volume', 0);
+        $change = $this->safe_float($ticker, 'percent_change_24h', 0);
+        $baseVolume = $this->safe_float($ticker, 'volume24h', 0);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,

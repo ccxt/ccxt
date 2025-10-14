@@ -3,6 +3,10 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var tetherland$1 = require('./abstract/tetherland.js');
+require('./base/functions/platform.js');
+var type = require('./base/functions/type.js');
+require('./base/functions/encode.js');
+require('./base/functions/crypto.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -88,7 +92,7 @@ class tetherland extends tetherland$1["default"] {
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/tetherland/64x64.png',
                 'api': {
-                    'public': 'https://api.teterlands.com',
+                    'public': 'https://service.tetherland.com',
                 },
                 'www': 'https://tetherland.org',
                 'doc': [
@@ -122,7 +126,7 @@ class tetherland extends tetherland$1["default"] {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetApiV5Currencies(params);
-        const markets = this.safeDict(response, 'data');
+        const markets = this.safeList(response, 'data');
         const result = [];
         const quotes = ['USDT', 'IRT'];
         for (let i = 0; i < markets.length; i++) {
@@ -252,7 +256,7 @@ class tetherland extends tetherland$1["default"] {
             symbols = this.marketSymbols(symbols);
         }
         const response = await this.publicGetApiV5Currencies(params);
-        const markets = this.safeDict(response, 'data');
+        const markets = this.safeList(response, 'data');
         const result = [];
         const quotes = ['USDT', 'IRT'];
         for (let i = 0; i < markets.length; i++) {
@@ -330,7 +334,7 @@ class tetherland extends tetherland$1["default"] {
         const marketId = this.safeString(ticker, 'id');
         const quote = this.safeString(ticker, 'quote');
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        let last = this.safeFloat(ticker, 'price', 0);
+        let last = type.asFloat(this.safeString(ticker, 'price', '').replace(',', ''));
         if (quote === 'IRT') {
             last = this.safeFloat(ticker, 'toman_amount', 0);
         }

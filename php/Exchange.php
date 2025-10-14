@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.9.4';
+$version = '4.9.10';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.9.4';
+    const VERSION = '4.9.10';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -428,6 +428,7 @@ class Exchange {
         'indodax',
         'jibitex',
         'kcex',
+        'kifpoolme',
         'kraken',
         'krakenfutures',
         'kucoin',
@@ -435,6 +436,7 @@ class Exchange {
         'latoken',
         'lbank',
         'luno',
+        'mazdax',
         'mercado',
         'mexc',
         'modetrade',
@@ -454,7 +456,9 @@ class Exchange {
         'paradex',
         'paymium',
         'phemex',
+        'pingi',
         'poloniex',
+        'pooleno',
         'probit',
         'ramzinex',
         'sarmayex',

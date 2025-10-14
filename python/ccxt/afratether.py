@@ -22,7 +22,7 @@ class afratether(Exchange, ImplicitAPI):
             'pro': False,
             'has': {
                 'CORS': None,
-                'spot': True,
+                'spot': False,
                 'margin': False,
                 'swap': False,
                 'future': False,
@@ -78,6 +78,7 @@ class afratether(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': False,
+                'otc': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': False,
@@ -134,21 +135,43 @@ class afratether(Exchange, ImplicitAPI):
 
     def parse_market(self, market) -> Market:
         # {
-        #     "currencyAbb": "BTC",
-        #     "nameEn": "Bitcoin",
-        #     "nameFa": "بیت کوین",
-        #     "icon": "/assets/crypto/BTC.png",
-        #     "currency": "BTC",
-        #     "prices": [
-        #         {
-        #             "currency": "USDT",
-        #             "price": "67797.1"
+        #     "currencyAbb": "USDT",
+        #     "nameEn": "Tether",
+        #     "nameFa": "تتر",
+        #     "icon": "/assets/crypto/usdt.png",
+        #     "round": 1000000,
+        #     "currency": "USDT",
+        #     "changeRate24h": "-0.0065",
+        #     "Klines": [
+        #         [
+        #             "1760227200000",
+        #             "1147500",
+        #             "1140000",
+        #             "1145500",
+        #             "1125000",
+        #             "0",
+        #             "0"
+        #         ],
+        #     ],
+        #     "info": {
+        #         "birth_date": 1412553600000,
+        #         "open_24h": 1,
+        #         "open_1w": 1,
+        #         "open_3M": 1,
+        #         "open_1y": 1
+        #     },
+        #     "prices": {
+        #         "USDT": {
+        #             "price": "1"
+        #         },
+        #         "IRR": {
+        #             "price_sell": 1135000,
+        #             "price_buy": 1123000
         #         }
-        #     ]
-        # },
-        details = self.safe_list(market, 'prices')
+        #     }
+        # }
         baseId = self.safe_string(market, 'currency')
-        quoteId = self.safe_string(details[0], 'currency')
+        quoteId = 'IRR'
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         id = base + quote
@@ -163,8 +186,8 @@ class afratether(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': None,
-            'type': 'spot',
-            'spot': True,
+            'type': 'otc',
+            'spot': False,
             'margin': False,
             'swap': False,
             'future': False,
@@ -241,41 +264,66 @@ class afratether(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         # {
-        #     "currencyAbb": "BTC",
-        #     "nameEn": "Bitcoin",
-        #     "nameFa": "بیت کوین",
-        #     "icon": "/assets/crypto/BTC.png",
-        #     "currency": "BTC",
-        #     "prices": [
-        #         {
-        #             "currency": "USDT",
-        #             "price": "67797.1"
+        #     "currencyAbb": "USDT",
+        #     "nameEn": "Tether",
+        #     "nameFa": "تتر",
+        #     "icon": "/assets/crypto/usdt.png",
+        #     "round": 1000000,
+        #     "currency": "USDT",
+        #     "changeRate24h": "-0.0065",
+        #     "Klines": [
+        #         [
+        #             "1760227200000",
+        #             "1147500",
+        #             "1140000",
+        #             "1145500",
+        #             "1125000",
+        #             "0",
+        #             "0"
+        #         ],
+        #     ],
+        #     "info": {
+        #         "birth_date": 1412553600000,
+        #         "open_24h": 1,
+        #         "open_1w": 1,
+        #         "open_3M": 1,
+        #         "open_1y": 1
+        #     },
+        #     "prices": {
+        #         "USDT": {
+        #             "price": "1"
+        #         },
+        #         "IRR": {
+        #             "price_sell": 1135000,
+        #             "price_buy": 1123000
         #         }
-        #     ]
-        # },
+        #     }
+        # }
         marketType = 'otc'
-        details = self.safe_list(ticker, 'prices')
         base = self.safe_string(ticker, 'currency')
-        quote = self.safe_string(details[0], 'currency')
-        marketId = base + quote
+        quote = 'IRR'
+        marketId = base + '/' + quote
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        last = self.safe_float(details[0], 'price', 0)
+        prices = self.safe_dict(ticker, 'prices', {})
+        irrPrices = self.safe_dict(prices, 'IRR', {})
+        sell = self.safe_float(irrPrices, 'price_sell', 0)
+        buy = self.safe_float(irrPrices, 'price_buy', 0)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
             'high': None,
             'low': None,
-            'bid': None,
+            'bid': sell,
             'bidVolume': None,
-            'ask': None,
+            'ask': buy,
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': last,
-            'last': last,
+            'close': buy,
+            'last': buy,
             'previousClose': None,
-            'change': None,
+            'change': self.safe_float(ticker, 'changeRate24h', None),
             'percentage': None,
             'average': None,
             'baseVolume': None,

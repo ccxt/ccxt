@@ -86,7 +86,7 @@ class tetherland extends Exchange {
             'urls' => array(
                 'logo' => 'https://cdn.arz.digital/cr-odin/img/exchanges/tetherland/64x64.png',
                 'api' => array(
-                    'public' => 'https://api.teterlands.com',
+                    'public' => 'https://service.tetherland.com',
                 ),
                 'www' => 'https://tetherland.org',
                 'doc' => array(
@@ -119,7 +119,7 @@ class tetherland extends Exchange {
          * @return {array[]} an array of objects representing $market data
          */
         $response = $this->publicGetApiV5Currencies ($params);
-        $markets = $this->safe_dict($response, 'data');
+        $markets = $this->safe_list($response, 'data');
         $result = array();
         $quotes = array( 'USDT', 'IRT' );
         for ($i = 0; $i < count($markets); $i++) {
@@ -249,7 +249,7 @@ class tetherland extends Exchange {
             $symbols = $this->market_symbols($symbols);
         }
         $response = $this->publicGetApiV5Currencies ($params);
-        $markets = $this->safe_dict($response, 'data');
+        $markets = $this->safe_list($response, 'data');
         $result = array();
         $quotes = array( 'USDT', 'IRT' );
         for ($i = 0; $i < count($markets); $i++) {
@@ -327,7 +327,7 @@ class tetherland extends Exchange {
         $marketId = $this->safe_string($ticker, 'id');
         $quote = $this->safe_string($ticker, 'quote');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $last = $this->safe_float($ticker, 'price', 0);
+        $last = str_replace(',', '', asFloat ($this->safe_string($ticker, 'price', '')));
         if ($quote === 'IRT') {
             $last = $this->safe_float($ticker, 'toman_amount', 0);
         }

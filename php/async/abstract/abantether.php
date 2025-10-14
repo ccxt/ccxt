@@ -7,10 +7,10 @@ namespace ccxt\async\abstract;
 
 
 abstract class abantether extends \ccxt\async\Exchange {
-    public function public_get_management_all_coins($params = array()) {
-        return $this->request('management/all-coins/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_manager_coins_data($params = array()) {
+        return $this->request('manager/coins/data', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetManagementAllCoins($params = array()) {
-        return $this->request('management/all-coins/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetManagerCoinsData($params = array()) {
+        return $this->request('manager/coins/data', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
 }

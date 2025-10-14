@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.9.4'
+__version__ = '4.9.10'
 
 # -----------------------------------------------------------------------------
 
@@ -154,6 +154,7 @@ from ccxt.async_support.independentreserve import independentreserve            
 from ccxt.async_support.indodax import indodax                                  # noqa: F401
 from ccxt.async_support.jibitex import jibitex                                  # noqa: F401
 from ccxt.async_support.kcex import kcex                                        # noqa: F401
+from ccxt.async_support.kifpoolme import kifpoolme                              # noqa: F401
 from ccxt.async_support.kraken import kraken                                    # noqa: F401
 from ccxt.async_support.krakenfutures import krakenfutures                      # noqa: F401
 from ccxt.async_support.kucoin import kucoin                                    # noqa: F401
@@ -161,6 +162,7 @@ from ccxt.async_support.kucoinfutures import kucoinfutures                      
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
+from ccxt.async_support.mazdax import mazdax                                    # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
 from ccxt.async_support.modetrade import modetrade                              # noqa: F401
@@ -180,7 +182,9 @@ from ccxt.async_support.p2b import p2b                                          
 from ccxt.async_support.paradex import paradex                                  # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
+from ccxt.async_support.pingi import pingi                                      # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
+from ccxt.async_support.pooleno import pooleno                                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.ramzinex import ramzinex                                # noqa: F401
 from ccxt.async_support.sarmayex import sarmayex                                # noqa: F401
@@ -296,6 +300,7 @@ exchanges = [
     'indodax',
     'jibitex',
     'kcex',
+    'kifpoolme',
     'kraken',
     'krakenfutures',
     'kucoin',
@@ -303,6 +308,7 @@ exchanges = [
     'latoken',
     'lbank',
     'luno',
+    'mazdax',
     'mercado',
     'mexc',
     'modetrade',
@@ -322,7 +328,9 @@ exchanges = [
     'paradex',
     'paymium',
     'phemex',
+    'pingi',
     'poloniex',
+    'pooleno',
     'probit',
     'ramzinex',
     'sarmayex',

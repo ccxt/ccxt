@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.9.4';
+const version = '4.9.10';
 
 (Exchange as any).ccxtVersion = version
 
@@ -136,6 +136,7 @@ import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import jibitex from  './src/jibitex.js'
 import kcex from  './src/kcex.js'
+import kifpoolme from  './src/kifpoolme.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -143,6 +144,7 @@ import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
 import luno from  './src/luno.js'
+import mazdax from  './src/mazdax.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
@@ -162,7 +164,9 @@ import p2b from  './src/p2b.js'
 import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
+import pingi from  './src/pingi.js'
 import poloniex from  './src/poloniex.js'
+import pooleno from  './src/pooleno.js'
 import probit from  './src/probit.js'
 import ramzinex from  './src/ramzinex.js'
 import sarmayex from  './src/sarmayex.js'
@@ -353,6 +357,7 @@ const exchanges = {
     'indodax':                indodax,
     'jibitex':                jibitex,
     'kcex':                   kcex,
+    'kifpoolme':              kifpoolme,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -360,6 +365,7 @@ const exchanges = {
     'latoken':                latoken,
     'lbank':                  lbank,
     'luno':                   luno,
+    'mazdax':                 mazdax,
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
@@ -379,7 +385,9 @@ const exchanges = {
     'paradex':                paradex,
     'paymium':                paymium,
     'phemex':                 phemex,
+    'pingi':                  pingi,
     'poloniex':               poloniex,
+    'pooleno':                pooleno,
     'probit':                 probit,
     'ramzinex':               ramzinex,
     'sarmayex':               sarmayex,
@@ -713,6 +721,7 @@ export {
     indodax,
     jibitex,
     kcex,
+    kifpoolme,
     kraken,
     krakenfutures,
     kucoin,
@@ -720,6 +729,7 @@ export {
     latoken,
     lbank,
     luno,
+    mazdax,
     mercado,
     mexc,
     modetrade,
@@ -739,7 +749,9 @@ export {
     paradex,
     paymium,
     phemex,
+    pingi,
     poloniex,
+    pooleno,
     probit,
     ramzinex,
     sarmayex,

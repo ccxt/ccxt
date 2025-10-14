@@ -128,8 +128,14 @@ class arzplus extends Exchange {
             'stats' => '1',
             'enable' => 'true',
         );
-        $response = $this->publicGetApiV1MarketSymbols ($request);
-        $otcMarkets = $this->publicGetApiV1MarketIrtInfo ($request);
+        $typedRequest = $this->safe_string($params, 'type', 'spot');
+        $response = array();
+        $otcMarkets = array();
+        if ($typedRequest === 'otc') {
+            $otcMarkets = $this->publicGetApiV1MarketIrtInfo ($request);
+        } else {
+            $response = $this->publicGetApiV1MarketSymbols ($request);
+        }
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $this->parse_market($response[$i]);
@@ -142,13 +148,17 @@ class arzplus extends Exchange {
             $parsedMarket = $this->parse_otc_markets($marketdata);
             $result[] = $parsedMarket;
         }
-        if ($params['type']) {
-            return $this->filter_by_array($result, 'type', $params['type'], false);
-        }
         return $result;
     }
 
-    public function parse_market($market): array {
+    public function parse_market($market, string $type = 'spot'): array {
+        if ($type === 'otc') {
+            return $this->parse_otc_markets($market);
+        }
+        return $this->parse_spot_market($market);
+    }
+
+    public function parse_spot_market($market): array {
         // array(
         //     'name' => 'USDTIRT',
         //     'asset' => array(
@@ -245,12 +255,14 @@ class arzplus extends Exchange {
         );
     }
 
-    public function parse_otc_markets($market): mixed {
+    public function parse_otc_markets($market): array {
         //  array(
-        // symbol => "BTC",
-        // ask => "13877900000",
-        // bid => "13860999995",
-        // name => "bitcoin"
+        //    symbol => "BTC",
+        //    ask => "13877900000",
+        //    bid => "13860999995",
+        //    name => "bitcoin"
+        //    qoute => "IRT",
+        //    $id => "OTC_BTCIRT"
         // ),
         $baseAsset = $this->safe_string($market, 'symbol');
         $quoteAsset = $this->safe_string($market, 'quote');
@@ -269,7 +281,7 @@ class arzplus extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => null,
             'type' => 'otc',
-            'spot' => true,
+            'spot' => false,
             'margin' => false,
             'swap' => false,
             'future' => false,
@@ -318,12 +330,13 @@ class arzplus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        $marketType = $this->safe_string($params, 'type', 'spot');
+        $this->load_markets(false, array( 'type' => $marketType ));
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
         }
         $result = array();
-        if ($params['type'] === 'otc') {
+        if ($marketType === 'otc') {
             $otcMarkets = $this->publicGetApiV1MarketIrtInfo ($params);
             for ($i = 0; $i < count($otcMarkets); $i++) {
                 $marketdata = $otcMarkets[$i];
@@ -356,7 +369,11 @@ class arzplus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        $marketType = $this->safe_string($params, 'type', 'spot');
+        if ($marketType === 'otc') {
+            throw new \Exception('OTC markets are not supported');
+        }
+        $this->load_markets(false, array( 'type' => $marketType ));
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -486,7 +503,7 @@ class arzplus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        $this->load_markets(false, array( 'type' => 'otc' ));
         $market = $this->market($symbol);
         $endTime = Date.now ();
         $request = array(
@@ -531,7 +548,7 @@ class arzplus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbol
          */
-        $this->load_markets();
+        $this->load_markets(false, array( 'type' => 'otc' ));
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
