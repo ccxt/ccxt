@@ -659,7 +659,7 @@ export default class deepcoin extends Exchange {
      * @see https://www.deepcoin.com/docs/DeepCoinMarket/getTrades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productGroup] 'Spot', 'Swap', 'SwapU' for USDT-margined
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
@@ -677,7 +677,11 @@ export default class deepcoin extends Exchange {
         if (market['spot']) {
             productGroup = 'Spot';
         } else if (market['swap']) {
-            productGroup = 'SwapU'; // todo 'SwapU' for USDT-margined
+            if (market['linear']) {
+                productGroup = 'SwapU';
+            } else {
+                productGroup = 'Swap';
+            }
         }
         request['productGroup'] = productGroup;
         params = this.omit (params, 'productGroup');
