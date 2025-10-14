@@ -2,7 +2,6 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/deepcoin.js';
-import { ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
@@ -78,14 +77,14 @@ export default class deepcoin extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
@@ -148,14 +147,14 @@ export default class deepcoin extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'deepcoin/market/books': 1 / 2, // done
-                        'deepcoin/market/candles': 1 / 2, // done
-                        'deepcoin/market/instruments': 1 / 2, // done
-                        'deepcoin/market/tickers': 1 / 2, // done
+                        'deepcoin/market/books': 4, // done
+                        'deepcoin/market/candles': 4, // done
+                        'deepcoin/market/instruments': 4, // done
+                        'deepcoin/market/tickers': 4, // done
                         'deepcoin/market/index-candles': 1 / 2, // done
-                        'deepcoin/market/trades': 1, // done
+                        'deepcoin/market/trades': 20, // done
                         'deepcoin/market/mark-price-candles': 1 / 2, // done
-                        'deepcoin/market/step-margin': 1,
+                        'deepcoin/market/step-margin': 20,
                     },
                 },
                 'private': {
@@ -516,15 +515,15 @@ export default class deepcoin extends Exchange {
         const market = this.market (symbol);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        if (limit === undefined) {
-            limit = 100; // default 100, max 300
-        }
         const bar = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'instId': market['id'],
             'bar': bar,
             'limit': limit,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['after'] = until;
@@ -586,15 +585,6 @@ export default class deepcoin extends Exchange {
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
-        if (marketType === 'contract') {
-            const defaultUnderlying = this.safeString (this.options, 'defaultUnderlying', 'BTC-USD');
-            const currencyId = this.safeString2 (params, 'uly', 'marketId', defaultUnderlying);
-            if (currencyId === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets');
-            } else {
-                request['uly'] = currencyId;
-            }
-        }
         const response = await this.publicGetDeepcoinMarketTickers (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
         return this.parseTickers (tickers, symbols);
@@ -604,7 +594,7 @@ export default class deepcoin extends Exchange {
         //
         //     {
         //         "instType": "SWAP",
-        //         "instId": "1BTC-USD-SWAP",
+        //         "instId": "BTC-USD-SWAP",
         //         "last": "114113.3",
         //         "lastSz": "",
         //         "askPx": "114113.5",
