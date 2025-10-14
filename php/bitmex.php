@@ -2167,7 +2167,7 @@ class bitmex extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
