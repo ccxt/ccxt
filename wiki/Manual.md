@@ -7297,6 +7297,20 @@ Possible reasons for this exception:
   - `InvalidOrder`: the base class for all exceptions related to the unified order API.
   - `OrderNotFound`: when you are trying to fetch or cancel a non-existent order.
 
+### Notes about expired requests
+
+Sometimes, users might get an error like: "invalid request, please check your server timestamp or recv_window param". Such issues might be caused by several reasons:
+- Your device's clock is not synchronized correctly to the global datetime, thus the discrepancy arises. Try sync your device time correctly.
+- If your device timestamp is correctly synchronized, but there is an internet-day and your request takes more than X seconds (might be permanent number, eg. `5` or might be configurable, depends on specific exchange), in such case exchange might invalidate your request.
+- If you still get that issue, try to check the difference between your & exchange's engine timestamps like:
+```
+for i in range(0, 20):
+    local_time = exchange.milliseconds()
+    exchange_time = await exchange.fetch_time()
+    print(exchange_time - local_time)
+```
+
+
 # Troubleshooting
 
 In case you experience any difficulty connecting to a particular exchange, do the following in order of precedence:
