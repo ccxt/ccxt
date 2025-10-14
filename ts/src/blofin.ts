@@ -1919,7 +1919,7 @@ export default class blofin extends Exchange {
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');

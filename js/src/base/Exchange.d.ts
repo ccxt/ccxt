@@ -767,6 +767,7 @@ export default class Exchange {
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<{}>;
