@@ -1045,7 +1045,7 @@
                 "method": "cancelOrders",
                 "url": "https://www.okx.com/api/v5/trade/cancel-algos",
                 "input": [
-                    null,
+                    [],
                     "BTC/USDT:USDT",
                     {
                         "trigger": true,
