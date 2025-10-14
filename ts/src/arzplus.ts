@@ -139,7 +139,6 @@ export default class arzplus extends Exchange {
             otcMarkets = await this.publicGetApiV1MarketIrtInfo (request);
         } else {
             response = await this.publicGetApiV1MarketSymbols (request);
-            otcMarkets = await this.publicGetApiV1MarketIrtInfo (request);
         }
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -262,10 +261,12 @@ export default class arzplus extends Exchange {
 
     parseOTCMarkets (market): Market {
         //  {
-        // symbol: "BTC",
-        // ask: "13877900000",
-        // bid: "13860999995",
-        // name: "bitcoin"
+        //    symbol: "BTC",
+        //    ask: "13877900000",
+        //    bid: "13860999995",
+        //    name: "bitcoin"
+        //    qoute: "IRT",
+        //    id: "OTC_BTCIRT"
         // },
         const baseAsset = this.safeString (market, 'symbol');
         const quoteAsset = this.safeString (market, 'quote');
@@ -325,7 +326,7 @@ export default class arzplus extends Exchange {
         };
     }
 
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = { 'type': 'spot' }): Promise<Tickers> {
         /**
          * @method
          * @name arzplus#fetchTickers
@@ -335,12 +336,13 @@ export default class arzplus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets ();
+        const marketType = this.safeString (params, 'type', 'spot');
+        await this.loadMarkets (false, { 'type': marketType });
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
         }
         const result = {};
-        if (params['type'] === 'otc') {
+        if (marketType === 'otc') {
             const otcMarkets = await this.publicGetApiV1MarketIrtInfo (params);
             for (let i = 0; i < otcMarkets.length; i++) {
                 const marketdata = otcMarkets[i];
@@ -365,7 +367,7 @@ export default class arzplus extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    async fetchTicker (symbol: string, params = { 'type': 'spot' }): Promise<Ticker> {
         /**
          * @method
          * @name arzplus#fetchTicker
@@ -375,7 +377,11 @@ export default class arzplus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets (false, { 'type': 'spot' });
+        const marketType = this.safeString (params, 'type', 'spot');
+        if (marketType === 'otc') {
+            throw new Error ('OTC markets are not supported');
+        }
+        await this.loadMarkets (false, { 'type': marketType });
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -507,7 +513,7 @@ export default class arzplus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
+        await this.loadMarkets (false, { 'type': 'otc' });
         const market = this.market (symbol);
         const endTime = Date.now ();
         const request = {
@@ -554,7 +560,7 @@ export default class arzplus extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
          */
-        await this.loadMarkets ();
+        await this.loadMarkets (false, { 'type': 'otc' });
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
