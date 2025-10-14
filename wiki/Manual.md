@@ -7299,8 +7299,13 @@ Possible reasons for this exception:
 
 ### Notes about expired requests
 
-Sometimes, users might get an error like: "invalid request, please check your server timestamp or recv_window param". Such issues might be caused by several reasons:
-- Your device's clock is not synchronized correctly to the global datetime, thus the discrepancy arises. Try sync your device time correctly.
+Sometimes, users might get an error like:
+> "Timestamp for this request is outside of the recvWindow."
+> "invalid request, please check your server timestamp or recv_window param"
+> "Timestamp for this request was 1000ms ahead of the server's time" ...
+
+Such issues might be caused by several reasons:
+- Your device's clock is not synchronized correctly to the global datetime, thus the discrepancy arises. Try sync your device time correctly so your OS clock is accurate by milliseconds. However, this should not be a one-time action, you should set-up your system to synchronize periodically (eg. once in a hour) if you want to avoid such issues.
 - If your device timestamp is correctly synchronized, but there is an internet-day and your request takes more than X seconds (might be permanent number, eg. `5` or might be configurable, depends on specific exchange), in such case exchange might invalidate your request.
 - If you still get that issue, try to check the difference between your & exchange's engine timestamps like:
 ```
@@ -7309,7 +7314,11 @@ for i in range(0, 20):
     exchange_time = await exchange.fetch_time()
     print(exchange_time - local_time)
 ```
-
+- You might also try to set:
+A) `exchange.options['adjustForTimeDifference'] = True`
+or
+B) `exchange.options['recvWindow'] = 10000` (eg. increase to 10 seconds)
+- You can also check numerous advises [here](https://github.com/ccxt/ccxt/issues/773), [here](https://github.com/ccxt/ccxt/issues/850) and [here](https://github.com/ccxt/ccxt/issues/936)
 
 # Troubleshooting
 
