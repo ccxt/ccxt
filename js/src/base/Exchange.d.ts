@@ -467,6 +467,8 @@ export default class Exchange {
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;

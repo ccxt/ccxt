@@ -2248,6 +2248,12 @@ export default class Exchange {
     async unWatchTicker(symbol, params = {}) {
         throw new NotSupported(this.id + ' unWatchTicker() is not supported yet');
     }
+    async unWatchMarkPrice(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchMarkPrice() is not supported yet');
+    }
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' unWatchMarkPrices() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
