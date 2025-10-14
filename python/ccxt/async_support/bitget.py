@@ -5709,7 +5709,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -7496,7 +7496,9 @@ class bitget(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
-            market = self.market(first)
+            # symbols can be None or []
+            if first is not None:
+                market = self.market(first)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         request: dict = {}
@@ -7509,7 +7511,7 @@ class bitget(Exchange, ImplicitAPI):
             response = await self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
         elif method == 'privateMixGetV2MixPositionAllPosition':
             marginCoin = self.safe_string(params, 'marginCoin', 'USDT')
-            if symbols is not None:
+            if market is not None:
                 marginCoin = market['settleId']
             elif productType == 'USDT-FUTURES':
                 marginCoin = 'USDT'

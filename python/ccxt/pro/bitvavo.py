@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Bool, Currencies, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -982,7 +982,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         return await self.watch_request('getMarkets', params)
 
-    async def fetch_currencies_ws(self, params={}):
+    async def fetch_currencies_ws(self, params={}) -> Currencies:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1assets/get
