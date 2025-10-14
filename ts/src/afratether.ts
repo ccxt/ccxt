@@ -176,7 +176,6 @@ export default class afratether extends Exchange {
         //         }
         //     }
         // }
-
         let baseId = this.safeString (market, 'currency');
         let quoteId = 'IRR';
         const base = this.safeCurrencyCode (baseId);
