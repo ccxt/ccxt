@@ -26,7 +26,7 @@ export default class aster extends Exchange {
             'hostname': 'aster.markets',
             'pro': true,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/3826defc-d654-43e6-99e5-f06cedd7085e',
+                'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'rest': 'https://fapi.asterdex.com',
