@@ -1,5 +1,28 @@
 # Changelog
 
+## v4.9.12 - 2025-10-15
+
+### Fixed
+
+**Exchange Market Type and Data Structure Corrections**: Fixed market type classifications and data structure initialization issues
+
+- **Bitbarg Exchange**: Corrected market type from OTC to spot trading
+  - Changed market type from `'otc'` to `'spot'` in market configuration
+  - Updated `spot` flag from `false` to `true` for accurate market classification
+  - Updated ticker parsing to use correct `'spot'` market type
+  - Removed unused `params` parameter from `publicGetApiV1Currencies` API call
+  - Fixed in ts/src/bitbarg.ts:143-144, ts/src/bitbarg.ts:224, ts/src/bitbarg.ts:275
+
+- **Kifpoolme Exchange**: Removed unused parameter from API call
+  - Removed unnecessary `params` argument in `publicGetApiSpotPrice` call
+  - Simplified API request to use only required request object
+  - Fixed in ts/src/kifpoolme.ts:206
+
+- **Tetherland Exchange**: Fixed markets result initialization type
+  - Changed markets result from array (`[]`) to object (`{}`) for proper data structure
+  - Ensures correct dictionary/object format for market data storage
+  - Fixed in ts/src/tetherland.ts:257
+
 ## v4.9.11 - 2025-10-15
 
 ### Fixed
