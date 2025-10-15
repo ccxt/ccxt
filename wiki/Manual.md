@@ -1,4 +1,4 @@
-# Overview
+ # Overview
 
 The ccxt library is a collection of available crypto *exchanges* or exchange classes. Each class implements the public and private API for a particular crypto exchange. All exchanges are derived from the base Exchange class and share a set of common methods. To access a particular exchange from ccxt library you need to create an instance of corresponding exchange class. Supported exchanges are updated frequently and new exchanges are added regularly.
 
@@ -836,7 +836,7 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 
 ## Maximum Requests capacity
 
-In async programming, you can schedule unlimited requests with CCXT, however, there is default queue hardcap of 1000 requests concurrently, but if you try to enqueue more, you will get "throttle queue is over maxCapacity" error. Typically, having that much pending tasks is not a good design of code, because if you make a new request you will need to wait until all those tasks finish.
+In async programming, you can schedule unlimited requests with CCXT, however, there is a default queue hardcap of 1000 requests concurrently and if you try to enqueue more, you will get "throttle queue is over maxCapacity" error. Typically, having that much pending tasks is not a good design of code, because if you make a new request you will need to wait until all those tasks finish.
 However, users who still want to remove that error, can increase default `maxCapacity` by following way during instantiation:
 ```
 ex = ccxt.binance({'options': {'maxRequestsQueue': 9999}})
