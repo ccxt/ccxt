@@ -87,7 +87,7 @@ class tetherland(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/tetherland/64x64.png',
                 'api': {
-                    'public': 'https://api.teterlands.com',
+                    'public': 'https://service.tetherland.com',
                 },
                 'www': 'https://tetherland.org',
                 'doc': [
@@ -119,7 +119,7 @@ class tetherland(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetApiV5Currencies(params)
-        markets = self.safe_dict(response, 'data')
+        markets = self.safe_list(response, 'data')
         result = []
         quotes = ['USDT', 'IRT']
         for i in range(0, len(markets)):
@@ -243,7 +243,7 @@ class tetherland(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = self.publicGetApiV5Currencies(params)
-        markets = self.safe_dict(response, 'data')
+        markets = self.safe_list(response, 'data')
         result = []
         quotes = ['USDT', 'IRT']
         for i in range(0, len(markets)):
@@ -316,7 +316,7 @@ class tetherland(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'id')
         quote = self.safe_string(ticker, 'quote')
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        last = self.safe_float(ticker, 'price', 0)
+        last = asFloat(self.safe_string(ticker, 'price', '').replace(',', ''))
         if quote == 'IRT':
             last = self.safe_float(ticker, 'toman_amount', 0)
         change = self.safe_float(ticker, 'changes_24h', 0)

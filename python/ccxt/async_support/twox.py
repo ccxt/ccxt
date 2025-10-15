@@ -22,7 +22,7 @@ class twox(Exchange, ImplicitAPI):
             'pro': False,
             'has': {
                 'CORS': None,
-                'spot': True,
+                'spot': False,
                 'margin': False,
                 'swap': False,
                 'future': False,
@@ -78,6 +78,7 @@ class twox(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': False,
+                'otc': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': False,
@@ -262,50 +263,73 @@ class twox(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         #         {
-        # sellPrice: 0,
-        # buyPrice: 0,
-        # latestPrice: 0,
-        # weeklyChart: "https://cdn.twox.trade/currencies/charts/7d/irt_toman.svg?v=2024061017",
-        # priceChangePercent: 0,
-        # minAmount: 10000,
+        # sellPrice: 113201.0,
+        # buyPrice: 112151.0,
+        # latestPrice: 1.0,
+        # weeklyChart: "https://cdn.twox.info/resource/w/tether.webp?v=101313",
+        # priceChangePercent: 0.0,
+        # sellPriceChange: 0.00,
+        # buyPriceChange: 0.00,
+        # minAmount: 2.0,
         # tags: [],
         # marketCategories: [],
-        # id: 1,
-        # symbol: "IRT",
-        # name: "Toman",
-        # icon: "https://cdn.twox.trade/currencies/icons/128x128/irt_toman.png",
-        # persianName: "تومان",
-        # isStableCoin: False,
+        # id: 2,
+        # symbol: "USDT",
+        # name: "Tether USDt",
+        # icon: "https://cdn.twox.info/resource/c/tether.webp",
+        # persianName: "تتر",
+        # isStableCoin: True,
         # isActive: True,
-        # colorCode: null,
-        # type: 0,
+        # type: 2,
         # isNeedRiskWarning: False,
-        # assetPrecision: 0,
-        # isLeveragedToken: False,
-        # commissionPrecision: 0,
+        # assetPrecision: 2,
         # isDepositAllEnable: True,
-        # isTrading: True,
+        # tradeStatus: 1,
         # isWithdrawAllEnable: True,
-        # currencySlug: "IRT_Toman",
-        # marketCurrencyId: 0,
-        # order: 0
+        # currencySlug: "tether",
+        # marketCurrencyId: 825,
+        # order: 1,
+        # isTrading: True,
+        # commissionPrecision: 8,
+        # isDepositNeedManualConfirm: False,
+        # supportedBy: []
         # },
         marketType = 'otc'
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        last = self.safe_float(ticker, 'latestPrice', 0)
+        sellPrice = self.safe_float(ticker, 'sellPrice')
+        buyPrice = self.safe_float(ticker, 'buyPrice')
+        latestPrice = self.safe_float(ticker, 'latestPrice')
+        last = None
+        bid = None
+        ask = None
         if ticker['quote'] == 'IRT':
-            last = self.safe_float(ticker, 'sell_price', 0)
-        change = self.safe_float(ticker, 'priceChangePercent', 0)
+            # For IRT pairs, sellPrice is what user pays(ask), buyPrice is what user receives(bid)
+            last = sellPrice
+            bid = buyPrice
+            ask = sellPrice
+        else:
+            # For USDT pairs, use latestPrice
+            last = latestPrice
+            bid = buyPrice
+            ask = sellPrice
+        percentage = self.safe_float(ticker, 'priceChangePercent')
+        sellPriceChange = self.safe_float(ticker, 'sellPriceChange')
+        buyPriceChange = self.safe_float(ticker, 'buyPriceChange')
+        change = None
+        if ticker['quote'] == 'IRT':
+            change = sellPriceChange
+        else:
+            change = buyPriceChange
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
             'high': None,
             'low': None,
-            'bid': None,
+            'bid': bid,
             'bidVolume': None,
-            'ask': None,
+            'ask': ask,
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -313,7 +337,7 @@ class twox(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': None,
+            'percentage': percentage,
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,

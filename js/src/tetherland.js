@@ -6,6 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/tetherland.js';
+import { asFloat } from './base/functions.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class tetherland
@@ -89,7 +90,7 @@ export default class tetherland extends Exchange {
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/tetherland/64x64.png',
                 'api': {
-                    'public': 'https://api.teterlands.com',
+                    'public': 'https://service.tetherland.com',
                 },
                 'www': 'https://tetherland.org',
                 'doc': [
@@ -123,7 +124,7 @@ export default class tetherland extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const response = await this.publicGetApiV5Currencies(params);
-        const markets = this.safeDict(response, 'data');
+        const markets = this.safeList(response, 'data');
         const result = [];
         const quotes = ['USDT', 'IRT'];
         for (let i = 0; i < markets.length; i++) {
@@ -253,7 +254,7 @@ export default class tetherland extends Exchange {
             symbols = this.marketSymbols(symbols);
         }
         const response = await this.publicGetApiV5Currencies(params);
-        const markets = this.safeDict(response, 'data');
+        const markets = this.safeList(response, 'data');
         const result = [];
         const quotes = ['USDT', 'IRT'];
         for (let i = 0; i < markets.length; i++) {
@@ -331,7 +332,7 @@ export default class tetherland extends Exchange {
         const marketId = this.safeString(ticker, 'id');
         const quote = this.safeString(ticker, 'quote');
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        let last = this.safeFloat(ticker, 'price', 0);
+        let last = asFloat(this.safeString(ticker, 'price', '').replace(',', ''));
         if (quote === 'IRT') {
             last = this.safeFloat(ticker, 'toman_amount', 0);
         }

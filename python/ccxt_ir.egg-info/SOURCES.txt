@@ -23,6 +23,7 @@ ccxt/bingx.py
 ccxt/bit24.py
 ccxt/bit2c.py
 ccxt/bitbank.py
+ccxt/bitbarg.py
 ccxt/bitbns.py
 ccxt/bitfinex.py
 ccxt/bitflyer.py
@@ -48,6 +49,8 @@ ccxt/btcbox.py
 ccxt/btcmarkets.py
 ccxt/btcturk.py
 ccxt/bybit.py
+ccxt/bydfi.py
+ccxt/cafearz.py
 ccxt/cex.py
 ccxt/coinbase.py
 ccxt/coinbaseadvanced.py
@@ -93,6 +96,7 @@ ccxt/independentreserve.py
 ccxt/indodax.py
 ccxt/jibitex.py
 ccxt/kcex.py
+ccxt/kifpoolme.py
 ccxt/kraken.py
 ccxt/krakenfutures.py
 ccxt/kucoin.py
@@ -100,6 +104,7 @@ ccxt/kucoinfutures.py
 ccxt/latoken.py
 ccxt/lbank.py
 ccxt/luno.py
+ccxt/mazdax.py
 ccxt/mercado.py
 ccxt/mexc.py
 ccxt/modetrade.py
@@ -119,7 +124,9 @@ ccxt/p2b.py
 ccxt/paradex.py
 ccxt/paymium.py
 ccxt/phemex.py
+ccxt/pingi.py
 ccxt/poloniex.py
+ccxt/pooleno.py
 ccxt/probit.py
 ccxt/ramzinex.py
 ccxt/sarmayex.py
@@ -161,6 +168,7 @@ ccxt/abstract/bingx.py
 ccxt/abstract/bit24.py
 ccxt/abstract/bit2c.py
 ccxt/abstract/bitbank.py
+ccxt/abstract/bitbarg.py
 ccxt/abstract/bitbns.py
 ccxt/abstract/bitfinex.py
 ccxt/abstract/bitflyer.py
@@ -186,6 +194,8 @@ ccxt/abstract/btcbox.py
 ccxt/abstract/btcmarkets.py
 ccxt/abstract/btcturk.py
 ccxt/abstract/bybit.py
+ccxt/abstract/bydfi.py
+ccxt/abstract/cafearz.py
 ccxt/abstract/cex.py
 ccxt/abstract/coinbase.py
 ccxt/abstract/coinbaseadvanced.py
@@ -231,6 +241,7 @@ ccxt/abstract/independentreserve.py
 ccxt/abstract/indodax.py
 ccxt/abstract/jibitex.py
 ccxt/abstract/kcex.py
+ccxt/abstract/kifpoolme.py
 ccxt/abstract/kraken.py
 ccxt/abstract/krakenfutures.py
 ccxt/abstract/kucoin.py
@@ -238,6 +249,7 @@ ccxt/abstract/kucoinfutures.py
 ccxt/abstract/latoken.py
 ccxt/abstract/lbank.py
 ccxt/abstract/luno.py
+ccxt/abstract/mazdax.py
 ccxt/abstract/mercado.py
 ccxt/abstract/mexc.py
 ccxt/abstract/modetrade.py
@@ -257,7 +269,9 @@ ccxt/abstract/p2b.py
 ccxt/abstract/paradex.py
 ccxt/abstract/paymium.py
 ccxt/abstract/phemex.py
+ccxt/abstract/pingi.py
 ccxt/abstract/poloniex.py
+ccxt/abstract/pooleno.py
 ccxt/abstract/probit.py
 ccxt/abstract/ramzinex.py
 ccxt/abstract/sarmayex.py
@@ -299,6 +313,7 @@ ccxt/async_support/bingx.py
 ccxt/async_support/bit24.py
 ccxt/async_support/bit2c.py
 ccxt/async_support/bitbank.py
+ccxt/async_support/bitbarg.py
 ccxt/async_support/bitbns.py
 ccxt/async_support/bitfinex.py
 ccxt/async_support/bitflyer.py
@@ -324,6 +339,8 @@ ccxt/async_support/btcbox.py
 ccxt/async_support/btcmarkets.py
 ccxt/async_support/btcturk.py
 ccxt/async_support/bybit.py
+ccxt/async_support/bydfi.py
+ccxt/async_support/cafearz.py
 ccxt/async_support/cex.py
 ccxt/async_support/coinbase.py
 ccxt/async_support/coinbaseadvanced.py
@@ -369,6 +386,7 @@ ccxt/async_support/independentreserve.py
 ccxt/async_support/indodax.py
 ccxt/async_support/jibitex.py
 ccxt/async_support/kcex.py
+ccxt/async_support/kifpoolme.py
 ccxt/async_support/kraken.py
 ccxt/async_support/krakenfutures.py
 ccxt/async_support/kucoin.py
@@ -376,6 +394,7 @@ ccxt/async_support/kucoinfutures.py
 ccxt/async_support/latoken.py
 ccxt/async_support/lbank.py
 ccxt/async_support/luno.py
+ccxt/async_support/mazdax.py
 ccxt/async_support/mercado.py
 ccxt/async_support/mexc.py
 ccxt/async_support/modetrade.py
@@ -395,7 +414,9 @@ ccxt/async_support/p2b.py
 ccxt/async_support/paradex.py
 ccxt/async_support/paymium.py
 ccxt/async_support/phemex.py
+ccxt/async_support/pingi.py
 ccxt/async_support/poloniex.py
+ccxt/async_support/pooleno.py
 ccxt/async_support/probit.py
 ccxt/async_support/ramzinex.py
 ccxt/async_support/sarmayex.py

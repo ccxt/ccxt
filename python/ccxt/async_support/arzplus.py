@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.arzplus import ImplicitAPI
-from ccxt.base.types import Any, Int, Market, OrderBook, Strings, Ticker, Tickers
+from ccxt.base.types import Any, Int, Market, MarketType, OrderBook, Strings, Ticker, Tickers
 from typing import List
 
 
@@ -128,8 +128,13 @@ class arzplus(Exchange, ImplicitAPI):
             'stats': '1',
             'enable': 'true',
         }
-        response = await self.publicGetApiV1MarketSymbols(request)
-        otcMarkets = await self.publicGetApiV1MarketIrtInfo(request)
+        typedRequest = self.safe_string(params, 'type', 'spot')
+        response = []
+        otcMarkets = []
+        if typedRequest == 'otc':
+            otcMarkets = await self.publicGetApiV1MarketIrtInfo(request)
+        else:
+            response = await self.publicGetApiV1MarketSymbols(request)
         result = []
         for i in range(0, len(response)):
             market = self.parse_market(response[i])
@@ -140,11 +145,14 @@ class arzplus(Exchange, ImplicitAPI):
             marketdata['id'] = 'OTC_' + marketdata['symbol'] + marketdata['quote']
             parsedMarket = self.parse_otc_markets(marketdata)
             result.append(parsedMarket)
-        if params['type']:
-            return self.filter_by_array(result, 'type', params['type'], False)
         return result
 
-    def parse_market(self, market) -> Market:
+    def parse_market(self, market, type: MarketType = 'spot') -> Market:
+        if type == 'otc':
+            return self.parse_otc_markets(market)
+        return self.parse_spot_market(market)
+
+    def parse_spot_market(self, market) -> Market:
         # {
         #     'name': 'USDTIRT',
         #     'asset': {
@@ -240,12 +248,14 @@ class arzplus(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_otc_markets(self, market) -> Any:
+    def parse_otc_markets(self, market) -> Market:
         #  {
-        # symbol: "BTC",
-        # ask: "13877900000",
-        # bid: "13860999995",
-        # name: "bitcoin"
+        #    symbol: "BTC",
+        #    ask: "13877900000",
+        #    bid: "13860999995",
+        #    name: "bitcoin"
+        #    qoute: "IRT",
+        #    id: "OTC_BTCIRT"
         # },
         baseAsset = self.safe_string(market, 'symbol')
         quoteAsset = self.safe_string(market, 'quote')
@@ -264,7 +274,7 @@ class arzplus(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': None,
             'type': 'otc',
-            'spot': True,
+            'spot': False,
             'margin': False,
             'swap': False,
             'future': False,
@@ -312,11 +322,12 @@ class arzplus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        await self.load_markets()
+        marketType = self.safe_string(params, 'type', 'spot')
+        await self.load_markets(False, {'type': marketType})
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         result = {}
-        if params['type'] == 'otc':
+        if marketType == 'otc':
             otcMarkets = await self.publicGetApiV1MarketIrtInfo(params)
             for i in range(0, len(otcMarkets)):
                 marketdata = otcMarkets[i]
@@ -345,7 +356,10 @@ class arzplus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        await self.load_markets()
+        marketType = self.safe_string(params, 'type', 'spot')
+        if marketType == 'otc':
+            raise Error('OTC markets are not supported')
+        await self.load_markets(False, {'type': marketType})
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -472,7 +486,7 @@ class arzplus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        await self.load_markets(False, {'type': 'otc'})
         market = self.market(symbol)
         endTime = Date.now()
         request = {
@@ -512,7 +526,7 @@ class arzplus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
         """
-        await self.load_markets()
+        await self.load_markets(False, {'type': 'otc'})
         market = self.market(symbol)
         request = {
             'symbol': market['id'],

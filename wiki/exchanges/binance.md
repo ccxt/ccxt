@@ -508,7 +508,8 @@ binance.fetchOHLCV (symbol, timeframe[, since, limit, params])
 <a name="fetchTrades" id="fetchtrades"></a>
 
 ### fetchTrades{docsify-ignore}
-get the list of most recent trades for a particular symbolDefault fetchTradesMethod
+get the list of most recent trades for a particular symbol
+Default fetchTradesMethod
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
@@ -518,7 +519,8 @@ get the list of most recent trades for a particular symbolDefault fetchTradesMe
 - https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
-- https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)Other fetchTradesMethod
+- https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
+Other fetchTradesMethod
 - https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
 - https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
 - https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)

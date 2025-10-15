@@ -1,5 +1,193 @@
 # Changelog
 
+## v4.9.10 - 2025-10-13
+
+### Added
+
+**Pingi Exchange Integration**: Complete OTC trading support for Pingi exchange
+
+- Initial implementation with abstract class and public API endpoints
+- OTC market data fetching capabilities (`fetchMarkets`)
+  - Parses market data from prices endpoint with real-time trading statistics
+  - Supports multiple quote currencies including IRT (Iranian Toman) and USDT
+  - Extracts market volume, price ranges (min/max), and current price data
+  - Handles market identification via underscore-separated format (BASE_QUOTE)
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches 24h market statistics for all available symbols
+  - Includes price change tracking (absolute and percentage calculated from start/current price)
+  - Provides high/low prices, open/close prices, and volume data
+  - Returns current market price with 24h price movement
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Uses UDF (Universal Data Feed) format for chart data
+  - Supports custom time ranges via from and to parameters
+  - Returns properly formatted OHLCV arrays for charting
+- Type definitions and parsing logic for OTC markets
+- Integration with Pingi API v5:
+  - Markets/Tickers: https://api5.pingi.co/trading/market/prices/
+  - OHLCV: https://api5.pingi.co/trading/udf/history/
+
+**Mazdax Exchange Integration**: Complete OTC trading support for Mazdax exchange
+
+- Initial implementation with abstract class and public API endpoints
+- OTC market data fetching capabilities (`fetchMarkets`)
+  - Parses market data from symbols endpoint with detailed trading parameters
+  - Supports IRR (Iranian Rial) as quote currency
+  - Extracts market precision, fees (taker/maker), and order size limits
+  - Handles active/tradable market status filtering
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches 24h rolling price statistics for all available symbols
+  - Includes price change tracking (absolute and percentage)
+  - Provides bid/ask prices, open/high/low prices, and volume data
+  - Supports timestamp-based data freshness
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Supports custom time ranges via starttime and endtime parameters
+  - Configurable limit for number of candles returned (up to 1000)
+- Order book depth (`fetchOrderBook`)
+  - Fetches bid/ask levels with price and quantity information
+  - Configurable depth limit for order book entries
+  - Real-time order book snapshots
+- Type definitions and parsing logic for OTC markets
+- Integration with Mazdax API:
+  - Markets: https://api.mazdax.ir/market/symbols
+  - Tickers: https://api.mazdax.ir/market/rollingprice
+  - OHLCV: https://api.mazdax.ir/market/candle
+  - Order Book: https://api.mazdax.ir/market/order
+
+## v4.9.8 - 2025-10-13
+
+### Added
+
+**Pooleno Exchange Integration**: Complete spot trading support for Pooleno exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market data from payload array with baseAsset/quoteAsset pairs
+  - Supports multiple quote currencies including TMN (Toman) and USDT
+  - Creates markets based on API-provided asset pairs
+  - Supports retrieving all available trading pairs
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches current prices for all available symbols
+  - Supports filtering by specific symbols or fetching all tickers
+  - Parses price data with separate handling for TMN and USDT pairs
+  - Includes 24h price change (absolute and percentage) from sparkline data
+  - Provides market data including 24h high/low, volume, and market cap
+- Type definitions and parsing logic for spot markets
+- Integration with Pooleno API v1:
+  - Markets/Tickers: https://api-beta.pooleno.ir/api/v1/tokens/public
+- Comprehensive price data parsing:
+  - For TMN pairs: Uses `priceTMN` field
+  - For USDT pairs: Uses `price` field with `volume24h`
+  - Extracts sparkline data for change tracking
+  - Parses market metadata including high24h, low24h, volume24h, and marketCap
+
+## v4.9.7 - 2025-10-13
+
+### Fixed
+
+**Twox Exchange**: Enhanced ticker data parsing with complete price information
+
+- Fixed `parseTicker` to properly extract and map `sellPrice`, `buyPrice`, and `latestPrice` fields
+- Added proper bid/ask price population based on quote currency type
+- Implemented correct last price logic (uses `sellPrice` for IRT pairs, `latestPrice` for USDT pairs)
+- Added price change tracking with separate `sellPriceChange` and `buyPriceChange` handling
+- Populated percentage field with `priceChangePercent` from API response
+- Updated example comment to reflect actual API response structure
+
+**Afratether Exchange**: Updated market and ticker parsing for USDT/IRR pairs
+
+- Changed market type from `spot` to `otc` to reflect OTC trading model
+- Updated `parseMarket` to use fixed quote currency (IRR) instead of dynamic quote from API
+- Modified `parseTicker` to extract bid/ask prices from `prices.IRR` object structure
+- Implemented proper price parsing with `price_sell` and `price_buy` fields
+- Added 24h change rate tracking with `changeRate24h` field
+- Fixed symbol construction to use proper format (base/quote)
+- Updated example comments to reflect new API response structure with IRR pricing
+
+## v4.9.6 - 2025-10-12
+
+### Added
+
+**Kifpool Exchange Integration**: Complete spot trading support for Kifpool exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market data for multiple quote currencies (USDT and IRT)
+  - Creates separate markets for each base/quote pair combination
+  - Support for retrieving all available trading pairs
+- Real-time ticker price endpoints (`fetchTicker`, `fetchTickers`)
+  - Fetches buy and sell prices for specified symbols
+  - Supports filtering by specific symbols or fetching all tickers
+  - Parses bid/ask prices from market data
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w
+  - Fetches historical price data with open, high, low, close, and volume
+  - Supports custom time ranges via fromTs and toTs parameters
+  - Configurable limit for number of candles returned
+- Type definitions and parsing logic for spot markets
+- Integration with Kifpool API:
+  - Markets/Tickers: https://api.kifpool.app/api/spot/price
+  - OHLCV: https://api.kifpool.app/api/spot/tickers/1m
+
+### Fixed
+
+**Tetherland Exchange**: Critical fixes for API endpoint and data parsing
+
+- Updated public API endpoint from `api.teterlands.com` to `service.tetherland.com`
+- Fixed market data parsing by replacing `safeDict` with `safeList` for array responses
+- Improved number parsing robustness using `asFloat` with comma removal for price data
+- Enhanced ticker price parsing to handle formatted number strings correctly
+
+## v4.9.5 - 2025-10-10
+
+### Added
+
+**Cafearz Exchange Integration**: Complete support for Cafearz exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Market data fetching capabilities (`fetchMarkets`)
+- Ticker price endpoints (`fetchTicker`, `fetchTickers`)
+- Type definitions and parsing logic for market data
+- Support for retrieving real-time trading pair information
+
+**Bitbarg Exchange Integration**: Complete support for Bitbarg exchange
+
+- Initial implementation with abstract class and public API endpoint
+- Market data fetching capabilities (`fetchMarkets`)
+- Ticker price endpoints (`fetchTicker`, `fetchTickers`)
+- Type definitions and parsing logic for market data
+- Support for retrieving real-time trading pair information with IRT quote
+- Integration with Bitbarg API v1 (https://api.bitbarg.com/api/v1/currencies)
+
+**Bydfi Exchange Integration**: Complete spot trading support for Bydfi exchange
+
+- Initial implementation with abstract class and dual API endpoints architecture
+  - `public` API endpoint: https://www.bydfi.com
+  - `quote` API endpoint: https://quote.bydfi.pro
+- Spot market data fetching capabilities (`fetchMarkets`)
+  - Parses market metadata including base/quote coins, precision settings, trading limits
+  - Supports active market filtering based on visibility and trading permissions
+- CSV-formatted ticker parsing with comprehensive price data (`fetchTicker`, `fetchTickers`)
+  - Parses semicolon-separated ticker data with 11 fields per market
+  - Includes last price, 24h high/low, volume, bid/ask prices, price change percentage
+- Order book depth data (`fetchOrderBook`) with bid/ask information
+  - Supports configurable depth limit
+  - Returns price and amount for each order level
+- OHLCV candlestick data (`fetchOHLCV`) supporting multiple timeframes
+  - Timeframes: 1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M
+  - TradingView-compatible historical data format
+  - Returns open, high, low, close, volume, and timestamp arrays
+- Type definitions and parsing logic for spot markets
+- Proper API method routing using `quoteGetTickers` and `quoteGetMkpaiDepthV2` for quote endpoint
+- Integration with Bydfi API v1:
+  - Markets: https://www.bydfi.com/api/spot/product/list
+  - Tickers: https://quote.bydfi.pro/tickers
+  - Order Book: https://quote.bydfi.pro/mkpai/depth-v2
+  - OHLCV: https://www.bydfi.com/api/tv/tradingView/history
+
 ## v4.9.4 - 2025-10-08
 
 ### Added

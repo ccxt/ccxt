@@ -22,7 +22,7 @@ class abantether(Exchange, ImplicitAPI):
             'pro': False,
             'has': {
                 'CORS': None,
-                'spot': True,
+                'spot': False,
                 'margin': False,
                 'swap': False,
                 'future': False,
@@ -78,6 +78,7 @@ class abantether(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': False,
+                'otc': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': False,
@@ -87,7 +88,7 @@ class abantether(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/abantether/64x64.png',
                 'api': {
-                    'public': 'https://abantether.com',
+                    'public': 'https://api.abantether.com',
                 },
                 'www': 'https://abantether.com',
                 'doc': [
@@ -97,7 +98,7 @@ class abantether(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        'management/all-coins/': 1,
+                        'manager/coins/data': 1,
                     },
                 },
             },
@@ -114,50 +115,60 @@ class abantether(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for abantether
-        https://abantether.com/management/all-coins/?format=json
+        https://api.abantether.com/manager/coins/data
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.publicGetManagementAllCoins(params)
+        response = await self.publicGetManagerCoinsData(params)
+        data = self.safe_list(response, 'data', [])
         result = []
         quotes = ['IRT', 'USDT']
-        for i in range(0, len(response)):
-            base = self.safe_string(response[i], 'symbol')
+        for i in range(0, len(data)):
+            base = self.safe_string(data[i], 'symbol')
             for index in range(0, len(quotes)):
                 quote = quotes[index]
-                response[i]['base'] = base
-                response[i]['quote'] = quote
+                data[i]['base'] = base
+                data[i]['quote'] = quote
                 if base == quote:
                     continue
-                market = self.parse_market(response[i])
+                market = self.parse_market(data[i])
                 result.append(market)
         return result
 
     def parse_market(self, market) -> Market:
         # {
-        #     'symbol': 'USDT',
-        #     'name': 'Tether',
-        #     'categories': [],
-        #     'tetherPrice': '1',
-        #     'priceBuy': '59200.0',
-        #     'priceSell': '58800.0',
-        #     'persianName': '\u062a\u062a\u0631',
-        #     'past24': '0',
-        #     'marketVolume': '1',
-        #     'id': '1',
-        #     'active': True,
-        #     'irtDecimalPoint': '2',
-        #     'tetherDecimalPoint': '6',
-        #     'amountDecimalPoint': '6',
-        #     'past24volume': '767287.60530837810210936763',
-        #     'operationStatus': {
-        #         'buyActive': True,
-        #         'sellActive': True,
-        #         'withdrawalActive': True,
-        #         'depositActive': True,
-        #         'transferActive': True,
-        #     },
-        # }
+        #     "id": 1,
+        #     "name": "Tether USDt",
+        #     "symbol": "USDT",
+        #     "persian_name": "تتر",
+        #     "is_active": True,
+        #     "is_withdrawal_active": True,
+        #     "is_deposit_active": True,
+        #     "is_mid_wallet_transfer_active": True,
+        #     "is_buy_active": True,
+        #     "is_sell_active": True,
+        #     "is_credit_active": True,
+        #     "min_trade": "1.00",
+        #     "max_trade": "100000.00",
+        #     "tether_price": "1",
+        #     "price_buy": "113540.0",
+        #     "price_sell": "112630.0",
+        #     "volume24h": "225163179366.25",
+        #     "percent_change_1h": "0.00",
+        #     "percent_change_24h": "0.00",
+        #     "percent_change_7d": "0.04",
+        #     "market_cap": "179884960573.99",
+        #     "coin_type": "COIN",
+        #     "exchange_type": "fake",
+        #     "icon": "f71021586005413ea6f3a0bd1f7d8a55",
+        #     "fund_tether_buy": "0",
+        #     "fund_tether_sell": "0",
+        #     "irt_decimal_point": 2,
+        #     "tether_decimal_point": 6,
+        #     "amount_decimal_point": 6,
+        #     "base": "BTC",
+        #     "qoute": "USDT",
+        # },
         baseId = self.safe_string(market, 'base')
         quoteId = self.safe_string(market, 'quote')
         base = self.safe_currency_code(baseId)
@@ -218,7 +229,7 @@ class abantether(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        https://abantether.com/management/all-coins/?format=json
+        https://api.abantether.com/manager/coins/data
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -226,19 +237,20 @@ class abantether(Exchange, ImplicitAPI):
         await self.load_markets()
         if symbols is not None:
             symbols = self.market_symbols(symbols)
-        response = await self.publicGetManagementAllCoins(params)
+        response = await self.publicGetManagerCoinsData(params)
+        data = self.safe_list(response, 'data', [])
         result = {}
         quotes = ['IRT', 'USDT']
-        for i in range(0, len(response)):
-            base = self.safe_string(response[i], 'symbol')
+        for i in range(0, len(data)):
+            base = self.safe_string(data[i], 'symbol')
             for index in range(0, len(quotes)):
                 quote = quotes[index]
                 if base == quote:
                     continue
-                response[i]['base'] = base
-                response[i]['quote'] = quote
-                response[i]['symbol'] = base + quote
-                ticker = self.parse_ticker(response[i])
+                data[i]['base'] = base
+                data[i]['quote'] = quote
+                data[i]['symbol'] = base + quote
+                ticker = self.parse_ticker(data[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -246,7 +258,7 @@ class abantether(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        https://abantether.com/management/all-coins/?format=json
+        https://api.abantether.com/manager/coins/data
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -256,37 +268,44 @@ class abantether(Exchange, ImplicitAPI):
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
         # {
-        #     'symbol': 'USDT',
-        #     'name': 'Tether',
-        #     'categories': [],
-        #     'tetherPrice': '1',
-        #     'priceBuy': '59200.0',
-        #     'priceSell': '58800.0',
-        #     'persianName': '\u062a\u062a\u0631',
-        #     'past24': '0',
-        #     'marketVolume': '1',
-        #     'id': '1',
-        #     'active': True,
-        #     'irtDecimalPoint': '2',
-        #     'tetherDecimalPoint': '6',
-        #     'amountDecimalPoint': '6',
-        #     'past24volume': '767287.60530837810210936763',
-        #     'operationStatus': {
-        #         'buyActive': True,
-        #         'sellActive': True,
-        #         'withdrawalActive': True,
-        #         'depositActive': True,
-        #         'transferActive': True,
-        #     },
-        # }
+        #     "id": 2,
+        #     "name": "Bitcoin",
+        #     "symbol": "BTC",
+        #     "persian_name": "بیت کوین",
+        #     "is_active": True,
+        #     "is_withdrawal_active": True,
+        #     "is_deposit_active": True,
+        #     "is_mid_wallet_transfer_active": True,
+        #     "is_buy_active": True,
+        #     "is_sell_active": True,
+        #     "is_credit_active": True,
+        #     "min_trade": "1.00",
+        #     "max_trade": "65000.00",
+        #     "tether_price": "114909.43000000",
+        #     "price_buy": "13049114870.800000000",
+        #     "price_sell": "12944547289.500000000",
+        #     "volume24h": "93585526493.26",
+        #     "percent_change_1h": "-0.29",
+        #     "percent_change_24h": "3.22",
+        #     "percent_change_7d": "-7.19",
+        #     "market_cap": "2292874615411.72",
+        #     "coin_type": "COIN",
+        #     "exchange_type": "binance",
+        #     "icon": "561aa10abc0c45f7aa4499f48d618c80",
+        #     "fund_tether_buy": "0",
+        #     "fund_tether_sell": "0",
+        #     "irt_decimal_point": 0,
+        #     "tether_decimal_point": 2,
+        #     "amount_decimal_point": 9
+        # },
         marketType = 'otc'
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        last = self.safe_float(ticker, 'tetherPrice', 0)
+        last = self.safe_float(ticker, 'tether_price', 0)
         if ticker['quote'] == 'IRT':
-            last = self.safe_float(ticker, 'priceSell', 0)
-        change = self.safe_float(ticker, 'past24', 0)
-        baseVolume = self.safe_float(ticker, 'past24volume', 0)
+            last = self.safe_float(ticker, 'price_buy', 0)
+        change = self.safe_float(ticker, 'percent_change_24h', 0)
+        baseVolume = self.safe_float(ticker, 'volume24h', 0)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,

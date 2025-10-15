@@ -23,7 +23,7 @@ class twox extends Exchange {
             'pro' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
+                'spot' => false,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
@@ -79,6 +79,7 @@ class twox extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => false,
+                'otc' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
@@ -281,51 +282,75 @@ class twox extends Exchange {
 
     public function parse_ticker($ticker, ?array $market = null): array {
         //         array(
-        // sellPrice => 0,
-        // buyPrice => 0,
-        // latestPrice => 0,
-        // weeklyChart => "https://cdn.twox.trade/currencies/charts/7d/irt_toman.svg?v=2024061017",
-        // priceChangePercent => 0,
-        // minAmount => 10000,
+        // $sellPrice => 113201.0,
+        // $buyPrice => 112151.0,
+        // $latestPrice => 1.0,
+        // weeklyChart => "https://cdn.twox.info/resource/w/tether.webp?v=101313",
+        // priceChangePercent => 0.0,
+        // $sellPriceChange => 0.00,
+        // $buyPriceChange => 0.00,
+        // minAmount => 2.0,
         // tags => [ ],
         // marketCategories => [ ],
-        // id => 1,
-        // $symbol => "IRT",
-        // name => "Toman",
-        // icon => "https://cdn.twox.trade/currencies/icons/128x128/irt_toman.png",
-        // persianName => "تومان",
-        // isStableCoin => false,
+        // id => 2,
+        // $symbol => "USDT",
+        // name => "Tether USDt",
+        // icon => "https://cdn.twox.info/resource/c/tether.webp",
+        // persianName => "تتر",
+        // isStableCoin => true,
         // isActive => true,
-        // colorCode => null,
-        // type => 0,
+        // type => 2,
         // isNeedRiskWarning => false,
-        // assetPrecision => 0,
-        // isLeveragedToken => false,
-        // commissionPrecision => 0,
+        // assetPrecision => 2,
         // isDepositAllEnable => true,
-        // isTrading => true,
+        // tradeStatus => 1,
         // isWithdrawAllEnable => true,
-        // currencySlug => "IRT_Toman",
-        // marketCurrencyId => 0,
-        // order => 0
+        // currencySlug => "tether",
+        // marketCurrencyId => 825,
+        // order => 1,
+        // isTrading => true,
+        // commissionPrecision => 8,
+        // isDepositNeedManualConfirm => false,
+        // supportedBy => [ ]
         // ),
         $marketType = 'otc';
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $last = $this->safe_float($ticker, 'latestPrice', 0);
+        $sellPrice = $this->safe_float($ticker, 'sellPrice');
+        $buyPrice = $this->safe_float($ticker, 'buyPrice');
+        $latestPrice = $this->safe_float($ticker, 'latestPrice');
+        $last = null;
+        $bid = null;
+        $ask = null;
         if ($ticker['quote'] === 'IRT') {
-            $last = $this->safe_float($ticker, 'sell_price', 0);
+            // For IRT pairs, $sellPrice is what user pays ($ask), $buyPrice is what user receives ($bid)
+            $last = $sellPrice;
+            $bid = $buyPrice;
+            $ask = $sellPrice;
+        } else {
+            // For USDT pairs, use $latestPrice
+            $last = $latestPrice;
+            $bid = $buyPrice;
+            $ask = $sellPrice;
         }
-        $change = $this->safe_float($ticker, 'priceChangePercent', 0);
+        $percentage = $this->safe_float($ticker, 'priceChangePercent');
+        $sellPriceChange = $this->safe_float($ticker, 'sellPriceChange');
+        $buyPriceChange = $this->safe_float($ticker, 'buyPriceChange');
+        $change = null;
+        if ($ticker['quote'] === 'IRT') {
+            $change = $sellPriceChange;
+        } else {
+            $change = $buyPriceChange;
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
             'high' => null,
             'low' => null,
-            'bid' => null,
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => null,
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -333,7 +358,7 @@ class twox extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => null,
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,

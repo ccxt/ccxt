@@ -7,6 +7,6 @@
 
 package ccxt
 
-func (this *abantether) PublicGetManagementAllCoins (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetManagementAllCoins", args...)
+func (this *abantether) PublicGetManagerCoinsData (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetManagerCoinsData", args...)
 }

@@ -11,9 +11,9 @@ public partial class abantether : Exchange
 {
     public abantether (object args = null): base(args) {}
 
-    public async Task<object> publicGetManagementAllCoins (object parameters = null)
+    public async Task<object> publicGetManagerCoinsData (object parameters = null)
     {
-        return await this.callAsync ("publicGetManagementAllCoins",parameters);
+        return await this.callAsync ("publicGetManagerCoinsData",parameters);
     }
 
 }

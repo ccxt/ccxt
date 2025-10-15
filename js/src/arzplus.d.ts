@@ -1,5 +1,5 @@
 import Exchange from './abstract/arzplus.js';
-import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import { Int, Market, MarketType, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 /**
  * @class arzplus
  * @augments Exchange
@@ -8,7 +8,8 @@ import { Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers } from './base/
 export default class arzplus extends Exchange {
     describe(): any;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(market: any): Market;
+    parseMarket(market: any, type?: MarketType): Market;
+    parseSpotMarket(market: any): Market;
     parseOTCMarkets(market: any): Market;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;

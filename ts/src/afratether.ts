@@ -23,7 +23,7 @@ export default class afratether extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': true,
+                'spot': false,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -79,6 +79,7 @@ export default class afratether extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
+                'otc': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -140,21 +141,43 @@ export default class afratether extends Exchange {
 
     parseMarket (market): Market {
         // {
-        //     "currencyAbb": "BTC",
-        //     "nameEn": "Bitcoin",
-        //     "nameFa": "بیت کوین",
-        //     "icon": "/assets/crypto/BTC.png",
-        //     "currency": "BTC",
-        //     "prices": [
-        //         {
-        //             "currency": "USDT",
-        //             "price": "67797.1"
+        //     "currencyAbb": "USDT",
+        //     "nameEn": "Tether",
+        //     "nameFa": "تتر",
+        //     "icon": "/assets/crypto/usdt.png",
+        //     "round": 1000000,
+        //     "currency": "USDT",
+        //     "changeRate24h": "-0.0065",
+        //     "Klines": [
+        //         [
+        //             "1760227200000",
+        //             "1147500",
+        //             "1140000",
+        //             "1145500",
+        //             "1125000",
+        //             "0",
+        //             "0"
+        //         ],
+        //     ],
+        //     "info": {
+        //         "birth_date": 1412553600000,
+        //         "open_24h": 1,
+        //         "open_1w": 1,
+        //         "open_3M": 1,
+        //         "open_1y": 1
+        //     },
+        //     "prices": {
+        //         "USDT": {
+        //             "price": "1"
+        //         },
+        //         "IRR": {
+        //             "price_sell": 1135000,
+        //             "price_buy": 1123000
         //         }
-        //     ]
-        // },
-        const details = this.safeList (market, 'prices');
+        //     }
+        // }
         let baseId = this.safeString (market, 'currency');
-        let quoteId = this.safeString (details[0], 'currency');
+        let quoteId = 'IRR';
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const id = base + quote;
@@ -169,8 +192,8 @@ export default class afratether extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
+            'type': 'otc',
+            'spot': false,
             'margin': false,
             'swap': false,
             'future': false,
@@ -256,41 +279,66 @@ export default class afratether extends Exchange {
 
     parseTicker (ticker, market: Market = undefined): Ticker {
         // {
-        //     "currencyAbb": "BTC",
-        //     "nameEn": "Bitcoin",
-        //     "nameFa": "بیت کوین",
-        //     "icon": "/assets/crypto/BTC.png",
-        //     "currency": "BTC",
-        //     "prices": [
-        //         {
-        //             "currency": "USDT",
-        //             "price": "67797.1"
+        //     "currencyAbb": "USDT",
+        //     "nameEn": "Tether",
+        //     "nameFa": "تتر",
+        //     "icon": "/assets/crypto/usdt.png",
+        //     "round": 1000000,
+        //     "currency": "USDT",
+        //     "changeRate24h": "-0.0065",
+        //     "Klines": [
+        //         [
+        //             "1760227200000",
+        //             "1147500",
+        //             "1140000",
+        //             "1145500",
+        //             "1125000",
+        //             "0",
+        //             "0"
+        //         ],
+        //     ],
+        //     "info": {
+        //         "birth_date": 1412553600000,
+        //         "open_24h": 1,
+        //         "open_1w": 1,
+        //         "open_3M": 1,
+        //         "open_1y": 1
+        //     },
+        //     "prices": {
+        //         "USDT": {
+        //             "price": "1"
+        //         },
+        //         "IRR": {
+        //             "price_sell": 1135000,
+        //             "price_buy": 1123000
         //         }
-        //     ]
-        // },
+        //     }
+        // }
         const marketType = 'otc';
-        const details = this.safeList (ticker, 'prices');
         const base = this.safeString (ticker, 'currency');
-        const quote = this.safeString (details[0], 'currency');
-        const marketId = base + quote;
+        const quote = 'IRR';
+        const marketId = base + '/' + quote;
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
-        const last = this.safeFloat (details[0], 'price', 0);
+        const prices = this.safeDict (ticker, 'prices', {});
+        const irrPrices = this.safeDict (prices, 'IRR', {});
+        const sell = this.safeFloat (irrPrices, 'price_sell', 0);
+        const buy = this.safeFloat (irrPrices, 'price_buy', 0);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
             'low': undefined,
-            'bid': undefined,
+            'bid': sell,
             'bidVolume': undefined,
-            'ask': undefined,
+            'ask': buy,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': last,
-            'last': last,
+            'close': buy,
+            'last': buy,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeFloat (ticker, 'changeRate24h', undefined),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,

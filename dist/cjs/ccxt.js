@@ -29,6 +29,7 @@ var bingx = require('./src/bingx.js');
 var bit24 = require('./src/bit24.js');
 var bit2c = require('./src/bit2c.js');
 var bitbank = require('./src/bitbank.js');
+var bitbarg = require('./src/bitbarg.js');
 var bitbns = require('./src/bitbns.js');
 var bitfinex = require('./src/bitfinex.js');
 var bitflyer = require('./src/bitflyer.js');
@@ -54,6 +55,8 @@ var btcbox = require('./src/btcbox.js');
 var btcmarkets = require('./src/btcmarkets.js');
 var btcturk = require('./src/btcturk.js');
 var bybit = require('./src/bybit.js');
+var bydfi = require('./src/bydfi.js');
+var cafearz = require('./src/cafearz.js');
 var cex = require('./src/cex.js');
 var coinbase = require('./src/coinbase.js');
 var coinbaseadvanced = require('./src/coinbaseadvanced.js');
@@ -99,6 +102,7 @@ var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
 var jibitex = require('./src/jibitex.js');
 var kcex = require('./src/kcex.js');
+var kifpoolme = require('./src/kifpoolme.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
@@ -106,6 +110,7 @@ var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
 var luno = require('./src/luno.js');
+var mazdax = require('./src/mazdax.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
 var modetrade = require('./src/modetrade.js');
@@ -125,7 +130,9 @@ var p2b = require('./src/p2b.js');
 var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
+var pingi = require('./src/pingi.js');
 var poloniex = require('./src/poloniex.js');
+var pooleno = require('./src/pooleno.js');
 var probit = require('./src/probit.js');
 var ramzinex = require('./src/ramzinex.js');
 var sarmayex = require('./src/sarmayex.js');
@@ -225,7 +232,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.9.4';
+const version = '4.9.10';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'abantether': abantether["default"],
@@ -245,6 +252,7 @@ const exchanges = {
     'bit24': bit24["default"],
     'bit2c': bit2c["default"],
     'bitbank': bitbank["default"],
+    'bitbarg': bitbarg["default"],
     'bitbns': bitbns["default"],
     'bitfinex': bitfinex["default"],
     'bitflyer': bitflyer["default"],
@@ -270,6 +278,8 @@ const exchanges = {
     'btcmarkets': btcmarkets["default"],
     'btcturk': btcturk["default"],
     'bybit': bybit["default"],
+    'bydfi': bydfi["default"],
+    'cafearz': cafearz["default"],
     'cex': cex["default"],
     'coinbase': coinbase["default"],
     'coinbaseadvanced': coinbaseadvanced["default"],
@@ -315,6 +325,7 @@ const exchanges = {
     'indodax': indodax["default"],
     'jibitex': jibitex["default"],
     'kcex': kcex["default"],
+    'kifpoolme': kifpoolme["default"],
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
@@ -322,6 +333,7 @@ const exchanges = {
     'latoken': latoken["default"],
     'lbank': lbank["default"],
     'luno': luno["default"],
+    'mazdax': mazdax["default"],
     'mercado': mercado["default"],
     'mexc': mexc["default"],
     'modetrade': modetrade["default"],
@@ -341,7 +353,9 @@ const exchanges = {
     'paradex': paradex["default"],
     'paymium': paymium["default"],
     'phemex': phemex["default"],
+    'pingi': pingi["default"],
     'poloniex': poloniex["default"],
+    'pooleno': pooleno["default"],
     'probit': probit["default"],
     'ramzinex': ramzinex["default"],
     'sarmayex': sarmayex["default"],
@@ -509,6 +523,7 @@ exports.bingx = bingx["default"];
 exports.bit24 = bit24["default"];
 exports.bit2c = bit2c["default"];
 exports.bitbank = bitbank["default"];
+exports.bitbarg = bitbarg["default"];
 exports.bitbns = bitbns["default"];
 exports.bitfinex = bitfinex["default"];
 exports.bitflyer = bitflyer["default"];
@@ -534,6 +549,8 @@ exports.btcbox = btcbox["default"];
 exports.btcmarkets = btcmarkets["default"];
 exports.btcturk = btcturk["default"];
 exports.bybit = bybit["default"];
+exports.bydfi = bydfi["default"];
+exports.cafearz = cafearz["default"];
 exports.cex = cex["default"];
 exports.coinbase = coinbase["default"];
 exports.coinbaseadvanced = coinbaseadvanced["default"];
@@ -579,6 +596,7 @@ exports.independentreserve = independentreserve["default"];
 exports.indodax = indodax["default"];
 exports.jibitex = jibitex["default"];
 exports.kcex = kcex["default"];
+exports.kifpoolme = kifpoolme["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];
@@ -586,6 +604,7 @@ exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];
 exports.luno = luno["default"];
+exports.mazdax = mazdax["default"];
 exports.mercado = mercado["default"];
 exports.mexc = mexc["default"];
 exports.modetrade = modetrade["default"];
@@ -605,7 +624,9 @@ exports.p2b = p2b["default"];
 exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];
+exports.pingi = pingi["default"];
 exports.poloniex = poloniex["default"];
+exports.pooleno = pooleno["default"];
 exports.probit = probit["default"];
 exports.ramzinex = ramzinex["default"];
 exports.sarmayex = sarmayex["default"];

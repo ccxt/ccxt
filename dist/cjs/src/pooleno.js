@@ -1,0 +1,348 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var pooleno$1 = require('./abstract/pooleno.js');
+
+// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
+/**
+ * @class pooleno
+ * @augments Exchange
+ * @description Set rateLimit to 1000 if fully verified
+ */
+class pooleno extends pooleno$1["default"] {
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'id': 'pooleno',
+            'name': 'Pooleno',
+            'countries': ['IR'],
+            'rateLimit': 1000,
+            'version': '1',
+            'certified': false,
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelAllOrders': false,
+                'cancelOrder': false,
+                'cancelOrders': false,
+                'createDepositAddress': false,
+                'createOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'editOrder': false,
+                'fetchBalance': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchClosedOrders': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchDeposits': false,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchL2OrderBook': false,
+                'fetchL3OrderBook': false,
+                'fetchLedger': false,
+                'fetchLedgerEntry': false,
+                'fetchLeverageTiers': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': false,
+                'fetchOrders': false,
+                'fetchOrderTrades': 'emulated',
+                'fetchPositions': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': false,
+                'fetchTrades': false,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchWithdrawals': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'transfer': false,
+                'withdraw': false,
+            },
+            'comment': 'This comment is optional',
+            'urls': {
+                'logo': 'https://cdn.arz.digital/cr-odin/img/exchanges/pooleno/64x64.png',
+                'api': {
+                    'public': 'https://api-beta.pooleno.ir',
+                },
+                'www': 'https://pooleno.ir',
+                'doc': [
+                    'https://pooleno.ir',
+                ],
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'api/v1/tokens/public': 1,
+                    },
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': this.parseNumber('0.001'),
+                    'taker': this.parseNumber('0.001'),
+                },
+            },
+        });
+    }
+    async fetchMarkets(params = {}) {
+        /**
+         * @method
+         * @name pooleno#fetchMarkets
+         * @description retrieves data on all markets for pooleno
+         * @see https://api-beta.pooleno.ir/api/v1/tokens/public
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetApiV1TokensPublic(params);
+        const payload = this.safeList(response, 'payload', []);
+        const result = [];
+        for (let i = 0; i < payload.length; i++) {
+            const token = payload[i];
+            const baseAsset = this.safeString(token, 'baseAsset');
+            const quoteAsset = this.safeString(token, 'quoteAsset');
+            // Skip if base equals quote
+            if (baseAsset === quoteAsset) {
+                continue;
+            }
+            const market = this.parseMarket(token);
+            result.push(market);
+        }
+        return result;
+    }
+    parseMarket(market) {
+        // {
+        //     "baseAsset": "USDT",
+        //     "quoteAsset": "TMN",
+        //     "symbolName": "USDT",
+        //     "longEnName": "Tether",
+        //     "longFaName": "تتر",
+        //     "createdAt": "2025-02-25T13:47:27.102Z",
+        //     "id": "cm43t74jo00000hrm8tw9aspo",
+        //     "price": "1",
+        //     "priceTMN": "112950",
+        //     "sparkline": {
+        //         "data": [...],
+        //         "change": -538,
+        //         "percentage": -0.48,
+        //         "isPositive": false
+        //     },
+        //     "market": {
+        //         "totalSupply": null,
+        //         "maxSupply": null,
+        //         "circulatingSupply": null,
+        //         "volume24hBase": null,
+        //         "high24h": null,
+        //         "low24h": null,
+        //         "volume24h": null,
+        //         "marketCap": null
+        //     },
+        //     "blockchains": [...]
+        // }
+        let baseId = this.safeString(market, 'baseAsset');
+        let quoteId = this.safeString(market, 'quoteAsset');
+        const base = this.safeCurrencyCode(baseId);
+        const quote = this.safeCurrencyCode(quoteId);
+        const id = base + quote;
+        baseId = baseId.toLowerCase();
+        quoteId = quoteId.toLowerCase();
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
+    }
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name pooleno#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://api-beta.pooleno.ir/api/v1/tokens/public
+         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols(symbols);
+        }
+        const response = await this.publicGetApiV1TokensPublic(params);
+        const payload = this.safeList(response, 'payload', []);
+        const result = {};
+        for (let i = 0; i < payload.length; i++) {
+            const token = payload[i];
+            const ticker = this.parseTicker(token);
+            const symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbols);
+    }
+    async fetchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name pooleno#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api-beta.pooleno.ir/api/v1/tokens/public
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const ticker = await this.fetchTickers([symbol]);
+        return ticker[symbol];
+    }
+    parseTicker(ticker, market = undefined) {
+        // {
+        //     "baseAsset": "BTC",
+        //     "quoteAsset": "USDT",
+        //     "symbolName": "BTC",
+        //     "longEnName": "Bitcoin",
+        //     "longFaName": "بیتکوین",
+        //     "createdAt": "2025-02-25T13:47:27.103Z",
+        //     "id": "cm43t74jp00010hrmed9i7l76",
+        //     "price": "115024.7",
+        //     "priceTMN": "12980537395",
+        //     "sparkline": {
+        //         "data": [...],
+        //         "change": -538,
+        //         "percentage": -0.48,
+        //         "isPositive": false
+        //     },
+        //     "market": {
+        //         "totalSupply": null,
+        //         "maxSupply": null,
+        //         "circulatingSupply": null,
+        //         "volume24hBase": null,
+        //         "high24h": null,
+        //         "low24h": null,
+        //         "volume24h": null,
+        //         "marketCap": null
+        //     },
+        //     "blockchains": [...]
+        // }
+        const marketType = 'spot';
+        const baseAsset = this.safeString(ticker, 'baseAsset');
+        const quoteAsset = this.safeString(ticker, 'quoteAsset');
+        const marketId = baseAsset + '/' + quoteAsset;
+        const symbol = this.safeSymbol(marketId, market, undefined, marketType);
+        const price = this.safeFloat(ticker, 'price');
+        const priceTMN = this.safeFloat(ticker, 'priceTMN');
+        const sparkline = this.safeDict(ticker, 'sparkline', {});
+        const change = this.safeFloat(sparkline, 'change');
+        const percentage = this.safeFloat(sparkline, 'percentage');
+        const marketData = this.safeDict(ticker, 'market', {});
+        const high24h = this.safeFloat(marketData, 'high24h');
+        const low24h = this.safeFloat(marketData, 'low24h');
+        const volume24h = this.safeFloat(marketData, 'volume24h');
+        let last = undefined;
+        let baseVolume = undefined;
+        if (quoteAsset === 'TMN' || quoteAsset === 'IRT') {
+            // For TMN/IRT pairs, use priceTMN
+            last = priceTMN;
+        }
+        else {
+            // For other pairs (like USDT), use price
+            last = price;
+            baseVolume = volume24h;
+        }
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high24h,
+            'low': low24h,
+            'bid': last,
+            'bidVolume': undefined,
+            'ask': last,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const url = this.urls['api']['public'] + '/' + path;
+        headers = { 'Content-Type': 'application/json' };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+}
+
+exports["default"] = pooleno;

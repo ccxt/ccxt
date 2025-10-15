@@ -2,4 +2,4 @@ from ccxt.base.types import Entry
 
 
 class ImplicitAPI:
-    public_get_management_all_coins = publicGetManagementAllCoins = Entry('management/all-coins/', 'public', 'GET', {'cost': 1})
+    public_get_manager_coins_data = publicGetManagerCoinsData = Entry('manager/coins/data', 'public', 'GET', {'cost': 1})
