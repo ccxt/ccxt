@@ -35,9 +35,12 @@ interface Exchange {
     fapiPrivateGetV1OpenOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1AllOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV2Balance (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetV3Balance (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetV3Account (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV4Account (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1PositionMarginHistory (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV2PositionRisk (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetV3PositionRisk (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1UserTrades (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1Income (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetV1CommissionRate (params?: {}): Promise<implicitReturnType>;
@@ -56,8 +59,8 @@ interface Exchange {
     fapiPrivateDeleteV1AllOpenOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteV1BatchOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivateDeleteV1ListenKey (params?: {}): Promise<implicitReturnType>;
-    sapiPublicGetV1Time (params?: {}): Promise<implicitReturnType>;
-    sapiPrivatePostV1Order (params?: {}): Promise<implicitReturnType>;
+    sapiGetV1Time (params?: {}): Promise<implicitReturnType>;
+    sapiPostV1Order (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

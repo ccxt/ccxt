@@ -6,6 +6,9 @@ import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { ecdsa } from './base/functions/crypto.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 //  ---------------------------------------------------------------------------xs
 /**
@@ -218,9 +221,12 @@ export default class aster extends Exchange {
                         'v1/openOrders',
                         'v1/allOrders',
                         'v2/balance',
+                        'v3/balance',
+                        'v3/account',
                         'v4/account',
                         'v1/positionMargin/history',
                         'v2/positionRisk',
+                        'v3/positionRisk',
                         'v1/userTrades',
                         'v1/income',
                         'v1/commissionRate',
@@ -1403,7 +1409,7 @@ export default class aster extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const response = await this.fapiPrivateGetV2Balance (params);
+        const response = await this.fapiPrivateGetV3Balance (params);
         //
         //     [
         //         {
@@ -2754,6 +2760,24 @@ export default class aster extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    hashMessage (binaryMessage) {
+        // const binaryMessage = this.encode (message);
+        const binaryMessageLength = this.binaryLength (binaryMessage);
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0a');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        this.checkRequiredCredentials ();
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'fapiPublic') {
@@ -2765,9 +2789,10 @@ export default class aster extends Exchange {
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
             };
+            const nonce = this.milliseconds ();
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
             let extendedParams = this.extend ({
-                'timestamp': this.milliseconds (),
+                'timestamp': nonce,
             }, params);
             if (defaultRecvWindow !== undefined) {
                 extendedParams['recvWindow'] = defaultRecvWindow;
@@ -2793,7 +2818,31 @@ export default class aster extends Exchange {
             } else {
                 query = this.rawencode (extendedParams);
             }
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            let signature = '';
+            if (path.indexOf ('v3') >= 0) {
+                const signerAddress = this.options['signerAddress'];
+                if (signerAddress === undefined) {
+                    throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
+                }
+                // the keys order matter
+                const keys = this.keys (extendedParams);
+                const sortedKeys = this.sort (keys);
+                const signingPayload = {};
+                for (let i = 0; i < sortedKeys.length; i++) {
+                    const key = sortedKeys[i];
+                    signingPayload[key] = extendedParams[key].toString ();
+                }
+                const signingHash = this.hashMessage (this.hash (this.ethAbiEncode ([
+                    'string', 'address', 'address', 'uint256',
+                ], [ this.json (signingPayload), this.walletAddress, signerAddress, nonce ]), keccak, 'binary'));
+                signature = this.signHash (signingHash, this.privateKey);
+                extendedParams['user'] = this.walletAddress;
+                extendedParams['signer'] = signerAddress;
+                extendedParams['nonce'] = nonce;
+                query = this.rawencode (extendedParams);
+            } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret), sha256);
+            }
             query += '&' + 'signature=' + signature;
             if (method === 'GET') {
                 url += '?' + query;
