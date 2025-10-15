@@ -7316,8 +7316,8 @@ for i in range(0, 20):
 ```
 - You might also try to set:
 A) `exchange.options['adjustForTimeDifference'] = True`
-or
-B) `exchange.options['recvWindow'] = 10000` (eg. increase to 10 seconds)
+or increase window to eg. 10 seconds (only if an exchange supports it, search this keyword in target [exchange file](https://github.com/ccxt/ccxt/tree/master/ts/src)):
+B) `exchange.options['recvWindow'] = 10000`
 - You can also check numerous advises [here](https://github.com/ccxt/ccxt/issues/773), [here](https://github.com/ccxt/ccxt/issues/850) and [here](https://github.com/ccxt/ccxt/issues/936)
 
 # Troubleshooting
