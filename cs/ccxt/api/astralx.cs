@@ -171,6 +171,11 @@ public partial class astralx : Exchange
         return await this.callAsync ("privatePostOpenapiContractOpenOrders",parameters);
     }
 
+    public async Task<object> privatePostOpenapiContractHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiContractHistoryOrders",parameters);
+    }
+
     public async Task<object> privateDeleteOpenapiContractOrderCancel (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOpenapiContractOrderCancel",parameters);

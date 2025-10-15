@@ -135,6 +135,10 @@ func (this *astralx) PrivatePostOpenapiContractOpenOrders (args ...interface{}) 
    return this.callEndpointAsync("privatePostOpenapiContractOpenOrders", args...)
 }
 
+func (this *astralx) PrivatePostOpenapiContractHistoryOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenapiContractHistoryOrders", args...)
+}
+
 func (this *astralx) PrivateDeleteOpenapiContractOrderCancel (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateDeleteOpenapiContractOrderCancel", args...)
 }

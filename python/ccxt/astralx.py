@@ -156,6 +156,7 @@ class astralx(Exchange, ImplicitAPI):
                         'openapi/contract/position/margin': 1,
                         'openapi/contract/position/riskLimit': 1,
                         'openapi/contract/openOrders': 1,
+                        'openapi/contract/historyOrders': 1,
                     },
                     'delete': {
                         'openapi/contract/order/cancel': 1,
@@ -993,6 +994,29 @@ class astralx(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.privatePostOpenapiContractOpenOrders(self.extend(request, params))
+        # API直接返回订单数组，没有data字段包装
+        orders = self.safe_value(response, 'data', response)
+        return self.parse_orders(orders, None, since, limit)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request = {}
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privatePostOpenapiContractHistoryOrders(self.extend(request, params))
         # API直接返回订单数组，没有data字段包装
         orders = self.safe_value(response, 'data', response)
         return self.parse_orders(orders, None, since, limit)

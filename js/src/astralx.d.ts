@@ -42,6 +42,7 @@ export default class astralx extends Exchange {
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
+    fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: any, marketParam?: any): Position;

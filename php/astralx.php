@@ -150,6 +150,7 @@ class astralx extends Exchange {
                         'openapi/contract/position/margin' => 1,
                         'openapi/contract/position/riskLimit' => 1,
                         'openapi/contract/openOrders' => 1,
+                        'openapi/contract/historyOrders' => 1,
                     ),
                     'delete' => array(
                         'openapi/contract/order/cancel' => 1,
@@ -1049,6 +1050,33 @@ class astralx extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $response = $this->privatePostOpenapiContractOpenOrders ($this->extend($request, $params));
+        // API直接返回订单数组，没有data字段包装
+        $orders = $this->safe_value($response, 'data', $response);
+        return $this->parse_orders($orders, null, $since, $limit);
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on closed $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privatePostOpenapiContractHistoryOrders ($this->extend($request, $params));
         // API直接返回订单数组，没有data字段包装
         $orders = $this->safe_value($response, 'data', $response);
         return $this->parse_orders($orders, null, $since, $limit);

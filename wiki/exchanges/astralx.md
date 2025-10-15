@@ -23,6 +23,7 @@
 * [cancelOrder](#cancelorder)
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
+* [fetchClosedOrders](#fetchclosedorders)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchPositions](#fetchpositions)
 * [parsePosition](#parseposition)
@@ -401,6 +402,28 @@ fetches information on all open orders made by the user
 
 ```javascript
 astralx.fetchOpenOrders (symbol[, since, limit, params])
+```
+
+
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on closed orders made by the user
+
+**Kind**: instance method of [<code>astralx</code>](#astralx)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+astralx.fetchClosedOrders (symbol[, since, limit, params])
 ```
 
 

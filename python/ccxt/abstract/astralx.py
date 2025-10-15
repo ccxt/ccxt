@@ -34,6 +34,7 @@ class ImplicitAPI:
     private_post_openapi_contract_position_margin = privatePostOpenapiContractPositionMargin = Entry('openapi/contract/position/margin', 'private', 'POST', {'cost': 1})
     private_post_openapi_contract_position_risklimit = privatePostOpenapiContractPositionRiskLimit = Entry('openapi/contract/position/riskLimit', 'private', 'POST', {'cost': 1})
     private_post_openapi_contract_openorders = privatePostOpenapiContractOpenOrders = Entry('openapi/contract/openOrders', 'private', 'POST', {'cost': 1})
+    private_post_openapi_contract_historyorders = privatePostOpenapiContractHistoryOrders = Entry('openapi/contract/historyOrders', 'private', 'POST', {'cost': 1})
     private_delete_openapi_contract_order_cancel = privateDeleteOpenapiContractOrderCancel = Entry('openapi/contract/order/cancel', 'private', 'DELETE', {'cost': 1})
     private_delete_openapi_contract_batchorders = privateDeleteOpenapiContractBatchOrders = Entry('openapi/contract/batchOrders', 'private', 'DELETE', {'cost': 1})
     private_delete_openapi_contract_allopenorders = privateDeleteOpenapiContractAllOpenOrders = Entry('openapi/contract/allOpenOrders', 'private', 'DELETE', {'cost': 1})

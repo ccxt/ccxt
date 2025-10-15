@@ -103,6 +103,9 @@ abstract class astralx extends \ccxt\Exchange {
     public function private_post_openapi_contract_openorders($params = array()) {
         return $this->request('openapi/contract/openOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_openapi_contract_historyorders($params = array()) {
+        return $this->request('openapi/contract/historyOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_delete_openapi_contract_order_cancel($params = array()) {
         return $this->request('openapi/contract/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -207,6 +210,9 @@ abstract class astralx extends \ccxt\Exchange {
     }
     public function privatePostOpenapiContractOpenOrders($params = array()) {
         return $this->request('openapi/contract/openOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiContractHistoryOrders($params = array()) {
+        return $this->request('openapi/contract/historyOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteOpenapiContractOrderCancel($params = array()) {
         return $this->request('openapi/contract/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 1));

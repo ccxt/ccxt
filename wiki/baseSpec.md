@@ -1864,6 +1864,7 @@ fetches information on multiple closed orders made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#alpacafetchclosedorders)
 * [ascendex](/exchanges/ascendex.md#ascendexfetchclosedorders)
+* [astralx](/exchanges/astralx.md#astralxfetchclosedorders)
 * [bigone](/exchanges/bigone.md#bigonefetchclosedorders)
 * [binance](/exchanges/binance.md#binancefetchclosedorders)
 * [bingx](/exchanges/bingx.md#bingxfetchclosedorders)

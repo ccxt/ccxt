@@ -159,6 +159,7 @@ export default class astralx extends Exchange {
                         'openapi/contract/position/margin': 1,
                         'openapi/contract/position/riskLimit': 1,
                         'openapi/contract/openOrders': 1,
+                        'openapi/contract/historyOrders': 1,
                     },
                     'delete': {
                         'openapi/contract/order/cancel': 1,
@@ -1082,6 +1083,34 @@ export default class astralx extends Exchange {
             request['symbol'] = market['id'];
         }
         const response = await this.privatePostOpenapiContractOpenOrders(this.extend(request, params));
+        // API直接返回订单数组，没有data字段包装
+        const orders = this.safeValue(response, 'data', response);
+        return this.parseOrders(orders, undefined, since, limit);
+    }
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name astralx#fetchClosedOrders
+         * @description fetches information on closed orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostOpenapiContractHistoryOrders(this.extend(request, params));
         // API直接返回订单数组，没有data字段包装
         const orders = this.safeValue(response, 'data', response);
         return this.parseOrders(orders, undefined, since, limit);

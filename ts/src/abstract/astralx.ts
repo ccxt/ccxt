@@ -41,6 +41,7 @@ interface Exchange {
     privatePostOpenapiContractPositionMargin (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractPositionRiskLimit (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractOpenOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiContractHistoryOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractOrderCancel (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractBatchOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractAllOpenOrders (params?: {}): Promise<implicitReturnType>;
