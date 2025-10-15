@@ -24,7 +24,6 @@ class pingi extends pingi$1["default"] {
             'has': {
                 'CORS': undefined,
                 'spot': false,
-                'otc': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -80,6 +79,7 @@ class pingi extends pingi$1["default"] {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
+                'otc': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,

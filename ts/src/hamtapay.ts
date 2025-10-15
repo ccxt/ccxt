@@ -219,8 +219,9 @@ export default class hamtapay extends Exchange {
         for (let i = 0; i < quotes.length; i++) {
             const current_qoute = quotes[i];
             const corresponding_data = this.safeDict (data, current_qoute, {});
-            for (let j = 0; j < Object.keys (corresponding_data).length; j++) {
-                const current_base = Object.keys (corresponding_data)[j];
+            const baseSymbols = Object.keys (corresponding_data);
+            for (let j = 0; j < baseSymbols.length; j++) {
+                const current_base = baseSymbols[j];
                 const current_ticker = corresponding_data[current_base];
                 current_ticker['base'] = current_base;
                 current_ticker['quote'] = current_qoute;

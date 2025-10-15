@@ -1,5 +1,30 @@
 # Changelog
 
+## v4.9.11 - 2025-10-15
+
+### Fixed
+
+**Exchange Performance Optimizations**: Improved symbol handling and API response processing
+
+- **Hamtapay Exchange**: Optimized ticker parsing loop to cache base symbol array lookups
+  - Refactored nested loops to store `Object.keys(corresponding_data)` in `baseSymbols` variable
+  - Eliminated redundant `Object.keys()` calls inside the loop, improving performance
+  - Fixed in ts/src/hamtapay.ts:222-223
+
+- **Kifpoolme Exchange**: Fixed array membership check and removed unused params
+  - Changed `indexOf() === -1` to more idiomatic `in` operator for base symbol checking
+  - Removed unused `params` argument in `publicGetApiSpotPrice` call
+  - Fixed in ts/src/kifpoolme.ts:245, ts/src/kifpoolme.ts:255
+
+- **Tetherland Exchange**: Replaced deprecated `asFloat` with native `parseFloat`
+  - Migrated from custom `asFloat` function to JavaScript's built-in `parseFloat`
+  - Removed unnecessary import of `asFloat` from base functions
+  - Fixed in ts/src/tetherland.ts:338
+
+- **Twox Exchange**: Fixed ticker result initialization type
+  - Changed ticker result from array (`[]`) to object (`{}`) for proper data structure
+  - Fixed in ts/src/twox.ts:249
+
 ## v4.9.10 - 2025-10-13
 
 ### Added
