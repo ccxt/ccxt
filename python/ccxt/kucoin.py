@@ -1610,7 +1610,7 @@ class kucoin(Exchange, ImplicitAPI):
                 networkCodeNew = self.network_id_to_code(self.safe_string(chain, 'chainId'), self.safe_string(currency, 'code'))
                 resultNew['networks'][networkCodeNew] = {
                     'withdraw': {
-                        'fee': self.safe_number(chain, 'withdrawMinFee'),
+                        'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage': False,
                     },
                     'deposit': {
