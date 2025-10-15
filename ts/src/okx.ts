@@ -1301,8 +1301,7 @@ export default class okx extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 300,
-                        'historical': 100,
+                        'limit': 300, // regular candles (recent & historical) both have 300 max
                         'mark': 100,
                         'index': 100,
                     },
@@ -2483,6 +2482,7 @@ export default class okx extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 200) as OHLCV[];
         }
         const priceType = this.safeString (params, 'price');
+        const isMarkOrIndex = this.inArray (priceType, [ 'mark', 'index' ]);
         params = this.omit (params, 'price');
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
@@ -2490,7 +2490,7 @@ export default class okx extends Exchange {
         if (limit === undefined) {
             limit = 100; // default 100, max 300
         } else {
-            const maxLimit = this.featureValue (symbol, 'fetchOHLCV', priceType, 300); // default 300, only 100 if 'mark' or 'index'
+            const maxLimit = isMarkOrIndex ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
             limit = Math.min (limit, maxLimit);
         }
         const duration = this.parseTimeframe (timeframe);
@@ -2511,8 +2511,8 @@ export default class okx extends Exchange {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = this.featureValue (symbol, 'fetchOHLCV', 'historical', 100);
-                limit = Math.min (limit, maxLimit); // max 100 for historical endpoint
+                const maxLimit = isMarkOrIndex ? 100 : 300;
+                limit = Math.min (limit, maxLimit);
             }
             const startTime = Math.max (since - 1, 0);
             request['before'] = startTime;
