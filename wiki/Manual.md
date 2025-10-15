@@ -7297,28 +7297,47 @@ Possible reasons for this exception:
   - `InvalidOrder`: the base class for all exceptions related to the unified order API.
   - `OrderNotFound`: when you are trying to fetch or cancel a non-existent order.
 
-### Notes about expired requests
+### Handling timestamp errors
 
-Sometimes, users might get an error like:
+Users may occasionally encounter errors such as:
+
 > "Timestamp for this request is outside of the recvWindow."
-> "invalid request, please check your server timestamp or recv_window param"
-> "Timestamp for this request was 1000ms ahead of the server's time" ...
+> "Invalid request, please check your server timestamp or recv_window param."
+> "Timestamp for this request was 1000ms ahead of the server's time."
 
-Such issues might be caused by several reasons:
-- Your device's clock is not synchronized correctly to the global datetime, thus the discrepancy arises. Try sync your device time correctly so your OS clock is accurate by milliseconds. However, this should not be a one-time action, you should set-up your system to synchronize periodically (eg. once in a hour) if you want to avoid such issues.
-- If your device timestamp is correctly synchronized, but there is an internet-day and your request takes more than X seconds (might be permanent number, eg. `5` or might be configurable, depends on specific exchange), in such case exchange might invalidate your request.
-- If you still get that issue, try to check the difference between your & exchange's engine timestamps like:
+These issues can arise for several reasons:
+
+#### 1. System Clock Desynchronization
+Your device’s system clock may not be properly synchronized with global time standards, leading to timestamp discrepancies.
+To resolve this, ensure your system clock is accurate to the millisecond. This should not be a one-time adjustment — configure your operating system to synchronize time periodically (e.g., every hour) to maintain accuracy.
+
+#### 2. Network Latency or Delayed Requests
+If your device’s clock is correctly synchronized but network delays cause requests to take longer than the exchange’s accepted window (commonly around `5` seconds, though this varies by exchange), your request may be rejected.
+
+
+If the issue persists, you can compare your local timestamp with the exchange’s server time to diagnose discrepancies:
+
 ```
 for i in range(0, 20):
     local_time = exchange.milliseconds()
     exchange_time = await exchange.fetch_time()
     print(exchange_time - local_time)
 ```
-- You might also try to set:
+
+####  Adjusting Exchange Options
+
+If you continue to experience timestamp errors after verifying synchronization, you can modify certain exchange options to help mitigate the issue.
+
 A) `exchange.options['adjustForTimeDifference'] = True`
 or increase window to eg. 10 seconds (only if an exchange supports it, search this keyword in target [exchange file](https://github.com/ccxt/ccxt/tree/master/ts/src)):
 B) `exchange.options['recvWindow'] = 10000`
-- You can also check numerous advises [here](https://github.com/ccxt/ccxt/issues/773), [here](https://github.com/ccxt/ccxt/issues/850) and [here](https://github.com/ccxt/ccxt/issues/936)
+
+
+For additional troubleshooting steps, community discussions, and related timestamp/`recvWindow` issues, refer to the following GitHub threads:
+
+- [CCXT Issue #773](https://github.com/ccxt/ccxt/issues/773)
+- [CCXT Issue #850](https://github.com/ccxt/ccxt/issues/850)
+- [CCXT Issue #936](https://github.com/ccxt/ccxt/issues/936)
 
 # Troubleshooting
 
