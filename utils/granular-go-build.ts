@@ -11,7 +11,8 @@ const foldersToSearch = [
 
 const filesToDelete =[
     './go/tests/base/test.structs.go',
-    './go/tests/base/test.types.rest.go'
+    './go/tests/base/test.types.rest.go',
+    './go/tests/base/test.types.pro.go'
 ]
 
 
