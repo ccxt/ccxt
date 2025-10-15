@@ -29,7 +29,9 @@ export default class aster extends Exchange {
                 'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
-                    'rest': 'https://fapi.asterdex.com',
+                    'fapiPublic': 'https://fapi.asterdex.com/fapi',
+                    'fapiPrivate': 'https://fapi.asterdex.com/fapi',
+                    'sapi': 'https://sapi.asterdex.com/sapi',
                 },
                 'doc': 'https://github.com/asterdex/api-docs',
                 'fees': 'https://docs.asterdex.com/product/asterex-simple/fees-and-slippage',
@@ -184,66 +186,74 @@ export default class aster extends Exchange {
                 'withdraw': false,
             },
             'api': {
-                'public': {
+                'fapiPublic': {
                     'get': [
-                        'fapi/v1/ping',
-                        'fapi/v1/time',
-                        'fapi/v1/exchangeInfo',
-                        'fapi/v1/depth',
-                        'fapi/v1/trades',
-                        'fapi/v1/historicalTrades',
-                        'fapi/v1/aggTrades',
-                        'fapi/v1/klines',
-                        'fapi/v1/indexPriceKlines',
-                        'fapi/v1/markPriceKlines',
-                        'fapi/v1/premiumIndex',
-                        'fapi/v1/fundingRate',
-                        'fapi/v1/fundingInfo',
-                        'fapi/v1/ticker/24hr',
-                        'fapi/v1/ticker/price',
-                        'fapi/v1/ticker/bookTicker',
-                        'fapi/v1/leverageBracket',
-                        'fapi/v1/adlQuantile',
-                        'fapi/v1/forceOrders',
+                        'v1/ping',
+                        'v1/time',
+                        'v1/exchangeInfo',
+                        'v1/depth',
+                        'v1/trades',
+                        'v1/historicalTrades',
+                        'v1/aggTrades',
+                        'v1/klines',
+                        'v1/indexPriceKlines',
+                        'v1/markPriceKlines',
+                        'v1/premiumIndex',
+                        'v1/fundingRate',
+                        'v1/fundingInfo',
+                        'v1/ticker/24hr',
+                        'v1/ticker/price',
+                        'v1/ticker/bookTicker',
+                        'v1/leverageBracket',
+                        'v1/adlQuantile',
+                        'v1/forceOrders',
                     ],
                 },
-                'private': {
+                'fapiPrivate': {
                     'get': [
-                        'fapi/v1/positionSide/dual',
-                        'fapi/v1/multiAssetsMargin',
-                        'fapi/v1/order',
-                        'fapi/v1/openOrder',
-                        'fapi/v1/openOrders',
-                        'fapi/v1/allOrders',
-                        'fapi/v2/balance',
-                        'fapi/v4/account',
-                        'fapi/v1/positionMargin/history',
-                        'fapi/v2/positionRisk',
-                        'fapi/v1/userTrades',
-                        'fapi/v1/income',
-                        'fapi/v1/commissionRate',
+                        'v1/positionSide/dual',
+                        'v1/multiAssetsMargin',
+                        'v1/order',
+                        'v1/openOrder',
+                        'v1/openOrders',
+                        'v1/allOrders',
+                        'v2/balance',
+                        'v4/account',
+                        'v1/positionMargin/history',
+                        'v2/positionRisk',
+                        'v1/userTrades',
+                        'v1/income',
+                        'v1/commissionRate',
                     ],
                     'post': [
-                        'fapi/v1/order',
-                        'fapi/v1/positionSide/dual',
-                        'fapi/v1/multiAssetsMargin',
-                        'fapi/v1/order/test',
-                        'fapi/v1/batchOrders',
-                        'fapi/v1/countdownCancelAll',
-                        'fapi/v1/leverage',
-                        'fapi/v1/marginType',
-                        'fapi/v1/positionMargin',
-                        'fapi/v1/listenKey',
+                        'v1/order',
+                        'v1/positionSide/dual',
+                        'v1/multiAssetsMargin',
+                        'v1/order/test',
+                        'v1/batchOrders',
+                        'v1/countdownCancelAll',
+                        'v1/leverage',
+                        'v1/marginType',
+                        'v1/positionMargin',
+                        'v1/listenKey',
                     ],
                     'put': [
-                        'fapi/v1/listenKey',
+                        'v1/listenKey',
                     ],
                     'delete': [
-                        'fapi/v1/order',
-                        'fapi/v1/allOpenOrders',
-                        'fapi/v1/batchOrders',
-                        'fapi/v1/listenKey',
+                        'v1/order',
+                        'v1/allOpenOrders',
+                        'v1/batchOrders',
+                        'v1/listenKey',
                     ],
+                },
+                'sapi': {
+                    'get': {
+                        'v1/time': 1,
+                    },
+                    'post': {
+                        'v1/order': 1,
+                    },
                 },
             },
             'timeframes': {
@@ -460,7 +470,7 @@ export default class aster extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response: Dict = await this.publicGetFapiV1ExchangeInfo (params);
+        const response: Dict = await this.fapiPublicGetV1ExchangeInfo (params);
         const rows = this.safeList (response, 'assets', []);
         //
         //     [
@@ -516,7 +526,7 @@ export default class aster extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response: Dict = await this.publicGetFapiV1ExchangeInfo (params);
+        const response: Dict = await this.fapiPublicGetV1ExchangeInfo (params);
         const markets = this.safeList (response, 'symbols', []);
         //
         //     [
@@ -709,7 +719,7 @@ export default class aster extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await this.publicGetFapiV1Time (params);
+        const response = await this.fapiPublicGetV1Time (params);
         //
         //     {
         //         "serverTime": 1499827319559
@@ -784,13 +794,13 @@ export default class aster extends Exchange {
         let response = undefined;
         if (isMark) {
             request['symbol'] = market['id'];
-            response = await this.publicGetFapiV1MarkPriceKlines (this.extend (request, params));
+            response = await this.fapiPublicGetV1MarkPriceKlines (this.extend (request, params));
         } else if (isIndex) {
             request['pair'] = market['id'];
-            response = await this.publicGetFapiV1IndexPriceKlines (this.extend (request, params));
+            response = await this.fapiPublicGetV1IndexPriceKlines (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
-            response = await this.publicGetFapiV1Klines (this.extend (request, params));
+            response = await this.fapiPublicGetV1Klines (this.extend (request, params));
         }
         //
         //     [
@@ -909,7 +919,7 @@ export default class aster extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this.publicGetFapiV1Trades (this.extend (request, params));
+        const response = await this.fapiPublicGetV1Trades (this.extend (request, params));
         //
         //     [
         //         {
@@ -956,7 +966,7 @@ export default class aster extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.privateGetFapiV1UserTrades (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1UserTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1006,7 +1016,7 @@ export default class aster extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this.publicGetFapiV1Depth (this.extend (request, params));
+        const response = await this.fapiPublicGetV1Depth (this.extend (request, params));
         //
         //     {
         //         "lastUpdateId": 1027024,
@@ -1059,7 +1069,7 @@ export default class aster extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.publicGetFapiV1FundingRate (this.extend (request, params));
+        const response = await this.fapiPublicGetV1FundingRate (this.extend (request, params));
         //
         //     [
         //         {
@@ -1162,7 +1172,7 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetFapiV1Ticker24hr (this.extend (request, params));
+        const response = await this.fapiPublicGetV1Ticker24hr (this.extend (request, params));
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1198,7 +1208,7 @@ export default class aster extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetFapiV1Ticker24hr (params);
+        const response = await this.fapiPublicGetV1Ticker24hr (params);
         //
         //     [
         //         {
@@ -1293,7 +1303,7 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetFapiV1PremiumIndex (this.extend (request, params));
+        const response = await this.fapiPublicGetV1PremiumIndex (this.extend (request, params));
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1321,7 +1331,7 @@ export default class aster extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetFapiV1PremiumIndex (this.extend (params));
+        const response = await this.fapiPublicGetV1PremiumIndex (this.extend (params));
         //
         //     [
         //         {
@@ -1354,7 +1364,7 @@ export default class aster extends Exchange {
         if (symbols !== undefined) {
             symbols = this.marketSymbols (symbols);
         }
-        const response = await this.publicGetFapiV1FundingInfo (params);
+        const response = await this.fapiPublicGetV1FundingInfo (params);
         //
         //     [
         //         {
@@ -1393,7 +1403,7 @@ export default class aster extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const response = await this.privateGetFapiV2Balance (params);
+        const response = await this.fapiPrivateGetV2Balance (params);
         //
         //     [
         //         {
@@ -1439,7 +1449,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        const response = await this.privatePostFapiV1MarginType (this.extend (request, params));
+        const response = await this.fapiPrivatePostV1MarginType (this.extend (request, params));
         //
         //     {
         //         "amount": 100.0,
@@ -1461,7 +1471,7 @@ export default class aster extends Exchange {
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode (symbol: Str = undefined, params = {}) {
-        const response = await this.privateGetFapiV1PositionSideDual (params);
+        const response = await this.fapiPrivateGetV1PositionSideDual (params);
         //
         //     {
         //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
@@ -1494,7 +1504,7 @@ export default class aster extends Exchange {
         //         "msg": "success"
         //     }
         //
-        return await this.privatePostFapiV1PositionSideDual (this.extend (request, params));
+        return await this.fapiPrivatePostV1PositionSideDual (this.extend (request, params));
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
@@ -1526,7 +1536,7 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetFapiV1CommissionRate (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1CommissionRate (this.extend (request, params));
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -1654,7 +1664,7 @@ export default class aster extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        const response = await this.privateGetFapiV1Order (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1Order (this.extend (request, params));
         //
         //     {
         //         "avgPrice": "0.00000",
@@ -1711,7 +1721,7 @@ export default class aster extends Exchange {
         } else {
             request['orderId'] = id;
         }
-        const response = await this.privateGetFapiV1OpenOrder (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1OpenOrder (this.extend (request, params));
         //
         //     {
         //         "avgPrice": "0.00000",
@@ -1773,7 +1783,7 @@ export default class aster extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.privateGetFapiV1AllOrders (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1AllOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1825,7 +1835,7 @@ export default class aster extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetFapiV1OpenOrders (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1OpenOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1883,9 +1893,9 @@ export default class aster extends Exchange {
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (test) {
-            response = await this.privatePostFapiV1OrderTest (request);
+            response = await this.fapiPrivatePostV1OrderTest (request);
         } else {
-            response = await this.privatePostFapiV1Order (request);
+            response = await this.fapiPrivatePostV1Order (request);
         }
         return this.parseOrder (response, market);
     }
@@ -1919,7 +1929,7 @@ export default class aster extends Exchange {
         const request: Dict = {
             'batchOrders': ordersRequests,
         };
-        const response = await this.privatePostFapiV1BatchOrders (this.extend (request, params));
+        const response = await this.fapiPrivatePostV1BatchOrders (this.extend (request, params));
         return this.parseOrders (response);
     }
 
@@ -2027,7 +2037,7 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.privateDeleteFapiV1AllOpenOrders (this.extend (request, params));
+        const response = await this.fapiPrivateDeleteV1AllOpenOrders (this.extend (request, params));
         //
         //     {
         //         "code": "200",
@@ -2067,7 +2077,7 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId' ]);
-        const response = await this.privateDeleteFapiV1Order (this.extend (request, params));
+        const response = await this.fapiPrivateDeleteV1Order (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -2100,7 +2110,7 @@ export default class aster extends Exchange {
         } else {
             request['orderIdList'] = ids;
         }
-        const response = await this.privateDeleteFapiV1BatchOrders (this.extend (request, params));
+        const response = await this.fapiPrivateDeleteV1BatchOrders (this.extend (request, params));
         //
         //    [
         //        {
@@ -2159,7 +2169,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        const response = await this.privatePostFapiV1Leverage (this.extend (request, params));
+        const response = await this.fapiPrivatePostV1Leverage (this.extend (request, params));
         //
         //     {
         //         "leverage": 21,
@@ -2181,7 +2191,7 @@ export default class aster extends Exchange {
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         await this.loadMarkets ();
-        const response = await this.privateGetFapiV2PositionRisk (params);
+        const response = await this.fapiPrivateGetV2PositionRisk (params);
         //
         //     [
         //         {
@@ -2260,7 +2270,7 @@ export default class aster extends Exchange {
      */
     async fetchMarginModes (symbols: Strings = undefined, params = {}): Promise<MarginModes> {
         await this.loadMarkets ();
-        const response = await this.privateGetFapiV2PositionRisk (params);
+        const response = await this.fapiPrivateGetV2PositionRisk (params);
         //
         //
         //     [
@@ -2352,7 +2362,7 @@ export default class aster extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetFapiV1PositionMarginHistory (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1PositionMarginHistory (this.extend (request, params));
         //
         //     [
         //         {
@@ -2418,7 +2428,7 @@ export default class aster extends Exchange {
             'amount': amount,
         };
         const code = market['quote'];
-        const response = await this.privatePostFapiV1PositionMargin (this.extend (request, params));
+        const response = await this.fapiPrivatePostV1PositionMargin (this.extend (request, params));
         //
         //     {
         //         "amount": 100.0,
@@ -2518,7 +2528,7 @@ export default class aster extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000); // max 1000
         }
-        const response = await this.privateGetFapiV1Income (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1Income (this.extend (request, params));
         return this.parseIncomes (response, market, since, limit);
     }
 
@@ -2610,7 +2620,7 @@ export default class aster extends Exchange {
             params = this.omit (params, 'until');
             request['endTime'] = until;
         }
-        const response = await this.privateGetFapiV1Income (this.extend (request, params));
+        const response = await this.fapiPrivateGetV1Income (this.extend (request, params));
         //
         //     [
         //         {
@@ -2712,7 +2722,7 @@ export default class aster extends Exchange {
         }
         await this.loadMarkets ();
         const request: Dict = {};
-        const response = await this.privateGetFapiV2PositionRisk (this.extend (request, params));
+        const response = await this.fapiPrivateGetV2PositionRisk (this.extend (request, params));
         //
         //     [
         //         {
@@ -2745,12 +2755,12 @@ export default class aster extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname (this.urls['api']['rest']) + '/' + path;
-        if (api === 'public') {
+        let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        if (api === 'fapiPublic') {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
             }
-        } else if (api === 'private') {
+        } else if (api === 'fapiPrivate') {
             this.checkRequiredCredentials ();
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
