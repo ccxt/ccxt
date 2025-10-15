@@ -2,7 +2,6 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/tetherland.js';
-import { asFloat } from './base/functions.js';
 import { Market, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -336,7 +335,7 @@ export default class tetherland extends Exchange {
         const marketId = this.safeString (ticker, 'id');
         const quote = this.safeString (ticker, 'quote');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
-        let last = asFloat (this.safeString (ticker, 'price', '').replace (',', ''));
+        let last = parseFloat (this.safeString (ticker, 'price', '').replace (',', ''));
         if (quote === 'IRT') {
             last = this.safeFloat (ticker, 'toman_amount', 0);
         }
