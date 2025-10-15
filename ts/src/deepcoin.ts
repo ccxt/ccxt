@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ export default class deepcoin extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -183,7 +183,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/agents/users': 5,
                         'deepcoin/agents/users/rebate-list': 5,
                         'deepcoin/agents/users/rebates': 5,
-                        'deepcoin/asset/deposit-list': 5,
+                        'deepcoin/asset/deposit-list': 5, // done
                         'deepcoin/asset/withdraw-list': 5,
                         'deepcoin/asset/recharge-chain-list': 5,
                     },
@@ -781,6 +781,97 @@ export default class deepcoin extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://www.deepcoin.com/docs/assets/deposit
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const items = this.safeList (data, 'data', []);
+        return this.parseTransactions (items, currency, since, limit, params);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //     {
+        //         "createTime": 1760368656,
+        //         "txHash": "03fe3244d89e794586222413c61779380da9e9fe5baaa253c38d01a4199a3499",
+        //         "chainName": "TRC20",
+        //         "amount": "149",
+        //         "coin": "USDT",
+        //         "status": "succeed"
+        //     }
+        //
+        const type = 'deposit';
+        const txid = this.safeString (transaction, 'txHash');
+        const currencyId = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const amount = this.safeNumber (transaction, 'amount');
+        const timestamp = this.safeTimestamp (transaction, 'createTime');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'info': transaction,
+            'id': undefined,
+            'currency': code,
+            'amount': amount,
+            'network': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'address': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'internal': undefined,
+            'comment': undefined,
+            'fee': {
+                'currency': code,
+                'cost': undefined,
+            },
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'confirming': 'pending',
+            'succeed': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
