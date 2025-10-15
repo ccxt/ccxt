@@ -5868,7 +5868,7 @@ class bingx extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $walletType = $this->safe_integer($params, 'walletType', 1);
+        $walletType = $this->safe_integer($params, 'walletType', 15);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
