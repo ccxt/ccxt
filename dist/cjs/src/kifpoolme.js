@@ -202,7 +202,7 @@ class kifpoolme extends kifpoolme$1["default"] {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetApiSpotPrice(params);
+        const response = await this.publicGetApiSpotPrice();
         const result = [];
         // Response is an array of coin objects
         for (let i = 0; i < response.length; i++) {

@@ -200,7 +200,7 @@ class kifpoolme extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $response = $this->publicGetApiSpotPrice ($params);
+        $response = $this->publicGetApiSpotPrice ();
         $result = array();
         // Response is an array of coin objects
         for ($i = 0; $i < count($response); $i++) {

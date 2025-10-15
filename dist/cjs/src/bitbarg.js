@@ -139,8 +139,8 @@ class bitbarg extends bitbarg$1["default"] {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': undefined,
-            'type': 'otc',
-            'spot': false,
+            'type': 'spot',
+            'spot': true,
             'margin': false,
             'swap': false,
             'future': false,
@@ -220,7 +220,7 @@ class bitbarg extends bitbarg$1["default"] {
         const request = {
             'pageSize': -1,
         };
-        const response = await this.publicGetApiV1Currencies(this.extend(request, params));
+        const response = await this.publicGetApiV1Currencies(request);
         const data = this.safeDict(response, 'result', {});
         const items = this.safeList(data, 'items', []);
         const result = {};
@@ -271,7 +271,7 @@ class bitbarg extends bitbarg$1["default"] {
         //     "isFavorite": false,
         //     "chart": [...]
         // }
-        const marketType = 'otc';
+        const marketType = 'spot';
         const marketId = this.safeString(ticker, 'coin') + '/' + 'USDT';
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const last = this.safeFloat(ticker, 'price', 0);

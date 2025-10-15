@@ -138,8 +138,8 @@ class bitbarg(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': None,
-            'type': 'otc',
-            'spot': False,
+            'type': 'spot',
+            'spot': True,
             'margin': False,
             'swap': False,
             'future': False,
@@ -213,7 +213,7 @@ class bitbarg(Exchange, ImplicitAPI):
         request = {
             'pageSize': -1,
         }
-        response = await self.publicGetApiV1Currencies(self.extend(request, params))
+        response = await self.publicGetApiV1Currencies(request)
         data = self.safe_dict(response, 'result', {})
         items = self.safe_list(data, 'items', [])
         result = {}
@@ -261,7 +261,7 @@ class bitbarg(Exchange, ImplicitAPI):
         #     "isFavorite": False,
         #     "chart": [...]
         # }
-        marketType = 'otc'
+        marketType = 'spot'
         marketId = self.safe_string(ticker, 'coin') + '/' + 'USDT'
         symbol = self.safe_symbol(marketId, market, None, marketType)
         last = self.safe_float(ticker, 'price', 0)

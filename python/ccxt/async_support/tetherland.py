@@ -244,7 +244,7 @@ class tetherland(Exchange, ImplicitAPI):
             symbols = self.market_symbols(symbols)
         response = await self.publicGetApiV5Currencies(params)
         markets = self.safe_list(response, 'data')
-        result = []
+        result = {}
         quotes = ['USDT', 'IRT']
         for i in range(0, len(markets)):
             for key in range(0, len(quotes)):

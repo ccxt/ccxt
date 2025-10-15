@@ -253,7 +253,7 @@ class tetherland extends tetherland$1["default"] {
         }
         const response = await this.publicGetApiV5Currencies(params);
         const markets = this.safeList(response, 'data');
-        const result = [];
+        const result = {};
         const quotes = ['USDT', 'IRT'];
         for (let i = 0; i < markets.length; i++) {
             for (let key = 0; key < quotes.length; key++) {

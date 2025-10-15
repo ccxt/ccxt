@@ -140,8 +140,8 @@ class bitbarg extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'settleId' => null,
-            'type' => 'otc',
-            'spot' => false,
+            'type' => 'spot',
+            'spot' => true,
             'margin' => false,
             'swap' => false,
             'future' => false,
@@ -222,7 +222,7 @@ class bitbarg extends Exchange {
             $request = array(
                 'pageSize' => -1,
             );
-            $response = Async\await($this->publicGetApiV1Currencies ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1Currencies ($request));
             $data = $this->safe_dict($response, 'result', array());
             $items = $this->safe_list($data, 'items', array());
             $result = array();
@@ -276,7 +276,7 @@ class bitbarg extends Exchange {
         //     "isFavorite" => false,
         //     "chart" => [...]
         // }
-        $marketType = 'otc';
+        $marketType = 'spot';
         $marketId = $this->safe_string($ticker, 'coin') . '/' . 'USDT';
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $last = $this->safe_float($ticker, 'price', 0);
