@@ -138,7 +138,6 @@ class astralx(Exchange, ImplicitAPI):
                     'get': {
                         'openapi/contract/account': 1,
                         'openapi/contract/order': 1,
-                        'openapi/contract/openOrders': 1,
                         'openapi/contract/order/history': 1,
                         'openapi/contract/myTrades': 1,
                         'openapi/contract/positions': 1,
@@ -156,6 +155,7 @@ class astralx(Exchange, ImplicitAPI):
                         'openapi/contract/leverage': 1,
                         'openapi/contract/position/margin': 1,
                         'openapi/contract/position/riskLimit': 1,
+                        'openapi/contract/openOrders': 1,
                     },
                     'delete': {
                         'openapi/contract/order/cancel': 1,
@@ -992,7 +992,7 @@ class astralx(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privateGetOpenapiContractOpenOrders(self.extend(request, params))
+        response = self.privatePostOpenapiContractOpenOrders(self.extend(request, params))
         # API直接返回订单数组，没有data字段包装
         orders = self.safe_value(response, 'data', response)
         return self.parse_orders(orders, None, since, limit)
@@ -1069,7 +1069,8 @@ class astralx(Exchange, ImplicitAPI):
         # 根据API文档和示例数据解析字段
         amount = self.safe_number(position, 'position')  # 总数量（单位：张）
         available = self.safe_number(position, 'available')  # 可用数量（单位：张）
-        contracts = amount is not amount if None else available  # 使用总数量作为合约数量
+        # 优先使用总数量，如果总数量为0或None，则使用可用数量
+        contracts = amount if (amount is not None and amount != 0) else available
         entryPrice = self.safe_number(position, 'avgPrice')  # 开仓均价
         unrealizedPnl = self.safe_number(position, 'unrealizedPnL')  # 未实现盈亏
         leverage = self.safe_number(position, 'leverage')  # 杠杆

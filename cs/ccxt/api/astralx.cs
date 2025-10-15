@@ -91,11 +91,6 @@ public partial class astralx : Exchange
         return await this.callAsync ("privateGetOpenapiContractOrder",parameters);
     }
 
-    public async Task<object> privateGetOpenapiContractOpenOrders (object parameters = null)
-    {
-        return await this.callAsync ("privateGetOpenapiContractOpenOrders",parameters);
-    }
-
     public async Task<object> privateGetOpenapiContractOrderHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenapiContractOrderHistory",parameters);
@@ -169,6 +164,11 @@ public partial class astralx : Exchange
     public async Task<object> privatePostOpenapiContractPositionRiskLimit (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenapiContractPositionRiskLimit",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiContractOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiContractOpenOrders",parameters);
     }
 
     public async Task<object> privateDeleteOpenapiContractOrderCancel (object parameters = null)

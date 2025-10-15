@@ -132,7 +132,6 @@ class astralx extends Exchange {
                     'get' => array(
                         'openapi/contract/account' => 1,
                         'openapi/contract/order' => 1,
-                        'openapi/contract/openOrders' => 1,
                         'openapi/contract/order/history' => 1,
                         'openapi/contract/myTrades' => 1,
                         'openapi/contract/positions' => 1,
@@ -150,6 +149,7 @@ class astralx extends Exchange {
                         'openapi/contract/leverage' => 1,
                         'openapi/contract/position/margin' => 1,
                         'openapi/contract/position/riskLimit' => 1,
+                        'openapi/contract/openOrders' => 1,
                     ),
                     'delete' => array(
                         'openapi/contract/order/cancel' => 1,
@@ -1048,7 +1048,7 @@ class astralx extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetOpenapiContractOpenOrders ($this->extend($request, $params));
+        $response = $this->privatePostOpenapiContractOpenOrders ($this->extend($request, $params));
         // API直接返回订单数组，没有data字段包装
         $orders = $this->safe_value($response, 'data', $response);
         return $this->parse_orders($orders, null, $since, $limit);
@@ -1136,7 +1136,8 @@ class astralx extends Exchange {
         // 根据API文档和示例数据解析字段
         $amount = $this->safe_number($position, 'position'); // 总数量（单位：张）
         $available = $this->safe_number($position, 'available'); // 可用数量（单位：张）
-        $contracts = $amount !== null ? $amount : $available; // 使用总数量作为合约数量
+        // 优先使用总数量，如果总数量为0或null，则使用可用数量
+        $contracts = ($amount !== null && $amount !== 0) ? $amount : $available;
         $entryPrice = $this->safe_number($position, 'avgPrice'); // 开仓均价
         $unrealizedPnl = $this->safe_number($position, 'unrealizedPnL'); // 未实现盈亏
         $leverage = $this->safe_number($position, 'leverage'); // 杠杆

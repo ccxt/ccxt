@@ -141,7 +141,6 @@ export default class astralx extends Exchange {
                     'get': {
                         'openapi/contract/account': 1,
                         'openapi/contract/order': 1,
-                        'openapi/contract/openOrders': 1,
                         'openapi/contract/order/history': 1,
                         'openapi/contract/myTrades': 1,
                         'openapi/contract/positions': 1,
@@ -159,6 +158,7 @@ export default class astralx extends Exchange {
                         'openapi/contract/leverage': 1,
                         'openapi/contract/position/margin': 1,
                         'openapi/contract/position/riskLimit': 1,
+                        'openapi/contract/openOrders': 1,
                     },
                     'delete': {
                         'openapi/contract/order/cancel': 1,
@@ -1093,7 +1093,7 @@ export default class astralx extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetOpenapiContractOpenOrders (this.extend (request, params));
+        const response = await this.privatePostOpenapiContractOpenOrders (this.extend (request, params));
         // API直接返回订单数组，没有data字段包装
         const orders = this.safeValue (response, 'data', response);
         return this.parseOrders (orders, undefined, since, limit);
@@ -1187,7 +1187,8 @@ export default class astralx extends Exchange {
         // 根据API文档和示例数据解析字段
         const amount = this.safeNumber (position, 'position'); // 总数量（单位：张）
         const available = this.safeNumber (position, 'available'); // 可用数量（单位：张）
-        const contracts = amount !== undefined ? amount : available; // 使用总数量作为合约数量
+        // 优先使用总数量，如果总数量为0或undefined，则使用可用数量
+        const contracts = (amount !== undefined && amount !== 0) ? amount : available;
         const entryPrice = this.safeNumber (position, 'avgPrice'); // 开仓均价
         const unrealizedPnl = this.safeNumber (position, 'unrealizedPnL'); // 未实现盈亏
         const leverage = this.safeNumber (position, 'leverage'); // 杠杆

@@ -25,7 +25,6 @@ interface Exchange {
     publicGetOpenapiQuoteLiquidationOrders (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiContractAccount (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiContractOrder (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenapiContractOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiContractOrderHistory (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiContractMyTrades (params?: {}): Promise<implicitReturnType>;
     privateGetOpenapiContractPositions (params?: {}): Promise<implicitReturnType>;
@@ -41,6 +40,7 @@ interface Exchange {
     privatePostOpenapiContractLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractPositionMargin (params?: {}): Promise<implicitReturnType>;
     privatePostOpenapiContractPositionRiskLimit (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenapiContractOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractOrderCancel (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractBatchOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteOpenapiContractAllOpenOrders (params?: {}): Promise<implicitReturnType>;

@@ -55,9 +55,6 @@ abstract class astralx extends \ccxt\Exchange {
     public function private_get_openapi_contract_order($params = array()) {
         return $this->request('openapi/contract/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_openapi_contract_openorders($params = array()) {
-        return $this->request('openapi/contract/openOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_get_openapi_contract_order_history($params = array()) {
         return $this->request('openapi/contract/order/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -102,6 +99,9 @@ abstract class astralx extends \ccxt\Exchange {
     }
     public function private_post_openapi_contract_position_risklimit($params = array()) {
         return $this->request('openapi/contract/position/riskLimit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_contract_openorders($params = array()) {
+        return $this->request('openapi/contract/openOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_delete_openapi_contract_order_cancel($params = array()) {
         return $this->request('openapi/contract/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 1));
@@ -160,9 +160,6 @@ abstract class astralx extends \ccxt\Exchange {
     public function privateGetOpenapiContractOrder($params = array()) {
         return $this->request('openapi/contract/order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetOpenapiContractOpenOrders($params = array()) {
-        return $this->request('openapi/contract/openOrders', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privateGetOpenapiContractOrderHistory($params = array()) {
         return $this->request('openapi/contract/order/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -207,6 +204,9 @@ abstract class astralx extends \ccxt\Exchange {
     }
     public function privatePostOpenapiContractPositionRiskLimit($params = array()) {
         return $this->request('openapi/contract/position/riskLimit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiContractOpenOrders($params = array()) {
+        return $this->request('openapi/contract/openOrders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteOpenapiContractOrderCancel($params = array()) {
         return $this->request('openapi/contract/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 1));
