@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.8';
+$version = '4.5.10';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.8';
+    const VERSION = '4.5.10';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -421,7 +421,6 @@ class Exchange {
         'ndax',
         'novadax',
         'oceanex',
-        'okcoin',
         'okx',
         'okxus',
         'onetrading',
@@ -3265,6 +3264,14 @@ class Exchange {
         throw new NotSupported($this->id . ' unWatchTicker() is not supported yet');
     }
 
+    public function un_watch_mark_price(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchMarkPrice() is not supported yet');
+    }
+
+    public function un_watch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchMarkPrices() is not supported yet');
+    }
+
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
     }
@@ -3716,7 +3723,7 @@ class Exchange {
          * this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [$symbol] unified $symbol
          * @param {string} [$methodName] view currently supported methods => https://docs.ccxt.com/#/README?id=features
-         * @param {string} [$paramName] unified param value, like => `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names), 
+         * @param {string} [$paramName] unified param value, like => `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {array} [$defaultValue] return default value if no result found
          * @return {array} returns feature value
          */
@@ -3737,6 +3744,9 @@ class Exchange {
         // if exchange does not yet have features manually implemented
         if ($this->features === null) {
             return $defaultValue;
+        }
+        if ($marketType === null) {
+            return $defaultValue; // $marketType is required
         }
         // if $marketType (e.g. 'option') does not exist in features
         if (!(is_array($this->features) && array_key_exists($marketType, $this->features))) {
@@ -3763,7 +3773,7 @@ class Exchange {
         }
         // if user wanted only $marketType and didn't provide $methodName, eg => featureIsSupported('spot')
         if ($methodName === null) {
-            return $methodsContainer;
+            return ($defaultValue !== null) ? $defaultValue : $methodsContainer;
         }
         if (!(is_array($methodsContainer) && array_key_exists($methodName, $methodsContainer))) {
             return $defaultValue; // unsupported method, check "exchange.features" for details');
@@ -3774,7 +3784,7 @@ class Exchange {
         }
         // if user wanted only method and didn't provide `$paramName`, eg => featureIsSupported('swap', 'linear', 'createOrder')
         if ($paramName === null) {
-            return $methodDict;
+            return ($defaultValue !== null) ? $defaultValue : $methodDict;
         }
         $splited = explode('.', $paramName); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         $parentKey = $splited[0];
@@ -6834,6 +6844,10 @@ class Exchange {
         throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
     }
 
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        throw new NotSupported($this->id . ' cancelOrders() is not supported yet');
+    }
+
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' cancelOrdersWs() is not supported yet');
     }
@@ -6854,7 +6868,7 @@ class Exchange {
         throw new NotSupported($this->id . ' cancelAllOrdersWs() is not supported yet');
     }
 
-    public function cancel_unified_order($order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array ()) {
         return $this->cancel_order($this->safe_string($order, 'id'), $this->safe_string($order, 'symbol'), $params);
     }
 
@@ -8768,7 +8782,7 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTransfers () is not supported yet');
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()) {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()) {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for

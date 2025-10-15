@@ -5,20 +5,19 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import errors from '../../../base/errors.js';
+import { NetworkError } from '../../../base/errors.js';
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
-/*  ------------------------------------------------------------------------ */
-export default async (exchange, skippedProperties, symbol) => {
+async function testWatchLiquidationsForSymbols(exchange, skippedProperties, symbol) {
     const method = 'watchLiquidationsForSymbols';
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];
-    if (skippedExchanges.includes(exchange.id)) {
+    if (exchange.inArray(exchange.id, skippedExchanges)) {
         console.log(exchange.id, method + '() test skipped');
-        return;
+        return false;
     }
     if (!exchange.has[method]) {
         console.log(exchange.id, method + '() is not supported');
-        return;
+        return false;
     }
     let response = undefined;
     let now = Date.now();
@@ -27,7 +26,8 @@ export default async (exchange, skippedProperties, symbol) => {
         try {
             response = await exchange[method]([symbol]);
             now = Date.now();
-            assert(response instanceof Array);
+            const isArray = Array.isArray(response);
+            assert(isArray, "response must be an array");
             console.log(exchange.iso8601(now), exchange.id, symbol, method, Object.values(response).length, 'liquidations');
             // log.noLocate (asTable (response))
             for (let i = 0; i < response.length; i++) {
@@ -35,11 +35,12 @@ export default async (exchange, skippedProperties, symbol) => {
             }
         }
         catch (e) {
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof NetworkError)) {
                 throw e;
             }
             now = Date.now();
         }
     }
     return response;
-};
+}
+export default testWatchLiquidationsForSymbols;

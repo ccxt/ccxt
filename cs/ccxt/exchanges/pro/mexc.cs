@@ -905,6 +905,7 @@ public partial class mexc : ccxt.mexc
         }
         object storedOrderBook = getValue(this.orderbooks, symbol);
         object nonce = this.safeInteger(storedOrderBook, "nonce");
+        object shouldReturn = false;
         if (isTrue(isEqual(nonce, null)))
         {
             object cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
@@ -926,7 +927,12 @@ public partial class mexc : ccxt.mexc
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
-            return;
+            // return;
+            shouldReturn = true;
+        }
+        if (isTrue(shouldReturn))
+        {
+            return;  // go requirement
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
     }
@@ -1749,7 +1755,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1800,7 +1806,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();

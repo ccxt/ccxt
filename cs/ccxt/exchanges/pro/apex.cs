@@ -922,7 +922,7 @@ public partial class apex : ccxt.apex
         object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -1083,10 +1083,10 @@ public partial class apex : ccxt.apex
 
     public override object ping(WebSocketClient client)
     {
-        object timeStamp = ((object)this.milliseconds()).ToString();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        object timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return new Dictionary<string, object>() {
-            { "args", new List<object>() {timeStamp} },
+            { "args", new List<object> {((object)timeStamp).ToString()} },
             { "op", "ping" },
         };
     }

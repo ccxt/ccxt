@@ -779,7 +779,7 @@ func (this *Coinbase) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Coinbase) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]Order, error) {
+func (this *Coinbase) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 

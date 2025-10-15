@@ -823,7 +823,7 @@ class apex extends apex$1["default"] {
         const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256.sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -966,10 +966,10 @@ class apex extends apex$1["default"] {
         }
     }
     ping(client) {
-        const timeStamp = this.milliseconds().toString();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        const timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return {
-            'args': [timeStamp],
+            'args': [timeStamp.toString()],
             'op': 'ping',
         };
     }

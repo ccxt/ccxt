@@ -44,7 +44,7 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name kraken#cancelOrderWs
@@ -66,13 +66,12 @@ export default class kraken extends krakenRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
     handleCancelAllOrders(client: any, message: any): void;
     handleTicker(client: any, message: any): void;
     handleTrades(client: Client, message: any): void;
     handleOHLCV(client: Client, message: any, subscription: any): void;
     requestId(): any;
-    watchPublic(name: any, symbol: any, params?: {}): Promise<any>;
     /**
      * @method
      * @name kraken#watchTicker
@@ -153,7 +152,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kraken.com/api/docs/websocket-v1/ohlc
+     * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -177,7 +176,7 @@ export default class kraken extends krakenRest {
      * @method
      * @name kraken#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://docs.kraken.com/api/docs/websocket-v1/owntrades
+     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -187,25 +186,25 @@ export default class kraken extends krakenRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any, subscription?: any): void;
     parseWsTrade(trade: any, market?: any): {
+        info: any;
         id: string;
         order: string;
-        info: any;
         timestamp: number;
         datetime: string;
-        symbol: any;
+        symbol: string;
         type: string;
         side: string;
-        takerOrMaker: any;
+        takerOrMaker: string;
         price: number;
         amount: number;
-        cost: any;
+        cost: number;
         fee: any;
     };
     /**
      * @method
      * @name kraken#watchOrders
-     * @see https://docs.kraken.com/api/docs/websocket-v1/openorders
      * @description watches information on multiple orders made by the user
+     * @see https://docs.kraken.com/api/docs/websocket-v2/executions
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve

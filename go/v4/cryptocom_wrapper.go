@@ -533,7 +533,7 @@ func (this *Cryptocom) CancelOrder(id string, options ...CancelOrderOptions) (Or
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Cryptocom) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]Order, error) {
+func (this *Cryptocom) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
