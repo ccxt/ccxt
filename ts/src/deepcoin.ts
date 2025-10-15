@@ -5,7 +5,8 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { BadRequest } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -230,6 +231,11 @@ export default class deepcoin extends Exchange {
                 },
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap' ], // spot, swap,
+                },
+                'timeInForce': {
+                    'GTC': 'GTC', // Good Till Cancel
+                    'IOC': 'IOC', // Immediate Or Cancel
+                    'PO': 'PO',   // Post Only
                 },
                 'exchangeType': {
                     'spot': 'SPOT',
@@ -876,6 +882,196 @@ export default class deepcoin extends Exchange {
             'succeed': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#createOrder
+     * @description create a trade order
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/order
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/triggerOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {string} [params.timeInForce] *non trigger orders only* 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
+     * @param {bool} [params.postOnly] *non trigger orders only* true to place a post only order
+     * @param {bool} [params.reduceOnly] *non trigger orders only* a mark to reduce the position size for margin, swap and future orders
+     * @param {float} [params.triggerPrice] the price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+     * @param {string} [params.positionSide] if position mode is one-way: set to 'net', if position mode is hedge-mode: set to 'long' or 'short'
+     * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
+     * @param {string} [params.marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        let response = undefined;
+        if (triggerPrice !== undefined) {
+            // trigger orders
+            response = this.privatePostDeepcoinTradeTriggerOrder (this.extend (request, params));
+        } else {
+            // regular orders
+            response = this.privatePostDeepcoinTradeOrder (this.extend (request, params));
+        }
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name deepcoin#createOrderRequest
+         * @description helper function to build request
+         */
+        const market = this.market (symbol);
+        const triggerPrice = this.safeString (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            return this.createTriggerOrderRequest (symbol, type, side, amount, price, params);
+        } else if (market['spot']) {
+            return this.createRegularOrderRequest (symbol, type, side, amount, price, params);
+        }
+    }
+
+    createRegularOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @ignore
+         * @name deepcoin#createRegularOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *spot only* the cost of the order in units of the quote currency, for market orders only
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {string} [params.timeInForce] 'GTC' (Good Till Cancel), 'IOC' (Immediate Or Cancel) or 'PO' (Post Only)
+         * @param {bool} [params.postOnly] true to place a post only order
+         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin and swap orders
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
+         * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+         */
+        const market = this.market (symbol);
+        const orderType = this.handleTypePostOnlyAndTimeInForce (type, params);
+        const request: Dict = {
+            'instId': market['id'],
+            // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
+            // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin // todo check
+            // 'clOrdId': clientOrderId,
+            // 'side': side,
+            'ordType': orderType,
+            // 'sz': amount or cost
+            // 'px': price, // limit orders only
+            // 'reduceOnly': false, // a mark to reduce the position size for margin and swap orders
+            // 'tgtCcy': 'base_ccy', // spot only 'base_ccy' or 'quote_ccy', the default is 'base_ccy' for spot orders
+            // 'tpTriggerPx': takeProfitPrice, // take profit trigger price
+            // 'slTriggerPx': stopLossPrice, // stop loss trigger price
+            // 'posSide': 'long', // swap only 'long' or 'short'
+            // 'mrgPosition': 'merge', // swap only 'merge' or 'split'
+            // 'closePosId': 'id', // swap only position ID to close, required in split mode
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clOrdId'] = clientOrderId;
+            params = this.omit (params, 'clientOrderId');
+        }
+        if (price !== undefined) {
+            if (type === 'market') {
+                throw new BadRequest (this.id + ' createOrder() does not require a price argument for market orders');
+            }
+            request['px'] = this.priceToPrecision (symbol, price);
+        }
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        if (stopLossPrice !== undefined) {
+            params = this.omit (params, 'stopLossPrice');
+            request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
+        }
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (takeProfitPrice !== undefined) {
+            params = this.omit (params, 'takeProfitPrice');
+            request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
+        }
+        if (market['spot']) {
+            let cost = undefined;
+            cost = this.safeString (params, 'cost');
+            if (cost !== undefined) {
+                if (amount !== undefined) {
+                    throw new BadRequest (this.id + ' createOrder() accepts either amount argument or cost parameter, not both');
+                }
+                params = this.omit (params, 'cost');
+                request['sz'] = this.costToPrecision (symbol, cost);
+                request['tgtCcy'] = 'quote_ccy';
+            } else {
+                request['sz'] = this.amountToPrecision (symbol, amount);
+                request['tgtCcy'] = 'base_ccy';
+            }
+            request['side'] = side;
+            request['tdMode'] = 'cash';
+        } else {
+            request['sz'] = this.amountToPrecision (symbol, amount);
+            let marginMode = 'cross';
+            [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
+            request['tdMode'] = marginMode;
+            let hedged = false;
+            let mrgPosition = 'merge';
+            [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged', hedged);
+            if (hedged) {
+                mrgPosition = 'split'; // todo check
+            }
+            request['mrgPosition'] = mrgPosition;
+            let posSide: Str = undefined;
+            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+            if (reduceOnly) {
+                if (side === 'buy') {
+                    posSide = 'short';
+                } else if (side === 'sell') {
+                    posSide = 'long';
+                }
+            } else {
+                if (side === 'buy') {
+                    posSide = 'long';
+                } else if (side === 'sell') {
+                    posSide = 'short';
+                }
+            }
+            request['posSide'] = posSide;
+        }
+        return this.extend (request, params);
+    }
+
+    createTriggerOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        const market = this.market (symbol);
+        // todo finish implementation
+        const request: Dict = {
+            'instId': market['id'],
+        };
+        return this.extend (request, params);
+    }
+
+    handleTypePostOnlyAndTimeInForce (type: OrderType, params) {
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
+        if (postOnly) {
+            type = 'post_only';
+        }
+        const timeInForce = this.handleTimeInForce (params);
+        params = this.omit (params, 'timeInForce');
+        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
+            type = 'ioc';
+        }
+        return [ type, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
