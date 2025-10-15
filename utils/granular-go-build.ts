@@ -9,6 +9,8 @@ const foldersToSearch = [
     './go/v4'
 ];
 
+const structsFile = './go/tests/base/test.structs.go' // this needs to be deleted because uses exchanges that may not be present
+
 function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -193,6 +195,16 @@ function main() {
     }
     createExchangeTypedInterfaceFile(args);
     createWsExchangeTypedInterfaceFile(args);
+
+    // delete structs file
+    if (fs.existsSync(structsFile)) {
+        try {
+            fs.unlinkSync(structsFile);
+            log.red(`Deleted: ${structsFile}`);
+        } catch (error) {
+            log.red(`Failed to delete ${structsFile}:`, error);
+        }
+    }
 
     log.bright.cyan("Done! You can now build the Go project (tests/cli/etc) with 'go build' command.");
 }
