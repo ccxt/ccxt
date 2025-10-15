@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Exchange {
 
@@ -104,8 +105,265 @@ public class Exchange {
     public Object last_request_headers;
     public Object last_json_response;
     public Object last_http_response;
-    public void describe() {
-        // Method implementation goes here
+
+    public Object https_proxy = null;
+    public Object socksProxy = null;
+    public Object socks_proxy = null;
+    public Object wsSocksProxy = null;
+    public Object ws_socks_proxy = null;
+
+    public Func<Object, Object, Object, Object> socksProxyCallback = null;
+    public Func<Object, Object, Object, Object> socks_proxy_callback = null;
+
+
+
+
+    // === HELPERS === //
+
+// =======================
+// Crypto
+// =======================
+    public Object hmac(Object payload, Object secret) {
+        return Crypto.Hmac(payload, secret);
+    }
+    public Object hmac(Object payload, Object secret, Object algo) {
+        return Crypto.Hmac(payload, secret, algo);
+    }
+    public Object hmac(Object payload, Object secret, Object algo, Object encoding) {
+        return Crypto.Hmac(payload, secret, algo, encoding);
+    }
+    public Object hash(Object payload, Object algo) {
+        return Crypto.Hash(payload, algo);
+    }
+    public Object md5(Object payload) {
+        return Crypto.Md5(payload);
+    }
+    public Object sha256(Object payload) {
+        return Crypto.Sha256(payload);
+    }
+    public Object sha512(Object payload) {
+        return Crypto.Sha512(payload);
+    }
+
+    // =======================
+    // Encode
+    // =======================
+    public String urlencode(Object obj) {
+        return Encode.Urlencode(obj);
+    }
+    public String urlencodeWithArrayRepeat(Object obj) {
+        return Encode.UrlencodeWithArrayRepeat(obj);
+    }
+    public String base64ToString(Object b64) {
+        return Encode.Base64ToString(b64);
+    }
+    public String stringToBase64(Object s) {
+        return Encode.StringToBase64(s);
+    }
+    public String bytesToHex(Object bytes) {
+        return Encode.BytesToHex(bytes);
+    }
+    public Object hexToBytes(Object hex) {
+        return Encode.HexToBytes(hex);
+    }
+
+    // =======================
+    // Functions
+    // =======================
+
+
+    public boolean isHttpMethod(Object method) {
+        return io.github.ccxt.base.Functions.isHttpMethod(
+            method == null ? null : String.valueOf(method)
+        );
+    }
+
+    public java.util.Map<String, Object> keysort(Object parameters) {
+        return io.github.ccxt.base.Functions.keysort(parameters);
+    }
+
+    public java.util.List<String> sort(Object inputList) {
+        return io.github.ccxt.base.Functions.sort(inputList);
+    }
+
+    // omit overloads
+    public Object omit(Object a, Object... keys) {
+        return io.github.ccxt.base.Functions.omit(a, keys);
+    }
+    public Object omit(Object a, Object key) {
+        return io.github.ccxt.base.Functions.omit(a, key);
+    }
+    public java.util.Map<String, Object> omit(java.util.Map<String, Object> a, String key) {
+        return (java.util.Map<String, Object>) io.github.ccxt.base.Functions.omit(a, key);
+    }
+    public java.util.Map<String, Object> omitN(Object a, java.util.List<Object> keys) {
+        return io.github.ccxt.base.Functions.omitN(a, keys);
+    }
+
+    public java.util.List<Object> toArray(Object a) {
+        return io.github.ccxt.base.Functions.toArray(a);
+    }
+
+    public Object arrayConcat(Object a, Object b) {
+        return io.github.ccxt.base.Functions.arrayConcat(a, b);
+    }
+
+    public java.util.List<Object> aggregate(Object bidasks) {
+        return io.github.ccxt.base.Functions.aggregate(bidasks);
+    }
+
+    public String uuidv1() {
+        return io.github.ccxt.base.Functions.uuidv1();
+    }
+
+    public java.util.List<Object> extractParams(Object str) {
+        return io.github.ccxt.base.Functions.extractParams(str);
+    }
+
+    public boolean isJsonEncodedObject(Object str) {
+        return io.github.ccxt.base.Functions.isJsonEncodedObject(str);
+    }
+
+    public String json(Object obj) {
+        return io.github.ccxt.base.Functions.json(obj);
+    }
+
+    // keep both casings since both exist
+    public String Json(Object obj) {
+        return io.github.ccxt.base.Functions.Json(obj);
+    }
+
+    public Object ordered(Object ob) {
+        return io.github.ccxt.base.Functions.ordered(ob);
+    }
+
+
+    // =======================
+    // Generic
+    // =======================
+    public Object cloneDeep(Object value) {
+        return Generic.CloneDeep(value);
+    }
+    public Object extend(Object target, Object source) {
+        return Generic.Extend(target, source);
+    }
+    public Object deepExtend(Object target, Object source) {
+        return Generic.DeepExtend(target, source);
+    }
+    public Object deepExtendN(Object target, Object... sources) {
+        return Generic.DeepExtendN(target, sources);
+    }
+    public Object omit(Object obj, java.util.List<Object> keys) {
+        return Generic.Omit(obj, keys);
+    }
+    public Object pick(Object obj, java.util.List<Object> keys) {
+        return Generic.Pick(obj, keys);
+    }
+
+    // =======================
+    // Number
+    // =======================
+    public String decimalToPrecision(Object x, Object roundingMode, Object numPrecisionDigits) {
+        return Number.DecimalToPrecision(x, roundingMode, numPrecisionDigits, Number.DECIMAL_PLACES, Number.NO_PADDING);
+    }
+    public String decimalToPrecision(Object x, Object roundingMode, Object numPrecisionDigits, Object countMode, Object paddingMode) {
+        return Number.DecimalToPrecision(x, roundingMode, numPrecisionDigits, countMode, paddingMode);
+    }
+    public int precisionFromString(Object value) {
+        return Number.PrecisionFromString(value);
+    }
+    public String truncateToString(Object num, int precision) {
+        return Number.TruncateToString(num, precision);
+    }
+    public String numberToString(Object number) {
+        return Number.NumberToString(number);
+    }
+    public String numberToString2(Object number) {
+        return Number.NumberToString2(number);
+    }
+
+    // =======================
+    // SafeMethods
+    // =======================
+    public Object safeValue(Object obj, Object key, Object defaultValue) {
+        return SafeMethods.SafeValue(obj, key, defaultValue);
+    }
+    public Object safeValueN(Object obj, java.util.List<Object> keys, Object defaultValue) {
+        return SafeMethods.SafeValueN(obj, keys, defaultValue);
+    }
+    public String safeString(Object obj, Object key, Object defaultValue) {
+        return SafeMethods.SafeString(obj, key, defaultValue);
+    }
+    public String safeStringN(Object obj, java.util.List<Object> keys, Object defaultValue) {
+        return SafeMethods.SafeStringN(obj, keys, defaultValue);
+    }
+    public Integer safeInteger(Object obj, Object key, Object defaultValue) {
+        return SafeMethods.SafeInteger(obj, key, defaultValue);
+    }
+    public Integer safeIntegerN(Object obj, java.util.List<Object> keys, Object defaultValue) {
+        return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
+    }
+    public Double safeNumber(Object obj, Object key, Object defaultValue) {
+        return SafeMethods.SafeNumber(obj, key, defaultValue);
+    }
+    public Double safeNumberN(Object obj, java.util.List<Object> keys, Object defaultValue) {
+        return SafeMethods.SafeNumberN(obj, keys, defaultValue);
+    }
+    public java.util.Map<String,Object> safeDict(Object obj, Object key, Object defaultValue) {
+        return SafeMethods.SafeDict(obj, key, defaultValue);
+    }
+    public java.util.List<Object> safeList(Object obj, Object key, Object defaultValue) {
+        return SafeMethods.SafeList(obj, key, defaultValue);
+    }
+
+    // =======================
+    // Strings
+    // =======================
+    public String replaceAll(Object baseString, Object search, Object replacement) {
+        return Strings.ReplaceAll(baseString, search, replacement);
+    }
+    public boolean startsWith(Object s, Object prefix) {
+        return Strings.StartsWith(s, prefix);
+    }
+    public boolean endsWith(Object s, Object suffix) {
+        return Strings.EndsWith(s, suffix);
+    }
+    public String toUpperCase(Object s) {
+        return Strings.ToUpperCase(s);
+    }
+    public String toLowerCase(Object s) {
+        return Strings.ToLowerCase(s);
+    }
+    public String trim(Object s) {
+        return Strings.Trim(s);
+    }
+    public java.util.List<Object> split(Object s, Object delimiter) {
+        return Strings.Split(s, delimiter);
+    }
+    public String join(java.util.List<?> items, Object delimiter) {
+        return Strings.Join(items, delimiter);
+    }
+    public String sliceStr(Object s, Object start, Object end) {
+        return Strings.Slice(s, start, end);
+    }
+
+    // =======================
+    // Time
+    // =======================
+    public Long milliseconds() {
+        return Time.Milliseconds();
+    }
+    public Long seconds() {
+        return Time.Seconds();
+    }
+    public String iso8601(Object timestamp) {
+        return Time.Iso8601(timestamp);
+    }
+    public Long parse8601(Object isoString) {
+        return Time.Parse8601(isoString);
+    }
+    public Long nonce() {
+        return Time.Nonce();
     }
 
 
