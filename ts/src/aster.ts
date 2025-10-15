@@ -198,6 +198,7 @@ export default class aster extends Exchange {
                         'fapi/v1/markPriceKlines',
                         'fapi/v1/premiumIndex',
                         'fapi/v1/fundingRate',
+                        'fapi/v1/fundingInfo',
                         'fapi/v1/ticker/24hr',
                         'fapi/v1/ticker/price',
                         'fapi/v1/ticker/bookTicker',
@@ -215,7 +216,7 @@ export default class aster extends Exchange {
                         'fapi/v1/openOrders',
                         'fapi/v1/allOrders',
                         'fapi/v2/balance',
-                        'fapi/v2/account',
+                        'fapi/v4/account',
                         'fapi/v1/positionMargin/history',
                         'fapi/v2/positionRisk',
                         'fapi/v1/userTrades',
@@ -454,7 +455,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#exchange-information
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -510,7 +511,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMarkets
      * @description retrieves data on all markets for bigone
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#exchange-information
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -703,7 +704,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#check-server-time
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -748,7 +749,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -886,7 +887,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#recent-trades-list
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#recent-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -928,7 +929,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#account-trade-list-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-trade-list-user_data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -983,7 +984,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#order-book
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1033,7 +1034,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-funding-rate-history
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-history
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
@@ -1147,7 +1148,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#24hr-ticker-price-change-statistics
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1189,7 +1190,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#24hr-ticker-price-change-statistics
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1265,7 +1266,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1299,7 +1300,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchFundingRates
      * @description fetch the current funding rate for multiple symbols
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#24hr-ticker-price-change-statistics
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1343,7 +1344,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#futures-account-balance-v2-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#futures-account-balance-v2-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -1371,7 +1372,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-margin-type-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-margin-type-trade
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1410,7 +1411,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-current-position-modeuser_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-current-position-modeuser_data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -1433,7 +1434,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#setPositionMode
      * @description set hedged to true or false for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-position-modetrade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade
      * @param {bool} hedged set to true to use dualSidePosition
      * @param {string} symbol not used by bingx setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1470,7 +1471,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-position-modetrade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1586,7 +1587,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#query-order-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-order-user_data
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1644,7 +1645,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOpenOrder
      * @description fetch an open order by the id
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#query-current-open-order-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#query-current-open-order-user_data
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1701,7 +1702,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#all-orders-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#all-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1764,7 +1765,7 @@ export default class aster extends Exchange {
     /**
      * @method
      * @name aster#fetchOpenOrders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#current-all-open-orders-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data
      * @description fetch all unfilled currently open orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
@@ -1817,7 +1818,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#createOrder
      * @description create a trade order
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#new-order--trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#new-order--trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
      * @param {string} side 'buy' or 'sell'
@@ -1849,7 +1850,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#createOrders
      * @description create a list of trade orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#place-multiple-orders--trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#place-multiple-orders--trade
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1968,7 +1969,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#cancel-all-open-orders-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-all-open-orders-trade
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2000,7 +2001,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#cancelOrder
      * @description cancels an open order
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#cancel-order-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2030,7 +2031,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#cancelOrders
      * @description cancel multiple orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#cancel-multiple-orders-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-multiple-orders-trade
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2095,7 +2096,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#setLeverage
      * @description set the level of leverage for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#change-initial-leverage-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-initial-leverage-trade
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2129,7 +2130,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchLeverages
      * @description fetch the set leverage for all markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -2208,7 +2209,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMarginModes
      * @description fetches margin mode of the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
@@ -2275,7 +2276,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMarginAdjustmentHistory
      * @description fetches the history of margin added or reduced from contract isolated positions
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-position-margin-change-history-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-position-margin-change-history-trade
      * @param {string} symbol unified market symbol
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
@@ -2391,7 +2392,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#reduceMargin
      * @description remove margin from a position
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#modify-isolated-position-margin-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2405,7 +2406,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#addMargin
      * @description add margin
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#modify-isolated-position-margin-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#modify-isolated-position-margin-trade
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2446,7 +2447,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-income-historyuser_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding history for
      * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -2539,7 +2540,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#get-income-historyuser_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-income-historyuser_data
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
@@ -2654,7 +2655,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchPositionsRisk
      * @description fetch positions risk
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#position-information-v2-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#position-information-v2-user_data
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
