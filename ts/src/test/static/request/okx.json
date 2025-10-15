@@ -1311,7 +1311,7 @@
             {
                 "description": "historical endpoint instead of recent",
                 "method": "fetchOHLCV",
-                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1700291781033",
+                "url": "https://www.okx.com/api/v5/market/history-candles?instId=BTC-USDT&bar=1H&limit=300&before=1699931781032&after=1701011781033",
                 "input": [
                     "BTC/USDT",
                     "1h",
