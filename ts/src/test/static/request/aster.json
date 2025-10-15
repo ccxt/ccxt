@@ -163,6 +163,18 @@
                 ]
             }
         ],
+        "fetchFundingIntervals": [
+            {
+                "description": "fetchFundingIntervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://fapi.asterdex.com/fapi/v1/fundingInfo",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetchBalance",

@@ -103,7 +103,7 @@ export default class aster extends Exchange {
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingInterval': 'emulated',
-                'fetchFundingIntervals': false,
+                'fetchFundingIntervals': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -1236,10 +1236,23 @@ export default class aster extends Exchange {
         //         "nextFundingTime": 1750147200000,
         //         "time": 1750146970000
         //     }
+        //     {
+        //         "symbol": "INJUSDT",
+        //         "interestRate": "0.00010000",
+        //         "time": 1756197479000,
+        //         "fundingIntervalHours": 8,
+        //         "fundingFeeCap": 0.03,
+        //         "fundingFeeFloor": -0.03
+        //     }
         //
         const marketId = this.safeString (contract, 'symbol');
         const nextFundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
         const timestamp = this.safeInteger (contract, 'time');
+        const interval = this.safeString (contract, 'fundingIntervalHours');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': this.safeSymbol (marketId, market),
@@ -1258,7 +1271,7 @@ export default class aster extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         } as FundingRate;
     }
 
@@ -1320,6 +1333,37 @@ export default class aster extends Exchange {
         //             "interestRate": "0.00010000",
         //             "nextFundingTime": 1750147200000,
         //             "time": 1750146970000
+        //         }
+        //     ]
+        //
+        return this.parseFundingRates (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name aster#fetchFundingIntervals
+     * @description fetch the funding rate interval for multiple markets
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-config
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+        }
+        const response = await this.publicGetFapiV1FundingInfo (params);
+        //
+        //     [
+        //         {
+        //             "symbol": "INJUSDT",
+        //             "interestRate": "0.00010000",
+        //             "time": 1756197479000,
+        //             "fundingIntervalHours": 8,
+        //             "fundingFeeCap": 0.03,
+        //             "fundingFeeFloor": -0.03
         //         }
         //     ]
         //
