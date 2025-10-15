@@ -224,6 +224,7 @@ export default class deepcoin extends Exchange {
             'options': {
                 'recvWindow': 5000,
                 'networks': {
+                    'ERC20': 'ERC20', // todo add more networks
                 },
                 'networksById': {
                 },
@@ -739,11 +740,10 @@ export default class deepcoin extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'spot');
-        const type = (marketType === undefined) ? 'spot' : marketType;
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, marketType);
         const request: Dict = {
-            'instType': this.convertToInstrumentType (type),
+            'instType': this.convertToInstrumentType (marketType),
         };
         const response = await this.privateGetDeepcoinAccountBalances (this.extend (request, params));
         return this.parseBalance (response);
@@ -817,7 +817,10 @@ export default class deepcoin extends Exchange {
         const response = await this.privateGetDeepcoinAssetDepositList (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'data', []);
-        return this.parseTransactions (items, currency, since, limit, params);
+        const transactionParams: Dict = {
+            'type': 'deposit',
+        };
+        return this.parseTransactions (items, currency, since, limit, transactionParams);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -832,19 +835,20 @@ export default class deepcoin extends Exchange {
         //         "status": "succeed"
         //     }
         //
-        const type = 'deposit';
         const txid = this.safeString (transaction, 'txHash');
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
         const amount = this.safeNumber (transaction, 'amount');
         const timestamp = this.safeTimestamp (transaction, 'createTime');
+        const networkId = this.safeString (transaction, 'chainName');
+        const network = this.networkIdToCode (networkId);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
             'id': undefined,
             'currency': code,
             'amount': amount,
-            'network': undefined,
+            'network': network,
             'addressFrom': undefined,
             'addressTo': undefined,
             'address': undefined,
@@ -852,7 +856,7 @@ export default class deepcoin extends Exchange {
             'tagTo': undefined,
             'tag': undefined,
             'status': status,
-            'type': type,
+            'type': undefined,
             'updated': undefined,
             'txid': txid,
             'timestamp': timestamp,
@@ -860,7 +864,7 @@ export default class deepcoin extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': {
-                'currency': code,
+                'currency': undefined,
                 'cost': undefined,
             },
         } as Transaction;
