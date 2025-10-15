@@ -316,7 +316,7 @@ class tetherland(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'id')
         quote = self.safe_string(ticker, 'quote')
         symbol = self.safe_symbol(marketId, market, None, marketType)
-        last = asFloat(self.safe_string(ticker, 'price', '').replace(',', ''))
+        last = float(self.safe_string(ticker, 'price', '').replace(',', ''))
         if quote == 'IRT':
             last = self.safe_float(ticker, 'toman_amount', 0)
         change = self.safe_float(ticker, 'changes_24h', 0)

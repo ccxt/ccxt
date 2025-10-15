@@ -3,10 +3,6 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var tetherland$1 = require('./abstract/tetherland.js');
-require('./base/functions/platform.js');
-var type = require('./base/functions/type.js');
-require('./base/functions/encode.js');
-require('./base/functions/crypto.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -334,7 +330,7 @@ class tetherland extends tetherland$1["default"] {
         const marketId = this.safeString(ticker, 'id');
         const quote = this.safeString(ticker, 'quote');
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
-        let last = type.asFloat(this.safeString(ticker, 'price', '').replace(',', ''));
+        let last = parseFloat(this.safeString(ticker, 'price', '').replace(',', ''));
         if (quote === 'IRT') {
             last = this.safeFloat(ticker, 'toman_amount', 0);
         }

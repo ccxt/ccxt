@@ -327,7 +327,7 @@ class tetherland extends Exchange {
         $marketId = $this->safe_string($ticker, 'id');
         $quote = $this->safe_string($ticker, 'quote');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
-        $last = str_replace(',', '', asFloat ($this->safe_string($ticker, 'price', '')));
+        $last = str_replace(',', '', floatval($this->safe_string($ticker, 'price', '')));
         if ($quote === 'IRT') {
             $last = $this->safe_float($ticker, 'toman_amount', 0);
         }

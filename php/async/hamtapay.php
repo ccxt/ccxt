@@ -219,8 +219,9 @@ class hamtapay extends Exchange {
             for ($i = 0; $i < count($quotes); $i++) {
                 $current_qoute = $quotes[$i];
                 $corresponding_data = $this->safe_dict($data, $current_qoute, array());
-                for ($j = 0; $j < $corresponding_data; $j++) {
-                    $current_base = is_array($corresponding_data) ? array_keys($corresponding_data) : array()[$j];
+                $baseSymbols = is_array($corresponding_data) ? array_keys($corresponding_data) : array();
+                for ($j = 0; $j < count($baseSymbols); $j++) {
+                    $current_base = $baseSymbols[$j];
                     $current_ticker = $corresponding_data[$current_base];
                     $current_ticker['base'] = $current_base;
                     $current_ticker['quote'] = $current_qoute;

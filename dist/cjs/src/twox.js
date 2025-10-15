@@ -24,7 +24,6 @@ class twox extends twox$1["default"] {
             'has': {
                 'CORS': undefined,
                 'spot': false,
-                'otc': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -80,6 +79,7 @@ class twox extends twox$1["default"] {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': false,
+                'otc': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -243,7 +243,7 @@ class twox extends twox$1["default"] {
             symbols = this.marketSymbols(symbols);
         }
         const response = await this.publicGetApiCurrencies(params);
-        const result = [];
+        const result = {};
         const quotes = ['IRT', 'USDT'];
         for (let i = 0; i < response.length; i++) {
             const base = this.safeString(response[i], 'symbol');

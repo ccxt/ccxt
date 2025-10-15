@@ -240,7 +240,7 @@ class kifpoolme extends kifpoolme$1["default"] {
             const baseSymbols = [];
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market(symbols[i]);
-                if (baseSymbols.indexOf(market['baseId']) === -1) {
+                if (!(market['baseId'] in baseSymbols)) {
                     baseSymbols.push(market['baseId']);
                 }
             }
@@ -250,7 +250,7 @@ class kifpoolme extends kifpoolme$1["default"] {
         if (symbolsParam !== undefined) {
             request['symbol'] = symbolsParam;
         }
-        const response = await this.publicGetApiSpotPrice(this.extend(request, params));
+        const response = await this.publicGetApiSpotPrice(this.extend(request));
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const item = response[i];

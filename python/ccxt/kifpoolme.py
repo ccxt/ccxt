@@ -233,13 +233,13 @@ class kifpoolme(Exchange, ImplicitAPI):
             baseSymbols = []
             for i in range(0, len(symbols)):
                 market = self.market(symbols[i])
-                if baseSymbols.find(market['baseId']) == -1:
+                if not (market['baseId'] in baseSymbols):
                     baseSymbols.append(market['baseId'])
             symbolsParam = ','.join(baseSymbols)
         request = {}
         if symbolsParam is not None:
             request['symbol'] = symbolsParam
-        response = self.publicGetApiSpotPrice(self.extend(request, params))
+        response = self.publicGetApiSpotPrice(self.extend(request))
         result = {}
         for i in range(0, len(response)):
             item = response[i]

@@ -210,8 +210,9 @@ class hamtapay(Exchange, ImplicitAPI):
         for i in range(0, len(quotes)):
             current_qoute = quotes[i]
             corresponding_data = self.safe_dict(data, current_qoute, {})
-            for j in range(0, corresponding_data):
-                current_base = list(corresponding_data.keys())[j]
+            baseSymbols = list(corresponding_data.keys())
+            for j in range(0, len(baseSymbols)):
+                current_base = baseSymbols[j]
                 current_ticker = corresponding_data[current_base]
                 current_ticker['base'] = current_base
                 current_ticker['quote'] = current_qoute

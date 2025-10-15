@@ -242,7 +242,7 @@ class kifpoolme extends Exchange {
                 $baseSymbols = array();
                 for ($i = 0; $i < count($symbols); $i++) {
                     $market = $this->market($symbols[$i]);
-                    if (mb_strpos($baseSymbols, $market['baseId']) === -1) {
+                    if (!(is_array($baseSymbols) && array_key_exists($market['baseId'], $baseSymbols))) {
                         $baseSymbols[] = $market['baseId'];
                     }
                 }
@@ -252,7 +252,7 @@ class kifpoolme extends Exchange {
             if ($symbolsParam !== null) {
                 $request['symbol'] = $symbolsParam;
             }
-            $response = Async\await($this->publicGetApiSpotPrice ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiSpotPrice ($this->extend($request)));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $item = $response[$i];
