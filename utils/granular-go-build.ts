@@ -9,7 +9,11 @@ const foldersToSearch = [
     './go/v4'
 ];
 
-const structsFile = './go/tests/base/test.structs.go' // this needs to be deleted because uses exchanges that may not be present
+const filesToDelete =[
+    './go/tests/base/test.structs.go',
+    './go/tests/base/test.types.rest.go'
+]
+
 
 function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -196,14 +200,23 @@ function main() {
     createExchangeTypedInterfaceFile(args);
     createWsExchangeTypedInterfaceFile(args);
 
-    // delete structs file
-    if (fs.existsSync(structsFile)) {
-        try {
-            fs.unlinkSync(structsFile);
-            log.red(`Deleted: ${structsFile}`);
-        } catch (error) {
-            log.red(`Failed to delete ${structsFile}:`, error);
+    for (const filePath of filesToDelete) {
+        if (fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+                log.red(`Deleted: ${filePath}`);
+            } catch (error) {
+                log.red(`Failed to delete ${filePath}:`, error);
+            }
         }
+    }
+    const languageSpecificFile = './go/tests/base/test.languageSpecific.go';
+    if (fs.existsSync(languageSpecificFile)) {
+        let fileContent = fs.readFileSync(languageSpecificFile, 'utf-8');
+        const regex = /TestStructs\(\)/;
+        fileContent = fileContent.replace(regex, '');
+        fs.writeFileSync(languageSpecificFile, fileContent);
+        log.green(`Modified: ${languageSpecificFile}`);
     }
 
     log.bright.cyan("Done! You can now build the Go project (tests/cli/etc) with 'go build' command.");
