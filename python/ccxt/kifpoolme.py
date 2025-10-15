@@ -200,7 +200,7 @@ class kifpoolme(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetApiSpotPrice(params)
+        response = self.publicGetApiSpotPrice()
         result = []
         # Response is an array of coin objects
         for i in range(0, len(response)):
