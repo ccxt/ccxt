@@ -2616,7 +2616,7 @@ class coinex(Exchange, ImplicitAPI):
             results.append(order)
         return results
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

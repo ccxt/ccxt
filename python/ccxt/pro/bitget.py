@@ -1443,6 +1443,7 @@ class bitget(ccxt.async_support.bitget):
         watches information on multiple orders made by the user
 
         https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+        https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
         https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
         https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders

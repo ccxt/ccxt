@@ -1123,7 +1123,7 @@ export default class hibachi extends Exchange {
                 'status': 'canceled',
             }));
         }
-        return ret;
+        return ret as Order[];
     }
 
     /**

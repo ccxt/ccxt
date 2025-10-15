@@ -1106,7 +1106,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function fetch_currencies_ws($params = array ()) {
+    public function fetch_currencies_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *

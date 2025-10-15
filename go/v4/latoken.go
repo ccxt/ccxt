@@ -1934,6 +1934,7 @@ func (this *LatokenCore) ParseTransactionStatus(status interface{}) interface{} 
 		"TRANSACTION_STATUS_CHECKING":  "pending",
 		"TRANSACTION_STATUS_CANCELLED": "canceled",
 		"TRANSACTION_STATUS_FAILED":    "failed",
+		"TRANSACTION_STATUS_REJECTED":  "rejected",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -1970,8 +1971,8 @@ func (this *LatokenCore) FetchTransfers(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16438 := (<-this.LoadMarkets())
-		PanicOnError(retRes16438)
+		retRes16448 := (<-this.LoadMarkets())
+		PanicOnError(retRes16448)
 		var currency interface{} = this.Currency(code)
 
 		response := (<-this.PrivateGetAuthTransfer(params))
@@ -2038,8 +2039,8 @@ func (this *LatokenCore) Transfer(code interface{}, amount interface{}, fromAcco
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16968 := (<-this.LoadMarkets())
-		PanicOnError(retRes16968)
+		retRes16978 := (<-this.LoadMarkets())
+		PanicOnError(retRes16978)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency":  GetValue(currency, "id"),

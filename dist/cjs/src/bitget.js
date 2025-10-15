@@ -7980,7 +7980,10 @@ class bitget extends bitget$1["default"] {
         let market = undefined;
         if (symbols !== undefined) {
             const first = this.safeString(symbols, 0);
-            market = this.market(first);
+            // symbols can be undefined or []
+            if (first !== undefined) {
+                market = this.market(first);
+            }
         }
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -7995,7 +7998,7 @@ class bitget extends bitget$1["default"] {
         }
         else if (method === 'privateMixGetV2MixPositionAllPosition') {
             let marginCoin = this.safeString(params, 'marginCoin', 'USDT');
-            if (symbols !== undefined) {
+            if (market !== undefined) {
                 marginCoin = market['settleId'];
             }
             else if (productType === 'USDT-FUTURES') {
