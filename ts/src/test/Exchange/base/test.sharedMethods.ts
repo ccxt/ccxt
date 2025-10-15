@@ -619,6 +619,42 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
     assert (deepEqual (a, b), 'two dicts do not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
 }
 
+
+function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, method: string, symbol: string, entry: any, amountKey: string | number, priceKey: string | number, costKey: string | number) {
+    if ('cost' in skippedProperties) {
+        return;
+    }
+    const logText = logTemplate (exchange, method, entry);
+    // check `cost, amount, price` correlation
+    const market = exchange.market (symbol);
+    if (!exchange.inArray (market['type'], [ 'spot', 'swap', 'future' ]) || !exchange.inArray (market['subType'], [ undefined, 'linear' ])) {
+        // atm, skip inverse contracts (todo)
+        return;
+    }
+    const precision = market['precision'];
+    const contractSize = exchange.safeString (market, 'contractSize');
+    const amountPrecision = exchange.safeString (precision, 'amount');
+    const amount = exchange.safeString (entry, amountKey);
+    // let consider contractSize too for non-spot markets
+    const amountWithContractSize = (contractSize !== undefined) ? Precise.stringMul (amount, contractSize) : amount;
+    const price = exchange.safeString (entry, priceKey);
+    const cost = exchange.safeString (entry, costKey);
+    const amountCalculated = Precise.stringDiv (cost, price);
+    const compareResult = Precise.stringAbs (Precise.stringSub (amountWithContractSize, amountCalculated));
+    let isValid = false;
+    if (Precise.stringEq (compareResult, '0')) {
+        // if exact calculation is correct
+        isValid = true;
+    } else {
+        // else we need to know the amountPrecision, so we would pass the test if the remainder is less than amountPrecision
+        assert (amountPrecision !== undefined, 'amount precision is not defined, you might add in skips-json' + logText);
+        // rounding loss more than then half of the market.precision.amount is not tolerable
+        const amountPrecisionHalf = Precise.stringDiv (amountPrecision, '2');
+        isValid = Precise.stringLt (compareResult, amountPrecisionHalf);
+    }
+    assert (isValid, 'cost & amount & price math is not correct' + logText);
+}
+
 export default {
     deepEqual,
     assertDeepEqual,
@@ -652,4 +688,5 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    assertAmountPriceCost,
 };
