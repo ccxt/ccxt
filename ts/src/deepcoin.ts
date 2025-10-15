@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ export default class deepcoin extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -159,7 +159,7 @@ export default class deepcoin extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'deepcoin/account/balances': 5,
+                        'deepcoin/account/balances': 5, // done
                         'deepcoin/account/bills': 5,
                         'deepcoin/account/positions': 5,
                         'deepcoin/trade/fills': 5,
@@ -726,6 +726,61 @@ export default class deepcoin extends Exchange {
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBalance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] "spot" or "swap", the market type for the balance
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, 'spot');
+        const type = (marketType === undefined) ? 'spot' : marketType;
+        const request: Dict = {
+            'instType': this.convertToInstrumentType (type),
+        };
+        const response = await this.privateGetDeepcoinAccountBalances (this.extend (request, params));
+        return this.parseBalance (response);
+    }
+
+    parseBalance (response): Balances {
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "ccy": "USDT",
+        //                 "bal": "74",
+        //                 "frozenBal": "0",
+        //                 "availBal": "74"
+        //             }
+        //         ]
+        //     }
+        //
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const balances = this.safeList (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const symbol = this.safeString (balance, 'ccy');
+            const code = this.safeCurrencyCode (symbol);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'bal');
+            account['used'] = this.safeString (balance, 'frozenBal');
+            account['free'] = this.safeString (balance, 'availBal');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
