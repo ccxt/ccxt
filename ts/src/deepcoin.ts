@@ -61,10 +61,10 @@ export default class deepcoin extends Exchange {
                 'createTriggerOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
-                'fetchCanceledAndClosedOrders': false,
-                'fetchCanceledOrders': false,
-                'fetchClosedOrder': false,
-                'fetchClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrder': true,
+                'fetchClosedOrders': true,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
@@ -90,7 +90,7 @@ export default class deepcoin extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrder': false,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
@@ -164,9 +164,9 @@ export default class deepcoin extends Exchange {
                         'deepcoin/account/bills': 5,
                         'deepcoin/account/positions': 5,
                         'deepcoin/trade/fills': 5,
-                        'deepcoin/trade/orderByID': 5,
-                        'deepcoin/trade/finishOrderByID': 5,
-                        'deepcoin/trade/orders-history': 5,
+                        'deepcoin/trade/orderByID': 5, // done
+                        'deepcoin/trade/finishOrderByID': 5, // done
+                        'deepcoin/trade/orders-history': 5, // done
                         'deepcoin/trade/v2/orders-pending': 5,
                         'deepcoin/trade/funding-rate': 5,
                         'deepcoin/trade/fund-rate/current-funding-rate': 5,
@@ -253,6 +253,7 @@ export default class deepcoin extends Exchange {
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    // {"code":"50","msg":"len(rows) expected(1) got(0) rows([])","data":null}
                 },
                 'broad': {},
             },
@@ -1149,7 +1150,7 @@ export default class deepcoin extends Exchange {
      * @method
      * @name deepcoin#fetchClosedOrder
      * @description fetches information on a closed order made by the user
-     * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/finishOrderByID
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1215,6 +1216,107 @@ export default class deepcoin extends Exchange {
         const data = this.safeList (response, 'data', []);
         const entry = this.safeDict (data, 0, {});
         return this.parseOrder (entry, market);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchOpenOrder
+     * @description fetch an open order by it's id
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/orderByID
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+            'ordId': id,
+        };
+        const response = await this.privateGetDeepcoinTradeOrderByID (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        if (data.length === 0) {
+            return undefined;
+        }
+        const entry = this.safeDict (data, 0, {});
+        return this.parseOrder (entry, market);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchCanceledAndClosedOrders
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let methodName = 'fetchCanceledAndClosedOrders';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        let market: Market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instId'] = market['id'];
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        request['instType'] = this.convertToInstrumentType (marketType);
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100
+        }
+        // todo handle with since, until and pagination
+        const response = await this.privateGetDeepcoinTradeOrdersHistory (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const methodName = 'fetchCanceledOrders';
+        params = this.extend (params, { 'methodName': methodName });
+        params = this.extend (params, { 'state': 'canceled' });
+        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersHistory
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', the market type for the orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        const methodName = 'fetchClosedOrders';
+        params = this.extend (params, { 'methodName': methodName });
+        params = this.extend (params, { 'state': 'filled' });
+        return await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1309,6 +1411,8 @@ export default class deepcoin extends Exchange {
         const statuses = {
             'live': 'open',
             'filled': 'closed',
+            'canceled': 'canceled',
+            'partially_filled': 'open',
         };
         return this.safeString (statuses, status, status);
     }
