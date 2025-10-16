@@ -69,6 +69,16 @@
         ],
         "fetchTrades": [
             {
+                "description": "fetchTrades - spot",
+                "method": "fetchTrades",
+                "url": "https://sapi.asterdex.com/api/v1/trades?symbol=BTCUSDT&limit=1",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ]
+            },
+            {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
                 "url": "https://fapi.asterdex.com/fapi/v1/trades?symbol=BTCUSDT&limit=1",

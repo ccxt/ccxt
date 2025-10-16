@@ -933,6 +933,15 @@ export default class aster extends Exchange {
         //         "isBuyerMaker": true
         //     }
         //
+        //     {
+        //         "id": 657,
+        //         "price": "1.01000000",
+        //         "qty": "5.00000000",
+        //         "baseQty": "4.95049505",
+        //         "time": 1755156533943,
+        //         "isBuyerMaker": false
+        //     }
+        //
         // fetchMyTrades
         //
         //     {
@@ -958,7 +967,7 @@ export default class aster extends Exchange {
         const currencyCode = this.safeCurrencyCode (currencyId);
         const amountString = this.safeString (trade, 'qty');
         const priceString = this.safeString (trade, 'price');
-        const costString = this.safeString (trade, 'quoteQty');
+        const costString = this.safeString2 (trade, 'quoteQty', 'baseQty');
         const timestamp = this.safeInteger (trade, 'time');
         let side = this.safeString (trade, 'side');
         const isMaker = this.safeBool (trade, 'maker');
@@ -994,6 +1003,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTrades
      * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#recent-trades-list
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#recent-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1016,19 +1026,34 @@ export default class aster extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this.fapiPublicGetV1Trades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "id": 3913206,
-        //             "price": "644.100",
-        //             "qty": "0.08",
-        //             "quoteQty": "51.528",
-        //             "time": 1749784506633,
-        //             "isBuyerMaker": true
-        //         }
-        //     ]
-        //
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPublicGetV1Trades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": 3913206,
+            //             "price": "644.100",
+            //             "qty": "0.08",
+            //             "quoteQty": "51.528",
+            //             "time": 1749784506633,
+            //             "isBuyerMaker": true
+            //         }
+            //     ]
+            //
+        } else {
+            response = await this.sapiPublicGetV1Trades (this.extend (request, params));
+            //     [
+            //         {
+            //             "id": 657,
+            //             "price": "1.01000000",
+            //             "qty": "5.00000000",
+            //             "baseQty": "4.95049505",
+            //             "time": 1755156533943,
+            //             "isBuyerMaker": false
+            //         }
+            //     ]
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
