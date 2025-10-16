@@ -4084,7 +4084,7 @@ class bybit extends Exchange {
                 // only works for spot $market
                 if ($triggerPrice !== null) {
                     $request['orderFilter'] = 'StopOrder';
-                } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
+                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                     $request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4106,7 +4106,8 @@ class bybit extends Exchange {
         $params = $this->omit($params, 'cost');
         // if the $cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         $isMarketBuyAndCostInferable = ($lowerCaseType === 'market') && ($side === 'buy') && (($price !== null) || ($cost !== null));
-        if ($market['spot'] && ($type === 'market') && $isUTA && !$isMarketBuyAndCostInferable) {
+        $isMarketOrder = $lowerCaseType === 'market';
+        if ($market['spot'] && $isMarketOrder && $isUTA && !$isMarketBuyAndCostInferable) {
             // UTA account can specify the $cost of the order on both sides
             if (($cost !== null) || ($price !== null)) {
                 $request['marketUnit'] = 'quoteCoin';
@@ -4122,7 +4123,7 @@ class bybit extends Exchange {
                 $request['marketUnit'] = 'baseCoin';
                 $request['qty'] = $amountString;
             }
-        } elseif ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+        } elseif ($market['spot'] && $isMarketOrder && ($side === 'buy')) {
             // classic accounts
             // for $market buy it requires the $amount of quote currency to spend
             $createMarketBuyOrderRequiresPrice = true;
@@ -4188,6 +4189,15 @@ class bybit extends Exchange {
                     $request['tpslMode'] = 'Partial';
                     $request['slOrderType'] = 'Limit';
                     $request['slLimitPrice'] = $this->get_price($symbol, $slLimitPrice);
+                } else {
+                    // for spot $market, we need to add this
+                    if ($market['spot']) {
+                        $request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot $market, we need to add this
+                if ($market['spot'] && $isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() => attached $stopLoss is not supported for spot $market orders');
                 }
             }
             if ($isTakeProfit) {
@@ -4198,6 +4208,15 @@ class bybit extends Exchange {
                     $request['tpslMode'] = 'Partial';
                     $request['tpOrderType'] = 'Limit';
                     $request['tpLimitPrice'] = $this->get_price($symbol, $tpLimitPrice);
+                } else {
+                    // for spot $market, we need to add this
+                    if ($market['spot']) {
+                        $request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot $market, we need to add this
+                if ($market['spot'] && $isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() => attached $takeProfit is not supported for spot $market orders');
                 }
             }
         }
