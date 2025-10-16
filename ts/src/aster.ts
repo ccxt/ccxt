@@ -517,13 +517,22 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response: Dict = await this.fapiPublicGetV1ExchangeInfo (params);
-        const rows = this.safeList (response, 'assets', []);
+        const promises = [
+            this.sapiPublicGetV1ExchangeInfo (params),
+            this.fapiPublicGetV1ExchangeInfo (params),
+        ];
+        const results = await Promise.all (promises);
+        const sapiCurrencies = this.safeDict (results, 0, {});
+        const sapiRows = this.safeList (sapiCurrencies, 'assets', []);
+        const fapiCurrencies = this.safeDict (results, 1, {});
+        const fapiRows = this.safeList (fapiCurrencies, 'assets', []);
+        const rows = this.arrayConcat (sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -2848,7 +2857,7 @@ export default class aster extends Exchange {
                 extendedParams['recvWindow'] = recvWindow;
             }
             let query = undefined;
-            if ((method === 'DELETE') && (path === 'fapi/v1/batchOrders')) {
+            if ((method === 'DELETE') && (path === 'v1/batchOrders')) {
                 const orderidlist = this.safeList (extendedParams, 'orderIdList', []);
                 const origclientorderidlist = this.safeList (extendedParams, 'origClientOrderIdList', []);
                 extendedParams = this.omit (extendedParams, [ 'orderIdList', 'origClientOrderIdList' ]);
