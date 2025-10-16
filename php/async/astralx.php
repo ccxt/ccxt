@@ -942,7 +942,7 @@ class astralx extends Exchange {
                 'symbol' => $market['id'],
                 'side' => $apiSide,
                 'orderType' => 'LIMIT',
-                'quantity' => $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'],
+                'quantity' => $this->amount_to_precision($symbol, $amount / $market['contractSize']),
                 'priceType' => $priceType, // 默认输入价格类型
                 'leverage' => '10',     // 默认10倍杠杆
                 'timeInForce' => 'GTC', // 默认取消前有效
@@ -996,7 +996,7 @@ class astralx extends Exchange {
                 'symbol' => $market['id'],
                 'side' => $apiSide,
                 'orderType' => 'LIMIT',
-                'quantity' => $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'],
+                'quantity' => $this->amount_to_precision($symbol, $amount / $market['contractSize']),
                 'priceType' => $priceType, // 默认输入价格类型
                 'leverage' => '10',     // 默认10倍杠杆
                 'timeInForce' => 'GTC', // 默认取消前有效
@@ -1224,7 +1224,15 @@ class astralx extends Exchange {
         // 计算实际合约数量（考虑合约大小）
         $actualContracts = $contracts;
         if ($contracts !== null && $market['contractSize'] !== null) {
-            $actualContracts = $contracts * $market['contractSize'];
+            $calculatedContracts = $contracts * $market['contractSize'];
+            // 检查计算后的数量是否大于最小精度
+            // 获取市场的最小数量精度
+            $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
+            if ($calculatedContracts >= $minAmount) {
+                $actualContracts = $this->parse_number($this->amount_to_precision($symbol, $calculatedContracts));
+            } else {
+                $actualContracts = 0; // 如果小于最小精度，设置为0
+            }
         }
         // 计算名义价值
         $notional = $positionValue;
@@ -1275,14 +1283,28 @@ class astralx extends Exchange {
         $origQtyString = $this->safe_string($order, 'origQty');
         $amount = null;
         if ($origQtyString !== null) {
-            $origQty = floatval($origQtyString);
-            $amount = $origQty * $market['contractSize'];
+            $origQty = $this->parse_number($origQtyString);
+            $calculatedAmount = $origQty * $market['contractSize'];
+            // 获取市场的最小数量精度
+            $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
+            if ($calculatedAmount >= $minAmount) {
+                $amount = $this->parse_number($this->amount_to_precision($symbol, $calculatedAmount));
+            } else {
+                $amount = 0; // 如果小于最小精度，设置为0
+            }
         }
         $executedQtyString = $this->safe_string($order, 'executedQty');
         $filled = null;
         if ($executedQtyString !== null) {
-            $executedQty = floatval($executedQtyString);
-            $filled = $executedQty * $market['contractSize'];
+            $executedQty = $this->parse_number($executedQtyString);
+            $calculatedFilled = $executedQty * $market['contractSize'];
+            // 获取市场的最小数量精度
+            $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
+            if ($calculatedFilled >= $minAmount) {
+                $filled = $this->parse_number($this->amount_to_precision($symbol, $calculatedFilled));
+            } else {
+                $filled = 0; // 如果小于最小精度，设置为0
+            }
         }
         $remaining = null;
         if ($amount !== null && $filled !== null) {

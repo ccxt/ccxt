@@ -955,7 +955,7 @@ export default class astralx extends Exchange {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'],
+            'quantity': this.amountToPrecision (symbol, amount / market['contractSize']),
             'priceType': priceType, // 默认输入价格类型
             'leverage': '10',     // 默认10倍杠杆
             'timeInForce': 'GTC', // 默认取消前有效
@@ -1009,7 +1009,7 @@ export default class astralx extends Exchange {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'],
+            'quantity': this.amountToPrecision (symbol, amount / market['contractSize']),
             'priceType': priceType, // 默认输入价格类型
             'leverage': '10',     // 默认10倍杠杆
             'timeInForce': 'GTC', // 默认取消前有效
@@ -1238,7 +1238,15 @@ export default class astralx extends Exchange {
         // 计算实际合约数量（考虑合约大小）
         let actualContracts = contracts;
         if (contracts !== undefined && market['contractSize'] !== undefined) {
-            actualContracts = contracts * market['contractSize'];
+            const calculatedContracts = contracts * market['contractSize'];
+            // 检查计算后的数量是否大于最小精度
+            // 获取市场的最小数量精度
+            const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
+            if (calculatedContracts >= minAmount) {
+                actualContracts = this.parseNumber (this.amountToPrecision (symbol, calculatedContracts));
+            } else {
+                actualContracts = 0; // 如果小于最小精度，设置为0
+            }
         }
         // 计算名义价值
         let notional = positionValue;
@@ -1291,14 +1299,28 @@ export default class astralx extends Exchange {
         const origQtyString = this.safeString (order, 'origQty');
         let amount = undefined;
         if (origQtyString !== undefined) {
-            const origQty = parseFloat (origQtyString);
-            amount = origQty * market['contractSize'];
+            const origQty = this.parseNumber (origQtyString);
+            const calculatedAmount = origQty * market['contractSize'];
+            // 获取市场的最小数量精度
+            const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
+            if (calculatedAmount >= minAmount) {
+                amount = this.parseNumber (this.amountToPrecision (symbol, calculatedAmount));
+            } else {
+                amount = 0; // 如果小于最小精度，设置为0
+            }
         }
         const executedQtyString = this.safeString (order, 'executedQty');
         let filled = undefined;
         if (executedQtyString !== undefined) {
-            const executedQty = parseFloat (executedQtyString);
-            filled = executedQty * market['contractSize'];
+            const executedQty = this.parseNumber (executedQtyString);
+            const calculatedFilled = executedQty * market['contractSize'];
+            // 获取市场的最小数量精度
+            const minAmount = this.safeNumber (market['precision'], 'amount', 0.001);
+            if (calculatedFilled >= minAmount) {
+                filled = this.parseNumber (this.amountToPrecision (symbol, calculatedFilled));
+            } else {
+                filled = 0; // 如果小于最小精度，设置为0
+            }
         }
         let remaining = undefined;
         if (amount !== undefined && filled !== undefined) {
