@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { BadRequest } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -40,25 +40,25 @@ export default class deepcoin extends Exchange {
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
-                'createLimitBuyOrder': false,
-                'createLimitOrder': false,
-                'createLimitSellOrder': false,
-                'createMarketBuyOrder': false,
-                'createMarketBuyOrderWithCost': false,
-                'createMarketOrder': false,
-                'createMarketOrderWithCost': false,
-                'createMarketSellOrder': false,
-                'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createLimitBuyOrder': true,
+                'createLimitOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrder': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrder': true,
+                'createMarketSellOrderWithCost': true,
+                'createOrder': true,
                 'createOrders': false,
                 'createOrderWithTakeProfitAndStopLoss': false,
-                'createPostOnlyOrder': false,
-                'createReduceOnlyOrder': false,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLossOrder': false,
                 'createTakeProfitOrder': false,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
-                'createTriggerOrder': false,
+                'createTriggerOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
@@ -155,7 +155,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/market/index-candles': 1, // done
                         'deepcoin/market/trades': 1, // done
                         'deepcoin/market/mark-price-candles': 1, // done
-                        'deepcoin/market/step-margin': 5,
+                        'deepcoin/market/step-margin': 5, // not unified
                     },
                 },
                 'private': {
@@ -190,7 +190,7 @@ export default class deepcoin extends Exchange {
                     },
                     'post': {
                         'deepcoin/account/set-leverage': 5,
-                        'deepcoin/trade/order': 5,
+                        'deepcoin/trade/order': 5, // done
                         'deepcoin/trade/replace-order': 5,
                         'deepcoin/trade/cancel-order': 5,
                         'deepcoin/trade/batch-cancel-order': 5,
@@ -250,6 +250,9 @@ export default class deepcoin extends Exchange {
                     // { code: '51', msg: 'The instType field is required', data: null }
                     // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
                     // {"code":"51","msg":"The productGroup field is required","data":null}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
                 },
                 'broad': {},
             },
@@ -916,10 +919,23 @@ export default class deepcoin extends Exchange {
         let response = undefined;
         if (triggerPrice !== undefined) {
             // trigger orders
-            response = this.privatePostDeepcoinTradeTriggerOrder (this.extend (request, params));
+            response = this.privatePostDeepcoinTradeTriggerOrder (request);
         } else {
             // regular orders
-            response = this.privatePostDeepcoinTradeOrder (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "",
+            //         "data": {
+            //             "ordId": "1001434570213727",
+            //             "clOrdId": "",
+            //             "tag": "",
+            //             "sCode": "0",
+            //             "sMsg": ""
+            //         }
+            //     }
+            //
+            response = this.privatePostDeepcoinTradeOrder (request);
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
@@ -934,9 +950,15 @@ export default class deepcoin extends Exchange {
          */
         const market = this.market (symbol);
         const triggerPrice = this.safeString (params, 'triggerPrice');
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            if (!market['spot'] || (triggerPrice !== undefined)) {
+                throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
+            }
+        }
         if (triggerPrice !== undefined) {
             return this.createTriggerOrderRequest (symbol, type, side, amount, price, params);
-        } else if (market['spot']) {
+        } else {
             return this.createRegularOrderRequest (symbol, type, side, amount, price, params);
         }
     }
@@ -964,7 +986,8 @@ export default class deepcoin extends Exchange {
          * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
          */
         const market = this.market (symbol);
-        const orderType = this.handleTypePostOnlyAndTimeInForce (type, params);
+        let orderType = type;
+        [ orderType, params ] = this.handleTypePostOnlyAndTimeInForce (type, params);
         const request: Dict = {
             'instId': market['id'],
             // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
@@ -987,12 +1010,6 @@ export default class deepcoin extends Exchange {
             request['clOrdId'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        if (price !== undefined) {
-            if (type === 'market') {
-                throw new BadRequest (this.id + ' createOrder() does not require a price argument for market orders');
-            }
-            request['px'] = this.priceToPrecision (symbol, price);
-        }
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         if (stopLossPrice !== undefined) {
             params = this.omit (params, 'stopLossPrice');
@@ -1003,11 +1020,22 @@ export default class deepcoin extends Exchange {
             params = this.omit (params, 'takeProfitPrice');
             request['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitPrice);
         }
+        const isMarketOrder = (type === 'market');
+        if (price !== undefined) {
+            if (isMarketOrder) {
+                throw new BadRequest (this.id + ' createOrder() does not require a price argument for market orders');
+            }
+            request['px'] = this.priceToPrecision (symbol, price);
+        } else if (!isMarketOrder) {
+            throw new BadRequest (this.id + ' createOrder() requires a price argument for limit orders');
+        }
         if (market['spot']) {
-            let cost = undefined;
-            cost = this.safeString (params, 'cost');
+            const cost = this.safeString (params, 'cost');
             if (cost !== undefined) {
-                if (amount !== undefined) {
+                if (isMarketOrder) {
+                    throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot market orders only');
+                }
+                if ((amount !== undefined) && (amount !== 0)) {
                     throw new BadRequest (this.id + ' createOrder() accepts either amount argument or cost parameter, not both');
                 }
                 params = this.omit (params, 'cost');
@@ -1072,6 +1100,53 @@ export default class deepcoin extends Exchange {
             type = 'ioc';
         }
         return [ type, params ];
+    }
+
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params = {}) {
+        /**
+         * @method
+         * @name createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = this.extend (params, { 'cost': cost });
+        return await this.createOrder (symbol, 'market', side, 0, undefined, params);
+    }
+
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = this.extend (params, { 'cost': cost });
+        return await this.createOrder (symbol, 'market', 'buy', 0, undefined, params);
+    }
+
+    async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createMarketSellOrderWithCost
+         * @description create a market sell order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params = this.extend (params, { 'cost': cost });
+        return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        return order as Order;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
