@@ -4090,7 +4090,7 @@ export default class bybit extends Exchange {
                 // only works for spot market
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
-                } else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4194,6 +4194,11 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice (symbol, slLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
                 }
             }
             if (isTakeProfit) {
