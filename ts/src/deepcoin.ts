@@ -5,8 +5,8 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
-import { BadRequest } from '../ccxt.js';
+import type { Balances, Currency, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { ArgumentsRequired, BadRequest } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1145,8 +1145,192 @@ export default class deepcoin extends Exchange {
         return await this.createOrder (symbol, 'market', 'sell', 0, undefined, params);
     }
 
+    /**
+     * @method
+     * @name deepcoin#fetchClosedOrder
+     * @description fetches information on a closed order made by the user
+     * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchClosedOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+            'ordId': id,
+        };
+        const response = await this.privateGetDeepcoinTradeFinishOrderByID (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-USDT",
+        //                 "tgtCcy": "",
+        //                 "ccy": "",
+        //                 "ordId": "1001434573319675",
+        //                 "clOrdId": "",
+        //                 "tag": "",
+        //                 "px": "4056.620000000000",
+        //                 "sz": "0.004000",
+        //                 "pnl": "0.000000",
+        //                 "ordType": "market",
+        //                 "side": "buy",
+        //                 "posSide": "",
+        //                 "tdMode": "cash",
+        //                 "accFillSz": "0.004000",
+        //                 "fillPx": "",
+        //                 "tradeId": "",
+        //                 "fillSz": "0.004000",
+        //                 "fillTime": "1760619119000",
+        //                 "avgPx": "",
+        //                 "state": "filled",
+        //                 "lever": "1.000000",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "tpOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "slOrdPx": "",
+        //                 "feeCcy": "USDT",
+        //                 "fee": "0.000004",
+        //                 "rebateCcy": "",
+        //                 "source": "",
+        //                 "rebate": "",
+        //                 "category": "normal",
+        //                 "uTime": "1760619119000",
+        //                 "cTime": "1760619119000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const entry = this.safeDict (data, 0, {});
+        return this.parseOrder (entry, market);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
-        return order as Order;
+        //
+        //     {
+        //         "instType": "SPOT",
+        //         "instId": "ETH-USDT",
+        //         "tgtCcy": "",
+        //         "ccy": "",
+        //         "ordId": "1001434573319675",
+        //         "clOrdId": "",
+        //         "tag": "",
+        //         "px": "4056.620000000000",
+        //         "sz": "0.004000",
+        //         "pnl": "0.000000",
+        //         "ordType": "market",
+        //         "side": "buy",
+        //         "posSide": "",
+        //         "tdMode": "cash",
+        //         "accFillSz": "0.004000",
+        //         "fillPx": "",
+        //         "tradeId": "",
+        //         "fillSz": "0.004000",
+        //         "fillTime": "1760619119000",
+        //         "avgPx": "",
+        //         "state": "filled",
+        //         "lever": "1.000000",
+        //         "tpTriggerPx": "",
+        //         "tpTriggerPxType": "",
+        //         "tpOrdPx": "",
+        //         "slTriggerPx": "",
+        //         "slTriggerPxType": "",
+        //         "slOrdPx": "",
+        //         "feeCcy": "USDT",
+        //         "fee": "0.000004",
+        //         "rebateCcy": "",
+        //         "source": "",
+        //         "rebate": "",
+        //         "category": "normal",
+        //         "uTime": "1760619119000",
+        //         "cTime": "1760619119000"
+        //     }
+        //
+        const marketId = this.safeString (order, 'instId');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'cTime');
+        const state = this.safeString (order, 'state');
+        const orderType = this.safeString (order, 'ordType');
+        let average = this.safeString (order, 'avgPx');
+        if (average === '') {
+            average = undefined;
+        }
+        const feeCurrencyId = this.safeString (order, 'feeCcy');
+        let fee: Fee = undefined;
+        if (feeCurrencyId !== undefined) {
+            const feeCost = this.safeString (order, 'fee');
+            fee = {
+                'cost': this.parseNumber (feeCost),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            };
+        }
+        return this.safeOrder ({
+            'id': this.safeString (order, 'ordId'),
+            'clientOrderId': this.safeString (order, 'clOrdId'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'uTime'),
+            'status': this.parseOrderStatus (state),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (orderType),
+            'timeInForce': this.parseOrderTimeInForce (orderType),
+            'side': this.safeString (order, 'side'),
+            'price': this.safeString (order, 'px'),
+            'average': average,
+            'amount': this.safeString (order, 'sz'),
+            'filled': this.safeString (order, 'accFillSz'),
+            'remaining': undefined,
+            'triggerPrice': undefined, // todo check for trigger orders
+            'takeProfitPrice': this.safeString (order, 'tpTriggerPx'),
+            'stopLossPrice': this.safeString (order, 'slTriggerPx'),
+            'cost': undefined,
+            'trades': undefined, // todo check
+            'fee': fee,
+            'reduceOnly': undefined,
+            'postOnly': orderType === 'post_only',
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses = {
+            'live': 'open',
+            'filled': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type: Str): Str {
+        const types = {
+            'limit': 'limit',
+            'market': 'market',
+            'post_only': 'limit',
+            'ioc': 'market',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrderTimeInForce (type: Str): Str {
+        const timeInForces = {
+            'post_only': 'PO',
+            'ioc': 'IOC',
+            'limit': 'GTC',
+            'market': 'GTC',
+        };
+        return this.safeString (timeInForces, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
