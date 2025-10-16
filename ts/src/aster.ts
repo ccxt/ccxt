@@ -1061,6 +1061,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMyTrades
      * @description fetch all trades made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#account-trade-history-user_data
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#account-trade-list-user_data
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1088,7 +1089,12 @@ export default class aster extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.fapiPrivateGetV1UserTrades (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPrivateGetV1UserTrades (this.extend (request, params));
+        } else {
+            response = await this.sapiPrivateGetV1UserTrades (this.extend (request, params));
+        }
         //
         //     [
         //         {
@@ -1207,7 +1213,7 @@ export default class aster extends Exchange {
             const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
                 'info': entry,
-                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol'), undefined, undefined, 'swap'),
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -1239,9 +1245,15 @@ export default class aster extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
+        let marketType = undefined;
+        if ('bidQty' in ticker) {
+            marketType = 'spot';
+        } else {
+            marketType = 'contract';
+        }
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'lastPrice');
         const open = this.safeString (ticker, 'openPrice');
         let percentage = this.safeString (ticker, 'priceChangePercent');
@@ -1387,7 +1399,7 @@ export default class aster extends Exchange {
         }
         return {
             'info': contract,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'markPrice': this.safeNumber (contract, 'markPrice'),
             'indexPrice': this.safeNumber (contract, 'indexPrice'),
             'interestRate': this.safeNumber (contract, 'interestRate'),
@@ -2523,7 +2535,7 @@ export default class aster extends Exchange {
         const errorCode = this.safeString (data, 'code');
         const marketId = this.safeString (data, 'symbol');
         const timestamp = this.safeInteger (data, 'time');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         const noErrorCode = errorCode === undefined;
         const success = errorCode === '200';
         return {

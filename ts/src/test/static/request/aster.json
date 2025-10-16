@@ -91,6 +91,16 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fetchMyTrades - spot",
+                "method": "fetchMyTrades",
+                "url": "https://sapi.asterdex.com/api/v1/userTrades?symbol=BTCUSDT&startTime=1750400269888&limit=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT",
+                    1750400269888,
+                    1
+                ]
+            },
+            {
                 "description": "fetchMyTrades",
                 "method": "fetchMyTrades",
                 "url": "https://fapi.asterdex.com/fapi/v1/userTrades?symbol=BTCUSDT&startTime=1750400269888&limit=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
