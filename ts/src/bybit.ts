@@ -4195,6 +4195,11 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice (symbol, slLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
                 }
                 // for spot market, we need to add this
                 if (market['spot'] && isMarketOrder) {
@@ -4209,6 +4214,11 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice (symbol, tpLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['tpOrderType'] = 'Market';
+                    }
                 }
                 // for spot market, we need to add this
                 if (market['spot'] && isMarketOrder) {
