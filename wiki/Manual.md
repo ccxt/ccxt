@@ -3413,7 +3413,7 @@ Returns
 
 *contract only*
 
-Use the `fetchOpenInterest` method to get the current open interest for a symbol from the exchange.
+Use the `fetchOpenInterest` method to get the current open interest for a symbol from the exchange. Use `fetchOpenInterests` to get the current open interest for multiple symbols
 
 ```javascript
 fetchOpenInterest (symbol, params = {})
@@ -3423,6 +3423,17 @@ Parameters
 
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An [open interest structure](#open-interest-structure)
+
+```js
+fetchOpenInterests (symbols = undefined, params = {})
+```
+
+- **symbols** ([String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`). Leave as `undefined` for all symbols.
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 
@@ -3535,9 +3546,10 @@ Returns
 
 *contract only*
 
-Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange.
+Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange. Use `fetchMySettlementHistory` to get only your settlement history
 
 ```javascript
+fetchMySettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
@@ -3566,9 +3578,12 @@ Returns
 
 ## Liquidations
 
-Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange.
+*margin and contract only*
+
+Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange. Use `fetchMyLiquidations` to get only your liquidation history
 
 ```javascript
+fetchMyLiquidations (symbol = undefined, since = undefined, limit = undefined, params = {})
 fetchLiquidations (symbol, since = undefined, limit = undefined, params = {})
 ```
 
@@ -6403,7 +6418,7 @@ Returns
 
 ## Set Margin Mode
 
-*margin and contract only*
+*contract only*
 
 Updates the type of margin used to be either
 
