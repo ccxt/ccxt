@@ -528,10 +528,10 @@ export default class aster extends Exchange {
             this.fapiPublicGetV1ExchangeInfo (params),
         ];
         const results = await Promise.all (promises);
-        const sapiCurrencies = this.safeDict (results, 0, {});
-        const sapiRows = this.safeList (sapiCurrencies, 'assets', []);
-        const fapiCurrencies = this.safeDict (results, 1, {});
-        const fapiRows = this.safeList (fapiCurrencies, 'assets', []);
+        const sapiResult = this.safeDict (results, 0, {});
+        const sapiRows = this.safeList (sapiResult, 'assets', []);
+        const fapiResult = this.safeDict (results, 1, {});
+        const fapiRows = this.safeList (fapiResult, 'assets', []);
         const rows = this.arrayConcat (sapiRows, fapiRows);
         //
         //     [
@@ -582,13 +582,22 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchMarkets
      * @description retrieves data on all markets for bigone
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#trading-specification-information
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response: Dict = await this.fapiPublicGetV1ExchangeInfo (params);
-        const markets = this.safeList (response, 'symbols', []);
+        const promises = [
+            this.sapiPublicGetV1ExchangeInfo (params),
+            this.fapiPublicGetV1ExchangeInfo (params),
+        ];
+        const results = await Promise.all (promises);
+        const sapiResult = this.safeDict (results, 0, {});
+        const sapiRows = this.safeList (sapiResult, 'symbols', []);
+        const fapiResult = this.safeDict (results, 1, {});
+        const fapiRows = this.safeList (fapiResult, 'symbols', []);
+        const rows = this.arrayConcat (sapiRows, fapiRows);
         //
         //     [
         //         {
@@ -672,16 +681,38 @@ export default class aster extends Exchange {
         //
         const fees = this.fees;
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        for (let i = 0; i < rows.length; i++) {
+            let swap = false;
+            const market = rows[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
-            const settleId = this.safeString (market, 'marginAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const contractType = this.safeString (market, 'contractType');
+            const contract = ('contractType' in market);
+            const spot = !contract;
+            if (contractType === 'PERPETUAL') {
+                swap = true;
+            }
+            let linear = undefined;
+            let inverse = undefined;
+            let symbol = base + '/' + quote;
+            const settleId = this.safeString (market, 'marginAsset');
             const settle = this.safeCurrencyCode (settleId);
-            const symbol = base + '/' + quote + ':' + settle;
+            if (contract) {
+                if (swap) {
+                    symbol = symbol + ':' + settle;
+                }
+                linear = settle === quote;
+                inverse = settle === base;
+            }
+            let unifiedType = undefined;
+            if (spot) {
+                unifiedType = 'spot';
+            } else if (swap) {
+                unifiedType = 'swap';
+            }
             const status = this.safeString (market, 'status');
             const active = status === 'TRADING';
             const filters = this.safeList (market, 'filters', []);
@@ -695,19 +726,19 @@ export default class aster extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
+                'type': unifiedType,
+                'spot': spot,
                 'margin': false,
-                'swap': true,
+                'swap': swap,
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': true,
-                'linear': true,
-                'inverse': false,
+                'contract': contract,
+                'linear': linear,
+                'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': 1,
+                'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

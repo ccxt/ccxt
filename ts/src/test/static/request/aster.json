@@ -7,22 +7,6 @@
     ],
     "outputType": "urlencoded",
     "methods": {
-        "fetchCurrencies": [
-            {
-                "description": "fetchCurrencies",
-                "method": "fetchCurrencies",
-                "url": "https://fapi.asterdex.com/fapi/v1/exchangeInfo",
-                "input": []
-            }
-        ],
-        "fetchMarkets": [
-            {
-                "description": "fetchMarkets",
-                "method": "fetchMarkets",
-                "url": "https://fapi.asterdex.com/fapi/v1/exchangeInfo",
-                "input": []
-            }
-        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
