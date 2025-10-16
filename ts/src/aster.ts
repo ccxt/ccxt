@@ -851,6 +851,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-data
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -892,7 +893,11 @@ export default class aster extends Exchange {
             response = await this.fapiPublicGetV1IndexPriceKlines (this.extend (request, params));
         } else {
             request['symbol'] = market['id'];
-            response = await this.fapiPublicGetV1Klines (this.extend (request, params));
+            if (market['linear']) {
+                response = await this.fapiPublicGetV1Klines (this.extend (request, params));
+            } else {
+                response = await this.sapiPublicGetV1Klines (this.extend (request, params));
+            }
         }
         //
         //     [
