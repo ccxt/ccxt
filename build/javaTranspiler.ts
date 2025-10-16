@@ -699,7 +699,7 @@ class NewTranspiler {
         }
 
             const javaBaseError =
-`   class BaseError extends Exception
+`   class BaseError extends RuntimeException
     {
         BaseError() { super(); }
         BaseError(String message) { super(message); }

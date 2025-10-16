@@ -19,7 +19,7 @@ public class Generic {
 
     public static double toDouble(Object o) {
         if (o == null) return 0.0;
-        if (o instanceof Number n) return n.doubleValue();
+        if (o instanceof NumberHelpers n) return n.doubleValue();
         return Double.parseDouble(String.valueOf(o));
     }
 
@@ -41,7 +41,7 @@ public class Generic {
                 Comparator.nullsFirst(Comparator.naturalOrder())
             ));
         } else {
-            int index = ((Number) value1).intValue();
+            int index = ((NumberHelpers) value1).intValue();
             sorted = new ArrayList<>(lst);
             sorted.sort(Comparator.comparing(
                 x -> {
@@ -183,13 +183,13 @@ public class Generic {
                 return ((List<String>) li).contains((String) elem);
             }
             if (!li.isEmpty() && li.get(0) instanceof Long) {
-                Long v = (elem instanceof Number n) ? n.longValue()
+                Long v = (elem instanceof NumberHelpers n) ? n.longValue()
                         : Long.parseLong(String.valueOf(elem));
                 return ((List<Long>) li).contains(v);
             }
             List<Object> list = (List<Object>) li;
             if (elem instanceof Integer || elem instanceof Long) {
-                long vL = (elem instanceof Number n) ? n.longValue()
+                long vL = (elem instanceof NumberHelpers n) ? n.longValue()
                         : Long.parseLong(String.valueOf(elem));
                 return list.contains(vL) || list.contains((int) vL);
             }

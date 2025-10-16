@@ -2,12 +2,16 @@ package io.github.ccxt.base;
 
 
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.net.URLEncoder;
-import java.net.URLDecoder;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public final class Encode {
@@ -310,7 +314,8 @@ public final class Encode {
         return String.join("&", parts);
     }
 
-    public static String urlencode(Object parameters2, boolean sort) {
+    public static String urlencode(Object parameters2, boolean... sortParams) {
+        boolean sort = (sortParams.length > 0) ? sortParams[0] : false;
         Map<String, Object> parameters = (Map<String, Object>) parameters2;
 
         List<String> keys = new ArrayList<>(parameters.keySet());

@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings({"unchecked"})
-public class Number {
+public class NumberHelpers {
 
     // precisionConstants
     public static final int ROUND = 1;                // rounding mode
@@ -335,7 +335,7 @@ public class Number {
     private static boolean isTrue(Object o) {
         if (o == null) return false;
         if (o instanceof Boolean) return (Boolean) o;
-        if (o instanceof Number) return ((Number) o).intValue() != 0;
+        if (o instanceof NumberHelpers) return ((NumberHelpers) o).intValue() != 0;
         if (o instanceof String) return !((String) o).isEmpty();
         if (o instanceof Collection<?>) return !((Collection<?>) o).isEmpty();
         if (o instanceof Map<?, ?>) return true;

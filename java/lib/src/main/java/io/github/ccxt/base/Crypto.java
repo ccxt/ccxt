@@ -13,35 +13,35 @@ import java.util.zip.InflaterInputStream;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.core.JsonProcessingException;
+// import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.math.ec.ECPoint;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.jcajce.provider.digest.Keccak;
+// import org.bouncycastle.asn1.ASN1Primitive;
+// import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+// import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+// import org.bouncycastle.crypto.signers.Ed25519Signer;
+// import org.bouncycastle.jce.ECNamedCurveTable;
+// import org.bouncycastle.jce.provider.BouncyCastleProvider;
+// import org.bouncycastle.math.ec.ECPoint;
+// import org.bouncycastle.openssl.PEMKeyPair;
+// import org.bouncycastle.openssl.PEMParser;
+// import org.bouncycastle.util.encoders.Hex;
+// import org.bouncycastle.jcajce.provider.digest.Keccak;
 
 /**
- * Java port of the C# crypto helpers.
+ * Java port of the C# crypto helpers.  
  * All methods are public static, parameters are Object where appropriate.
  */
 @SuppressWarnings("unchecked")
-public final class crypto {
+public final class Crypto {
 
-    private crypto() {}
+    private Crypto() {}
 
     // Ensure BC provider once
     static {
-        if (Security.getProvider("BC") == null) {
-            Security.addProvider(new BouncyCastleProvider());
-        }
+        // if (Security.getProvider("BC") == null) {
+        //     Security.addProvider(new BouncyCastleProvider());
+        // }
     }
 
     // ---------- algorithm-name helpers ----------
@@ -311,21 +311,22 @@ public final class crypto {
     }
 
     private static PrivateKey readRSAPrivateKeyFromPem(String pem) throws Exception {
-        if (!pem.contains("-----BEGIN")) {
-            // supports raw base64 body like C# code path
-            pem = "-----BEGIN PRIVATE KEY-----\n" + pem + "\n-----END PRIVATE KEY-----";
-        }
-        try (PEMParser parser = new PEMParser(new StringReader(pem))) {
-            Object o = parser.readObject();
-            if (o instanceof PEMKeyPair kp) {
-                PrivateKeyInfo pki = kp.getPrivateKeyInfo();
-                return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
-            }
-            if (o instanceof PrivateKeyInfo pki) {
-                return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
-            }
-            throw new IllegalArgumentException("Unsupported RSA PEM contents");
-        }
+        // if (!pem.contains("-----BEGIN")) {
+        //     // supports raw base64 body like C# code path
+        //     pem = "-----BEGIN PRIVATE KEY-----\n" + pem + "\n-----END PRIVATE KEY-----";
+        // }
+        // try (PEMParser parser = new PEMParser(new StringReader(pem))) {
+        //     Object o = parser.readObject();
+        //     if (o instanceof PEMKeyPair kp) {
+        //         PrivateKeyInfo pki = kp.getPrivateKeyInfo();
+        //         return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
+        //     }
+        //     if (o instanceof PrivateKeyInfo pki) {
+        //         return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
+        //     }
+        //     throw new IllegalArgumentException("Unsupported RSA PEM contents");
+        // }
+        throw new UnsupportedOperationException("RSA PEM parsing not implemented");
     }
 
     // ====================================================
@@ -334,81 +335,83 @@ public final class crypto {
     // ====================================================
 
     public static Map<String, Object> Ecdsa(Object request, Object secret, Object curve, Object hash) {
-        String curveName = (curve == null) ? "secp256k1" : toString(curve);
-        if (!curveName.equals("secp256k1") && !curveName.equals("p256")) {
-            throw new IllegalArgumentException("Only secp256k1 and p256 are supported");
-        }
+        throw new UnsupportedOperationException("ECDSA signing not implemented");
+        // String curveName = (curve == null) ? "secp256k1" : toString(curve);
+        // if (!curveName.equals("secp256k1") && !curveName.equals("p256")) {
+        //     throw new IllegalArgumentException("Only secp256k1 and p256 are supported");
+        // }
 
-        String hashName = (hash == null) ? null : toString(hash);
-        byte[] msgHash;
+        // String hashName = (hash == null) ? null : toString(hash);
+        // byte[] msgHash;
 
-        // secret: hex string of private key (like C# using Hex.HexToBytes)
-        byte[] secKey = hexToBytes(toString(secret));
+        // // secret: hex string of private key (like C# using Hex.HexToBytes)
+        // byte[] secKey = hexToBytes(toString(secret));
 
-        if (hashName != null) {
-            msgHash = (byte[]) Hash(toString(request), hashName, "binary"); // returns byte[]
-        } else {
-            msgHash = hexToBytes(toString(request));
-        }
+        // if (hashName != null) {
+        //     msgHash = (byte[]) Hash(toString(request), hashName, "binary"); // returns byte[]
+        // } else {
+        //     msgHash = hexToBytes(toString(request));
+        // }
 
-        try {
-            Signature signer;
-            KeyPair kp;
+        // try {
+        //     Signature signer;
+        //     KeyPair kp;
 
-            if (curveName.equals("p256")) {
-                // ES256
-                kp = ecKeyPairFromRaw("secp256r1", secKey); // P-256
-                signer = Signature.getInstance("NONEwithECDSA", "BC");
-            } else {
-                // secp256k1
-                kp = ecKeyPairFromRaw("secp256k1", secKey);
-                signer = Signature.getInstance("NONEwithECDSA", "BC");
-            }
+        //     if (curveName.equals("p256")) {
+        //         // ES256
+        //         kp = ecKeyPairFromRaw("secp256r1", secKey); // P-256
+        //         signer = Signature.getInstance("NONEwithECDSA", "BC");
+        //     } else {
+        //         // secp256k1
+        //         kp = ecKeyPairFromRaw("secp256k1", secKey);
+        //         signer = Signature.getInstance("NONEwithECDSA", "BC");
+        //     }
 
-            signer.initSign(kp.getPrivate());
-            signer.update(msgHash);
-            byte[] der = signer.sign();
+        //     signer.initSign(kp.getPrivate());
+        //     signer.update(msgHash);
+        //     byte[] der = signer.sign();
 
-            // DER -> r,s
-            // BouncyCastle util to parse DER:
-            // A quick parser:
-            java.security.Signature sigParser = signer; // not used
-            // Use org.bouncycastle for parsing:
-            org.bouncycastle.asn1.ASN1Sequence seq = (org.bouncycastle.asn1.ASN1Sequence) ASN1Primitive.fromByteArray(der);
-            java.math.BigInteger r = ((org.bouncycastle.asn1.ASN1Integer) seq.getObjectAt(0)).getValue();
-            java.math.BigInteger s = ((org.bouncycastle.asn1.ASN1Integer) seq.getObjectAt(1)).getValue();
+        //     // DER -> r,s
+        //     // BouncyCastle util to parse DER:
+        //     // A quick parser:
+        //     java.security.Signature sigParser = signer; // not used
+        //     // Use org.bouncycastle for parsing:
+        //     org.bouncycastle.asn1.ASN1Sequence seq = (org.bouncycastle.asn1.ASN1Sequence) ASN1Primitive.fromByteArray(der);
+        //     java.math.BigInteger r = ((org.bouncycastle.asn1.ASN1Integer) seq.getObjectAt(0)).getValue();
+        //     java.math.BigInteger s = ((org.bouncycastle.asn1.ASN1Integer) seq.getObjectAt(1)).getValue();
 
-            // return 32-byte hex for r and s
-            String rHex = leftPadHex(r.toString(16), 64);
-            String sHex = leftPadHex(s.toString(16), 64);
+        //     // return 32-byte hex for r and s
+        //     String rHex = leftPadHex(r.toString(16), 64);
+        //     String sHex = leftPadHex(s.toString(16), 64);
 
-            Map<String, Object> out = new LinkedHashMap<>();
-            out.put("r", rHex);
-            out.put("s", sHex);
-            out.put("v", 0); // recovery id not computed here
-            return out;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        //     Map<String, Object> out = new LinkedHashMap<>();
+        //     out.put("r", rHex);
+        //     out.put("s", sHex);
+        //     out.put("v", 0); // recovery id not computed here
+        //     return out;
+        // } catch (Exception e) {
+        //     throw new RuntimeException(e);
+        // }
     }
 
     private static KeyPair ecKeyPairFromRaw(String curveStdName, byte[] privBytes) throws Exception {
-        var params = ECNamedCurveTable.getParameterSpec(curveStdName);
-        KeyFactory kf = KeyFactory.getInstance("EC", "BC");
-        ECParameterSpec jSpec = new ECParameterSpec(
-                params.getCurve(), params.getG(), params.getN(), params.getH(), params.getSeed()
-        );
-        ECPrivateKeySpec privSpec = new ECPrivateKeySpec(new java.math.BigInteger(1, privBytes), jSpec);
-        PrivateKey priv = kf.generatePrivate(privSpec);
+        // var params = ECNamedCurveTable.getParameterSpec(curveStdName);
+        // KeyFactory kf = KeyFactory.getInstance("EC", "BC");
+        // ECParameterSpec jSpec = new ECParameterSpec(
+        //         params.getCurve(), params.getG(), params.getN(), params.getH(), params.getSeed()
+        // );
+        // ECPrivateKeySpec privSpec = new ECPrivateKeySpec(new java.math.BigInteger(1, privBytes), jSpec);
+        // PrivateKey priv = kf.generatePrivate(privSpec);
 
-        // Derive public key Q = d*G
-        ECPoint Q = params.getG().multiply(new java.math.BigInteger(1, privBytes)).normalize();
-        ECPublicKeySpec pubSpec = new ECPublicKeySpec(
-                new java.security.spec.ECPoint(Q.getAffineXCoord().toBigInteger(), Q.getAffineYCoord().toBigInteger()),
-                jSpec
-        );
-        PublicKey pub = kf.generatePublic(pubSpec);
-        return new KeyPair(pub, priv);
+        // // Derive public key Q = d*G
+        // ECPoint Q = params.getG().multiply(new java.math.BigInteger(1, privBytes)).normalize();
+        // ECPublicKeySpec pubSpec = new ECPublicKeySpec(
+        //         new java.security.spec.ECPoint(Q.getAffineXCoord().toBigInteger(), Q.getAffineYCoord().toBigInteger()),
+        //         jSpec
+        // );
+        // PublicKey pub = kf.generatePublic(pubSpec);
+        // return new KeyPair(pub, priv);
+        throw new UnsupportedOperationException("ECDSA key pair generation not implemented");
     }
 
     private static String leftPadHex(String s, int len) {
@@ -432,38 +435,39 @@ public final class crypto {
     // ====================================================
 
     public static Object Eddsa(Object request, Object secret, Object alg) {
-        // alg kept for parity; only ed25519 supported here
-        byte[] msg = (request instanceof String) ? toUtf8(request) : (byte[]) request;
+        // // alg kept for parity; only ed25519 supported here
+        // byte[] msg = (request instanceof String) ? toUtf8(request) : (byte[]) request;
 
-        Ed25519Signer signer = new Ed25519Signer();
-        Ed25519PrivateKeyParameters priv;
-        if (secret instanceof String s) {
-            // accept raw base64 PEM body or full PEM
-            String pem = s.startsWith("-----BEGIN") ? s : "-----BEGIN PRIVATE KEY-----\n" + s + "\n-----END PRIVATE KEY-----";
-            try (PEMParser parser = new PEMParser(new StringReader(pem))) {
-                Object obj = parser.readObject();
-                if (obj instanceof PEMKeyPair pkp) {
-                    PrivateKeyInfo pki = pkp.getPrivateKeyInfo();
-                    byte[] keyBytes = pki.parsePrivateKey().toASN1Primitive().getEncoded();
-                    // Ed25519PrivateKeyParameters expects 32-byte seed; try to extract
-                    // BouncyCastle encodes PKCS#8 – rely on constructor parsing:
-                    priv = new Ed25519PrivateKeyParameters(pki.parsePrivateKey().toASN1Primitive().getEncoded(), 0);
-                } else if (obj instanceof PrivateKeyInfo pki) {
-                    priv = new Ed25519PrivateKeyParameters(pki.parsePrivateKey().toASN1Primitive().getEncoded(), 0);
-                } else {
-                    throw new IllegalArgumentException("Unsupported Ed25519 PEM");
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            priv = new Ed25519PrivateKeyParameters((byte[]) secret, 0);
-        }
+        // Ed25519Signer signer = new Ed25519Signer();
+        // Ed25519PrivateKeyParameters priv;
+        // if (secret instanceof String s) {
+        //     // accept raw base64 PEM body or full PEM
+        //     String pem = s.startsWith("-----BEGIN") ? s : "-----BEGIN PRIVATE KEY-----\n" + s + "\n-----END PRIVATE KEY-----";
+        //     try (PEMParser parser = new PEMParser(new StringReader(pem))) {
+        //         Object obj = parser.readObject();
+        //         if (obj instanceof PEMKeyPair pkp) {
+        //             PrivateKeyInfo pki = pkp.getPrivateKeyInfo();
+        //             byte[] keyBytes = pki.parsePrivateKey().toASN1Primitive().getEncoded();
+        //             // Ed25519PrivateKeyParameters expects 32-byte seed; try to extract
+        //             // BouncyCastle encodes PKCS#8 – rely on constructor parsing:
+        //             priv = new Ed25519PrivateKeyParameters(pki.parsePrivateKey().toASN1Primitive().getEncoded(), 0);
+        //         } else if (obj instanceof PrivateKeyInfo pki) {
+        //             priv = new Ed25519PrivateKeyParameters(pki.parsePrivateKey().toASN1Primitive().getEncoded(), 0);
+        //         } else {
+        //             throw new IllegalArgumentException("Unsupported Ed25519 PEM");
+        //         }
+        //     } catch (IOException e) {
+        //         throw new RuntimeException(e);
+        //     }
+        // } else {
+        //     priv = new Ed25519PrivateKeyParameters((byte[]) secret, 0);
+        // }
 
-        signer.init(true, priv);
-        signer.update(msg, 0, msg.length);
-        byte[] sig = signer.generateSignature();
-        return Base64.getEncoder().encodeToString(sig);
+        // signer.init(true, priv);
+        // signer.update(msg, 0, msg.length);
+        // byte[] sig = signer.generateSignature();
+        // return Base64.getEncoder().encodeToString(sig);
+        throw new UnsupportedOperationException("Ed25519 signing not implemented");
     }
 
     // ====================================================

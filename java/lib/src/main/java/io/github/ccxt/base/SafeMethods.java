@@ -1,4 +1,5 @@
 package io.github.ccxt.base;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -6,6 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SafeMethods {
 
     private SafeMethods() {}
+
+    // --- vararg default helper ---
+    private static Object opt(Object... dv) {
+        return (dv == null || dv.length == 0) ? null : dv[0];
+    }
 
     // ----------------------------
     // Small helpers / shims
@@ -24,7 +30,7 @@ public final class SafeMethods {
     // ----------------------------
 
     /**
-     * Attempts to coerce any Map-like object into Map&lt;String,Object&gt; by stringifying keys.
+     * Attempts to coerce any Map-like object into Map<String,Object> by stringifying keys.
      * Throws IllegalStateException if the input is not a Map.
      */
     public static Map<String, Object> ConvertToDictionaryOfStringObject(Object potentialDictionary) {
@@ -42,18 +48,26 @@ public final class SafeMethods {
     // SafeNumberN (alias of SafeFloatN)
     // ----------------------------
 
-    public static Object SafeNumberN(Object obj, List<Object> keys, Object defaultValue) {
+    public static Object SafeNumberN(Object obj, List<Object> keys, Object... defaultValue) {
         return SafeFloatN(obj, keys, defaultValue);
     }
-    public static Object safeNumberN(Object obj, List<Object> keys, Object defaultValue) {
+    public static Object safeNumberN(Object obj, List<Object> keys, Object... defaultValue) {
         return SafeNumberN(obj, keys, defaultValue);
     }
+
+    // // vararg overloads (optional default)
+    // public static Object SafeNumberN(Object obj, List<Object> keys, Object... defaultValue) {
+    //     return SafeNumberN(obj, keys, opt(defaultValue));
+    // }
+    // public static Object safeNumberN(Object obj, List<Object> keys, Object... defaultValue) {
+    //     return SafeNumberN(obj, keys, opt(defaultValue));
+    // }
 
     // ----------------------------
     // safeTimestamp*
     // ----------------------------
 
-    public static Object safeTimestampN(Object obj, List<Object> keys, Object defaultValue) {
+    public static Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
         Object result = SafeValueN(obj, keys, defaultValue);
         if (result == null) return defaultValue;
 
@@ -74,6 +88,17 @@ public final class SafeMethods {
 
     public static Object safeTimestamp2(Object obj, Object key1, Object key2, Object defaultValue) {
         return safeTimestampN(obj, Arrays.asList(key1, key2), defaultValue);
+    }
+
+    // vararg overloads (optional default)
+    // public static Object safeTimestampN(Object obj, List<Object> keys, Object... defaultValue) {
+    //     return safeTimestampN(obj, keys, opt(defaultValue));
+    // }
+    public static Object safeTimestamp(Object obj, Object key, Object... defaultValue) {
+        return safeTimestampN(obj, Arrays.asList(key), opt(defaultValue));
+    }
+    public static Object safeTimestamp2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return safeTimestampN(obj, Arrays.asList(key1, key2), opt(defaultValue));
     }
 
     // ----------------------------
@@ -115,8 +140,22 @@ public final class SafeMethods {
 
     private static Long toLongQuiet(Object v) {
         if (v == null) return null;
-        if (v instanceof Number n) return n.longValue();
+        if (v instanceof NumberHelpers n) return n.longValue();
         return Long.parseLong(String.valueOf(v));
+    }
+
+    // vararg overloads (optional default)
+    public static Long SafeInteger(Object obj, Object key, Object... defaultValue) {
+        return SafeInteger(obj, key, opt(defaultValue));
+    }
+    public static Object safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return safeInteger2(obj, key1, key2, opt(defaultValue));
+    }
+    public static Object safeIntegerN(Object obj, List<Object> keys, Object... defaultValue) {
+        return SafeIntegerN(obj, keys, opt(defaultValue));
+    }
+    public static Long SafeIntegerN(Object obj, List<Object> keys, Object... defaultValue) {
+        return SafeIntegerN(obj, keys, opt(defaultValue));
     }
 
     // ----------------------------
@@ -154,8 +193,25 @@ public final class SafeMethods {
 
     private static Double toDoubleQuiet(Object v) {
         if (v == null) return null;
-        if (v instanceof Number n) return n.doubleValue();
+        if (v instanceof NumberHelpers n) return n.doubleValue();
         return Double.parseDouble(String.valueOf(v));
+    }
+
+    // vararg overloads (optional default)
+    public static Double SafeFloat(Object obj, Object key, Object... defaultValue) {
+        return SafeFloat(obj, key, opt(defaultValue));
+    }
+    public static Double safeFloat(Object obj, Object key, Object... defaultValue) {
+        return SafeFloat(obj, key, opt(defaultValue));
+    }
+    public static Double safeFloat2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return SafeFloatN(obj, Arrays.asList(key1, key2), opt(defaultValue));
+    }
+    public static Double safeFloatN(Object obj, Object keys, Object... defaultValue) {
+        return SafeFloatN(obj, (List<Object>) keys, opt(defaultValue));
+    }
+    public static Double SafeFloatN(Object obj, List<Object> keys, Object... defaultValue) {
+        return SafeFloatN(obj, keys, opt(defaultValue));
     }
 
     // ----------------------------
@@ -203,6 +259,26 @@ public final class SafeMethods {
         }
         if (ret != null && !ret.isEmpty()) return ret;
         return (defaultValue instanceof String s) ? s : null;
+    }
+
+    // vararg overloads (optional default)
+    public static String SafeString(Object obj, Object key, Object... defaultValue) {
+        return SafeString(obj, key, opt(defaultValue));
+    }
+    public static String safeString(Object obj, Object key, Object... defaultValue) {
+        return SafeStringN(obj, Arrays.asList(key), opt(defaultValue));
+    }
+    public static String safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return SafeStringN(obj, Arrays.asList(key1, key2), opt(defaultValue));
+    }
+    public static String safeStringN(Object obj, Object keys, Object... defaultValue) {
+        return SafeStringN(obj, (List<Object>) keys, opt(defaultValue));
+    }
+    public static String SafeStringN(Object obj, Object keys, Object... defaultValue) {
+        return SafeStringN(obj, (List<Object>) keys, opt(defaultValue));
+    }
+    public static String SafeStringN(Object obj, List<Object> keys, Object... defaultValue) {
+        return SafeStringN(obj, keys, opt(defaultValue));
     }
 
     // ----------------------------
@@ -312,6 +388,23 @@ public final class SafeMethods {
         return defaultValue;
     }
 
+    // vararg overloads (optional default)
+    public static Object SafeValue(Object obj, Object key1, Object... defaultValue) {
+        return SafeValueN(obj, Arrays.asList(key1), opt(defaultValue));
+    }
+    public static Object safeValue(Object obj, Object key1, Object... defaultValue) {
+        return SafeValueN(obj, Arrays.asList(key1), opt(defaultValue));
+    }
+    public static Object safeValue2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        return SafeValueN(obj, Arrays.asList(key1, key2), opt(defaultValue));
+    }
+    public static Object safeValueN(Object obj, Object keys2, Object... defaultValue) {
+        return SafeValueN(obj, keys2, opt(defaultValue));
+    }
+    public static Object SafeValueN(Object obj, Object keys2, Object... defaultValue) {
+        return SafeValueN(obj, keys2, opt(defaultValue));
+    }
+
     // ----------------------------
     // safeString upper/lower methods
     // ----------------------------
@@ -344,6 +437,38 @@ public final class SafeMethods {
     public static String safeStringLowerN(Object obj, List<Object> keys, String defaultValue) {
         String result = safeStringN(obj, keys, defaultValue);
         return (result == null) ? defaultValue : result.toLowerCase();
+    }
+
+    // vararg overloads (optional default)
+    public static String safeStringUpper(Object obj, Object key, Object... defaultValue) {
+        Object def = opt(defaultValue);
+        String result = toStringOrNull(safeString(obj, key, def));
+        return (result == null) ? (String) def : result.toUpperCase();
+    }
+    public static String safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        Object def = opt(defaultValue);
+        String result = safeString2(obj, key1, key2, def);
+        return (result == null) ? (String) def : result.toUpperCase();
+    }
+    public static String safeStringUpperN(Object obj, List<Object> keys, Object... defaultValue) {
+        Object def = opt(defaultValue);
+        String result = safeStringN(obj, keys, def);
+        return (result == null) ? (String) def : result.toUpperCase();
+    }
+    public static String safeStringLower(Object obj, Object key, Object... defaultValue) {
+        Object def = opt(defaultValue);
+        String result = safeString(obj, key, def);
+        return (result == null) ? (String) def : result.toLowerCase();
+    }
+    public static String safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValue) {
+        Object def = opt(defaultValue);
+        String result = safeString2(obj, key1, key2, def);
+        return (result == null) ? (String) def : result.toLowerCase();
+    }
+    public static String safeStringLowerN(Object obj, List<Object> keys, Object... defaultValue) {
+        Object def = opt(defaultValue);
+        String result = safeStringN(obj, keys, def);
+        return (result == null) ? (String) def : result.toLowerCase();
     }
 
     // ----------------------------
@@ -390,6 +515,17 @@ public final class SafeMethods {
         return (parsedValue == null) ? defaultValue : parsedValue;
     }
 
+    // vararg overloads (optional default)
+    public static Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
+        return safeIntegerProduct(obj, key, multiplier, opt(defaultValue));
+    }
+    public static Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multiplier, Object... defaultValue) {
+        return safeIntegerProduct2(obj, key1, key2, multiplier, opt(defaultValue));
+    }
+    public static Object safeIntegerProductN(Object obj, List<Object> keys, Object multiplier, Object... defaultValue) {
+        return safeIntegerProductN(obj, keys, multiplier, opt(defaultValue));
+    }
+
     // ----------------------------
     // SafeBool
     // ----------------------------
@@ -398,5 +534,13 @@ public final class SafeMethods {
         Object value = SafeValue(obj, key1);
         if (value instanceof Boolean b) return b;
         return defaultValue;
+    }
+
+    // vararg overload (optional default)
+    public static Boolean SafeBool(Object obj, Object key1, Object... defaultValue) {
+        Boolean def = (Boolean) opt(defaultValue);
+        Object value = SafeValue(obj, key1);
+        if (value instanceof Boolean b) return b;
+        return def;
     }
 }

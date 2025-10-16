@@ -1,14 +1,26 @@
 package io.github.ccxt.base;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 public final class Time {
 
     private Time() {}
 
     // -------- now --------
+
+
+    public static Long seconds() {
+        return System.currentTimeMillis() / 1000;
+    }
+
+    public static Long nonce() {
+        return System.currentTimeMillis();
+    }
 
     public static long milliseconds() {
         return System.currentTimeMillis();
