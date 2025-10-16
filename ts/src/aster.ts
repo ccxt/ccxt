@@ -34,7 +34,8 @@ export default class aster extends Exchange {
                 'api': {
                     'fapiPublic': 'https://fapi.asterdex.com/fapi',
                     'fapiPrivate': 'https://fapi.asterdex.com/fapi',
-                    'sapi': 'https://sapi.asterdex.com/sapi',
+                    'sapiPublic': 'https://sapi.asterdex.com/api',
+                    'sapiPrivate': 'https://sapi.asterdex.com/api',
                 },
                 'doc': 'https://github.com/asterdex/api-docs',
                 'fees': 'https://docs.asterdex.com/product/asterex-simple/fees-and-slippage',
@@ -211,6 +212,15 @@ export default class aster extends Exchange {
                         'v1/adlQuantile',
                         'v1/forceOrders',
                     ],
+                    'post': [
+                        'v1/listenKey',
+                    ],
+                    'put': [
+                        'v1/listenKey',
+                    ],
+                    'delete': [
+                        'v1/listenKey',
+                    ],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -232,34 +242,70 @@ export default class aster extends Exchange {
                         'v1/commissionRate',
                     ],
                     'post': [
-                        'v1/order',
                         'v1/positionSide/dual',
                         'v1/multiAssetsMargin',
+                        'v1/order',
                         'v1/order/test',
                         'v1/batchOrders',
+                        'v1/asset/wallet/transfer',
                         'v1/countdownCancelAll',
                         'v1/leverage',
                         'v1/marginType',
                         'v1/positionMargin',
+                    ],
+                    'delete': [
+                        'v1/order',
+                        'v1/allOpenOrders',
+                        'v1/batchOrders',
+                    ],
+                },
+                'sapiPublic': {
+                    'get': [
+                        'v1/ping',
+                        'v1/time',
+                        'v1/exchangeInfo',
+                        'v1/depth',
+                        'v1/trades',
+                        'v1/historicalTrades',
+                        'v1/aggTrades',
+                        'v1/klines',
+                        'v1/ticker/24hr',
+                        'v1/ticker/price',
+                        'v1/ticker/bookTicker',
+                        'v1/commissionRate',
+                        'v1/aster/withdraw/estimateFee',
+                    ],
+                    'post': [
+                        'v1/getNonce',
+                        'v1/createApiKey',
                         'v1/listenKey',
                     ],
                     'put': [
                         'v1/listenKey',
                     ],
                     'delete': [
-                        'v1/order',
-                        'v1/allOpenOrders',
-                        'v1/batchOrders',
                         'v1/listenKey',
                     ],
                 },
-                'sapi': {
-                    'get': {
-                        'v1/time': 1,
-                    },
-                    'post': {
-                        'v1/order': 1,
-                    },
+                'sapiPrivate': {
+                    'get': [
+                        'v1/order',
+                        'v1/openOrder',
+                        'v1/openOrders',
+                        'v1/allOrders',
+                        'v1/transactionHistory',
+                        'v1/account',
+                        'v1/userTrades',
+                    ],
+                    'post': [
+                        'v1/order',
+                        'v1/asset/wallet/transfer',
+                        'v1/asset/sendToAddress',
+                        'v1/aster/user-withdraw',
+                    ],
+                    'delete': [
+                        'v1/order',
+                    ],
                 },
             },
             'timeframes': {
@@ -2780,11 +2826,11 @@ export default class aster extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
-        if (api === 'fapiPublic') {
+        if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
             }
-        } else if (api === 'fapiPrivate') {
+        } else if (api === 'fapiPrivate' || api === 'sapiPrivate') {
             this.checkRequiredCredentials ();
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
