@@ -1,20 +1,27 @@
 package io.github.ccxt.base;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.*;
-import java.util.*;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.zip.CRC32;
 import java.util.zip.InflaterInputStream;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-// import com.fasterxml.jackson.core.JsonProcessingException;
-// import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 // import org.bouncycastle.asn1.ASN1Primitive;
 // import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -177,9 +184,10 @@ public final class Crypto {
     }
 
     private static byte[] keccakDigest(byte[] data) {
-        Keccak.Digest256 k = new Keccak.Digest256();
-        k.update(data, 0, data.length);
-        return k.digest();
+        // Keccak.Digest256 k = new Keccak.Digest256();
+        // k.update(data, 0, data.length);
+        // return k.digest();
+        throw new UnsupportedOperationException("Keccak not implemented");
     }
 
     // ====================================================
@@ -223,8 +231,9 @@ public final class Crypto {
             Map<String, Object> ec = Ecdsa(token, secret, p256(), hash);
             String rHex = toString(ec.get("r"));
             String sHex = toString(ec.get("s"));
-            byte[] rs = Hex.decode(rHex + sHex);
-            signatureB64Url = Base64ToBase64Url(BinaryToBase64(rs), true);
+            // byte[] rs = Hex.decode(rHex + sHex);
+            throw new UnsupportedOperationException("ES256 signing not implemented");
+            // signatureB64Url = Base64ToBase64Url(BinaryToBase64(rs), true);
         } else if ("Ed".equals(algoType)) {
             // Ed25519
             String base64Sig = toString(Eddsa(token, secret, ed25519()));
@@ -423,7 +432,14 @@ public final class Crypto {
     }
 
     private static byte[] hexToBytes(String hex) {
-        return Hex.decode(hex.replaceFirst("^0x", ""));
+        // return Hex.decode(hex.replaceFirst("^0x", ""));
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                                 + Character.digit(hex.charAt(i+1), 16));
+        }
+        return data;
     }
 
     public static String ByteArrayToString(byte[] ba) {

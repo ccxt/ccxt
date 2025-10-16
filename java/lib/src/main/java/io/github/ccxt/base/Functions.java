@@ -207,7 +207,7 @@ public final class Functions {
 
     private static double toDouble(Object o) {
         if (o == null) return 0.0;
-        if (o instanceof NumberHelpers n) return n.doubleValue();
+        if (o instanceof Number n) return n.doubleValue();
         return Double.parseDouble(String.valueOf(o));
     }
 

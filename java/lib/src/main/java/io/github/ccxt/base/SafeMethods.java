@@ -1,7 +1,9 @@
 package io.github.ccxt.base;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public final class SafeMethods {
@@ -140,7 +142,7 @@ public final class SafeMethods {
 
     private static Long toLongQuiet(Object v) {
         if (v == null) return null;
-        if (v instanceof NumberHelpers n) return n.longValue();
+        if (v instanceof Number n) return n.longValue();
         return Long.parseLong(String.valueOf(v));
     }
 
@@ -193,7 +195,7 @@ public final class SafeMethods {
 
     private static Double toDoubleQuiet(Object v) {
         if (v == null) return null;
-        if (v instanceof NumberHelpers n) return n.doubleValue();
+        if (v instanceof Number n) return n.doubleValue();
         return Double.parseDouble(String.valueOf(v));
     }
 
@@ -285,8 +287,8 @@ public final class SafeMethods {
     // SafeValue / SafeValueN
     // ----------------------------
 
-    public static Object SafeValue(Object obj, Object key1) {
-        return SafeValueN(obj, Arrays.asList(key1), null);
+    public static Object SafeValue(Object obj, Object key1, Object... defaultValue) {
+        return SafeValueN(obj, Arrays.asList(key1), defaultValue);
     }
 
     public static Object SafeValue(Object obj, Object key1, Object defaultValue) {
@@ -389,9 +391,9 @@ public final class SafeMethods {
     }
 
     // vararg overloads (optional default)
-    public static Object SafeValue(Object obj, Object key1, Object... defaultValue) {
-        return SafeValueN(obj, Arrays.asList(key1), opt(defaultValue));
-    }
+    // public static Object SafeValue(Object obj, Object key1, Object... defaultValue) {
+    //     return SafeValueN(obj, Arrays.asList(key1), opt(defaultValue));
+    // }
     public static Object safeValue(Object obj, Object key1, Object... defaultValue) {
         return SafeValueN(obj, Arrays.asList(key1), opt(defaultValue));
     }
