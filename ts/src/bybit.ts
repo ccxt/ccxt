@@ -4195,7 +4195,10 @@ export default class bybit extends Exchange {
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice (symbol, slLimitPrice);
                 } else {
-                    throw new InvalidOrder (this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        throw new InvalidOrder (this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
+                    }
                 }
             }
             if (isTakeProfit) {
@@ -4207,7 +4210,10 @@ export default class bybit extends Exchange {
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice (symbol, tpLimitPrice);
                 } else {
-                    throw new InvalidOrder (this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        throw new InvalidOrder (this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
+                    }
                 }
             }
         }
