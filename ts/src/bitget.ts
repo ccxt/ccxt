@@ -1796,10 +1796,9 @@ export default class bitget extends Exchange {
      * @name bitget#enableDemoTrading
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
-     * @param {boolean} [enabled] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading (enabled: boolean) {
-        this.setSandboxMode (enable);
+        this.setSandboxMode (enabled);
     }
 
     handleProductTypeAndParams (market = undefined, params = {}) {
