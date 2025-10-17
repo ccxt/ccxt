@@ -746,7 +746,7 @@ class deribit(ccxt.async_support.deribit):
             cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.deribit.com/#chart-trades-instrument_name-resolution

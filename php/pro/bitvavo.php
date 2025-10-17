@@ -288,7 +288,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($tradesArray, $messageHash);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -927,7 +927,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function withdraw_ws(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1011,7 +1011,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve ($withdrawals, $messageHash);
     }
 
-    public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1106,7 +1106,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }) ();
     }
 
-    public function fetch_currencies_ws($params = array ()) {
+    public function fetch_currencies_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              *

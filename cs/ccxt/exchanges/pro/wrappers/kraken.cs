@@ -82,10 +82,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersWs(ids, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancels an open order
@@ -134,10 +134,10 @@ public partial class kraken
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -325,7 +325,7 @@ public partial class kraken
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/ohlc"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/ohlc"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -364,7 +364,7 @@ public partial class kraken
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/owntrades"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/executions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -398,7 +398,7 @@ public partial class kraken
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/openorders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/executions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

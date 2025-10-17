@@ -1031,7 +1031,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1482,16 +1482,16 @@ class onetrading extends Exchange {
         return array( $this->safe_order(array( 'info' => $response )) );
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *
          * @see https://docs.onetrading.com/#close-all-orders
          *
-         * @param {string[]} $ids order $ids
+         * @param {string[]} $ids $order $ids
          * @param {string} $symbol unified market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1503,7 +1503,8 @@ class onetrading extends Exchange {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     )
         //
-        return $response;
+        $order = $this->safe_order(array( 'info' => $response ));
+        return array( $order );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

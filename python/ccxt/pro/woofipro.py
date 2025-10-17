@@ -82,7 +82,7 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_public(self, messageHash, message):
         # the default id
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
-        if self.accountId is not None:
+        if self.accountId is not None and self.accountId != '':
             id = self.accountId
         url = self.urls['api']['ws']['public'] + '/' + id
         requestId = self.request_id(url)
@@ -355,7 +355,7 @@ class woofipro(ccxt.async_support.woofipro):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -583,7 +583,7 @@ class woofipro(ccxt.async_support.woofipro):
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             ts = str(self.nonce())

@@ -259,6 +259,7 @@ public partial class coinbase : Exchange
                             { "brokerage/intx/positions/{portfolio_uuid}/{symbol}", 1 },
                             { "brokerage/payment_methods", 1 },
                             { "brokerage/payment_methods/{payment_method_id}", 1 },
+                            { "brokerage/key_permissions", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "brokerage/orders", 1 },
@@ -3590,7 +3591,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

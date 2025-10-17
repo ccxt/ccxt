@@ -612,7 +612,7 @@
                             "origQuoteOrderQty": "5.27894"
                         },
                         "fees": [],
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1707671871000,
                         "postOnly": null,
                         "reduceOnly": null,
                         "takeProfitPrice": null,

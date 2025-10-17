@@ -274,6 +274,7 @@ class coinbase extends Exchange {
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => 1,
                             'brokerage/payment_methods' => 1,
                             'brokerage/payment_methods/{payment_method_id}' => 1,
+                            'brokerage/key_permissions' => 1,
                         ),
                         'post' => array(
                             'brokerage/orders' => 1,
@@ -3393,7 +3394,7 @@ class coinbase extends Exchange {
         return $this->safe_dict($orders, 0, array());
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
          *
@@ -3774,7 +3775,7 @@ class coinbase extends Exchange {
         return $this->fetch_orders_by_status('CANCELLED', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *

@@ -1089,7 +1089,7 @@ export default class toobit extends toobitRest {
     async authenticate(params = {}) {
         const client = this.client(this.getUserStreamUrl());
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();

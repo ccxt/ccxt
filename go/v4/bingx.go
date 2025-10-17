@@ -6089,7 +6089,7 @@ func (this *BingxCore) Withdraw(code interface{}, amount interface{}, address in
 		retRes58818 := (<-this.LoadMarkets())
 		PanicOnError(retRes58818)
 		var currency interface{} = this.Currency(code)
-		var walletType interface{} = this.SafeInteger(params, "walletType", 1)
+		var walletType interface{} = this.SafeInteger(params, "walletType", 15)
 		var request interface{} = map[string]interface{}{
 			"coin":       GetValue(currency, "id"),
 			"address":    address,

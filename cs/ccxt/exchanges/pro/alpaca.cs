@@ -628,7 +628,7 @@ public partial class alpaca : ccxt.alpaca
         this.checkRequiredCredentials();
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

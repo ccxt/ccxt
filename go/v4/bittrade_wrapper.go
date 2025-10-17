@@ -777,7 +777,7 @@ func (this *Bittrade) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Bittrade) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Bittrade) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
@@ -798,7 +798,7 @@ func (this *Bittrade) CancelOrders(ids interface{}, options ...CancelOrdersOptio
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**

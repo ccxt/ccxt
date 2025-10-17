@@ -66,7 +66,7 @@ class whitebit(ccxt.async_support.whitebit):
             },
         })
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -796,7 +796,7 @@ class whitebit(ccxt.async_support.whitebit):
         url = self.urls['api']['ws']
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             authToken = await self.v4PrivatePostProfileWebsocketToken()

@@ -201,6 +201,11 @@ public partial class phemex : Exchange
         return await this.callAsync ("privateGetGAccountsPositions",parameters);
     }
 
+    public async Task<object> privateGetGAccountsRiskUnit (object parameters = null)
+    {
+        return await this.callAsync ("privateGetGAccountsRiskUnit",parameters);
+    }
+
     public async Task<object> privateGetApiDataFuturesFundingFees (object parameters = null)
     {
         return await this.callAsync ("privateGetApiDataFuturesFundingFees",parameters);

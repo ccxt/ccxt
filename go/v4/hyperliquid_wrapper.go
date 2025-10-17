@@ -431,7 +431,7 @@ func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
@@ -452,7 +452,7 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**

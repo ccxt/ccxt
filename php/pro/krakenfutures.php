@@ -84,7 +84,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $url = $this->urls['api']['ws'];
             $messageHash = 'challenge';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $request = array(

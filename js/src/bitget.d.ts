@@ -6,7 +6,20 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  */
 export default class bitget extends Exchange {
     describe(): any;
-    setSandboxMode(enabled: any): void;
+    /**
+     * @method
+     * @name bitget#setSandboxMode
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    setSandboxMode(enabled: boolean): void;
+    /**
+     * @method
+     * @name bitget#enableDemoTrading
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    enableDemoTrading(enabled: boolean): void;
     handleProductTypeAndParams(market?: any, params?: {}): {}[];
     /**
      * @method
@@ -423,7 +436,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name bitget#cancelAllOrders

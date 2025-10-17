@@ -1294,6 +1294,15 @@
         ],
         "fetchPositions": [
             {
+                "description": "fetch positions empty list",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
+                "input": [
+                    []
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch linear positions",
                 "method": "fetchPositions",
                 "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",

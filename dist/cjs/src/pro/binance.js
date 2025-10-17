@@ -1478,7 +1478,8 @@ class binance extends binance$1["default"] {
             'id': requestId,
         };
         params = this.omit(params, 'callerMethodName');
-        const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+        const res = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+        const [symbol, timeframe, candles] = res;
         if (this.newUpdates) {
             limit = candles.getLimit(symbol, limit);
         }

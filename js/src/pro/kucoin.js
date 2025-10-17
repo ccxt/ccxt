@@ -63,16 +63,16 @@ export default class kucoin extends kucoinRest {
     async negotiate(privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
         const urls = this.safeValue(this.options, 'urls', {});
-        const spawaned = this.safeValue(urls, connectId);
-        if (spawaned !== undefined) {
-            return await spawaned;
+        let future = this.safeValue(urls, connectId);
+        if (future !== undefined) {
+            return await future;
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[connectId] = this.spawn(this.negotiateHelper, privateChannel, params);
         this.options['urls'] = urls;
-        const future = urls[connectId];
+        future = urls[connectId];
         return await future;
     }
     async negotiateHelper(privateChannel, params = {}) {

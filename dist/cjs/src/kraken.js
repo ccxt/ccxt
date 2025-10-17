@@ -1728,6 +1728,10 @@ class kraken extends kraken$1["default"] {
         const statuses = {
             'pending': 'open',
             'open': 'open',
+            'pending_new': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
             'closed': 'closed',
             'canceled': 'canceled',
             'expired': 'expired',

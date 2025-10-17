@@ -1538,7 +1538,7 @@ func (this *KucoinCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ..
 			var networkCodeNew interface{} = this.NetworkIdToCode(this.SafeString(chain, "chainId"), this.SafeString(currency, "code"))
 			AddElementToObject(GetValue(resultNew, "networks"), networkCodeNew, map[string]interface{}{
 				"withdraw": map[string]interface{}{
-					"fee":        this.SafeNumber(chain, "withdrawMinFee"),
+					"fee":        this.SafeNumber2(chain, "withdrawalMinFee", "withdrawMinFee"),
 					"percentage": false,
 				},
 				"deposit": map[string]interface{}{

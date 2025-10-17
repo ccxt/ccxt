@@ -330,7 +330,7 @@ class gate(ccxt.async_support.gate):
         """
         return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
 
-    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
         https://www.gate.io/docs/developers/futures/ws/en/#order-list
@@ -794,7 +794,7 @@ class gate(ccxt.async_support.gate):
             hash = 'trades:' + symbol
             client.resolve(cachedTrades, hash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1892,7 +1892,7 @@ class gate(ccxt.async_support.gate):
         channel = messageType + '.login'
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             return await self.request_private(url, {}, channel, messageHash)

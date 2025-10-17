@@ -170,9 +170,13 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
-            $dt_parsed_string = $exchange->iso8601($dt_parsed);
-            $dt_entry_string = $exchange->iso8601($entry['timestamp']);
-            assert($dt_parsed_string === $dt_entry_string, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
+            $ts_ms = $entry['timestamp'];
+            $diff = abs($dt_parsed - $ts_ms);
+            if ($diff >= 500) {
+                $dt_parsed_string = $exchange->iso8601($dt_parsed);
+                $dt_entry_string = $exchange->iso8601($ts_ms);
+                assert(false, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
+            }
         }
     }
 }

@@ -1725,7 +1725,7 @@ class mexc(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-candlestick-data
@@ -3093,7 +3093,7 @@ class mexc(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
         return self.parse_order(data, market)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -3421,7 +3421,8 @@ class mexc(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,  # TODO: self might be 'updateTime' if order-status is filled, otherwise cancellation time. needs to be checked
+            'lastTradeTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(self.safe_string_2(order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': self.parse_order_type(typeRaw),

@@ -193,6 +193,7 @@ export default class phemex extends Exchange {
                         'accounts/accountPositions': 1,
                         'g-accounts/accountPositions': 1,
                         'g-accounts/positions': 25,
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5,
                         'api-data/g-futures/funding-fees': 5,
                         'api-data/futures/orders': 5,

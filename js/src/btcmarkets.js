@@ -1013,11 +1013,13 @@ export default class btcmarkets extends Exchange {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         await this.loadMarkets();
+        const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = parseInt(ids[i]);
+            // numericIds[i] = parseInt (ids[i]);
+            numericIds.push(parseInt(ids[i]));
         }
         const request = {
-            'ids': ids,
+            'ids': numericIds,
         };
         const response = await this.privateDeleteBatchordersIds(this.extend(request, params));
         //

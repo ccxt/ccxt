@@ -159,6 +159,10 @@ func (this *PhemexCore) PrivateGetGAccountsPositions(args ...interface{}) <-chan
 	return this.callEndpointAsync("privateGetGAccountsPositions", args...)
 }
 
+func (this *PhemexCore) PrivateGetGAccountsRiskUnit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetGAccountsRiskUnit", args...)
+}
+
 func (this *PhemexCore) PrivateGetApiDataFuturesFundingFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetApiDataFuturesFundingFees", args...)
 }

@@ -807,7 +807,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1077,6 +1077,7 @@ public partial class bybit : ccxt.bybit
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
+        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         if (isTrue(isSnapshot))
         {
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
@@ -1421,7 +1422,7 @@ public partial class bybit : ccxt.bybit
      * @param {boolean} [params.executionFast] use fast execution
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object method = "watchMyTrades";
@@ -2521,7 +2522,7 @@ public partial class bybit : ccxt.bybit
         this.checkRequiredCredentials();
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

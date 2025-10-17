@@ -378,7 +378,7 @@ func (this *Onetrading) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Or
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Onetrading) CancelOrders(ids interface{}, options ...CancelOrdersOptions) (map[string]interface{}, error) {
+func (this *Onetrading) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
@@ -397,9 +397,9 @@ func (this *Onetrading) CancelOrders(ids interface{}, options ...CancelOrdersOpt
 	}
 	res := <-this.Core.CancelOrders(ids, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**

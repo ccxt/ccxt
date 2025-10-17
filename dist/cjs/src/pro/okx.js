@@ -1346,7 +1346,9 @@ class okx extends okx$1["default"] {
             }
             if (error !== undefined) {
                 delete client.subscriptions[messageHash];
-                delete this.orderbooks[symbol];
+                if (symbol !== undefined) {
+                    delete this.orderbooks[symbol];
+                }
                 client.reject(error, messageHash);
             }
         }
@@ -1500,7 +1502,7 @@ class okx extends okx$1["default"] {
         const url = this.getUrl('users', access);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds().toString();

@@ -1488,7 +1488,8 @@ class onetrading extends onetrading$1["default"] {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        const order = this.safeOrder({ 'info': response });
+        return [order];
     }
     /**
      * @method

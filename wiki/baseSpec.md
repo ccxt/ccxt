@@ -348,7 +348,6 @@ cancels an open order
 * [ndax](/exchanges/ndax.md#ndaxcancelorder)
 * [novadax](/exchanges/novadax.md#novadaxcancelorder)
 * [oceanex](/exchanges/oceanex.md#oceanexcancelorder)
-* [okcoin](/exchanges/okcoin.md#okcoincancelorder)
 * [okx](/exchanges/okx.md#okxcancelorder)
 * [onetrading](/exchanges/onetrading.md#onetradingcancelorder)
 * [oxfun](/exchanges/oxfun.md#oxfuncancelorder)
@@ -446,7 +445,6 @@ cancel multiple orders
 * [mexc](/exchanges/mexc.md#mexccancelorders)
 * [modetrade](/exchanges/modetrade.md#modetradecancelorders)
 * [oceanex](/exchanges/oceanex.md#oceanexcancelorders)
-* [okcoin](/exchanges/okcoin.md#okcoincancelorders)
 * [okx](/exchanges/okx.md#okxcancelorders)
 * [onetrading](/exchanges/onetrading.md#onetradingcancelorders)
 * [oxfun](/exchanges/oxfun.md#oxfuncancelorders)
@@ -739,7 +737,6 @@ create a market buy order by providing the symbol and cost
 * [kucoin](/exchanges/kucoin.md#kucoincreatemarketbuyorderwithcost)
 * [lbank](/exchanges/lbank.md#lbankcreatemarketbuyorderwithcost)
 * [mexc](/exchanges/mexc.md#mexccreatemarketbuyorderwithcost)
-* [okcoin](/exchanges/okcoin.md#okcoincreatemarketbuyorderwithcost)
 * [okx](/exchanges/okx.md#okxcreatemarketbuyorderwithcost)
 * [oxfun](/exchanges/oxfun.md#oxfuncreatemarketbuyorderwithcost)
 * [whitebit](/exchanges/whitebit.md#whitebitcreatemarketbuyorderwithcost)
@@ -897,7 +894,6 @@ create a trade order
 * [ndax](/exchanges/ndax.md#ndaxcreateorder)
 * [novadax](/exchanges/novadax.md#novadaxcreateorder)
 * [oceanex](/exchanges/oceanex.md#oceanexcreateorder)
-* [okcoin](/exchanges/okcoin.md#okcoincreateorder)
 * [okx](/exchanges/okx.md#okxcreateorder)
 * [onetrading](/exchanges/onetrading.md#onetradingcreateorder)
 * [oxfun](/exchanges/oxfun.md#oxfuncreateorder)
@@ -1384,6 +1380,7 @@ enables or disables demo trading mode
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binanceenabledemotrading)
+* [bitget](/exchanges/bitget.md#bitgetenabledemotrading)
 * [bybit](/exchanges/bybit.md#bybitenabledemotrading)
 
 ---
@@ -1572,7 +1569,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [ndax](/exchanges/ndax.md#ndaxfetchbalance)
 * [novadax](/exchanges/novadax.md#novadaxfetchbalance)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchbalance)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchbalance)
 * [okx](/exchanges/okx.md#okxfetchbalance)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchbalance)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchbalance)
@@ -1881,7 +1877,6 @@ fetches information on multiple closed orders made by the user
 * [modetrade](/exchanges/modetrade.md#modetradefetchclosedorders)
 * [novadax](/exchanges/novadax.md#novadaxfetchclosedorders)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchclosedorders)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchclosedorders)
 * [okx](/exchanges/okx.md#okxfetchclosedorders)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchclosedorders)
 * [p2b](/exchanges/p2b.md#p2bfetchclosedorders)
@@ -2130,7 +2125,6 @@ fetches all available currencies on an exchange
 * [mexc](/exchanges/mexc.md#mexcfetchcurrencies)
 * [modetrade](/exchanges/modetrade.md#modetradefetchcurrencies)
 * [ndax](/exchanges/ndax.md#ndaxfetchcurrencies)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchcurrencies)
 * [okx](/exchanges/okx.md#okxfetchcurrencies)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchcurrencies)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchcurrencies)
@@ -2249,7 +2243,6 @@ fetch the deposit address for a currency associated with this account
 * [luno](/exchanges/luno.md#lunofetchdepositaddress)
 * [mexc](/exchanges/mexc.md#mexcfetchdepositaddress)
 * [ndax](/exchanges/ndax.md#ndaxfetchdepositaddress)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchdepositaddress)
 * [okx](/exchanges/okx.md#okxfetchdepositaddress)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchdepositaddress)
 * [paymium](/exchanges/paymium.md#paymiumfetchdepositaddress)
@@ -2318,7 +2311,6 @@ fetch the deposit addresses for a currency associated with this account
 * [kucoin](/exchanges/kucoin.md#kucoinfetchdepositaddressesbynetwork)
 * [mexc](/exchanges/mexc.md#mexcfetchdepositaddressesbynetwork)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchdepositaddressesbynetwork)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchdepositaddressesbynetwork)
 * [okx](/exchanges/okx.md#okxfetchdepositaddressesbynetwork)
 
 ---
@@ -2513,7 +2505,6 @@ fetch all deposits made to an account
 * [modetrade](/exchanges/modetrade.md#modetradefetchdeposits)
 * [ndax](/exchanges/ndax.md#ndaxfetchdeposits)
 * [novadax](/exchanges/novadax.md#novadaxfetchdeposits)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchdeposits)
 * [okx](/exchanges/okx.md#okxfetchdeposits)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchdeposits)
 * [phemex](/exchanges/phemex.md#phemexfetchdeposits)
@@ -3018,7 +3009,6 @@ fetch the history of changes, actions done by the user or operations that altere
 * [luno](/exchanges/luno.md#lunofetchledger)
 * [modetrade](/exchanges/modetrade.md#modetradefetchledger)
 * [ndax](/exchanges/ndax.md#ndaxfetchledger)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchledger)
 * [okx](/exchanges/okx.md#okxfetchledger)
 * [toobit](/exchanges/toobit.md#toobitfetchledger)
 * [woo](/exchanges/woo.md#woofetchledger)
@@ -3432,7 +3422,6 @@ retrieves data on all markets for alpaca
 * [ndax](/exchanges/ndax.md#ndaxfetchmarkets)
 * [novadax](/exchanges/novadax.md#novadaxfetchmarkets)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchmarkets)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchmarkets)
 * [okx](/exchanges/okx.md#okxfetchmarkets)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchmarkets)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchmarkets)
@@ -3637,7 +3626,6 @@ fetch all trades made by the user
 * [modetrade](/exchanges/modetrade.md#modetradefetchmytrades)
 * [ndax](/exchanges/ndax.md#ndaxfetchmytrades)
 * [novadax](/exchanges/novadax.md#novadaxfetchmytrades)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchmytrades)
 * [okx](/exchanges/okx.md#okxfetchmytrades)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchmytrades)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchmytrades)
@@ -3760,7 +3748,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [ndax](/exchanges/ndax.md#ndaxfetchohlcv)
 * [novadax](/exchanges/novadax.md#novadaxfetchohlcv)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchohlcv)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchohlcv)
 * [okx](/exchanges/okx.md#okxfetchohlcv)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchohlcv)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchohlcv)
@@ -4008,7 +3995,6 @@ fetch all unfilled currently open orders
 * [ndax](/exchanges/ndax.md#ndaxfetchopenorders)
 * [novadax](/exchanges/novadax.md#novadaxfetchopenorders)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchopenorders)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchopenorders)
 * [okx](/exchanges/okx.md#okxfetchopenorders)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchopenorders)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchopenorders)
@@ -4200,7 +4186,6 @@ fetches information on an order made by the user
 * [ndax](/exchanges/ndax.md#ndaxfetchorder)
 * [novadax](/exchanges/novadax.md#novadaxfetchorder)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchorder)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchorder)
 * [okx](/exchanges/okx.md#okxfetchorder)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchorder)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchorder)
@@ -4310,7 +4295,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [ndax](/exchanges/ndax.md#ndaxfetchorderbook)
 * [novadax](/exchanges/novadax.md#novadaxfetchorderbook)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchorderbook)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchorderbook)
 * [okx](/exchanges/okx.md#okxfetchorderbook)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchorderbook)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchorderbook)
@@ -4440,7 +4424,6 @@ fetch all the trades made from a single order
 * [modetrade](/exchanges/modetrade.md#modetradefetchordertrades)
 * [ndax](/exchanges/ndax.md#ndaxfetchordertrades)
 * [novadax](/exchanges/novadax.md#novadaxfetchordertrades)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchordertrades)
 * [okx](/exchanges/okx.md#okxfetchordertrades)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchordertrades)
 * [p2b](/exchanges/p2b.md#p2bfetchordertrades)
@@ -5074,7 +5057,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [ndax](/exchanges/ndax.md#ndaxfetchticker)
 * [novadax](/exchanges/novadax.md#novadaxfetchticker)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchticker)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchticker)
 * [okx](/exchanges/okx.md#okxfetchticker)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchticker)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchticker)
@@ -5194,7 +5176,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [mexc](/exchanges/mexc.md#mexcfetchtickers)
 * [novadax](/exchanges/novadax.md#novadaxfetchtickers)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchtickers)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchtickers)
 * [okx](/exchanges/okx.md#okxfetchtickers)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchtickers)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchtickers)
@@ -5267,7 +5248,6 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [modetrade](/exchanges/modetrade.md#modetradefetchtime)
 * [novadax](/exchanges/novadax.md#novadaxfetchtime)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchtime)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchtime)
 * [okx](/exchanges/okx.md#okxfetchtime)
 * [onetrading](/exchanges/onetrading.md#onetradingfetchtime)
 * [paradex](/exchanges/paradex.md#paradexfetchtime)
@@ -5374,7 +5354,6 @@ get the list of most recent trades for a particular symbol
 * [ndax](/exchanges/ndax.md#ndaxfetchtrades)
 * [novadax](/exchanges/novadax.md#novadaxfetchtrades)
 * [oceanex](/exchanges/oceanex.md#oceanexfetchtrades)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchtrades)
 * [okx](/exchanges/okx.md#okxfetchtrades)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchtrades)
 * [p2b](/exchanges/p2b.md#p2bfetchtrades)
@@ -5825,7 +5804,6 @@ fetch all withdrawals made from an account
 * [modetrade](/exchanges/modetrade.md#modetradefetchwithdrawals)
 * [ndax](/exchanges/ndax.md#ndaxfetchwithdrawals)
 * [novadax](/exchanges/novadax.md#novadaxfetchwithdrawals)
-* [okcoin](/exchanges/okcoin.md#okcoinfetchwithdrawals)
 * [okx](/exchanges/okx.md#okxfetchwithdrawals)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchwithdrawals)
 * [paradex](/exchanges/paradex.md#paradexfetchwithdrawals)
@@ -6244,6 +6222,23 @@ set hedged to true or false for a market
 
 ---
 
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+## setSandboxMode
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance   
+
+
+| Param |
+| --- |
+| enabled | 
+
+##### Supported exchanges
+* [bitget](/exchanges/bitget.md#bitgetsetsandboxmode)
+
+---
+
 <a name="signIn" id="signin"></a>
 
 ## signIn
@@ -6313,7 +6308,6 @@ transfer currency internally between wallets on the same account
 * [latoken](/exchanges/latoken.md#latokentransfer)
 * [mexc](/exchanges/mexc.md#mexctransfer)
 * [novadax](/exchanges/novadax.md#novadaxtransfer)
-* [okcoin](/exchanges/okcoin.md#okcointransfer)
 * [okx](/exchanges/okx.md#okxtransfer)
 * [oxfun](/exchanges/oxfun.md#oxfuntransfer)
 * [paymium](/exchanges/paymium.md#paymiumtransfer)
@@ -6741,7 +6735,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 * [lbank](/exchanges/lbank.md#lbankwatchbalance)
 * [mexc](/exchanges/mexc.md#mexcwatchbalance)
 * [modetrade](/exchanges/modetrade.md#modetradewatchbalance)
-* [okcoin](/exchanges/okcoin.md#okcoinwatchbalance)
 * [okx](/exchanges/okx.md#okxwatchbalance)
 * [onetrading](/exchanges/onetrading.md#onetradingwatchbalance)
 * [oxfun](/exchanges/oxfun.md#oxfunwatchbalance)
@@ -7081,7 +7074,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [mexc](/exchanges/mexc.md#mexcwatchohlcv)
 * [modetrade](/exchanges/modetrade.md#modetradewatchohlcv)
 * [ndax](/exchanges/ndax.md#ndaxwatchohlcv)
-* [okcoin](/exchanges/okcoin.md#okcoinwatchohlcv)
 * [okx](/exchanges/okx.md#okxwatchohlcv)
 * [onetrading](/exchanges/onetrading.md#onetradingwatchohlcv)
 * [oxfun](/exchanges/oxfun.md#oxfunwatchohlcv)
@@ -7181,7 +7173,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [mexc](/exchanges/mexc.md#mexcwatchorderbook)
 * [modetrade](/exchanges/modetrade.md#modetradewatchorderbook)
 * [ndax](/exchanges/ndax.md#ndaxwatchorderbook)
-* [okcoin](/exchanges/okcoin.md#okcoinwatchorderbook)
 * [okx](/exchanges/okx.md#okxwatchorderbook)
 * [onetrading](/exchanges/onetrading.md#onetradingwatchorderbook)
 * [oxfun](/exchanges/oxfun.md#oxfunwatchorderbook)
@@ -7283,7 +7274,6 @@ watches information on multiple orders made by the user
 * [lbank](/exchanges/lbank.md#lbankwatchorders)
 * [mexc](/exchanges/mexc.md#mexcwatchorders)
 * [modetrade](/exchanges/modetrade.md#modetradewatchorders)
-* [okcoin](/exchanges/okcoin.md#okcoinwatchorders)
 * [okx](/exchanges/okx.md#okxwatchorders)
 * [onetrading](/exchanges/onetrading.md#onetradingwatchorders)
 * [oxfun](/exchanges/oxfun.md#oxfunwatchorders)
@@ -7427,7 +7417,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [mexc](/exchanges/mexc.md#mexcwatchticker)
 * [modetrade](/exchanges/modetrade.md#modetradewatchticker)
 * [ndax](/exchanges/ndax.md#ndaxwatchticker)
-* [okcoin](/exchanges/okcoin.md#okcoinwatchticker)
 * [okx](/exchanges/okx.md#okxwatchticker)
 * [onetrading](/exchanges/onetrading.md#onetradingwatchticker)
 * [oxfun](/exchanges/oxfun.md#oxfunwatchticker)
@@ -7549,7 +7538,6 @@ watches information on multiple trades made in a market
 * [mexc](/exchanges/mexc.md#mexcwatchtrades)
 * [modetrade](/exchanges/modetrade.md#modetradewatchtrades)
 * [ndax](/exchanges/ndax.md#ndaxwatchtrades)
-* [okcoin](/exchanges/okcoin.md#okcoinwatchtrades)
 * [okx](/exchanges/okx.md#okxwatchtrades)
 * [oxfun](/exchanges/oxfun.md#oxfunwatchtrades)
 * [phemex](/exchanges/phemex.md#phemexwatchtrades)
@@ -7674,7 +7662,6 @@ make a withdrawal
 * [modetrade](/exchanges/modetrade.md#modetradewithdraw)
 * [ndax](/exchanges/ndax.md#ndaxwithdraw)
 * [novadax](/exchanges/novadax.md#novadaxwithdraw)
-* [okcoin](/exchanges/okcoin.md#okcoinwithdraw)
 * [okx](/exchanges/okx.md#okxwithdraw)
 * [oxfun](/exchanges/oxfun.md#oxfunwithdraw)
 * [phemex](/exchanges/phemex.md#phemexwithdraw)

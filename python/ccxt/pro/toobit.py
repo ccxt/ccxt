@@ -1041,7 +1041,7 @@ class toobit(ccxt.async_support.toobit):
     async def authenticate(self, params={}):
         client = self.client(self.get_user_stream_url())
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()

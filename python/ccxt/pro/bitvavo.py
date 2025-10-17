@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Bool, Currencies, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -262,7 +262,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -824,7 +824,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.safe_string(message, 'requestId')
         client.resolve(trades, messageHash)
 
-    async def withdraw_ws(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
         make a withdrawal
         :param str code: unified currency code
@@ -900,7 +900,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         withdrawals = self.parse_transactions(response, None, None, None, {'type': 'withdrawal'})
         client.resolve(withdrawals, messageHash)
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
@@ -982,7 +982,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         return await self.watch_request('getMarkets', params)
 
-    async def fetch_currencies_ws(self, params={}):
+    async def fetch_currencies_ws(self, params={}) -> Currencies:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1assets/get

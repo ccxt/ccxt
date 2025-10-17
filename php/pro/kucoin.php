@@ -68,9 +68,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($privateChannel, $params) {
             $connectId = $privateChannel ? 'private' : 'public';
             $urls = $this->safe_value($this->options, 'urls', array());
-            $spawaned = $this->safe_value($urls, $connectId);
-            if ($spawaned !== null) {
-                return Async\await($spawaned);
+            $future = $this->safe_value($urls, $connectId);
+            if ($future !== null) {
+                return Async\await($future);
             }
             // we store an awaitable to the url
             // so that multiple calls don't asynchronously
@@ -484,7 +484,7 @@ class kucoin extends \ccxt\async\kucoin {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -513,7 +513,7 @@ class kucoin extends \ccxt\async\kucoin {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

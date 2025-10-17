@@ -9,6 +9,13 @@ const foldersToSearch = [
     './go/v4'
 ];
 
+const filesToDelete =[
+    './go/tests/base/test.structs.go',
+    './go/tests/base/test.types.rest.go',
+    './go/tests/base/test.types.pro.go'
+]
+
+
 function capitalizeFirstLetter(string: string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -193,6 +200,25 @@ function main() {
     }
     createExchangeTypedInterfaceFile(args);
     createWsExchangeTypedInterfaceFile(args);
+
+    for (const filePath of filesToDelete) {
+        if (fs.existsSync(filePath)) {
+            try {
+                fs.unlinkSync(filePath);
+                log.red(`Deleted: ${filePath}`);
+            } catch (error) {
+                log.red(`Failed to delete ${filePath}:`, error);
+            }
+        }
+    }
+    const languageSpecificFile = './go/tests/base/test.languageSpecific.go';
+    if (fs.existsSync(languageSpecificFile)) {
+        let fileContent = fs.readFileSync(languageSpecificFile, 'utf-8');
+        const regex = /TestStructs\(\)/;
+        fileContent = fileContent.replace(regex, '');
+        fs.writeFileSync(languageSpecificFile, fileContent);
+        log.green(`Modified: ${languageSpecificFile}`);
+    }
 
     log.bright.cyan("Done! You can now build the Go project (tests/cli/etc) with 'go build' command.");
 }

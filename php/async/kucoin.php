@@ -1638,7 +1638,7 @@ class kucoin extends Exchange {
                 $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
                 $resultNew['networks'][$networkCodeNew] = array(
                     'withdraw' => array(
-                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage' => false,
                     ),
                     'deposit' => array(
@@ -1953,7 +1953,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market

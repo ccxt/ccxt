@@ -2070,16 +2070,18 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object numericIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((List<object>)ids)[Convert.ToInt32(i)] = this.parseToNumeric(getValue(ids, i));
+            // numericIds[i] = this.parseToNumeric (ids[i]);
+            ((IList<object>)numericIds).Add(this.parseToNumeric(getValue(ids, i)));
         }
         object request = new Dictionary<string, object>() {
-            { "id", ids },
+            { "id", numericIds },
         };
         object market = null;
         if (isTrue(!isEqual(symbol, null)))

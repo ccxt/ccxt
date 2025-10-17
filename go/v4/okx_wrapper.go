@@ -722,7 +722,7 @@ func (this *Okx) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Okx) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]Order, error) {
+func (this *Okx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 

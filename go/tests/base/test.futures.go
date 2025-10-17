@@ -32,14 +32,14 @@ func BroadCastResultToMultipleReceivers() {
 	go func() {
 		defer wg.Done()
 		f := fut.Await()
-		_ = <-f
+		<-f
 		// fmt.Println("res1:", res1)
 	}()
 
 	go func() {
 		defer wg.Done()
 		f := fut.Await()
-		_ = <-f
+		<-f
 		// fmt.Println("res2:", res2)
 	}()
 
@@ -58,13 +58,13 @@ func AwaitAfterResolveTest() {
 		defer wg.Done()
 		time.Sleep(1 * time.Second)
 		ch1 := fut.Await()
-		_ = <-ch1
+		<-ch1
 		// fmt.Println("Got result from ch1:", res)
 	}()
 
 	go func(ch2 <-chan interface{}) {
 		defer wg.Done()
-		_ = <-ch2
+		<-ch2
 		// fmt.Println("Got result from ch2:", res)
 	}(ch2)
 
@@ -106,7 +106,7 @@ func waitFuture(client *ccxt.Client, fut *ccxt.Future) <-chan interface{} {
 	go func() {
 		defer close(ch)
 		f := fut.Await()
-		_ = <-f
+		<-f
 		ch <- true
 	}()
 

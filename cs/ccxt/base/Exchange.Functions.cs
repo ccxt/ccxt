@@ -276,16 +276,8 @@ public partial class Exchange
 
     public bool isJsonEncodedObject(object str)
     {
-        var str2 = (string)str;
-        if (str2 != null && (str2.StartsWith("{") || str2.StartsWith("[")))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
+        var str2 = str as string;
+        return str2 != null && (str2.StartsWith("{") || str2.StartsWith("["));
     }
 
     public string json(object obj)

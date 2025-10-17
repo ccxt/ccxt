@@ -192,6 +192,7 @@ export default class phemex extends Exchange {
                         'accounts/accountPositions': 1, // ?currency=<currency>
                         'g-accounts/accountPositions': 1, // ?currency=<currency>
                         'g-accounts/positions': 25, // ?currency=<currency>
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/futures/orders': 5, // ?symbol=<symbol>
@@ -1368,7 +1369,7 @@ export default class phemex extends Exchange {
      * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const userLimit = limit;

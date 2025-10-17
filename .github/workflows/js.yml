@@ -1,4 +1,4 @@
-name: Js
+name: cachiman
 
 on:
   workflow_dispatch:

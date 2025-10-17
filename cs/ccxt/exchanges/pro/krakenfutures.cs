@@ -76,7 +76,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "challenge";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

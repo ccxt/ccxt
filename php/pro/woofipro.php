@@ -84,7 +84,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($messageHash, $message) {
             // the default $id
             $id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-            if ($this->accountId !== null) {
+            if ($this->accountId !== null && $this->accountId !== '') {
                 $id = $this->accountId;
             }
             $url = $this->urls['api']['ws']['public'] . '/' . $id;
@@ -381,7 +381,7 @@ class woofipro extends \ccxt\async\woofipro {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -629,7 +629,7 @@ class woofipro extends \ccxt\async\woofipro {
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $event = 'auth';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $ts = (string) $this->nonce();

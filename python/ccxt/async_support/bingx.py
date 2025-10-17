@@ -1075,7 +1075,7 @@ class bingx(Exchange, ImplicitAPI):
         swapMarkets = self.array_concat(linearSwapMarkets, inverseSwapMarkets)
         return self.array_concat(spotMarkets, swapMarkets)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -5613,7 +5613,7 @@ class bingx(Exchange, ImplicitAPI):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType', 1)
+        walletType = self.safe_integer(params, 'walletType', 15)
         request: dict = {
             'coin': currency['id'],
             'address': address,

@@ -925,7 +925,7 @@ public partial class whitebit : ccxt.whitebit
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future("authenticated");
+        var future = client.reusableFuture("authenticated");
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

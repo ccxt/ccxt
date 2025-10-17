@@ -828,7 +828,7 @@ class defx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0

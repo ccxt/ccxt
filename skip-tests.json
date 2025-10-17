@@ -978,6 +978,7 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
+                "precision": "not provided",
                 "activeMajorCurrencies": "todo"
             },
             "loadMarkets": "strike is set when option is not true",
@@ -1728,6 +1729,9 @@
             "ticker":  {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
                 "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:898"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo check why there are more tickers"
             },
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6363"

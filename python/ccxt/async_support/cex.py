@@ -740,7 +740,7 @@ class cex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(orderBook, 'timestamp')
         return self.parse_order_book(orderBook, market['symbol'], timestamp)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

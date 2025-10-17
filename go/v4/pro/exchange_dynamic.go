@@ -235,10 +235,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         ndaxItf := NewNdaxCore()
         ndaxItf.Init(exchangeArgs)
         return ndaxItf, true
-    case "okcoin":
-        okcoinItf := NewOkcoinCore()
-        okcoinItf.Init(exchangeArgs)
-        return okcoinItf, true
     case "okx":
         okxItf := NewOkxCore()
         okxItf.Init(exchangeArgs)

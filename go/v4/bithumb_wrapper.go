@@ -390,7 +390,7 @@ func (this *Bithumb) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	}
 	return NewOrder(res), nil
 }
-func (this *Bithumb) CancelUnifiedOrder(order interface{}, options ...CancelUnifiedOrderOptions) (Order, error) {
+func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (Order, error) {
 
 	opts := CancelUnifiedOrderOptionsStruct{}
 

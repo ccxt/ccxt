@@ -4108,7 +4108,7 @@ export default class bybit extends Exchange {
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
                 }
-                else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4131,7 +4131,8 @@ export default class bybit extends Exchange {
         params = this.omit(params, 'cost');
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
-        if (market['spot'] && (type === 'market') && isUTA && !isMarketBuyAndCostInferable) {
+        const isMarketOrder = lowerCaseType === 'market';
+        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4150,7 +4151,7 @@ export default class bybit extends Exchange {
                 request['qty'] = amountString;
             }
         }
-        else if (market['spot'] && (type === 'market') && (side === 'buy')) {
+        else if (market['spot'] && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4226,6 +4227,16 @@ export default class bybit extends Exchange {
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice(symbol, slLimitPrice);
                 }
+                else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new InvalidOrder(this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
+                }
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
@@ -4235,6 +4246,16 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice(symbol, tpLimitPrice);
+                }
+                else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new InvalidOrder(this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }

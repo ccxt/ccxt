@@ -616,24 +616,26 @@ class deribit extends deribit$1["default"] {
         const response = await this.publicGetGetCurrencies(params);
         //
         //    {
-        //      "jsonrpc": "2.0",
-        //      "result": [
-        //        {
-        //          "withdrawal_priorities": [],
-        //          "withdrawal_fee": 0.01457324,
-        //          "min_withdrawal_fee": 0.000001,
-        //          "min_confirmations": 1,
-        //          "fee_precision": 8,
-        //          "currency_long": "Solana",
-        //          "currency": "SOL",
-        //          "coin_type": "SOL"
-        //        },
-        //        ...
-        //      ],
-        //      "usIn": 1688652701456124,
-        //      "usOut": 1688652701456390,
-        //      "usDiff": 266,
-        //      "testnet": true
+        //        "jsonrpc": "2.0",
+        //        "result": [
+        //            {
+        //                "currency": "XRP",
+        //                "network_fee": "1.5e-5",
+        //                "min_withdrawal_fee": "0.0001",
+        //                "apr": "0.0",
+        //                "withdrawal_fee": "0.0001",
+        //                "network_currency": "XRP",
+        //                "coin_type": "XRP",
+        //                "withdrawal_priorities": [],
+        //                "min_confirmations": "1",
+        //                "currency_long": "XRP",
+        //                "in_cross_collateral_pool": false
+        //            },
+        //        ],
+        //        "usIn": "1760110326693923",
+        //        "usOut": "1760110326944891",
+        //        "usDiff": "250968",
+        //        "testnet": false
         //    }
         //
         const data = this.safeList(response, 'result', []);
@@ -652,7 +654,7 @@ class deribit extends deribit$1["default"] {
                 'withdraw': undefined,
                 'type': 'crypto',
                 'fee': this.safeNumber(currency, 'withdrawal_fee'),
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'fee_precision'))),
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,

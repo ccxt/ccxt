@@ -859,7 +859,7 @@ class probit(Exchange, ImplicitAPI):
         #         "data":[
         #             {
         #                 "id":"ETH-BTC:3331886",
-        #                 "price":"0.022981",
+        #                 "price":"0.022982",
         #                 "quantity":"12.337",
         #                 "time":"2020-04-12T20:55:42.371Z",
         #                 "side":"sell",
@@ -990,7 +990,7 @@ class probit(Exchange, ImplicitAPI):
                 timestamp = self.sum(timestamp, duration)
             return self.iso8601(timestamp * 1000)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs-en.probit.com/reference/candle

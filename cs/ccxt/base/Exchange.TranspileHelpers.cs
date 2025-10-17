@@ -462,10 +462,15 @@ public partial class Exchange
         return a - b;
     }
 
-    public float subtract(float a, float b)
+    public static Int64 subtract(Int64 a, Int64 b)
     {
         return a - b;
     }
+
+    // public static float subtract(float a, float b)
+    // {
+    //     return a - b;
+    // }
 
     public static object divide(object a, object b)
     {

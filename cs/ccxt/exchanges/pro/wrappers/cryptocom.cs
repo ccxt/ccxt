@@ -470,10 +470,10 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<Dictionary<string, object>> WatchPublicMultiple(object messageHashes, object topics, Dictionary<string, object> parameters = null)
     {

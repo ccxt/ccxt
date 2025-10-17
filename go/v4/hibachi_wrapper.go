@@ -355,7 +355,7 @@ func (this *Hibachi) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Hibachi) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Hibachi) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 
@@ -376,7 +376,7 @@ func (this *Hibachi) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**

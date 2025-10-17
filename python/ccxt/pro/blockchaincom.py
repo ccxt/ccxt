@@ -124,7 +124,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market.
 
@@ -738,7 +738,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         isAuthenticated = self.safe_value(client.subscriptions, messageHash)
         if isAuthenticated is None:
             self.check_required_credentials()

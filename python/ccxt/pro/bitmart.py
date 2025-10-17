@@ -1052,7 +1052,7 @@ class bitmart(ccxt.async_support.bitmart):
             'indexPrice': self.safe_string(ticker, 'index_price'),
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://developer-pro.bitmart.com/en/spot/#public-kline-channel
@@ -1413,7 +1413,7 @@ class bitmart(ccxt.async_support.bitmart):
         url = self.implode_hostname(self.urls['api']['ws'][type]['private'])
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = str(self.milliseconds())

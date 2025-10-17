@@ -307,6 +307,10 @@ func (this *CoinbaseadvancedCore) V3PrivateGetBrokeragePaymentMethodsPaymentMeth
 	return this.callEndpointAsync("v3PrivateGetBrokeragePaymentMethodsPaymentMethodId", args...)
 }
 
+func (this *CoinbaseadvancedCore) V3PrivateGetBrokerageKeyPermissions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v3PrivateGetBrokerageKeyPermissions", args...)
+}
+
 func (this *CoinbaseadvancedCore) V3PrivatePostBrokerageOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v3PrivatePostBrokerageOrders", args...)
 }

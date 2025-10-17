@@ -832,7 +832,7 @@ export default class whitebit extends whitebitRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future('authenticated');
+        const future = client.reusableFuture('authenticated');
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const authToken = await this.v4PrivatePostProfileWebsocketToken();

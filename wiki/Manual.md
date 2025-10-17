@@ -72,7 +72,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Instantiation](#instantiation)
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
-<!--- init list -->The CCXT library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
+<!--- init list -->The CCXT library currently supports the following 102 cryptocurrency exchange markets and trading APIs:
 
 |logo                                                                                                                                                                                           |id                     |name                                                                                     |ver                                                                                                                                               |type                                                                                                    |certified                                                                                                                    |pro                                                                           |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|-----------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|--------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -156,7 +156,6 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 | [![ndax](https://user-images.githubusercontent.com/1294454/108623144-67a3ef00-744e-11eb-8140-75c6b851e945.jpg)](https://one.ndax.io/bfQiSL)                                                   | ndax                  | [NDAX](https://one.ndax.io/bfQiSL)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://apidoc.ndax.io/)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![novadax](https://user-images.githubusercontent.com/1294454/92337550-2b085500-f0b3-11ea-98e7-5794fb07dd3b.jpg)](https://www.novadax.com.br/?s=ccxt)                                         | novadax               | [NovaDAX](https://www.novadax.com.br/?s=ccxt)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://doc.novadax.com/pt-BR/)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![oceanex](https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg)](https://oceanex.pro/signup?referral=VE24QX)                                 | oceanex               | [OceanEx](https://oceanex.pro/signup?referral=VE24QX)                                   | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.oceanex.pro/doc/v1)                                                     | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
-| [![okcoin](https://user-images.githubusercontent.com/51840849/87295551-102fbf00-c50e-11ea-90a9-462eebba5829.jpg)](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)  | okcoin                | [OKCoin](https://www.okcoin.com/account/register?flag=activity&channelId=600001513)     | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okcoin.com/docs/en/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okx](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.okx.com/join/CCXT2023)                                             | okx                   | [OKX](https://www.okx.com/join/CCXT2023)                                                | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://www.okx.com/docs-v5/en/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![okxus](https://user-images.githubusercontent.com/1294454/152485636-38b19e4a-bece-4dec-979a-5982859ffc04.jpg)](https://www.app.okx.com/join/CCXT2023)                                       | okxus                 | [OKX (US)](https://www.app.okx.com/join/CCXT2023)                                       | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://app.okx.com/docs-v5/en/#overview)                                           | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![onetrading](https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c)](https://onetrading.com/)                                                                   | onetrading            | [One Trading](https://onetrading.com/)                                                  | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.onetrading.com)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -833,6 +832,18 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in a distributed network of servers
 - run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - ...
+
+## Maximum Requests capacity
+
+In asynchronous programming, CCXT allows you to schedule an unlimited number of requests. However, there is a default queue limit of 1,000 concurrent requests. If you attempt to enqueue more than this limit, you will encounter the error: "throttle queue is over maxCapacity".
+
+In most cases, having such a large number of pending tasks indicates suboptimal design, as new requests will be delayed until the existing tasks complete.
+
+That said, users who wish to bypass this restriction can increase the default maxCapacity during instantiation as shown below:
+
+```
+ex = ccxt.binance({'options': {'maxRequestsQueue': 9999}})
+```
 
 # Markets
 
@@ -3414,7 +3425,7 @@ Returns
 
 *contract only*
 
-Use the `fetchOpenInterest` method to get the current open interest for a symbol from the exchange.
+Use the `fetchOpenInterest` method to get the current open interest for a symbol from the exchange. Use `fetchOpenInterests` to get the current open interest for multiple symbols
 
 ```javascript
 fetchOpenInterest (symbol, params = {})
@@ -3424,6 +3435,17 @@ Parameters
 
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- An [open interest structure](#open-interest-structure)
+
+```js
+fetchOpenInterests (symbols = undefined, params = {})
+```
+
+- **symbols** ([String]) An optional array/list of unified CCXT symbols (e.g. `["BTC/USDT:USDT", "ETH/USDT:USDT"]`). Leave as `undefined` for all symbols.
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
 
@@ -3536,9 +3558,10 @@ Returns
 
 *contract only*
 
-Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange.
+Use the `fetchSettlementHistory` method to get the public settlement history for a contract market from the exchange. Use `fetchMySettlementHistory` to get only your settlement history
 
 ```javascript
+fetchMySettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 fetchSettlementHistory (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
@@ -3567,9 +3590,12 @@ Returns
 
 ## Liquidations
 
-Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange.
+*margin and contract only*
+
+Use the `fetchLiquidations` method to get the public liquidations of a trading pair from the exchange. Use `fetchMyLiquidations` to get only your liquidation history
 
 ```javascript
+fetchMyLiquidations (symbol = undefined, since = undefined, limit = undefined, params = {})
 fetchLiquidations (symbol, since = undefined, limit = undefined, params = {})
 ```
 
@@ -4943,7 +4969,7 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 * Not supported by all exchanges. To check whether stop-loss is supported, use such approach:
 ```
 exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss') // if stopLoss supported
-exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss', 'price') // if limit price is supported for stoploss
+exchange.featureValue('BTC/USDT', 'createOrder', 'stopLoss.price') // if limit price is supported for stoploss
 ```
 
 <!-- tabs:start -->
@@ -6404,7 +6430,7 @@ Returns
 
 ## Set Margin Mode
 
-*margin and contract only*
+*contract only*
 
 Updates the type of margin used to be either
 
@@ -6737,30 +6763,43 @@ Returns
 - A list of [order structures](#order-structure)
 
 
-## Set Position Mode
+### Position Mode
 
 *margin and contract only*
 
 Method used for setting position mode:
 
-- `true` - sets to **hedged** mode
-- `false` - sets to **one-way** mode
-
 ```javascript
-set_position_mode (false, symbol = undefined, params = {})
+setPositionMode (hedged, symbol = undefined, params = {})
 ```
 
 Parameters
 
 - **hedged** (String) *required* hedged-mode value:
-    - `true`
-    - `false`
+    - `true` - sets to **hedged** mode
+    - `false` - sets to **one-way** mode
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint
+
+Method used for fetching position mode:
+
+```javascript
+fetchPositionMode (symbol = undefined, params = {}) {
+```
+
+Parameters
+
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint
 
 Returns
 
-- response from the exchange
+```javascript
+{
+    'info': { ... },
+    'hedged': true,
+}
+```
 
 
 #### Liquidation Price
@@ -7297,6 +7336,48 @@ Possible reasons for this exception:
   - `InvalidAddress`: when encountering a bad funding address or a funding address shorter than `.minFundingAddressLength` (10 characters by default) in a call to `fetchDepositAddress`, `createDepositAddress` or `withdraw`.
   - `InvalidOrder`: the base class for all exceptions related to the unified order API.
   - `OrderNotFound`: when you are trying to fetch or cancel a non-existent order.
+
+### Handling timestamp errors
+
+Users may occasionally encounter errors such as:
+
+> "Timestamp for this request is outside of the recvWindow."
+> "Invalid request, please check your server timestamp or recv_window param."
+> "Timestamp for this request was 1000ms ahead of the server's time."
+
+These issues can arise for several reasons:
+
+#### 1. System Clock Desynchronization
+Your device’s system clock may not be properly synchronized with global time standards, leading to timestamp discrepancies.
+To resolve this, ensure your system clock is accurate to the millisecond. This should not be a one-time adjustment — configure your operating system to synchronize time periodically (e.g., every hour) to maintain accuracy.
+
+#### 2. Network Latency or Delayed Requests
+If your device’s clock is correctly synchronized but network delays cause requests to take longer than the exchange’s accepted window (commonly around `5` seconds, though this varies by exchange), your request may be rejected.
+
+
+If the issue persists, you can compare your local timestamp with the exchange’s server time to diagnose discrepancies:
+
+```
+for i in range(0, 20):
+    local_time = exchange.milliseconds()
+    exchange_time = await exchange.fetch_time()
+    print(exchange_time - local_time)
+```
+
+####  Adjusting Exchange Options
+
+If you continue to experience timestamp errors after verifying synchronization, you can modify certain exchange options to help mitigate the issue.
+
+A) `exchange.options['adjustForTimeDifference'] = True`
+or increase window to eg. 10 seconds (only if an exchange supports it, search this keyword in target [exchange file](https://github.com/ccxt/ccxt/tree/master/ts/src)):
+B) `exchange.options['recvWindow'] = 10000`
+
+
+For additional troubleshooting steps, community discussions, and related timestamp/`recvWindow` issues, refer to the following GitHub threads:
+
+- [CCXT Issue #773](https://github.com/ccxt/ccxt/issues/773)
+- [CCXT Issue #850](https://github.com/ccxt/ccxt/issues/850)
+- [CCXT Issue #936](https://github.com/ccxt/ccxt/issues/936)
 
 # Troubleshooting
 

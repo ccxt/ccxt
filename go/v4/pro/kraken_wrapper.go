@@ -436,7 +436,7 @@ func (this *Kraken) WatchOrderBookForSymbols(symbols []string, options ...ccxt.W
  * @method
  * @name kraken#watchOHLCV
  * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
- * @see https://docs.kraken.com/api/docs/websocket-v1/ohlc
+ * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -488,7 +488,7 @@ func (this *Kraken) WatchHeartbeat(params ...interface{}) (map[string]interface{
  * @method
  * @name kraken#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://docs.kraken.com/api/docs/websocket-v1/owntrades
+ * @see https://docs.kraken.com/api/docs/websocket-v2/executions
  * @param {string} symbol unified market symbol of the market trades were made in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -531,8 +531,8 @@ func (this *Kraken) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.
 /**
  * @method
  * @name kraken#watchOrders
- * @see https://docs.kraken.com/api/docs/websocket-v1/openorders
  * @description watches information on multiple orders made by the user
+ * @see https://docs.kraken.com/api/docs/websocket-v2/executions
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve

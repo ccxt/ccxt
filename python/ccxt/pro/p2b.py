@@ -84,7 +84,7 @@ class p2b(ccxt.async_support.p2b):
         query = self.extend(subscribe, params)
         return await self.watch(url, messageHash, query, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='15m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '15m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
 

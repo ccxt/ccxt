@@ -152,7 +152,7 @@ public partial class coinex : ccxt.coinex
         object defaultType = this.safeString(this.options, "defaultType");
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object rawTickers = this.safeList(data, "state_list", new List<object>() {});
-        object newTickers = new List<object>() {};
+        object newTickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object entry = getValue(rawTickers, i);
@@ -161,7 +161,7 @@ public partial class coinex : ccxt.coinex
             object market = this.safeMarket(marketId, null, null, defaultType);
             object parsedTicker = this.parseWSTicker(entry, market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsedTicker;
-            ((IList<object>)newTickers).Add(parsedTicker);
+            ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -1556,7 +1556,7 @@ public partial class coinex : ccxt.coinex
         object time = this.milliseconds();
         object timestamp = ((object)time).ToString();
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(!isEqual(authenticated, null)))
         {
