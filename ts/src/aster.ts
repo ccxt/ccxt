@@ -2105,6 +2105,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#createOrder
      * @description create a trade order
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#place-order-trade
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#new-order--trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP' or 'STOP_MARKET' or 'TAKE_PROFIT' or 'TAKE_PROFIT_MARKET' or 'TRAILING_STOP_MARKET'
@@ -2125,10 +2126,14 @@ export default class aster extends Exchange {
         params = this.omit (params, 'test');
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
-        if (test) {
-            response = await this.fapiPrivatePostV1OrderTest (request);
+        if (market['swap']) {
+            if (test) {
+                response = await this.fapiPrivatePostV1OrderTest (request);
+            } else {
+                response = await this.fapiPrivatePostV1Order (request);
+            }
         } else {
-            response = await this.fapiPrivatePostV1Order (request);
+            response = await this.sapiPrivatePostV1Order (request);
         }
         return this.parseOrder (response, market);
     }
@@ -2145,6 +2150,7 @@ export default class aster extends Exchange {
     async createOrders (orders: OrderRequest[], params = {}) {
         await this.loadMarkets ();
         const ordersRequests = [];
+        let orderSymbols = [];
         if (orders.length > 5) {
             throw new InvalidOrder (this.id + ' createOrders() order list max 5 orders');
         }
@@ -2158,6 +2164,11 @@ export default class aster extends Exchange {
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
+        }
+        orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
+        const market = this.market (orderSymbols[0]);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' createOrders() does not support ' + market['type'] + ' orders');
         }
         const request: Dict = {
             'batchOrders': ordersRequests,
