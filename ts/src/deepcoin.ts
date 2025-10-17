@@ -5,8 +5,8 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
-import { ArgumentsRequired, BadRequest } from '../ccxt.js';
+import type { Balances, Currency, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { ArgumentsRequired, BadRequest, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ export default class deepcoin extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': false,
                 'cancelOrders': false,
@@ -96,11 +96,11 @@ export default class deepcoin extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
-                'fetchPositionsForSymbol': false,
+                'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -162,7 +162,7 @@ export default class deepcoin extends Exchange {
                     'get': {
                         'deepcoin/account/balances': 5, // done
                         'deepcoin/account/bills': 5,
-                        'deepcoin/account/positions': 5,
+                        'deepcoin/account/positions': 5, // done
                         'deepcoin/trade/fills': 5,
                         'deepcoin/trade/orderByID': 5, // done
                         'deepcoin/trade/finishOrderByID': 5, // done
@@ -194,8 +194,8 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/replace-order': 5,
                         'deepcoin/trade/cancel-order': 5, // done
                         'deepcoin/trade/batch-cancel-order': 5,
-                        'deepcoin/trade/cancel-trigger-order': 1 / 6,
-                        'deepcoin/trade/swap/cancel-all': 5,
+                        'deepcoin/trade/cancel-trigger-order': 1 / 6, // done
+                        'deepcoin/trade/swap/cancel-all': 5, // done
                         'deepcoin/trade/trigger-order': 5,
                         'deepcoin/trade/batch-close-position': 5,
                         'deepcoin/trade/replace-order-sltp': 5,
@@ -255,6 +255,8 @@ export default class deepcoin extends Exchange {
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
                     // {"code":"50","msg":"len(rows) expected(1) got(0) rows([])","data":null}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
                 },
                 'broad': {},
             },
@@ -673,7 +675,6 @@ export default class deepcoin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.productGroup] 'Spot', 'Swap', 'SwapU' for USDT-margined
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -685,21 +686,24 @@ export default class deepcoin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 500
         }
-        let productGroup = undefined;
-        if (market['spot']) {
-            productGroup = 'Spot';
-        } else if (market['swap']) {
+        const productGroup = this.getProductGroupFromMarket (market);
+        request['productGroup'] = productGroup;
+        params = this.omit (params, 'productGroup');
+        const response = await this.publicGetDeepcoinMarketTrades (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    getProductGroupFromMarket (market: Market): string {
+        let productGroup = 'Spot';
+        if (market['swap']) {
             if (market['linear']) {
                 productGroup = 'SwapU';
             } else {
                 productGroup = 'Swap';
             }
         }
-        request['productGroup'] = productGroup;
-        params = this.omit (params, 'productGroup');
-        const response = await this.publicGetDeepcoinMarketTrades (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        return this.parseTrades (data, market, since, limit);
+        return productGroup;
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -921,7 +925,7 @@ export default class deepcoin extends Exchange {
         let response = undefined;
         if (triggerPrice !== undefined) {
             // trigger orders
-            response = this.privatePostDeepcoinTradeTriggerOrder (request);
+            response = await this.privatePostDeepcoinTradeTriggerOrder (request);
         } else {
             // regular orders
             //
@@ -937,7 +941,7 @@ export default class deepcoin extends Exchange {
             //         }
             //     }
             //
-            response = this.privatePostDeepcoinTradeOrder (request);
+            response = await this.privatePostDeepcoinTradeOrder (request);
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
@@ -984,8 +988,8 @@ export default class deepcoin extends Exchange {
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin and swap orders
          * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode
          * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+         * @param {string} [params.mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
          */
         const market = this.market (symbol);
         let orderType = type;
@@ -995,7 +999,7 @@ export default class deepcoin extends Exchange {
             // 'tdMode': 'cash', // 'cash' for spot, 'cross' or 'isolated' for swap
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin // todo check
             // 'clOrdId': clientOrderId,
-            // 'side': side,
+            'side': side,
             'ordType': orderType,
             // 'sz': amount or cost
             // 'px': price, // limit orders only
@@ -1034,7 +1038,7 @@ export default class deepcoin extends Exchange {
         if (market['spot']) {
             const cost = this.safeString (params, 'cost');
             if (cost !== undefined) {
-                if (isMarketOrder) {
+                if (!isMarketOrder) {
                     throw new BadRequest (this.id + ' createOrder() accepts a cost parameter for spot market orders only');
                 }
                 if ((amount !== undefined) && (amount !== 0)) {
@@ -1054,12 +1058,8 @@ export default class deepcoin extends Exchange {
             let marginMode = 'cross';
             [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, marginMode);
             request['tdMode'] = marginMode;
-            let hedged = false;
             let mrgPosition = 'merge';
-            [ hedged, params ] = this.handleOptionAndParams (params, 'createOrder', 'hedged', hedged);
-            if (hedged) {
-                mrgPosition = 'split'; // todo check
-            }
+            [ mrgPosition, params ] = this.handleOptionAndParams (params, 'createOrder', 'mrgPosition', mrgPosition);
             request['mrgPosition'] = mrgPosition;
             let posSide: Str = undefined;
             const reduceOnly = this.safeBool (params, 'reduceOnly', false);
@@ -1405,6 +1405,7 @@ export default class deepcoin extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a trigger/algo order (default false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -1417,9 +1418,58 @@ export default class deepcoin extends Exchange {
             'instId': market['id'],
             'ordId': id,
         };
-        const response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
+        let response = undefined;
+        const trigger = this.safeBool (params, 'trigger', false);
+        if (trigger) {
+            params = this.omit (params, 'trigger');
+            response = await this.privatePostDeepcoinTradeCancelTriggerOrder (this.extend (request, params));
+        } else {
+            response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelAllOrder
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
+     * @param {boolean} [params.merged] *swap only* true for merged positions, false for split positions (default true)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' cancelAllOrders() is not supported for spot markets');
+        }
+        const productGroup = this.getProductGroupFromMarket (market);
+        const marginMode = this.safeString (params, 'marginMode');
+        let encodedMarginMode = 1;
+        if (marginMode !== undefined) {
+            params = this.omit (params, 'marginMode');
+            if (marginMode === 'isolated') {
+                encodedMarginMode = 0;
+            }
+        }
+        let merged = true;
+        [ merged, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'merged', merged);
+        const request: Dict = {
+            'InstrumentID': market['id'],
+            'ProductGroup': productGroup,
+            'IsCrossMargin': encodedMarginMode,
+            'IsMergeMode': merged ? 1 : 0,
+        };
+        const response = await this.privatePostDeepcoinTradeSwapCancelAll (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1538,6 +1588,135 @@ export default class deepcoin extends Exchange {
             'market': 'GTC',
         };
         return this.safeString (timeInForces, type, type);
+    }
+
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name deepcoin#fetchPositionsForSymbol
+     * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const instrumentType = this.convertToInstrumentType (market['type']);
+        const request: Dict = {
+            'instType': instrumentType,
+            'instId': market['id'],
+        };
+        const response = await this.privateGetDeepcoinAccountPositions (this.extend (request, params));
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, [ market['symbol'] ]);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountPositions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let marketType = 'swap';
+        let market: Market = undefined;
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString (symbols, 0);
+            market = this.market (firstSymbol);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params, marketType);
+        const instrumentType = this.convertToInstrumentType (marketType);
+        const request: Dict = {
+            'instType': instrumentType,
+        };
+        const response = await this.privateGetDeepcoinAccountPositions (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "SWAP",
+        //                 "mgnMode": "cross",
+        //                 "instId": "DOGE-USDT-SWAP",
+        //                 "posId": "1001110099878275",
+        //                 "posSide": "long",
+        //                 "pos": "20",
+        //                 "avgPx": "0.18408",
+        //                 "lever": "75",
+        //                 "liqPx": "0.00001",
+        //                 "useMargin": "0.049088",
+        //                 "mrgPosition": "merge",
+        //                 "ccy": "USDT",
+        //                 "uTime": "1760709419000",
+        //                 "cTime": "1760709419000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        //
+        //     {
+        //         "instType": "SWAP",
+        //         "mgnMode": "cross",
+        //         "instId": "DOGE-USDT-SWAP",
+        //         "posId": "1001110099878275",
+        //         "posSide": "long",
+        //         "pos": "20",
+        //         "avgPx": "0.18408",
+        //         "lever": "75",
+        //         "liqPx": "0.00001",
+        //         "useMargin": "0.049088",
+        //         "mrgPosition": "merge",
+        //         "ccy": "USDT",
+        //         "uTime": "1760709419000",
+        //         "cTime": "1760709419000"
+        //     }
+        //
+        const marketId = this.safeString (position, 'instId');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (position, 'cTime');
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': this.safeString (position, 'posId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': this.safeString (position, 'pos'),
+            'contractSize': undefined,
+            'side': this.safeString (position, 'posSide'),
+            'notional': undefined,
+            'leverage': this.omitZero (this.safeString (position, 'lever')),
+            'unrealizedPnl': undefined,
+            'realizedPnl': undefined,
+            'collateral': undefined,
+            'entryPrice': this.safeString (position, 'avgPx'),
+            'markPrice': undefined,
+            'liquidationPrice': this.safeString (position, 'liqPx'),
+            'marginMode': this.safeString (position, 'mgnMode'),
+            'hedged': true, // todo check
+            'maintenanceMargin': this.safeString (position, 'useMargin'),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': this.safeInteger (position, 'uTime'),
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+            'info': position,
+        });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
