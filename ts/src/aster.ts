@@ -305,6 +305,7 @@ export default class aster extends Exchange {
                     ],
                     'delete': [
                         'v1/order',
+                        'v1/allOpenOrders',
                     ],
                 },
             },
@@ -2267,6 +2268,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#cancelAllOrders
      * @description cancel all open orders in a market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-all-open-orders-trade
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-all-open-orders-trade
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2281,7 +2283,12 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.fapiPrivateDeleteV1AllOpenOrders (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPrivateDeleteV1AllOpenOrders (this.extend (request, params));
+        } else {
+            response = await this.sapiPrivateDeleteV1AllOpenOrders (this.extend (request, params));
+        }
         //
         //     {
         //         "code": "200",
