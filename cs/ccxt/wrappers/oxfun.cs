@@ -714,7 +714,7 @@ public partial class oxfun
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.selfTradePreventionMode</term>
+    /// <term>params.selfTradePrevention</term>
     /// <description>
     /// string : NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
     /// </description>

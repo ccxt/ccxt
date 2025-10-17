@@ -118,9 +118,10 @@ export default class apex extends apexRest {
         //                 "v": "0.001",
         //                 "p": "16578.50",
         //                 "L": "PlusTick",
-        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        //                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         //                 "BT": false
-        //             }
+        //             },
+        //             // sorted by newest first
         //         ]
         //     }
         //
@@ -137,8 +138,10 @@ export default class apex extends apexRest {
             stored = new ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        for (let j = 0; j < trades.length; j++) {
-            const parsed = this.parseWsTrade(trades[j], market);
+        const length = trades.length;
+        for (let j = 0; j < length; j++) {
+            const index = length - j - 1;
+            const parsed = this.parseWsTrade(trades[index], market);
             stored.append(parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
@@ -821,7 +824,7 @@ export default class apex extends apexRest {
         const signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -964,9 +967,10 @@ export default class apex extends apexRest {
         }
     }
     ping(client) {
-        const timeStamp = this.milliseconds().toString();
+        const timeStamp = this.milliseconds();
+        client.lastPong = timeStamp;
         return {
-            'args': [timeStamp],
+            'args': [timeStamp.toString()],
             'op': 'ping',
         };
     }

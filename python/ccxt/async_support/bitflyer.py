@@ -38,6 +38,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': False,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,

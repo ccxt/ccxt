@@ -42,6 +42,7 @@ public partial class krakenfutures : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
@@ -421,7 +422,7 @@ public partial class krakenfutures : Exchange
                 { "future", future },
                 { "option", false },
                 { "index", index },
-                { "active", null },
+                { "active", this.safeBool(market, "tradeable") },
                 { "contract", contract },
                 { "linear", linear },
                 { "inverse", inverse },
@@ -1312,7 +1313,7 @@ public partial class krakenfutures : Exchange
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

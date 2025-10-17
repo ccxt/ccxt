@@ -175,6 +175,9 @@ abstract class mexc extends \ccxt\Exchange {
     public function spot_private_get_selfsymbols($params = array()) {
         return $this->request('selfSymbols', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_private_get_asset_internal_transfer_record($params = array()) {
+        return $this->request('asset/internal/transfer/record', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
+    }
     public function spot_private_post_order($params = array()) {
         return $this->request('order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -702,6 +705,9 @@ abstract class mexc extends \ccxt\Exchange {
     }
     public function spotPrivateGetSelfSymbols($params = array()) {
         return $this->request('selfSymbols', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivateGetAssetInternalTransferRecord($params = array()) {
+        return $this->request('asset/internal/transfer/record', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
     }
     public function spotPrivatePostOrder($params = array()) {
         return $this->request('order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));

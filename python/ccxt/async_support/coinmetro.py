@@ -559,6 +559,14 @@ class coinmetro(Exchange, ImplicitAPI):
                         baseId = restId
                         quoteId = currencyId
                     break
+        if baseId is None or quoteId is None:
+            # https://github.com/ccxt/ccxt/issues/26820
+            if marketId.endswith('USDT'):
+                baseId = marketId.replace('USDT', '')
+                quoteId = 'USDT'
+            if marketId.endswith('USD'):
+                baseId = marketId.replace('USD', '')
+                quoteId = 'USD'
         result: dict = {
             'baseId': baseId,
             'quoteId': quoteId,
@@ -577,7 +585,7 @@ class coinmetro(Exchange, ImplicitAPI):
         }
         return result
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

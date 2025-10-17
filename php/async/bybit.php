@@ -1245,6 +1245,9 @@ class bybit extends Exchange {
                 ),
                 'spot' => array(
                     'extends' => 'default',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
@@ -1293,7 +1296,9 @@ class bybit extends Exchange {
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
+         *
          * @see https://bybit-exchange.github.io/docs/v5/demo
+         *
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
         if ($this->isSandboxModeEnabled) {
@@ -1617,10 +1622,10 @@ class bybit extends Exchange {
              * @return {array} an associative dictionary of currencies
              */
             if (!$this->check_required_credentials(false)) {
-                return null;
+                return array();
             }
             if ($this->options['enableDemoTrading']) {
-                return null;
+                return array();
             }
             $response = Async\await($this->privateGetV5AssetCoinQueryInfo ($params));
             //
@@ -2581,7 +2586,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -3026,17 +3031,69 @@ class bybit extends Exchange {
         //         "tradeId" => "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
         //     }
         //
+        // watchMyTrades execution.fast
+        //
+        //     {
+        //         "category" => "linear",
+        //         "symbol" => "ICPUSDT",
+        //         "execId" => "3510f361-0add-5c7b-a2e7-9679810944fc",
+        //         "execPrice" => "12.015",
+        //         "execQty" => "3000",
+        //         "orderId" => "443d63fa-b4c3-4297-b7b1-23bca88b04dc",
+        //         "isMaker" => false,
+        //         "orderLinkId" => "test-00001",
+        //         "side" => "Sell",
+        //         "execTime" => "1716800399334",
+        //         "seq" => 34771365464
+        //     }
+        //
+        // watchMyTrades execution
+        //
+        //     {
+        //         "category" => "linear",
+        //         "symbol" => "BTCUSDT",
+        //         "closedSize" => "0",
+        //         "execFee" => "0.0679239",
+        //         "execId" => "135dbae5-cbed-5275-9290-3956bb2ed907",
+        //         "execPrice" => "123498",
+        //         "execQty" => "0.001",
+        //         "execType" => "Trade",
+        //         "execValue" => "123.498",
+        //         "feeRate" => "0.00055",
+        //         "tradeIv" => "",
+        //         "markIv" => "",
+        //         "blockTradeId" => "",
+        //         "markPrice" => "122392",
+        //         "indexPrice" => "",
+        //         "underlyingPrice" => "",
+        //         "leavesQty" => "0",
+        //         "orderId" => "aee7453a-a100-465f-857a-3db780e9329a",
+        //         "orderLinkId" => "",
+        //         "orderPrice" => "123615.9",
+        //         "orderQty" => "0.001",
+        //         "orderType" => "Market",
+        //         "stopOrderType" => "UNKNOWN",
+        //         "side" => "Buy",
+        //         "execTime" => "1757837580469",
+        //         "isLeverage" => "0",
+        //         "isMaker" => false,
+        //         "seq" => 9517074055,
+        //         "marketUnit" => "",
+        //         "execPnl" => "0",
+        //         "createType" => "CreateByUser",
+        //         "extraFees" => array(),
+        //         "feeCoin" => "USDT"
+        //  }
+        //
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = (is_array($trade) && array_key_exists('createType', $trade)) ? 'contract' : 'spot';
-        if ($market !== null) {
-            $marketType = $market['type'];
-        }
         $category = $this->safe_string($trade, 'category');
         if ($category !== null) {
-            if ($category === 'spot') {
-                $marketType = 'spot';
-            }
+            $marketType = ($category === 'spot') ? 'spot' : 'contract';
+        }
+        if ($market !== null) {
+            $marketType = $market['type'];
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
@@ -3096,7 +3153,7 @@ class bybit extends Exchange {
             }
             $fee = array(
                 'cost' => $feeCostString,
-                'currency' => $feeCurrencyCode,
+                'currency' => $this->safe_string($trade, 'feeCoin', $feeCurrencyCode),
                 'rate' => $feeRateString,
             );
         }
@@ -3666,48 +3723,56 @@ class bybit extends Exchange {
         //
         // v5
         //     {
-        //         "orderId" => "14bad3a1-6454-43d8-bcf2-5345896cf74d",
-        //         "orderLinkId" => "YLxaWKMiHU",
-        //         "blockTradeId" => "",
         //         "symbol" => "BTCUSDT",
-        //         "price" => "26864.40",
-        //         "qty" => "0.003",
-        //         "side" => "Buy",
-        //         "isLeverage" => "",
-        //         "positionIdx" => 1,
-        //         "orderStatus" => "Cancelled",
+        //         "orderType" => "Market",
+        //         "orderLinkId" => "",
+        //         "slLimitPrice" => "0",
+        //         "orderId" => "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         //         "cancelType" => "UNKNOWN",
-        //         "rejectReason" => "EC_PostOnlyWillTakeLiquidity",
-        //         "avgPrice" => "0",
-        //         "leavesQty" => "0.000",
-        //         "leavesValue" => "0",
-        //         "cumExecQty" => "0.000",
-        //         "cumExecValue" => "0",
-        //         "cumExecFee" => "0",
-        //         "timeInForce" => "PostOnly",
-        //         "orderType" => "Limit",
-        //         "stopOrderType" => "UNKNOWN",
-        //         "orderIv" => "",
-        //         "triggerPrice" => "0.00",
-        //         "takeProfit" => "0.00",
-        //         "stopLoss" => "0.00",
-        //         "tpTriggerBy" => "UNKNOWN",
-        //         "slTriggerBy" => "UNKNOWN",
-        //         "triggerDirection" => 0,
-        //         "triggerBy" => "UNKNOWN",
-        //         "lastPriceOnCreated" => "0.00",
-        //         "reduceOnly" => false,
-        //         "closeOnTrigger" => false,
-        //         "smpType" => "None",
-        //         "smpGroup" => 0,
-        //         "smpOrderId" => "",
+        //         "avgPrice" => "122529.9",
+        //         "stopOrderType" => "",
+        //         "lastPriceOnCreated" => "123747.9",
+        //         "orderStatus" => "Filled",
+        //         "createType" => "CreateByUser",
+        //         "takeProfit" => "",
+        //         "cumExecValue" => "122.5299",
         //         "tpslMode" => "",
-        //         "tpLimitPrice" => "",
-        //         "slLimitPrice" => "",
+        //         "smpType" => "None",
+        //         "triggerDirection" => 0,
+        //         "blockTradeId" => "",
+        //         "cumFeeDetail" => array(
+        //             "USDT" => "0.06739145"
+        //         ),
+        //         "rejectReason" => "EC_NoError",
+        //         "isLeverage" => "",
+        //         "price" => "120518",
+        //         "orderIv" => "",
+        //         "createdTime" => "1757837618905",
+        //         "tpTriggerBy" => "",
+        //         "positionIdx" => 0,
+        //         "timeInForce" => "IOC",
+        //         "leavesValue" => "0",
+        //         "updatedTime" => "1757837618909",
+        //         "side" => "Sell",
+        //         "smpGroup" => 0,
+        //         "triggerPrice" => "",
+        //         "tpLimitPrice" => "0",
+        //         "cumExecFee" => "0.06739145",
+        //         "slTriggerBy" => "",
+        //         "leavesQty" => "0",
+        //         "closeOnTrigger" => false,
+        //         "slippageToleranceType" => "UNKNOWN",
         //         "placeType" => "",
-        //         "createdTime" => "1684476068369",
-        //         "updatedTime" => "1684476068372"
+        //         "cumExecQty" => "0.001",
+        //         "reduceOnly" => true,
+        //         "qty" => "0.001",
+        //         "stopLoss" => "",
+        //         "smpOrderId" => "",
+        //         "slippageTolerance" => "0",
+        //         "triggerBy" => "",
+        //         "extraFees" => ""
         //     }
+        //
         // createOrders failed $order
         //    {
         //        "category" => "linear",
@@ -3763,29 +3828,13 @@ class bybit extends Exchange {
         $status = $this->parse_order_status($rawStatus);
         $side = $this->safe_string_lower($order, 'side');
         $fee = null;
-        $feeCostString = $this->safe_string($order, 'cumExecFee');
-        if ($feeCostString !== null) {
-            $feeCurrencyCode = null;
-            if ($market['spot']) {
-                if (Precise::string_gt($feeCostString, '0')) {
-                    if ($side === 'buy') {
-                        $feeCurrencyCode = $market['base'];
-                    } else {
-                        $feeCurrencyCode = $market['quote'];
-                    }
-                } else {
-                    if ($side === 'buy') {
-                        $feeCurrencyCode = $market['quote'];
-                    } else {
-                        $feeCurrencyCode = $market['base'];
-                    }
-                }
-            } else {
-                $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
-            }
+        $cumFeeDetail = $this->safe_dict($order, 'cumFeeDetail', array());
+        $feeCoins = is_array($cumFeeDetail) ? array_keys($cumFeeDetail) : array();
+        $feeCoinId = $this->safe_string($feeCoins, 0);
+        if ($feeCoinId !== null) {
             $fee = array(
-                'cost' => $this->parse_number($feeCostString),
-                'currency' => $feeCurrencyCode,
+                'cost' => $this->safe_number($cumFeeDetail, $feeCoinId),
+                'currency' => $feeCoinId,
             );
         }
         $clientOrderId = $this->safe_string($order, 'orderLinkId');
@@ -4085,7 +4134,7 @@ class bybit extends Exchange {
                 // only works for spot $market
                 if ($triggerPrice !== null) {
                     $request['orderFilter'] = 'StopOrder';
-                } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
+                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                     $request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4107,7 +4156,8 @@ class bybit extends Exchange {
         $params = $this->omit($params, 'cost');
         // if the $cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         $isMarketBuyAndCostInferable = ($lowerCaseType === 'market') && ($side === 'buy') && (($price !== null) || ($cost !== null));
-        if ($market['spot'] && ($type === 'market') && $isUTA && !$isMarketBuyAndCostInferable) {
+        $isMarketOrder = $lowerCaseType === 'market';
+        if ($market['spot'] && $isMarketOrder && $isUTA && !$isMarketBuyAndCostInferable) {
             // UTA account can specify the $cost of the order on both sides
             if (($cost !== null) || ($price !== null)) {
                 $request['marketUnit'] = 'quoteCoin';
@@ -4123,7 +4173,7 @@ class bybit extends Exchange {
                 $request['marketUnit'] = 'baseCoin';
                 $request['qty'] = $amountString;
             }
-        } elseif ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+        } elseif ($market['spot'] && $isMarketOrder && ($side === 'buy')) {
             // classic accounts
             // for $market buy it requires the $amount of quote currency to spend
             $createMarketBuyOrderRequiresPrice = true;
@@ -4189,6 +4239,15 @@ class bybit extends Exchange {
                     $request['tpslMode'] = 'Partial';
                     $request['slOrderType'] = 'Limit';
                     $request['slLimitPrice'] = $this->get_price($symbol, $slLimitPrice);
+                } else {
+                    // for spot $market, we need to add this
+                    if ($market['spot']) {
+                        $request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot $market, we need to add this
+                if ($market['spot'] && $isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() => attached $stopLoss is not supported for spot $market orders');
                 }
             }
             if ($isTakeProfit) {
@@ -4199,6 +4258,15 @@ class bybit extends Exchange {
                     $request['tpslMode'] = 'Partial';
                     $request['tpOrderType'] = 'Limit';
                     $request['tpLimitPrice'] = $this->get_price($symbol, $tpLimitPrice);
+                } else {
+                    // for spot $market, we need to add this
+                    if ($market['spot']) {
+                        $request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot $market, we need to add this
+                if ($market['spot'] && $isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() => attached $takeProfit is not supported for spot $market orders');
                 }
             }
         }
@@ -4583,7 +4651,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -5282,50 +5350,64 @@ class bybit extends Exchange {
             //     {
             //         "retCode" => 0,
             //         "retMsg" => "OK",
-            //         "result" => {
-            //             "nextPageCursor" => "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
+            //         "result" => array(
+            //             "nextPageCursor" => "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
             //             "category" => "linear",
             //             "list" => array(
             //                 array(
             //                     "symbol" => "BTCUSDT",
-            //                     "orderType" => "Limit",
-            //                     "orderLinkId" => "test-001",
-            //                     "orderId" => "03234de9-1332-41eb-b805-4a9f42c136a3",
-            //                     "cancelType" => "CancelByUser",
-            //                     "avgPrice" => "0",
-            //                     "stopOrderType" => "UNKNOWN",
-            //                     "lastPriceOnCreated" => "16656.5",
-            //                     "orderStatus" => "Cancelled",
+            //                     "orderType" => "Market",
+            //                     "orderLinkId" => "",
+            //                     "slLimitPrice" => "0",
+            //                     "orderId" => "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
+            //                     "cancelType" => "UNKNOWN",
+            //                     "avgPrice" => "122529.9",
+            //                     "stopOrderType" => "",
+            //                     "lastPriceOnCreated" => "123747.9",
+            //                     "orderStatus" => "Filled",
+            //                     "createType" => "CreateByUser",
             //                     "takeProfit" => "",
-            //                     "cumExecValue" => "0",
+            //                     "cumExecValue" => "122.5299",
+            //                     "tpslMode" => "",
+            //                     "smpType" => "None",
             //                     "triggerDirection" => 0,
             //                     "blockTradeId" => "",
-            //                     "rejectReason" => "EC_PerCancelRequest",
+            //                     "cumFeeDetail" => array(
+            //                         "USDT" => "0.06739145"
+            //                     ),
+            //                     "rejectReason" => "EC_NoError",
             //                     "isLeverage" => "",
-            //                     "price" => "18000",
+            //                     "price" => "120518",
             //                     "orderIv" => "",
-            //                     "createdTime" => "1672220109387",
-            //                     "tpTriggerBy" => "UNKNOWN",
+            //                     "createdTime" => "1757837618905",
+            //                     "tpTriggerBy" => "",
             //                     "positionIdx" => 0,
-            //                     "timeInForce" => "GoodTillCancel",
+            //                     "timeInForce" => "IOC",
             //                     "leavesValue" => "0",
-            //                     "updatedTime" => "1672220114123",
+            //                     "updatedTime" => "1757837618909",
             //                     "side" => "Sell",
+            //                     "smpGroup" => 0,
             //                     "triggerPrice" => "",
-            //                     "cumExecFee" => "0",
-            //                     "slTriggerBy" => "UNKNOWN",
+            //                     "tpLimitPrice" => "0",
+            //                     "cumExecFee" => "0.06739145",
+            //                     "slTriggerBy" => "",
             //                     "leavesQty" => "0",
             //                     "closeOnTrigger" => false,
-            //                     "cumExecQty" => "0",
-            //                     "reduceOnly" => false,
-            //                     "qty" => "0.1",
+            //                     "slippageToleranceType" => "UNKNOWN",
+            //                     "placeType" => "",
+            //                     "cumExecQty" => "0.001",
+            //                     "reduceOnly" => true,
+            //                     "qty" => "0.001",
             //                     "stopLoss" => "",
-            //                     "triggerBy" => "UNKNOWN"
-            //                 }
+            //                     "smpOrderId" => "",
+            //                     "slippageTolerance" => "0",
+            //                     "triggerBy" => "",
+            //                     "extraFees" => ""
+            //                 ),
             //             )
             //         ),
             //         "retExtInfo" => array(),
-            //         "time" => 1672221263862
+            //         "time" => 1758187806376
             //     }
             //
             $data = $this->add_pagination_cursor_to_result($response);
@@ -5446,49 +5528,64 @@ class bybit extends Exchange {
             //     {
             //         "retCode" => 0,
             //         "retMsg" => "OK",
-            //         "result" => {
-            //             "nextPageCursor" => "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
-            //             "category" => "spot",
+            //         "result" => array(
+            //             "nextPageCursor" => "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
+            //             "category" => "linear",
             //             "list" => array(
             //                 array(
-            //                     "symbol" => "ETHUSDT",
-            //                     "orderType" => "Limit",
-            //                     "orderLinkId" => "1672217748277652",
-            //                     "orderId" => "1321052653536515584",
+            //                     "symbol" => "BTCUSDT",
+            //                     "orderType" => "Market",
+            //                     "orderLinkId" => "",
+            //                     "slLimitPrice" => "0",
+            //                     "orderId" => "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
             //                     "cancelType" => "UNKNOWN",
-            //                     "avgPrice" => "",
-            //                     "stopOrderType" => "tpslOrder",
-            //                     "lastPriceOnCreated" => "",
-            //                     "orderStatus" => "Cancelled",
+            //                     "avgPrice" => "122529.9",
+            //                     "stopOrderType" => "",
+            //                     "lastPriceOnCreated" => "123747.9",
+            //                     "orderStatus" => "Filled",
+            //                     "createType" => "CreateByUser",
             //                     "takeProfit" => "",
-            //                     "cumExecValue" => "0",
+            //                     "cumExecValue" => "122.5299",
+            //                     "tpslMode" => "",
+            //                     "smpType" => "None",
             //                     "triggerDirection" => 0,
-            //                     "isLeverage" => "0",
-            //                     "rejectReason" => "",
-            //                     "price" => "1000",
+            //                     "blockTradeId" => "",
+            //                     "cumFeeDetail" => array(
+            //                         "USDT" => "0.06739145"
+            //                     ),
+            //                     "rejectReason" => "EC_NoError",
+            //                     "isLeverage" => "",
+            //                     "price" => "120518",
             //                     "orderIv" => "",
-            //                     "createdTime" => "1672217748287",
+            //                     "createdTime" => "1757837618905",
             //                     "tpTriggerBy" => "",
             //                     "positionIdx" => 0,
-            //                     "timeInForce" => "GTC",
-            //                     "leavesValue" => "500",
-            //                     "updatedTime" => "1672217748287",
-            //                     "side" => "Buy",
-            //                     "triggerPrice" => "1500",
-            //                     "cumExecFee" => "0",
-            //                     "leavesQty" => "0",
+            //                     "timeInForce" => "IOC",
+            //                     "leavesValue" => "0",
+            //                     "updatedTime" => "1757837618909",
+            //                     "side" => "Sell",
+            //                     "smpGroup" => 0,
+            //                     "triggerPrice" => "",
+            //                     "tpLimitPrice" => "0",
+            //                     "cumExecFee" => "0.06739145",
             //                     "slTriggerBy" => "",
+            //                     "leavesQty" => "0",
             //                     "closeOnTrigger" => false,
-            //                     "cumExecQty" => "0",
-            //                     "reduceOnly" => false,
-            //                     "qty" => "0.5",
+            //                     "slippageToleranceType" => "UNKNOWN",
+            //                     "placeType" => "",
+            //                     "cumExecQty" => "0.001",
+            //                     "reduceOnly" => true,
+            //                     "qty" => "0.001",
             //                     "stopLoss" => "",
-            //                     "triggerBy" => "1192.5"
-            //                 }
+            //                     "smpOrderId" => "",
+            //                     "slippageTolerance" => "0",
+            //                     "triggerBy" => "",
+            //                     "extraFees" => ""
+            //                 ),
             //             )
             //         ),
             //         "retExtInfo" => array(),
-            //         "time" => 1672219526294
+            //         "time" => 1758187806376
             //     }
             //
             $data = $this->add_pagination_cursor_to_result($response);
@@ -6258,15 +6355,16 @@ class bybit extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic $accounts only)
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $accountType = null;
             $accounts = Async\await($this->is_unified_enabled());
             $isUta = $accounts[1];
-            list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType', 'SPOT');
-            if ($isUta) {
-                $accountType = 'UTA';
+            list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType');
+            if ($accountType === null) {
+                $accountType = $isUta ? 'UTA' : 'SPOT';
             }
             Async\await($this->load_markets());
             $this->check_address($address);

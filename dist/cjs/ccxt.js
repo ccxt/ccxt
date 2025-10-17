@@ -2,12 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./_virtual/_commonjsHelpers.js');
-require('./_virtual/formats.cjs.js');
-require('./_virtual/index.cjs.js');
-require('./_virtual/parse.cjs.js');
-require('./_virtual/stringify.cjs.js');
-require('./_virtual/utils.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
@@ -15,6 +9,7 @@ var errors = require('./src/base/errors.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var ascendex = require('./src/ascendex.js');
+var backpack = require('./src/backpack.js');
 var bequant = require('./src/bequant.js');
 var bigone = require('./src/bigone.js');
 var binance = require('./src/binance.js');
@@ -94,7 +89,6 @@ var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
-var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -107,7 +101,7 @@ var poloniex = require('./src/poloniex.js');
 var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
-var tradeogre = require('./src/tradeogre.js');
+var toobit = require('./src/toobit.js');
 var upbit = require('./src/upbit.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var whitebit = require('./src/whitebit.js');
@@ -120,6 +114,7 @@ var zonda = require('./src/zonda.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var ascendex$1 = require('./src/pro/ascendex.js');
+var backpack$1 = require('./src/pro/backpack.js');
 var bequant$1 = require('./src/pro/bequant.js');
 var binance$1 = require('./src/pro/binance.js');
 var binancecoinm$1 = require('./src/pro/binancecoinm.js');
@@ -173,7 +168,6 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
-var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
@@ -183,21 +177,23 @@ var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var probit$1 = require('./src/pro/probit.js');
-var tradeogre$1 = require('./src/pro/tradeogre.js');
+var toobit$1 = require('./src/pro/toobit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
 
+// ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.2';
+const version = '4.5.11';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'ascendex': ascendex["default"],
+    'backpack': backpack["default"],
     'bequant': bequant["default"],
     'bigone': bigone["default"],
     'binance': binance["default"],
@@ -277,7 +273,6 @@ const exchanges = {
     'ndax': ndax["default"],
     'novadax': novadax["default"],
     'oceanex': oceanex["default"],
-    'okcoin': okcoin["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -290,7 +285,7 @@ const exchanges = {
     'probit': probit["default"],
     'timex': timex["default"],
     'tokocrypto': tokocrypto["default"],
-    'tradeogre': tradeogre["default"],
+    'toobit': toobit["default"],
     'upbit': upbit["default"],
     'wavesexchange': wavesexchange["default"],
     'whitebit': whitebit["default"],
@@ -305,6 +300,7 @@ const pro = {
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
     'ascendex': ascendex$1["default"],
+    'backpack': backpack$1["default"],
     'bequant': bequant$1["default"],
     'binance': binance$1["default"],
     'binancecoinm': binancecoinm$1["default"],
@@ -358,7 +354,6 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'myokx': myokx$1["default"],
     'ndax': ndax$1["default"],
-    'okcoin': okcoin$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
     'onetrading': onetrading$1["default"],
@@ -368,7 +363,7 @@ const pro = {
     'phemex': phemex$1["default"],
     'poloniex': poloniex$1["default"],
     'probit': probit$1["default"],
-    'tradeogre': tradeogre$1["default"],
+    'toobit': toobit$1["default"],
     'upbit': upbit$1["default"],
     'whitebit': whitebit$1["default"],
     'woo': woo$1["default"],
@@ -429,6 +424,7 @@ exports.errors = errors;
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.ascendex = ascendex["default"];
+exports.backpack = backpack["default"];
 exports.bequant = bequant["default"];
 exports.bigone = bigone["default"];
 exports.binance = binance["default"];
@@ -508,7 +504,6 @@ exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.novadax = novadax["default"];
 exports.oceanex = oceanex["default"];
-exports.okcoin = okcoin["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];
@@ -521,7 +516,7 @@ exports.poloniex = poloniex["default"];
 exports.probit = probit["default"];
 exports.timex = timex["default"];
 exports.tokocrypto = tokocrypto["default"];
-exports.tradeogre = tradeogre["default"];
+exports.toobit = toobit["default"];
 exports.upbit = upbit["default"];
 exports.wavesexchange = wavesexchange["default"];
 exports.whitebit = whitebit["default"];

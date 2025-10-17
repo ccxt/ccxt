@@ -1,7 +1,7 @@
 {
     "name": "ccxt/ccxt",
     "type": "library",
-    "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for more than 100 bitcoin/altcoin exchanges",
+    "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
     "keywords": [
         "algorithmic",
         "algotrading",

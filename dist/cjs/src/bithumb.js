@@ -50,6 +50,7 @@ class bithumb extends bithumb$1["default"] {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -263,6 +264,14 @@ class bithumb extends bithumb$1["default"] {
                             'cost': {
                                 'min': 500,
                                 'max': 5000000000,
+                            },
+                        },
+                    },
+                    'USDT': {
+                        'limits': {
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
                             },
                         },
                     },

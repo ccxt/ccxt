@@ -81,8 +81,14 @@ public partial class Exchange
             if ((this.rejections as ConcurrentDictionary<string, object>).TryRemove(messageHash, out object rejection))
             {
                 future.reject(rejection);
+                this.rejections.Remove(messageHash);
             }
             return future;
+        }
+
+        public Future reusableFuture(object messageHash)
+        {
+            return this.future(messageHash);  // only used in go
         }
 
         public void resolve(object content, object messageHash2)
@@ -163,59 +169,72 @@ public partial class Exchange
 
         public async void PingLoop()
         {
-            if (keepAlive != null)
-            {
-                await Task.Delay(Convert.ToInt32(keepAlive));
-            }
-            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            if (this.verbose)
-            {
-                Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
-            }
-
-            while (this.keepAlive != null && this.isConnected)
+            try
             {
 
-                if (this.lastPong == null)
+                if (this.keepAlive != null)
                 {
-                    this.lastPong = now;
+                    await Task.Delay(Convert.ToInt32(this.keepAlive));
+                }
+                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (this.verbose)
+                {
+                    Console.WriteLine($"PingLoop: {Exchange.Iso8601(now)}");
                 }
 
-                var lastPongConverted = Convert.ToInt64(this.lastPong);
-                var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
-                if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                while (this.keepAlive != null && this.isConnected)
                 {
-                    this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
-                }
-                else
-                {
-                    if (this.ping != null)
+
+                    if (this.lastPong == null)
                     {
-                        var pingResult = this.ping(this);
-                        if (pingResult != null)
-                        {
-                            // if (this.verbose)
-                            // {
-                            //     Console.WriteLine("Sending ping: " + pingResult);
-                            // }
-                            if (pingResult is string)
-                            {
-                                await this.send((string)pingResult);
-                            }
-                            else
-                            {
-                                await this.send(pingResult);
+                        this.lastPong = now;
+                    }
 
-                            }
-                        }
+                    var lastPongConverted = Convert.ToInt64(this.lastPong);
+                    var convertedKeepAlive = Convert.ToInt64(this.keepAlive);
+                    if (lastPongConverted + convertedKeepAlive * this.maxPingPongMisses < now)
+                    {
+                        this.onError(this, new Exception("Connection to" + this.url + " lost, did not receive pong within " + this.keepAlive + " seconds"));
+                        break;
                     }
                     else
                     {
-                        // this.webSocket.SendPing(); should we send ping here?
+                        if (this.ping != null)
+                        {
+                            var pingResult = this.ping(this);
+                            if (pingResult != null)
+                            {
+                                // if (this.verbose)
+                                // {
+                                //     Console.WriteLine("Sending ping: " + pingResult);
+                                // }
+                                if (pingResult is string)
+                                {
+                                    await this.send((string)pingResult);
+                                }
+                                else
+                                {
+                                    await this.send(pingResult);
 
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // this.webSocket.SendPing(); should we send ping here?
+
+                        }
                     }
+                    await Task.Delay(Convert.ToInt32(convertedKeepAlive));
                 }
-                await Task.Delay(Convert.ToInt32(convertedKeepAlive));
+            }
+            catch (Exception ex)
+            {
+                if (this.verbose)
+                {
+                    Console.WriteLine($"PingLoop error: {ex.Message}");
+                }
+                this.onError(this, ex);
             }
         }
 
@@ -324,12 +343,15 @@ public partial class Exchange
         private void TryHandleMessage(string message)
         {
             object deserializedMessages = message;
-            try
+            if (isValidJson(message))
             {
-                deserializedMessages = JsonHelper.Deserialize(message);
-            }
-            catch (Exception e)
-            {
+                try
+                {
+                    deserializedMessages = JsonHelper.Deserialize(message);
+                }
+                catch (Exception e)
+                {
+                }
             }
             this.handleMessage(this, deserializedMessages);
         }

@@ -1773,7 +1773,7 @@ class Transpiler {
     // ========================================================================
 
     transpileBaseMethods () {
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const contents = fs.readFileSync (baseExchangeJsFile, 'utf8')
         const [ _, className, baseClass, classBody ] = this.getClassDeclarationMatches (contents) as any
         const jsDelimiter = '// ' + delimiter

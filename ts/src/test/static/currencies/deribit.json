@@ -2,12 +2,13 @@
     "BTC": {
         "info": {
             "currency": "BTC",
+            "network_fee": "1.229e-5",
             "min_withdrawal_fee": "1.0e-5",
-            "withdrawal_fee": "1.0e-5",
-            "fee_precision": "5",
+            "apr": "0.0",
+            "withdrawal_fee": "1.229e-5",
+            "network_currency": "BTC",
             "coin_type": "BTC",
             "withdrawal_priorities": [],
-            "apr": "0.0",
             "min_confirmations": "1",
             "currency_long": "Bitcoin",
             "in_cross_collateral_pool": true
@@ -15,13 +16,13 @@
         "id": "BTC",
         "numericId": null,
         "code": "BTC",
-        "precision": 0.00001,
+        "precision": null,
         "type": "crypto",
         "name": "Bitcoin",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "fee": 0.00001,
+        "fee": 0.00001229,
         "fees": {},
         "networks": null,
         "limits": {
@@ -42,12 +43,13 @@
     "USDT": {
         "info": {
             "currency": "USDT",
-            "min_withdrawal_fee": "0.0001",
-            "withdrawal_fee": "0.3699",
-            "fee_precision": "4",
+            "network_fee": "5.5e-5",
+            "min_withdrawal_fee": "2.0",
+            "apr": "0.0",
+            "withdrawal_fee": "2.0",
+            "network_currency": "ETH",
             "coin_type": "USDT",
             "withdrawal_priorities": [],
-            "apr": "0.0",
             "min_confirmations": "1",
             "currency_long": "Tether",
             "in_cross_collateral_pool": true
@@ -55,13 +57,13 @@
         "id": "USDT",
         "numericId": null,
         "code": "USDT",
-        "precision": 0.0001,
+        "precision": null,
         "type": "crypto",
         "name": "Tether",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "fee": 0.3699,
+        "fee": 2,
         "fees": {},
         "networks": null,
         "limits": {
@@ -82,12 +84,13 @@
     "ETH": {
         "info": {
             "currency": "ETH",
-            "min_withdrawal_fee": "0.0001",
-            "withdrawal_fee": "0.0001",
-            "fee_precision": "4",
+            "network_fee": "3.3e-5",
+            "min_withdrawal_fee": "0.001",
+            "apr": "0.0",
+            "withdrawal_fee": "0.001",
+            "network_currency": "ETH",
             "coin_type": "ETH",
             "withdrawal_priorities": [],
-            "apr": "0.0",
             "min_confirmations": "50",
             "currency_long": "Ethereum",
             "in_cross_collateral_pool": true
@@ -95,13 +98,13 @@
         "id": "ETH",
         "numericId": null,
         "code": "ETH",
-        "precision": 0.0001,
+        "precision": null,
         "type": "crypto",
         "name": "Ethereum",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "fee": 0.0001,
+        "fee": 0.001,
         "fees": {},
         "networks": null,
         "limits": {
@@ -122,12 +125,13 @@
     "USDC": {
         "info": {
             "currency": "USDC",
-            "min_withdrawal_fee": "10.0",
-            "withdrawal_fee": "10.0",
-            "fee_precision": "4",
+            "network_fee": "5.5e-5",
+            "min_withdrawal_fee": "5.0",
+            "apr": "4.0",
+            "withdrawal_fee": "5.0",
+            "network_currency": "ETH",
             "coin_type": "USDC",
             "withdrawal_priorities": [],
-            "apr": "0.0",
             "min_confirmations": "50",
             "currency_long": "USD Coin",
             "in_cross_collateral_pool": true
@@ -135,13 +139,13 @@
         "id": "USDC",
         "numericId": null,
         "code": "USDC",
-        "precision": 0.0001,
+        "precision": null,
         "type": "crypto",
         "name": "USD Coin",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "fee": 10,
+        "fee": 5,
         "fees": {},
         "networks": null,
         "limits": {
@@ -162,12 +166,13 @@
     "SOL": {
         "info": {
             "currency": "SOL",
+            "network_fee": "7.5829e-4",
             "min_withdrawal_fee": "0.0001",
-            "withdrawal_fee": "0.0001",
-            "fee_precision": "4",
+            "apr": "0.0",
+            "withdrawal_fee": "7.5829e-4",
+            "network_currency": "SOL",
             "coin_type": "SOL",
             "withdrawal_priorities": [],
-            "apr": "0.0",
             "min_confirmations": "1",
             "currency_long": "Solana",
             "in_cross_collateral_pool": true
@@ -175,13 +180,13 @@
         "id": "SOL",
         "numericId": null,
         "code": "SOL",
-        "precision": 0.0001,
+        "precision": null,
         "type": "crypto",
         "name": "Solana",
         "active": null,
         "deposit": null,
         "withdraw": null,
-        "fee": 0.0001,
+        "fee": 0.00075829,
         "fees": {},
         "networks": null,
         "limits": {
@@ -198,5 +203,6 @@
                 "max": null
             }
         }
-    }
+    },
+    "USD": null
 }

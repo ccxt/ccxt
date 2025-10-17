@@ -321,14 +321,14 @@ public partial class whitebit : Exchange
         return await this.callAsync ("v4PrivatePostTradeAccountExecutedHistory",parameters);
     }
 
-    public async Task<object> v4PrivatePostTradeAccountOrder (object parameters = null)
-    {
-        return await this.callAsync ("v4PrivatePostTradeAccountOrder",parameters);
-    }
-
     public async Task<object> v4PrivatePostTradeAccountOrderHistory (object parameters = null)
     {
         return await this.callAsync ("v4PrivatePostTradeAccountOrderHistory",parameters);
+    }
+
+    public async Task<object> v4PrivatePostTradeAccountOrder (object parameters = null)
+    {
+        return await this.callAsync ("v4PrivatePostTradeAccountOrder",parameters);
     }
 
     public async Task<object> v4PrivatePostOrderCollateralLimit (object parameters = null)

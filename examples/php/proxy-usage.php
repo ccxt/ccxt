@@ -24,7 +24,7 @@ use React\Promise;
 function example_proxy_url() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->proxy_url = 'http://188.34.194.190:8090/proxy_url.php?caller=https://ccxt.com&url=';
+        $my_ex->proxy_url = 'http://188.245.226.105:8090/proxy_url.php?caller=https://ccxt.com&url=';
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
@@ -33,7 +33,7 @@ function example_proxy_url() {
 function example_http_proxy() {
     return Async\async(function () {
         $my_ex = new \ccxt\async\kucoin();
-        $my_ex->http_proxy = 'http://188.34.194.190:8911'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
+        $my_ex->http_proxy = 'http://188.245.226.105:8911'; // "httpProxy" or "httpsProxy" (depending on your proxy protocol)
         var_dump(Async\await($my_ex->fetch('https://api.ipify.org/')));
     }) ();
 }
@@ -51,15 +51,15 @@ function example_socks_proxy() {
 function example_web_sockets() {
     return Async\async(function () {
         $my_ex = new \ccxt\pro\kucoin();
-        $my_ex->http_proxy = 'http://188.34.194.190:8911'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
-        $my_ex->ws_proxy = 'http://188.34.194.190:8911'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
+        $my_ex->http_proxy = 'http://188.245.226.105:8911'; // even though you are using WebSockets, you might also need to set up proxy for the exchange's REST requests
+        $my_ex->ws_proxy = 'http://188.245.226.105:8911'; // "wsProxy" or "wssProxy" or "wsSocksProxy" (depending on your proxy protocol)
         Async\await($my_ex->load_markets());
         //
         // To ensure your WS proxy works, uncomment below code and watch the log
         //
         // myEx.verbose = true;
         // await myEx.loadHttpProxyAgent ();
-        // await myEx.watch ('ws://188.34.194.190:9876/', 'myip'); // in the incoming logs, confirm that you see the proxy IP in "hello" message
+        // await myEx.watch ('ws://188.245.226.105:9876/', 'myip'); // in the incoming logs, confirm that you see the proxy IP in "hello" message
         //
         var_dump(Async\await($my_ex->watch_ticker('BTC/USDT')));
         Async\await($my_ex->close());
@@ -67,4 +67,5 @@ function example_web_sockets() {
 }
 
 
-Async\await(example_proxy_url());
+// await example_proxyUrl ();
+Async\await(example_http_proxy());

@@ -138,6 +138,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -149,6 +150,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -166,6 +173,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/public/Order-Book-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -177,6 +185,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -194,6 +208,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -211,6 +226,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -229,6 +250,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/public/New-Trades-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -248,6 +270,12 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
@@ -263,6 +291,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/private/Positions-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -282,6 +311,12 @@ public partial class bitget
     /// string : one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
@@ -297,10 +332,12 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/private/Order-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -344,6 +381,12 @@ public partial class bitget
     /// string : 'linear', 'inverse'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -358,7 +401,8 @@ public partial class bitget
     /// watches trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Fill-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/private/Fill-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -376,6 +420,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -396,6 +446,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/websocket/private/Account-Channel"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -419,6 +470,12 @@ public partial class bitget
     /// <term>params.marginMode</term>
     /// <description>
     /// string : 'isolated' or 'cross' for watching spot margin balances
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
