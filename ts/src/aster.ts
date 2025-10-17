@@ -1952,55 +1952,8 @@ export default class aster extends Exchange {
         let response = undefined;
         if (market['swap']) {
             response = await this.fapiPrivateGetV1Order (this.extend (request, params));
-            //
-            //     {
-            //         "avgPrice": "0.00000",
-            //         "clientOrderId": "abc",
-            //         "cumQuote": "0",
-            //         "executedQty": "0",
-            //         "orderId": 1917641,
-            //         "origQty": "0.40",
-            //         "origType": "TRAILING_STOP_MARKET",
-            //         "price": "0",
-            //         "reduceOnly": false,
-            //         "side": "BUY",
-            //         "positionSide": "SHORT",
-            //         "status": "NEW",
-            //         "stopPrice": "9300",
-            //         "closePosition": false,
-            //         "symbol": "BTCUSDT",
-            //         "time": 1579276756075,
-            //         "timeInForce": "GTC",
-            //         "type": "TRAILING_STOP_MARKET",
-            //         "activatePrice": "9020",
-            //         "priceRate": "0.3",
-            //         "updateTime": 1579276756075,
-            //         "workingType": "CONTRACT_PRICE",
-            //         "priceProtect": false
-            //     }
-            //
         } else {
             response = await this.sapiPrivateGetV1Order (this.extend (request, params));
-            //
-            //     {
-            //         "orderId": 38,
-            //         "symbol": "ADA25SLP25",
-            //         "status": "FILLED",
-            //         "clientOrderId": "afMd4GBQyHkHpGWdiy34Li",
-            //         "price": "20",
-            //         "avgPrice": "12.0000000000000000",
-            //         "origQty": "10",
-            //         "executedQty": "10",
-            //         "cumQuote": "120",
-            //         "timeInForce": "GTC",
-            //         "type": "LIMIT",
-            //         "side": "BUY",
-            //         "stopPrice": "0",
-            //         "origType": "LIMIT",
-            //         "time": 1649913186270,
-            //         "updateTime": 1649913186297
-            //     }
-            //
         }
         return this.parseOrder (response, market);
     }
@@ -2032,33 +1985,6 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         const response = await this.fapiPrivateGetV1OpenOrder (this.extend (request, params));
-        //
-        //     {
-        //         "avgPrice": "0.00000",
-        //         "clientOrderId": "abc",
-        //         "cumQuote": "0",
-        //         "executedQty": "0",
-        //         "orderId": 1917641,
-        //         "origQty": "0.40",
-        //         "origType": "TRAILING_STOP_MARKET",
-        //         "price": "0",
-        //         "reduceOnly": false,
-        //         "side": "BUY",
-        //         "positionSide": "SHORT",
-        //         "status": "NEW",
-        //         "stopPrice": "9300",
-        //         "closePosition": false,
-        //         "symbol": "BTCUSDT",
-        //         "time": 1579276756075,
-        //         "timeInForce": "GTC",
-        //         "type": "TRAILING_STOP_MARKET",
-        //         "activatePrice": "9020",
-        //         "priceRate": "0.3",
-        //         "updateTime": 1579276756075,
-        //         "workingType": "CONTRACT_PRICE",
-        //         "priceProtect": false
-        //     }
-        //
         return this.parseOrder (response, market);
     }
 
@@ -2066,6 +1992,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOrders
      * @description fetches information on multiple orders made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#query-all-orders-user_data
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#all-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -2093,36 +2020,12 @@ export default class aster extends Exchange {
             request['limit'] = limit;
         }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const response = await this.fapiPrivateGetV1AllOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "avgPrice": "0.00000",
-        //             "clientOrderId": "abc",
-        //             "cumQuote": "0",
-        //             "executedQty": "0",
-        //             "orderId": 1917641,
-        //             "origQty": "0.40",
-        //             "origType": "TRAILING_STOP_MARKET",
-        //             "price": "0",
-        //             "reduceOnly": false,
-        //             "side": "BUY",
-        //             "positionSide": "SHORT",
-        //             "status": "NEW",
-        //             "stopPrice": "9300",
-        //             "closePosition": false,
-        //             "symbol": "BTCUSDT",
-        //             "time": 1579276756075,
-        //             "timeInForce": "GTC",
-        //             "type": "TRAILING_STOP_MARKET",
-        //             "activatePrice": "9020",
-        //             "priceRate": "0.3",
-        //             "updateTime": 1579276756075,
-        //             "workingType": "CONTRACT_PRICE",
-        //             "priceProtect": false
-        //         }
-        //     ]
-        //
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPrivateGetV1AllOrders (this.extend (request, params));
+        } else {
+            response = await this.sapiPrivateGetV1AllOrders (this.extend (request, params));
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
