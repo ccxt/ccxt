@@ -937,11 +937,12 @@ class astralx extends astralx$1["default"] {
         else if (apiType === 'LIMIT') {
             priceType = 'INPUT';
         }
+        const quantityInContracts = this.parseNumber(this.amountToPrecision(symbol, amount)) / market['contractSize'];
         const request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.amountToPrecision(symbol, amount / market['contractSize']),
+            'quantity': this.parseToInt(Math.round(quantityInContracts)),
             'priceType': priceType,
             'leverage': '10',
             'timeInForce': 'GTC',
@@ -992,11 +993,12 @@ class astralx extends astralx$1["default"] {
         else if (apiType === 'LIMIT') {
             priceType = 'INPUT';
         }
+        const quantityInContracts = this.parseNumber(this.amountToPrecision(symbol, amount)) / market['contractSize'];
         const request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.amountToPrecision(symbol, amount / market['contractSize']),
+            'quantity': this.parseToInt(Math.round(quantityInContracts)),
             'priceType': priceType,
             'leverage': '10',
             'timeInForce': 'GTC',

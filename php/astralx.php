@@ -914,11 +914,12 @@ class astralx extends Exchange {
         } elseif ($apiType === 'LIMIT') {
             $priceType = 'INPUT';
         }
+        $quantityInContracts = $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'];
         $request = array(
             'symbol' => $market['id'],
             'side' => $apiSide,
             'orderType' => 'LIMIT',
-            'quantity' => $this->amount_to_precision($symbol, $amount / $market['contractSize']),
+            'quantity' => $this->parse_to_int((int) round($quantityInContracts)),
             'priceType' => $priceType, // 默认输入价格类型
             'leverage' => '10',     // 默认10倍杠杆
             'timeInForce' => 'GTC', // 默认取消前有效
@@ -966,11 +967,12 @@ class astralx extends Exchange {
         } elseif ($apiType === 'LIMIT') {
             $priceType = 'INPUT';
         }
+        $quantityInContracts = $this->parse_number($this->amount_to_precision($symbol, $amount)) / $market['contractSize'];
         $request = array(
             'symbol' => $market['id'],
             'side' => $apiSide,
             'orderType' => 'LIMIT',
-            'quantity' => $this->amount_to_precision($symbol, $amount / $market['contractSize']),
+            'quantity' => $this->parse_to_int((int) round($quantityInContracts)),
             'priceType' => $priceType, // 默认输入价格类型
             'leverage' => '10',     // 默认10倍杠杆
             'timeInForce' => 'GTC', // 默认取消前有效

@@ -871,11 +871,12 @@ class astralx(Exchange, ImplicitAPI):
             priceType = 'MARKET'
         elif apiType == 'LIMIT':
             priceType = 'INPUT'
+        quantityInContracts = self.parse_number(self.amount_to_precision(symbol, amount)) / market['contractSize']
         request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': self.amount_to_precision(symbol, amount / market['contractSize']),
+            'quantity': self.parse_to_int(int(round(quantityInContracts))),
             'priceType': priceType,  # 默认输入价格类型
             'leverage': '10',     # 默认10倍杠杆
             'timeInForce': 'GTC',  # 默认取消前有效
@@ -918,11 +919,12 @@ class astralx(Exchange, ImplicitAPI):
             priceType = 'MARKET'
         elif apiType == 'LIMIT':
             priceType = 'INPUT'
+        quantityInContracts = self.parse_number(self.amount_to_precision(symbol, amount)) / market['contractSize']
         request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': self.amount_to_precision(symbol, amount / market['contractSize']),
+            'quantity': self.parse_to_int(int(round(quantityInContracts))),
             'priceType': priceType,  # 默认输入价格类型
             'leverage': '10',     # 默认10倍杠杆
             'timeInForce': 'GTC',  # 默认取消前有效

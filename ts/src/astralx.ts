@@ -951,11 +951,12 @@ export default class astralx extends Exchange {
         } else if (apiType === 'LIMIT') {
             priceType = 'INPUT';
         }
+        const quantityInContracts = this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'];
         const request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.amountToPrecision (symbol, amount / market['contractSize']),
+            'quantity': this.parseToInt (Math.round (quantityInContracts)),
             'priceType': priceType, // 默认输入价格类型
             'leverage': '10',     // 默认10倍杠杆
             'timeInForce': 'GTC', // 默认取消前有效
@@ -1005,11 +1006,12 @@ export default class astralx extends Exchange {
         } else if (apiType === 'LIMIT') {
             priceType = 'INPUT';
         }
+        const quantityInContracts = this.parseNumber (this.amountToPrecision (symbol, amount)) / market['contractSize'];
         const request = {
             'symbol': market['id'],
             'side': apiSide,
             'orderType': 'LIMIT',
-            'quantity': this.amountToPrecision (symbol, amount / market['contractSize']),
+            'quantity': this.parseToInt (Math.round (quantityInContracts)),
             'priceType': priceType, // 默认输入价格类型
             'leverage': '10',     // 默认10倍杠杆
             'timeInForce': 'GTC', // 默认取消前有效
