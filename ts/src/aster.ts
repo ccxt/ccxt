@@ -2358,6 +2358,9 @@ export default class aster extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' cancelOrders() does not support ' + market['type'] + ' orders');
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
