@@ -685,49 +685,143 @@
         ],
         "fetchBalance": [
             {
-                "description": "fetchBalance",
+                "description": "fetchBalance - spot",
                 "method": "fetchBalance",
                 "input": [],
-                "httpResponse": [
-                    {
-                        "accountAlias": "SgsR",
-                        "asset": "USDT",
-                        "balance": "122607.35137903",
-                        "crossWalletBalance": "23.72469206",
-                        "crossUnPnl": "0.00000000",
-                        "availableBalance": "23.72469206",
-                        "maxWithdrawAmount": "23.72469206",
-                        "marginAvailable": true,
-                        "updateTime": 1617939110373
-                    }
-                ],
+                "httpResponse": {
+                    "feeTier": 0,
+                    "canTrade": true,
+                    "canDeposit": true,
+                    "canWithdraw": true,
+                    "canBurnAsset": true,
+                    "updateTime": 0,
+                    "balances": [
+                        {
+                            "asset": "BTC",
+                            "free": "4723846.89208129",
+                            "locked": "0.00000000"
+                        },
+                        {
+                            "asset": "LTC",
+                            "free": "4763368.68006011",
+                            "locked": "0.00000000"
+                        }
+                    ]
+                },
                 "parsedResponse": {
                     "info": [
                         {
-                            "accountAlias": "SgsR",
+                            "asset": "BTC",
+                            "free": "4723846.89208129",
+                            "locked": "0.00000000"
+                        },
+                        {
+                            "asset": "LTC",
+                            "free": "4763368.68006011",
+                            "locked": "0.00000000"
+                        }
+                    ],
+                    "BTC": {
+                        "free": 4723846.89208129,
+                        "used": 0,
+                        "total": 4723846.89208129
+                    },
+                    "LTC": {
+                        "free": 4763368.68006011,
+                        "used": 0,
+                        "total": 4763368.68006011
+                    },
+                    "free": {
+                        "BTC": 4723846.89208129,
+                        "LTC": 4763368.68006011
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "LTC": 0
+                    },
+                    "total": {
+                        "BTC": 4723846.89208129,
+                        "LTC": 4763368.68006011
+                    }
+                }
+            },
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "subType": "linear"
+                    }
+                ],
+                "httpResponse": {
+                    "feeTier": 0,
+                    "canTrade": true,
+                    "canDeposit": true,
+                    "canWithdraw": true,
+                    "updateTime": 0,
+                    "totalInitialMargin": "0.00000000",
+                    "totalMaintMargin": "0.00000000",
+                    "totalWalletBalance": "23.72469206",
+                    "totalUnrealizedProfit": "0.00000000",
+                    "totalMarginBalance": "23.72469206",
+                    "totalPositionInitialMargin": "0.00000000",
+                    "totalOpenOrderInitialMargin": "0.00000000",
+                    "totalCrossWalletBalance": "23.72469206",
+                    "totalCrossUnPnl": "0.00000000",
+                    "availableBalance": "23.72469206",
+                    "maxWithdrawAmount": "23.72469206",
+                    "assets": [
+                        {
                             "asset": "USDT",
-                            "balance": "122607.35137903",
+                            "walletBalance": "23.72469206",
+                            "unrealizedProfit": "0.00000000",
+                            "marginBalance": "23.72469206",
+                            "maintMargin": "0.00000000",
+                            "initialMargin": "0.00000000",
+                            "positionInitialMargin": "0.00000000",
+                            "openOrderInitialMargin": "0.00000000",
                             "crossWalletBalance": "23.72469206",
                             "crossUnPnl": "0.00000000",
                             "availableBalance": "23.72469206",
                             "maxWithdrawAmount": "23.72469206",
                             "marginAvailable": true,
-                            "updateTime": 1617939110373
+                            "updateTime": 1625474304765
+                        }
+                    ],
+                    "positions": []
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "asset": "USDT",
+                            "walletBalance": "23.72469206",
+                            "unrealizedProfit": "0.00000000",
+                            "marginBalance": "23.72469206",
+                            "maintMargin": "0.00000000",
+                            "initialMargin": "0.00000000",
+                            "positionInitialMargin": "0.00000000",
+                            "openOrderInitialMargin": "0.00000000",
+                            "crossWalletBalance": "23.72469206",
+                            "crossUnPnl": "0.00000000",
+                            "availableBalance": "23.72469206",
+                            "maxWithdrawAmount": "23.72469206",
+                            "marginAvailable": true,
+                            "updateTime": 1625474304765
                         }
                     ],
                     "USDT": {
                         "free": 23.72469206,
-                        "used": 122583.62668697,
-                        "total": 122607.35137903
+                        "used": 0,
+                        "total": 23.72469206
                     },
                     "free": {
                         "USDT": 23.72469206
                     },
                     "used": {
-                        "USDT": 122583.62668697
+                        "USDT": 0
                     },
                     "total": {
-                        "USDT": 122607.35137903
+                        "USDT": 23.72469206
                     }
                 }
             }

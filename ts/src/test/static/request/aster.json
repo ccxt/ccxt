@@ -219,10 +219,20 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetchBalance - spot",
+                "method": "fetchBalance",
+                "url": "https://sapi.asterdex.com/api/v1/account?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            },
+            {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://fapi.asterdex.com/fapi/v2/balance?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
-                "input": []
+                "url": "https://fapi.asterdex.com/fapi/v4/account?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    {
+                        "subType": "linear"
+                    }
+                ]
             }
         ],
         "fetchPositionMode": [

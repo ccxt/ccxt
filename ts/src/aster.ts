@@ -1412,6 +1412,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1582,7 +1583,6 @@ export default class aster extends Exchange {
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#get-funding-rate-config
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
@@ -1613,8 +1613,9 @@ export default class aster extends Exchange {
             const currencyId = this.safeString (balance, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'availableBalance');
-            account['total'] = this.safeString (balance, 'balance');
+            account['free'] = this.safeString2 (balance, 'availableBalance', 'free');
+            account['used'] = this.safeString (balance, 'locked');
+            account['total'] = this.safeString (balance, 'walletBalance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1624,28 +1625,59 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#futures-account-balance-v2-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const response = await this.fapiPrivateGetV3Balance (params);
-        //
-        //     [
-        //         {
-        //             "accountAlias": "SgsR", // unique account code
-        //             "asset": "USDT", // asset name
-        //             "balance": "122607.35137903", // wallet balance
-        //             "crossWalletBalance": "23.72469206", // crossed wallet balance
-        //             "crossUnPnl": "0.00000000", // unrealized profit of crossed positions
-        //             "availableBalance": "23.72469206", // available balance
-        //             "maxWithdrawAmount": "23.72469206", // maximum amount for transfer out
-        //             "marginAvailable": true, // whether the asset can be used as margin in Multi-Assets mode
-        //             "updateTime": 1617939110373
-        //         }
-        //     ]
-        //
-        return this.parseBalance (response);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        let response = undefined;
+        let data = undefined;
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiPrivateGetV4Account (params);
+            data = this.safeList (response, 'assets', []);
+            //
+            //     [
+            //         {
+            //             "asset": "USDT", // asset name
+            //             "walletBalance": "23.72469206", // wallet balance
+            //             "unrealizedProfit": "0.00000000", // unrealized profit
+            //             "marginBalance": "23.72469206", // margin balance
+            //             "maintMargin": "0.00000000", // maintenance margin required
+            //             "initialMargin": "0.00000000", // total initial margin required with current mark price
+            //             "positionInitialMargin": "0.00000000", //initial margin required for positions with current mark price
+            //             "openOrderInitialMargin": "0.00000000", // initial margin required for open orders with current mark price
+            //             "crossWalletBalance": "23.72469206", // crossed wallet balance
+            //             "crossUnPnl": "0.00000000", // unrealized profit of crossed positions
+            //             "availableBalance": "23.72469206", // available balance
+            //             "maxWithdrawAmount": "23.72469206", // maximum amount for transfer out
+            //             "marginAvailable": true, // whether the asset can be used as margin in Multi-Assets mode
+            //             "updateTime": 1625474304765 // last update time
+            //         }
+            //     ]
+            //
+        } else if (type === 'spot') {
+            response = await this.sapiPrivateGetV1Account (params);
+            data = this.safeList (response, 'balances', []);
+            //
+            //     [
+            //         {
+            //             "asset": "BTC",
+            //             "free": "4723846.89208129",
+            //             "locked": "0.00000000"
+            //         }
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' fetchBalance() does not support ' + type + ' markets yet');
+        }
+        return this.parseBalance (data);
     }
 
     /**
