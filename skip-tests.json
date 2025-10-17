@@ -2062,5 +2062,12 @@
                 "activeMajorCurrencies": "todo"
             }
         }
+    },
+    "deepcoin": {
+        "skipMethods": {
+            "loadMarkets": {
+                "limits": "some market limits have min>max "
+            }
+        }
     }
 }
