@@ -513,6 +513,22 @@ export default class aster extends Exchange {
         });
     }
 
+    isInverse (type: string, subType: Str = undefined): boolean {
+        if (subType === undefined) {
+            return (type === 'delivery');
+        } else {
+            return subType === 'inverse';
+        }
+    }
+
+    isLinear (type: string, subType: Str = undefined): boolean {
+        if (subType === undefined) {
+            return (type === 'future') || (type === 'swap');
+        } else {
+            return subType === 'linear';
+        }
+    }
+
     /**
      * @method
      * @name aster#fetchCurrencies
@@ -1399,12 +1415,26 @@ export default class aster extends Exchange {
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.fapiPublicGetV1Ticker24hr (params);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiPublicGetV1Ticker24hr (params);
+        } else if (type === 'spot') {
+            response = await this.sapiPublicGetV1Ticker24hr (params);
+        } else {
+            throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets yet');
+        }
         //
         //     [
         //         {

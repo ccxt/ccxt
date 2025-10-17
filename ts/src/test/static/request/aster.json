@@ -165,6 +165,16 @@
             {
                 "description": "fetchTickers",
                 "method": "fetchTickers",
+                "url": "https://sapi.asterdex.com/api/v1/ticker/24hr",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
                 "url": "https://fapi.asterdex.com/fapi/v1/ticker/24hr",
                 "input": [
                     [
