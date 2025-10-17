@@ -6751,30 +6751,43 @@ Returns
 - A list of [order structures](#order-structure)
 
 
-## Set Position Mode
+### Position Mode
 
 *margin and contract only*
 
 Method used for setting position mode:
 
-- `true` - sets to **hedged** mode
-- `false` - sets to **one-way** mode
-
 ```javascript
-set_position_mode (false, symbol = undefined, params = {})
+setPositionMode (hedged, symbol = undefined, params = {})
 ```
 
 Parameters
 
 - **hedged** (String) *required* hedged-mode value:
-    - `true`
-    - `false`
+    - `true` - sets to **hedged** mode
+    - `false` - sets to **one-way** mode
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint
+
+Method used for fetching position mode:
+
+```javascript
+fetchPositionMode (symbol = undefined, params = {}) {
+```
+
+Parameters
+
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint
 
 Returns
 
-- response from the exchange
+```javascript
+{
+    'info': { ... },
+    'hedged': true,
+}
+```
 
 
 #### Liquidation Price
