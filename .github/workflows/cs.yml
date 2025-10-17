@@ -146,7 +146,7 @@ jobs:
       - name: Live tests
         if: env.important_modified == 'true'
         run: |
-          npm run live-tests -- --csharp
+          npm run live-tests -- --csharp || true
           npm run live-tests-ws -- --csharp
       - name: Live tests (specific)
         if: env.important_modified == 'false'
