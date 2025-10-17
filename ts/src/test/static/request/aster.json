@@ -274,6 +274,15 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetchOrder - spot",
+                "method": "fetchOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order?orderId=1917641&symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    1917641,
+                    "BTC/USDT"
+                ]
+            },
+            {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
                 "url": "https://fapi.asterdex.com/fapi/v1/order?orderId=1917641&symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
