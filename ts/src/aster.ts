@@ -290,7 +290,6 @@ export default class aster extends Exchange {
                     'get': [
                         'v1/commissionRate',
                         'v1/order',
-                        'v1/openOrder',
                         'v1/openOrders',
                         'v1/allOrders',
                         'v1/transactionHistory',
