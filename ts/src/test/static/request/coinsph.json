@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.pro.coins.ph/openapi/wallet/v1/config/getall?timestamp=1747504462247&&signature=bbc4f04b90bd804248a16aa6dee15398718438eb88b73212f9e6c0e48a81b3c5",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",

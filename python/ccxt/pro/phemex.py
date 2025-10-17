@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class phemex(ccxt.async_support.phemex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(phemex, self).describe(), {
             'has': {
                 'ws': True,
@@ -112,7 +112,7 @@ class phemex(ccxt.async_support.phemex):
             change = self.parse_number(Precise.string_sub(lastString, openString))
             average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
             percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
-        result: dict = {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -135,8 +135,7 @@ class phemex(ccxt.async_support.phemex):
             'markPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'markPrice'), market)),
             'indexPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'indexPrice'), market)),
             'info': ticker,
-        }
-        return result
+        })
 
     def parse_perpetual_ticker(self, ticker, market=None):
         #
@@ -171,7 +170,7 @@ class phemex(ccxt.async_support.phemex):
             change = self.parse_number(Precise.string_sub(lastString, openString))
             average = self.parse_number(Precise.string_div(Precise.string_add(lastString, openString), '2'))
             percentage = self.parse_number(Precise.string_mul(Precise.string_sub(Precise.string_div(lastString, openString), '1'), '100'))
-        result: dict = {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
@@ -192,8 +191,7 @@ class phemex(ccxt.async_support.phemex):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        }
-        return result
+        })
 
     def handle_ticker(self, client: Client, message):
         #
@@ -623,7 +621,7 @@ class phemex(ccxt.async_support.phemex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-kline
@@ -1099,6 +1097,9 @@ class phemex(ccxt.async_support.phemex):
                 parsedOrder = self.parse_order(rawOrder)
                 parsedOrders.append(parsedOrder)
         else:
+            messageLength = len(message)
+            if messageLength == 0:
+                return
             for i in range(0, len(message)):
                 update = message[i]
                 action = self.safe_string(update, 'action')

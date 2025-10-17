@@ -79,7 +79,7 @@ export default class krakenfutures extends krakenfuturesRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'challenge';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const request = {
@@ -226,7 +226,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
@@ -476,7 +476,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            {
         //                "feed": "trade",
         //                "product_id": "PI_XBTUSD",
-        //                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
         //                "side": "sell",
         //                "type": "fill",
         //                "seq": 655508,
@@ -1516,6 +1516,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         catch (error) {
             client.reject(error);
+            return false;
         }
     }
     handleMessage(client, message) {

@@ -214,6 +214,7 @@ interface kucoin {
     futuresPrivatePostSubApiKeyUpdate(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostChangeCrossUserLeverage(params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostPositionChangeMarginMode(params?: {}): Promise<implicitReturnType>;
+    futuresPrivatePostPositionSwitchPositionMode(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersOrderId(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrdersClientOrderClientOid(params?: {}): Promise<implicitReturnType>;
     futuresPrivateDeleteOrders(params?: {}): Promise<implicitReturnType>;

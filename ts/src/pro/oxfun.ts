@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class oxfun extends oxfunRest {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -200,7 +200,7 @@ export default class oxfun extends oxfunRest {
      * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -970,7 +970,7 @@ export default class oxfun extends oxfunRest {
             const method = this.safeString (message, 'event');
             const stringMsg = this.json (message);
             const code = this.safeInteger (message, 'code');
-            this.handleErrors (code, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
+            this.handleErrors (code, '', client.url, method, {}, stringMsg, message, {}, {});
         }
         const data = this.safeValue (message, 'data', {});
         const order = this.parseOrder (data);
@@ -1043,14 +1043,14 @@ export default class oxfun extends oxfunRest {
             'dataArray': dataArray,
         };
         const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash) as Order[];
     }
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeDict (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();

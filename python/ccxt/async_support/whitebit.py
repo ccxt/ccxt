@@ -5,8 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Bool, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +27,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
@@ -38,26 +39,34 @@ class whitebit(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': True,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelAllOrdersAfter': True,
                 'cancelOrder': True,
                 'cancelOrders': False,
+                'createConvertTrade': True,
+                'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': False,
+                'createTriggerOrder': True,
+                'editOrder': True,
+                'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchClosedOrders': True,
-                'fetchCrossBorrowRate': False,
+                'fetchConvertQuote': True,
+                'fetchConvertTrade': False,
+                'fetchConvertTradeHistory': True,
+                'fetchCrossBorrowRate': True,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
@@ -68,13 +77,15 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
+                'fetchFundingLimits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchLedger': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
@@ -82,9 +93,14 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': True,
                 'fetchOrderTrades': True,
+                'fetchPosition': True,
+                'fetchPositionHistory': True,
                 'fetchPositionMode': False,
+                'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -93,7 +109,10 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTradingLimits': True,
                 'fetchTransactionFees': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
                 'setLeverage': True,
@@ -186,6 +205,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'assets',
                             'collateral/markets',
                             'fee',
+                            'orderbook/depth/{market}',
                             'orderbook/{market}',
                             'ticker',
                             'trades/{market}',
@@ -194,6 +214,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'markets',
                             'futures',
                             'platform/status',
+                            'mining-pool',
                         ],
                     },
                     'private': {
@@ -204,6 +225,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'collateral-account/leverage',
                             'collateral-account/positions/open',
                             'collateral-account/summary',
+                            'collateral-account/funding-history',
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
@@ -224,12 +246,13 @@ class whitebit(Exchange, ImplicitAPI):
                             'main-account/smart/interest-payment-history',
                             'trade-account/balance',
                             'trade-account/executed-history',
-                            'trade-account/order',
                             'trade-account/order/history',
+                            'trade-account/order',
                             'order/collateral/limit',
                             'order/collateral/market',
                             'order/collateral/stop-limit',
                             'order/collateral/trigger-market',
+                            'order/collateral/bulk',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -241,6 +264,7 @@ class whitebit(Exchange, ImplicitAPI):
                             'order/kill-switch/status',
                             'order/bulk',
                             'order/modify',
+                            'order/conditional-cancel',
                             'orders',
                             'oco-orders',
                             'order/collateral/oco',
@@ -259,6 +283,17 @@ class whitebit(Exchange, ImplicitAPI):
                             'sub-account/unblock',
                             'sub-account/balances',
                             'sub-account/transfer/history',
+                            'sub-account/api-key/create',
+                            'sub-account/api-key/edit',
+                            'sub-account/api-key/delete',
+                            'sub-account/api-key/list',
+                            'sub-account/api-key/reset',
+                            'sub-account/api-key/ip-address/list',
+                            'sub-account/api-key/ip-address/create',
+                            'sub-account/api-key/ip-address/delete',
+                            'mining/rewards',
+                            'market/fee',
+                            'conditional-orders',
                         ],
                     },
                 },
@@ -324,7 +359,14 @@ class whitebit(Exchange, ImplicitAPI):
                         'untilDays': None,
                         'symbolRequired': False,
                     },
-                    'fetchOrder': None,
+                    'fetchOrder': {
+                        'checkActive': True,
+                        'checkExecuted': True,
+                        'symbolRequired': False,
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 100,
@@ -332,7 +374,15 @@ class whitebit(Exchange, ImplicitAPI):
                         'trailing': False,
                         'symbolRequired': False,
                     },
-                    'fetchOrders': None,  # todo
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 100,
@@ -345,6 +395,13 @@ class whitebit(Exchange, ImplicitAPI):
                     },
                     'fetchOHLCV': {
                         'limit': 1440,
+                    },
+                    'fetchWithdrawals': {
+                        'marginMode': False,
+                        'limit': 100,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': False,
                     },
                 },
                 'spot': {
@@ -528,40 +585,120 @@ class whitebit(Exchange, ImplicitAPI):
         """
         response = await self.v4PublicGetAssets(params)
         #
-        #      "BTC": {
-        #          "name": "Bitcoin",
-        #          "unified_cryptoasset_id": 1,
-        #          "can_withdraw": True,
-        #          "can_deposit": True,
-        #          "min_withdraw": "0.001",
-        #          "max_withdraw": "2",
-        #          "maker_fee": "0.1",
-        #          "taker_fee": "0.1",
-        #          "min_deposit": "0.0001",
-        #           "max_deposit": "0",
-        #       },
+        # {
+        #   BTC: {
+        #     name: "Bitcoin",
+        #     unified_cryptoasset_id: "1",
+        #     can_withdraw: True,
+        #     can_deposit: True,
+        #     min_withdraw: "0.0003",
+        #     max_withdraw: "0",
+        #     maker_fee: "0.1",
+        #     taker_fee: "0.1",
+        #     min_deposit: "0.0001",
+        #     max_deposit: "0",
+        #     networks: {
+        #         deposits: ["BTC",],
+        #         withdraws: ["BTC",],
+        #         default: "BTC",
+        #     },
+        #     confirmations: {
+        #         BTC: "2",
+        #     },
+        #     limits: {
+        #         deposit: {
+        #            BTC: {min: "0.0001",},
+        #         },
+        #         withdraw: {
+        #            BTC: {min: "0.0003",},
+        #         },
+        #     },
+        #     currency_precision: "8",
+        #     is_memo: False,
+        #   },
+        #   USD: {
+        #         name: "United States Dollar",
+        #         unified_cryptoasset_id: "6955",
+        #         can_withdraw: True,
+        #         can_deposit: True,
+        #         min_withdraw: "10",
+        #         max_withdraw: "10000",
+        #         maker_fee: "0.1",
+        #         taker_fee: "0.1",
+        #         min_deposit: "10",
+        #         max_deposit: "10000",
+        #         networks: {
+        #           deposits: ["USD",],
+        #           withdraws: ["USD",],
+        #           default: "USD",
+        #         },
+        #         providers: {
+        #           deposits: ["ADVCASH",],
+        #           withdraws: ["ADVCASH",],
+        #         },
+        #         limits: {
+        #           deposit: {
+        #             USD: { max: "10000", min: "10",},
+        #           },
+        #           withdraw: {
+        #             USD: {max: "10000",  min: "10",},
+        #           },
+        #         },
+        #         currency_precision: "2",
+        #         is_memo: False,
+        #   }
+        # }
         #
         ids = list(response.keys())
         result: dict = {}
         for i in range(0, len(ids)):
             id = ids[i]
             currency = response[id]
-            # breaks down in Python due to utf8 encoding issues on the exchange side
-            # name = self.safe_string(currency, 'name')
-            canDeposit = self.safe_bool(currency, 'can_deposit', True)
-            canWithdraw = self.safe_bool(currency, 'can_withdraw', True)
-            active = canDeposit and canWithdraw
+            # name = self.safe_string(currency, 'name')  # breaks down in Python due to utf8 encoding issues on the exchange side
             code = self.safe_currency_code(id)
-            result[code] = {
+            hasProvider = ('providers' in currency)
+            networks = {}
+            rawNetworks = self.safe_dict(currency, 'networks', {})
+            depositsNetworks = self.safe_list(rawNetworks, 'deposits', [])
+            withdrawsNetworks = self.safe_list(rawNetworks, 'withdraws', [])
+            networkLimits = self.safe_dict(currency, 'limits', {})
+            depositLimits = self.safe_dict(networkLimits, 'deposit', {})
+            withdrawLimits = self.safe_dict(networkLimits, 'withdraw', {})
+            allNetworks = self.array_concat(depositsNetworks, withdrawsNetworks)
+            for j in range(0, len(allNetworks)):
+                networkId = allNetworks[j]
+                networkCode = self.network_id_to_code(networkId)
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.in_array(networkId, depositsNetworks),
+                    'withdraw': self.in_array(networkId, withdrawsNetworks),
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(depositLimits, 'min', None),
+                            'max': self.safe_number(depositLimits, 'max', None),
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(withdrawLimits, 'min', None),
+                            'max': self.safe_number(withdrawLimits, 'max', None),
+                        },
+                    },
+                }
+            result[code] = self.safe_currency_structure({
                 'id': id,
                 'code': code,
                 'info': currency,  # the original payload
                 'name': None,  # see the comment above
-                'active': active,
-                'deposit': canDeposit,
-                'withdraw': canWithdraw,
+                'active': None,
+                'deposit': self.safe_bool(currency, 'can_deposit'),
+                'withdraw': self.safe_bool(currency, 'can_withdraw'),
                 'fee': None,
-                'precision': None,
+                'networks': None,  # todo
+                'type': 'fiat' if hasProvider else 'crypto',
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -571,8 +708,12 @@ class whitebit(Exchange, ImplicitAPI):
                         'min': self.safe_number(currency, 'min_withdraw'),
                         'max': self.safe_number(currency, 'max_withdraw'),
                     },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'min_deposit'),
+                        'max': self.safe_number(currency, 'max_deposit'),
+                    },
                 },
-            }
+            })
         return result
 
     async def fetch_transaction_fees(self, codes: Strings = None, params={}):
@@ -821,6 +962,247 @@ class whitebit(Exchange, ImplicitAPI):
             }
         return result
 
+    async def fetch_trading_limits(self, symbols: Strings = None, params={}) -> Any:
+        """
+        fetch the trading limits for a market
+
+        https://docs.whitebit.com/public/http-v4/#market-info
+
+        :param str[]|None symbols: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `trading limits structure <https://docs.ccxt.com/#/?id=trading-limits-structure>`
+        """
+        await self.load_markets()
+        #
+        # Trading limits are derived from market information already loaded by loadMarkets()
+        # Market structure includes:
+        #     {
+        #         "id": "BTC_USDT",                    # Market ID
+        #         "symbol": "BTC/USDT",                # Unified symbol
+        #         "base": "BTC",                       # Base currency
+        #         "quote": "USDT",                     # Quote currency
+        #         "active": True,                      # Market active status
+        #         "type": "spot",                      # Market type
+        #         "spot": True,                        # Spot trading enabled
+        #         "margin": False,                     # Margin trading enabled
+        #         "future": False,                     # Futures trading enabled
+        #         "option": False,                     # Options trading enabled
+        #         "contract": False,                   # Contract trading enabled
+        #         "settle": None,                 # Settlement currency
+        #         "settleId": None,               # Settlement currency ID
+        #         "contractSize": None,           # Contract size
+        #         "linear": None,                 # Linear contract
+        #         "inverse": None,                # Inverse contract
+        #         "limits": {                         # Trading limits
+        #             "amount": {                     # Amount limits
+        #                 "min": 0.00001,              # Minimum amount
+        #                 "max": 1000000               # Maximum amount
+        #             },
+        #             "price": {                      # Price limits
+        #                 "min": 0.01,                 # Minimum price
+        #                 "max": 1000000               # Maximum price
+        #             },
+        #             "cost": {                       # Cost limits
+        #                 "min": 5.0,                  # Minimum cost
+        #                 "max": 10000000              # Maximum cost
+        #             }
+        #         },
+        #         "precision": {                      # Precision settings
+        #             "amount": 5,                     # Amount precision
+        #             "price": 2                       # Price precision
+        #         },
+        #         "taker": 0.001,                      # Taker fee
+        #         "maker": 0.001,                      # Maker fee
+        #         "percentage": True,                  # Fee percentage
+        #         "tierBased": False                   # Tier-based fees
+        #     }
+        #
+        result: dict = {}
+        # Process all markets from the loaded markets cache
+        marketIds = list(self.markets.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.markets[marketId]
+            if not market or not market['symbol']:
+                continue  # Skip invalid markets silently
+            symbol = market['symbol']
+            # Filter by symbols if specified
+            if symbols:
+                symbolFound = False
+                for j in range(0, len(symbols)):
+                    if symbols[j] == symbol:
+                        symbolFound = True
+                        break
+                if not symbolFound:
+                    continue  # Skip symbols not in requested list
+            # Extract trading limits
+            limits = self.safe_dict(market, 'limits')
+            amountLimits = self.safe_dict(limits, 'amount')
+            priceLimits = self.safe_dict(limits, 'price')
+            costLimits = self.safe_dict(limits, 'cost')
+            # Validate that all required limits exist and are valid numbers
+            hasAmountLimits = amountLimits and self.safe_number(amountLimits, 'min') is not None and self.safe_number(amountLimits, 'max') is not None
+            hasPriceLimits = priceLimits and self.safe_number(priceLimits, 'min') is not None and self.safe_number(priceLimits, 'max') is not None
+            hasCostLimits = costLimits and self.safe_number(costLimits, 'min') is not None and self.safe_number(costLimits, 'max') is not None
+            if hasAmountLimits and hasPriceLimits and hasCostLimits:
+                result[symbol] = {
+                    'info': market,
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_number(amountLimits, 'min'),
+                            'max': self.safe_number(amountLimits, 'max'),
+                        },
+                        'price': {
+                            'min': self.safe_number(priceLimits, 'min'),
+                            'max': self.safe_number(priceLimits, 'max'),
+                        },
+                        'cost': {
+                            'min': self.safe_number(costLimits, 'min'),
+                            'max': self.safe_number(costLimits, 'max'),
+                        },
+                    },
+                }
+        return result
+
+    async def fetch_funding_limits(self, codes: Strings = None, params={}):
+        """
+        fetch the deposit and withdrawal limits for a currency
+
+        https://docs.whitebit.com/public/http-v4/#asset-status-list
+        https://docs.whitebit.com/public/http-v4/#fee
+
+        :param str[]|None codes: unified currency codes
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding limits structure <https://docs.ccxt.com/#/?id=funding-limits-structure>`
+        """
+        await self.load_markets()
+        # Fetch both currencies and fees data for comprehensive funding limits
+        currenciesData, feesData = await asyncio.gather(*[
+            self.fetch_currencies(),
+            self.v4PublicGetFee(params),
+        ])
+        #
+        # Currencies response structure(from fetchCurrencies):
+        #     {
+        #         "BTC": {
+        #             "id": "BTC",                          # Currency ID
+        #             "code": "BTC",                        # Currency code
+        #             "name": "Bitcoin",                    # Currency name
+        #             "active": True,                       # Currency active status
+        #             "type": "crypto",                     # Currency type
+        #             "precision": 8,                       # Currency precision
+        #             "limits": {                          # Currency limits
+        #                 "deposit": {                     # Deposit limits
+        #                     "min": 0.00001,               # Minimum deposit
+        #                     "max": 1000000                # Maximum deposit
+        #                 },
+        #                 "withdraw": {                    # Withdrawal limits
+        #                     "min": 0.00001,               # Minimum withdrawal
+        #                     "max": 1000000                # Maximum withdrawal
+        #                 }
+        #             },
+        #             "networks": {                        # Network-specific limits
+        #                 "BTC": {
+        #                     "limits": {
+        #                         "deposit": {"min": "0.001"},
+        #                         "withdraw": {"min": "0.002"}
+        #                     }
+        #                 }
+        #             },
+        #             "info": {...}                       # Original API response
+        #         }
+        #     }
+        #
+        # Fees response structure(from /api/v4/public/fee):
+        #     {
+        #         "USDT(ERC20)": {
+        #             "ticker": "USDT",
+        #             "name": "Tether US",
+        #             "deposit": {
+        #                 "min_amount": "0.0005",
+        #                 "max_amount": "0.1",
+        #                 "fixed": "0.0005",
+        #                 "flex": {
+        #                     "min_fee": "100",
+        #                     "max_fee": "1000",
+        #                     "percent": "10"
+        #                 }
+        #             },
+        #             "withdraw": {
+        #                 "min_amount": "0.001",
+        #                 "max_amount": "0",
+        #                 "fixed": null,
+        #                 "flex": null
+        #             }
+        #         }
+        #     }
+        #
+        result: dict = {}
+        currencyKeys = list(currenciesData.keys())
+        for i in range(0, len(currencyKeys)):
+            code = currencyKeys[i]
+            currency = currenciesData[code]
+            if not currency:
+                # Skip invalid currency silently
+                continue
+            if codes is not None and not self.in_array(code, codes):
+                # Skip currency not in requested list silently
+                continue
+            # Find corresponding fee data for self currency
+            feeData = None
+            feeKeys = list(feesData.keys())
+            for j in range(0, len(feeKeys)):
+                feeKey = feeKeys[j]
+                fee = feesData[feeKey]
+                if fee and fee['ticker'] == code:
+                    feeData = fee
+                    break
+            # Build comprehensive funding limits
+            limits: dict = {
+                'deposit': {
+                    'min': currency['limits']['deposit']['min'],
+                    'max': currency['limits']['deposit']['max'],
+                },
+                'withdraw': {
+                    'min': currency['limits']['withdraw']['min'],
+                    'max': currency['limits']['withdraw']['max'],
+                },
+            }
+            # Add fee information if available
+            if feeData:
+                depositFee = feeData['deposit']
+                withdrawFee = feeData['withdraw']
+                if depositFee:
+                    depositFeeData = {
+                        'fixed': self.safe_number(depositFee, 'fixed'),
+                    }
+                    if depositFee['flex']:
+                        depositFeeData['flex'] = {
+                            'min': self.safe_number(depositFee['flex'], 'min_fee'),
+                            'max': self.safe_number(depositFee['flex'], 'max_fee'),
+                            'percent': self.safe_number(depositFee['flex'], 'percent'),
+                        }
+                    limits['deposit']['fee'] = depositFeeData
+                if withdrawFee:
+                    withdrawFeeData = {
+                        'fixed': self.safe_number(withdrawFee, 'fixed'),
+                    }
+                    if withdrawFee['flex']:
+                        withdrawFeeData['flex'] = {
+                            'min': self.safe_number(withdrawFee['flex'], 'min_fee'),
+                            'max': self.safe_number(withdrawFee['flex'], 'max_fee'),
+                            'percent': self.safe_number(withdrawFee['flex'], 'percent'),
+                        }
+                    limits['withdraw']['fee'] = withdrawFeeData
+            # Add network-specific limits if available
+            if currency['networks']:
+                limits['networks'] = currency['networks']
+            result[code] = {
+                'info': currency,
+                'limits': limits,
+            }
+        return result
+
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -937,6 +1319,67 @@ class whitebit(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string_n(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
             'info': ticker,
         }, market)
+
+    async def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
+        """
+        fetches information on an order by the id
+
+        https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+        https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.checkActive]: whether to check active orders(default: True)
+        :param boolean [params.checkExecuted]: whether to check executed orders(default: True)
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        # Extract control parameters from params
+        checkActive = self.safe_bool(params, 'checkActive', True)
+        checkExecuted = self.safe_bool(params, 'checkExecuted', True)
+        request: dict = {
+            'orderId': id,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        # Try active orders first(if enabled)
+        if checkActive:
+            try:
+                response = await self.v4PrivatePostOrders(self.extend(request, params))
+                # Search for order in active orders response(array format)
+                for i in range(0, len(response)):
+                    order = response[i]
+                    orderId = self.safe_string(order, 'orderId')
+                    if orderId == id:
+                        marketId = self.safe_string(order, 'market')
+                        marketNew = self.safe_market(marketId, None, '_')
+                        return self.parse_order(order, marketNew)
+            except Exception as error:
+                if not (isinstance(error, OrderNotFound)):
+                    raise error
+        # Try executed orders(if enabled)
+        if checkExecuted:
+            try:
+                response = await self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, params))
+                # Search for order in executed orders response(object format)
+                marketIds = list(response.keys())
+                for i in range(0, len(marketIds)):
+                    marketId = marketIds[i]
+                    marketNew = self.safe_market(marketId, None, '_')
+                    orders = response[marketId]
+                    for j in range(0, len(orders)):
+                        order = orders[j]
+                        orderId = self.safe_string(order, 'id')
+                        if orderId == id:
+                            return self.parse_order(order, marketNew)
+            except Exception as error:
+                if not (isinstance(error, OrderNotFound)):
+                    raise error
+        # If both checks failed or were disabled, raise OrderNotFound
+        raise OrderNotFound(self.id + ' fetchOrder() order not found: ' + id)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -1150,6 +1593,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "clientOrderId": "customId11",
         #         "role": 2,  # 1 = maker, 2 = taker
         #         "deal": "0.00419198"  # amount in money
+        #         "feeAsset": "USDT"
         #     }
         #
         # fetchMyTrades
@@ -1165,6 +1609,7 @@ class whitebit(Exchange, ImplicitAPI):
         #          "deal": "9.981007",
         #          "fee": "0.009981007",
         #          "orderId": 58166729555,
+        #          "feeAsset": "USDT"
         #      }
         #
         market = self.safe_market(None, market)
@@ -1185,7 +1630,7 @@ class whitebit(Exchange, ImplicitAPI):
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(self.safe_string(trade, 'feeAsset')),
             }
         return self.safe_trade({
             'info': trade,
@@ -1203,7 +1648,7 @@ class whitebit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1291,7 +1736,7 @@ class whitebit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_time(self, params={}):
+    async def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -1317,9 +1762,11 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        params['cost'] = cost
+        req = {
+            'cost': cost,
+        }
         # only buy side is supported
-        return await self.create_order(symbol, 'market', side, 0, None, params)
+        return await self.create_order(symbol, 'market', side, 0, None, self.extend(req, params))
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
         """
@@ -1348,6 +1795,10 @@ class whitebit(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *market orders only* the cost of the order in units of the base currency
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: If True, the order will only be posted to the order book and not executed immediately
+        :param str [params.clientOrderId]: a unique id for the order
+        :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1432,42 +1883,45 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if id is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a id argument')
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request: dict = {
-            'orderId': id,
             'market': market['id'],
         }
-        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        # Handle clientOrderId vs orderId(clientOrderId takes priority)
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
-            # Update clientOrderId of the order
             request['clientOrderId'] = clientOrderId
-        isLimitOrder = type == 'limit'
-        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activation_price'])
+        else:
+            request['orderId'] = id
+        # Handle amount vs total parameter based on order type and side
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'activationPrice'])
         isStopOrder = (triggerPrice is not None)
-        params = self.omit(params, ['clOrdId', 'clientOrderId', 'triggerPrice', 'stopPrice'])
+        # Handle activation price for stop orders
         if isStopOrder:
             request['activation_price'] = self.price_to_precision(symbol, triggerPrice)
+        isLimitOrder = type == 'limit'
+        total = self.safe_number(params, 'total')
+        if total is not None:
+            request['total'] = self.amount_to_precision(symbol, total)
+        elif amount is not None:
             if isLimitOrder:
-                # stop limit order
+                # Limit orders always use amount parameter
                 request['amount'] = self.amount_to_precision(symbol, amount)
-                request['price'] = self.price_to_precision(symbol, price)
+            elif type == 'market' and side == 'buy':
+                # Market buy orders use total parameter
+                request['total'] = self.amount_to_precision(symbol, amount)
             else:
-                # stop market order
-                if side == 'buy':
-                    # Use total parameter instead of amount for modify buy stop market order
-                    request['total'] = self.amount_to_precision(symbol, amount)
-                else:
-                    request['amount'] = self.amount_to_precision(symbol, amount)
-        else:
-            request['amount'] = self.amount_to_precision(symbol, amount)
-            if isLimitOrder:
-                # limit order
-                request['price'] = self.price_to_precision(symbol, price)
+                # Market sell orders use amount parameter
+                request['amount'] = self.amount_to_precision(symbol, amount)
+        # Handle price parameter for limit orders
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        # Ensure at least one modifiable parameter is provided
+        hasModifiableParam = (amount is not None) or (price is not None) or (triggerPrice is not None) or (total is not None)
+        if not hasModifiableParam:
+            raise ArgumentsRequired(self.id + ' editOrder() requires at least one of: amount, price, activationPrice, or total parameters')
+        params = self.omit(params, ['clientOrderId', 'triggerPrice', 'stopPrice', 'activationPrice', 'total'])
         response = await self.v4PrivatePostOrderModify(self.extend(request, params))
         return self.parse_order(response)
 
@@ -1550,6 +2004,33 @@ class whitebit(Exchange, ImplicitAPI):
         # []
         #
         return self.parse_orders(response, market)
+
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple orders made by the user(combines open and closed orders)
+
+        https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+        https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        # Fetch both open and closed orders in parallel
+        openOrders, closedOrders = await asyncio.gather(*[
+            self.fetch_open_orders(symbol, since, limit, params),
+            self.fetch_closed_orders(symbol, since, limit, params),
+        ])
+        allOrders = self.array_concat(openOrders, closedOrders)
+        # Sort by timestamp(most recent first)
+        sortedOrders = self.sort_by(allOrders, 'timestamp', True)
+        # Apply limit if specified(since and symbol filtering already handled by individual methods)
+        if limit is not None and len(sortedOrders) > limit:
+            return sortedOrders[0:limit]
+        return sortedOrders
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -1903,6 +2384,101 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'records', [])
         return self.parse_trades(data, market)
 
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all withdrawals made from an account
+
+        https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.transactionMethod]: transaction method(1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request: dict = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['ticker'] = currency['id']
+        if since is not None:
+            request['startDate'] = self.parse_to_int(since / 1000)
+        if limit is None or limit > 100:
+            limit = 100
+        if limit is not None:
+            request['limit'] = limit
+        # Use transactionMethod parameter to filter withdrawals server-side(method = 2)
+        request['transactionMethod'] = '2'
+        response = await self.v4PrivatePostMainAccountHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 123456789,                    # Transaction ID
+        #             "method": "2",                      # Method: 1=deposit, 2=withdrawal(filtered server-side)
+        #             "ticker": "BTC",                    # Currency ticker
+        #             "amount": "0.001",                  # Transaction amount
+        #             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",  # Withdrawal address
+        #             "memo": "",                         # Memo/tag(if required)
+        #             "network": "BTC",                   # Network name
+        #             "fee": "0.0005",                    # Transaction fee
+        #             "status": "1",                      # Status: 0=pending, 1=completed, 2=failed
+        #             "timestamp": 1641051917,            # Transaction timestamp
+        #             "txid": "abc123def456..."           # Transaction hash
+        #         },
+        #         {...}                                 # More withdrawal transactions
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
+    async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+
+        https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch transactions for
+        :param int [limit]: the maximum number of transactions structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.transactionMethod]: transaction method(1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request: dict = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['ticker'] = currency['id']
+        if since is not None:
+            request['startDate'] = self.parse_to_int(since / 1000)
+        if limit is None or limit > 100:
+            limit = 100
+        if limit is not None:
+            request['limit'] = limit
+        # Do not filter by transactionMethod to get all transactions(deposits and withdrawals)
+        response = await self.v4PrivatePostMainAccountHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": 123456789,                    # Transaction ID
+        #             "method": "1",                      # Method: 1=deposit, 2=withdrawal
+        #             "ticker": "BTC",                    # Currency ticker
+        #             "amount": "0.001",                  # Transaction amount
+        #             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",  # Transaction address
+        #             "memo": "",                         # Memo/tag(if required)
+        #             "network": "BTC",                   # Network name
+        #             "fee": "0.0005",                    # Transaction fee
+        #             "status": "1",                      # Status: 0=pending, 1=completed, 2=failed
+        #             "timestamp": 1641051917,            # Transaction timestamp
+        #             "txid": "abc123def456..."           # Transaction hash
+        #         },
+        #         {...}                                 # More transactions(deposits and withdrawals)
+        #     ]
+        #
+        return self.parse_transactions(response, currency, since, limit)
+
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
@@ -1974,7 +2550,99 @@ class whitebit(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def create_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        create a currency deposit address
+
+        https://docs.whitebit.com/private/http-main-v4/#create-new-address-for-deposit
+
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: the blockchain network to create a deposit address on
+        :param str [params.type]: address type, available for specific currencies
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'ticker': currency['id'],
+        }
+        response = await self.v4PrivatePostMainAccountCreateNewAddress(self.extend(request, params))
+        #
+        #     {
+        #         "account": {
+        #             "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        #             "memo": "48565488244493"
+        #         },
+        #         "required": {
+        #             "maxAmount": "0",
+        #             "minAmount": "1",
+        #             "fixedFee": "0",
+        #             "flexFee": {
+        #                 "maxFee": "0",
+        #                 "minFee": "0",
+        #                 "percent": "0"
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'account', {})
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
+        #         "memo": "48565488244493"
+        #     },
+        #
+        return {
+            'info': depositAddress,
+            'currency': self.safe_currency_code(None, currency),
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'memo'),
+        }
+
+    async def fetch_accounts(self, params={}) -> List[Account]:
+        """
+        fetch all the accounts associated with a profile
+
+        https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `account structures <https://docs.ccxt.com/#/?id=account-structure>`
+        """
+        await self.load_markets()
+        accounts = []
+        # Fetch sub-accounts
+        #
+        #     [
+        #         {
+        #             "id": "12345",
+        #             "name": "SubAccount1",
+        #             "status": "active",
+        #             "permissions": ["trade", "withdraw"]
+        #         }
+        #     ]
+        #
+        subAccounts = await self.v4PrivatePostSubAccountList(params)
+        if subAccounts and isinstance(subAccounts, list):
+            for i in range(0, len(subAccounts)):
+                subAccount = self.safe_value(subAccounts, i)
+                accountId = self.safe_string(subAccount, 'id')
+                accountName = self.safe_string(subAccount, 'name')
+                if accountId:
+                    accounts.append({
+                        'id': accountId,
+                        'type': 'subaccount',
+                        'name': accountName or 'SubAccount ' + accountId,
+                        'code': None,
+                        'info': subAccount,
+                    })
+        return accounts
+
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -2045,7 +2713,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2513,6 +3181,84 @@ class whitebit(Exchange, ImplicitAPI):
             'interval': None,
         }
 
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+        """
+        fetch the history of funding payments paid and received on self account
+
+        https://docs.whitebit.com/private/http-trade-v4/#funding-history
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: the starting timestamp in milliseconds
+        :param int [limit]: the number of entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch funding history for
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if since is not None:
+            request['startDate'] = since
+        if limit is not None:
+            request['limit'] = since
+        request, params = self.handle_until_option('endDate', request, params)
+        response = await self.v4PrivatePostCollateralAccountFundingHistory(request)
+        #
+        #     {
+        #         "records": [
+        #             {
+        #                 "market": "BTC_PERP",
+        #                 "fundingTime": "1708704000000",
+        #                 "fundingRate": "0.00017674",
+        #                 "fundingAmount": "-0.171053531892",
+        #                 "positionAmount": "0.019",
+        #                 "settlementPrice": "50938.2",
+        #                 "rateCalculatedTime": "1708675200000"
+        #             },
+        #         ],
+        #         "limit": 100,
+        #         "offset": 0
+        #     }
+        #
+        data = self.safe_list(response, 'records', [])
+        return self.parse_funding_histories(data, market, since, limit)
+
+    def parse_funding_history(self, contract, market: Market = None):
+        #
+        #     {
+        #         "market": "BTC_PERP",
+        #         "fundingTime": "1708704000000",
+        #         "fundingRate": "0.00017674",
+        #         "fundingAmount": "-0.171053531892",
+        #         "positionAmount": "0.019",
+        #         "settlementPrice": "50938.2",
+        #         "rateCalculatedTime": "1708675200000"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'market')
+        timestamp = self.safe_integer(contract, 'fundingTime')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': None,
+            'amount': self.safe_number(contract, 'fundingAmount'),
+        }
+
+    def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+        result = []
+        for i in range(0, len(contracts)):
+            contract = contracts[i]
+            result.append(self.parse_funding_history(contract, market))
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
+
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
@@ -2583,6 +3329,422 @@ class whitebit(Exchange, ImplicitAPI):
         records = self.safe_list(response, 'records')
         return self.parse_transactions(records, currency, since, limit)
 
+    async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        fetch a quote for converting from one currency to another
+
+        https://docs.whitebit.com/private/http-trade-v4/#convert-estimate
+
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float amount: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        request: dict = {
+            'from': fromCode,
+            'to': toCode,
+            'amount': self.number_to_string(amount),
+            'direction': 'from',
+        }
+        response = await self.v4PrivatePostConvertEstimate(self.extend(request, params))
+        #
+        #     {
+        #         "give": "4",
+        #         "receive": "0.00004762",
+        #         "rate": "0.0000119",
+        #         "id": "1740889",
+        #         "expireAt": 1741090147,
+        #         "from": "USDT",
+        #         "to": "BTC"
+        #     }
+        #
+        return self.parse_conversion(response, fromCurrency, toCurrency)
+
+    async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
+        """
+        convert from one currency to another
+
+        https://docs.whitebit.com/private/http-trade-v4/#convert-confirm
+
+        :param str id: the id of the trade that you want to make
+        :param str fromCode: the currency that you want to sell and convert from
+        :param str toCode: the currency that you want to buy and convert into
+        :param float [amount]: how much you want to trade in units of the from currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        fromCurrency = self.currency(fromCode)
+        toCurrency = self.currency(toCode)
+        request: dict = {
+            'quoteId': id,
+        }
+        response = await self.v4PrivatePostConvertConfirm(self.extend(request, params))
+        #
+        #     {
+        #         "finalGive": "4",
+        #         "finalReceive": "0.00004772"
+        #     }
+        #
+        return self.parse_conversion(response, fromCurrency, toCurrency)
+
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+        """
+        fetch the users history of conversion trades
+
+        https://docs.whitebit.com/private/http-trade-v4/#convert-history
+
+        :param str [code]: the unified currency code
+        :param int [since]: the earliest time in ms to fetch conversions for
+        :param int [limit]: the maximum number of conversion structures to retrieve, default 20, max 200
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.until]: the end time in ms
+        :param str [params.fromTicker]: the currency that you sold and converted from
+        :param str [params.toTicker]: the currency that you bought and converted into
+        :param str [params.quoteId]: the quote id of the conversion
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        if code is not None:
+            request['fromTicker'] = code
+        if since is not None:
+            start = self.parse_to_int(since / 1000)
+            request['from'] = self.number_to_string(start)
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('to', request, params, 0.001)
+        response = await self.v4PrivatePostConvertHistory(self.extend(request, params))
+        #
+        #     {
+        #         "records": [
+        #             {
+        #                 "id": "1741105",
+        #                 "path": [
+        #                     {
+        #                         "from": "USDT",
+        #                         "to": "BTC",
+        #                         "rate": "0.00001193"
+        #                     }
+        #                 ],
+        #                 "date": 1741090757,
+        #                 "give": "4",
+        #                 "receive": "0.00004772",
+        #                 "rate": "0.00001193"
+        #             }
+        #         ],
+        #         "total": 1,
+        #         "limit": 100,
+        #         "offset": 0
+        #     }
+        #
+        rows = self.safe_list(response, 'records', [])
+        return self.parse_conversions(rows, code, 'fromCurrency', 'toCurrency', since, limit)
+
+    def parse_conversion(self, conversion: dict, fromCurrency: Currency = None, toCurrency: Currency = None) -> Conversion:
+        #
+        # fetchConvertQuote
+        #
+        #     {
+        #         "give": "4",
+        #         "receive": "0.00004762",
+        #         "rate": "0.0000119",
+        #         "id": "1740889",
+        #         "expireAt": 1741090147,
+        #         "from": "USDT",
+        #         "to": "BTC"
+        #     }
+        #
+        # createConvertTrade
+        #
+        #     {
+        #         "finalGive": "4",
+        #         "finalReceive": "0.00004772"
+        #     }
+        #
+        # fetchConvertTradeHistory
+        #
+        #     {
+        #         "id": "1741105",
+        #         "path": [
+        #             {
+        #                 "from": "USDT",
+        #                 "to": "BTC",
+        #                 "rate": "0.00001193"
+        #             }
+        #         ],
+        #         "date": 1741090757,
+        #         "give": "4",
+        #         "receive": "0.00004772",
+        #         "rate": "0.00001193"
+        #     }
+        #
+        path = self.safe_list(conversion, 'path', [])
+        first = self.safe_dict(path, 0, {})
+        fromPath = self.safe_string(first, 'from')
+        toPath = self.safe_string(first, 'to')
+        timestamp = self.safe_timestamp_2(conversion, 'date', 'expireAt')
+        fromCoin = self.safe_string(conversion, 'from', fromPath)
+        fromCode = self.safe_currency_code(fromCoin, fromCurrency)
+        toCoin = self.safe_string(conversion, 'to', toPath)
+        toCode = self.safe_currency_code(toCoin, toCurrency)
+        return {
+            'info': conversion,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(conversion, 'id'),
+            'fromCurrency': fromCode,
+            'fromAmount': self.safe_number_2(conversion, 'give', 'finalGive'),
+            'toCurrency': toCode,
+            'toAmount': self.safe_number_2(conversion, 'receive', 'finalReceive'),
+            'price': self.safe_number(conversion, 'rate'),
+            'fee': None,
+        }
+
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+        """
+        fetches historical positions
+
+        https://docs.whitebit.com/private/http-trade-v4/#positions-history
+
+        :param str symbol: unified contract symbol
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum amount of records to fetch
+        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param int [params.positionId]: the id of the requested position
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market': market['id'],
+        }
+        if since is not None:
+            request['startDate'] = since
+        if limit is not None:
+            request['limit'] = since
+        request, params = self.handle_until_option('endDate', request, params)
+        response = await self.v4PrivatePostCollateralAccountPositionsHistory(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "positionId": 479975679,
+        #             "market": "BTC_PERP",
+        #             "openDate": 1741941025.309887,
+        #             "modifyDate": 1741941025.309887,
+        #             "amount": "0.001",
+        #             "basePrice": "82498.7",
+        #             "realizedFunding": "0",
+        #             "liquidationPrice": "0",
+        #             "liquidationState": null,
+        #             "orderDetail": {
+        #                 "id": 1224727949521,
+        #                 "tradeAmount": "0.001",
+        #                 "price": "82498.7",
+        #                 "tradeFee": "0.028874545",
+        #                 "fundingFee": "0",
+        #                 "realizedPnl": "-0.028874545"
+        #             }
+        #         }
+        #     ]
+        #
+        positions = self.parse_positions(response)
+        return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
+
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+        """
+        fetch all open positions
+
+        https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = await self.v4PrivatePostCollateralAccountPositionsOpen(params)
+        #
+        #     [
+        #         {
+        #             "positionId": 479975679,
+        #             "market": "BTC_PERP",
+        #             "openDate": 1741941025.3098869,
+        #             "modifyDate": 1741941025.3098869,
+        #             "amount": "0.001",
+        #             "basePrice": "82498.7",
+        #             "liquidationPrice": "70177.2",
+        #             "pnl": "0",
+        #             "pnlPercent": "0.00",
+        #             "margin": "4.2",
+        #             "freeMargin": "9.9",
+        #             "funding": "0",
+        #             "unrealizedFunding": "0",
+        #             "liquidationState": null,
+        #             "tpsl": null
+        #         }
+        #     ]
+        #
+        return self.parse_positions(response, symbols)
+
+    async def fetch_position(self, symbol: str, params={}) -> Position:
+        """
+        fetch data on a single open contract trade position
+
+        https://docs.whitebit.com/private/http-trade-v4/#open-positions
+
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = await self.v4PrivatePostCollateralAccountPositionsOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "positionId": 479975679,
+        #             "market": "BTC_PERP",
+        #             "openDate": 1741941025.3098869,
+        #             "modifyDate": 1741941025.3098869,
+        #             "amount": "0.001",
+        #             "basePrice": "82498.7",
+        #             "liquidationPrice": "70177.2",
+        #             "pnl": "0",
+        #             "pnlPercent": "0.00",
+        #             "margin": "4.2",
+        #             "freeMargin": "9.9",
+        #             "funding": "0",
+        #             "unrealizedFunding": "0",
+        #             "liquidationState": null,
+        #             "tpsl": null
+        #         }
+        #     ]
+        #
+        data = self.safe_dict(response, 0, {})
+        return self.parse_position(data, market)
+
+    def parse_position(self, position: dict, market: Market = None) -> Position:
+        #
+        # fetchPosition, fetchPositions
+        #
+        #     {
+        #         "positionId": 479975679,
+        #         "market": "BTC_PERP",
+        #         "openDate": 1741941025.3098869,
+        #         "modifyDate": 1741941025.3098869,
+        #         "amount": "0.001",
+        #         "basePrice": "82498.7",
+        #         "liquidationPrice": "70177.2",
+        #         "pnl": "0",
+        #         "pnlPercent": "0.00",
+        #         "margin": "4.2",
+        #         "freeMargin": "9.9",
+        #         "funding": "0",
+        #         "unrealizedFunding": "0",
+        #         "liquidationState": null,
+        #         "tpsl": null
+        #     }
+        #
+        # fetchPositionHistory
+        #
+        #     {
+        #         "positionId": 479975679,
+        #         "market": "BTC_PERP",
+        #         "openDate": 1741941025.309887,
+        #         "modifyDate": 1741941025.309887,
+        #         "amount": "0.001",
+        #         "basePrice": "82498.7",
+        #         "realizedFunding": "0",
+        #         "liquidationPrice": "0",
+        #         "liquidationState": null,
+        #         "orderDetail": {
+        #             "id": 1224727949521,
+        #             "tradeAmount": "0.001",
+        #             "price": "82498.7",
+        #             "tradeFee": "0.028874545",
+        #             "fundingFee": "0",
+        #             "realizedPnl": "-0.028874545"
+        #         }
+        #     }
+        #
+        marketId = self.safe_string(position, 'market')
+        timestamp = self.safe_timestamp(position, 'openDate')
+        tpsl = self.safe_dict(position, 'tpsl', {})
+        orderDetail = self.safe_dict(position, 'orderDetail', {})
+        return self.safe_position({
+            'info': position,
+            'id': self.safe_string(position, 'positionId'),
+            'symbol': self.safe_symbol(marketId, market),
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'entryPrice': self.safe_number(position, 'basePrice'),
+            'unrealizedPnl': self.safe_number(position, 'pnl'),
+            'realizedPnl': self.safe_number(orderDetail, 'realizedPnl'),
+            'percentage': self.safe_number(position, 'pnlPercent'),
+            'contracts': None,
+            'contractSize': None,
+            'markPrice': None,
+            'lastPrice': None,
+            'side': None,
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_timestamp(position, 'modifyDate'),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': self.safe_number(position, 'margin'),
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+            'stopLossPrice': self.safe_number(tpsl, 'stopLoss'),
+            'takeProfitPrice': self.safe_number(tpsl, 'takeProfit'),
+        })
+
+    async def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
+        """
+        fetch the rate of interest to borrow a currency for margin trading
+
+        https://docs.whitebit.com/private/http-main-v4/#get-plans
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'ticker': currency['id'],
+        }
+        response = await self.v4PrivatePostMainAccountSmartPlans(self.extend(request, params))
+        #
+        #
+        data = self.safe_list(response, 0, [])
+        return self.parse_borrow_rate(data, currency)
+
+    def parse_borrow_rate(self, info, currency: Currency = None):
+        #
+        #
+        currencyId = self.safe_string(info, 'ticker')
+        percent = self.safe_string(info, 'percent')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'rate': self.parse_number(Precise.string_div(percent, '100')),
+            'period': self.safe_integer(info, 'duration'),
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
+
     def is_fiat(self, currency: str) -> bool:
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         return self.in_array(currency, fiatCurrencies)
@@ -2594,6 +3756,9 @@ class whitebit(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
         accessibility = self.safe_value(api, 1)
+        if headers is None:
+            headers = {}
+        headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
         url = self.urls['api'][version][accessibility] + pathWithParams
         if accessibility == 'public':
@@ -2601,12 +3766,10 @@ class whitebit(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         if accessibility == 'private':
             self.check_required_credentials()
-            nonce = self.nonce()
-            timestamp = self.parse_to_int(nonce / 1000)
-            timestampString = str(timestamp)
+            nonce = str(self.nonce())
             secret = self.encode(self.secret)
             request = '/' + 'api' + '/' + version + pathWithParams
-            body = self.json(self.extend({'request': request, 'nonce': timestampString}, params))
+            body = self.json(self.extend({'request': request, 'nonce': nonce}, params))
             payload = self.string_to_base64(body)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha512)
             headers = {
@@ -2626,12 +3789,13 @@ class whitebit(Exchange, ImplicitAPI):
             # For cases where we have a meaningful status
             # {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             status = self.safe_string(response, 'status')
+            errors = self.safe_value(response, 'errors')
             # {"code":10,"message":"Unauthorized request."}
             message = self.safe_string(response, 'message')
             # For these cases where we have a generic code variable error key
             # {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             codeNew = self.safe_integer(response, 'code')
-            hasErrorStatus = status is not None and status != '200'
+            hasErrorStatus = status is not None and status != '200' and errors is not None
             if hasErrorStatus or codeNew is not None:
                 feedback = self.id + ' ' + body
                 errorInfo = message

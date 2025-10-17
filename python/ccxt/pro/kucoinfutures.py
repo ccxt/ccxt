@@ -5,17 +5,16 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
 
 class kucoinfutures(ccxt.async_support.kucoinfutures):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'has': {
                 'ws': True,
@@ -87,9 +86,9 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def negotiate(self, privateChannel, params={}):
         connectId = 'private' if privateChannel else 'public'
         urls = self.safe_value(self.options, 'urls', {})
-        spawaned = self.safe_value(urls, connectId)
-        if spawaned is not None:
-            return await spawaned
+        future = self.safe_value(urls, connectId)
+        if future is not None:
+            return await future
         # we store an awaitable to the url
         # so that multiple calls don't asynchronously
         # fetch different urls and overwrite each other
@@ -627,7 +626,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.resolve(trades, messageHash)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.kucoin.com/docs/websocket/futures-trading/public-channels/klines
@@ -1167,7 +1166,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        "id": "64d8732c856851144bded10d",
@@ -1182,7 +1181,8 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
             if client.url.find('connectId=private') >= 0:
                 type = 'private'
             self.options['urls'][type] = None
-        self.handle_errors(None, None, client.url, None, None, data, message, None, None)
+        self.handle_errors(1, '', client.url, '', {}, data, message, {}, {})
+        return True
 
     def handle_subscription_status(self, client: Client, message):
         #

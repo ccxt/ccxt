@@ -3,6 +3,7 @@ package ccxt
 import (
 	"fmt"
 	"math/big"
+	"reflect"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -15,7 +16,7 @@ import (
 // =====================================  Hyperliquid Structs ===================================== //
 // OrderMessage Struct
 // {
-// "brokerCode": 1,
+// "builder": "0xxxxxx",
 // "grouping": "na",
 // "orders": [
 //
@@ -53,10 +54,10 @@ type OrderHyperliquid struct {
 }
 
 type OrderMessage struct {
-	Type       string             `mapstructure:"type" msgpack:"type"`
-	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
-	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
-	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
+	Type     string                 `mapstructure:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid     `mapstructure:"orders" msgpack:"orders"`
+	Grouping string                 `mapstructure:"grouping" msgpack:"grouping"`
+	Builder  map[string]interface{} `mapstructure:"builder" msgpack:"builder,omitempty"`
 }
 
 // cancel
@@ -79,6 +80,12 @@ type TransferMessage struct {
 	Amount           string `mapstructure:"amount" msgpack:"amount"`
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
+}
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
 }
 
 // withdraw
@@ -171,7 +178,6 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
 	}
 
-
 	domainTyped := apitypes.TypedDataDomain{
 		Name:              this.SafeString(domain, "name", "").(string),
 		Version:           this.SafeString(domain, "version", "").(string),
@@ -204,7 +210,12 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	return this.Base16ToBinary(hexData)
 }
 
-func ConvertInt64ToBigInt(data interface{}) interface{} {
+func (this *Exchange) EthAbiEncode(types interface{}, args interface{}) interface{} {
+	byteArray := []uint8{}
+	return byteArray
+}
+
+func ConvertInt64ToBigInt(data interface{}) interface{} { // these functions change in place the object, no bueno
 	switch v := data.(type) {
 	case map[string]interface{}:
 		for key, value := range v {
@@ -217,13 +228,67 @@ func ConvertInt64ToBigInt(data interface{}) interface{} {
 		}
 		return v
 	case int64:
-		return uint8(v)
+		// return uint8(v)
+		return int(v)
 	default:
 		return v // Leave other types unchanged
 	}
+
 }
 
-func ConvertInt64ToInt(data interface{}) interface{} {
+// func ConvertInt64ToBigInt(data interface{}) interface{} {
+// 	switch v := data.(type) {
+// 	case map[string]interface{}:
+// 		newMap := make(map[string]interface{}, len(v))
+// 		for key, value := range v {
+// 			newMap[key] = ConvertInt64ToBigInt(value)
+// 		}
+// 		return newMap
+// 	case []interface{}:
+// 		newSlice := make([]interface{}, len(v))
+// 		for i, item := range v {
+// 			newSlice[i] = ConvertInt64ToBigInt(item)
+// 		}
+// 		return newSlice
+// 	case int64:
+// 		return uint8(v)
+// 	default:
+// 		return v // Leave other types unchanged
+// 	}
+// }
+
+func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated implementation
+	var outObj interface{}
+	for _, x := range objs {
+		if x == nil {
+			continue
+		}
+		if reflect.TypeOf(x).Kind() == reflect.Map {
+			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
+				outObj = make(map[string]interface{})
+			}
+			dictX := x.(map[string]interface{})
+			for k := range dictX {
+				arg1 := outObj.(map[string]interface{})[k]
+				arg2 := dictX[k]
+				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
+					outObj.(map[string]interface{})[k] = DeepExtend(arg1, arg2)
+				} else {
+					if arg2 != nil {
+						outObj.(map[string]interface{})[k] = arg2
+					} else {
+						outObj.(map[string]interface{})[k] = arg1
+					}
+				}
+			}
+		} else {
+			outObj = x
+		}
+	}
+	return outObj.(map[string]interface{})
+}
+
+func ConvertInt64ToInt(data interface{}) interface{} { // these functions change in place the object, no bueno
 	switch v := data.(type) {
 	case map[string]interface{}:
 		for key, value := range v {
@@ -242,9 +307,39 @@ func ConvertInt64ToInt(data interface{}) interface{} {
 	}
 }
 
+// func ConvertInt64ToInt(data interface{}) interface{} { // "good"
+// 	switch v := data.(type) {
+// 	case map[string]interface{}:
+// 		newMap := make(map[string]interface{}, len(v))
+// 		for key, value := range v {
+// 			newMap[key] = ConvertInt64ToInt(value)
+// 		}
+// 		return newMap
+// 	case []interface{}:
+// 		newSlice := make([]interface{}, len(v))
+// 		for i, item := range v {
+// 			newSlice[i] = ConvertInt64ToInt(item)
+// 		}
+// 		return newSlice
+// 	case int64:
+// 		return int(v)
+// 	default:
+// 		return v // Leave other types unchanged
+// 	}
+// }
+
 func (this *Exchange) Packb(data interface{}) []uint8 {
 
-	converted := ConvertInt64ToBigInt(data)
+	var dataObj interface{} = nil
+	dataJson := this.Json(data)
+	dataObj = this.ParseJson(dataJson)
+
+	// if subDict, ok := data.(map[string]interface{}); ok {
+	// 	dataObj = DeepExtend(subDict, map[string]interface{}{}) // create a new only to avoid changing the original
+	// } else {
+	// 	dataObj = data
+	// }
+	converted := ConvertInt64ToBigInt(dataObj)
 
 	if this.Id != "hyperliquid" {
 		p, err := msgpack.Marshal(converted)
@@ -256,7 +351,8 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 
 	typeA := this.SafeString(converted, "type", "").(string)
 
-	if typeA == "order" {
+	switch typeA {
+	case "order":
 		var orderMsg OrderMessage
 
 		err := mapstructure.Decode(converted, &orderMsg)
@@ -270,7 +366,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "cancel" {
+	case "cancel":
 		var cancelMsg CancelMessage
 
 		err := mapstructure.Decode(converted, &cancelMsg)
@@ -284,7 +380,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "withdraw3" {
+	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
 		err := mapstructure.Decode(converted, &withdrawMsg)
@@ -297,7 +393,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "batchModify" {
+	case "batchModify":
 		var editMsg EditOrderMessage
 
 		err := mapstructure.Decode(converted, &editMsg)
@@ -306,6 +402,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
 		if err != nil {
 			panic(err)
 		}

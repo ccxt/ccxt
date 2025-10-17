@@ -60,7 +60,7 @@ public partial class oxfun : Exchange
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
-                { "fetchFundingRate", "emulated" },
+                { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -249,7 +249,12 @@ public partial class oxfun : Exchange
                         { "leverage", false },
                         { "marketBuyByCost", true },
                         { "marketBuyRequiresPrice", false },
-                        { "selfTradePrevention", true },
+                        { "selfTradePrevention", new Dictionary<string, object>() {
+                            { "EXPIRE_MAKER", true },
+                            { "EXPIRE_TAKER", true },
+                            { "EXPIRE_BOTH", true },
+                            { "NONE", true },
+                        } },
                         { "iceberg", true },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
@@ -598,66 +603,7 @@ public partial class oxfun : Exchange
         //                         "minDeposit": "0.00010",
         //                         "minWithdrawal": "0.00010"
         //                     },
-        //                     {
-        //                         "network": "Arbitrum",
-        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Ethereum",
-        //                         "tokenId": "0xba0Dda8762C24dA9487f5FA026a9B64b695A07Ea",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Arbitrum",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Avalanche",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Solana",
-        //                         "tokenId": "DV3845GEAVXfwpyVGGgWbqBVCtzHdCXNCGfcdboSEuZz",
-        //                         "transactionPrecision": "8",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": true,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     },
-        //                     {
-        //                         "network": "Ethereum",
-        //                         "tokenId": "0x78a0A62Fba6Fb21A83FE8a3433d44C73a4017A6f",
-        //                         "transactionPrecision": "18",
-        //                         "isWithdrawalFeeChargedToUser": true,
-        //                         "canDeposit": true,
-        //                         "canWithdraw": false,
-        //                         "minDeposit": "0.00010",
-        //                         "minWithdrawal": "0.00010"
-        //                     }
+        //                     ...
         //                 ]
         //             },
         //             {
@@ -708,84 +654,70 @@ public partial class oxfun : Exchange
             object parts = ((string)fullId).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object id = getValue(parts, 0);
             object code = this.safeCurrencyCode(id);
-            object networks = new Dictionary<string, object>() {};
+            if (!isTrue((inOp(result, code))))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "id", id },
+                    { "code", code },
+                    { "precision", null },
+                    { "type", null },
+                    { "name", null },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                    } },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "info", new List<object>() {} },
+                };
+            }
             object chains = this.safeList(currency, "networkList", new List<object>() {});
-            object currencyMaxPrecision = null;
-            object currencyDepositEnabled = null;
-            object currencyWithdrawEnabled = null;
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
                 object networkId = this.safeString(chain, "network");
                 object networkCode = this.networkIdToCode(networkId);
-                object deposit = this.safeBool(chain, "canDeposit");
-                object withdraw = this.safeBool(chain, "canWithdraw");
-                object active = (isTrue(deposit) && isTrue(withdraw));
-                object minDeposit = this.safeString(chain, "minDeposit");
-                object minWithdrawal = this.safeString(chain, "minWithdrawal");
-                object precision = this.parsePrecision(this.safeString(chain, "transactionPrecision"));
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
                     { "margin", null },
-                    { "deposit", deposit },
-                    { "withdraw", withdraw },
-                    { "active", active },
+                    { "deposit", this.safeBool(chain, "canDeposit") },
+                    { "withdraw", this.safeBool(chain, "canWithdraw") },
+                    { "active", null },
                     { "fee", null },
-                    { "precision", this.parseNumber(precision) },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "transactionPrecision"))) },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", minDeposit },
+                            { "min", this.safeNumber(chain, "minDeposit") },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdrawal },
+                            { "min", this.safeNumber(chain, "minWithdrawal") },
                             { "max", null },
                         } },
                     } },
                     { "info", chain },
                 };
-                if (isTrue(isTrue((isEqual(currencyDepositEnabled, null))) || isTrue(deposit)))
-                {
-                    currencyDepositEnabled = deposit;
-                }
-                if (isTrue(isTrue((isEqual(currencyWithdrawEnabled, null))) || isTrue(withdraw)))
-                {
-                    currencyWithdrawEnabled = withdraw;
-                }
-                if (isTrue(isTrue((isEqual(currencyMaxPrecision, null))) || isTrue(Precise.stringGt(currencyMaxPrecision, precision))))
-                {
-                    currencyMaxPrecision = precision;
-                }
             }
-            if (isTrue(inOp(result, code)))
-            {
-                // checking for specific ids as USDC.ARB
-                networks = this.extend(getValue(getValue(result, code), "networks"), networks);
-            }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "name", null },
-                { "type", null },
-                { "active", null },
-                { "deposit", currencyDepositEnabled },
-                { "withdraw", currencyWithdrawEnabled },
-                { "fee", null },
-                { "precision", this.parseNumber(currencyMaxPrecision) },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "networks", networks },
-                { "info", currency },
-            };
+            object infos = this.safeList(getValue(result, code), "info", new List<object>() {});
+            ((IList<object>)infos).Add(currency);
+            ((IDictionary<string,object>)getValue(result, code))["info"] = infos;
+        }
+        // only after all entries are formed in currencies, restructure each entry
+        object allKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(allKeys)); postFixIncrement(ref i))
+        {
+            object code = getValue(allKeys, i);
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(getValue(result, code)); // this is needed after adding network entry
         }
         return result;
     }
@@ -1122,6 +1054,29 @@ public partial class oxfun : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseFundingRates(data, symbols);
+    }
+
+    /**
+     * @method
+     * @name oxfun#fetchFundingRate
+     * @description fetch the current funding rates for a symbol
+     * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+     * @param {string} symbol unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "marketCode", this.marketId(symbol) },
+        };
+        object response = await this.publicGetV3FundingEstimates(this.extend(request, parameters));
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseFundingRate(first, this.market(symbol));
     }
 
     public override object parseFundingRate(object fundingRate, object market = null)
@@ -2444,7 +2399,7 @@ public partial class oxfun : Exchange
      * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-     * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+     * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
      * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -2641,7 +2596,7 @@ public partial class oxfun : Exchange
         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-        * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+        * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
         */
         parameters ??= new Dictionary<string, object>();
@@ -2691,6 +2646,14 @@ public partial class oxfun : Exchange
         if (isTrue(isTrue(postOnly) && isTrue((!isEqual(timeInForce, "MAKER_ONLY_REPRICE")))))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "MAKER_ONLY";
+        }
+        object selfTradePrevention = null;
+        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = ((IList<object>)selfTradePreventionparametersVariable)[0];
+        parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
+        if (isTrue(!isEqual(selfTradePrevention, null)))
+        {
+            ((IDictionary<string,object>)request)["selfTradePreventionMode"] = ((string)selfTradePrevention).ToUpper();
         }
         return this.extend(request, parameters);
     }
@@ -2866,7 +2829,10 @@ public partial class oxfun : Exchange
         //         "data": { "notice": "No working orders found" }
         //     }
         //
-        return await this.privateDeleteV3OrdersCancelAll(this.extend(request, parameters));
+        object response = await this.privateDeleteV3OrdersCancelAll(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -2882,7 +2848,7 @@ public partial class oxfun : Exchange
      * @param {string} [params.responseType] 'FULL' or 'ACK'
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3147,7 +3113,7 @@ public partial class oxfun : Exchange
                 { "AccessKey", this.apiKey },
                 { "Timestamp", datetime },
                 { "Signature", signature },
-                { "Nonce", nonce },
+                { "Nonce", ((object)nonce).ToString() },
             };
         }
         return new Dictionary<string, object>() {

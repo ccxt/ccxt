@@ -10,12 +10,12 @@ use ccxt\abstract\coinbaseinternational as Exchange;
 
 class coinbaseinternational extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinbaseinternational',
             'name' => 'Coinbase International',
             'countries' => array( 'US' ),
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'rateLimit' => 100, // 10 requests per second
             'version' => 'v1',
@@ -423,7 +423,7 @@ class coinbaseinternational extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = 100, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -761,7 +761,7 @@ class coinbaseinternational extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): array {
         /**
          * create a $currency deposit $address
          *
@@ -809,6 +809,7 @@ class coinbaseinternational extends Exchange {
             'currency' => $code,
             'tag' => $tag,
             'address' => $address,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -909,7 +910,7 @@ class coinbaseinternational extends Exchange {
         ));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()): mixed {
+    public function set_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * Either adds or reduces margin in order to set the margin to a specific value
          *
@@ -2231,7 +2232,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          *

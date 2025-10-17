@@ -11,10 +11,19 @@ public partial class myokx : okx
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "myokx" },
-            { "name", "MyOKX" },
+            { "name", "MyOKX (EEA)" },
+            { "hostname", "eea.okx.com" },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
+                    { "rest", "https://{hostname}" },
                     { "ws", "wss://wseea.okx.com:8443/ws/v5" },
+                } },
+                { "www", "https://my.okx.com" },
+                { "doc", "https://my.okx.com/docs-v5/en/#overview" },
+                { "fees", "https://my.okx.com/pages/products/fees.html" },
+                { "referral", new Dictionary<string, object>() {
+                    { "url", "https://www.my.okx.com/join/CCXT2023" },
+                    { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "ws", "wss://wseeapap.okx.com:8443/ws/v5" },

@@ -14,7 +14,7 @@ exchange_name="$1"
 
 # Check if the first argument was provided
 if [ -z "$exchange_name" ]; then
-    echo "Exchange name not provided provided."
+    echo "Exchange name not provided."
     exit 1
 fi
 
@@ -29,6 +29,7 @@ else
     npm run tsBuildFile ts/src/$exchange_name.ts &
     npx tsx build/transpile.ts $exchange_name &
     npm run transpileCsSingle $exchange_name &
+    npx tsx build/goTranspiler.ts $exchange_name &
     wait
 fi
 

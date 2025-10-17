@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -22,16 +22,14 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
-from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
-from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class bitvavo(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(bitvavo, self).describe(), {
             'id': 'bitvavo',
             'name': 'Bitvavo',
@@ -48,19 +46,29 @@ class bitvavo(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
@@ -71,21 +79,39 @@ class bitvavo(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -97,6 +123,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -105,9 +132,14 @@ class bitvavo(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
@@ -234,7 +266,12 @@ class bitvavo(Exchange, ImplicitAPI):
                         'leverage': False,
                         'marketBuyRequiresPrice': False,
                         'marketBuyByCost': True,
-                        'selfTradePrevention': True,  # todo implement
+                        'selfTradePrevention': {
+                            'EXPIRE_MAKER': False,
+                            'EXPIRE_TAKER': False,
+                            'EXPIRE_BOTH': True,
+                            'NONE': False,
+                        },
                         'iceberg': False,
                     },
                     'createOrders': None,
@@ -361,28 +398,16 @@ class bitvavo(Exchange, ImplicitAPI):
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
+                'operatorId': None,  # self will be required soon for order-related endpoints
+                'fiatCurrencies': ['EUR'],  # only fiat atm
             },
-            'precisionMode': SIGNIFICANT_DIGITS,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
                 'MIOTA': 'IOTA',  # https://github.com/ccxt/ccxt/issues/7487
             },
         })
 
-    def amount_to_precision(self, symbol, amount):
-        # https://docs.bitfinex.com/docs/introduction#amount-precision
-        # The amount field allows up to 8 decimals.
-        # Anything exceeding self will be rounded to the 8th decimal.
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
-
-    def price_to_precision(self, symbol, price):
-        price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
-        # https://docs.bitfinex.com/docs/introduction#price-precision
-        # The precision level of all trading prices is based on significant figures.
-        # All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals(e.g. 1.2345, 123.45, 1234.5, 0.00012345).
-        # Prices submit with a precision larger than 5 will be cut by the API.
-        return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
-
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -405,24 +430,27 @@ class bitvavo(Exchange, ImplicitAPI):
         """
         response = self.publicGetMarkets(params)
         #
-        #     [
-        #         {
-        #             "market":"ADA-BTC",
-        #             "status":"trading",  # "trading" "halted" "auction"
-        #             "base":"ADA",
-        #             "quote":"BTC",
-        #             "pricePrecision":5,
-        #             "minOrderInBaseAsset":"100",
-        #             "minOrderInQuoteAsset":"0.001",
-        #             "orderTypes": ["market", "limit"]
-        #         }
-        #     ]
+        #    {
+        #        "market": "BTC-EUR",
+        #        "status": "trading",
+        #        "base": "BTC",
+        #        "quote": "EUR",
+        #        "pricePrecision": "0",  # deprecated, self is mostly 0 across other markets too, which is abnormal, so we ignore self.
+        #        "tickSize": "1.00",
+        #        "minOrderInBaseAsset": "0.00006100",
+        #        "minOrderInQuoteAsset": "5.00",
+        #        "maxOrderInBaseAsset": "1000000000.00000000",
+        #        "maxOrderInQuoteAsset": "1000000000.00",
+        #        "quantityDecimals": "8",
+        #        "notionalDecimals": "2",
+        #        "maxOpenOrders": "100",
+        #        "feeCategory": "A",
+        #        "orderTypes": ["market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit"]
+        #    }
         #
         return self.parse_markets(response)
 
     def parse_markets(self, markets):
-        currencies = self.currencies
-        currenciesById = self.index_by(currencies, 'id')
         result = []
         fees = self.fees
         for i in range(0, len(markets)):
@@ -433,8 +461,6 @@ class bitvavo(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
-            baseCurrency = self.safe_value(currenciesById, baseId)
-            basePrecision = self.safe_integer(baseCurrency, 'precision')
             result.append(self.safe_market_structure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -462,8 +488,9 @@ class bitvavo(Exchange, ImplicitAPI):
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
                 'precision': {
-                    'amount': self.safe_integer(baseCurrency, 'decimals', basePrecision),
-                    'price': self.safe_integer(market, 'pricePrecision'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityDecimals'))),
+                    'price': self.safe_number(market, 'tickSize'),
+                    'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'notionalDecimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -472,7 +499,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                     'amount': {
                         'min': self.safe_number(market, 'minOrderInBaseAsset'),
-                        'max': None,
+                        'max': self.safe_number(market, 'maxOrderInBaseAsset'),
                     },
                     'price': {
                         'min': None,
@@ -480,7 +507,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     },
                     'cost': {
                         'min': self.safe_number(market, 'minOrderInQuoteAsset'),
-                        'max': None,
+                        'max': self.safe_number(market, 'maxOrderInQuoteAsset'),
                     },
                 },
                 'created': None,
@@ -567,24 +594,24 @@ class bitvavo(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
         result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
+            isFiat = self.in_array(code, fiatCurrencies)
             networks: dict = {}
-            networksArray = self.safe_value(currency, 'networks', [])
-            networksLength = len(networksArray)
-            isOneNetwork = (networksLength == 1)
-            deposit = (self.safe_value(currency, 'depositStatus') == 'OK')
-            withdrawal = (self.safe_value(currency, 'withdrawalStatus') == 'OK')
+            networksArray = self.safe_list(currency, 'networks', [])
+            deposit = self.safe_string(currency, 'depositStatus') == 'OK'
+            withdrawal = self.safe_string(currency, 'withdrawalStatus') == 'OK'
             active = deposit and withdrawal
             withdrawFee = self.safe_number(currency, 'withdrawalFee')
-            precision = self.safe_integer(currency, 'decimals', 8)
+            precision = self.safe_string(currency, 'decimals', '8')
             minWithdraw = self.safe_number(currency, 'withdrawalMinAmount')
-            # absolutely all of them have 1 network atm - ETH. So, we can reliably assign that inside networks
-            if isOneNetwork:
-                networkId = networksArray[0]
+            # btw, absolutely all of them have 1 network atm
+            for j in range(0, len(networksArray)):
+                networkId = networksArray[j]
                 networkCode = self.network_id_to_code(networkId)
                 networks[networkCode] = {
                     'info': currency,
@@ -594,7 +621,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     'deposit': deposit,
                     'withdraw': withdrawal,
                     'fee': withdrawFee,
-                    'precision': precision,
+                    'precision': self.parse_number(self.parse_precision(precision)),
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -602,7 +629,7 @@ class bitvavo(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            result[code] = {
+            result[code] = self.safe_currency_structure({
                 'info': currency,
                 'id': id,
                 'code': code,
@@ -612,7 +639,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'withdraw': withdrawal,
                 'networks': networks,
                 'fee': withdrawFee,
-                'precision': precision,
+                'precision': None,
+                'type': 'fiat' if isFiat else 'crypto',
                 'limits': {
                     'amount': {
                         'min': None,
@@ -627,9 +655,7 @@ class bitvavo(Exchange, ImplicitAPI):
                         'max': None,
                     },
                 },
-            }
-        # set currencies here to avoid calling publicGetAssets twice
-        self.currencies = self.deep_extend(self.currencies, result)
+            })
         return result
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -1166,6 +1192,19 @@ class bitvavo(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         if postOnly:
             request['postOnly'] = True
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'createOrder', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' createOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
+        selfTradePrevention = None
+        selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
+        if selfTradePrevention is not None:
+            if selfTradePrevention == 'EXPIRE_BOTH':
+                request['selfTradePrevention'] = 'cancelBoth'
+            else:
+                request['selfTradePrevention'] = selfTradePrevention
         return self.extend(request, params)
 
     def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1188,7 +1227,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: The price at which a take profit order is triggered at
         :param str [params.triggerType]: "price"
         :param str [params.triggerReference]: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
-        :param str [params.selfTradePrevention]: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param str [params.selfTradePrevention]: one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel
         :param bool [params.disableMarketProtection]: don't cancel if the next fill price is 10% worse than the best fill price
         :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1259,6 +1298,12 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'editOrder', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' editOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         request['market'] = market['id']
         return request
 
@@ -1293,6 +1338,12 @@ class bitvavo(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             request['orderId'] = id
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'cancelOrder', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         return self.extend(request, params)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1336,6 +1387,12 @@ class bitvavo(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
+        operatorId = None
+        operatorId, params = self.handle_option_and_params(params, 'cancelAllOrders', 'operatorId')
+        if operatorId is not None:
+            request['operatorId'] = self.parse_to_int(operatorId)
+        else:
+            raise ArgumentsRequired(self.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         response = self.privateDeleteOrders(self.extend(request, params))
         #
         #     [
@@ -1733,7 +1790,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['paymentId'] = tag
         return self.extend(request, params)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

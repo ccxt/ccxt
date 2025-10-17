@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var krakenfutures$1 = require('../krakenfutures.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -9,7 +11,7 @@ var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class krakenfutures extends krakenfutures$1 {
+class krakenfutures extends krakenfutures$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -76,7 +78,7 @@ class krakenfutures extends krakenfutures$1 {
         const url = this.urls['api']['ws'];
         const messageHash = 'challenge';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const request = {
@@ -223,7 +225,7 @@ class krakenfutures extends krakenfutures$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
@@ -473,7 +475,7 @@ class krakenfutures extends krakenfutures$1 {
         //            {
         //                "feed": "trade",
         //                "product_id": "PI_XBTUSD",
-        //                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        //                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
         //                "side": "sell",
         //                "type": "fill",
         //                "seq": 655508,
@@ -1513,6 +1515,7 @@ class krakenfutures extends krakenfutures$1 {
         }
         catch (error) {
             client.reject(error);
+            return false;
         }
     }
     handleMessage(client, message) {
@@ -1587,4 +1590,4 @@ class krakenfutures extends krakenfutures$1 {
     }
 }
 
-module.exports = krakenfutures;
+exports["default"] = krakenfutures;

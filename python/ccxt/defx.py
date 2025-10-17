@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.defx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class defx(Exchange, ImplicitAPI):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(defx, self).describe(), {
             'id': 'defx',
             'name': 'Defx X',
@@ -398,7 +398,7 @@ class defx(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_time(self, params={}):
+    def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -613,7 +613,7 @@ class defx(Exchange, ImplicitAPI):
             'active': self.safe_string(market, 'status', '') == 'active',
             'contract': True,
             'linear': True,
-            'inverse': None,
+            'inverse': False,
             'taker': self.safe_number(fees, 'taker'),
             'maker': self.safe_number(fees, 'maker'),
             'contractSize': self.parse_number('1'),
@@ -827,7 +827,7 @@ class defx(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
@@ -1454,7 +1454,7 @@ class defx(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [self.safe_order({'info': response})]
 
     def fetch_position(self, symbol: str, params={}):
         """
@@ -1494,7 +1494,7 @@ class defx(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}):
+    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch all open positions
 
@@ -1893,7 +1893,7 @@ class defx(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -1954,7 +1954,7 @@ class defx(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 

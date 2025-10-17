@@ -34,6 +34,7 @@ public partial class gate : ccxt.gate
                 { "fetchOpenOrdersWs", true },
                 { "fetchClosedOrdersWs", true },
                 { "watchOrderBook", true },
+                { "watchBidsAsks", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
@@ -174,7 +175,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -370,7 +371,7 @@ public partial class gate : ccxt.gate
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -401,6 +402,11 @@ public partial class gate : ccxt.gate
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -423,7 +429,7 @@ public partial class gate : ccxt.gate
         object payload = new List<object>() {marketId, interval};
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (isTrue(getValue(market, "contract")))
         {
@@ -1376,7 +1382,11 @@ public partial class gate : ccxt.gate
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
-            callDynamically(cache, "append", new object[] {position});
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         // don't remove the future from the .futures cache
         var future = getValue(client.futures, messageHash);
@@ -1424,8 +1434,37 @@ public partial class gate : ccxt.gate
         {
             object rawPosition = getValue(data, i);
             object position = this.parsePosition(rawPosition);
-            ((IList<object>)newPositions).Add(position);
-            callDynamically(cache, "append", new object[] {position});
+            object symbol = this.safeString(position, "symbol");
+            object side = this.safeString(position, "side");
+            // Control when position is closed no side is returned
+            if (isTrue(isEqual(side, null)))
+            {
+                object prevLongPosition = this.safeDict(cache, add(symbol, "long"));
+                if (isTrue(!isEqual(prevLongPosition, null)))
+                {
+                    ((IDictionary<string,object>)position)["side"] = getValue(prevLongPosition, "side");
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+                object prevShortPosition = this.safeDict(cache, add(symbol, "short"));
+                if (isTrue(!isEqual(prevShortPosition, null)))
+                {
+                    ((IDictionary<string,object>)position)["side"] = getValue(prevShortPosition, "side");
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+                // if no prev position is found, default to long
+                if (isTrue(isTrue(isEqual(prevLongPosition, null)) && isTrue(isEqual(prevShortPosition, null))))
+                {
+                    ((IDictionary<string,object>)position)["side"] = "long";
+                    ((IList<object>)newPositions).Add(position);
+                    callDynamically(cache, "append", new object[] {position});
+                }
+            } else
+            {
+                ((IList<object>)newPositions).Add(position);
+                callDynamically(cache, "append", new object[] {position});
+            }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -1807,6 +1846,27 @@ public partial class gate : ccxt.gate
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         object data = this.safeDict(message, "data");
         object errs = this.safeDict(data, "errs");
@@ -1829,6 +1889,23 @@ public partial class gate : ccxt.gate
                 if (isTrue(isTrue((!isEqual(messageHash, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash)))))
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                }
+                // remove subscriptions for watchSymbols
+                object channel = this.safeString(message, "channel");
+                if (isTrue(isTrue((!isEqual(channel, null))) && isTrue((isGreaterThan(getIndexOf(channel, "."), 0)))))
+                {
+                    object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                    object payload = this.safeList(message, "payload", new List<object>() {});
+                    for (object i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
+                    {
+                        object marketType = ((bool) isTrue(isEqual(getValue(parsedChannel, 0), "futures"))) ? "swap" : getValue(parsedChannel, 0);
+                        object symbol = this.safeSymbol(getValue(payload, i), null, "_", marketType);
+                        object messageHashSymbol = add(add(getValue(parsedChannel, 1), ":"), symbol);
+                        if (isTrue(isTrue((!isEqual(messageHashSymbol, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, messageHashSymbol)))))
+                        {
+                            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHashSymbol);
+                        }
+                    }
                 }
             }
             if (isTrue(isTrue((!isEqual(id, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, id)))))
@@ -2246,7 +2323,7 @@ public partial class gate : ccxt.gate
         object channel = add(messageType, ".login");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -2284,6 +2361,12 @@ public partial class gate : ccxt.gate
             { "signature", signature },
             { "req_param", reqParams },
         };
+        if (isTrue(isTrue((isEqual(channel, "spot.order_place"))) || isTrue((isEqual(channel, "futures.order_place")))))
+        {
+            ((IDictionary<string,object>)payload)["req_header"] = new Dictionary<string, object>() {
+                { "X-Gate-Channel-Id", "ccxt" },
+            };
+        }
         object request = new Dictionary<string, object>() {
             { "id", requestId },
             { "time", time },

@@ -8,12 +8,12 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
-use React\Async;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise\PromiseInterface;
 
 class ascendex extends \ccxt\async\ascendex {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -96,7 +96,7 @@ class ascendex extends \ccxt\async\ascendex {
         }) ();
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -464,7 +464,7 @@ class ascendex extends \ccxt\async\ascendex {
         //
         // {
         //     "m" => "balance",
-        //     "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqDo",
+        //     "accountId" => "cshQtyfq8XLAA9kcf19h8bXHbAwwoqEo",
         //     "ac" => "CASH",
         //     "data" => {
         //         "a" : "USDT",
@@ -763,7 +763,7 @@ class ascendex extends \ccxt\async\ascendex {
         ), $market);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         // {
         //     "m" => "disconnected",

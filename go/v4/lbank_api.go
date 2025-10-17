@@ -7,914 +7,234 @@
 
 package ccxt
 
-func (this *lbank) SpotPublicGetCurrencyPairs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetCurrencyPairs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetCurrencyPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetCurrencyPairs", args...)
 }
 
-func (this *lbank) SpotPublicGetAccuracy (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetAccuracy", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetAccuracy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetAccuracy", args...)
 }
 
-func (this *lbank) SpotPublicGetUsdToCny (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetUsdToCny", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetUsdToCny(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetUsdToCny", args...)
 }
 
-func (this *lbank) SpotPublicGetWithdrawConfigs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetWithdrawConfigs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetAssetConfigs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetAssetConfigs", args...)
 }
 
-func (this *lbank) SpotPublicGetTimestamp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetTimestamp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetWithdrawConfigs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetWithdrawConfigs", args...)
 }
 
-func (this *lbank) SpotPublicGetTicker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetTicker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetTimestamp", args...)
 }
 
-func (this *lbank) SpotPublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetTicker24hr", args...)
 }
 
-func (this *lbank) SpotPublicGetDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetTicker", args...)
 }
 
-func (this *lbank) SpotPublicGetIncrDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetIncrDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetDepth", args...)
 }
 
-func (this *lbank) SpotPublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetIncrDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetIncrDepth", args...)
 }
 
-func (this *lbank) SpotPublicGetKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetTrades", args...)
 }
 
-func (this *lbank) SpotPublicGetSupplementSystemPing (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetSupplementSystemPing", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetKline", args...)
 }
 
-func (this *lbank) SpotPublicGetSupplementIncrDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetSupplementIncrDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetSupplementSystemPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetSupplementSystemPing", args...)
 }
 
-func (this *lbank) SpotPublicGetSupplementTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetSupplementTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetSupplementIncrDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetSupplementIncrDepth", args...)
 }
 
-func (this *lbank) SpotPublicGetSupplementTickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetSupplementTickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetSupplementTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetSupplementTrades", args...)
 }
 
-func (this *lbank) SpotPublicGetSupplementTickerBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicGetSupplementTickerBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetSupplementTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetSupplementTickerPrice", args...)
 }
 
-func (this *lbank) SpotPublicPostSupplementSystemStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPublicPostSupplementSystemStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicGetSupplementTickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetSupplementTickerBookTicker", args...)
 }
 
-func (this *lbank) SpotPrivatePostUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPublicPostSupplementSystemStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicPostSupplementSystemStatus", args...)
 }
 
-func (this *lbank) SpotPrivatePostSubscribeGetKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSubscribeGetKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostUserInfo", args...)
 }
 
-func (this *lbank) SpotPrivatePostSubscribeRefreshKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSubscribeRefreshKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSubscribeGetKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSubscribeGetKey", args...)
 }
 
-func (this *lbank) SpotPrivatePostSubscribeDestroyKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSubscribeDestroyKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSubscribeRefreshKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSubscribeRefreshKey", args...)
 }
 
-func (this *lbank) SpotPrivatePostGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSubscribeDestroyKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSubscribeDestroyKey", args...)
 }
 
-func (this *lbank) SpotPrivatePostDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostGetDepositAddress", args...)
 }
 
-func (this *lbank) SpotPrivatePostCreateOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostCreateOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostDepositHistory", args...)
 }
 
-func (this *lbank) SpotPrivatePostBatchCreateOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostBatchCreateOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostCreateOrder", args...)
 }
 
-func (this *lbank) SpotPrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostBatchCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostBatchCreateOrder", args...)
 }
 
-func (this *lbank) SpotPrivatePostCancelClientOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostCancelClientOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostCancelOrder", args...)
 }
 
-func (this *lbank) SpotPrivatePostOrdersInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostOrdersInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostCancelClientOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostCancelClientOrders", args...)
 }
 
-func (this *lbank) SpotPrivatePostOrdersInfoHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostOrdersInfoHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostOrdersInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostOrdersInfo", args...)
 }
 
-func (this *lbank) SpotPrivatePostOrderTransactionDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostOrderTransactionDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostOrdersInfoHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostOrdersInfoHistory", args...)
 }
 
-func (this *lbank) SpotPrivatePostTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostOrderTransactionDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostOrderTransactionDetail", args...)
 }
 
-func (this *lbank) SpotPrivatePostOrdersInfoNoDeal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostOrdersInfoNoDeal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostTransactionHistory", args...)
 }
 
-func (this *lbank) SpotPrivatePostWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostOrdersInfoNoDeal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostOrdersInfoNoDeal", args...)
 }
 
-func (this *lbank) SpotPrivatePostWithdrawCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostWithdrawCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostWithdraw", args...)
 }
 
-func (this *lbank) SpotPrivatePostWithdraws (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostWithdraws", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostWithdrawCancel", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostWithdraws(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostWithdraws", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementUserInfo", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementWithdraw", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementWithdraws (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementWithdraws", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementDepositHistory", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementWithdraws(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementWithdraws", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementAssetDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementAssetDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementGetDepositAddress", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementCustomerTradeFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementCustomerTradeFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementAssetDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementAssetDetail", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementApiRestrictions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementApiRestrictions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementCustomerTradeFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementCustomerTradeFee", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementSystemPing (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementSystemPing", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementApiRestrictions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementApiRestrictions", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementCreateOrderTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementCreateOrderTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementSystemPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementSystemPing", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementCreateOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementCreateOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementCreateOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementCreateOrderTest", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementCreateOrder", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementCancelOrderBySymbol (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementCancelOrderBySymbol", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementCancelOrder", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementOrdersInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementOrdersInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementCancelOrderBySymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementCancelOrderBySymbol", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementOrdersInfoNoDeal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementOrdersInfoNoDeal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementOrdersInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfo", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementOrdersInfoHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementOrdersInfoHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoNoDeal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoNoDeal", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementUserInfoAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementUserInfoAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementOrdersInfoHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementOrdersInfoHistory", args...)
 }
 
-func (this *lbank) SpotPrivatePostSupplementTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("spotPrivatePostSupplementTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementUserInfoAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementUserInfoAccount", args...)
 }
 
-func (this *lbank) ContractPublicGetCfdOpenApiV1PubGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetCfdOpenApiV1PubGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) SpotPrivatePostSupplementTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostSupplementTransactionHistory", args...)
 }
 
-func (this *lbank) ContractPublicGetCfdOpenApiV1PubInstrument (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetCfdOpenApiV1PubInstrument", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubGetTime", args...)
 }
 
-func (this *lbank) ContractPublicGetCfdOpenApiV1PubMarketData (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetCfdOpenApiV1PubMarketData", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubInstrument", args...)
 }
 
-func (this *lbank) ContractPublicGetCfdOpenApiV1PubMarketOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetCfdOpenApiV1PubMarketOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketData(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketData", args...)
+}
+
+func (this *LbankCore) ContractPublicGetCfdOpenApiV1PubMarketOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetCfdOpenApiV1PubMarketOrder", args...)
 }

@@ -17,6 +17,7 @@ public partial class upbit : ccxt.upbit
                 { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", true },
+                { "watchOHLCV", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
                 { "watchBalance", true },
@@ -205,6 +206,31 @@ public partial class upbit : ccxt.upbit
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name upbit#watchOHLCV
+     * @description watches information an OHLCV with timestamp, openingPrice, highPrice, lowPrice, tradePrice, baseVolume in 1s.
+     * @see https://docs.upbit.com/kr/reference/websocket-candle for Upbit KR
+     * @see https://global-docs.upbit.com/reference/websocket-candle for Upbit Global
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} timeframe specifies the OHLCV candle interval to watch. As of now, Upbit only supports 1s candles.
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/#/?id=ohlcv-structure}
+     */
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        timeframe ??= "1s";
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(!isEqual(timeframe, "1s")))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " watchOHLCV does not support"), timeframe), " candle.")) ;
+        }
+        object timeFrameOHLCV = add("candle.", timeframe);
+        return await this.watchPublic(symbol, timeFrameOHLCV);
+    }
+
     public virtual void handleTicker(WebSocketClient client, object message)
     {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
@@ -338,6 +364,28 @@ public partial class upbit : ccxt.upbit
         object marketId = this.safeString(message, "code");
         object messageHash = add("trade:", marketId);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+    }
+
+    public virtual void handleOHLCV(WebSocketClient client, object message)
+    {
+        // {
+        //     type: 'candle.1s',
+        //     code: 'KRW-USDT',
+        //     candle_date_time_utc: '2025-04-22T09:50:34',
+        //     candle_date_time_kst: '2025-04-22T18:50:34',
+        //     opening_price: 1438,
+        //     high_price: 1438,
+        //     low_price: 1438,
+        //     trade_price: 1438,
+        //     candle_acc_trade_volume: 1145.8935,
+        //     candle_acc_trade_price: 1647794.853,
+        //     timestamp: 1745315434125,
+        //     stream_type: 'REALTIME'
+        //   }
+        object marketId = this.safeString(message, "code");
+        object messageHash = add("candle.1s:", marketId);
+        object ohlcv = this.parseOHLCV(message);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -697,6 +745,7 @@ public partial class upbit : ccxt.upbit
             { "trade", this.handleTrades },
             { "myOrder", this.handleMyOrder },
             { "myAsset", this.handleBalance },
+            { "candle.1s", this.handleOHLCV },
         };
         object methodName = this.safeString(message, "type");
         object method = this.safeValue(methods, methodName);

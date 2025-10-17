@@ -16,7 +16,7 @@ public partial class lbank : ccxt.lbank
                 { "fetchOrderBookWs", true },
                 { "fetchTickerWs", true },
                 { "fetchTradesWs", true },
-                { "watchBalance", false },
+                { "watchBalance", true },
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
@@ -452,7 +452,7 @@ public partial class lbank : ccxt.lbank
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell", // or "sell_market"
+        //             "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -496,7 +496,7 @@ public partial class lbank : ccxt.lbank
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell", // or "sell_market"
+        //        "direction":"sell", // buy, sell, buy_market, sell_market, buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -506,8 +506,16 @@ public partial class lbank : ccxt.lbank
         {
             timestamp = this.parse8601(datetime);
         }
-        object side = this.safeString2(trade, "direction", 3);
-        side = ((string)side).Replace((string)"_market", (string)"");
+        object rawSide = this.safeString2(trade, "direction", 3);
+        object parts = ((string)rawSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object firstPart = this.safeString(parts, 0);
+        object secondPart = this.safeString(parts, 1);
+        object side = firstPart;
+        // reverse if it was 'maker'
+        if (isTrue(isTrue(!isEqual(secondPart, null)) && isTrue(isEqual(secondPart, "maker"))))
+        {
+            side = ((bool) isTrue((isEqual(side, "buy")))) ? "sell" : "buy";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
             { "datetime", datetime },
@@ -705,6 +713,64 @@ public partial class lbank : ccxt.lbank
 
     /**
      * @method
+     * @name lbank#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.lbank.com/docs/index.html#update-subscribed-asset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    public async override Task<object> watchBalance(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object key = await this.authenticate(parameters);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object messageHash = "balance";
+        object message = new Dictionary<string, object>() {
+            { "action", "subscribe" },
+            { "subscribe", "assetUpdate" },
+            { "subscribeKey", key },
+        };
+        object request = this.deepExtend(message, parameters);
+        return await this.watch(url, messageHash, request, messageHash, request);
+    }
+
+    public virtual void handleBalance(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "data": {
+        //             "asset": "114548.31881315",
+        //             "assetCode": "usdt",
+        //             "free": "97430.6739041",
+        //             "freeze": "17117.64490905",
+        //             "time": 1627300043270,
+        //             "type": "ORDER_CREATE"
+        //         },
+        //         "SERVER": "V2",
+        //         "type": "assetUpdate",
+        //         "TS": "2021-07-26T19:48:03.548"
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object timestamp = this.parse8601(this.safeString(message, "TS"));
+        object datetime = this.iso8601(timestamp);
+        ((IDictionary<string,object>)this.balance)["info"] = data;
+        ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
+        ((IDictionary<string,object>)this.balance)["datetime"] = datetime;
+        object currencyId = this.safeString(data, "assetCode");
+        object code = this.safeCurrencyCode(currencyId);
+        object account = this.account();
+        ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
+        ((IDictionary<string,object>)account)["used"] = this.safeString(data, "freeze");
+        ((IDictionary<string,object>)account)["total"] = this.safeString(data, "asset");
+        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        this.balance = this.safeBalance(this.balance);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
+    }
+
+    /**
+     * @method
      * @name lbank#fetchOrderBookWs
      * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -898,6 +964,7 @@ public partial class lbank : ccxt.lbank
             { "trade", this.handleTrades },
             { "tick", this.handleTicker },
             { "orderUpdate", this.handleOrders },
+            { "assetUpdate", this.handleBalance },
         };
         object handler = this.safeValue(handlers, type);
         if (isTrue(!isEqual(handler, null)))

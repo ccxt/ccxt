@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class bigone extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
             'name': 'BigONE',
@@ -27,7 +27,7 @@ export default class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': undefined, // has but unimplemented
                 'option': false,
                 'cancelAllOrders': true,
@@ -453,7 +453,7 @@ export default class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         // {
@@ -506,19 +506,15 @@ export default class bigone extends Exchange {
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            const type = this.safeBool (currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks: Dict = {};
             const chains = this.safeList (currency, 'binding_gateways', []);
-            let currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
-            let currencyDepositEnabled: Bool = undefined;
-            let currencyWithdrawEnabled: Bool = undefined;
+            const currencyMaxPrecision = this.parsePrecision (this.safeString2 (currency, 'withdrawal_scale', 'scale'));
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'gateway_name');
                 const networkCode = this.networkIdToCode (networkId);
                 const deposit = this.safeBool (chain, 'is_deposit_enabled');
                 const withdraw = this.safeBool (chain, 'is_withdrawal_enabled');
-                const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
                 const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
@@ -529,7 +525,7 @@ export default class bigone extends Exchange {
                     'margin': undefined,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': isActive,
+                    'active': undefined,
                     'fee': this.parseNumber (withdrawalFee),
                     'precision': this.parseNumber (precision),
                     'limits': {
@@ -544,20 +540,29 @@ export default class bigone extends Exchange {
                     },
                     'info': chain,
                 };
-                // fill global values
-                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise.stringGt (currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
             }
-            result[code] = {
+            const chainLength = chains.length;
+            let type: Str = undefined;
+            if (this.safeBool (currency, 'is_fiat')) {
+                type = 'fiat';
+            } else if (chainLength === 0) {
+                if (this.isLeveragedCurrency (id)) {
+                    type = 'leveraged';
+                } else {
+                    type = 'other';
+                }
+            } else {
+                type = 'crypto';
+            }
+            result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'type': type,
                 'active': undefined,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber (currencyMaxPrecision),
                 'limits': {
@@ -571,7 +576,7 @@ export default class bigone extends Exchange {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -982,7 +987,7 @@ export default class bigone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetPing (params);
         //
         //     {
@@ -1183,8 +1188,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode = undefined;
-        let takerCurrencyCode = undefined;
+        let makerCurrencyCode: string;
+        let takerCurrencyCode: string;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1246,7 +1251,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract']) {
-            throw new BadRequest (this.id + ' fetchTrades () can only fetch trades for spot markets');
+            throw new NotSupported (this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request: Dict = {
             'asset_pair_name': market['id'],
@@ -1311,11 +1316,11 @@ export default class bigone extends Exchange {
      * @param {int} [params.until] timestamp in ms of the earliest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['contract']) {
-            throw new BadRequest (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new NotSupported (this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger (params, 'until');
         const untilIsDefined = (until !== undefined);
@@ -2279,7 +2284,7 @@ export default class bigone extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.currency (code);

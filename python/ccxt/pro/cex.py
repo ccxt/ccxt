@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class cex(ccxt.async_support.cex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(cex, self).describe(), {
             'has': {
                 'ws': True,
@@ -988,6 +988,7 @@ class cex(ccxt.async_support.cex):
         if incrementalId != storedOrderBook['nonce'] + 1:
             del client.subscriptions[messageHash]
             client.reject(self.id + ' watchOrderBook() skipped a message', messageHash)
+            return
         timestamp = self.safe_integer(data, 'time')
         asks = self.safe_value(data, 'asks', [])
         bids = self.safe_value(data, 'bids', [])
@@ -1006,7 +1007,7 @@ class cex(ccxt.async_support.cex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://cex.io/websocket-api#minute-data
@@ -1378,7 +1379,7 @@ class cex(ccxt.async_support.cex):
         #
         return message
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "e": "get-balance",
@@ -1400,6 +1401,7 @@ class cex(ccxt.async_support.cex):
             future = self.safe_value(client['futures'], messageHash)
             if future is not None:
                 client.reject(error, messageHash)
+                return True
             else:
                 raise error
 
@@ -1455,7 +1457,7 @@ class cex(ccxt.async_support.cex):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()
@@ -1470,5 +1472,5 @@ class cex(ccxt.async_support.cex):
                     'timestamp': nonce,
                 },
             }
-            await self.watch(url, messageHash, self.extend(request, params), messageHash)
+            self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var gate$1 = require('../gate.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -8,7 +10,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class gate extends gate$1 {
+class gate extends gate$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -35,6 +37,7 @@ class gate extends gate$1 {
                 'fetchOpenOrdersWs': true,
                 'fetchClosedOrdersWs': true,
                 'watchOrderBook': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -357,6 +360,11 @@ class gate extends gate$1 {
      * @method
      * @name gate#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-channel
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-api
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#order-book-v2-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#order-book-api
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -374,7 +382,7 @@ class gate extends gate$1 {
         const url = this.getUrlByMarket(market);
         const payload = [marketId, interval];
         if (limit === undefined) {
-            limit = 100;
+            limit = 100; // max 100 atm
         }
         if (market['contract']) {
             const stringLimit = limit.toString();
@@ -1190,7 +1198,10 @@ class gate extends gate$1 {
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            cache.append(position);
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -1235,8 +1246,33 @@ class gate extends gate$1 {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            newPositions.push(position);
-            cache.append(position);
+            const symbol = this.safeString(position, 'symbol');
+            const side = this.safeString(position, 'side');
+            // Control when position is closed no side is returned
+            if (side === undefined) {
+                const prevLongPosition = this.safeDict(cache, symbol + 'long');
+                if (prevLongPosition !== undefined) {
+                    position['side'] = prevLongPosition['side'];
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+                const prevShortPosition = this.safeDict(cache, symbol + 'short');
+                if (prevShortPosition !== undefined) {
+                    position['side'] = prevShortPosition['side'];
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+                // if no prev position is found, default to long
+                if (prevLongPosition === undefined && prevShortPosition === undefined) {
+                    position['side'] = 'long';
+                    newPositions.push(position);
+                    cache.append(position);
+                }
+            }
+            else {
+                newPositions.push(position);
+                cache.append(position);
+            }
         }
         const messageHashes = this.findMessageHashes(client, type + ':positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1399,7 +1435,7 @@ class gate extends gate$1 {
      * @param {object} [params] exchange specific parameters for the gate api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchMyLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+    async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
@@ -1577,6 +1613,27 @@ class gate extends gate$1 {
         //       data: { errs: { label: 'AUTHENTICATION_FAILED', message: 'Not login' } },
         //       request_id: '10406147'
         //     }
+        //     {
+        //         "time": 1739853211,
+        //         "time_ms": 1739853211201,
+        //         "id": 1,
+        //         "conn_id": "62f2c1dabbe186d7",
+        //         "trace_id": "cdb02a8c0b61086b2fe6f8fad2f98c54",
+        //         "channel": "spot.trades",
+        //         "event": "subscribe",
+        //         "payload": [
+        //             "LUNARLENS_USDT",
+        //             "ETH_USDT"
+        //         ],
+        //         "error": {
+        //             "code": 2,
+        //             "message": "unknown currency pair: LUNARLENS_USDT"
+        //         },
+        //         "result": {
+        //             "status": "fail"
+        //         },
+        //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
+        //     }
         //
         const data = this.safeDict(message, 'data');
         const errs = this.safeDict(data, 'errs');
@@ -1596,6 +1653,20 @@ class gate extends gate$1 {
                 client.reject(e, messageHash);
                 if ((messageHash !== undefined) && (messageHash in client.subscriptions)) {
                     delete client.subscriptions[messageHash];
+                }
+                // remove subscriptions for watchSymbols
+                const channel = this.safeString(message, 'channel');
+                if ((channel !== undefined) && (channel.indexOf('.') > 0)) {
+                    const parsedChannel = channel.split('.');
+                    const payload = this.safeList(message, 'payload', []);
+                    for (let i = 0; i < payload.length; i++) {
+                        const marketType = parsedChannel[0] === 'futures' ? 'swap' : parsedChannel[0];
+                        const symbol = this.safeSymbol(payload[i], undefined, '_', marketType);
+                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
+                            delete client.subscriptions[messageHashSymbol];
+                        }
+                    }
                 }
             }
             if ((id !== undefined) && (id in client.subscriptions)) {
@@ -1954,7 +2025,7 @@ class gate extends gate$1 {
         const channel = messageType + '.login';
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             return await this.requestPrivate(url, {}, channel, messageHash);
@@ -1986,6 +2057,11 @@ class gate extends gate$1 {
             'signature': signature,
             'req_param': reqParams,
         };
+        if ((channel === 'spot.order_place') || (channel === 'futures.order_place')) {
+            payload['req_header'] = {
+                'X-Gate-Channel-Id': 'ccxt',
+            };
+        }
         const request = {
             'id': requestId,
             'time': time,
@@ -2041,4 +2117,4 @@ class gate extends gate$1 {
     }
 }
 
-module.exports = gate;
+exports["default"] = gate;

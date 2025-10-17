@@ -607,7 +607,7 @@ public partial class defx : Exchange
             { "active", isEqual(this.safeString(market, "status", ""), "active") },
             { "contract", true },
             { "linear", true },
-            { "inverse", null },
+            { "inverse", false },
             { "taker", this.safeNumber(fees, "taker") },
             { "maker", this.safeNumber(fees, "maker") },
             { "contractSize", this.parseNumber("1") },
@@ -1564,7 +1564,9 @@ public partial class defx : Exchange
         //     }
         // }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**

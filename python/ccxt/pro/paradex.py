@@ -5,14 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, OrderBook, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class paradex(ccxt.async_support.paradex):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(paradex, self).describe(), {
             'has': {
                 'ws': True,
@@ -287,7 +287,7 @@ class paradex(ccxt.async_support.paradex):
         client.resolve(ticker, messageHash)
         return message
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {
         #         "jsonrpc": "2.0",

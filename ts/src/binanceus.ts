@@ -6,7 +6,7 @@ import binance from './binance.js';
 //  ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceus',
             'name': 'Binance US',
@@ -39,7 +39,9 @@ export default class binanceus extends binance {
                 },
             },
             'options': {
-                'fetchMarkets': [ 'spot' ],
+                'fetchMarkets': {
+                    'types': [ 'spot' ],
+                },
                 'defaultType': 'spot',
                 'fetchMargins': false,
                 'quoteOrderQty': false,

@@ -28,7 +28,7 @@ export default class bigone extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': true,
                 'future': undefined,
                 'option': false,
                 'cancelAllOrders': true,
@@ -452,7 +452,7 @@ export default class bigone extends Exchange {
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         const data = await this.fetchWebEndpoint('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         // {
@@ -505,19 +505,15 @@ export default class bigone extends Exchange {
             const id = this.safeString(currency, 'symbol');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            const type = this.safeBool(currency, 'is_fiat') ? 'fiat' : 'crypto';
             const networks = {};
             const chains = this.safeList(currency, 'binding_gateways', []);
-            let currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
-            let currencyDepositEnabled = undefined;
-            let currencyWithdrawEnabled = undefined;
+            const currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, 'withdrawal_scale', 'scale'));
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString(chain, 'gateway_name');
                 const networkCode = this.networkIdToCode(networkId);
                 const deposit = this.safeBool(chain, 'is_deposit_enabled');
                 const withdraw = this.safeBool(chain, 'is_withdrawal_enabled');
-                const isActive = (deposit && withdraw);
                 const minDepositAmount = this.safeString(chain, 'min_deposit_amount');
                 const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
                 const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
@@ -528,7 +524,7 @@ export default class bigone extends Exchange {
                     'margin': undefined,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'active': isActive,
+                    'active': undefined,
                     'fee': this.parseNumber(withdrawalFee),
                     'precision': this.parseNumber(precision),
                     'limits': {
@@ -543,20 +539,32 @@ export default class bigone extends Exchange {
                     },
                     'info': chain,
                 };
-                // fill global values
-                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
-                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
-                currencyMaxPrecision = (currencyMaxPrecision === undefined) || Precise.stringGt(currencyMaxPrecision, precision) ? precision : currencyMaxPrecision;
             }
-            result[code] = {
+            const chainLength = chains.length;
+            let type = undefined;
+            if (this.safeBool(currency, 'is_fiat')) {
+                type = 'fiat';
+            }
+            else if (chainLength === 0) {
+                if (this.isLeveragedCurrency(id)) {
+                    type = 'leveraged';
+                }
+                else {
+                    type = 'other';
+                }
+            }
+            else {
+                type = 'crypto';
+            }
+            result[code] = this.safeCurrencyStructure({
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': name,
                 'type': type,
                 'active': undefined,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber(currencyMaxPrecision),
                 'limits': {
@@ -570,7 +578,7 @@ export default class bigone extends Exchange {
                     },
                 },
                 'networks': networks,
-            };
+            });
         }
         return result;
     }
@@ -1179,8 +1187,8 @@ export default class bigone extends Exchange {
             'cost': undefined,
             'info': trade,
         };
-        let makerCurrencyCode = undefined;
-        let takerCurrencyCode = undefined;
+        let makerCurrencyCode;
+        let takerCurrencyCode;
         if (takerOrMaker !== undefined) {
             if (side === 'buy') {
                 if (takerOrMaker === 'maker') {
@@ -1249,7 +1257,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['contract']) {
-            throw new BadRequest(this.id + ' fetchTrades () can only fetch trades for spot markets');
+            throw new NotSupported(this.id + ' fetchTrades () can only fetch trades for spot markets');
         }
         const request = {
             'asset_pair_name': market['id'],
@@ -1316,7 +1324,7 @@ export default class bigone extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['contract']) {
-            throw new BadRequest(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
+            throw new NotSupported(this.id + ' fetchOHLCV () can only fetch ohlcvs for spot markets');
         }
         const until = this.safeInteger(params, 'until');
         const untilIsDefined = (until !== undefined);

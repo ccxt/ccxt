@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class krakenfutures(ccxt.async_support.krakenfutures):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(krakenfutures, self).describe(), {
             'has': {
                 'ws': True,
@@ -84,7 +84,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         url = self.urls['api']['ws']
         messageHash = 'challenge'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             request: dict = {
@@ -212,7 +212,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -460,7 +460,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #            {
         #                "feed": "trade",
         #                "product_id": "PI_XBTUSD",
-        #                "uid": "caa9c653-420b-4c24-a9f1-462a054d86f1",
+        #                "uid": "caa9c653-420b-4c24-a9f2-462a054d86f1",
         #                "side": "sell",
         #                "type": "fill",
         #                "seq": 655508,
@@ -1443,7 +1443,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             messageHash += '#' + subChannelName
         return messageHash
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        event: 'alert',
@@ -1455,6 +1455,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             raise ExchangeError(self.id + ' ' + errMsg)
         except Exception as error:
             client.reject(error)
+            return False
 
     def handle_message(self, client, message):
         event = self.safe_string(message, 'event')

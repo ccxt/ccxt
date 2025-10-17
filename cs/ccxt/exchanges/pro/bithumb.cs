@@ -358,18 +358,20 @@ public partial class bithumb : ccxt.bithumb
         //        "contPrice" : "10579000",
         //        "contQty" : "0.01",
         //        "contAmt" : "105790.00",
-        //        "contDtm" : "2020-01-29 12:24:18.830039",
+        //        "contDtm" : "2020-01-29 12:24:18.830038",
         //        "updn" : "dn"
         //    }
         //
         object marketId = this.safeString(trade, "symbol");
         object datetime = this.safeString(trade, "contDtm");
+        // that date is not UTC iso8601, but exchange's local time, -9hr difference
+        object timestamp = subtract(this.parse8601(datetime), 32400000);
         object sideId = this.safeString(trade, "buySellGb");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", null },
             { "info", trade },
-            { "timestamp", this.parse8601(datetime) },
-            { "datetime", datetime },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "symbol", this.safeSymbol(marketId, market, "_") },
             { "order", null },
             { "type", null },

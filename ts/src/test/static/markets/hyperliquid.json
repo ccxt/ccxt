@@ -21,8 +21,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
-        "maker": 0.0001,
+        "taker": 0.00045,
+        "maker": 0.00015,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
@@ -35,7 +35,7 @@
         "limits": {
             "leverage": {
                 "min": null,
-                "max": 10
+                "max": 5
             },
             "amount": {
                 "min": null,
@@ -58,23 +58,26 @@
         "info": {
             "szDecimals": "0",
             "name": "MEME",
-            "maxLeverage": "10",
-            "funding": "0.00007355",
-            "openInterest": "74963872.0",
-            "prevDayPx": "0.014776",
-            "dayNtlVlm": "1592191.907851",
-            "premium": "0.00113039",
-            "oraclePx": "0.015039",
-            "markPx": "0.01506",
-            "midPx": "0.015061",
+            "maxLeverage": "5",
+            "marginTableId": "5",
+            "funding": "0.0000125",
+            "openInterest": "411980882.0",
+            "prevDayPx": "0.001574",
+            "dayNtlVlm": "240918.333652",
+            "premium": "0.0",
+            "oraclePx": "0.001658",
+            "markPx": "0.001659",
+            "midPx": "0.001659",
             "impactPxs": [
-                "0.015056",
-                "0.015067"
+                "0.001658",
+                "0.00166"
             ],
+            "dayBaseVlm": "147626955.0",
             "baseId": 75
         },
         "tierBased": null,
-        "percentage": null
+        "percentage": null,
+        "baseName": "MEME"
     },
     "BTC/USDC:USDC": {
         "id": "0",
@@ -98,8 +101,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
-        "maker": 0.0001,
+        "taker": 0.00045,
+        "maker": 0.00015,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
@@ -112,7 +115,7 @@
         "limits": {
             "leverage": {
                 "min": null,
-                "max": 50
+                "max": 40
             },
             "amount": {
                 "min": null,
@@ -135,23 +138,26 @@
         "info": {
             "szDecimals": "5",
             "name": "BTC",
-            "maxLeverage": "50",
-            "funding": "0.00004358",
-            "openInterest": "4937.18102",
-            "prevDayPx": "95009.0",
-            "dayNtlVlm": "631559063.83337951",
-            "premium": "0.00065819",
-            "oraclePx": "97237.0",
-            "markPx": "97301.0",
-            "midPx": "97301.5",
+            "maxLeverage": "40",
+            "marginTableId": "56",
+            "funding": "0.0000125",
+            "openInterest": "33115.82896",
+            "prevDayPx": "109043.0",
+            "dayNtlVlm": "4268802007.4671611786",
+            "premium": "-0.0001979218",
+            "oraclePx": "111155.0",
+            "markPx": "111132.0",
+            "midPx": "111132.5",
             "impactPxs": [
-                "97301.0",
-                "97302.0"
+                "111132.0",
+                "111133.0"
             ],
+            "dayBaseVlm": "38622.2112399999",
             "baseId": 0
         },
         "tierBased": null,
-        "percentage": null
+        "percentage": null,
+        "baseName": "BTC"
     },
     "SOL/USDC:USDC": {
         "id": "5",
@@ -175,8 +181,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
-        "maker": 0.0001,
+        "taker": 0.00045,
+        "maker": 0.00015,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
@@ -213,22 +219,25 @@
             "szDecimals": "2",
             "name": "SOL",
             "maxLeverage": "20",
-            "funding": "0.00004691",
-            "openInterest": "1047595.0",
-            "prevDayPx": "236.36",
-            "dayNtlVlm": "107224501.84999996",
-            "premium": "0.00086384",
-            "oraclePx": "243.1",
-            "markPx": "243.31",
-            "midPx": "243.315",
+            "marginTableId": "54",
+            "funding": "0.0000123522",
+            "openInterest": "3448193.9000000008",
+            "prevDayPx": "153.37",
+            "dayNtlVlm": "566586704.1789015532",
+            "premium": "-0.0005079688",
+            "oraclePx": "157.49",
+            "markPx": "157.41",
+            "midPx": "157.405",
             "impactPxs": [
-                "243.31",
-                "243.32"
+                "157.4",
+                "157.41"
             ],
+            "dayBaseVlm": "3635656.5099999998",
             "baseId": 5
         },
         "tierBased": null,
-        "percentage": null
+        "percentage": null,
+        "baseName": "SOL"
     },
     "ETH/USDC:USDC": {
         "id": "1",
@@ -252,8 +261,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
-        "maker": 0.0001,
+        "taker": 0.00045,
+        "maker": 0.00015,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
@@ -266,7 +275,7 @@
         "limits": {
             "leverage": {
                 "min": null,
-                "max": 50
+                "max": 25
             },
             "amount": {
                 "min": null,
@@ -289,23 +298,26 @@
         "info": {
             "szDecimals": "4",
             "name": "ETH",
-            "maxLeverage": "50",
-            "funding": "0.00008925",
-            "openInterest": "150686.0944",
-            "prevDayPx": "3571.8",
-            "dayNtlVlm": "391041526.71510988",
-            "premium": "0.00111648",
-            "oraclePx": "3582.7",
-            "markPx": "3586.8",
-            "midPx": "3586.75",
+            "maxLeverage": "25",
+            "marginTableId": "55",
+            "funding": "0.0000125",
+            "openInterest": "608104.6846000012",
+            "prevDayPx": "2626.2",
+            "dayNtlVlm": "2544332499.0398688316",
+            "premium": "0.000611181",
+            "oraclePx": "2781.5",
+            "markPx": "2783.2",
+            "midPx": "2783.25",
             "impactPxs": [
-                "3586.7",
-                "3586.8"
+                "2783.2",
+                "2783.3"
             ],
+            "dayBaseVlm": "933491.7174999999",
             "baseId": 1
         },
         "tierBased": null,
-        "percentage": null
+        "percentage": null,
+        "baseName": "ETH"
     },
     "ADA/USDC:USDC": {
         "id": "65",
@@ -329,8 +341,8 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
-        "maker": 0.0001,
+        "taker": 0.00045,
+        "maker": 0.00015,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
@@ -338,12 +350,12 @@
         "optionType": null,
         "precision": {
             "amount": 1,
-            "price": 0.0001
+            "price": 0.00001
         },
         "limits": {
             "leverage": {
                 "min": null,
-                "max": 20
+                "max": 10
             },
             "amount": {
                 "min": null,
@@ -366,23 +378,26 @@
         "info": {
             "szDecimals": "0",
             "name": "ADA",
-            "maxLeverage": "20",
+            "maxLeverage": "10",
+            "marginTableId": "52",
             "funding": "0.0000125",
-            "openInterest": "5573276.0",
-            "prevDayPx": "1.0093",
-            "dayNtlVlm": "9512972.9183",
-            "premium": "0.00047833",
-            "oraclePx": "1.0453",
-            "markPx": "1.0459",
-            "midPx": "1.04585",
+            "openInterest": "32473392.0",
+            "prevDayPx": "0.60202",
+            "dayNtlVlm": "16153408.078460006",
+            "premium": "0.0",
+            "oraclePx": "0.62945",
+            "markPx": "0.62938",
+            "midPx": "0.62946",
             "impactPxs": [
-                "1.0458",
-                "1.045962"
+                "0.629313",
+                "0.62947"
             ],
+            "dayBaseVlm": "26083209.0",
             "baseId": 65
         },
         "tierBased": null,
-        "percentage": null
+        "percentage": null,
+        "baseName": "ADA"
     },
     "PURR/USDC": {
         "id": "PURR/USDC",
@@ -406,8 +421,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.00035,
-        "maker": 0.0001,
+        "taker": 0.0007,
+        "maker": 0.0004,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -441,12 +456,14 @@
         },
         "created": null,
         "info": {
-            "prevDayPx": "0.19432",
-            "dayNtlVlm": "33367054.73333999",
-            "markPx": "0.25324",
-            "midPx": "0.253475",
-            "circulatingSupply": "598179853.03411996",
+            "prevDayPx": "0.18807",
+            "dayNtlVlm": "6614309.1444700025",
+            "markPx": "0.20102",
+            "midPx": "0.20113",
+            "circulatingSupply": "596596569.9042500257",
             "coin": "PURR/USDC",
+            "totalSupply": "596596576.4270299673",
+            "dayBaseVlm": "33547936.0",
             "tokens": [
                 1,
                 0
@@ -456,6 +473,87 @@
             "isCanonical": true
         },
         "tierBased": null,
-        "percentage": null
+        "percentage": null,
+        "baseName": "PURR"
+    },
+    "KPEPE/USDC:USDC": {
+        "id": "15",
+        "lowercaseId": null,
+        "symbol": "KPEPE/USDC:USDC",
+        "base": "KPEPE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "15",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.000001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "0",
+            "name": "kPEPE",
+            "maxLeverage": "10",
+            "marginTableId": "52",
+            "funding": "0.0000125",
+            "openInterest": "7615207738.0",
+            "prevDayPx": "0.010272",
+            "dayNtlVlm": "116293439.1419929415",
+            "premium": "0.0004490346",
+            "oraclePx": "0.011135",
+            "markPx": "0.01114",
+            "midPx": "0.011142",
+            "impactPxs": [
+                "0.01114",
+                "0.011144"
+            ],
+            "dayBaseVlm": "10788814936.0",
+            "baseId": 15
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "kPEPE"
     }
 }

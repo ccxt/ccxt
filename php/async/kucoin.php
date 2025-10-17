@@ -13,13 +13,13 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use React\Async;
-use React\Promise;
-use React\Promise\PromiseInterface;
+use \React\Async;
+use \React\Promise;
+use \React\Promise\PromiseInterface;
 
 class kucoin extends Exchange {
 
-    public function describe() {
+    public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoin',
             'name' => 'KuCoin',
@@ -798,7 +798,7 @@ class kucoin extends Exchange {
                     'TLOS' => 'tlos', // tlosevm is different
                     'CFX' => 'cfx',
                     'ACA' => 'aca',
-                    'OP' => 'optimism',
+                    'OPTIMISM' => 'optimism',
                     'ONT' => 'ont',
                     'GLMR' => 'glmr',
                     'CSPR' => 'cspr',
@@ -918,6 +918,7 @@ class kucoin extends Exchange {
                     'CS' => 'cs',
                     'ORAI' => 'orai',
                     'BASE' => 'base',
+                    'TARA' => 'tara',
                     // below will be uncommented after consensus
                     // 'BITCOINDIAMON' => 'bcd',
                     // 'BITCOINGOLD' => 'btg',
@@ -1072,7 +1073,7 @@ class kucoin extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()) {
+    public function fetch_time($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1407,36 +1408,31 @@ class kucoin extends Exchange {
             //    }
             //
             $currenciesData = $this->safe_list($response, 'data', array());
+            $brokenCurrencies = $this->safe_list($this->options, 'brokenCurrencies', array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ));
             $result = array();
             for ($i = 0; $i < count($currenciesData); $i++) {
                 $entry = $currenciesData[$i];
                 $id = $this->safe_string($entry, 'currency');
-                $name = $this->safe_string($entry, 'fullName');
+                if ($this->in_array($id, $brokenCurrencies)) {
+                    continue; // skip buggy entries => https://t.me/KuCoin_API/217798
+                }
                 $code = $this->safe_currency_code($id);
                 $networks = array();
                 $chains = $this->safe_list($entry, 'chains', array());
-                $rawPrecision = $this->safe_string($entry, 'precision');
-                $precision = $this->parse_number($this->parse_precision($rawPrecision));
                 $chainsLength = count($chains);
-                if (!$chainsLength) {
-                    // one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
-                    continue;
-                }
                 for ($j = 0; $j < $chainsLength; $j++) {
                     $chain = $chains[$j];
                     $chainId = $this->safe_string($chain, 'chainId');
                     $networkCode = $this->network_id_to_code($chainId, $code);
-                    $chainWithdrawEnabled = $this->safe_bool($chain, 'isWithdrawEnabled', false);
-                    $chainDepositEnabled = $this->safe_bool($chain, 'isDepositEnabled', false);
                     $networks[$networkCode] = array(
                         'info' => $chain,
                         'id' => $chainId,
                         'name' => $this->safe_string($chain, 'chainName'),
                         'code' => $networkCode,
-                        'active' => $chainWithdrawEnabled && $chainDepositEnabled,
+                        'active' => null,
                         'fee' => $this->safe_number($chain, 'withdrawalMinFee'),
-                        'deposit' => $chainDepositEnabled,
-                        'withdraw' => $chainWithdrawEnabled,
+                        'deposit' => $this->safe_bool($chain, 'isDepositEnabled'),
+                        'withdraw' => $this->safe_bool($chain, 'isWithdrawEnabled'),
                         'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawPrecision'))),
                         'limits' => array(
                             'withdraw' => array(
@@ -1451,10 +1447,12 @@ class kucoin extends Exchange {
                     );
                 }
                 // kucoin has determined 'fiat' currencies with below logic
-                $isFiat = ($rawPrecision === '2') && ($chainsLength === 0);
+                $rawPrecision = $this->safe_string($entry, 'precision');
+                $precision = $this->parse_number($this->parse_precision($rawPrecision));
+                $isFiat = $chainsLength === 0;
                 $result[$code] = $this->safe_currency_structure(array(
                     'id' => $id,
-                    'name' => $name,
+                    'name' => $this->safe_string($entry, 'fullName'),
                     'code' => $code,
                     'type' => $isFiat ? 'fiat' : 'crypto',
                     'precision' => $precision,
@@ -1640,7 +1638,7 @@ class kucoin extends Exchange {
                 $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
                 $resultNew['networks'][$networkCodeNew] = array(
                     'withdraw' => array(
-                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage' => false,
                     ),
                     'deposit' => array(
@@ -1955,7 +1953,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -2015,7 +2013,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function create_deposit_address(string $code, $params = array ()) {
+    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              *
@@ -2358,8 +2356,10 @@ class kucoin extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $params['cost'] = $cost;
-            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $params));
+            $req = array(
+                'cost' => $cost,
+            );
+            return Async\await($this->create_order($symbol, 'market', $side, $cost, null, $this->extend($req, $params)));
         }) ();
     }
 
@@ -2754,7 +2754,7 @@ class kucoin extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $trigger = $this->safe_bool($params, 'stop', false);
+            $trigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $hf = null;
             list($hf, $params) = $this->handle_hf_and_params($params);
             $params = $this->omit($params, 'stop');
@@ -2780,7 +2780,7 @@ class kucoin extends Exchange {
             } else {
                 $response = Async\await($this->privateDeleteOrders ($this->extend($request, $query)));
             }
-            return $response;
+            return array( $this->safe_order(array( 'info' => $response )) );
         }) ();
     }
 
@@ -3586,7 +3586,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -5119,7 +5119,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market

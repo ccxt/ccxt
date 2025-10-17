@@ -6,14 +6,14 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
 import json
-from ccxt.base.types import Int, OrderBook, Ticker, Trade
+from ccxt.base.types import Any, Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
 
 class ndax(ccxt.async_support.ndax):
 
-    def describe(self):
+    def describe(self) -> Any:
         return self.deep_extend(super(ndax, self).describe(), {
             'has': {
                 'ws': True,
@@ -187,7 +187,7 @@ class ndax(ccxt.async_support.ndax):
             tradesArray = self.safe_value(self.trades, symbol)
             client.resolve(tradesArray, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

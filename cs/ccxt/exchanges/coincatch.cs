@@ -66,6 +66,7 @@ public partial class coincatch : Exchange
                 { "fetchDepositAddress", true },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
@@ -356,56 +357,18 @@ public partial class coincatch : Exchange
                     { "CRO", "CronosChain" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
-                    { "BITCOIN", "BTC" },
-                    { "ERC20", "ERC20" },
                     { "TRC20", "TRC20" },
                     { "TRX(TRC20)", "TRC20" },
-                    { "BEP20", "BEP20" },
                     { "ArbitrumOne", "ARB" },
-                    { "Optimism", "OPTIMISM" },
-                    { "LTC", "LTC" },
-                    { "BCH", "BCH" },
-                    { "ETC", "ETC" },
-                    { "SOL", "SOL" },
-                    { "NEO3", "NEO3" },
-                    { "stacks", "STX" },
-                    { "Elrond", "EGLD" },
-                    { "NEARProtocol", "NEAR" },
-                    { "AcalaToken", "ACA" },
-                    { "Klaytn", "KLAY" },
-                    { "Fantom", "FTM" },
-                    { "Terra", "TERRA" },
-                    { "WAVES", "WAVES" },
-                    { "TAO", "TAO" },
-                    { "SUI", "SUI" },
-                    { "SEI", "SEI" },
                     { "THORChain", "RUNE" },
-                    { "ZIL", "ZIL" },
                     { "Solar", "SXP" },
-                    { "FET", "FET" },
                     { "C-Chain", "AVAX" },
-                    { "XRP", "XRP" },
-                    { "EOS", "EOS" },
-                    { "DOGECOIN", "DOGE" },
                     { "CAP20", "CAP20" },
-                    { "Polygon", "MATIC" },
-                    { "CSPR", "CSPR" },
-                    { "Moonbeam", "GLMR" },
-                    { "MINA", "MINA" },
                     { "CFXeSpace", "CFX" },
                     { "CFX", "CFX" },
                     { "StratisEVM", "STRAT" },
-                    { "Celestia", "TIA" },
                     { "ChilizChain", "ChilizChain" },
-                    { "Aptos", "APT" },
-                    { "Ontology", "ONT" },
-                    { "ICP", "ICP" },
-                    { "Cardano", "ADA" },
-                    { "FIL", "FIL" },
-                    { "CELO", "CELO" },
-                    { "DOT", "DOT" },
                     { "StellarLumens", "XLM" },
-                    { "ATOM", "ATOM" },
                     { "CronosChain", "CRO" },
                 } },
             } },
@@ -648,77 +611,142 @@ public partial class coincatch : Exchange
             object currencyId = this.safeString(currecy, "coinName");
             ((IList<object>)currenciesIds).Add(currencyId);
             object code = this.safeCurrencyCode(currencyId);
-            object allowDeposit = false;
-            object allowWithdraw = false;
-            object minDeposit = null;
-            object minWithdraw = null;
             object networks = this.safeList(currecy, "chains");
-            object networksById = this.safeDict(this.options, "networksById");
             object parsedNetworks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
             {
                 object network = getValue(networks, j);
                 object networkId = this.safeString(network, "chain");
-                object networkName = this.safeString(networksById, networkId, networkId);
-                object networkDepositString = this.safeString(network, "rechargeable");
-                object networkDeposit = isEqual(networkDepositString, "true");
-                object networkWithdrawString = this.safeString(network, "withdrawable");
-                object networkWithdraw = isEqual(networkWithdrawString, "true");
-                object networkMinDeposit = this.safeString(network, "minDepositAmount");
-                object networkMinWithdraw = this.safeString(network, "minWithdrawAmount");
-                ((IDictionary<string,object>)parsedNetworks)[(string)networkId] = new Dictionary<string, object>() {
+                object networkCode = this.networkIdToCode(networkId);
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
-                    { "network", networkName },
+                    { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinDeposit) },
+                            { "min", this.safeNumber(network, "minDepositAmount") },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(networkMinWithdraw) },
+                            { "min", this.safeNumber(network, "minWithdrawAmount") },
                             { "max", null },
                         } },
                     } },
-                    { "active", isTrue(networkDeposit) && isTrue(networkWithdraw) },
-                    { "deposit", networkDeposit },
-                    { "withdraw", networkWithdraw },
+                    { "active", null },
+                    { "deposit", isEqual(this.safeString(network, "rechargeable"), "true") },
+                    { "withdraw", isEqual(this.safeString(network, "withdrawable"), "true") },
                     { "fee", this.safeNumber(network, "withdrawFee") },
                     { "precision", null },
                     { "info", network },
                 };
-                allowDeposit = ((bool) isTrue(allowDeposit)) ? allowDeposit : networkDeposit;
-                allowWithdraw = ((bool) isTrue(allowWithdraw)) ? allowWithdraw : networkWithdraw;
-                minDeposit = ((bool) isTrue(minDeposit)) ? Precise.stringMin(networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = ((bool) isTrue(minWithdraw)) ? Precise.stringMin(networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
                 { "id", currencyId },
                 { "numericId", this.safeInteger(currecy, "coinId") },
                 { "code", code },
                 { "precision", null },
                 { "type", null },
                 { "name", null },
-                { "active", isTrue(allowWithdraw) && isTrue(allowDeposit) },
-                { "deposit", allowDeposit },
-                { "withdraw", allowWithdraw },
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
                 { "fee", null },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minDeposit) },
+                        { "min", null },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.parseNumber(minWithdraw) },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
                 { "networks", parsedNetworks },
                 { "info", currecy },
-            };
+            });
         }
         if (isTrue(isEqual(this.safeList(this.options, "currencyIdsListForParseMarket"), null)))
         {
             ((IDictionary<string,object>)this.options)["currencyIdsListForParseMarket"] = currenciesIds;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name coincatch#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.publicGetApiSpotV1PublicCurrencies(parameters);
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseDepositWithdrawFees(data, codes, "coinName");
+    }
+
+    public override object parseDepositWithdrawFee(object fee, object currency = null)
+    {
+        //
+        // {
+        //     "coinId":"1",
+        //     "coinName":"BTC",
+        //     "transfer":"true",
+        //     "chains":[
+        //         {
+        //             "chain":null,
+        //             "needTag":"false",
+        //             "withdrawable":"true",
+        //             "rechargeAble":"true",
+        //             "withdrawFee":"0.005",
+        //             "depositConfirm":"1",
+        //             "withdrawConfirm":"1",
+        //             "minDepositAmount":"0.001",
+        //             "minWithdrawAmount":"0.001",
+        //             "browserUrl":"https://blockchair.com/bitcoin/testnet/transaction/"
+        //         }
+        //     ]
+        // }
+        //
+        object chains = this.safeList(fee, "chains", new List<object>() {});
+        object chainsLength = getArrayLength(chains);
+        object result = new Dictionary<string, object>() {
+            { "info", fee },
+            { "withdraw", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "deposit", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        };
+        for (object i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
+        {
+            object chain = getValue(chains, i);
+            object networkId = this.safeString(chain, "chain");
+            object currencyCode = this.safeString(currency, "code");
+            object networkCode = this.networkIdToCode(networkId, currencyCode);
+            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "percentage", false },
+                } },
+            };
+            if (isTrue(isEqual(chainsLength, 1)))
+            {
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(chain, "withdrawFee");
+                ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
+            }
         }
         return result;
     }
@@ -2285,6 +2313,7 @@ public partial class coincatch : Exchange
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] *swap markets only* must be set to true if position mode is hedged (default false)
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {float} [params.triggerPrice] the price that the order is to be triggered
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -2533,6 +2562,7 @@ public partial class coincatch : Exchange
      * @param {float} amount how much of you want to trade in units of the base currency
      * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
      * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
      * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
      * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2595,7 +2625,7 @@ public partial class coincatch : Exchange
         * @param {float} amount how much of you want to trade in units of the base currency
         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.hedged] default false
+        * @param {bool} [params.hedged] must be set to true if position mode is hedged (default false)
         * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
         * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
         * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
@@ -2643,39 +2673,52 @@ public partial class coincatch : Exchange
         if (isTrue((!isEqual(endpointType, "tpsl"))))
         {
             ((IDictionary<string,object>)request)["orderType"] = type;
+            object sideIsExchangeSpecific = false;
             object hedged = false;
-            var hedgedparametersVariable = this.handleOptionAndParams(parameters, methodName, "hedged", hedged);
-            hedged = ((IList<object>)hedgedparametersVariable)[0];
-            parameters = ((IList<object>)hedgedparametersVariable)[1];
-            // hedged and non-hedged orders have different side values and reduceOnly handling
-            object reduceOnly = false;
-            var reduceOnlyparametersVariable = this.handleParamBool(parameters, "reduceOnly", reduceOnly);
-            reduceOnly = ((IList<object>)reduceOnlyparametersVariable)[0];
-            parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
-            if (isTrue(hedged))
+            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(side, "buy_single"))) || isTrue((isEqual(side, "sell_single")))) || isTrue((isEqual(side, "open_long")))) || isTrue((isEqual(side, "open_short")))) || isTrue((isEqual(side, "close_long")))) || isTrue((isEqual(side, "close_short")))))
             {
-                if (isTrue(reduceOnly))
+                sideIsExchangeSpecific = true;
+                if (isTrue(isTrue((!isEqual(side, "buy_single"))) && isTrue((!isEqual(side, "sell_single")))))
                 {
-                    if (isTrue(isEqual(side, "buy")))
+                    hedged = true;
+                }
+            }
+            if (!isTrue(sideIsExchangeSpecific))
+            {
+                var hedgedparametersVariable = this.handleOptionAndParams(parameters, methodName, "hedged", hedged);
+                hedged = ((IList<object>)hedgedparametersVariable)[0];
+                parameters = ((IList<object>)hedgedparametersVariable)[1];
+                // hedged and non-hedged orders have different side values and reduceOnly handling
+                object reduceOnly = this.safeBool(parameters, "reduceOnly");
+                if (isTrue(hedged))
+                {
+                    if (isTrue(isTrue((!isEqual(reduceOnly, null))) && isTrue(reduceOnly)))
                     {
-                        side = "close_short";
-                    } else if (isTrue(isEqual(side, "sell")))
+                        if (isTrue(isEqual(side, "buy")))
+                        {
+                            side = "close_short";
+                        } else if (isTrue(isEqual(side, "sell")))
+                        {
+                            side = "close_long";
+                        }
+                    } else
                     {
-                        side = "close_long";
+                        if (isTrue(isEqual(side, "buy")))
+                        {
+                            side = "open_long";
+                        } else if (isTrue(isEqual(side, "sell")))
+                        {
+                            side = "open_short";
+                        }
                     }
                 } else
                 {
-                    if (isTrue(isEqual(side, "buy")))
-                    {
-                        side = "open_long";
-                    } else if (isTrue(isEqual(side, "sell")))
-                    {
-                        side = "open_short";
-                    }
+                    side = add(((string)side).ToLower(), "_single");
                 }
-            } else
+            }
+            if (isTrue(hedged))
             {
-                side = add(((string)side).ToLower(), "_single");
+                parameters = this.omit(parameters, "reduceOnly");
             }
             ((IDictionary<string,object>)request)["side"] = side;
         }
@@ -4186,7 +4229,7 @@ public partial class coincatch : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrders";
@@ -5264,7 +5307,7 @@ public partial class coincatch : Exchange
                 }
             }
         }
-        return getValue(positions, 0);
+        return this.safeDict(positions, 0, new Dictionary<string, object>() {});
     }
 
     /**
