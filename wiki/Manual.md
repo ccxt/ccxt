@@ -833,6 +833,18 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - ...
 
+## Maximum Requests capacity
+
+In asynchronous programming, CCXT allows you to schedule an unlimited number of requests. However, there is a default queue limit of 1,000 concurrent requests. If you attempt to enqueue more than this limit, you will encounter the error: "throttle queue is over maxCapacity".
+
+In most cases, having such a large number of pending tasks indicates suboptimal design, as new requests will be delayed until the existing tasks complete.
+
+That said, users who wish to bypass this restriction can increase the default maxCapacity during instantiation as shown below:
+
+```
+ex = ccxt.binance({'options': {'maxRequestsQueue': 9999}})
+```
+
 # Markets
 
 - [Currency Structure](#currency-structure)
