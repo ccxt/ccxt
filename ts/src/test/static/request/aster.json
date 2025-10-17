@@ -323,6 +323,14 @@
         ],
         "fetchOpenOrders": [
             {
+                "description": "fetchOpenOrders - spot",
+                "method": "fetchOpenOrders",
+                "url": "https://sapi.asterdex.com/api/v1/openOrders?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
                 "url": "https://fapi.asterdex.com/fapi/v1/openOrders?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",

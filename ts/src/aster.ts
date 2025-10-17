@@ -2032,23 +2032,43 @@ export default class aster extends Exchange {
     /**
      * @method
      * @name aster#fetchOpenOrders
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data
      * @description fetch all unfilled currently open orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#current-open-orders-user_data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#current-all-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
+        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+        let type = undefined;
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            const marketType = ('type' in market) ? market['type'] : defaultType;
+            type = this.safeString (params, 'type', marketType);
+            params = this.omit (params, 'type');
+        } else {
+            type = this.safeString (params, 'type', defaultType);
         }
-        const response = await this.fapiPrivateGetV1OpenOrders (this.extend (request, params));
+        params = this.omit (params, 'type');
+        let response = undefined;
+        if (this.isLinear (type, subType)) {
+            response = await this.fapiPrivateGetV1OpenOrders (this.extend (request, params));
+        } else if (type === 'spot') {
+            response = await this.sapiPrivateGetV1OpenOrders (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenOrders() does not support ' + type + ' markets yet');
+        }
         //
         //     [
         //         {
