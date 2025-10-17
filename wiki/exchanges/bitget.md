@@ -5,6 +5,8 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setSandboxMode](#setsandboxmode)
+* [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -86,6 +88,42 @@
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+### setSandboxMode{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.setSandboxMode (enabled, [undefined])
+```
+
+
+<a name="enableDemoTrading" id="enabledemotrading"></a>
+
+### enableDemoTrading{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.enableDemoTrading (enabled, [undefined])
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -2382,6 +2420,8 @@ bitget.watchBalance ([params])
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setSandboxMode](#setsandboxmode)
+* [enableDemoTrading](#enabledemotrading)
 * [fetchTime](#fetchtime)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
@@ -2463,6 +2503,42 @@ bitget.watchBalance ([params])
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [watchBalance](#watchbalance)
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+### setSandboxMode{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.setSandboxMode (enabled, [undefined])
+```
+
+
+<a name="enableDemoTrading" id="enabledemotrading"></a>
+
+### enableDemoTrading{docsify-ignore}
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance method of [<code>bitget</code>](#bitget)  
+
+
+| Param |
+| --- |
+| enabled | 
+
+
+```javascript
+bitget.enableDemoTrading (enabled, [undefined])
+```
+
 
 <a name="fetchTime" id="fetchtime"></a>
 
