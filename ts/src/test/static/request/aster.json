@@ -439,6 +439,16 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancelOrder - spot",
+                "method": "cancelOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "123",
+                    "BTC/USDT"
+                ],
+                "output": "symbol=BTCUSDT&orderId=123&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            },
+            {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
                 "url": "https://fapi.asterdex.com/fapi/v1/order",

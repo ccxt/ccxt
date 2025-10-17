@@ -2306,6 +2306,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#cancelOrder
      * @description cancels an open order
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#cancel-order-trade
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -2328,7 +2329,12 @@ export default class aster extends Exchange {
             request['orderId'] = id;
         }
         params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId' ]);
-        const response = await this.fapiPrivateDeleteV1Order (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPrivateDeleteV1Order (this.extend (request, params));
+        } else {
+            response = await this.sapiPrivateDeleteV1Order (this.extend (request, params));
+        }
         return this.parseOrder (response, market);
     }
 
