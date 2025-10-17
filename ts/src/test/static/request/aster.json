@@ -113,6 +113,15 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "fetchOrderBook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://sapi.asterdex.com/api/v1/depth?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ]
+            },
+            {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
                 "url": "https://fapi.asterdex.com/fapi/v1/depth?symbol=BTCUSDT&limit=5",

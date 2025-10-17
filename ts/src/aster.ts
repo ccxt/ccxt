@@ -1122,6 +1122,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#depth-information
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -1144,7 +1145,12 @@ export default class aster extends Exchange {
             }
             request['limit'] = limit;
         }
-        const response = await this.fapiPublicGetV1Depth (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPublicGetV1Depth (this.extend (request, params));
+        } else {
+            response = await this.sapiPublicGetV1Depth (this.extend (request, params));
+        }
         //
         //     {
         //         "lastUpdateId": 1027024,
