@@ -1231,6 +1231,32 @@ export default class aster extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
+        // spot
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "priceChange": "-2274.38",
+        //         "priceChangePercent": "-2.049",
+        //         "weightedAvgPrice": "109524.37084136",
+        //         "lastPrice": "108738.78",
+        //         "lastQty": "0.00034",
+        //         "openPrice": "111013.16",
+        //         "highPrice": "111975.81",
+        //         "lowPrice": "107459.25",
+        //         "volume": "28.67876",
+        //         "quoteVolume": "3141023.14551030",
+        //         "openTime": "1760578800000",
+        //         "closeTime": "1760665024749",
+        //         "firstId": "37447",
+        //         "lastId": "39698",
+        //         "count": "2252",
+        //         "baseAsset": "BTC",
+        //         "quoteAsset": "USDT",
+        //         "bidPrice": "108705.11",
+        //         "bidQty": "0.03351",
+        //         "askPrice": "108725.99",
+        //         "askQty": "0.08724"
+        //     }
+        // swap
         //     {
         //         "symbol": "BTCUSDT",
         //         "priceChange": "1845.7",
@@ -1274,10 +1300,10 @@ export default class aster extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeString (ticker, 'bidPrice'),
+            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'ask': this.safeString (ticker, 'askPrice'),
+            'askVolume': this.safeString (ticker, 'askQty'),
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -1298,6 +1324,7 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#24h-price-change
      * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#24hr-ticker-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1312,27 +1339,56 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.fapiPublicGetV1Ticker24hr (this.extend (request, params));
-        //
-        //     {
-        //         "symbol": "BTCUSDT",
-        //         "priceChange": "1845.7",
-        //         "priceChangePercent": "1.755",
-        //         "weightedAvgPrice": "105515.5",
-        //         "lastPrice": "107037.7",
-        //         "lastQty": "0.004",
-        //         "openPrice": "105192.0",
-        //         "highPrice": "107223.5",
-        //         "lowPrice": "104431.6",
-        //         "volume": "8753.286",
-        //         "quoteVolume": "923607368.61",
-        //         "openTime": 1749976620000,
-        //         "closeTime": 1750063053754,
-        //         "firstId": 24195078,
-        //         "lastId": 24375783,
-        //         "count": 180706
-        //     }
-        //
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPublicGetV1Ticker24hr (this.extend (request, params));
+            //
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "1845.7",
+            //         "priceChangePercent": "1.755",
+            //         "weightedAvgPrice": "105515.5",
+            //         "lastPrice": "107037.7",
+            //         "lastQty": "0.004",
+            //         "openPrice": "105192.0",
+            //         "highPrice": "107223.5",
+            //         "lowPrice": "104431.6",
+            //         "volume": "8753.286",
+            //         "quoteVolume": "923607368.61",
+            //         "openTime": 1749976620000,
+            //         "closeTime": 1750063053754,
+            //         "firstId": 24195078,
+            //         "lastId": 24375783,
+            //         "count": 180706
+            //     }
+            //
+        } else {
+            response = await this.sapiPublicGetV1Ticker24hr (this.extend (request, params));
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "priceChange": "-2274.38",
+            //         "priceChangePercent": "-2.049",
+            //         "weightedAvgPrice": "109524.37084136",
+            //         "lastPrice": "108738.78",
+            //         "lastQty": "0.00034",
+            //         "openPrice": "111013.16",
+            //         "highPrice": "111975.81",
+            //         "lowPrice": "107459.25",
+            //         "volume": "28.67876",
+            //         "quoteVolume": "3141023.14551030",
+            //         "openTime": "1760578800000",
+            //         "closeTime": "1760665024749",
+            //         "firstId": "37447",
+            //         "lastId": "39698",
+            //         "count": "2252",
+            //         "baseAsset": "BTC",
+            //         "quoteAsset": "USDT",
+            //         "bidPrice": "108705.11",
+            //         "bidQty": "0.03351",
+            //         "askPrice": "108725.99",
+            //         "askQty": "0.08724"
+            //     }
+        }
         return this.parseTicker (response, market);
     }
 

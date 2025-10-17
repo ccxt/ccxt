@@ -145,6 +145,14 @@
         ],
         "fetchTicker": [
             {
+                "description": "fetchTicker - spot",
+                "method": "fetchTicker",
+                "url": "https://sapi.asterdex.com/api/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
                 "url": "https://fapi.asterdex.com/fapi/v1/ticker/24hr?symbol=BTCUSDT",
