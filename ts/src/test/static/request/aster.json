@@ -256,6 +256,14 @@
         ],
         "fetchTradingFee": [
             {
+                "description": "fetchTradingFee - spot",
+                "method": "fetchTradingFee",
+                "url": "https://sapi.asterdex.com/api/v1/commissionRate?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
                 "description": "fetchTradingFee",
                 "method": "fetchTradingFee",
                 "url": "https://fapi.asterdex.com/fapi/v1/commissionRate?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",

@@ -272,7 +272,6 @@ export default class aster extends Exchange {
                         'v1/ticker/24hr',
                         'v1/ticker/price',
                         'v1/ticker/bookTicker',
-                        'v1/commissionRate',
                         'v1/aster/withdraw/estimateFee',
                     ],
                     'post': [
@@ -289,6 +288,7 @@ export default class aster extends Exchange {
                 },
                 'sapiPrivate': {
                     'get': [
+                        'v1/commissionRate',
                         'v1/order',
                         'v1/openOrder',
                         'v1/openOrders',
@@ -1783,7 +1783,8 @@ export default class aster extends Exchange {
      * @method
      * @name aster#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#change-position-modetrade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#get-symbol-fees
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#user-commission-rate-user_data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1794,7 +1795,12 @@ export default class aster extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.fapiPrivateGetV1CommissionRate (this.extend (request, params));
+        let response = undefined;
+        if (market['swap']) {
+            response = await this.fapiPrivateGetV1CommissionRate (this.extend (request, params));
+        } else {
+            response = await this.sapiPrivateGetV1CommissionRate (this.extend (request, params));
+        }
         //
         //     {
         //         "symbol": "BTCUSDT",
