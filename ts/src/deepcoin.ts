@@ -91,7 +91,7 @@ export default class deepcoin extends Exchange {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': true,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -167,7 +167,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/orderByID': 5, // done
                         'deepcoin/trade/finishOrderByID': 5, // done
                         'deepcoin/trade/orders-history': 5, // done
-                        'deepcoin/trade/v2/orders-pending': 5,
+                        'deepcoin/trade/v2/orders-pending': 5, // done
                         'deepcoin/trade/funding-rate': 5,
                         'deepcoin/trade/fund-rate/current-funding-rate': 5,
                         'deepcoin/trade/fund-rate/history': 5,
@@ -192,7 +192,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/account/set-leverage': 5,
                         'deepcoin/trade/order': 5, // done
                         'deepcoin/trade/replace-order': 5,
-                        'deepcoin/trade/cancel-order': 5,
+                        'deepcoin/trade/cancel-order': 5, // done
                         'deepcoin/trade/batch-cancel-order': 5,
                         'deepcoin/trade/cancel-trigger-order': 1 / 6,
                         'deepcoin/trade/swap/cancel-all': 5,
@@ -254,6 +254,7 @@ export default class deepcoin extends Exchange {
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
                     // {"code":"50","msg":"len(rows) expected(1) got(0) rows([])","data":null}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
                 },
                 'broad': {},
             },
@@ -1319,6 +1320,108 @@ export default class deepcoin extends Exchange {
         return await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name deepcoin#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/ordersPendingV2
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.index] pagination index, default is 1
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const index = this.safeInteger (params, 'index', 1);
+        const request: Dict = {
+            'instId': market['id'],
+            'index': index,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 30, max 100
+        }
+        const response = await this.privateGetDeepcoinTradeV2OrdersPending (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "ETH-USDT",
+        //                 "tgtCcy": "",
+        //                 "ccy": "",
+        //                 "ordId": "1001435158096314",
+        //                 "clOrdId": "",
+        //                 "tag": "",
+        //                 "px": "1000.000000000000",
+        //                 "sz": "0.004000",
+        //                 "pnl": "0.000000",
+        //                 "ordType": "limit",
+        //                 "side": "buy",
+        //                 "posSide": "",
+        //                 "tdMode": "cash",
+        //                 "accFillSz": "0.000000",
+        //                 "fillPx": "",
+        //                 "tradeId": "",
+        //                 "fillSz": "0.000000",
+        //                 "fillTime": "1760695267000",
+        //                 "avgPx": "",
+        //                 "state": "live",
+        //                 "lever": "1",
+        //                 "tpTriggerPx": "",
+        //                 "tpTriggerPxType": "",
+        //                 "tpOrdPx": "",
+        //                 "slTriggerPx": "",
+        //                 "slTriggerPxType": "",
+        //                 "slOrdPx": "",
+        //                 "feeCcy": "USDT",
+        //                 "fee": "0.000000",
+        //                 "rebateCcy": "",
+        //                 "source": "",
+        //                 "rebate": "",
+        //                 "category": "normal",
+        //                 "uTime": "1760695267000",
+        //                 "cTime": "1760695267000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#cancelOrder
+     * @description cancels an open order
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/cancelOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+            'ordId': id,
+        };
+        const response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
@@ -1402,7 +1505,7 @@ export default class deepcoin extends Exchange {
             'trades': undefined, // todo check
             'fee': fee,
             'reduceOnly': undefined,
-            'postOnly': orderType === 'post_only',
+            'postOnly': orderType ? (orderType === 'post_only') : undefined,
             'info': order,
         }, market);
     }
