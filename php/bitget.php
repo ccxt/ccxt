@@ -1775,8 +1775,20 @@ class bitget extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode($enabled) {
+    public function set_sandbox_mode(bool $enabled) {
+        /**
+         * enables or disables demo trading mode, if $enabled will send PAPTRADING=1 in headers
+         * @param $enabled
+         */
         $this->options['sandboxMode'] = $enabled;
+    }
+
+    public function enable_demo_trading(bool $enabled) {
+        /**
+         * enables or disables demo trading mode, if $enabled will send PAPTRADING=1 in headers
+         * @param $enabled
+         */
+        $this->set_sandbox_mode($enabled);
     }
 
     public function handle_product_type_and_params($market = null, $params = array ()) {
