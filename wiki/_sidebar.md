@@ -85,7 +85,6 @@
 	- [ndax](exchanges/ndax.md)
 	- [novadax](exchanges/novadax.md)
 	- [oceanex](exchanges/oceanex.md)
-	- [okcoin](exchanges/okcoin.md)
 	- [okx](exchanges/okx.md)
 	- [onetrading](exchanges/onetrading.md)
 	- [oxfun](exchanges/oxfun.md)

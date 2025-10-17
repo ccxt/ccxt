@@ -2248,6 +2248,12 @@ export default class Exchange {
     async unWatchTicker(symbol, params = {}) {
         throw new NotSupported(this.id + ' unWatchTicker() is not supported yet');
     }
+    async unWatchMarkPrice(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchMarkPrice() is not supported yet');
+    }
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' unWatchMarkPrices() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
@@ -2535,7 +2541,7 @@ export default class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': this.safeInteger(this.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
@@ -2633,22 +2639,21 @@ export default class Exchange {
         }
         return featuresObj;
     }
-    featureValue(symbol, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+    featureValue(symbol, methodName = undefined, paramName = undefined, defaultValue = undefined) {
         /**
          * @method
          * @name exchange#featureValue
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         const market = this.market(symbol);
-        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, subParamName, defaultValue);
+        return this.featureValueByType(market['type'], market['subType'], methodName, paramName, defaultValue);
     }
-    featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, subParamName = undefined, defaultValue = undefined) {
+    featureValueByType(marketType, subType, methodName = undefined, paramName = undefined, defaultValue = undefined) {
         /**
          * @method
          * @name exchange#featureValueByType
@@ -2657,13 +2662,15 @@ export default class Exchange {
          * @param {string} [subType] supported only: "linear", "inverse"
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         // if exchange does not yet have features manually implemented
         if (this.features === undefined) {
             return defaultValue;
+        }
+        if (marketType === undefined) {
+            return defaultValue; // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
         if (!(marketType in this.features)) {
@@ -2691,7 +2698,7 @@ export default class Exchange {
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
-            return methodsContainer;
+            return (defaultValue !== undefined) ? defaultValue : methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
@@ -2702,26 +2709,29 @@ export default class Exchange {
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
-            return methodDict;
+            return (defaultValue !== undefined) ? defaultValue : methodDict;
         }
-        if (!(paramName in methodDict)) {
+        const splited = paramName.split('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        const parentKey = splited[0];
+        const subKey = this.safeString(splited, 1);
+        if (!(parentKey in methodDict)) {
             return defaultValue; // unsupported paramName, check "exchange.features" for details');
         }
-        const dictionary = this.safeDict(methodDict, paramName);
+        const dictionary = this.safeDict(methodDict, parentKey);
         if (dictionary === undefined) {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return methodDict[paramName];
+            return methodDict[parentKey];
         }
         else {
-            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
-            if (subParamName === undefined) {
-                return methodDict[paramName];
+            // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (subKey === undefined) {
+                return methodDict[parentKey];
             }
-            // throw an exception for unsupported subParamName
-            if (!(subParamName in methodDict[paramName])) {
-                return defaultValue; // unsupported subParamName, check "exchange.features" for details
+            // throw an exception for unsupported subKey
+            if (!(subKey in methodDict[parentKey])) {
+                return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
-            return methodDict[paramName][subParamName];
+            return methodDict[parentKey][subKey];
         }
     }
     orderbookChecksumMessage(symbol) {
@@ -5689,6 +5699,9 @@ export default class Exchange {
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrderWs() is not supported yet');
     }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' cancelOrders() is not supported yet');
+    }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' cancelOrdersWs() is not supported yet');
     }
@@ -7542,6 +7555,99 @@ export default class Exchange {
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         throw new NotSupported(this.id + ' fetchTransfers () is not supported yet');
+    }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name exchange#unWatchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        throw new NotSupported(this.id + ' unWatchOHLCV () is not supported yet');
+    }
+    async watchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name exchange#watchMarkPrice
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported(this.id + ' watchMarkPrice () is not supported yet');
+    }
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#watchMarkPrices
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported(this.id + ' watchMarkPrices () is not supported yet');
+    }
+    async withdrawWs(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#withdrawWs
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        throw new NotSupported(this.id + ' withdrawWs () is not supported yet');
+    }
+    async unWatchMyTrades(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#unWatchMyTrades
+         * @description unWatches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        throw new NotSupported(this.id + ' unWatchMyTrades () is not supported yet');
+    }
+    async createOrdersWs(orders, params = {}) {
+        /**
+         * @method
+         * @name exchange#createOrdersWs
+         * @description create a list of trade orders
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        throw new NotSupported(this.id + ' createOrdersWs () is not supported yet');
+    }
+    async fetchOrdersByStatusWs(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#fetchOrdersByStatusWs
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        throw new NotSupported(this.id + ' fetchOrdersByStatusWs () is not supported yet');
+    }
+    async unWatchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name exchange#unWatchBidsAsks
+         * @description unWatches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        throw new NotSupported(this.id + ' unWatchBidsAsks () is not supported yet');
     }
     cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix = false) {
         if (unsubHash in client.subscriptions) {

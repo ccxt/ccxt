@@ -1326,8 +1326,9 @@ class okx(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'limit': 300,
-                        'historical': 100,
+                        'limit': 300,  # regular candles(recent & historical) both have 300 max
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
@@ -2416,7 +2417,7 @@ class okx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2445,15 +2446,17 @@ class okx(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200)
-        price = self.safe_string(params, 'price')
+        priceType = self.safe_string(params, 'price')
+        isMarkOrIndex = self.in_array(priceType, ['mark', 'index'])
         params = self.omit(params, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
         limitIsUndefined = (limit is None)
         if limit is None:
-            limit = 100  # default 100, max 100
+            limit = 100  # default 100, max 300
         else:
-            limit = min(limit, 300)  # max 100
+            maxLimit = 100 if isMarkOrIndex else 300  # default 300, only 100 if 'mark' or 'index'
+            limit = min(limit, maxLimit)
         duration = self.parse_timeframe(timeframe)
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
@@ -2471,8 +2474,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-                maxLimit = 100 if (price is not None) else 300
-                limit = min(limit, maxLimit)  # max 300 for historical endpoint
+                maxLimit = 100 if isMarkOrIndex else 300
+                limit = min(limit, maxLimit)
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
@@ -2485,12 +2488,12 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         isHistoryCandles = (type == 'HistoryCandles')
         response = None
-        if price == 'mark':
+        if priceType == 'mark':
             if isHistoryCandles:
                 response = await self.publicGetMarketHistoryMarkPriceCandles(self.extend(request, params))
             else:
                 response = await self.publicGetMarketMarkPriceCandles(self.extend(request, params))
-        elif price == 'index':
+        elif priceType == 'index':
             request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = await self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
@@ -3418,7 +3421,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             return ids
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

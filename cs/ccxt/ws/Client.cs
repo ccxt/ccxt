@@ -343,12 +343,15 @@ public partial class Exchange
         private void TryHandleMessage(string message)
         {
             object deserializedMessages = message;
-            try
+            if (isValidJson(message))
             {
-                deserializedMessages = JsonHelper.Deserialize(message);
-            }
-            catch (Exception e)
-            {
+                try
+                {
+                    deserializedMessages = JsonHelper.Deserialize(message);
+                }
+                catch (Exception e)
+                {
+                }
             }
             this.handleMessage(this, deserializedMessages);
         }

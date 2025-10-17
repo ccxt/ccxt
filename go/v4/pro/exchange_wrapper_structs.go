@@ -105,6 +105,15 @@ type UnWatchTickerOptionsStruct = ccxt.UnWatchTickerOptionsStruct
 type UnWatchTickerOptions = ccxt.UnWatchTickerOptions
 var WithUnWatchTickerParams = ccxt.WithUnWatchTickerParams
 
+type UnWatchMarkPriceOptionsStruct = ccxt.UnWatchMarkPriceOptionsStruct
+type UnWatchMarkPriceOptions = ccxt.UnWatchMarkPriceOptions
+var WithUnWatchMarkPriceParams = ccxt.WithUnWatchMarkPriceParams
+
+type UnWatchMarkPricesOptionsStruct = ccxt.UnWatchMarkPricesOptionsStruct
+type UnWatchMarkPricesOptions = ccxt.UnWatchMarkPricesOptions
+var WithUnWatchMarkPricesSymbols = ccxt.WithUnWatchMarkPricesSymbols
+var WithUnWatchMarkPricesParams = ccxt.WithUnWatchMarkPricesParams
+
 type FetchDepositAddressesOptionsStruct = ccxt.FetchDepositAddressesOptionsStruct
 type FetchDepositAddressesOptions = ccxt.FetchDepositAddressesOptions
 var WithFetchDepositAddressesCodes = ccxt.WithFetchDepositAddressesCodes
@@ -647,6 +656,11 @@ type CancelOrderWsOptionsStruct = ccxt.CancelOrderWsOptionsStruct
 type CancelOrderWsOptions = ccxt.CancelOrderWsOptions
 var WithCancelOrderWsSymbol = ccxt.WithCancelOrderWsSymbol
 var WithCancelOrderWsParams = ccxt.WithCancelOrderWsParams
+
+type CancelOrdersOptionsStruct = ccxt.CancelOrdersOptionsStruct
+type CancelOrdersOptions = ccxt.CancelOrdersOptions
+var WithCancelOrdersSymbol = ccxt.WithCancelOrdersSymbol
+var WithCancelOrdersParams = ccxt.WithCancelOrdersParams
 
 type CancelOrdersWsOptionsStruct = ccxt.CancelOrdersWsOptionsStruct
 type CancelOrdersWsOptions = ccxt.CancelOrdersWsOptions

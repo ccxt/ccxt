@@ -993,6 +993,7 @@ class bybit extends bybit$1["default"] {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
+        orderbook['symbol'] = symbol;
         if (isSnapshot) {
             const snapshot = this.parseOrderBook(data, symbol, timestamp, 'b', 'a');
             orderbook.reset(snapshot);
@@ -2281,7 +2282,7 @@ class bybit extends bybit$1["default"] {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const expiresInt = this.milliseconds() + 10000;
