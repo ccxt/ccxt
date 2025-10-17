@@ -6916,7 +6916,7 @@ export default class Exchange {
 
     parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
         //
-        // the value of tickers is either a dict or a list
+        // the value of tickers is either a dict or a list.
         //
         //
         // dict
