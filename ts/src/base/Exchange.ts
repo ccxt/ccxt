@@ -1786,6 +1786,7 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
                 'cancelOrdersWs': undefined,
@@ -6259,6 +6260,22 @@ export default class Exchange {
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
+    }
+
+    async cancelOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cancelOrderWithClientOrderId
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} clientOrderId client order Id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.has['cancelOrderWithClientOrderId'] || (this.has['cancelOrderWithClientOrderId'] && this.has['cancelOrderWithClientOrderId'])) {
+            return await this.cancelOrder (clientOrderId, symbol, params);
+        }
+        throw new NotSupported (this.id + ' cancelOrderWithClientOrderId() is not supported yet');
     }
 
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
