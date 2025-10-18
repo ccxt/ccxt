@@ -31,6 +31,7 @@ public class Throttler
     private async Task loop()
     {
         var lastTimestamp = milliseconds();
+        var throttleAlertSent = false;
         while (this.running)
         {
             // do we need this check here?
@@ -61,9 +62,15 @@ public class Throttler
                 {
                     this.running = false;
                 }
+                throttleAlertSent = false;
             }
             else
             {
+                if (!throttleAlertSent)
+                {
+                    Console.WriteLine(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString() + " ccxt rate limit exceeded, throttling requests.");
+                    throttleAlertSent = true;
+                }
                 await Task.Delay((int)((double)this.config["delay"] * 1000));
                 var current = milliseconds();
                 var elapsed = current - lastTimestamp;
