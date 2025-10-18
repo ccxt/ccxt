@@ -24,6 +24,7 @@ Current feature list:
 - <sub>[![Freqtrade](https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png)](https://www.freqtrade.io)</sub> **[Freqtrade](https://www.freqtrade.io)** – leading opensource cryptocurrency algorithmic trading software!
 - <sub>[![OctoBot](https://user-images.githubusercontent.com/1294454/132113722-007fc092-7530-4b41-b929-b8ed380b7b2e.png)](https://www.octobot.online)</sub> **[OctoBot](https://www.octobot.online)** – cryptocurrency trading bot with an advanced web interface.
 - <sub>[![TokenBot](https://user-images.githubusercontent.com/1294454/152720975-0522b803-70f0-4f18-a305-3c99b37cd990.png)](https://tokenbot.com/?utm_source=github&utm_medium=ccxt&utm_campaign=algodevs)</sub> **[TokenBot](https://tokenbot.com/?utm_source=github&utm_medium=ccxt&utm_campaign=algodevs)** – discover and copy the best algorithmic traders in the world.
+- <sub>[![QTradeX](https://github.com/squidKid-deluxe/QTradeX-Algo-Trading-SDK/blob/master/.github/images/QTradeX%20nameplate%20small.png?raw=true)](https://github.com/squidKid-deluxe/QTradeX-Algo-Trading-SDK)</sub> **[QTradeX](https://github.com/squidKid-deluxe/QTradeX-Algo-Trading-SDK)** – Python backtesting, algo deployment, and AI parameter optimization
 
 ## Certified Cryptocurrency Exchanges
 
