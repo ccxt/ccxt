@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ArgumentsRequired, BadRequest, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ export default class deepcoin extends Exchange {
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'sandbox': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -189,7 +189,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/asset/recharge-chain-list': 5,
                     },
                     'post': {
-                        'deepcoin/account/set-leverage': 5,
+                        'deepcoin/account/set-leverage': 5, // done
                         'deepcoin/trade/order': 5, // done
                         'deepcoin/trade/replace-order': 5,
                         'deepcoin/trade/cancel-order': 5, // done
@@ -1717,6 +1717,65 @@ export default class deepcoin extends Exchange {
             'percentage': undefined,
             'info': position,
         });
+    }
+
+    /**
+     * @method
+     * @name deepcoin#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.deepcoin.com/docs/DeepCoinAccount/accountSetLeverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {string} [params.posMode] merge or split, default is merge
+     * @returns {object} response from the exchange
+     */
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        if (leverage < 1) {
+            throw new BadRequest (this.id + ' setLeverage() leverage should be minimum 1');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode === undefined) {
+            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
+        }
+        if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
+            throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
+        }
+        const posMode = this.safeString (params, 'posMode', 'merge');
+        if (posMode !== 'merge' && posMode !== 'split') {
+            throw new BadRequest (this.id + ' setLeverage() posMode parameter must be either merge or split');
+        }
+        const request: Dict = {
+            'lever': leverage,
+            'mgnMode': marginMode,
+            'instId': market['id'],
+            'mrgPosition': posMode,
+        };
+        const response = await this.privatePostDeepcoinAccountSetLeverage (this.extend (request, params));
+        //
+        //     {
+        //         code: '0',
+        //         msg: '',
+        //         data: {
+        //             instId: 'ETH-USDT-SWAP',
+        //             lever: '2',
+        //             mgnMode: 'cross',
+        //             mrgPosition: 'merge',
+        //             sCode: '0',
+        //             sMsg: ''
+        //         }
+        //     }
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
