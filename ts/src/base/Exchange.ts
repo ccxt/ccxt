@@ -1786,8 +1786,10 @@ export default class Exchange {
                 'cancelAllOrders': undefined,
                 'cancelAllOrdersWs': undefined,
                 'cancelOrder': true,
+                'cancelOrderWithClientOrderId': undefined,
                 'cancelOrderWs': undefined,
                 'cancelOrders': undefined,
+                'cancelOrdersWithClientOrderId': undefined,
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
@@ -1837,6 +1839,7 @@ export default class Exchange {
                 'createTriggerOrderWs': undefined,
                 'deposit': undefined,
                 'editOrder': 'emulated',
+                'editOrderWithClientOrderId': undefined,
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
@@ -1915,6 +1918,7 @@ export default class Exchange {
                 'fetchOption': undefined,
                 'fetchOptionChain': undefined,
                 'fetchOrder': undefined,
+                'fetchOrdersWithClientOrderId': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': undefined,
                 'fetchOrderBookWs': undefined,
@@ -5778,6 +5782,22 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
 
+    async fetchOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name fetchOrderWithClientOrderId
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} clientOrderId client order Id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.has['fetchOrderWithClientOrderId'] || (this.has['fetchOrderWithClientOrderId'] && this.has['fetchOrderWithClientOrderId'])) {
+            return await this.cancelOrder (clientOrderId, symbol, params);
+        }
+        throw new NotSupported (this.id + ' fetchOrderWithClientOrderId() is not supported yet');
+    }
+
     async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrderWs() is not supported yet');
     }
@@ -6261,12 +6281,44 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
+    async cancelOrderWithClientOrderId (clientOrderId: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cancelOrderWithClientOrderId
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} clientOrderId client order Id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.has['cancelOrderWithClientOrderId'] || (this.has['cancelOrderWithClientOrderId'] && this.has['cancelOrderWithClientOrderId'])) {
+            return await this.cancelOrder (clientOrderId, symbol, params);
+        }
+        throw new NotSupported (this.id + ' cancelOrderWithClientOrderId() is not supported yet');
+    }
+
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelOrderWs() is not supported yet');
     }
 
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
+    }
+
+    async cancelOrdersWithClientOrderId (clientOrderids: string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name cancelOrdersWithClientOrderId
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string[]} clientOrderids client order Ids
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (this.has['cancelOrdersWithClientOrderId'] || (this.has['cancelOrdersWithClientOrderId'] && this.has['cancelOrdersWithClientOrderId'])) {
+            return await this.cancelOrder (clientOrderids[0], symbol, params);
+        }
+        throw new NotSupported (this.id + ' cancelOrdersWithClientOrderId() is not supported yet');
     }
 
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
