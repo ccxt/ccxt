@@ -2948,7 +2948,7 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': self.safe_integer(self.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         }
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket

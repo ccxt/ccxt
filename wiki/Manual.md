@@ -833,6 +833,18 @@ If you encounter DDoS protection errors and cannot reach a particular exchange t
 - run your software in close proximity to the exchange (same country, same city, same datacenter, same server rack, same server)
 - ...
 
+## Maximum Requests capacity
+
+In asynchronous programming, CCXT allows you to schedule an unlimited number of requests. However, there is a default queue limit of 1,000 concurrent requests. If you attempt to enqueue more than this limit, you will encounter the error: "throttle queue is over maxCapacity".
+
+In most cases, having such a large number of pending tasks indicates suboptimal design, as new requests will be delayed until the existing tasks complete.
+
+That said, users who wish to bypass this restriction can increase the default maxCapacity during instantiation as shown below:
+
+```
+ex = ccxt.binance({'options': {'maxRequestsQueue': 9999}})
+```
+
 # Markets
 
 - [Currency Structure](#currency-structure)
@@ -6751,30 +6763,43 @@ Returns
 - A list of [order structures](#order-structure)
 
 
-## Set Position Mode
+### Position Mode
 
 *margin and contract only*
 
 Method used for setting position mode:
 
-- `true` - sets to **hedged** mode
-- `false` - sets to **one-way** mode
-
 ```javascript
-set_position_mode (false, symbol = undefined, params = {})
+setPositionMode (hedged, symbol = undefined, params = {})
 ```
 
 Parameters
 
 - **hedged** (String) *required* hedged-mode value:
-    - `true`
-    - `false`
+    - `true` - sets to **hedged** mode
+    - `false` - sets to **one-way** mode
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint
+
+Method used for fetching position mode:
+
+```javascript
+fetchPositionMode (symbol = undefined, params = {}) {
+```
+
+Parameters
+
 - **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint
 
 Returns
 
-- response from the exchange
+```javascript
+{
+    'info': { ... },
+    'hedged': true,
+}
+```
 
 
 #### Liquidation Price

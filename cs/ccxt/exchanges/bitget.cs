@@ -1712,9 +1712,26 @@ public partial class bitget : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitget#setSandboxMode
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
     public override void setSandboxMode(object enabled)
     {
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
+    }
+
+    /**
+     * @method
+     * @name bitget#enableDemoTrading
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    public override void enableDemoTrading(object enabled)
+    {
+        this.setSandboxMode(enabled);
     }
 
     public virtual object handleProductTypeAndParams(object market = null, object parameters = null)

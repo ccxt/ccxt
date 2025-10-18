@@ -1798,8 +1798,19 @@ class bitget(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enabled):
+    def set_sandbox_mode(self, enabled: bool):
+        """
+        enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+ @param enabled
+        """
         self.options['sandboxMode'] = enabled
+
+    def enable_demo_trading(self, enabled: bool):
+        """
+        enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+ @param enabled
+        """
+        self.set_sandbox_mode(enabled)
 
     def handle_product_type_and_params(self, market=None, params={}):
         subType = None

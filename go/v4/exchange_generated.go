@@ -1927,7 +1927,7 @@ func (this *Exchange) InitRestRateLimiter() {
 		"delay":       0.001,
 		"capacity":    1,
 		"cost":        1,
-		"maxCapacity": 1000,
+		"maxCapacity": this.SafeInteger(this.Options, "maxRequestsQueue", 1000),
 		"refillRate":  refillRate,
 	}
 	var existingBucket interface{} = Ternary(IsTrue((IsEqual(this.TokenBucket, nil))), map[string]interface{}{}, this.TokenBucket)
