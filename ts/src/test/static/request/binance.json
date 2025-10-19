@@ -609,6 +609,23 @@
                   }
                 ],
                 "output": "timestamp=1727850728450&symbol=BTCUSDT&side=BUY&newClientOrderId=x-xcKtGhcu7115017eb3284b84905830&newOrderRespType=RESULT&type=MARKET&quantity=0.01&positionSide=SHORT&recvWindow=10000&signature=5709d8de55d46bce7ef997580b9a223d3145772c1d5c22160b53e4539246b9b2"
+            },
+            {
+                "description": "spot trailingPercent market buy order with stopLossOrTakeProfit param",
+                "method": "createOrder",
+                "url": "https://testnet.binance.vision/api/v3/order",
+                "input": [
+                    "ETH/USDT",
+                    "market",
+                    "buy",
+                    0.0086,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "stopLossOrTakeProfit": "takeProfit"
+                    }
+                ],
+                "output": "timestamp=1758618616301&symbol=ETHUSDT&side=BUY&trailingDelta=500&newClientOrderId=x-TKT5PX2Fc0ccf4c20afe486783218b&newOrderRespType=FULL&type=TAKE_PROFIT&quantity=0.0086&recvWindow=10000&signature=8810c6839ae473d4db809a4f0c6bab214af52eb4aefa1457eed5c528dad97b49"
             }
         ],
         "createOrders": [

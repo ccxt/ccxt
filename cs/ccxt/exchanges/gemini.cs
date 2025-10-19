@@ -369,7 +369,7 @@ public partial class gemini : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>");
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         //    {
@@ -670,10 +670,10 @@ public partial class gemini : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
-                    object tradingPair = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
-                    if (isTrue(isTrue(!isEqual(tradingPair, null)) && !isTrue(this.inArray(tradingPair, brokenPairs))))
+                    object pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
+                    if (isTrue(isTrue(!isEqual(pairInfo, null)) && !isTrue(this.inArray(marketId, brokenPairs))))
                     {
-                        ((IList<object>)result).Add(this.parseMarket(tradingPair));
+                        ((IList<object>)result).Add(this.parseMarket(pairInfo));
                     }
                 }
             } else
@@ -1527,7 +1527,7 @@ public partial class gemini : Exchange
         //          "is_hidden":false,
         //          "was_forced":false,
         //          "executed_amount":"0",
-        //          "client_order_id":"1650398445709",
+        //          "client_order_id":"1650398445701",
         //          "options":[],
         //          "price":"2000.00",
         //          "original_amount":"0.01",

@@ -207,6 +207,20 @@ export default class binance extends Exchange {
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
                 },
+                'demo': {
+                    'dapiPublic': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivate': 'https://demo-dapi.binance.com/dapi/v1',
+                    'dapiPrivateV2': 'https://demo-dapi.binance.com/dapi/v2',
+                    'fapiPublic': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPublicV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPublicV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'fapiPrivate': 'https://demo-fapi.binance.com/fapi/v1',
+                    'fapiPrivateV2': 'https://demo-fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3': 'https://demo-fapi.binance.com/fapi/v3',
+                    'public': 'https://demo-api.binance.com/api/v3',
+                    'private': 'https://demo-api.binance.com/api/v3',
+                    'v1': 'https://demo-api.binance.com/api/v1',
+                },
                 'api': {
                     'sapi': 'https://api.binance.com/sapi/v1',
                     'sapiV2': 'https://api.binance.com/sapi/v2',
@@ -232,7 +246,7 @@ export default class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount': 0.1,
                 },
                 'doc': [
@@ -1392,6 +1406,9 @@ export default class binance extends Exchange {
             'features': {
                 'spot': {
                     'sandbox': true,
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
@@ -1411,10 +1428,10 @@ export default class binance extends Exchange {
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': {
-                            'expire_maker': true,
-                            'expire_taker': true,
-                            'expire_both': true,
-                            'none': true,
+                            'EXPIRE_MAKER': true,
+                            'EXPIRE_TAKER': true,
+                            'EXPIRE_BOTH': true,
+                            'NONE': true,
                         },
                         'trailing': false, // todo: this is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
                         'icebergAmount': true,
@@ -1485,7 +1502,7 @@ export default class binance extends Exchange {
                         },
                         'hedged': true,
                         // exchange-supported features
-                        'selfTradePrevention': true, // todo
+                        'selfTradePrevention': true,
                         'trailing': true,
                         'iceberg': false,
                         'leverage': false,
@@ -2760,6 +2777,29 @@ export default class binance extends Exchange {
 
     /**
      * @method
+     * @name binance#enableDemoTrading
+     * @description enables or disables demo trading mode
+     * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
+     * @see https://demo.binance.com/en/my/settings/api-management
+     * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
+     */
+    enableDemoTrading (enable: boolean) {
+        if (this.isSandboxModeEnabled) {
+            throw new NotSupported (this.id + ' demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences');
+        }
+        if (enable) {
+            this.urls['apiBackupDemoTrading'] = this.urls['api'];
+            this.urls['api'] = this.urls['demo'];
+        } else if ('apiBackupDemoTrading' in this.urls) {
+            this.urls['api'] = this.urls['apiBackupDemoTrading'] as any;
+            const newUrls = this.omit (this.urls, 'apiBackupDemoTrading');
+            this.urls = newUrls;
+        }
+        this.options['enableDemoTrading'] = enable;
+    }
+
+    /**
+     * @method
      * @name binance#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#check-server-time          // spot
@@ -2798,19 +2838,23 @@ export default class binance extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const fetchCurrenciesEnabled = this.safeBool (this.options, 'fetchCurrencies');
         if (!fetchCurrenciesEnabled) {
-            return undefined;
+            return {};
         }
         // this endpoint requires authentication
         // while fetchCurrencies is a public API method by design
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         // sandbox/testnet does not support sapi endpoints
         const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
-            return undefined;
+            return {};
+        }
+        // demotrading does not support sapi endpoints
+        if (this.safeBool (this.options, 'enableDemoTrading', false)) {
+            return {};
         }
         const promises = [ this.sapiGetCapitalConfigGetall (params) ];
         const fetchMargins = this.safeBool (this.options, 'fetchMargins', false);
@@ -2884,7 +2928,7 @@ export default class binance extends Exchange {
             //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
             //                "addressRule": "",
             //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
-            //                "withdrawFee": "0.002",
+            //                "withdrawFee": "0.003",
             //                "withdrawMin": "0.01",
             //                "withdrawMax": "10000000000",
             //                "minConfirm": "1",
@@ -3054,10 +3098,12 @@ export default class binance extends Exchange {
             }
         }
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
+        const isDemoEnv = demoMode || sandboxMode;
         const fetchMarkets = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
             const type = rawFetchMarkets[i];
-            if (type === 'option' && sandboxMode) {
+            if (type === 'option' && isDemoEnv) {
                 continue;
             }
             fetchMarkets.push (type);
@@ -3067,7 +3113,7 @@ export default class binance extends Exchange {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
-                if (fetchMargins && this.checkRequiredCredentials (false) && !sandboxMode) {
+                if (fetchMargins && this.checkRequiredCredentials (false) && !isDemoEnv) {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
@@ -3288,7 +3334,7 @@ export default class binance extends Exchange {
         //                 "expiryDate": 1677225600000,
         //                 "filters": [
         //                     {"filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"},
-        //                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01"}
+        //                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01"}
         //                 ],
         //                 "id": 2474,
         //                 "symbol": "ETH-230224-800-C",
@@ -4587,7 +4633,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
@@ -6203,7 +6249,7 @@ export default class binance extends Exchange {
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
-     * @param {string} [params.selfTradePrevention] set unified value for stp (see .features for available values)
+     * @param {string} [params.selfTradePrevention] set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
      * @param {float} [params.icebergAmount] set iceberg amount for limit orders
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
@@ -6327,6 +6373,7 @@ export default class binance extends Exchange {
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         const isPriceMatch = priceMatch !== undefined;
+        let priceRequiredForTrailing = true;
         let uppercaseType = type.toUpperCase ();
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
@@ -6337,18 +6384,28 @@ export default class binance extends Exchange {
                     request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
                 }
             } else {
-                if (isMarketOrder) {
-                    throw new InvalidOrder (this.id + ' trailingPercent orders are not supported for ' + symbol + ' ' + type + ' orders');
+                if ((uppercaseType !== 'STOP_LOSS') && (uppercaseType !== 'TAKE_PROFIT') && (uppercaseType !== 'STOP_LOSS_LIMIT') && (uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
+                    const stopLossOrTakeProfit = this.safeString (params, 'stopLossOrTakeProfit');
+                    params = this.omit (params, 'stopLossOrTakeProfit');
+                    if ((stopLossOrTakeProfit !== 'stopLoss') && (stopLossOrTakeProfit !== 'takeProfit')) {
+                        throw new InvalidOrder (this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
+                    }
+                    if (isMarketOrder) {
+                        if (stopLossOrTakeProfit === 'stopLoss') {
+                            uppercaseType = 'STOP_LOSS';
+                        } else if (stopLossOrTakeProfit === 'takeProfit') {
+                            uppercaseType = 'TAKE_PROFIT';
+                        }
+                    } else {
+                        if (stopLossOrTakeProfit === 'stopLoss') {
+                            uppercaseType = 'STOP_LOSS_LIMIT';
+                        } else if (stopLossOrTakeProfit === 'takeProfit') {
+                            uppercaseType = 'TAKE_PROFIT_LIMIT';
+                        }
+                    }
                 }
-                const stopLossOrTakeProfit = this.safeString (params, 'stopLossOrTakeProfit');
-                params = this.omit (params, 'stopLossOrTakeProfit');
-                if (stopLossOrTakeProfit !== 'stopLoss' && stopLossOrTakeProfit !== 'takeProfit') {
-                    throw new InvalidOrder (this.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit');
-                }
-                if (stopLossOrTakeProfit === 'stopLoss') {
-                    uppercaseType = 'STOP_LOSS_LIMIT';
-                } else if (stopLossOrTakeProfit === 'takeProfit') {
-                    uppercaseType = 'TAKE_PROFIT_LIMIT';
+                if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+                    priceRequiredForTrailing = false;
                 }
                 if (trailingTriggerPrice !== undefined) {
                     stopPrice = this.priceToPrecision (symbol, trailingTriggerPrice);
@@ -6486,7 +6543,7 @@ export default class binance extends Exchange {
         } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if (market['linear'] || market['inverse']) {
+            if ((market['linear'] || market['inverse']) && priceRequiredForTrailing) {
                 priceIsRequired = true;
             }
         } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
@@ -6569,7 +6626,8 @@ export default class binance extends Exchange {
             request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
         }
         // unified stp
-        const selfTradePrevention = this.safeString (params, 'selfTradePrevention');
+        let selfTradePrevention = undefined;
+        [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
             if (market['spot']) {
                 request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
@@ -6582,7 +6640,7 @@ export default class binance extends Exchange {
                 request['icebergQty'] = this.amountToPrecision (symbol, icebergAmount);
             }
         }
-        const requestParams = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount' ]);
+        const requestParams = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ]);
         return this.extend (request, requestParams);
     }
 
@@ -11679,7 +11737,7 @@ export default class binance extends Exchange {
         //         "asset": "USDT",
         //         "amount": "-0.16518203",
         //         "type": "FEE",
-        //         "createDate": 1676621042489
+        //         "createDate": 167662104241
         //     }
         //
         // futures (fapi, dapi, papi)
@@ -11821,6 +11879,9 @@ export default class binance extends Exchange {
             }
         } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials ();
+            if ((url.indexOf ('testnet.binancefuture.com') > -1) && this.isSandboxModeEnabled && (!this.safeBool (this.options, 'disableFuturesSandboxWarning'))) {
+                throw new NotSupported (this.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
+            }
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
                 const newClientOrderId = this.safeString (params, 'newClientOrderId');

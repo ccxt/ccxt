@@ -396,7 +396,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGet', True, '="currencyData">', '</script>')
         if data is None:
-            return None
+            return {}
         #
         #    {
         #        "tradingPairs": [['BTCUSD', 2, 8, '0.00001', 10, True],  ...],
@@ -662,9 +662,9 @@ class gemini(Exchange, ImplicitAPI):
                 indexedTradingPairs = self.index_by(tradingPairs, 0)
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
-                    tradingPair = self.safe_list(indexedTradingPairs, marketId.upper())
-                    if tradingPair is not None and not self.in_array(tradingPair, brokenPairs):
-                        result.append(self.parse_market(tradingPair))
+                    pairInfo = self.safe_list(indexedTradingPairs, marketId.upper())
+                    if pairInfo is not None and not self.in_array(marketId, brokenPairs):
+                        result.append(self.parse_market(pairInfo))
             else:
                 for i in range(0, len(marketIds)):
                     if not self.in_array(marketIds[i], brokenPairs):
@@ -1411,7 +1411,7 @@ class gemini(Exchange, ImplicitAPI):
         #          "is_hidden":false,
         #          "was_forced":false,
         #          "executed_amount":"0",
-        #          "client_order_id":"1650398445709",
+        #          "client_order_id":"1650398445701",
         #          "options":[],
         #          "price":"2000.00",
         #          "original_amount":"0.01",
@@ -1902,7 +1902,7 @@ class gemini(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

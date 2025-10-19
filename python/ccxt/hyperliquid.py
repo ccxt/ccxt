@@ -1086,7 +1086,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3014,8 +3014,6 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'nonce': nonce,
                 'signature': transferSig,
             }
-            if vaultAddress is not None:
-                transferRequest['vaultAddress'] = vaultAddress
             transferResponse = self.privatePostExchange(transferRequest)
             return transferResponse
         # transfer between main account and subaccount
@@ -3399,6 +3397,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param str [params.subAccountAddress]: sub account user address
+        :param str [params.vaultAddress]: vault address
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -3412,6 +3411,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             request['startTime'] = since
         until = self.safe_integer(params, 'until')
         if until is not None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchDeposits requires since while until is set')
             request['endTime'] = until
             params = self.omit(params, ['until'])
         response = self.publicPostInfo(self.extend(request, params))
@@ -3429,7 +3430,19 @@ class hyperliquid(Exchange, ImplicitAPI):
         # ]
         #
         records = self.extract_type_from_delta(response)
-        deposits = self.filter_by_array(records, 'type', ['deposit'], False)
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
+        deposits = []
+        if vaultAddress is not None:
+            for i in range(0, len(records)):
+                record = records[i]
+                if record['type'] == 'vaultDeposit':
+                    delta = self.safe_dict(record, 'delta')
+                    if delta['vault'] == '0x' + vaultAddress:
+                        deposits.append(record)
+        else:
+            deposits = self.filter_by_array(records, 'type', ['deposit'], False)
         return self.parse_transactions(deposits, None, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -3441,6 +3454,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param str [params.subAccountAddress]: sub account user address
+        :param str [params.vaultAddress]: vault address
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()
@@ -3471,7 +3485,19 @@ class hyperliquid(Exchange, ImplicitAPI):
         # ]
         #
         records = self.extract_type_from_delta(response)
-        withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
+        withdrawals = []
+        if vaultAddress is not None:
+            for i in range(0, len(records)):
+                record = records[i]
+                if record['type'] == 'vaultWithdraw':
+                    delta = self.safe_dict(record, 'delta')
+                    if delta['vault'] == '0x' + vaultAddress:
+                        withdrawals.append(record)
+        else:
+            withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
         return self.parse_transactions(withdrawals, None, since, limit)
 
     def fetch_open_interests(self, symbols: Strings = None, params={}):

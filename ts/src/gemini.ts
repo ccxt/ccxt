@@ -390,7 +390,7 @@ export default class gemini extends Exchange {
     async fetchCurrenciesFromWeb (params = {}) {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
-            return undefined;
+            return {};
         }
         //
         //    {
@@ -676,9 +676,9 @@ export default class gemini extends Exchange {
                 const indexedTradingPairs = this.indexBy (tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
-                    const tradingPair = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
-                    if (tradingPair !== undefined && !this.inArray (tradingPair, brokenPairs)) {
-                        result.push (this.parseMarket (tradingPair));
+                    const pairInfo = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
+                    if (pairInfo !== undefined && !this.inArray (marketId, brokenPairs)) {
+                        result.push (this.parseMarket (pairInfo));
                     }
                 }
             } else {
@@ -1469,7 +1469,7 @@ export default class gemini extends Exchange {
         //          "is_hidden":false,
         //          "was_forced":false,
         //          "executed_amount":"0",
-        //          "client_order_id":"1650398445709",
+        //          "client_order_id":"1650398445701",
         //          "options":[],
         //          "price":"2000.00",
         //          "original_amount":"0.01",
@@ -2013,7 +2013,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);

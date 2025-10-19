@@ -2716,7 +2716,15 @@ class htx(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
+        # htx's multi-market trade-id is a bit complex to parse accordingly.
+        # - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2(self happens mostly for contract markets)
+        # - otherwise the least priority is given to the `id` key
+        id: Str = None
+        safeId = self.safe_string(trade, 'id')
+        if safeId is not None and safeId.find('-') >= 0:
+            id = safeId
+        else:
+            id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -3027,7 +3035,7 @@ class htx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -5629,7 +5637,7 @@ class htx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids

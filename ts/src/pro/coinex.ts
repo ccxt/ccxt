@@ -154,7 +154,7 @@ export default class coinex extends coinexRest {
         const defaultType = this.safeString (this.options, 'defaultType');
         const data = this.safeDict (message, 'data', {});
         const rawTickers = this.safeList (data, 'state_list', []);
-        const newTickers = [];
+        const newTickers = {};
         for (let i = 0; i < rawTickers.length; i++) {
             const entry = rawTickers[i];
             const marketId = this.safeString (entry, 'market');
@@ -162,8 +162,8 @@ export default class coinex extends coinexRest {
             const market = this.safeMarket (marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker (entry, market);
             this.tickers[symbol] = parsedTicker;
+            newTickers[symbol] = parsedTicker;
             this.streamProduce ('tickers', parsedTicker);
-            newTickers.push (parsedTicker);
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -658,7 +658,7 @@ export default class coinex extends coinexRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const marketIds = this.marketIds (symbols);
+        let marketIds = this.marketIds (symbols);
         let market = undefined;
         const messageHashes = [];
         const symbolsDefined = (symbols !== undefined);
@@ -669,6 +669,7 @@ export default class coinex extends coinexRest {
                 messageHashes.push ('tickers::' + market['symbol']);
             }
         } else {
+            marketIds = [];
             messageHashes.push ('tickers');
         }
         let type = undefined;
@@ -737,13 +738,13 @@ export default class coinex extends coinexRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
         const url = this.urls['api']['ws'][type];
-        const subscriptionHashes = [ 'trades' ];
+        // const subscriptionHashes = [ 'trades' ];
         const subscribe: Dict = {
             'method': 'deals.subscribe',
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), messageHashes);
         if (this.newUpdates) {
             return trades;
         }
@@ -801,9 +802,9 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketList },
             'id': this.requestId (),
         };
-        const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
+        // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
-        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), messageHashes);
         if (this.newUpdates) {
             return orderbooks;
         }
@@ -1423,7 +1424,7 @@ export default class coinex extends coinexRest {
         const time = this.milliseconds ();
         const timestamp = time.toString ();
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated !== undefined) {
             return await future;

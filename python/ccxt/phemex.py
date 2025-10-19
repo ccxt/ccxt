@@ -206,6 +206,7 @@ class phemex(Exchange, ImplicitAPI):
                         'accounts/accountPositions': 1,  # ?currency=<currency>
                         'g-accounts/accountPositions': 1,  # ?currency=<currency>
                         'g-accounts/positions': 25,  # ?currency=<currency>
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/futures/orders': 5,  # ?symbol=<symbol>
@@ -1328,7 +1329,7 @@ class phemex(Exchange, ImplicitAPI):
             baseVolume,
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3831,7 +3832,7 @@ class phemex(Exchange, ImplicitAPI):
         isCross = self.safe_value(position, 'crossMargin')
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'execSeq'),
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
@@ -4129,20 +4130,27 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if not market['swap'] or market['settle'] == 'USDT' or market['settle'] == 'USDC':
-            raise BadSymbol(self.id + ' setMarginMode() supports swap(non USDT/USDC based) contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        isCross = marginMode == 'cross'
+        if self.in_array(market['settle'], ['USDT', 'USDC']):
+            currentLeverage = self.safe_string(params, 'leverage')
+            if currentLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a "leverage" parameter for USDT markets')
+            request['leverageRr'] = Precise.string_neg(Precise.string_abs(currentLeverage)) if isCross else Precise.string_abs(currentLeverage)
+            return self.privatePutGPositionsLeverage(self.extend(request, params))
         leverage = self.safe_integer(params, 'leverage')
         if marginMode == 'cross':
             leverage = 0
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        request: dict = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        }
+        request['leverage'] = leverage
         return self.privatePutPositionsLeverage(self.extend(request, params))
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):

@@ -523,7 +523,7 @@ public partial class kucoinfutures : kucoin
             object market = getValue(data, i);
             object id = this.safeString(market, "symbol");
             object expiry = this.safeInteger(market, "expireDate");
-            object future = ((bool) isTrue(expiry)) ? true : false;
+            object future = isEqual(this.safeString(market, "nextFundingRateTime"), null);
             object swap = !isTrue(future);
             object baseId = this.safeString(market, "baseCurrency");
             object quoteId = this.safeString(market, "quoteCurrency");
@@ -1876,7 +1876,7 @@ public partial class kucoinfutures : kucoin
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -3521,7 +3521,7 @@ public partial class kucoinfutures : kucoin
         object request = new Dictionary<string, object>() {
             { "positionMode", posMode },
         };
-        object response = await ((Task<object>)callDynamically(this, "futuresPrivatePostPositionSwitchPositionMode", new object[] { this.extend(request, parameters) }));
+        object response = await this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters));
         //
         //     {
         //         "code": "200000",

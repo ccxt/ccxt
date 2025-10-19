@@ -284,7 +284,7 @@ public partial class bithumb
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<Order> CancelUnifiedOrder(object order, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelUnifiedOrder(Order order, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelUnifiedOrder(order, parameters);
         return new Order(res);

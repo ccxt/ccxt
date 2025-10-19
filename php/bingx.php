@@ -661,6 +661,9 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,
@@ -734,11 +737,11 @@ class bingx extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox) {
-            return null;
+            return array();
         }
         $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
         //
@@ -1077,7 +1080,7 @@ class bingx extends Exchange {
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -5865,7 +5868,7 @@ class bingx extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        $walletType = $this->safe_integer($params, 'walletType', 1);
+        $walletType = $this->safe_integer($params, 'walletType', 15);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,

@@ -69,7 +69,7 @@ class hibachi(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchConvertCurrencies': False,
                 'fetchConvertQuote': False,
-                'fetchCurrencies': True,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
@@ -189,6 +189,7 @@ class hibachi(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.00045'),
                 },
             },
+            'currencies': self.hardcoded_currencies(),
             'options': {
             },
             'features': {
@@ -375,15 +376,7 @@ class hibachi(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'futureContracts')
         return self.parse_markets(rows)
 
-    async def fetch_currencies(self, params={}) -> Currencies:
-        """
-        fetches all available currencies on an exchange
-
-        https://api-doc.hibachi.xyz/#183981da-8df5-40a0-a155-da15015dd536
-
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an associative dictionary of currencies
-        """
+    def hardcoded_currencies(self) -> Currencies:
         # Hibachi only supports USDT on Arbitrum at self time
         # We don't have an API endpoint to expose self information yet
         result: dict = {}
@@ -1408,7 +1401,7 @@ class hibachi(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
          https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac

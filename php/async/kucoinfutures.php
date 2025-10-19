@@ -568,7 +568,7 @@ class kucoinfutures extends kucoin {
                 $market = $data[$i];
                 $id = $this->safe_string($market, 'symbol');
                 $expiry = $this->safe_integer($market, 'expireDate');
-                $future = $expiry ? true : false;
+                $future = $this->safe_string($market, 'nextFundingRateTime') === null;
                 $swap = !$future;
                 $baseId = $this->safe_string($market, 'baseCurrency');
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -678,7 +678,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -1834,7 +1834,7 @@ class kucoinfutures extends kucoin {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders

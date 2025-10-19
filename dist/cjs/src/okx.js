@@ -21,7 +21,7 @@ class okx extends okx$1["default"] {
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.03,
+            'rateLimit': 100 * 1.10,
             'pro': true,
             'certified': true,
             'has': {
@@ -507,6 +507,7 @@ class okx extends okx$1["default"] {
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,
                         'account/move-positions': 10,
+                        'account/set-settle-currency': 1,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -689,6 +690,7 @@ class okx extends okx$1["default"] {
                     '51031': errors.InvalidOrder,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
+                    '51051': errors.InvalidOrder,
                     '51072': errors.InvalidOrder,
                     '51073': errors.InvalidOrder,
                     '51074': errors.InvalidOrder,
@@ -828,6 +830,9 @@ class okx extends okx$1["default"] {
                     '54008': errors.InvalidOrder,
                     '54009': errors.InvalidOrder,
                     '54011': errors.InvalidOrder,
+                    '54072': errors.ExchangeError,
+                    '54073': errors.BadRequest,
+                    '54074': errors.ExchangeError,
                     // Trading bot Error Code from 55100 to 55999
                     '55100': errors.InvalidOrder,
                     '55101': errors.InvalidOrder,
@@ -933,6 +938,9 @@ class okx extends okx$1["default"] {
                     '59519': errors.ExchangeError,
                     '59642': errors.BadRequest,
                     '59643': errors.ExchangeError,
+                    '59683': errors.ExchangeError,
+                    '59684': errors.BadRequest,
+                    '59686': errors.BadRequest,
                     // WebSocket error Codes from 60000-63999
                     '60001': errors.AuthenticationError,
                     '60002': errors.AuthenticationError,
@@ -1294,11 +1302,15 @@ class okx extends okx$1["default"] {
                     },
                     'fetchOHLCV': {
                         'limit': 300,
-                        'historical': 100,
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1506,14 +1518,33 @@ class okx extends okx$1["default"] {
         //         "data": [
         //             {
         //                 "acctLv": "2",
+        //                 "acctStpMode": "cancel_maker",
         //                 "autoLoan": false,
         //                 "ctIsoMode": "automatic",
+        //                 "enableSpotBorrow": false,
         //                 "greeksType": "PA",
+        //                 "feeType": "0",
+        //                 "ip": "",
+        //                 "type": "0",
+        //                 "kycLv": "3",
+        //                 "label": "v5 test",
         //                 "level": "Lv1",
         //                 "levelTmp": "",
+        //                 "liquidationGear": "-1",
+        //                 "mainUid": "44705892343619584",
         //                 "mgnIsoMode": "automatic",
+        //                 "opAuth": "1",
+        //                 "perm": "read_only,withdraw,trade",
         //                 "posMode": "long_short_mode",
-        //                 "uid": "88018754289672195"
+        //                 "roleType": "0",
+        //                 "spotBorrowAutoRepay": false,
+        //                 "spotOffsetType": "",
+        //                 "spotRoleType": "0",
+        //                 "spotTraderInsts": [],
+        //                 "traderInsts": [],
+        //                 "uid": "44705892343619584",
+        //                 "settleCcy": "USDT",
+        //                 "settleCcyList": ["USD", "USDC", "USDG"],
         //             }
         //         ],
         //         "msg": ""
@@ -1795,7 +1826,7 @@ class okx extends okx$1["default"] {
         // and fallback to generating the currencies from the markets
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
         if (!this.checkRequiredCredentials(false) || isSandboxMode) {
-            return undefined;
+            return {};
         }
         //
         // has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
@@ -2440,16 +2471,18 @@ class okx extends okx$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
         }
-        const price = this.safeString(params, 'price');
+        const priceType = this.safeString(params, 'price');
+        const isMarkOrIndex = this.inArray(priceType, ['mark', 'index']);
         params = this.omit(params, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
         const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         }
         else {
-            limit = Math.min(limit, 300); // max 100
+            const maxLimit = isMarkOrIndex ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = Math.min(limit, maxLimit);
         }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2469,8 +2502,8 @@ class okx extends okx$1["default"] {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = (price !== undefined) ? 100 : 300;
-                limit = Math.min(limit, maxLimit); // max 300 for historical endpoint
+                const maxLimit = isMarkOrIndex ? 100 : 300;
+                limit = Math.min(limit, maxLimit);
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
@@ -2486,7 +2519,7 @@ class okx extends okx$1["default"] {
         params = this.omit(params, 'type');
         const isHistoryCandles = (type === 'HistoryCandles');
         let response = undefined;
-        if (price === 'mark') {
+        if (priceType === 'mark') {
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryMarkPriceCandles(this.extend(request, params));
             }
@@ -2494,7 +2527,7 @@ class okx extends okx$1["default"] {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, params));
             }
         }
-        else if (price === 'index') {
+        else if (priceType === 'index') {
             request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, params));
@@ -3159,7 +3192,8 @@ class okx extends okx$1["default"] {
                 request['attachAlgoOrds'] = [attachAlgoOrd];
             }
         }
-        else if (trigger) {
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);
@@ -3610,10 +3644,18 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                request.push({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                });
+                if (trailing || trigger) {
+                    request.push({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    });
+                }
+                else {
+                    request.push({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    });
+                }
             }
         }
         let response = undefined;
@@ -3690,7 +3732,12 @@ class okx extends okx$1["default"] {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
-                idKey = 'clOrdId';
+                if (isStopOrTrailing) {
+                    idKey = 'algoClOrdId';
+                }
+                else {
+                    idKey = 'clOrdId';
+                }
             }
             const requestItem = {
                 'instId': market['id'],

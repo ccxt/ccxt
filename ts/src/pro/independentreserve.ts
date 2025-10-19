@@ -233,6 +233,7 @@ export default class independentreserve extends independentreserveRest {
                 delete this.orderbooks[symbol];
                 this.streamProduce ('orderbooks::' + symbol, undefined, error);
                 client.reject (error, messageHash);
+                return;
             }
         }
         if (receivedSnapshot) {

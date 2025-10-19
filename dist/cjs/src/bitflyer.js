@@ -35,6 +35,7 @@ class bitflyer extends bitflyer$1["default"] {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
+                'fetchCurrencies': false,
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,

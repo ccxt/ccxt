@@ -42,6 +42,13 @@ class testMainClass:
         self.ext = get_ext()
 
     def init(self, exchange_id, symbol_argv, method_argv):
+        try:
+            self.init_inner(exchange_id, symbol_argv, method_argv)
+        except Exception as e:
+            dump('[TEST_FAILURE]')  # tell run-tests.js this is failure
+            raise e
+
+    def init_inner(self, exchange_id, symbol_argv, method_argv):
         self.parse_cli_args_and_props()
         if self.request_tests and self.response_tests:
             self.run_static_request_tests(exchange_id, symbol_argv)
@@ -72,6 +79,7 @@ class testMainClass:
         }
         exchange = init_exchange(exchange_id, exchange_args, self.ws_tests)
         if exchange.alias:
+            dump(self.add_padding('[INFO] skipping alias', 25))
             exit_script(0)
         self.import_files(exchange)
         assert len(list(self.test_files.keys())) > 0, 'Test files were not loaded'  # ensure test files are found & filled
@@ -328,6 +336,7 @@ class testMainClass:
                     # If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if is_public and is_auth_error:
                         if self.info:
+                            # todo - turn into warning
                             dump('[INFO]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
                         return True
                     else:
@@ -1185,7 +1194,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_coincatch(), self.test_defx(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1731,6 +1740,22 @@ class testMainClass:
             request = json_parse(exchange.last_request_body)
         broker_id = request['order_tag']
         assert broker_id == id, 'modetrade - id: ' + id + ' different from  broker_id: ' + broker_id
+        if not is_sync():
+            close(exchange)
+        return True
+
+    def test_backpack(self):
+        exchange = self.init_offline_exchange('backpack')
+        exchange.apiKey = 'Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo='
+        exchange.secret = 'sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU='
+        req_headers = None
+        id = '1400'
+        try:
+            exchange.create_order('ETH/USDC', 'limit', 'buy', 1, 5000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-Broker-Id'] == id, 'backpack - id: ' + id + ' not in headers.'
         if not is_sync():
             close(exchange)
         return True

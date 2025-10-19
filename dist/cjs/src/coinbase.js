@@ -280,6 +280,7 @@ class coinbase extends coinbase$1["default"] {
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
                             'brokerage/payment_methods': 1,
                             'brokerage/payment_methods/{payment_method_id}': 1,
+                            'brokerage/key_permissions': 1,
                         },
                         'post': {
                             'brokerage/orders': 1,
@@ -2919,7 +2920,7 @@ class coinbase extends coinbase$1["default"] {
             }
             accountId = await this.findAccountId(code, params);
             if (accountId === undefined) {
-                throw new errors.ExchangeError(this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code);
+                throw new errors.ExchangeError(this.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.');
             }
         }
         const request = {

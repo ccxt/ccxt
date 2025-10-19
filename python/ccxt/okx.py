@@ -45,7 +45,7 @@ class okx(Exchange, ImplicitAPI):
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.03,  # 3% tolerance because of  #20229
+            'rateLimit': 100 * 1.10,  # 10% tolerance because of  #26973
             'pro': True,
             'certified': True,
             'has': {
@@ -531,6 +531,7 @@ class okx(Exchange, ImplicitAPI):
                         'account/fixed-loan/repay-borrowing-order': 5,
                         'account/bills-history-archive': 72000,  # 12 req/day
                         'account/move-positions': 10,
+                        'account/set-settle-currency': 1,
                         # subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -688,7 +689,7 @@ class okx(Exchange, ImplicitAPI):
                     '51005': InvalidOrder,  # Order amount exceeds the limit
                     '51006': InvalidOrder,  # Order price out of the limit
                     '51007': InvalidOrder,  # Order placement failed. Order amount should be at least 1 contract(showing up when placing an order with less than 1 contract)
-                    '51008': InsufficientFunds,  # Order placement failed due to insufficient balance
+                    '51008': InsufficientFunds,  # Order placement failed due to insufficient balance or margin
                     '51009': AccountSuspended,  # Order placement function is blocked by the platform
                     '51010': AccountNotEnabled,  # Account level too low {"code":"1","data":[{"clOrdId":"uJrfGFth9F","ordId":"","sCode":"51010","sMsg":"The current account mode does not support self API interface. ","tag":""}],"msg":"Operation failed."}
                     '51011': InvalidOrder,  # Duplicated order ID
@@ -713,6 +714,7 @@ class okx(Exchange, ImplicitAPI):
                     '51031': InvalidOrder,  # This order price is not within the closing price range
                     '51046': InvalidOrder,  # The take profit trigger price must be higher than the order price
                     '51047': InvalidOrder,  # The stop loss trigger price must be lower than the order price
+                    '51051': InvalidOrder,  # Your SL price should be lower than the primary order price
                     '51072': InvalidOrder,  # As a spot lead trader, you need to set tdMode to 'spot_isolated' when configured buying lead trade pairs
                     '51073': InvalidOrder,  # As a spot lead trader, you need to use '/copytrading/close-subposition' for selling assets through lead trades
                     '51074': InvalidOrder,  # Only the tdMode for lead trade pairs configured by spot lead traders can be set to 'spot_isolated'
@@ -828,7 +830,7 @@ class okx(Exchange, ImplicitAPI):
                     '51410': CancelPending,  # Cancellation failed order is already under cancelling status
                     '51500': ExchangeError,  # Either order price or amount is required
                     '51501': ExchangeError,  # Maximum {0} orders can be modified
-                    '51502': InsufficientFunds,  # Order modification failed for insufficient margin
+                    '51502': InsufficientFunds,  # Order modification failed for insufficient margin or balance
                     '51503': ExchangeError,  # Order modification failed order does not exist
                     '51506': ExchangeError,  # Order modification unavailable for the order type
                     '51508': ExchangeError,  # Orders are not allowed to be modified during the call auction
@@ -852,6 +854,9 @@ class okx(Exchange, ImplicitAPI):
                     '54008': InvalidOrder,  # This operation is disabled by the 'mass cancel order' endpoint. Please enable it using self endpoint.
                     '54009': InvalidOrder,  # The range of {param0} should be [{param1}, {param2}].
                     '54011': InvalidOrder,  # 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54072': ExchangeError,  # This contract is currently view-only and not tradable.
+                    '54073': BadRequest,  # Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
+                    '54074': ExchangeError,  # Your settings failed have positions, bot or open orders for USD contracts.
                     # Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,  # Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': InvalidOrder,  # Stop loss % should be within the range of {parameter1}-{parameter2}
@@ -957,6 +962,9 @@ class okx(Exchange, ImplicitAPI):
                     '59519': ExchangeError,  # You can’t use self function/feature while it's frozen, due to: {freezereason}
                     '59642': BadRequest,  # Lead and copy traders can only use margin-free or single-currency margin account modes
                     '59643': ExchangeError,  # Couldn’t switch account modes’re currently copying spot trades
+                    '59683': ExchangeError,  # Set self crypto collateral crypto before selecting it settlement currency.
+                    '59684': BadRequest,  # Borrowing isn’t supported for self currency.
+                    '59686': BadRequest,  # This crypto can’t be set settlement currency.
                     # WebSocket error Codes from 60000-63999
                     '60001': AuthenticationError,  # "OK_ACCESS_KEY" can not be empty
                     '60002': AuthenticationError,  # "OK_ACCESS_SIGN" can not be empty
@@ -1317,12 +1325,16 @@ class okx(Exchange, ImplicitAPI):
                         'symbolRequired': False,
                     },
                     'fetchOHLCV': {
-                        'limit': 300,
-                        'historical': 100,
+                        'limit': 300,  # regular candles(recent & historical) both have 300 max
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -1521,14 +1533,33 @@ class okx(Exchange, ImplicitAPI):
         #         "data": [
         #             {
         #                 "acctLv": "2",
+        #                 "acctStpMode": "cancel_maker",
         #                 "autoLoan": False,
         #                 "ctIsoMode": "automatic",
+        #                 "enableSpotBorrow": False,
         #                 "greeksType": "PA",
+        #                 "feeType": "0",
+        #                 "ip": "",
+        #                 "type": "0",
+        #                 "kycLv": "3",
+        #                 "label": "v5 test",
         #                 "level": "Lv1",
         #                 "levelTmp": "",
+        #                 "liquidationGear": "-1",
+        #                 "mainUid": "44705892343619584",
         #                 "mgnIsoMode": "automatic",
+        #                 "opAuth": "1",
+        #                 "perm": "read_only,withdraw,trade",
         #                 "posMode": "long_short_mode",
-        #                 "uid": "88018754289672195"
+        #                 "roleType": "0",
+        #                 "spotBorrowAutoRepay": False,
+        #                 "spotOffsetType": "",
+        #                 "spotRoleType": "0",
+        #                 "spotTraderInsts": [],
+        #                 "traderInsts": [],
+        #                 "uid": "44705892343619584",
+        #                 "settleCcy": "USDT",
+        #                 "settleCcyList": ["USD", "USDC", "USDG"],
         #             }
         #         ],
         #         "msg": ""
@@ -1793,7 +1824,7 @@ class okx(Exchange, ImplicitAPI):
         # and fallback to generating the currencies from the markets
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if not self.check_required_credentials(False) or isSandboxMode:
-            return None
+            return {}
         #
         # has['fetchCurrencies'] is currently set to True, but an unauthorized request returns
         #
@@ -2385,7 +2416,7 @@ class okx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2414,15 +2445,17 @@ class okx(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200)
-        price = self.safe_string(params, 'price')
+        priceType = self.safe_string(params, 'price')
+        isMarkOrIndex = self.in_array(priceType, ['mark', 'index'])
         params = self.omit(params, 'price')
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         timezone = self.safe_string(options, 'timezone', 'UTC')
         limitIsUndefined = (limit is None)
         if limit is None:
-            limit = 100  # default 100, max 100
+            limit = 100  # default 100, max 300
         else:
-            limit = min(limit, 300)  # max 100
+            maxLimit = 100 if isMarkOrIndex else 300  # default 300, only 100 if 'mark' or 'index'
+            limit = min(limit, maxLimit)
         duration = self.parse_timeframe(timeframe)
         bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
@@ -2440,8 +2473,8 @@ class okx(Exchange, ImplicitAPI):
             historyBorder = now - ((1440 - 1) * durationInMilliseconds)
             if since < historyBorder:
                 defaultType = 'HistoryCandles'
-                maxLimit = 100 if (price is not None) else 300
-                limit = min(limit, maxLimit)  # max 300 for historical endpoint
+                maxLimit = 100 if isMarkOrIndex else 300
+                limit = min(limit, maxLimit)
             startTime = max(since - 1, 0)
             request['before'] = startTime
             request['after'] = self.sum(since, durationInMilliseconds * limit)
@@ -2454,12 +2487,12 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, 'type')
         isHistoryCandles = (type == 'HistoryCandles')
         response = None
-        if price == 'mark':
+        if priceType == 'mark':
             if isHistoryCandles:
                 response = self.publicGetMarketHistoryMarkPriceCandles(self.extend(request, params))
             else:
                 response = self.publicGetMarketMarkPriceCandles(self.extend(request, params))
-        elif price == 'index':
+        elif priceType == 'index':
             request['instId'] = market['info']['instFamily']  # okx index candles require instFamily instead of instId
             if isHistoryCandles:
                 response = self.publicGetMarketHistoryIndexCandles(self.extend(request, params))
@@ -3044,7 +3077,8 @@ class okx(Exchange, ImplicitAPI):
             attachOrdLen = len(attachOrdKeys)
             if attachOrdLen > 0:
                 request['attachAlgoOrds'] = [attachAlgoOrd]
-        elif trigger:
+        # algo order details
+        if trigger:
             request['ordType'] = 'trigger'
             request['triggerPx'] = self.price_to_precision(symbol, triggerPrice)
             request['orderPx'] = '-1' if isMarketOrder else self.price_to_precision(symbol, price)
@@ -3386,7 +3420,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             return ids
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -3436,10 +3470,16 @@ class okx(Exchange, ImplicitAPI):
                     })
         else:
             for i in range(0, len(clientOrderIds)):
-                request.append({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                })
+                if trailing or trigger:
+                    request.append({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    })
+                else:
+                    request.append({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    })
         response = None
         if method == 'privatePostTradeCancelAlgos':
             response = self.privatePostTradeCancelAlgos(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
@@ -3510,7 +3550,10 @@ class okx(Exchange, ImplicitAPI):
             if isStopOrTrailing:
                 idKey = 'algoId'
             elif clientOrderId is not None:
-                idKey = 'clOrdId'
+                if isStopOrTrailing:
+                    idKey = 'algoClOrdId'
+                else:
+                    idKey = 'clOrdId'
             requestItem: dict = {
                 'instId': market['id'],
             }

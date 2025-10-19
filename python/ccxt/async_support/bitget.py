@@ -1346,6 +1346,8 @@ class bitget(Exchange, ImplicitAPI):
                     '43025': InvalidOrder,  # Plan order does not exist
                     '43115': OnMaintenance,  # {"code":"43115","msg":"The current trading pair is opening soon, please refer to the official announcement for the opening time","requestTime":1688907202434,"data":null}
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
+                    '40774': InvalidOrder,  # {"code":"40774","msg":"The order type for unilateral position must also be the unilateral position type.","requestTime":1758709764409,"data":null}
+                    '45122': InvalidOrder,  # {"code":"45122","msg":"Short position stop loss price please > mark price 106.86","requestTime":1758709970499,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol,  # invalid trading pair
@@ -1797,8 +1799,19 @@ class bitget(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enabled):
+    def set_sandbox_mode(self, enabled: bool):
+        """
+        enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+ @param enabled
+        """
         self.options['sandboxMode'] = enabled
+
+    def enable_demo_trading(self, enabled: bool):
+        """
+        enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+ @param enabled
+        """
+        self.set_sandbox_mode(enabled)
 
     def handle_product_type_and_params(self, market=None, params={}):
         subType = None
@@ -4025,7 +4038,7 @@ class bitget(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -4222,9 +4235,52 @@ class bitget(Exchange, ImplicitAPI):
             request['productType'] = productType
             response = await self.privateMixGetV2MixAccountAccounts(self.extend(request, params))
         elif marginMode == 'isolated':
-            response = await self.privateMarginGetMarginV1IsolatedAccountAssets(self.extend(request, params))
+            response = await self.privateMarginGetV2MarginIsolatedAccountAssets(self.extend(request, params))
+            #
+            #    {
+            #        "code": "00000",
+            #        "msg": "success",
+            #        "requestTime": "1759829170717",
+            #        "data": [
+            #            {
+            #                "symbol": "BTCUSDT",
+            #                "coin": "USDT",
+            #                "totalAmount": "0.000001",
+            #                "available": "0.000001",
+            #                "frozen": "0",
+            #                "borrow": "0",
+            #                "interest": "0",
+            #                "net": "0.000001",
+            #                "coupon": "0",
+            #                "cTime": "1759826434145",
+            #                "uTime": "1759826434146"
+            #            },
+            #        ]
+            #    }
+            #
         elif marginMode == 'cross':
-            response = await self.privateMarginGetMarginV1CrossAccountAssets(self.extend(request, params))
+            response = await self.privateMarginGetV2MarginCrossedAccountAssets(self.extend(request, params))
+            #
+            #    {
+            #        "code": "00000",
+            #        "msg": "success",
+            #        "requestTime": "1759828519501",
+            #        "data": [
+            #            {
+            #                "coin": "USDT",
+            #                "totalAmount": "0.01",
+            #                "available": "0.01",
+            #                "frozen": "0",
+            #                "borrow": "0",
+            #                "interest": "0",
+            #                "net": "0.01",
+            #                "coupon": "0",
+            #                "cTime": "1759828511592",
+            #                "uTime": "1759828511592"
+            #            }
+            #        ]
+            #    }
+            #
         elif marketType == 'spot':
             response = await self.privateSpotGetV2SpotAccountAssets(self.extend(request, params))
         else:
@@ -4270,49 +4326,6 @@ class bitget(Exchange, ImplicitAPI):
         #                 "crossedUnrealizedPL": null,
         #                 "isolatedUnrealizedPL": null
         #             }
-        #         ]
-        #     }
-        #
-        # isolated margin
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1697501436571,
-        #         "data": [
-        #             {
-        #                 "symbol": "BTCUSDT",
-        #                 "coin": "BTC",
-        #                 "totalAmount": "0.00021654",
-        #                 "available": "0.00021654",
-        #                 "transferable": "0.00021654",
-        #                 "frozen": "0",
-        #                 "borrow": "0",
-        #                 "interest": "0",
-        #                 "net": "0.00021654",
-        #                 "ctime": "1697248128071"
-        #             },
-        #         ]
-        #     }
-        #
-        # cross margin
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1697515463804,
-        #         "data": [
-        #             {
-        #                 "coin": "BTC",
-        #                 "totalAmount": "0.00024996",
-        #                 "available": "0.00024996",
-        #                 "transferable": "0.00004994",
-        #                 "frozen": "0",
-        #                 "borrow": "0.0001",
-        #                 "interest": "0.00000001",
-        #                 "net": "0.00014995",
-        #                 "ctime": "1697251265504"
-        #             },
         #         ]
         #     }
         #
@@ -4409,34 +4422,21 @@ class bitget(Exchange, ImplicitAPI):
         #         "isolatedUnrealizedPL": null
         #     }
         #
-        # isolated margin
+        # cross & isolated margin
         #
-        #     {
-        #         "symbol": "BTCUSDT",
-        #         "coin": "BTC",
-        #         "totalAmount": "0.00021654",
-        #         "available": "0.00021654",
-        #         "transferable": "0.00021654",
-        #         "frozen": "0",
-        #         "borrow": "0",
-        #         "interest": "0",
-        #         "net": "0.00021654",
-        #         "ctime": "1697248128071"
-        #     }
-        #
-        # cross margin
-        #
-        #     {
-        #         "coin": "BTC",
-        #         "totalAmount": "0.00024995",
-        #         "available": "0.00024995",
-        #         "transferable": "0.00004993",
-        #         "frozen": "0",
-        #         "borrow": "0.0001",
-        #         "interest": "0.00000001",
-        #         "net": "0.00014994",
-        #         "ctime": "1697251265504"
-        #     }
+        #      {
+        #           "coin": "USDT",
+        #           "totalAmount": "0.01",
+        #           "available": "0.01",
+        #           "frozen": "0",
+        #           "borrow": "0",
+        #           "interest": "0",
+        #           "net": "0.01",
+        #           "coupon": "0",
+        #           "cTime": "1759828511592",
+        #           "uTime": "1759828511592"
+        #           # "symbol": "BTCUSDT"  # only for isolated margin
+        #       }
         #
         for i in range(0, len(balance)):
             entry = balance[i]
@@ -5047,6 +5047,13 @@ class bitget(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'orderType': type,
         }
+        hedged = None
+        hedged, params = self.handle_param_bool(params, 'hedged', False)
+        # backward compatibility for `oneWayMode`
+        oneWayMode = None
+        oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
+        if oneWayMode is not None:
+            hedged = not oneWayMode
         isMarketOrder = type == 'market'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice')
@@ -5124,7 +5131,10 @@ class bitget(Exchange, ImplicitAPI):
             elif isStopLossOrTakeProfitTrigger:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
+                if hedged:
+                    request['holdSide'] = 'long' if (side == 'sell') else 'short'
+                else:
+                    request['holdSide'] = 'buy' if (side == 'sell') else 'sell'
                 if isStopLossTriggerOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     request['planType'] = 'pos_loss'
@@ -5143,13 +5153,6 @@ class bitget(Exchange, ImplicitAPI):
                     marginMode = 'cross'
                 marginModeRequest = 'crossed' if (marginMode == 'cross') else 'isolated'
                 request['marginMode'] = marginModeRequest
-                hedged = None
-                hedged, params = self.handle_param_bool(params, 'hedged', False)
-                # backward compatibility for `oneWayMode`
-                oneWayMode = None
-                oneWayMode, params = self.handle_param_bool(params, 'oneWayMode')
-                if oneWayMode is not None:
-                    hedged = not oneWayMode
                 requestSide = side
                 if reduceOnly:
                     if not hedged:
@@ -5717,7 +5720,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -7504,7 +7507,9 @@ class bitget(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             first = self.safe_string(symbols, 0)
-            market = self.market(first)
+            # symbols can be None or []
+            if first is not None:
+                market = self.market(first)
         productType = None
         productType, params = self.handle_product_type_and_params(market, params)
         request: dict = {}
@@ -7517,7 +7522,7 @@ class bitget(Exchange, ImplicitAPI):
             response = await self.privateUtaGetV3PositionCurrentPosition(self.extend(request, params))
         elif method == 'privateMixGetV2MixPositionAllPosition':
             marginCoin = self.safe_string(params, 'marginCoin', 'USDT')
-            if symbols is not None:
+            if market is not None:
                 marginCoin = market['settleId']
             elif productType == 'USDT-FUTURES':
                 marginCoin = 'USDT'

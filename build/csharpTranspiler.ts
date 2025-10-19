@@ -738,7 +738,7 @@ class NewTranspiler {
 
     transpileBaseMethods(baseExchangeFile: string) {
         const csharpExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP'
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');

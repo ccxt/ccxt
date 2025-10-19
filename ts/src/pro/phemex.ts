@@ -120,7 +120,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result: Dict = {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -143,8 +143,7 @@ export default class phemex extends phemexRest {
             'markPrice': this.parseNumber (this.fromEp (this.safeString (ticker, 'markPrice'), market)),
             'indexPrice': this.parseNumber (this.fromEp (this.safeString (ticker, 'indexPrice'), market)),
             'info': ticker,
-        };
-        return result;
+        });
     }
 
     parsePerpetualTicker (ticker, market = undefined) {
@@ -181,7 +180,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result: Dict = {
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -202,8 +201,7 @@ export default class phemex extends phemexRest {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        });
     }
 
     handleTicker (client: Client, message) {
@@ -679,7 +677,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1174,6 +1172,10 @@ export default class phemex extends phemexRest {
                 parsedOrders.push (parsedOrder);
             }
         } else {
+            const messageLength = message.length;
+            if (messageLength === 0) {
+                return;
+            }
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
                 const action = this.safeString (update, 'action');
