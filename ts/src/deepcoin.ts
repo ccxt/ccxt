@@ -1727,8 +1727,8 @@ export default class deepcoin extends Exchange {
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posMode] merge or split, default is merge
+     * @param {string} [params.marginMode] 'cross' or 'isolated' (default is cross)
+     * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
@@ -1742,24 +1742,21 @@ export default class deepcoin extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
-        if (marginMode === undefined) {
-            marginMode = this.safeString (params, 'mgnMode', 'cross'); // cross as default marginMode
-        }
+        let marginMode = 'cross';
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, marginMode);
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
         }
-        const posMode = this.safeString (params, 'posMode', 'merge');
-        if (posMode !== 'merge' && posMode !== 'split') {
-            throw new BadRequest (this.id + ' setLeverage() posMode parameter must be either merge or split');
+        let mrgPosition = 'merge';
+        [ mrgPosition, params ] = this.handleOptionAndParams (params, 'setLeverage', 'mrgPosition', mrgPosition);
+        if (mrgPosition !== 'merge' && mrgPosition !== 'split') {
+            throw new BadRequest (this.id + ' setLeverage() mrgPosition parameter must be either merge or split');
         }
-        params = this.omit (params, [ 'mgnMode', 'posMode' ]);
         const request: Dict = {
             'lever': leverage,
             'mgnMode': marginMode,
             'instId': market['id'],
-            'mrgPosition': posMode,
+            'mrgPosition': mrgPosition,
         };
         const response = await this.privatePostDeepcoinAccountSetLeverage (this.extend (request, params));
         //
