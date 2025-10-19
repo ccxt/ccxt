@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, FundingRate, FundingRates, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRates, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -1537,7 +1537,7 @@ export default class deepcoin extends Exchange {
             average = undefined;
         }
         const feeCurrencyId = this.safeString (order, 'feeCcy');
-        let fee: Fee = undefined;
+        let fee = undefined;
         if (feeCurrencyId !== undefined) {
             const feeCost = this.safeString (order, 'fee');
             fee = {
@@ -1926,7 +1926,7 @@ export default class deepcoin extends Exchange {
      * @param {int} [params.page] pagination page number
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
