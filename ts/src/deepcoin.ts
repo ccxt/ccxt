@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, Fee, FundingRate, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Fee, FundingRate, FundingRates, FundingRateHistory, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ export default class deepcoin extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchLedger': false,
                 'fetchLeverage': false,
@@ -464,6 +464,20 @@ export default class deepcoin extends Exchange {
             },
             'info': market,
         });
+    }
+
+    setMarkets (markets, currencies = undefined) {
+        markets = super.setMarkets (markets, currencies);
+        const symbols = Object.keys (markets);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = markets[symbol];
+            if (market['swap']) {
+                const additionalId = market['baseId'] + market['quoteId'];
+                this.markets_by_id[additionalId] = [ market ]; // some endpoints return swap market id as base+quote
+            }
+        }
+        return this.markets;
     }
 
     /**
@@ -1778,12 +1792,64 @@ export default class deepcoin extends Exchange {
 
     /**
      * @method
+     * @name deepcoin#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, 'swap', true, true, true);
+        let subType = 'linear';
+        let firstMarket: Market = undefined;
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString (symbols, 0);
+            firstMarket = this.market (firstSymbol);
+        }
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', firstMarket, params, subType);
+        let instType = 'SwapU';
+        if (subType === 'inverse') {
+            instType = 'Swap';
+        } else if (subType !== 'linear') {
+            throw new BadRequest (this.id + ' fetchFundingRates() subType parameter must be either linear or inverse');
+        }
+        const request: Dict = {
+            'instType': instType,
+        };
+        const response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "current_fund_rates": [
+        //                 {
+        //                     "instrumentId": "SPKUSDT",
+        //                     "fundingRate": 0.00005
+        //                 },
+        //                 {
+        //                     "instrumentId": "LAUNCHCOINUSDT",
+        //                     "fundingRate": 0.00005
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rates = this.safeList (data, 'current_fund_rates', []);
+        return this.parseFundingRates (rates, symbols);
+    }
+
+    /**
+     * @method
      * @name deepcoin#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://www.deepcoin.com/docs/DeepCoinTrade/currentFundRate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.instType] Swap or SwapU (default SwapU)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
@@ -1792,11 +1858,9 @@ export default class deepcoin extends Exchange {
         if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
-        const instType = this.safeString (params, 'instType', 'SwapU');
-        params = this.omit (params, 'instType');
         const request: Dict = {
             'instId': market['id'],
-            'instType': instType,
+            'instType': this.getProductGroupFromMarket (market),
         };
         const response = await this.privateGetDeepcoinTradeFundRateCurrentFundingRate (this.extend (request, params));
         //
@@ -1819,61 +1883,6 @@ export default class deepcoin extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    /**
-     * @method
-     * @name okx#fetchFundingRateHistory
-     * @description fetches historical funding rate prices
-     * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
-     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-     */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'instId': market['id'],
-        };
-        const response = await this.privateGetDeepcoinTradeFundRateHistory (this.extend (request, params));
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "",
-        //         "data": {
-        //             "rows": [
-        //                 {
-        //                     "instrumentID": "ETHUSDT",
-        //                     "rate": "0.0000546841",
-        //                     "CreateTime": 1760745600,
-        //                     "ratePeriodSec": 0
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const rates = [];
-        const data = this.safeDict (response, 'data', {});
-        const rows = this.safeList (data, 'rows', []);
-        for (let i = 0; i < rows.length; i++) {
-            const rate = rows[i];
-            const timestamp = this.safeInteger (rate, 'CreateTime');
-            rates.push ({
-                'info': rate,
-                'symbol': market['symbol'],
-                'fundingRate': this.safeNumber (rate, 'rate'),
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-            });
-        }
-        const sorted = this.sortBy (rates, 'timestamp');
-        return sorted as FundingRateHistory[];
-    }
-
     parseFundingRate (contract, market: Market = undefined): FundingRate {
         //
         //     {
@@ -1881,7 +1890,7 @@ export default class deepcoin extends Exchange {
         //         "fundingRate": 0.0000402356250176
         //     }
         //
-        const marketId = this.safeString (contract, 'instrumentId');
+        const marketId = this.safeString2 (contract, 'instrumentId', 'instrumentID');
         const symbol = this.safeSymbol (marketId, market);
         return {
             'info': contract,
@@ -1903,6 +1912,79 @@ export default class deepcoin extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': undefined,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name okx#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/fundingRateHistory
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.page] pagination page number
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['size'] = limit; // default 20, max 100
+        }
+        const response = await this.privateGetDeepcoinTradeFundRateHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "instrumentID": "ETHUSD",
+        //                     "rate": "0.00046493",
+        //                     "CreateTime": 1760860800,
+        //                     "ratePeriodSec": 0
+        //                 },
+        //                 {
+        //                     "instrumentID": "ETHUSD",
+        //                     "rate": "0.00047949",
+        //                     "CreateTime": 1760832000,
+        //                     "ratePeriodSec": 0
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseFundingRateHistories (rows, market, since, limit);
+    }
+
+    parseFundingRateHistory (info, market: Market = undefined): FundingRateHistory {
+        //
+        //     {
+        //         "instrumentID": "ETHUSD",
+        //         "rate": "0.00047949",
+        //         "CreateTime": 1760832000,
+        //         "ratePeriodSec": 0
+        //     }
+        //
+        const timestamp = this.safeTimestamp (info, 'CreateTime');
+        const instrumentID = this.safeString2 (info, 'instrumentID', 'instrumentId');
+        market = this.safeMarket (instrumentID, market, undefined, 'swap');
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'fundingRate': this.safeNumber (info, 'rate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
