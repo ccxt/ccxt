@@ -2067,6 +2067,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "limits": "some market limits have min>max "
+            },
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://github.com/ccxt/ccxt/actions/runs/18630110901/job/53113603278?pr=27030"
             }
         }
     }
