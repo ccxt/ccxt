@@ -5249,6 +5249,14 @@ export default class Exchange {
         return await this.createOrder (symbol, type, side, amount, price, params);
     }
 
+    async editOrderWithClientOrderId (clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        if (this.has['editOrderWithClientOrderId']) {
+            await this.cancelOrderWithClientOrderId (clientOrderId, symbol);
+            return await this.createOrder (symbol, type, side, amount, price, params);
+        }
+        throw new NotSupported (this.id + ' editOrderWithClientOrderId() is not supported yet');
+    }
+
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
         await this.cancelOrderWs (id, symbol);
         return await this.createOrderWs (symbol, type, side, amount, price, params);
@@ -5792,8 +5800,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.has['fetchOrderWithClientOrderId'] || (this.has['fetchOrderWithClientOrderId'] && this.has['fetchOrderWithClientOrderId'])) {
-            return await this.cancelOrder (clientOrderId, symbol, params);
+        if (this.has['fetchOrderWithClientOrderId']) {
+            params = this.extend (params, { 'clientOrderId': clientOrderId });
+            return await this.fetchOrder ('', symbol, params);
         }
         throw new NotSupported (this.id + ' fetchOrderWithClientOrderId() is not supported yet');
     }
@@ -6291,8 +6300,9 @@ export default class Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.has['cancelOrderWithClientOrderId'] || (this.has['cancelOrderWithClientOrderId'] && this.has['cancelOrderWithClientOrderId'])) {
-            return await this.cancelOrder (clientOrderId, symbol, params);
+        if (this.has['cancelOrderWithClientOrderId']) {
+            params = this.extend (params, { 'clientOrderId': clientOrderId });
+            return await this.cancelOrder ('', symbol, params);
         }
         throw new NotSupported (this.id + ' cancelOrderWithClientOrderId() is not supported yet');
     }
@@ -6305,20 +6315,21 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
     }
 
-    async cancelOrdersWithClientOrderId (clientOrderids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrdersWithClientOrderIds (clientOrderids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
-         * @name cancelOrdersWithClientOrderId
+         * @name cancelOrdersWithClientOrderIds
          * @description create a market order by providing the symbol, side and cost
          * @param {string[]} clientOrderids client order Ids
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        if (this.has['cancelOrdersWithClientOrderId'] || (this.has['cancelOrdersWithClientOrderId'] && this.has['cancelOrdersWithClientOrderId'])) {
-            return await this.cancelOrder (clientOrderids[0], symbol, params);
+        if (this.has['cancelOrdersWithClientOrderIds']) {
+            params = this.extend (params, { 'clientOrderids': clientOrderids });
+            return await this.cancelOrders ([], symbol, params);
         }
-        throw new NotSupported (this.id + ' cancelOrdersWithClientOrderId() is not supported yet');
+        throw new NotSupported (this.id + ' cancelOrderWithClientOrderIds() is not supported yet');
     }
 
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
