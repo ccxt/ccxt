@@ -37,7 +37,7 @@ export default class deepcoin extends Exchange {
                 'cancelOrder': false,
                 'cancelOrders': false,
                 'cancelWithdraw': false,
-                'closePosition': false,
+                'closePosition': true,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
                 'createLimitBuyOrder': true,
@@ -197,9 +197,9 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/cancel-trigger-order': 1 / 6, // done
                         'deepcoin/trade/swap/cancel-all': 5, // done
                         'deepcoin/trade/trigger-order': 5,
-                        'deepcoin/trade/batch-close-position': 5,
+                        'deepcoin/trade/batch-close-position': 5, // done
                         'deepcoin/trade/replace-order-sltp': 5,
-                        'deepcoin/trade/close-position-by-ids': 5,
+                        'deepcoin/trade/close-position-by-ids': 5, // done
                         'deepcoin/copytrading/leader-settings': 5,
                         'deepcoin/copytrading/set-contracts': 5,
                         'deepcoin/internal-transfer': 5,
@@ -2113,6 +2113,43 @@ export default class deepcoin extends Exchange {
         }
         params = this.extend ({ 'ordId': id }, params);
         return await this.fetchMyTrades (symbol, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#closePosition
+     * @description closes open positions for a market
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/batchClosePosition
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/closePositionByIds
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} [side] not used by deepcoin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string|undefined} [params.positionId] the id of the position you would like to close
+     * @param {string[]|undefined} [params.positionIds] list of position ids to close (for batch closing)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const productGroup = this.getProductGroupFromMarket (market);
+        const positionId = this.safeString (params, 'positionId');
+        const positionIds = this.safeList (params, 'positionIds');
+        const request: Dict = {
+            'instId': market['id'],
+            'productGroup': productGroup,
+        };
+        let response = undefined;
+        if (positionId === undefined && positionIds === undefined) {
+            response = await this.privatePostDeepcoinTradeBatchClosePosition (this.extend (request, params));
+        } else {
+            if (positionId !== undefined) {
+                params = this.omit (params, 'positionId');
+                request['positionIds'] = [ positionId ];
+            }
+            response = await this.privatePostDeepcoinTradeClosePositionByIds (this.extend (request, params));
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrder (data, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
