@@ -86,7 +86,7 @@ export default class deepcoin extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
@@ -95,7 +95,7 @@ export default class deepcoin extends Exchange {
                 'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
-                'fetchOrderTrades': false,
+                'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -163,7 +163,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/account/balances': 5, // done
                         'deepcoin/account/bills': 5,
                         'deepcoin/account/positions': 5, // done
-                        'deepcoin/trade/fills': 5,
+                        'deepcoin/trade/fills': 5, // done
                         'deepcoin/trade/orderByID': 5, // done
                         'deepcoin/trade/finishOrderByID': 5, // done
                         'deepcoin/trade/orders-history': 5, // done
@@ -784,7 +784,10 @@ export default class deepcoin extends Exchange {
         }, market);
     }
 
-    parseTakerOrMaker (execType: string) {
+    parseTakerOrMaker (execType: Str) {
+        if (execType === undefined) {
+            return undefined;
+        }
         const types = {
             'T': 'taker',
             'M': 'maker',
@@ -2087,6 +2090,29 @@ export default class deepcoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://www.deepcoin.com/docs/DeepCoinTrade/tradeFills
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', the market type for the trades
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        const marketType = this.safeString (params, 'type');
+        if (symbol === undefined && marketType === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument or a market type in the params');
+        }
+        params = this.extend ({ 'ordId': id }, params);
+        return await this.fetchMyTrades (symbol, since, limit, params);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
