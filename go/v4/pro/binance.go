@@ -469,7 +469,7 @@ func  (this *BinanceCore) ParseWsLiquidation(liquidation interface{}, optionalAr
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(liquidation, "s")
-    market = this.SafeMarket(marketId, market)
+    market = this.SafeMarket(marketId, market, nil, "swap")
     var timestamp interface{} = this.SafeInteger(liquidation, "T")
     return this.SafeLiquidation(map[string]interface{} {
         "info": liquidation,
@@ -632,8 +632,8 @@ func  (this *BinanceCore) HandleMyLiquidation(client interface{}, message interf
         return
     }
     var marketId interface{} = this.SafeString(message, "s")
-    var market interface{} = this.SafeMarket(marketId)
-    var symbol interface{} = this.SafeSymbol(marketId)
+    var market interface{} = this.SafeMarket(marketId, nil, nil, "swap")
+    var symbol interface{} = this.SafeSymbol(marketId, market)
     var liquidation interface{} = this.ParseWsLiquidation(message, market)
     var myLiquidations interface{} = this.SafeValue(this.MyLiquidations, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(myLiquidations, nil)) {
@@ -1109,7 +1109,7 @@ func  (this *BinanceCore) HandleOrderBook(client interface{}, message interface{
     //     }
     //
     var isSpot interface{} = this.IsSpotUrl(client)
-    var marketType interface{} = ccxt.Ternary(ccxt.IsTrue((isSpot)), "spot", "contract")
+    var marketType interface{} = ccxt.Ternary(ccxt.IsTrue((isSpot)), "spot", "swap")
     var marketId interface{} = this.SafeString(message, "s")
     var market interface{} = this.SafeMarket(marketId, nil, nil, marketType)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
@@ -4950,7 +4950,7 @@ func  (this *BinanceCore) ParseWsPosition(position interface{}, optionalArgs ...
     return this.SafePosition(map[string]interface{} {
         "info": position,
         "id": nil,
-        "symbol": this.SafeSymbol(marketId, nil, nil, "contract"),
+        "symbol": this.SafeSymbol(marketId, nil, nil, "swap"),
         "notional": nil,
         "marginMode": this.SafeString(position, "mt"),
         "liquidationPrice": nil,
