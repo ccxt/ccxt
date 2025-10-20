@@ -5,12 +5,6 @@ import (
 	"sync"
 )
 
-// WatchFunction represents a watch function with its arguments
-type WatchFunction struct {
-	Method string
-	Args   []interface{}
-}
-
 // SubscribeParams contains options for subscribing to a topic
 type SubscribeParams struct {
 	Synchronous            bool
@@ -24,15 +18,16 @@ type Stream struct {
 	verbose              bool
 	consumers            sync.Map // map[string][]*Consumer
 	topicIndexes         sync.Map // map[string]int
-	activeWatchFunctions []WatchFunction
+	ActiveWatchFunctions interface{} // Public property for transpiled code access
 	mu                   sync.RWMutex
 }
 
 // NewStream creates a new Stream instance
 func NewStream(maxMessagesPerTopic int, verbose bool) *Stream {
 	return &Stream{
-		maxMessagesPerTopic: maxMessagesPerTopic,
-		verbose:             verbose,
+		maxMessagesPerTopic:  maxMessagesPerTopic,
+		verbose:              verbose,
+		ActiveWatchFunctions: []interface{}{},
 	}
 }
 
@@ -46,7 +41,7 @@ func (s *Stream) Init(maxMessagesPerTopic int, verbose bool) {
 	s.topics = sync.Map{}
 	s.consumers = sync.Map{}
 	s.topicIndexes = sync.Map{}
-	s.activeWatchFunctions = []WatchFunction{}
+	s.ActiveWatchFunctions = []interface{}{}
 }
 
 // Produce publishes a message to a topic
@@ -284,6 +279,11 @@ func (s *Stream) AddWatchFunction(name interface{}, args interface{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Lazy initialization if ActiveWatchFunctions is nil
+	if s.ActiveWatchFunctions == nil {
+		s.ActiveWatchFunctions = []interface{}{}
+	}
+
 	nameStr, ok := name.(string)
 	if !ok {
 		return
@@ -298,31 +298,20 @@ func (s *Stream) AddWatchFunction(name interface{}, args interface{}) {
 		}
 	}
 
-	s.activeWatchFunctions = append(s.activeWatchFunctions, WatchFunction{
-		Method: nameStr,
-		Args:   argsSlice,
-	})
-}
-
-// ActiveWatchFunctions returns the active watch functions
-func (s *Stream) ActiveWatchFunctions() interface{} {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	// Return a copy
-	result := make([]WatchFunction, len(s.activeWatchFunctions))
-	copy(result, s.activeWatchFunctions)
-
-	// Convert to []interface{} for compatibility
-	interfaceSlice := make([]interface{}, len(result))
-	for i, wf := range result {
-		interfaceSlice[i] = map[string]interface{}{
-			"method": wf.Method,
-			"args":   wf.Args,
-		}
+	// Create watch function as map for transpiled code
+	watchFunc := map[string]interface{}{
+		"method": nameStr,
+		"args":   argsSlice,
 	}
 
-	return interfaceSlice
+	// Append directly to public property
+	watchFuncs := s.ActiveWatchFunctions.([]interface{})
+	s.ActiveWatchFunctions = append(watchFuncs, watchFunc)
+
+	// Debug logging
+	if s.verbose {
+		fmt.Printf("Added watch function: %s (total: %d)\n", nameStr, len(s.ActiveWatchFunctions.([]interface{})))
+	}
 }
 
 // Close closes the stream by resetting topics and unsubscribing consumers

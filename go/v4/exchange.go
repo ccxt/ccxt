@@ -284,7 +284,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 
 func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
-	exchange.Stream = &Stream{}
+	exchange.Stream = NewStream(0, false)
 	exchange.Init(map[string]interface{}{})
 	return exchange
 }
