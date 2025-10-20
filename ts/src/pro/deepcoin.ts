@@ -548,6 +548,26 @@ export default class deepcoin extends deepcoinRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name deepcoin#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'orderbook' + '::' + market['symbol'];
+        const suffix = '_0.1';
+        const subscription = {
+            'topic': 'orderbook',
+        };
+        return await this.unWatchPublic (market, messageHash, '25', params, subscription, suffix);
+    }
+
     handleOrderBook (client: Client, message) {
         //
         //     {
@@ -580,32 +600,37 @@ export default class deepcoin extends deepcoinRest {
         if (orderbook['timestamp'] === undefined) {
             if (type === 'f') {
                 // snapshot
-                this.handleOrderBookSnapshot (client, message, market);
+                this.handleOrderBookSnapshot (client, message);
             } else {
                 // cache the updates until the snapshot is received
                 orderbook.cache.push (message);
             }
         } else {
-            this.handleOrderBookMessage (message, orderbook);
+            this.handleOrderBookMessage (client, message, orderbook);
             const messageHash = 'orderbook' + '::' + symbol;
             client.resolve (orderbook, messageHash);
         }
     }
 
-    handleOrderBookSnapshot (client: Client, message, market: Market) {
-        const symbol = market['symbol'];
-        const orderbook = this.orderbooks[symbol];
+    handleOrderBookSnapshot (client: Client, message) {
         const entries = this.safeList (message, 'r', []);
+        const first = this.safeDict (entries, 0, {});
+        const data = this.safeDict (first, 'd', {});
+        let marketId = this.safeString (data, 'I');
+        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const orderbook = this.orderbooks[symbol];
         const orderedEntries: Dict = {
             'bids': [],
             'asks': [],
         };
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
-            const data = this.safeDict (entry, 'd', {});
-            const side = this.safeString (data, 'D');
-            const price = this.safeNumber (data, 'P');
-            const volume = this.safeNumber (data, 'V');
+            const entryData = this.safeDict (entry, 'd', {});
+            const side = this.safeString (entryData, 'D');
+            const price = this.safeNumber (entryData, 'P');
+            const volume = this.safeNumber (entryData, 'V');
             if (side === '0') {
                 // bid
                 orderedEntries['bids'].push ([ price, volume ]);
@@ -620,14 +645,14 @@ export default class deepcoin extends deepcoinRest {
         const cachedMessages = orderbook.cache;
         for (let j = 0; j < cachedMessages.length; j++) {
             const cachedMessage = cachedMessages[j];
-            this.handleOrderBookMessage (cachedMessage, orderbook);
+            this.handleOrderBookMessage (client, cachedMessage, orderbook);
         }
         orderbook.cache = [];
         const messageHash = 'orderbook' + '::' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookMessage (message, orderbook) {
+    handleOrderBookMessage (client: Client, message, orderbook) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -756,6 +781,10 @@ export default class deepcoin extends deepcoinRest {
         //     RecvTopicAction
         //     localIDNotExist
         //     [ { d: { A: '0', L: 2, T: '7', F: 'DeepCoin_BTC/USDT', R: -1 } } ]
+        //
+        //     a: 'RecvTopicAction',
+        //     m: 'orderbook does not exist: ETHUSD_0.1, no available orderbook data',
+        //     r: [ { d: [Object] } ]
         //
         return message; // todo add error handling
     }
