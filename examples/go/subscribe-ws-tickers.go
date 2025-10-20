@@ -3,11 +3,17 @@ package examples
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
+
+// contains checks if a string contains a substring
+func contains(s, substr string) bool {
+	return strings.Contains(s, substr)
+}
 
 // printMessage prints the ticker message
 func printMessage(message *ccxt.Message) error {
@@ -16,8 +22,7 @@ func printMessage(message *ccxt.Message) error {
 		return nil
 	}
 	symbol := ccxt.SafeString(payload, "symbol", "")
-	last := ccxt.SafeNumber(payload, "last")
-	fmt.Printf("Received message from: %s : %s : %v\n", message.Metadata.Topic, symbol, last)
+	fmt.Printf("Received message from: %s : %s : %v\n", message.Metadata.Topic, symbol, payload)
 	return nil
 }
 
@@ -34,13 +39,11 @@ func priceAlert(message *ccxt.Message) error {
 	if !ok {
 		return nil
 	}
-	last := ccxt.SafeNumber(payload, "last")
+	last := ccxt.SafeFloat(payload, "last", nil)
 	if last != nil {
 		lastFloat, ok := last.(float64)
 		if ok && lastFloat > 10000.0 {
 			fmt.Printf("Price is over 10000!!!!!!!!!!\n")
-			// Note: Unsubscribe requires function reference which is not directly available in Go
-			// This is a limitation compared to the TS version
 		}
 	}
 	return nil
@@ -63,38 +66,69 @@ func checkForErrors(exchange *ccxtpro.Binance) func(*ccxt.Message) error {
 	}
 }
 
-// SubscribeWsTickers demonstrates using the Stream Subscribe API with WebSocket tickers
-func SubscribeWsTickers() {
+func main() {
 	// Create exchange instance
 	exchange := ccxtpro.NewBinance(nil)
-	exchange.SetVerbose(true)
+	// exchange.SetVerbose(true) // Uncomment for detailed logs
+
+	// Initialize the Stream (required before subscribing)
+	if exchange.Stream == nil {
+		exchange.Stream = ccxt.NewStream(100, true)
+	} else {
+		exchange.Stream.Init(100, true)
+	}
 
 	fmt.Println("Starting WebSocket ticker subscription example...")
 
-	// Subscribe synchronously to all tickers with a sync function
-	exchange.Stream.Subscribe("tickers", printMessage, nil)
-
-	// Subscribe synchronously to check for errors
-	exchange.Stream.Subscribe("tickers", checkForErrors(exchange), nil)
-
-	// Subscribe asynchronously to all tickers with price alert
-	exchange.Stream.Subscribe("tickers", priceAlert, map[string]interface{}{
-		"synchronous": false,
-	})
-
-	// Subscribe synchronously to a single ticker with an async function
-	exchange.Stream.Subscribe("tickers::BTC/USDT", storeInDb, nil)
+	// Load markets first (required for watchTickers)
+	fmt.Println("Loading markets...")
+	if _, err := exchange.LoadMarkets(false); err != nil {
+		log.Fatalf("Failed to load markets: %v", err)
+	}
+	fmt.Println("Markets loaded successfully")
 
 	// Subscribe to exchange wide errors
 	exchange.Stream.Subscribe("errors", checkForErrors(exchange), nil)
 
-	// Create ws subscriptions using WatchTickers in a goroutine
+	// Subscribe synchronously to a single ticker with an async function
+	exchange.Stream.Subscribe("tickers::BTC/USDT", storeInDb, nil)
+
+	// Use SubscribeTickers to register callbacks AND watch function for reconnection
+	stopChan := make(chan bool)
+	watchDone := make(chan bool)
+
 	go func() {
+		defer close(watchDone)
+
+		// Subscribe synchronously to all tickers - SubscribeTickers registers the watch function
+		<-exchange.SubscribeTickers(nil, printMessage, nil)
+
+		// Subscribe synchronously to check for errors
+		<-exchange.SubscribeTickers(nil, checkForErrors(exchange), nil)
+
+		// Subscribe asynchronously to all tickers with price alert
+		<-exchange.SubscribeTickers(nil, priceAlert, map[string]interface{}{
+			"synchronous": false,
+		})
+
 		for {
-			_, err := exchange.WatchTickers(nil)
-			if err != nil {
-				log.Printf("Error watching tickers: %v", err)
-				break
+			select {
+			case <-stopChan:
+				fmt.Println("Stopping SubscribeTickers goroutine...")
+				return
+			default:
+				// SubscribeTickers with nil callback to register watch function for reconnection
+				result := <-exchange.SubscribeTickers(nil, nil, nil)
+				if ccxt.IsError(result) {
+					log.Printf("Error subscribing tickers: %v", result)
+					// Check if it's a connection closed error
+					errStr := fmt.Sprintf("%v", result)
+					if contains(errStr, "closed network connection") || contains(errStr, "ExchangeClosedByUser") {
+						fmt.Println("Connection closed, stopping SubscribeTickers...")
+						return
+					}
+					break
+				}
 			}
 		}
 	}()
@@ -102,9 +136,26 @@ func SubscribeWsTickers() {
 	// Wait for messages
 	time.Sleep(5 * time.Second)
 
-	// Get history length
+	// Get history length and last message index
 	history := exchange.Stream.GetMessageHistory("tickers")
-	fmt.Printf("History Length: %d\n", len(history))
+	var lastIndexBeforeClose int
+	if len(history) > 0 {
+		lastIndexBeforeClose = history[len(history)-1].Metadata.Index
+	}
+	fmt.Printf("History Length: %d, Last Index: %d\n", len(history), lastIndexBeforeClose)
+
+	// Check active watch functions (should be > 0 now)
+	if exchange.Stream.ActiveWatchFunctions != nil {
+		fmt.Printf("Active watch functions before close: %d\n", len(exchange.Stream.ActiveWatchFunctions.([]interface{})))
+	}
+
+	// Signal the goroutine to stop before closing
+	fmt.Println("Signaling SubscribeTickers to stop...")
+	close(stopChan)
+
+	// Wait for the goroutine to finish
+	<-watchDone
+	fmt.Println("SubscribeTickers stopped")
 
 	// Close the exchange
 	fmt.Println("Closing exchange...")
@@ -113,14 +164,43 @@ func SubscribeWsTickers() {
 		log.Printf("Errors during close: %v", errs)
 	}
 
-	// Test reconnection
+	// Wait a bit to ensure everything is closed
+	time.Sleep(1 * time.Second)
+
+	// Check active watch functions before reconnect
+	if exchange.Stream.ActiveWatchFunctions != nil {
+		fmt.Printf("Active watch functions before reconnect: %d\n", len(exchange.Stream.ActiveWatchFunctions.([]interface{})))
+	}
+
+	// Test reconnection - should automatically resume subscriptions
 	fmt.Println("Testing reconnection...")
+
 	result := <-exchange.StreamReconnect()
 	if ccxt.IsError(result) {
 		log.Printf("Reconnection error: %v", result)
+	} else {
+		fmt.Println("Reconnection successful!")
 	}
 
-	time.Sleep(5 * time.Second)
+	// Wait to receive messages after reconnection
+	// StreamReconnect should automatically resume all registered watch functions
+	fmt.Println("Waiting for messages after reconnection...")
+	time.Sleep(10 * time.Second)
+
+	// Check history to verify messages were received
+	historyAfterReconnect := exchange.Stream.GetMessageHistory("tickers")
+	var lastIndexAfterReconnect int
+	if len(historyAfterReconnect) > 0 {
+		lastIndexAfterReconnect = historyAfterReconnect[len(historyAfterReconnect)-1].Metadata.Index
+	}
+	fmt.Printf("History Length after reconnect: %d (previous was %d)\n", len(historyAfterReconnect), len(history))
+	fmt.Printf("Last Index after reconnect: %d (previous was %d)\n", lastIndexAfterReconnect, lastIndexBeforeClose)
+
+	if lastIndexAfterReconnect > lastIndexBeforeClose {
+		fmt.Printf("SUCCESS: Received new messages after reconnection! (+%d messages)\n", lastIndexAfterReconnect-lastIndexBeforeClose)
+	} else {
+		fmt.Println("WARNING: No new messages received after reconnection")
+	}
 
 	fmt.Println("Example completed!")
 }
