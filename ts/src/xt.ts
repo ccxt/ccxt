@@ -338,6 +338,7 @@ export default class xt extends Exchange {
                         },
                         'delete': {
                             'user/account/{apikeyId}': 1,
+                            'user/account/{apiKeyId}': 1,
                         },
                     },
                 },
