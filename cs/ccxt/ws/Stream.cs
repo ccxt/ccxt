@@ -122,9 +122,30 @@ public class Stream : IBaseStream
         }
     }
 
-    public bool unsubscribe(object topic2, ConsumerFunction consumerFn)
+    public bool unsubscribe(object topic2, object consumerFn2)
     {
         string topic = topic2 as String;
+
+        // Check if consumerFn2 is already a ConsumerFunction
+        ConsumerFunction consumerFn = consumerFn2 as ConsumerFunction;
+
+        // If it's not a ConsumerFunction, check if it's a Func<Message, Task>
+        if (consumerFn == null && consumerFn2 is Func<Message, Task> func)
+        {
+            // Convert Func<Message, Task> to ConsumerFunction
+            consumerFn = new ConsumerFunction(func.Invoke);
+        }
+        else if (consumerFn == null && consumerFn2 is Action<Message> action)
+        {
+            // Convert Action<Message> (void-returning) to ConsumerFunction
+            consumerFn = new ConsumerFunction((msg) => { action.Invoke(msg); return Task.CompletedTask; });
+        }
+        if (consumerFn == null)
+        {
+            Console.WriteLine("Consumer function is required for unsubscribe");
+            return false;
+        }
+
         if (consumers.ContainsKey(topic))
         {
             consumers[topic] = consumers[topic].Where(consumer => !consumer.fn.Equals(consumerFn)).ToList();
