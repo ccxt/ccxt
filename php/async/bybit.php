@@ -188,7 +188,7 @@ class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ),
                 'fees' => 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral' => 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral' => 'https://www.bybit.com/invite?ref=XDK12WP',
             ),
             'api' => array(
                 'public' => array(
