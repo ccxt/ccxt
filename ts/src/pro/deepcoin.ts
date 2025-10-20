@@ -3,8 +3,8 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Int, Market, Ticker, Trade } from '../base/types.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import type { Dict, Int, OHLCV, Market, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -55,6 +55,19 @@ export default class deepcoin extends deepcoinRest {
             },
             'options': {
                 'lastRequestId': undefined,
+                'timeframes': {
+                    '1m': '1m',
+                    '5m': '5m',
+                    '15m': '15m',
+                    '30m': '30m',
+                    '1h': '1h',
+                    '4h': '4h',
+                    '12h': '12h',
+                    '1d': '1d',
+                    '1w': '1w',
+                    '1M': '1o',
+                    '1y': '1y',
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -391,6 +404,106 @@ export default class deepcoin extends deepcoinRest {
         return this.safeString (sides, direction, direction);
     }
 
+    /**
+     * @method
+     * @name deepcoin#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.deepcoin.com/docs/publicWS/KLines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const intervals = this.safeDict (this.options, 'intervals', {});
+        const interval = this.safeString (intervals, timeframe, timeframe);
+        const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
+        const suffix = '_' + interval;
+        const ohlcv = await this.watchPublic (market, messageHash, '11', params, suffix);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        //     {
+        //         "a": "PK",
+        //         "tt": 1760972831580,
+        //         "mt": 1760972831580,
+        //         "r": [
+        //             {
+        //                 "d": {
+        //                     "I": "BTC/USDT",
+        //                     "P": "1m",
+        //                     "B": 1760972820,
+        //                     "O": 111373,
+        //                     "C": 111382.9,
+        //                     "H": 111382.9,
+        //                     "L": 111373,
+        //                     "V": 0.2414172,
+        //                     "M": 26888.19693324
+        //                 },
+        //                 "t": "LK"
+        //             }
+        //         ]
+        //     }
+        //
+        const response = this.safeList (message, 'r', []);
+        const first = this.safeDict (response, 0, {});
+        const data = this.safeDict (first, 'd', {});
+        let marketId = this.safeString (data, 'I');
+        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const interval = this.safeString (data, 'P');
+        const timeframe = this.findTimeframe (interval);
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
+        if (!(timeframe in this.ohlcvs[symbol])) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        if (data !== undefined) {
+            const ohlcv = this.parseWsOHLCV (data, market);
+            stored.append (ohlcv);
+        }
+        const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+        //
+        //     {
+        //         "I": "BTC/USDT",
+        //         "P": "1m",
+        //         "B": 1760972820,
+        //         "O": 111373,
+        //         "C": 111382.9,
+        //         "H": 111382.9,
+        //         "L": 111373,
+        //         "V": 0.2414172,
+        //         "M": 26888.19693324
+        //     }
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'B'),
+            this.safeNumber (ohlcv, 'O'),
+            this.safeNumber (ohlcv, 'H'),
+            this.safeNumber (ohlcv, 'L'),
+            this.safeNumber (ohlcv, 'C'),
+            this.safeNumber (ohlcv, 'V'),
+        ];
+    }
+
     handleMessage (client: Client, message) {
         if (message === 'pong') {
             this.handlePong (client, message);
@@ -406,6 +519,8 @@ export default class deepcoin extends deepcoinRest {
                 this.handleTicker (client, message);
             } else if (action === 'PMT') {
                 this.handleTrades (client, message);
+            } else if (action === 'PK') {
+                this.handleOHLCV (client, message);
             }
         }
     }
