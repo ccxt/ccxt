@@ -1,6 +1,7 @@
 
 // ---------------------------------------------------------------------------
 
+import { time } from 'node:console';
 import Exchange from './abstract/woo.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -1995,7 +1996,15 @@ export default class woo extends Exchange {
         //         "positionSide": "BOTH"
         //     }
         //
-        let timestamp = this.safeTimestamp (order, 'createdTime');
+        let timestamp = undefined;
+        const timestrampString = this.safeString (order, 'createdTime');
+        if (timestrampString !== undefined) {
+            if (timestrampString.indexOf ('.') >= 0) {
+                timestamp = this.safeTimestamp (order, 'createdTime'); // algo orders
+            } else {
+                timestamp = this.safeInteger (order, 'createdTime'); // regular orders
+            }
+        }
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'timestamp');
         }
@@ -2016,7 +2025,15 @@ export default class woo extends Exchange {
         const fee = this.safeNumber (order, 'totalFee');
         const feeCurrency = this.safeString (order, 'feeAsset');
         const triggerPrice = this.safeNumber (order, 'triggerPrice');
-        const lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime');
+        const lastUpdateTimestampString = this.safeString (order, 'updatedTime');
+        let lastUpdateTimestamp = undefined;
+        if (lastUpdateTimestampString !== undefined) {
+            if (lastUpdateTimestampString.indexOf ('.') >= 0) {
+                lastUpdateTimestamp = this.safeTimestamp (order, 'updatedTime'); // algo orders
+            } else {
+                lastUpdateTimestamp = this.safeInteger (order, 'updatedTime'); // regular orders
+            }
+        }
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
