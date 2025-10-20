@@ -240,6 +240,23 @@ class kraken extends Exchange {
                 'XBT' => 'BTC',
                 'XDG' => 'DOGE',
                 'FEE' => 'KFEE',
+                'XETC' => 'ETC',
+                'XETH' => 'ETH',
+                'XLTC' => 'LTC',
+                'XMLN' => 'MLN',
+                'XREP' => 'REP',
+                'XXBT' => 'BTC',
+                'XXDG' => 'DOGE',
+                'XXLM' => 'XLM',
+                'XXMR' => 'XMR',
+                'XXRP' => 'XRP',
+                'XZEC' => 'ZEC',
+                'ZAUD' => 'AUD',
+                'ZCAD' => 'CAD',
+                'ZEUR' => 'EUR',
+                'ZGBP' => 'GBP',
+                'ZJPY' => 'JPY',
+                'ZUSD' => 'USD',
             ),
             'options' => array(
                 'timeDifference' => 0, // the difference between system clock and Binance clock
@@ -623,10 +640,12 @@ class kraken extends Exchange {
             for ($i = 0; $i < count($keys); $i++) {
                 $id = $keys[$i];
                 $market = $markets[$id];
-                $baseId = $this->safe_string($market, 'base');
-                $quoteId = $this->safe_string($market, 'quote');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
+                $baseIdRaw = $this->safe_string($market, 'base');
+                $quoteIdRaw = $this->safe_string($market, 'quote');
+                $baseId = $this->safe_currency_code($baseIdRaw);
+                $quoteId = $this->safe_currency_code($quoteIdRaw);
+                $base = $baseId;
+                $quote = $quoteId;
                 $makerFees = $this->safe_list($market, 'fees_maker', array());
                 $firstMakerFee = $this->safe_list($makerFees, 0, array());
                 $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
@@ -1148,7 +1167,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1764,6 +1783,10 @@ class kraken extends Exchange {
         $statuses = array(
             'pending' => 'open', // order pending book entry
             'open' => 'open',
+            'pending_new' => 'open',
+            'new' => 'open',
+            'partially_filled' => 'open',
+            'filled' => 'closed',
             'closed' => 'closed',
             'canceled' => 'canceled',
             'expired' => 'expired',
@@ -2548,7 +2571,7 @@ class kraken extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -2587,7 +2610,7 @@ class kraken extends Exchange {
              *
              * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
              *
-             * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+             * @param {string} $symbol unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */

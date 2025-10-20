@@ -1023,7 +1023,7 @@ class onetrading(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeField),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1450,7 +1450,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1471,7 +1471,8 @@ class onetrading(Exchange, ImplicitAPI):
         #         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         #     ]
         #
-        return response
+        order = self.safe_order({'info': response})
+        return [order]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

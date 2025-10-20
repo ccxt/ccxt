@@ -138,7 +138,7 @@ export default class gate extends gateRest {
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchOrdersByStatusWs(status: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name gate#watchOrderBook

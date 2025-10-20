@@ -685,7 +685,7 @@ create a trade order
 | params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to create an order in a portfolio margin account |
-| params.selfTradePrevention | <code>string</code> | No | set unified value for stp (see .features for available values) |
+| params.selfTradePrevention | <code>string</code> | No | set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH |
 | params.icebergAmount | <code>float</code> | No | set iceberg amount for limit orders |
 | params.stopLossOrTakeProfit | <code>string</code> | No | 'stopLoss' or 'takeProfit', required for spot trailing orders |
 | params.positionSide | <code>string</code> | No | *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |

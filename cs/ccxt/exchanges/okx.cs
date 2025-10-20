@@ -12,7 +12,7 @@ public partial class okx : Exchange
             { "name", "OKX" },
             { "countries", new List<object>() {"CN", "US"} },
             { "version", "v5" },
-            { "rateLimit", multiply(100, 1.03) },
+            { "rateLimit", multiply(100, 1.1) },
             { "pro", true },
             { "certified", true },
             { "has", new Dictionary<string, object>() {
@@ -1197,7 +1197,8 @@ public partial class okx : Exchange
                     } },
                     { "fetchOHLCV", new Dictionary<string, object>() {
                         { "limit", 300 },
-                        { "historical", 100 },
+                        { "mark", 100 },
+                        { "index", 100 },
                     } },
                 } },
                 { "spot", new Dictionary<string, object>() {
@@ -2466,17 +2467,19 @@ public partial class okx : Exchange
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 200);
         }
-        object price = this.safeString(parameters, "price");
+        object priceType = this.safeString(parameters, "price");
+        object isMarkOrIndex = this.inArray(priceType, new List<object>() {"mark", "index"});
         parameters = this.omit(parameters, "price");
         object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object timezone = this.safeString(options, "timezone", "UTC");
         object limitIsUndefined = (isEqual(limit, null));
         if (isTrue(isEqual(limit, null)))
         {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         } else
         {
-            limit = mathMin(limit, 300); // max 100
+            object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = mathMin(limit, maxLimit);
         }
         object duration = this.parseTimeframe(timeframe);
         object bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2499,8 +2502,8 @@ public partial class okx : Exchange
             if (isTrue(isLessThan(since, historyBorder)))
             {
                 defaultType = "HistoryCandles";
-                object maxLimit = ((bool) isTrue((!isEqual(price, null)))) ? 100 : 300;
-                limit = mathMin(limit, maxLimit); // max 300 for historical endpoint
+                object maxLimit = ((bool) isTrue(isMarkOrIndex)) ? 100 : 300;
+                limit = mathMin(limit, maxLimit);
             }
             object startTime = mathMax(subtract(since, 1), 0);
             ((IDictionary<string,object>)request)["before"] = startTime;
@@ -2517,7 +2520,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "type");
         object isHistoryCandles = (isEqual(type, "HistoryCandles"));
         object response = null;
-        if (isTrue(isEqual(price, "mark")))
+        if (isTrue(isEqual(priceType, "mark")))
         {
             if (isTrue(isHistoryCandles))
             {
@@ -2526,7 +2529,7 @@ public partial class okx : Exchange
             {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, parameters));
             }
-        } else if (isTrue(isEqual(price, "index")))
+        } else if (isTrue(isEqual(priceType, "index")))
         {
             ((IDictionary<string,object>)request)["instId"] = getValue(getValue(market, "info"), "instFamily"); // okx index candles require instFamily instead of instId
             if (isTrue(isHistoryCandles))
@@ -3719,7 +3722,7 @@ public partial class okx : Exchange
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();

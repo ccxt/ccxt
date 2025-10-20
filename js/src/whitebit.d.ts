@@ -1,5 +1,5 @@
 import Exchange from './abstract/whitebit.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position, CrossBorrowRate } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, Conversion, BorrowInterest, FundingHistory, Position, CrossBorrowRate, Account } from './base/types.js';
 /**
  * @class whitebit
  * @augments Exchange
@@ -62,6 +62,27 @@ export default class whitebit extends Exchange {
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     /**
      * @method
+     * @name whitebit#fetchTradingLimits
+     * @description fetch the trading limits for a market
+     * @see https://docs.whitebit.com/public/http-v4/#market-info
+     * @param {string[]|undefined} symbols unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/#/?id=trading-limits-structure}
+     */
+    fetchTradingLimits(symbols?: Strings, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name whitebit#fetchFundingLimits
+     * @description fetch the deposit and withdrawal limits for a currency
+     * @see https://docs.whitebit.com/public/http-v4/#asset-status-list
+     * @see https://docs.whitebit.com/public/http-v4/#fee
+     * @param {string[]|undefined} codes unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/#/?id=funding-limits-structure}
+     */
+    fetchFundingLimits(codes?: Strings, params?: {}): Promise<Dict>;
+    /**
+     * @method
      * @name whitebit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
@@ -71,6 +92,20 @@ export default class whitebit extends Exchange {
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name whitebit#fetchOrder
+     * @description fetches information on an order by the id
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.checkActive] whether to check active orders (default: true)
+     * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     /**
      * @method
      * @name whitebit#fetchTickers
@@ -240,6 +275,19 @@ export default class whitebit extends Exchange {
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
+     * @name whitebit#fetchOrders
+     * @description fetches information on multiple orders made by the user (combines open and closed orders)
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
+     * @see https://docs.whitebit.com/private/http-trade-v4/#query-executed-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
      * @name whitebit#cancelAllOrdersAfter
      * @description dead man's switch, cancel all orders after the given timeout
      * @see https://docs.whitebit.com/private/http-trade-v4/#sync-kill-switch-timer
@@ -302,6 +350,32 @@ export default class whitebit extends Exchange {
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
      * @method
+     * @name whitebit#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    /**
+     * @method
+     * @name whitebit#fetchTransactions
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch transactions for
+     * @param {int} [limit] the maximum number of transactions structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '1' for deposits
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    fetchTransactions(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    /**
+     * @method
      * @name whitebit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
      * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
@@ -324,6 +398,15 @@ export default class whitebit extends Exchange {
      */
     createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    /**
+     * @method
+     * @name whitebit#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.whitebit.com/private/http-main-v4/#sub-account-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure}
+     */
+    fetchAccounts(params?: {}): Promise<Account[]>;
     /**
      * @method
      * @name whitebit#setLeverage

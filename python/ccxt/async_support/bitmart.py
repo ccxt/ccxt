@@ -1026,7 +1026,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': self.safe_string_lower_2(market, 'status', 'trade_status') == 'trading',
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -1141,7 +1141,7 @@ class bitmart(Exchange, ImplicitAPI):
                 'swap': isSwap,
                 'future': isFutures,
                 'option': False,
-                'active': True,
+                'active': self.safe_string_lower(market, 'status') == 'trading',
                 'contract': True,
                 'linear': True,
                 'inverse': False,
@@ -2048,7 +2048,7 @@ class bitmart(Exchange, ImplicitAPI):
                 self.safe_number_2(ohlcv, 'volume', 'v'),
             ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

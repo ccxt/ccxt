@@ -122,7 +122,7 @@ class apex(ccxt.async_support.apex):
         #                 "v": "0.001",
         #                 "p": "16578.50",
         #                 "L": "PlusTick",
-        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023af",
+        #                 "i": "20f43950-d8dd-5b31-9112-a178eb6023ef",
         #                 "BT": False
         #             },
         #             # sorted by newest first
@@ -403,7 +403,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -787,7 +787,7 @@ class apex(ccxt.async_support.apex):
         signature = self.hmac(self.encode(messageString), self.encode(self.string_to_base64(self.secret)), hashlib.sha256, 'base64')
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             # auth sign
@@ -915,10 +915,10 @@ class apex(ccxt.async_support.apex):
             self.handle_authenticate(client, message)
 
     def ping(self, client: Client):
-        timeStamp = str(self.milliseconds())
-        client.lastPong = timeStamp  # server won't send a pong, so we set it here
+        timeStamp = self.milliseconds()
+        client.lastPong = timeStamp
         return {
-            'args': [timeStamp],
+            'args': [str(timeStamp)],
             'op': 'ping',
         }
 

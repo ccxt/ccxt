@@ -425,7 +425,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const marketId = this.safeString(liquidation, 's');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger(liquidation, 'T');
         return this.safeLiquidation({
             'info': liquidation,
@@ -547,8 +547,8 @@ export default class binance extends binanceRest {
             return;
         }
         const marketId = this.safeString(message, 's');
-        const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId);
+        const market = this.safeMarket(marketId, undefined, undefined, 'swap');
+        const symbol = this.safeSymbol(marketId, market);
         const liquidation = this.parseWsLiquidation(message, market);
         let myLiquidations = this.safeValue(this.myLiquidations, symbol);
         if (myLiquidations === undefined) {
@@ -922,7 +922,7 @@ export default class binance extends binanceRest {
         //     }
         //
         const isSpot = this.isSpotUrl(client);
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        const marketType = (isSpot) ? 'spot' : 'swap';
         const marketId = this.safeString(message, 's');
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1479,7 +1479,8 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         params = this.omit(params, 'callerMethodName');
-        const [symbol, timeframe, candles] = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+        const res = await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+        const [symbol, timeframe, candles] = res;
         if (this.newUpdates) {
             limit = candles.getLimit(symbol, limit);
         }
@@ -4028,7 +4029,7 @@ export default class binance extends binanceRest {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId, undefined, undefined, 'contract'),
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'swap'),
             'notional': undefined,
             'marginMode': this.safeString(position, 'mt'),
             'liquidationPrice': undefined,

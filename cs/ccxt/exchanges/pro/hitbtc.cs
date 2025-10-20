@@ -87,7 +87,7 @@ public partial class hitbtc : ccxt.hitbtc
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {

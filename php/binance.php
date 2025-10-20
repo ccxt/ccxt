@@ -238,7 +238,7 @@ class binance extends Exchange {
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
-                    'url' => 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url' => 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount' => 0.1,
                 ),
                 'doc' => array(
@@ -1420,10 +1420,10 @@ class binance extends Exchange {
                         'marketBuyByCost' => true,
                         'marketBuyRequiresPrice' => false,
                         'selfTradePrevention' => array(
-                            'expire_maker' => true,
-                            'expire_taker' => true,
-                            'expire_both' => true,
-                            'none' => true,
+                            'EXPIRE_MAKER' => true,
+                            'EXPIRE_TAKER' => true,
+                            'EXPIRE_BOTH' => true,
+                            'NONE' => true,
                         ),
                         'trailing' => false, // todo => this is different from standard trailing https://github.com/binance/binance-spot-api-docs/blob/master/faqs/trailing-stop-faq.md
                         'icebergAmount' => true,
@@ -1494,7 +1494,7 @@ class binance extends Exchange {
                         ),
                         'hedged' => true,
                         // exchange-supported features
-                        'selfTradePrevention' => true, // todo
+                        'selfTradePrevention' => true,
                         'trailing' => true,
                         'iceberg' => false,
                         'leverage' => false,
@@ -3326,7 +3326,7 @@ class binance extends Exchange {
         //                 "expiryDate" => 1677225600000,
         //                 "filters" => array(
         //                     array("filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"),
-        //                     array("filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01")
+        //                     array("filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01")
         //                 ),
         //                 "id" => 2474,
         //                 "symbol" => "ETH-230224-800-C",
@@ -4601,7 +4601,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
@@ -6242,7 +6242,7 @@ class binance extends Exchange {
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
-         * @param {string} [$params->selfTradePrevention] set unified value for stp (see .features for available values)
+         * @param {string} [$params->selfTradePrevention] set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
          * @param {float} [$params->icebergAmount] set iceberg $amount for limit orders
          * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
          * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
@@ -6616,7 +6616,8 @@ class binance extends Exchange {
             $request['positionSide'] = ($side === 'buy') ? 'LONG' : 'SHORT';
         }
         // unified stp
-        $selfTradePrevention = $this->safe_string($params, 'selfTradePrevention');
+        $selfTradePrevention = null;
+        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             if ($market['spot']) {
                 $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
@@ -6629,7 +6630,7 @@ class binance extends Exchange {
                 $request['icebergQty'] = $this->amount_to_precision($symbol, $icebergAmount);
             }
         }
-        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'selfTradePrevention', 'icebergAmount' ));
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ));
         return $this->extend($request, $requestParams);
     }
 
@@ -11867,6 +11868,9 @@ class binance extends Exchange {
             }
         } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
+            if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning'))) {
+                throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
+            }
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
                 $newClientOrderId = $this->safe_string($params, 'newClientOrderId');

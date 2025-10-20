@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.6'
+__version__ = '4.5.11'
 
 # -----------------------------------------------------------------------------
 
@@ -147,7 +147,6 @@ from ccxt.async_support.myokx import myokx                                      
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
 from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
-from ccxt.async_support.okcoin import okcoin                                    # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.okxus import okxus                                      # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
@@ -255,7 +254,6 @@ exchanges = [
     'ndax',
     'novadax',
     'oceanex',
-    'okcoin',
     'okx',
     'okxus',
     'onetrading',

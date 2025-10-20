@@ -409,7 +409,7 @@ class backpack(ccxt.async_support.backpack):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -814,7 +814,7 @@ class backpack(ccxt.async_support.backpack):
                 self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(data)
             return
-        elif nonce >= deltaNonce:
+        elif nonce > deltaNonce:
             return
         self.handle_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
@@ -824,8 +824,8 @@ class backpack(ccxt.async_support.backpack):
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')
-        bids = self.safe_dict(delta, 'b', [])
-        asks = self.safe_dict(delta, 'a', [])
+        bids = self.safe_list(delta, 'b', [])
+        asks = self.safe_list(delta, 'a', [])
         storedBids = orderbook['bids']
         storedAsks = orderbook['asks']
         self.handle_bid_asks(storedBids, bids)
@@ -837,15 +837,17 @@ class backpack(ccxt.async_support.backpack):
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, cache):
+        #
+        # {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         firstDelta = self.safe_dict(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
-        firstDeltaStart = self.safe_integer(firstDelta, 'sequenceStart')
+        firstDeltaStart = self.safe_integer(firstDelta, 'U')
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
-            deltaStart = self.safe_integer(delta, 'sequenceStart')
-            deltaEnd = self.safe_integer(delta, 'sequenceEnd')
+            deltaStart = self.safe_integer(delta, 'U')
+            deltaEnd = self.safe_integer(delta, 'u')
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)

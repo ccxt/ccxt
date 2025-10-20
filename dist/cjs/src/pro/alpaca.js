@@ -570,7 +570,7 @@ class alpaca extends alpaca$1["default"] {
         this.checkRequiredCredentials();
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             let request = {

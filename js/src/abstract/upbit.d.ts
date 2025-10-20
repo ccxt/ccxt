@@ -22,6 +22,7 @@ interface Exchange {
     publicGetTicker(params?: {}): Promise<implicitReturnType>;
     publicGetTickerAll(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbook(params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookInstruments(params?: {}): Promise<implicitReturnType>;
     publicGetOrderbookSupportedLevels(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
     privateGetOrdersChance(params?: {}): Promise<implicitReturnType>;
