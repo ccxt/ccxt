@@ -246,7 +246,7 @@ class binance extends binance$1["default"] {
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/register?ref=CCXTCOM',
                     'discount': 0.1,
                 },
                 'doc': [
