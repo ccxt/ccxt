@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import deepcoinRest from '../deepcoin.js';
-import { } from '../base/errors.js';
+import { BadRequest } from '../base/errors.js';
 import { } from '../base/ws/Cache.js';
 import type { Dict, Market, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -53,11 +53,11 @@ export default class deepcoin extends deepcoinRest {
                 },
             },
             'options': {
-                'requestId': this.createSafeDictionary (),
+                'lastRequestId': undefined,
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 18000, // todo find real value
+                'keepAlive': 10000, // todo find real value
             },
         });
     }
@@ -66,30 +66,68 @@ export default class deepcoin extends deepcoinRest {
         return 'ping';
     }
 
-    requestId (url) {
-        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
-        const previousValue = this.safeInteger (options, url, 0);
+    handlePong (client: Client, message) {
+        client.lastPong = this.milliseconds ();
+        return message;
+    }
+
+    requestId () {
+        const previousValue = this.safeInteger (this.options, 'lastRequestId', 0);
         const newValue = this.sum (previousValue, 1);
-        this.options['requestId'][url] = newValue;
+        this.options['lastRequestId'] = newValue;
         return newValue;
     }
 
-    async watchPublic (market: Market, messageHash: string, topicID: string, params = {}, suffix: string = ''): Promise<any> {
-        const url = this.urls['api']['ws']['public'][market['type']];
-        let marketId = market['symbol'];
+    createPublicRequest (market: Market, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
+        let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
-            marketId = market['baseId'] + market['quoteId'];
+            marketId = market['baseId'] + market['quoteId']; // swap markets use symbol without slash
+        }
+        let action = '1'; // subscribe
+        if (unWatch) {
+            action = '0'; // unsubscribe
         }
         const request = {
             'sendTopicAction': {
-                'Action': '1', // subscribe
+                'Action': action,
                 'FilterValue': 'DeepCoin_' + marketId + suffix,
-                'LocalNo': this.requestId (url),
+                'LocalNo': requestId,
                 'ResumeNo': -1, // -1 from the end, 0 from the beginning
                 'TopicID': topicID,
             },
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return request;
+    }
+
+    async watchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
+        const url = this['urls']['api']['ws']['public'][market['type']];
+        const requestId = this.requestId ();
+        const request = this.createPublicRequest (market, requestId, topicID, suffix);
+        const subscription = {
+            'subHash': messageHash,
+            'id': requestId,
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
+    }
+
+    async unWatchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
+        const url = this['urls']['api']['ws']['public'][market['type']];
+        const requestId = this.requestId ();
+        const client = this.client (url);
+        const existingSubscription = this.safeDict (client.subscriptions, messageHash);
+        if (existingSubscription === undefined) {
+            throw new BadRequest (this.id + ' no subscription for ' + messageHash);
+        }
+        const subId = this.safeInteger (existingSubscription, 'id');
+        const request = this.createPublicRequest (market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
+        const unsubHash = 'unsubscribe::' + messageHash;
+        subscription = this.extend (subscription, {
+            'subHash': messageHash,
+            'unsubHash': unsubHash,
+            'symbols': [ market['symbol'] ],
+            'id': requestId,
+        });
+        return await this.watch (url, unsubHash, this.deepExtend (request, params), unsubHash, subscription);
     }
 
     /**
@@ -104,9 +142,38 @@ export default class deepcoin extends deepcoinRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'ticker::' + market['symbol'];
-        const TopicID = '7';
-        return await this.watchPublic (market, messageHash, TopicID, params);
+        const messageHash = 'ticker' + '::' + market['symbol'];
+        return await this.watchPublic (market, messageHash, '7', params);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.deepcoin.com/docs/publicWS/latestMarketData
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'ticker' + '::' + market['symbol'];
+        const subscription = {
+            'topic': 'ticker',
+        };
+        return await this.unWatchPublic (market, messageHash, '7', params, subscription);
+    }
+
+    async test () {
+        await this.watchTicker ('BTC/USDT');
+        await this.sleep (2000);
+        console.log ('Cache after watch <--------------------');
+        console.log (this.tickers);
+        await this.unWatchTicker ('BTC/USDT');
+        await this.sleep (2000);
+        console.log ('Cache after unWatch <--------------------');
+        console.log (this.tickers);
     }
 
     handleTicker (client: Client, message) {
@@ -214,10 +281,65 @@ export default class deepcoin extends deepcoinRest {
     }
 
     handleMessage (client: Client, message) {
+        if (message === 'pong') {
+            this.handlePong (client, message);
+            return;
+        }
+        const m = this.safeString (message, 'm');
+        if (m !== 'Success') {
+            return this.handleErrorMessage (client, message);
+        }
         const action = this.safeString (message, 'a');
+        if (action === 'RecvTopicAction') {
+            this.handleSubscriptionStatus (client, message);
+        }
         if (action === 'PO') {
             this.handleTicker (client, message);
         }
+    }
+
+    handleSubscriptionStatus (client: Client, message) {
+        //
+        //     {
+        //         "a": "RecvTopicAction",
+        //         "m": "Success",
+        //         "r": [
+        //             {
+        //                 "d": {
+        //                     "A": "0",
+        //                     "L": 1,
+        //                     "T": "7",
+        //                     "F": "DeepCoin_BTC/USDT",
+        //                     "R": -1
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const response = this.safeList (message, 'r', []);
+        const first = this.safeDict (response, 0, {});
+        const data = this.safeDict (first, 'd', {});
+        const action = this.safeString (data, 'A'); // 1 = subscribe, 0 = unsubscribe
+        if (action === '0') {
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subId = this.safeInteger (data, 'L');
+            const subscription = this.safeDict (subscriptionsById, subId, {}); // original subscription
+            const subHash = this.safeString (subscription, 'subHash');
+            const unsubHash = 'unsubscribe::' + subHash;
+            const unsubsciption = this.safeDict (client.subscriptions, unsubHash, {});
+            return this.handleUnSubscription (client, unsubsciption);
+        }
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        console.log ('Subscriptions before unwatch <--------------------');
+        console.log (client.subscriptions);
+        const subHash = this.safeString (subscription, 'subHash');
+        const unsubHash = this.safeString (subscription, 'unsubHash');
+        this.cleanUnsubscription (client, subHash, unsubHash);
+        this.cleanCache (subscription);
+        console.log ('Subscriptions after unwatch <--------------------');
+        console.log (client.subscriptions);
     }
 
     handleErrorMessage (client: Client, message) {
@@ -238,6 +360,17 @@ export default class deepcoin extends deepcoinRest {
         //         ]
         //     }
         //
+        //     RecvTopicAction
+        //     unsupportedAction
+        //     [ { d: { A: '2', L: 1, T: '7', F: 'DeepCoin_BTCUSD', R: -1 } } ]
+        //
+        //     RecvTopicAction
+        //     localIDNotExist
+        //     [ { d: { A: '0', L: 2, T: '7', F: 'DeepCoin_BTC/USDT', R: -1 } } ]
+        //
+        console.log (message.a);
+        console.log (message.m);
+        console.log (message.r);
         return message; // todo add error handling
     }
 }
