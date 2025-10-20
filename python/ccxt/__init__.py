@@ -51,7 +51,6 @@ from ccxt.base.errors import ArgumentsRequired                        # noqa: F4
 from ccxt.base.errors import BadRequest                               # noqa: F401
 from ccxt.base.errors import BadSymbol                                # noqa: F401
 from ccxt.base.errors import OperationRejected                        # noqa: F401
-from ccxt.exchanges.cryptobeam import cryptobeam                      # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
 from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
@@ -130,7 +129,8 @@ from ccxt.coinmate import coinmate                                    # noqa: F4
 from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
-from ccxt.coinspot import coinspot                                    # noqa: F401
+from ccxt.coinspot import coinspot                                    # noqa: F401  
+from ccxt.exchanges.cryptobeam import cryptobeam                      # noqa: F401
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.cryptomus import cryptomus                                  # noqa: F401
 from ccxt.defx import defx                                            # noqa: F401
@@ -238,6 +238,7 @@ exchanges = [
     'coinone',
     'coinsph',
     'coinspot',
+    'cryptobeam',
     'cryptocom',
     'cryptomus',
     'defx',
