@@ -765,7 +765,7 @@ export default class cex extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         let dataType = undefined;
         [ dataType, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {

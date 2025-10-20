@@ -1013,7 +1013,7 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1036,7 +1036,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -1422,7 +1422,9 @@ class okx extends \ccxt\async\okx {
             }
             if ($error !== null) {
                 unset($client->subscriptions[$messageHash]);
-                unset($this->orderbooks[$symbol]);
+                if ($symbol !== null) {
+                    unset($this->orderbooks[$symbol]);
+                }
                 $client->reject ($error, $messageHash);
             }
         }
@@ -1577,7 +1579,7 @@ class okx extends \ccxt\async\okx {
             $url = $this->get_url('users', $access);
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->seconds();
@@ -2320,7 +2322,7 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *

@@ -81,6 +81,12 @@ type TransferMessage struct {
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
 }
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
+}
 
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
@@ -396,6 +402,19 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 		}
 
 		packed, err := msgpack.Marshal(editMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
 		if err != nil {
 			panic(err)
 		}

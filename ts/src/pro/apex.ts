@@ -437,7 +437,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -848,7 +848,7 @@ export default class apex extends apexRest {
         const signature = this.hmac (this.encode (messageString), this.encode (this.stringToBase64 (this.secret)), sha256, 'base64');
         const messageHash = 'authenticated';
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
@@ -991,10 +991,10 @@ export default class apex extends apexRest {
     }
 
     ping (client: Client) {
-        const timeStamp = this.milliseconds ().toString ();
-        client.lastPong = timeStamp; // server won't send a pong, so we set it here
+        const timeStamp = this.milliseconds ();
+        client.lastPong = timeStamp;
         return {
-            'args': [ timeStamp ],
+            'args': [ timeStamp.toString () ],
             'op': 'ping',
         };
     }

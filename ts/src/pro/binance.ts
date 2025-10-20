@@ -1433,7 +1433,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1501,7 +1501,8 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         params = this.omit (params, 'callerMethodName');
-        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
+        const res = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
+        const [ symbol, timeframe, candles ] = res;
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -1590,7 +1591,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1721,7 +1722,7 @@ export default class binance extends binanceRest {
      * @param {string} params.timeZone default=0 (UTC)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('fetchOHLCVWs', market, params);
@@ -3569,7 +3570,7 @@ export default class binance extends binanceRest {
         const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription) as Order[];
     }
 
     /**

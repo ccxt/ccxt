@@ -25,29 +25,28 @@ public partial class Exchange
 
     public virtual void onClose(WebSocketClient client, object error = null)
     {
-        // var client = (WebSocketClient)client2;
         if (client.error)
         {
             // what do we do here?
         }
         else
         {
-            var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-            if (urlClient != null)
-            {
-                // this.clients.Remove(client.url);
-                this.clients.TryRemove(client.url, out _);
-            }
+            this.CleanupClients(client, error);
         }
     }
 
     public virtual void onError(WebSocketClient client, object error = null)
     {
+        this.CleanupClients(client, error);
+    }
+
+    public void CleanupClients(WebSocketClient client, object error = null)
+    {
         // var client = (WebSocketClient)client2;
         var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        rejectFutures(urlClient, error);
         if (urlClient != null) //  && urlClient.error
         {
+            rejectFutures(urlClient, error);
             // this.clients.Remove(client.url);
             this.clients.TryRemove(client.url, out _);
         }

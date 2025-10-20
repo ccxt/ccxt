@@ -335,7 +335,7 @@ export default class htx extends htxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -362,7 +362,7 @@ export default class htx extends htxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -936,23 +936,39 @@ export default class htx extends htxRest {
         //
         // spot
         //
+        //     for new order creation
+        //
         //     {
         //         "action":"push",
         //         "ch":"orders#btcusdt", // or "orders#*" for global subscriptions
         //         "data": {
+        //             "orderStatus": "submitted",
+        //             "eventType": "creation",
+        //             "totalTradeAmount": 0 // for "submitted" order status
+        //             "orderCreateTime": 1645116048355, // only when `submitted` status
         //             "orderSource": "spot-web",
-        //             "orderCreateTime": 1645116048355,
         //             "accountId": 44234548,
         //             "orderPrice": "100",
         //             "orderSize": "0.05",
         //             "symbol": "ethusdt",
         //             "type": "buy-limit",
         //             "orderId": "478861479986886",
-        //             "eventType": "creation",
         //             "clientOrderId": '',
-        //             "orderStatus": "submitted"
         //         }
         //     }
+        //
+        //     for filled order, additional fields are present:
+        //
+        //             "orderStatus": "filled",
+        //             "eventType": "trade",
+        //             "totalTradeAmount": "5.9892649859",
+        //             "tradePrice": "0.676669",
+        //             "tradeVolume": "8.8511",
+        //             "tradeTime": 1760427775894,
+        //             "aggressor": false,
+        //             "execAmt": "8.8511",
+        //             "tradeId": 100599712781,
+        //             "remainAmt": "0",
         //
         // spot wrapped trade
         //
@@ -1065,6 +1081,9 @@ export default class htx extends htxRest {
                     'symbol': market['symbol'],
                     'filled': this.parseNumber (filled),
                     'remaining': this.parseNumber (remaining),
+                    'price': this.safeNumber (data, 'orderPrice'),
+                    'amount': this.safeNumber (data, 'orderSize'),
+                    'info': data,
                 };
                 parsedOrder = order;
             } else {
@@ -2496,7 +2515,7 @@ export default class htx extends htxRest {
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
         const client = this.client (url);
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.ymdhms (this.milliseconds (), 'T');
@@ -2517,7 +2536,7 @@ export default class htx extends htxRest {
                 };
             }
             signatureParams = this.keysort (signatureParams);
-            const auth = this.urlencode (signatureParams);
+            const auth = this.urlencode (signatureParams, true); // true required in go
             const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             let request = undefined;

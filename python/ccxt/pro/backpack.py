@@ -409,7 +409,7 @@ class backpack(ccxt.async_support.backpack):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

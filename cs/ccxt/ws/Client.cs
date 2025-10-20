@@ -86,6 +86,11 @@ public partial class Exchange
             return future;
         }
 
+        public Future reusableFuture(object messageHash)
+        {
+            return this.future(messageHash);  // only used in go
+        }
+
         public void resolve(object content, object messageHash2)
         {
             if (this.verbose && (messageHash2 == null))
@@ -166,7 +171,7 @@ public partial class Exchange
         {
             try
             {
-                    
+
                 if (this.keepAlive != null)
                 {
                     await Task.Delay(Convert.ToInt32(this.keepAlive));
@@ -338,12 +343,15 @@ public partial class Exchange
         private void TryHandleMessage(string message)
         {
             object deserializedMessages = message;
-            try
+            if (isValidJson(message))
             {
-                deserializedMessages = JsonHelper.Deserialize(message);
-            }
-            catch (Exception e)
-            {
+                try
+                {
+                    deserializedMessages = JsonHelper.Deserialize(message);
+                }
+                catch (Exception e)
+                {
+                }
             }
             this.handleMessage(this, deserializedMessages);
         }

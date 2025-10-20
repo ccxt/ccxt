@@ -623,24 +623,26 @@ class deribit extends Exchange {
             $response = Async\await($this->publicGetGetCurrencies ($params));
             //
             //    {
-            //      "jsonrpc" => "2.0",
-            //      "result" => array(
-            //        array(
-            //          "withdrawal_priorities" => array(),
-            //          "withdrawal_fee" => 0.01457324,
-            //          "min_withdrawal_fee" => 0.000001,
-            //          "min_confirmations" => 1,
-            //          "fee_precision" => 8,
-            //          "currency_long" => "Solana",
-            //          "currency" => "SOL",
-            //          "coin_type" => "SOL"
+            //        "jsonrpc" => "2.0",
+            //        "result" => array(
+            //            array(
+            //                "currency" => "XRP",
+            //                "network_fee" => "1.5e-5",
+            //                "min_withdrawal_fee" => "0.0001",
+            //                "apr" => "0.0",
+            //                "withdrawal_fee" => "0.0001",
+            //                "network_currency" => "XRP",
+            //                "coin_type" => "XRP",
+            //                "withdrawal_priorities" => array(),
+            //                "min_confirmations" => "1",
+            //                "currency_long" => "XRP",
+            //                "in_cross_collateral_pool" => false
+            //            ),
             //        ),
-            //        ...
-            //      ),
-            //      "usIn" => 1688652701456124,
-            //      "usOut" => 1688652701456390,
-            //      "usDiff" => 266,
-            //      "testnet" => true
+            //        "usIn" => "1760110326693923",
+            //        "usOut" => "1760110326944891",
+            //        "usDiff" => "250968",
+            //        "testnet" => false
             //    }
             //
             $data = $this->safe_list($response, 'result', array());
@@ -659,7 +661,7 @@ class deribit extends Exchange {
                     'withdraw' => null,
                     'type' => 'crypto',
                     'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -1442,7 +1444,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

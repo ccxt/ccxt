@@ -3589,6 +3589,7 @@ class mexc extends mexc$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(order, 'updateTime'),
             'status': this.parseOrderStatus(this.safeString2(order, 'status', 'state')),
             'symbol': market['symbol'],
             'type': this.parseOrderType(typeRaw),

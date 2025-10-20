@@ -318,7 +318,7 @@ class htx(ccxt.async_support.htx):
         client.resolve(tradesCache, ch)
         return message
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -344,7 +344,7 @@ class htx(ccxt.async_support.htx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -886,23 +886,39 @@ class htx(ccxt.async_support.htx):
         #
         # spot
         #
+        #     for new order creation
+        #
         #     {
         #         "action":"push",
         #         "ch":"orders#btcusdt",  # or "orders#*" for global subscriptions
         #         "data": {
+        #             "orderStatus": "submitted",
+        #             "eventType": "creation",
+        #             "totalTradeAmount": 0  # for "submitted" order status
+        #             "orderCreateTime": 1645116048355,  # only when `submitted` status
         #             "orderSource": "spot-web",
-        #             "orderCreateTime": 1645116048355,
         #             "accountId": 44234548,
         #             "orderPrice": "100",
         #             "orderSize": "0.05",
         #             "symbol": "ethusdt",
         #             "type": "buy-limit",
         #             "orderId": "478861479986886",
-        #             "eventType": "creation",
         #             "clientOrderId": '',
-        #             "orderStatus": "submitted"
         #         }
         #     }
+        #
+        #     for filled order, additional fields are present:
+        #
+        #             "orderStatus": "filled",
+        #             "eventType": "trade",
+        #             "totalTradeAmount": "5.9892649859",
+        #             "tradePrice": "0.676669",
+        #             "tradeVolume": "8.8511",
+        #             "tradeTime": 1760427775894,
+        #             "aggressor": False,
+        #             "execAmt": "8.8511",
+        #             "tradeId": 100599712781,
+        #             "remainAmt": "0",
         #
         # spot wrapped trade
         #
@@ -1014,6 +1030,9 @@ class htx(ccxt.async_support.htx):
                     'symbol': market['symbol'],
                     'filled': self.parse_number(filled),
                     'remaining': self.parse_number(remaining),
+                    'price': self.safe_number(data, 'orderPrice'),
+                    'amount': self.safe_number(data, 'orderSize'),
+                    'info': data,
                 }
                 parsedOrder = order
             else:
@@ -2331,7 +2350,7 @@ class htx(ccxt.async_support.htx):
         messageHash = 'auth'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             timestamp = self.ymdhms(self.milliseconds(), 'T')
@@ -2351,7 +2370,7 @@ class htx(ccxt.async_support.htx):
                     'Timestamp': timestamp,
                 }
             signatureParams = self.keysort(signatureParams)
-            auth = self.urlencode(signatureParams)
+            auth = self.urlencode(signatureParams, True)  # True required in go
             payload = "\n".join(['GET', hostname, relativePath, auth])  # eslint-disable-line quotes
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None

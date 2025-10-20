@@ -497,7 +497,7 @@ class bitget extends \ccxt\async\bitget {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
@@ -546,7 +546,7 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unsubscribe from the ohlcv $channel
@@ -1549,6 +1549,7 @@ class bitget extends \ccxt\async\bitget {
              * watches information on multiple $orders made by the user
              *
              * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+             * @see https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
              * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
@@ -2528,7 +2529,7 @@ class bitget extends \ccxt\async\bitget {
             $url = $this->safe_string($params, 'url');
             $client = $this->client($url);
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->seconds();

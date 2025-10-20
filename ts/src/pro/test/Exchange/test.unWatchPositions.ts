@@ -4,7 +4,7 @@ import ccxt, { Exchange } from '../../../../ccxt.js';
 import { createFutureOrderAfterDelay } from './utils.js';
 
 
-async function testUnwatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
+async function testUnWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'unWatchPositions';
     exchange.setSandboxMode (true);
 
@@ -22,7 +22,7 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
             throw e;
         }
         // If we can't subscribe, we can't test unsubscribe, so skip this test
-        return;
+        return false;
     }
 
     // Verify that we have a subscription
@@ -67,7 +67,8 @@ async function testUnwatchPositions (exchange: Exchange, skippedProperties: obje
 
     // Verify resubscription works
     assert (Array.isArray (resubscribeResponse), exchange.id + ' ' + method + ' must allow resubscription after unwatch, returned ' + exchange.json (resubscribeResponse));
+    return true;
 }
 
-export default testUnwatchPositions;
+export default testUnWatchPositions;
 
