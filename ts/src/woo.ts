@@ -1,7 +1,6 @@
 
 // ---------------------------------------------------------------------------
 
-import { time } from 'node:console';
 import Exchange from './abstract/woo.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
