@@ -253,6 +253,7 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.AfterConstruct()
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]interface{}{}).(map[string]interface{})
+	this.initStream() // Initialize Stream with config from this.streaming
 	this.transformApiNew(this.Api)
 	transport := &http.Transport{}
 
@@ -282,9 +283,24 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 	// to do
 }
 
+func (this *Exchange) initStream() {
+	maxMessagesPerTopic := 0
+	verbose := false
+
+	if this.streaming != nil {
+		if maxVal := this.SafeInteger(this.streaming, "maxMessagesPerTopic", 0); maxVal != nil {
+			maxMessagesPerTopic = int(maxVal.(int64))
+		}
+		if verboseVal := this.SafeBool(this.streaming, "verbose", this.Verbose); verboseVal != nil {
+			verbose = verboseVal.(bool)
+		}
+	}
+
+	this.Stream = NewStream(maxMessagesPerTopic, verbose)
+}
+
 func NewExchange() ICoreExchange {
 	exchange := &Exchange{}
-	exchange.Stream = NewStream(0, false)
 	exchange.Init(map[string]interface{}{})
 	return exchange
 }
