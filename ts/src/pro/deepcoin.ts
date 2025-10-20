@@ -24,9 +24,9 @@ export default class deepcoin extends deepcoinRest {
                 'watchTradesForSymbols': false,
                 'watchOrderBookForSymbols': false,
                 'watchBalance': false,
-                'watchLiquidations': 'emulated',
+                'watchLiquidations': false,
                 'watchLiquidationsForSymbols': false,
-                'watchMyLiquidations': 'emulated',
+                'watchMyLiquidations': false,
                 'watchMyLiquidationsForSymbols': false,
                 'watchOHLCV': false,
                 'watchOHLCVForSymbols': false,
@@ -46,19 +46,50 @@ export default class deepcoin extends deepcoinRest {
                     'ws': {
                         'public': {
                             'spot': 'wss://stream.deepcoin.com/streamlet/trade/public/spot?platform=api',
-                            'swap': 'wss://stream.deepcoin.com/streamlet/swap/public/swap?platform=api',
+                            'swap': 'wss://stream.deepcoin.com/streamlet/trade/public/swap?platform=api',
                         },
                         'private': 'wss://stream.deepcoin.com/v1/private',
                     },
                 },
             },
             'options': {
+                'requestId': this.createSafeDictionary (),
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 18000,
+                'keepAlive': 18000, // todo find real value
             },
         });
+    }
+
+    ping (client: Client) {
+        return 'ping';
+    }
+
+    requestId (url) {
+        const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
+        const previousValue = this.safeInteger (options, url, 0);
+        const newValue = this.sum (previousValue, 1);
+        this.options['requestId'][url] = newValue;
+        return newValue;
+    }
+
+    async watchPublic (market: Market, messageHash: string, topicID: string, params = {}, suffix: string = ''): Promise<any> {
+        const url = this.urls['api']['ws']['public'][market['type']];
+        let marketId = market['symbol'];
+        if (market['type'] === 'swap') {
+            marketId = market['baseId'] + market['quoteId'];
+        }
+        const request = {
+            'sendTopicAction': {
+                'Action': '1', // subscribe
+                'FilterValue': 'DeepCoin_' + marketId + suffix,
+                'LocalNo': this.requestId (url),
+                'ResumeNo': -1, // -1 from the end, 0 from the beginning
+                'TopicID': topicID,
+            },
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     /**
@@ -73,19 +104,9 @@ export default class deepcoin extends deepcoinRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'ticker:' + symbol;
-        const url = this.urls['api']['ws']['public'][market['type']];
-        const request = {
-            'sendTopicAction': {
-                'Action': '1', // subscribe
-                'FilterValue': 'DeepCoin_' + symbol,
-                'LocalNo': 9,
-                'ResumeNo': -2,
-                'TopicID': '7',
-            },
-        };
-        const response = await this.watch (url, messageHash, request, messageHash);
-        return response;
+        const messageHash = 'ticker::' + market['symbol'];
+        const TopicID = '7';
+        return await this.watchPublic (market, messageHash, TopicID, params);
     }
 
     handleTicker (client: Client, message) {
@@ -126,7 +147,7 @@ export default class deepcoin extends deepcoinRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
         const parsedTicker = this.parseWsTicker (data, market);
-        const messageHash = 'ticker' + ':' + symbol;
+        const messageHash = 'ticker' + '::' + symbol;
         this.tickers[symbol] = parsedTicker;
         client.resolve (parsedTicker, messageHash);
     }
@@ -155,19 +176,21 @@ export default class deepcoin extends deepcoinRest {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'U');
-        const marketId = this.safeString (ticker, 'I');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
         const high = this.safeNumber (ticker, 'H');
         const low = this.safeNumber (ticker, 'L');
         const open = this.safeNumber (ticker, 'O');
-        const last = this.safeNumber (ticker, 'M');
+        const last = this.safeNumber (ticker, 'N');
         const bid = this.safeNumber (ticker, 'BP1');
         const ask = this.safeNumber (ticker, 'AP1');
-        const baseVolume = this.safeNumber (ticker, 'V');
-        const quoteVolume = this.safeNumber (ticker, 'V2');
+        let baseVolume = this.safeNumber (ticker, 'V');
+        let quoteVolume = this.safeNumber (ticker, 'T');
+        if (market['inverse']) {
+            const temp = baseVolume;
+            baseVolume = quoteVolume;
+            quoteVolume = temp;
+        }
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': high,
@@ -195,5 +218,26 @@ export default class deepcoin extends deepcoinRest {
         if (action === 'PO') {
             this.handleTicker (client, message);
         }
+    }
+
+    handleErrorMessage (client: Client, message) {
+        //
+        //     {
+        //         "a": "RecvTopicAction",
+        //         "m": "subscription cluster does not "exist": BTC/USD",
+        //         "r": [
+        //             {
+        //                 "d": {
+        //                     "A": "1",
+        //                     "L": 1,
+        //                     "T": "7",
+        //                     "F": "DeepCoin_BTC/USD",
+        //                     "R": -1
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        return message; // todo add error handling
     }
 }
