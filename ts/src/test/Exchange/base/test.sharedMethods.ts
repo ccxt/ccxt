@@ -90,14 +90,13 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             // if it was in needed keys, then it should have value.
             assert (value !== undefined, '"' + stringValue (key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
-            if (key === 'info') {
-                continue;
-            }
-            const typeAssertion = assertType (exchange, {}, entry, key, format);
-            assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
-            if (deep) {
-                if (typeof value === 'object') {
-                    assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
+            if (key !== 'info') {
+                const typeAssertion = assertType (exchange, {}, entry, key, format);
+                assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
+                if (deep) {
+                    if (typeof value === 'object') {
+                        assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
+                    }
                 }
             }
         }
