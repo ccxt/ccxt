@@ -1744,9 +1744,7 @@ class Exchange {
     }
 
     public function __destruct() {
-        if ($this->curl !== null) {
-            curl_close($this->curl);
-        }
+        $this->close();
     }
 
     public function has($feature = null) {
@@ -2346,6 +2344,14 @@ class Exchange {
         }
         return (int)$number;
     }
+
+    public function close() {
+        // Here happens the language-specific cleanup of WS & REST resources
+        // [REST]
+        if ($this->curl !== null) {
+            curl_close($this->curl);
+        }
+   }
 
     public function binary_length($binary) {
         return strlen($binary);
