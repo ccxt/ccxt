@@ -6315,18 +6315,18 @@ export default class Exchange {
         throw new NotSupported (this.id + ' cancelOrders() is not supported yet');
     }
 
-    async cancelOrdersWithClientOrderIds (clientOrderids: string[], symbol: Str = undefined, params = {}) {
+    async cancelOrdersWithClientOrderIds (clientOrderIds: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name cancelOrdersWithClientOrderIds
          * @description create a market order by providing the symbol, side and cost
-         * @param {string[]} clientOrderids client order Ids
+         * @param {string[]} clientOrderIds client order Ids
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (this.has['cancelOrdersWithClientOrderIds']) {
-            params = this.extend (params, { 'clientOrderids': clientOrderids });
+            params = this.extend (params, { 'clientOrderIds': clientOrderIds });
             return await this.cancelOrders ([], symbol, params);
         }
         throw new NotSupported (this.id + ' cancelOrderWithClientOrderIds() is not supported yet');
