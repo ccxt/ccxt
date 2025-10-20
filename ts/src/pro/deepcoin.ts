@@ -420,8 +420,8 @@ export default class deepcoin extends deepcoinRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const intervals = this.safeDict (this.options, 'intervals', {});
-        const interval = this.safeString (intervals, timeframe, timeframe);
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
+        const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
         const suffix = '_' + interval;
         const ohlcv = await this.watchPublic (market, messageHash, '11', params, suffix);
@@ -429,6 +429,31 @@ export default class deepcoin extends deepcoinRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#unWatchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.backpack.exchange/#tag/Streams/Public/K-Line
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const timeframes = this.safeDict (this.options, 'timeframes', {});
+        const interval = this.safeString (timeframes, timeframe, timeframe);
+        const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
+        const suffix = '_' + interval;
+        const subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [ [ symbol, timeframe ] ],
+        };
+        return await this.unWatchPublic (market, messageHash, '11', params, subscription, suffix);
     }
 
     handleOHLCV (client: Client, message) {
@@ -480,7 +505,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "I": "BTC/USDT",
