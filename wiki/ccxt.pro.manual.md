@@ -63,10 +63,10 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
 | [![ascendex](https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1)](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                                | ascendex              | [AscendEX](https://ascendex.com/en-us/register?inviteCode=EL6BXBQM)                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation)        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![backpack](https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f)](https://backpack.exchange/join/ccxt)                                                    | backpack              | [Backpack](https://backpack.exchange/join/ccxt)                                         | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.backpack.exchange/)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bequant](https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867)](https://bequant.io/referral/dd104e3bee7634ec)                                            | bequant               | [Bequant](https://bequant.io/referral/dd104e3bee7634ec)                                 | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.bequant.io/)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![binance](https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                   | binance               | [Binance](https://accounts.binance.com/en/register?ref=D7YA7CLY)                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://developers.binance.com/en)                                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![binancecoinm](https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                              | binancecoinm          | [Binance COIN-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![binance](https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b)](https://accounts.binance.com/register?ref=CCXTCOM)                                       | binance               | [Binance](https://accounts.binance.com/register?ref=CCXTCOM)                            | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://developers.binance.com/en)                                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![binancecoinm](https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c)](https://accounts.binance.com/register?ref=CCXTCOM)                                  | binancecoinm          | [Binance COIN-M](https://accounts.binance.com/register?ref=CCXTCOM)                     | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![binanceus](https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c)](https://www.binance.us/?ref=35005074)                                                  | binanceus             | [Binance US](https://www.binance.us/?ref=35005074)                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/binance-us/binance-official-api-docs)                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![binanceusdm](https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                               | binanceusdm           | [Binance USDⓈ-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                 | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![binanceusdm](https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a)](https://accounts.binance.com/register?ref=CCXTCOM)                                   | binanceusdm           | [Binance USDⓈ-M](https://accounts.binance.com/register?ref=CCXTCOM)                     | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bingx](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg)](https://bingx.com/invite/OHETOM)                   | bingx                 | [BingX](https://bingx.com/invite/OHETOM)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bingx-api.github.io/docs/)                                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitfinex](https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178)](https://www.bitfinex.com)                                                               | bitfinex              | [Bitfinex](https://www.bitfinex.com)                                                    | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                 | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitget](https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658)](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j)            | bitget                | [Bitget](https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j) | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.bitget.com/api-doc/common/intro)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -347,6 +347,19 @@ var exchange = new binance(new Dictionary<string, object> {
 // Method 2: After initialization
 exchange.stream.maxMessagesPerTopic = 1000;
 ```
+
+#### **Go**
+```go
+// Method 1: During initialization
+exchange := pro.NewBinance(&types.ExchangeConfig{
+    Streaming: &types.StreamingConfig{
+        MaxMessagesPerTopic: 1000,
+    },
+})
+
+// Method 2: After initialization
+exchange.Stream.MaxMessagesPerTopic = 1000
+```
 <!-- tabs:end -->
 
 Note: Setting `maxMessagesPerTopic` to 0 will disable message history storage, which can be useful for high-throughput scenarios where you only need the latest message.
@@ -518,10 +531,26 @@ subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' =>
     {
         // Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
         await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, new Dictionary<string, object> { { "synchronous", true } });
-        
+
         // Subscribe with asynchronous processing
         await SubscribeTickers(new string[] { "BTC/USD", "ETH/USD" }, HandleTickerUpdate, new Dictionary<string, object> { { "synchronous", false } });
     }
+```
+
+#### **Go**
+```go
+handleTickerUpdate := func(message *types.Message) {
+    fmt.Println("New ticker update:", message.Payload)
+    // Access metadata and history
+    fmt.Println("Metadata:", message.Metadata)
+    fmt.Println("History:", message.History)
+}
+
+// Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
+err := exchange.SubscribeTickers([]string{"BTC/USD", "ETH/USD"}, handleTickerUpdate, map[string]interface{}{"synchronous": true}, nil)
+
+// Subscribe with asynchronous processing
+err := exchange.SubscribeTickers([]string{"BTC/USD", "ETH/USD"}, handleTickerUpdate, map[string]interface{}{"synchronous": false}, nil)
 ```
 <!-- tabs:end -->
 
@@ -549,6 +578,10 @@ $history = $exchange->stream->get_message_history($topic)
 #### **C#**
 ```csharp
 var history = exchange.stream.getMessageHistory(topic);
+```
+#### **Go**
+```go
+history := exchange.Stream.GetMessageHistory(topic)
 ```
 <!-- tabs:end -->
 
@@ -616,6 +649,10 @@ $unsubscribed = $exchange->stream->unsubscribe($topic, $callback)
 #### **C#**
 ```csharp
 var unsubscribed = exchange.stream.Unsubscribe(topic, callback);
+```
+#### **Go**
+```go
+unsubscribed := exchange.Stream.Unsubscribe(topic, callback)
 ```
 <!-- tabs:end -->
 
@@ -784,6 +821,34 @@ UnsubscribeTrades(TradeCallback, "BTC/USDT");
 
 // To completely stop ticker streaming and close the connection:
 await UnWatchTicker("BTC/USDT");
+```
+
+#### **Go**
+```go
+// Define callback functions
+tickerCallback := func(message *types.Message) {
+    fmt.Println("Ticker update:", message.Payload)
+}
+
+tradeCallback := func(message *types.Message) {
+    fmt.Println("Trade update:", message.Payload)
+}
+
+// Subscribe to multiple streams
+err := exchange.SubscribeTicker("BTC/USDT", tickerCallback, nil, nil)
+err = exchange.SubscribeTrades("BTC/USDT", tradeCallback, nil, nil)
+
+// Later, unsubscribe specific callbacks (WebSocket connection remains open)
+unsubscribed := exchange.UnsubscribeTicker(tickerCallback, "BTC/USDT")
+if unsubscribed {
+    fmt.Println("Successfully unsubscribed from ticker updates")
+}
+
+// Unsubscribe from trades
+exchange.UnsubscribeTrades(tradeCallback, "BTC/USDT")
+
+// To completely stop ticker streaming and close the connection:
+err = exchange.UnWatchTicker("BTC/USDT")
 ```
 <!-- tabs:end -->
 
