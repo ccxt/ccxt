@@ -438,6 +438,7 @@ class Exchange {
         'toobit',
         'upbit',
         'wavesexchange',
+        'websea',
         'whitebit',
         'woo',
         'woofipro',

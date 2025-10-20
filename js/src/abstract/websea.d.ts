@@ -1,0 +1,35 @@
+import { implicitReturnType } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    openApiPublicGetOpenApiMarketSymbols(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarketCurrencies(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarketTrade(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarketDepth(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarketOrderbook(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarketKline(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarket24kline(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarket24klineList(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiMarketPrecision(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiFuturesSymbols(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiFuturesTrade(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiFuturesDepth(params?: {}): Promise<implicitReturnType>;
+    openApiPublicGetOpenApiFuturesKline(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustAdd(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustCancel(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustOrderList(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustOrderDetail(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustOrderTrade(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustHistoryList(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiEntrustHistoryDetail(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiWalletList(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiWalletDetail(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiFuturesEntrustAdd(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiFuturesEntrustCancel(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiFuturesEntrustOrderList(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiFuturesEntrustOrderDetail(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiFuturesPositionList(params?: {}): Promise<implicitReturnType>;
+    openApiPrivatePostOpenApiFuturesPositionDetail(params?: {}): Promise<implicitReturnType>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

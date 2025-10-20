@@ -164,6 +164,7 @@ from ccxt.async_support.tokocrypto import tokocrypto                            
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
 from ccxt.async_support.wavesexchange import wavesexchange                      # noqa: F401
+from ccxt.async_support.websea import websea                                    # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
 from ccxt.async_support.woofipro import woofipro                                # noqa: F401
@@ -273,6 +274,7 @@ exchanges = [
     'toobit',
     'upbit',
     'wavesexchange',
+    'websea',
     'whitebit',
     'woo',
     'woofipro',

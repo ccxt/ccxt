@@ -101,6 +101,7 @@
 	- [toobit](exchanges/toobit.md)
 	- [upbit](exchanges/upbit.md)
 	- [wavesexchange](exchanges/wavesexchange.md)
+	- [websea](exchanges/websea.md)
 	- [whitebit](exchanges/whitebit.md)
 	- [woo](exchanges/woo.md)
 	- [woofipro](exchanges/woofipro.md)

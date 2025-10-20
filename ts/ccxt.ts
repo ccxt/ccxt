@@ -146,6 +146,7 @@ import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
 import upbit from  './src/upbit.js'
 import wavesexchange from  './src/wavesexchange.js'
+import websea from  './src/websea.js'
 import whitebit from  './src/whitebit.js'
 import woo from  './src/woo.js'
 import woofipro from  './src/woofipro.js'
@@ -331,6 +332,7 @@ const exchanges = {
     'toobit':                 toobit,
     'upbit':                  upbit,
     'wavesexchange':          wavesexchange,
+    'websea':                 websea,
     'whitebit':               whitebit,
     'woo':                    woo,
     'woofipro':               woofipro,
@@ -658,6 +660,7 @@ export {
     toobit,
     upbit,
     wavesexchange,
+    websea,
     whitebit,
     woo,
     woofipro,

@@ -35,6 +35,24 @@ add margin
 
 ---
 
+<a name="aggregateOrderBookSide" id="aggregateorderbookside"></a>
+
+## aggregateOrderBookSide
+aggregates orders with the same price by summing their amounts
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;any&gt;</code> - aggregated order book side
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| orderBookSide | <code>Array&lt;any&gt;</code> | array of [price, amount] tuples |
+
+##### Supported exchanges
+* [websea](/exchanges/websea.md#webseaaggregateorderbookside)
+
+---
+
 <a name="borrowCrossMargin" id="borrowcrossmargin"></a>
 
 ## borrowCrossMargin
@@ -363,6 +381,7 @@ cancels an open order
 * [toobit](/exchanges/toobit.md#toobitcancelorder)
 * [upbit](/exchanges/upbit.md#upbitcancelorder)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangecancelorder)
+* [websea](/exchanges/websea.md#webseacancelorder)
 * [whitebit](/exchanges/whitebit.md#whitebitcancelorder)
 * [woo](/exchanges/woo.md#woocancelorder)
 * [woofipro](/exchanges/woofipro.md#woofiprocancelorder)
@@ -914,6 +933,7 @@ create a trade order
 * [toobit](/exchanges/toobit.md#toobitcreateorder)
 * [upbit](/exchanges/upbit.md#upbitcreateorder)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangecreateorder)
+* [websea](/exchanges/websea.md#webseacreateorder)
 * [whitebit](/exchanges/whitebit.md#whitebitcreateorder)
 * [woo](/exchanges/woo.md#woocreateorder)
 * [woofipro](/exchanges/woofipro.md#woofiprocreateorder)
@@ -1613,6 +1633,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [toobit](/exchanges/toobit.md#toobitfetchbalance)
 * [upbit](/exchanges/upbit.md#upbitfetchbalance)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchbalance)
+* [websea](/exchanges/websea.md#webseafetchbalance)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchbalance)
 * [woo](/exchanges/woo.md#woofetchbalance)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchbalance)
@@ -1920,6 +1941,7 @@ fetches information on multiple closed orders made by the user
 * [toobit](/exchanges/toobit.md#toobitfetchclosedorders)
 * [upbit](/exchanges/upbit.md#upbitfetchclosedorders)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchclosedorders)
+* [websea](/exchanges/websea.md#webseafetchclosedorders)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchclosedorders)
 * [woo](/exchanges/woo.md#woofetchclosedorders)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchclosedorders)
@@ -2167,6 +2189,7 @@ fetches all available currencies on an exchange
 * [probit](/exchanges/probit.md#probitfetchcurrencies)
 * [timex](/exchanges/timex.md#timexfetchcurrencies)
 * [toobit](/exchanges/toobit.md#toobitfetchcurrencies)
+* [websea](/exchanges/websea.md#webseafetchcurrencies)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchcurrencies)
 * [woo](/exchanges/woo.md#woofetchcurrencies)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchcurrencies)
@@ -2780,6 +2803,7 @@ fetches the current funding rate
 * [okx](/exchanges/okx.md#okxfetchfundingrate)
 * [oxfun](/exchanges/oxfun.md#oxfunfetchfundingrate)
 * [phemex](/exchanges/phemex.md#phemexfetchfundingrate)
+* [websea](/exchanges/websea.md#webseafetchfundingrate)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchfundingrate)
 * [woo](/exchanges/woo.md#woofetchfundingrate)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchfundingrate)
@@ -3476,6 +3500,7 @@ retrieves data on all markets for alpaca
 * [toobit](/exchanges/toobit.md#toobitfetchmarkets)
 * [upbit](/exchanges/upbit.md#upbitfetchmarkets)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchmarkets)
+* [websea](/exchanges/websea.md#webseafetchmarkets)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchmarkets)
 * [woo](/exchanges/woo.md#woofetchmarkets)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchmarkets)
@@ -3806,6 +3831,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [toobit](/exchanges/toobit.md#toobitfetchohlcv)
 * [upbit](/exchanges/upbit.md#upbitfetchohlcv)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchohlcv)
+* [websea](/exchanges/websea.md#webseafetchohlcv)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchohlcv)
 * [woo](/exchanges/woo.md#woofetchohlcv)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchohlcv)
@@ -4055,6 +4081,7 @@ fetch all unfilled currently open orders
 * [toobit](/exchanges/toobit.md#toobitfetchopenorders)
 * [upbit](/exchanges/upbit.md#upbitfetchopenorders)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchopenorders)
+* [websea](/exchanges/websea.md#webseafetchopenorders)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchopenorders)
 * [woo](/exchanges/woo.md#woofetchopenorders)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchopenorders)
@@ -4247,6 +4274,7 @@ fetches information on an order made by the user
 * [toobit](/exchanges/toobit.md#toobitfetchorder)
 * [upbit](/exchanges/upbit.md#upbitfetchorder)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchorder)
+* [websea](/exchanges/websea.md#webseafetchorder)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchorder)
 * [woo](/exchanges/woo.md#woofetchorder)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchorder)
@@ -4360,6 +4388,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [toobit](/exchanges/toobit.md#toobitfetchorderbook)
 * [upbit](/exchanges/upbit.md#upbitfetchorderbook)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchorderbook)
+* [websea](/exchanges/websea.md#webseafetchorderbook)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchorderbook)
 * [woo](/exchanges/woo.md#woofetchorderbook)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchorderbook)
@@ -4864,6 +4893,7 @@ fetch all open positions
 * [phemex](/exchanges/phemex.md#phemexfetchpositions)
 * [poloniex](/exchanges/poloniex.md#poloniexfetchpositions)
 * [toobit](/exchanges/toobit.md#toobitfetchpositions)
+* [websea](/exchanges/websea.md#webseafetchpositions)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchpositions)
 * [woo](/exchanges/woo.md#woofetchpositions)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchpositions)
@@ -5125,6 +5155,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [tokocrypto](/exchanges/tokocrypto.md#tokocryptofetchticker)
 * [upbit](/exchanges/upbit.md#upbitfetchticker)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchticker)
+* [websea](/exchanges/websea.md#webseafetchticker)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchticker)
 * [xt](/exchanges/xt.md#xtfetchticker)
 * [yobit](/exchanges/yobit.md#yobitfetchticker)
@@ -5245,6 +5276,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [toobit](/exchanges/toobit.md#toobitfetchtickers)
 * [upbit](/exchanges/upbit.md#upbitfetchtickers)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchtickers)
+* [websea](/exchanges/websea.md#webseafetchtickers)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchtickers)
 * [xt](/exchanges/xt.md#xtfetchtickers)
 * [yobit](/exchanges/yobit.md#yobitfetchtickers)
@@ -5427,6 +5459,7 @@ get the list of most recent trades for a particular symbol
 * [toobit](/exchanges/toobit.md#toobitfetchtrades)
 * [upbit](/exchanges/upbit.md#upbitfetchtrades)
 * [wavesexchange](/exchanges/wavesexchange.md#wavesexchangefetchtrades)
+* [websea](/exchanges/websea.md#webseafetchtrades)
 * [whitebit](/exchanges/whitebit.md#whitebitfetchtrades)
 * [woo](/exchanges/woo.md#woofetchtrades)
 * [woofipro](/exchanges/woofipro.md#woofiprofetchtrades)
