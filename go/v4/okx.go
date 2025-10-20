@@ -180,7 +180,7 @@ func (this *OkxCore) Describe() interface{} {
 			"doc":  "https://www.okx.com/docs-v5/en/",
 			"fees": "https://www.okx.com/pages/products/fees.html",
 			"referral": map[string]interface{}{
-				"url":      "https://www.okx.com/join/CCXT2023",
+				"url":      "https://www.okx.com/join/CCXTCOM",
 				"discount": 0.2,
 			},
 			"test": map[string]interface{}{
