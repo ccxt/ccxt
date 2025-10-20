@@ -293,6 +293,25 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name deepcoin#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://www.deepcoin.com/docs/publicWS/lastTransactions
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'trades' + '::' + market['symbol'];
+        const subscription = {
+            'topic': 'trades',
+        };
+        return await this.unWatchPublic (market, messageHash, '2', params, subscription);
+    }
+
     handleTrades (client: Client, message) {
         //
         //     {
@@ -359,7 +378,7 @@ export default class deepcoin extends deepcoinRest {
             'side': this.parseTradeSide (direction),
             'price': this.safeString (trade, 'P'),
             'amount': this.safeString (trade, 'V'),
-            'cost': undefined,
+            'cost': undefined, // todo check cost for inverse markets
             'fee': undefined,
         }, market);
     }
