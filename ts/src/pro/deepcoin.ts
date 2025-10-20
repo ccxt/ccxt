@@ -40,6 +40,7 @@ export default class deepcoin extends deepcoinRest {
                 'cancelOrderWs': false,
                 'cancelOrdersWs': false,
                 'cancelAllOrdersWs': false,
+                'unWatchTicker': true,
             },
             'urls': {
                 'api': {
@@ -100,7 +101,7 @@ export default class deepcoin extends deepcoinRest {
     }
 
     async watchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
-        const url = this['urls']['api']['ws']['public'][market['type']];
+        const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const request = this.createPublicRequest (market, requestId, topicID, suffix);
         const subscription = {
@@ -111,7 +112,7 @@ export default class deepcoin extends deepcoinRest {
     }
 
     async unWatchPublic (market: Market, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
-        const url = this['urls']['api']['ws']['public'][market['type']];
+        const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const client = this.client (url);
         const existingSubscription = this.safeDict (client.subscriptions, messageHash);
@@ -163,17 +164,6 @@ export default class deepcoin extends deepcoinRest {
             'topic': 'ticker',
         };
         return await this.unWatchPublic (market, messageHash, '7', params, subscription);
-    }
-
-    async test () {
-        await this.watchTicker ('BTC/USDT');
-        await this.sleep (2000);
-        console.log ('Cache after watch <--------------------');
-        console.log (this.tickers);
-        await this.unWatchTicker ('BTC/USDT');
-        await this.sleep (2000);
-        console.log ('Cache after unWatch <--------------------');
-        console.log (this.tickers);
     }
 
     handleTicker (client: Client, message) {
@@ -283,18 +273,17 @@ export default class deepcoin extends deepcoinRest {
     handleMessage (client: Client, message) {
         if (message === 'pong') {
             this.handlePong (client, message);
-            return;
-        }
-        const m = this.safeString (message, 'm');
-        if (m !== 'Success') {
-            return this.handleErrorMessage (client, message);
-        }
-        const action = this.safeString (message, 'a');
-        if (action === 'RecvTopicAction') {
-            this.handleSubscriptionStatus (client, message);
-        }
-        if (action === 'PO') {
-            this.handleTicker (client, message);
+        } else {
+            const m = this.safeString (message, 'm');
+            if (m !== 'Success') {
+                this.handleErrorMessage (client, message);
+            }
+            const action = this.safeString (message, 'a');
+            if (action === 'RecvTopicAction') {
+                this.handleSubscriptionStatus (client, message);
+            } else if (action === 'PO') {
+                this.handleTicker (client, message);
+            }
         }
     }
 
@@ -327,19 +316,15 @@ export default class deepcoin extends deepcoinRest {
             const subHash = this.safeString (subscription, 'subHash');
             const unsubHash = 'unsubscribe::' + subHash;
             const unsubsciption = this.safeDict (client.subscriptions, unsubHash, {});
-            return this.handleUnSubscription (client, unsubsciption);
+            this.handleUnSubscription (client, unsubsciption);
         }
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        console.log ('Subscriptions before unwatch <--------------------');
-        console.log (client.subscriptions);
         const subHash = this.safeString (subscription, 'subHash');
         const unsubHash = this.safeString (subscription, 'unsubHash');
         this.cleanUnsubscription (client, subHash, unsubHash);
         this.cleanCache (subscription);
-        console.log ('Subscriptions after unwatch <--------------------');
-        console.log (client.subscriptions);
     }
 
     handleErrorMessage (client: Client, message) {
@@ -368,9 +353,6 @@ export default class deepcoin extends deepcoinRest {
         //     localIDNotExist
         //     [ { d: { A: '0', L: 2, T: '7', F: 'DeepCoin_BTC/USDT', R: -1 } } ]
         //
-        console.log (message.a);
-        console.log (message.m);
-        console.log (message.r);
         return message; // todo add error handling
     }
 }
