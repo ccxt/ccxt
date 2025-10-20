@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Int, OHLCV, Market, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -529,6 +529,145 @@ export default class deepcoin extends deepcoinRest {
         ];
     }
 
+    /**
+     * @method
+     * @name deepcoin#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'orderbook' + '::' + market['symbol'];
+        const suffix = '_0.1';
+        const orderbook = await this.watchPublic (market, messageHash, '25', params, suffix);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "a": "PMO",
+        //         "t": "i", // i - update, f - snapshot
+        //         "r": [
+        //             {
+        //                 "d": { "I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979 }
+        //             },
+        //             {
+        //                 "d": { "I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724 }
+        //             }
+        //         ],
+        //         "tt": 1760975816446,
+        //         "mt": 1760975816446
+        //     }
+        //
+        const response = this.safeList (message, 'r', []);
+        const first = this.safeDict (response, 0, {});
+        const data = this.safeDict (first, 'd', {});
+        let marketId = this.safeString (data, 'I');
+        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        const type = this.safeString (message, 't');
+        if (orderbook['timestamp'] === undefined) {
+            if (type === 'f') {
+                // snapshot
+                this.handleOrderBookSnapshot (client, message, market);
+            } else {
+                // cache the updates until the snapshot is received
+                orderbook.cache.push (message);
+            }
+        } else {
+            this.handleOrderBookMessage (message, orderbook);
+            const messageHash = 'orderbook' + '::' + symbol;
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookSnapshot (client: Client, message, market: Market) {
+        const symbol = market['symbol'];
+        const orderbook = this.orderbooks[symbol];
+        const entries = this.safeList (message, 'r', []);
+        const orderedEntries: Dict = {
+            'bids': [],
+            'asks': [],
+        };
+        for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            const data = this.safeDict (entry, 'd', {});
+            const side = this.safeString (data, 'D');
+            const price = this.safeNumber (data, 'P');
+            const volume = this.safeNumber (data, 'V');
+            if (side === '0') {
+                // bid
+                orderedEntries['bids'].push ([ price, volume ]);
+            } else if (side === '1') {
+                // ask
+                orderedEntries['asks'].push ([ price, volume ]);
+            }
+        }
+        const timestamp = this.safeInteger (message, 'mt');
+        const snapshot = this.parseOrderBook (orderedEntries, symbol, timestamp);
+        orderbook.reset (snapshot);
+        const cachedMessages = orderbook.cache;
+        for (let j = 0; j < cachedMessages.length; j++) {
+            const cachedMessage = cachedMessages[j];
+            this.handleOrderBookMessage (cachedMessage, orderbook);
+        }
+        orderbook.cache = [];
+        const messageHash = 'orderbook' + '::' + symbol;
+        client.resolve (orderbook, messageHash);
+    }
+
+    handleOrderBookMessage (message, orderbook) {
+        //     {
+        //         "a": "PMO",
+        //         "t": "i", // i - update, f - snapshot
+        //         "r": [
+        //             {
+        //                 "d": { "I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979 }
+        //             },
+        //             {
+        //                 "d": { "I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724 }
+        //             }
+        //         ],
+        //         "tt": 1760975816446,
+        //         "mt": 1760975816446
+        //     }
+        //
+        const timestamp = this.safeInteger (message, 'mt');
+        if (timestamp > orderbook['timestamp']) {
+            const response = this.safeList (message, 'r', []);
+            this.handleDeltas (orderbook, response);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+        }
+    }
+
+    handleDelta (orderbook, entry) {
+        const data = this.safeDict (entry, 'd', {});
+        const bids = orderbook['bids'];
+        const asks = orderbook['asks'];
+        const side = this.safeString (data, 'D');
+        const price = this.safeNumber (data, 'P');
+        const volume = this.safeNumber (data, 'V');
+        if (side === '0') {
+            // bid
+            bids.store (price, volume);
+        } else if (side === '1') {
+            // ask
+            asks.store (price, volume);
+        }
+    }
+
     handleMessage (client: Client, message) {
         if (message === 'pong') {
             this.handlePong (client, message);
@@ -546,6 +685,8 @@ export default class deepcoin extends deepcoinRest {
                 this.handleTrades (client, message);
             } else if (action === 'PK') {
                 this.handleOHLCV (client, message);
+            } else if (action === 'PMO') {
+                this.handleOrderBook (client, message);
             }
         }
     }
@@ -575,7 +716,7 @@ export default class deepcoin extends deepcoinRest {
         if (action === '0') {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subId = this.safeInteger (data, 'L');
-            const subscription = this.safeDict (subscriptionsById, subId, {}); // original subscription
+            const subscription = this.safeDict (subscriptionsById, subId, {}); // original watch subscription
             const subHash = this.safeString (subscription, 'subHash');
             const unsubHash = 'unsubscribe::' + subHash;
             const unsubsciption = this.safeDict (client.subscriptions, unsubHash, {}); // unWatch subscription
