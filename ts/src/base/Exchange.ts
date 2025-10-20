@@ -2598,10 +2598,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchTrades() is not supported yet');
     }
 
-    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
-        throw new NotSupported (this.id + ' unWatchMyTrades() is not supported yet');
-    }
-
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
     }

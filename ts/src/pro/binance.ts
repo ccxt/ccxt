@@ -2578,8 +2578,7 @@ export default class binance extends binanceRest {
             await this.unsubscribeUserDataStream (type, params);
             return true;
         } else {
-            // For other types, stop the user data stream
-            await client.close ();
+            // For other types do nothing as its not supported yet.
             return true;
         }
     }
