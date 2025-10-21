@@ -1073,7 +1073,7 @@ export default class woo extends wooRest {
         if (amount >= totalExecQuantity) {
             remaining -= totalExecQuantity;
         }
-        const rawStatus = this.safeString (order, 'status');
+        const rawStatus = this.safeString2 (order, 'status', 'algoStatus');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString (order, 'clientOrderId');
