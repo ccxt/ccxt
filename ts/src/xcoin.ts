@@ -19,8 +19,8 @@ export default class xcoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'xcoin',
             'name': 'XCoin',
-            'countries': [ 'JP' ], // Japan
-            'rateLimit': 1000,
+            'countries': [ 'HK' ], // Hong Kong
+            'rateLimit': 100,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -37,10 +37,8 @@ export default class xcoin extends Exchange {
                 'logo': '__________________________',
                 'www': 'https://xcoin.com/',
                 'api': {
-                    'public': 'https://{hostname}/API/Public',
-                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.{hostname}/rest',
-                    'v1_01Private': 'https://api.{hostname}/rest',
+                    'public': 'https://api.{hostname}/api',
+                    'private': 'https://api.{hostname}/api',
                 },
                 'doc': [
                     'https://xcoin.com/docs/',
@@ -50,12 +48,90 @@ export default class xcoin extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                    ],
+                    'get': {
+                        'v1/market/time': 1,
+                        'v2/public/symbols': 1,
+                        'v1/market/depth': 1,
+                        'v1/market/ticker/mini': 1,
+                        'v1/market/trade': 1,
+                        'v1/market/ticker/24hr': 1,
+                        'v1/market/kline': 1,
+                        'v1/market/deliveryExercise/history': 1,
+                        'v1/market/fundingRate': 1,
+                        'v1/market/fundingRate/history': 1,
+                        'v1/public/baseRates': 1,
+                    },
                 },
                 'private': {
-                    'post': [
-                    ],
+                    'get': {
+                        'v2/trade/openOrders': 1,
+                        'v2/trade/order/info': 1,
+                        'v2/history/orders': 1,
+                        'v2/history/order/operations': 1,
+                        'v2/history/trades': 1,
+                        'v2/trade/openOrderComplex': 1,
+                        'v2/history/orderComplexs': 1,
+                        // RFQ (currenty not available)
+                        'v1/blockRfq/counterparties': 1,
+                        'v1/blockRfq/rfqs': 1,
+                        'v1/blockRfq/quotes': 1,
+                        'v1/blockRfq/trades': 1,
+                        //
+                        'v1/account/convert/exchangeInfo': 1,
+                        'v1/account/convert/history/orders': 1,
+                        'v2/trade/positions': 1,
+                        'v1/trade/lever': 1,
+                        'v1/account/balance': 1,
+                        'v1/account/transferBalance': 1,
+                        'v1/account/availableBalance': 1,
+                        'v1/history/bill': 1,
+                        'v1/account/interest/history': 1,
+                        'v1/asset/account/info': 1,
+                        'v1/asset/balances': 1,
+                        'v1/asset/bill': 1,
+                        'v1/asset/currencies': 1,
+                        'v1/asset/deposit/address': 1,
+                        'v1/asset/deposit/record': 1,
+                        'v1/asset/withdrawal/address': 1,
+                        'v1/asset/withdrawal/record': 1,
+                        'v1/asset/transfer/history': 1,
+                        'v1/asset/accountMembers': 1,
+                        'v1/asset/crossTransfer/history': 1,
+                        'v1/public/flexible/product': 1,
+                        'v1/public/flexible/rateHistory': 1,
+                        'v1/earn/flexible/records': 1,
+                    },
+                    'post': {
+                        'v2/trade/order': 1,
+                        'v2/trade/batchOrder': 1,
+                        'v1/trade/cancelOrder': 1,
+                        'v1/trade/batchCancelOrder': 1,
+                        'v1/trade/cancelAllOrder': 1,
+                        'v2/trade/orderComplex': 1,
+                        'v1/trade/cancelComplex': 1,
+                        'v1/trade/cancelAllOrderComplexs': 1,
+                        // RFQ (currenty not available)
+                        'v1/blockRfq/rfq': 1,
+                        'v1/blockRfq/legPrices': 1,
+                        'v1/blockRfq/cancelRfq': 1,
+                        'v1/blockRfq/cancelAllRfqs': 1,
+                        'v1/blockRfq/executeQuote': 1,
+                        'v1/blockRfq/quote': 1,
+                        'v1/blockRfq/editQuote': 1,
+                        'v1/blockRfq/cancelQuote': 1,
+                        'v1/blockRfq/cancelAllQuotes': 1,
+                        //
+                        'v1/account/convert/getQuote': 1,
+                        'v1/account/convert/acceptQuote': 1,
+                        //
+                        'v1/trade/lever': 1,
+                        'v2/trade/stopPosition': 1,
+                        'v1/account/marginModeSet': 1,
+                        'v1/asset/withdrawal': 1,
+                        'v1/asset/transfer': 1,
+                        'v1/asset/crossTransfer': 1,
+                        'v1/earn/flexible/setFlexibleOnOff': 1,
+                    },
                 },
             },
             'options': {
