@@ -505,9 +505,9 @@
                                     "withdrawable": "true"
                                 }
                             },
-                            "ARB": {
+                            "ARBONE": {
                                 "id": "ArbitrumOne",
-                                "network": "ARB",
+                                "network": "ARBONE",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.1,
@@ -726,9 +726,9 @@
                                     "withdrawable": "true"
                                 }
                             },
-                            "Optimism": {
+                            "OP": {
                                 "id": "Optimism",
-                                "network": "Optimism",
+                                "network": "OP",
                                 "limits": {
                                     "deposit": {
                                         "min": 0.0001,
