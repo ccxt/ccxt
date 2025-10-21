@@ -1,11 +1,14 @@
 import Exchange from './abstract/websea.js';
-import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, FundingRate } from './base/types.js';
+import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, FundingRate, MarketInterface } from './base/types.js';
 /**
  * @class websea
  * @augments Exchange
  */
 export default class websea extends Exchange {
     describe(): any;
+    parseOrder(order: any, market?: Market): Order;
+    market(symbol: string): MarketInterface;
+    nonce(): number;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<Currencies>;
@@ -79,8 +82,6 @@ export default class websea extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: Market): Order;
-    nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

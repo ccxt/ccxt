@@ -206,6 +206,10 @@ class websea extends Exchange {
                     'discount' => 0,
                 ),
             ),
+            'options' => array(
+                'defaultType' => 'spot', // 'spot', 'swap'
+                'defaultSubType' => 'linear', // 'linear'
+            ),
             'api' => array(
                 'public' => array(
                     'get' => array(
@@ -274,6 +278,94 @@ class websea extends Exchange {
         ));
     }
 
+    public function parse_order($order, ?array $market = null): array {
+        //
+        // 需要根据实际API响应结构调整
+        //
+        $marketId = $this->safe_string($order, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $id = $this->safe_string($order, 'order_id');
+        $timestamp = $this->safe_integer($order, 'create_time');
+        $status = $this->safe_string($order, 'status');
+        $side = $this->safe_string($order, 'side');
+        $type = $this->safe_string($order, 'type');
+        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_number($order, 'amount');
+        $filled = $this->safe_number($order, 'filled');
+        $remaining = $this->safe_number($order, 'remaining');
+        $cost = $this->safe_number($order, 'cost');
+        $fee = null; // 需要根据实际API调整
+        return $this->safe_order(array(
+            'info' => $order,
+            'id' => $id,
+            'clientOrderId' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => $price,
+            'triggerPrice' => null,
+            'amount' => $amount,
+            'cost' => $cost,
+            'average' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+            'trades' => null,
+        ), $market);
+    }
+
+    public function market(string $symbol): array {
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' $markets not loaded');
+        }
+        // 根据$defaultType选择市场
+        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+        if (gettype($symbol) === 'string') {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                $market = $this->markets[$symbol];
+                // 如果指定了类型，优先返回对应类型的市场
+                $typeInParams = $this->safe_string_2($this->options, 'defaultType', 'type');
+                if ($typeInParams !== null && $typeInParams !== $market['type']) {
+                    // 尝试查找相同交易对但不同类型 $markets
+                    $baseQuote = explode(':', $symbol)[0]; // 移除结算货币部分
+                    for ($i = 0; $i < count($this->symbols); $i++) {
+                        $otherSymbol = $this->symbols[$i];
+                        $otherMarket = $this->markets[$otherSymbol];
+                        if ($otherMarket['type'] === $typeInParams) {
+                            $otherBaseQuote = explode(':', $otherSymbol)[0];
+                            if ($baseQuote === $otherBaseQuote) {
+                                return $otherMarket;
+                            }
+                        }
+                    }
+                }
+                return $market;
+            } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
+                $markets = $this->markets_by_id[$symbol];
+                $typeInParams = $this->safe_string_2($this->options, 'defaultType', 'type', $defaultType);
+                for ($i = 0; $i < count($markets); $i++) {
+                    $market = $markets[$i];
+                    if ($market[$typeInParams]) {
+                        return $market;
+                    }
+                }
+                return $markets[0];
+            }
+        }
+        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
+    }
+
+    public function nonce() {
+        return $this->milliseconds();
+    }
+
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -281,7 +373,8 @@ class websea extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetOpenApiMarketSymbols ($params));
+            // 获取现货市场
+            $spotResponse = Async\await($this->publicGetOpenApiMarketSymbols ($params));
             //
             //     {
             //         "errno" => 0,
@@ -302,13 +395,35 @@ class websea extends Exchange {
             //         )
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            return $this->parse_markets($result);
+            // 获取期货市场
+            $swapResponse = null;
+            try {
+                $swapResponse = Async\await($this->publicGetOpenApiFuturesSymbols ($params));
+            } catch (Exception $e) {
+                // 如果期货API不可用，继续使用现货市场数据
+                $swapResponse = array( 'result' => array() );
+            }
+            //
+            // 需要根据实际API响应结构调整
+            //
+            $spotMarkets = $this->safe_value($spotResponse, 'result', array());
+            $swapMarkets = $this->safe_value($swapResponse, 'result', array());
+            // 为现货市场添加type字段
+            for ($i = 0; $i < count($spotMarkets); $i++) {
+                $spotMarkets[$i]['type'] = 'spot';
+            }
+            // 为期货市场添加type字段
+            for ($i = 0; $i < count($swapMarkets); $i++) {
+                $swapMarkets[$i]['type'] = 'swap';
+            }
+            $allMarkets = $this->array_concat($spotMarkets, $swapMarkets);
+            return $this->parse_markets($allMarkets);
         }) ();
     }
 
     public function parse_market($market): array {
         //
+        // 现货市场:
         //     {
         //         "id" => 1223,
         //         "symbol" => "BTC-USDT",
@@ -320,6 +435,11 @@ class websea extends Exchange {
         //         "max_price" => 1000,
         //         "maker_fee" => 0.002,
         //         "taker_fee" => 0.002
+        //     }
+        //
+        // 期货市场:
+        //     {
+        //         // 需要根据实际API响应结构调整
         //     }
         //
         $marketId = $this->safe_string($market, 'symbol');
@@ -789,12 +909,22 @@ class websea extends Exchange {
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * $query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetOpenApiWalletList ($params));
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $response = null;
+            if ($marketType === 'swap') {
+                // 期货账户余额查询
+                // 需要根据实际API端点调整
+                throw new NotSupported($this->id . ' fetchBalance() for swap market is not yet implemented');
+            } else {
+                // 现货账户余额查询
+                $response = Async\await($this->privateGetOpenApiWalletList ($query));
+            }
             //
             // Websea API响应格式示例:
             // {
@@ -950,10 +1080,12 @@ class websea extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $orderType = ($type === 'limit') ? $side . '-limit' : $side . '-market';
             $request = array(
                 'symbol' => $market['id'],
@@ -963,7 +1095,14 @@ class websea extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostOpenApiEntrustAdd ($this->extend($request, $params)));
+            $response = null;
+            if ($marketType === 'swap') {
+                // 期货下单
+                $response = Async\await($this->privatePostOpenApiFuturesEntrustAdd ($this->extend($request, $query)));
+            } else {
+                // 现货下单
+                $response = Async\await($this->privatePostOpenApiEntrustAdd ($this->extend($request, $query)));
+            }
             //
             // 需要根据实际API响应结构调整
             //
@@ -979,17 +1118,27 @@ class websea extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
                 'order_id' => $id,
             );
+            $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privatePostOpenApiEntrustCancel ($this->extend($request, $params)));
+            list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+            $response = null;
+            if ($marketType === 'swap') {
+                // 期货取消订单
+                $response = Async\await($this->privatePostOpenApiFuturesEntrustCancel ($this->extend($request, $query)));
+            } else {
+                // 现货取消订单
+                $response = Async\await($this->privatePostOpenApiEntrustCancel ($this->extend($request, $query)));
+            }
             //
             // 需要根据实际API响应结构调整
             //
@@ -1005,17 +1154,27 @@ class websea extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $request = array(
                 'order_id' => $id,
             );
+            $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privatePostOpenApiEntrustOrderDetail ($this->extend($request, $params)));
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+            $response = null;
+            if ($marketType === 'swap') {
+                // 期货订单详情
+                $response = Async\await($this->privatePostOpenApiFuturesEntrustOrderDetail ($this->extend($request, $query)));
+            } else {
+                // 现货订单详情
+                $response = Async\await($this->privatePostOpenApiEntrustOrderDetail ($this->extend($request, $query)));
+            }
             //
             // 需要根据实际API响应结构调整
             //
@@ -1032,10 +1191,12 @@ class websea extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
+            $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -1046,9 +1207,21 @@ class websea extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            // 注意：Websea API没有提供获取当前订单的端点
-            // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-            throw new NotSupported($this->id . ' fetchOpenOrders is not supported by the API');
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+            $response = null;
+            if ($marketType === 'swap') {
+                // 期货当前订单列表
+                $response = Async\await($this->privatePostOpenApiFuturesEntrustOrderList ($this->extend($request, $query)));
+            } else {
+                // 注意：Websea API没有提供获取当前订单的端点
+                // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
+                throw new NotSupported($this->id . ' fetchOpenOrders is not supported by the API');
+            }
+            //
+            // 需要根据实际API响应结构调整
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_orders($result, null, $since, $limit);
         }) ();
     }
 
@@ -1060,10 +1233,12 @@ class websea extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $request = array();
+            $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -1074,7 +1249,16 @@ class websea extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetOpenApiEntrustHistoryList ($this->extend($request, $params)));
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+            $response = null;
+            if ($marketType === 'swap') {
+                // Websea API没有提供期货历史订单列表的端点
+                // 使用现货历史订单端点作为替代，但可能不会返回期货订单
+                $response = Async\await($this->privateGetOpenApiEntrustHistoryList ($this->extend($request, $query)));
+            } else {
+                // 现货历史订单列表
+                $response = Async\await($this->privateGetOpenApiEntrustHistoryList ($this->extend($request, $query)));
+            }
             //
             // Websea API响应格式示例:
             // {
@@ -1100,53 +1284,6 @@ class websea extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_orders($result, null, $since, $limit);
         }) ();
-    }
-
-    public function parse_order($order, ?array $market = null): array {
-        //
-        // 需要根据实际API响应结构调整
-        //
-        $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $id = $this->safe_string($order, 'order_id');
-        $timestamp = $this->safe_integer($order, 'create_time');
-        $status = $this->safe_string($order, 'status');
-        $side = $this->safe_string($order, 'side');
-        $type = $this->safe_string($order, 'type');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'amount');
-        $filled = $this->safe_number($order, 'filled');
-        $remaining = $this->safe_number($order, 'remaining');
-        $cost = $this->safe_number($order, 'cost');
-        $fee = null; // 需要根据实际API调整
-        return $this->safe_order(array(
-            'info' => $order,
-            'id' => $id,
-            'clientOrderId' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'timeInForce' => null,
-            'postOnly' => null,
-            'side' => $side,
-            'price' => $price,
-            'triggerPrice' => null,
-            'amount' => $amount,
-            'cost' => $cost,
-            'average' => null,
-            'filled' => $filled,
-            'remaining' => $remaining,
-            'status' => $status,
-            'fee' => $fee,
-            'trades' => null,
-        ), $market);
-    }
-
-    public function nonce() {
-        return $this->milliseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -205,6 +205,10 @@ class websea extends websea$1["default"] {
                     'discount': 0,
                 },
             },
+            'options': {
+                'defaultType': 'spot',
+                'defaultSubType': 'linear', // 'linear'
+            },
             'api': {
                 'public': {
                     'get': {
@@ -272,6 +276,92 @@ class websea extends websea$1["default"] {
             },
         });
     }
+    parseOrder(order, market = undefined) {
+        //
+        // 需要根据实际API响应结构调整
+        //
+        const marketId = this.safeString(order, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
+        const id = this.safeString(order, 'order_id');
+        const timestamp = this.safeInteger(order, 'create_time');
+        const status = this.safeString(order, 'status');
+        const side = this.safeString(order, 'side');
+        const type = this.safeString(order, 'type');
+        const price = this.safeNumber(order, 'price');
+        const amount = this.safeNumber(order, 'amount');
+        const filled = this.safeNumber(order, 'filled');
+        const remaining = this.safeNumber(order, 'remaining');
+        const cost = this.safeNumber(order, 'cost');
+        const fee = undefined; // 需要根据实际API调整
+        return this.safeOrder({
+            'info': order,
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': cost,
+            'average': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
+    }
+    market(symbol) {
+        if (this.markets === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
+        }
+        // 根据defaultType选择市场
+        const defaultType = this.safeString(this.options, 'defaultType', 'spot');
+        if (typeof symbol === 'string') {
+            if (symbol in this.markets) {
+                const market = this.markets[symbol];
+                // 如果指定了类型，优先返回对应类型的市场
+                const typeInParams = this.safeString2(this.options, 'defaultType', 'type');
+                if (typeInParams !== undefined && typeInParams !== market['type']) {
+                    // 尝试查找相同交易对但不同类型 markets
+                    const baseQuote = symbol.split(':')[0]; // 移除结算货币部分
+                    for (let i = 0; i < this.symbols.length; i++) {
+                        const otherSymbol = this.symbols[i];
+                        const otherMarket = this.markets[otherSymbol];
+                        if (otherMarket['type'] === typeInParams) {
+                            const otherBaseQuote = otherSymbol.split(':')[0];
+                            if (baseQuote === otherBaseQuote) {
+                                return otherMarket;
+                            }
+                        }
+                    }
+                }
+                return market;
+            }
+            else if (symbol in this.markets_by_id) {
+                const markets = this.markets_by_id[symbol];
+                const typeInParams = this.safeString2(this.options, 'defaultType', 'type', defaultType);
+                for (let i = 0; i < markets.length; i++) {
+                    const market = markets[i];
+                    if (market[typeInParams]) {
+                        return market;
+                    }
+                }
+                return markets[0];
+            }
+        }
+        throw new errors.BadSymbol(this.id + ' does not have market symbol ' + symbol);
+    }
+    nonce() {
+        return this.milliseconds();
+    }
     async fetchMarkets(params = {}) {
         /**
          * @method
@@ -280,7 +370,8 @@ class websea extends websea$1["default"] {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetOpenApiMarketSymbols(params);
+        // 获取现货市场
+        const spotResponse = await this.publicGetOpenApiMarketSymbols(params);
         //
         //     {
         //         "errno": 0,
@@ -301,11 +392,34 @@ class websea extends websea$1["default"] {
         //         ]
         //     }
         //
-        const result = this.safeValue(response, 'result', []);
-        return this.parseMarkets(result);
+        // 获取期货市场
+        let swapResponse = undefined;
+        try {
+            swapResponse = await this.publicGetOpenApiFuturesSymbols(params);
+        }
+        catch (e) {
+            // 如果期货API不可用，继续使用现货市场数据
+            swapResponse = { 'result': [] };
+        }
+        //
+        // 需要根据实际API响应结构调整
+        //
+        const spotMarkets = this.safeValue(spotResponse, 'result', []);
+        const swapMarkets = this.safeValue(swapResponse, 'result', []);
+        // 为现货市场添加type字段
+        for (let i = 0; i < spotMarkets.length; i++) {
+            spotMarkets[i]['type'] = 'spot';
+        }
+        // 为期货市场添加type字段
+        for (let i = 0; i < swapMarkets.length; i++) {
+            swapMarkets[i]['type'] = 'swap';
+        }
+        const allMarkets = this.arrayConcat(spotMarkets, swapMarkets);
+        return this.parseMarkets(allMarkets);
     }
     parseMarket(market) {
         //
+        // 现货市场:
         //     {
         //         "id": 1223,
         //         "symbol": "BTC-USDT",
@@ -317,6 +431,11 @@ class websea extends websea$1["default"] {
         //         "max_price": 1000,
         //         "maker_fee": 0.002,
         //         "taker_fee": 0.002
+        //     }
+        //
+        // 期货市场:
+        //     {
+        //         // 需要根据实际API响应结构调整
         //     }
         //
         const marketId = this.safeString(market, 'symbol');
@@ -779,10 +898,21 @@ class websea extends websea$1["default"] {
          * @name websea#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
-        const response = await this.privateGetOpenApiWalletList(params);
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            // 期货账户余额查询
+            // 需要根据实际API端点调整
+            throw new errors.NotSupported(this.id + ' fetchBalance() for swap market is not yet implemented');
+        }
+        else {
+            // 现货账户余额查询
+            response = await this.privateGetOpenApiWalletList(query);
+        }
         //
         // Websea API响应格式示例:
         // {
@@ -935,10 +1065,12 @@ class websea extends websea$1["default"] {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
+        const [marketType, query] = this.handleMarketTypeAndParams('createOrder', market, params);
         const orderType = (type === 'limit') ? side + '-limit' : side + '-market';
         const request = {
             'symbol': market['id'],
@@ -948,7 +1080,15 @@ class websea extends websea$1["default"] {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const response = await this.privatePostOpenApiEntrustAdd(this.extend(request, params));
+        let response = undefined;
+        if (marketType === 'swap') {
+            // 期货下单
+            response = await this.privatePostOpenApiFuturesEntrustAdd(this.extend(request, query));
+        }
+        else {
+            // 现货下单
+            response = await this.privatePostOpenApiEntrustAdd(this.extend(request, query));
+        }
         //
         // 需要根据实际API响应结构调整
         //
@@ -963,17 +1103,28 @@ class websea extends websea$1["default"] {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
             'order_id': id,
         };
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
+            market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privatePostOpenApiEntrustCancel(this.extend(request, params));
+        const [marketType, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            // 期货取消订单
+            response = await this.privatePostOpenApiFuturesEntrustCancel(this.extend(request, query));
+        }
+        else {
+            // 现货取消订单
+            response = await this.privatePostOpenApiEntrustCancel(this.extend(request, query));
+        }
         //
         // 需要根据实际API响应结构调整
         //
@@ -988,17 +1139,28 @@ class websea extends websea$1["default"] {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {
             'order_id': id,
         };
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
+            market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privatePostOpenApiEntrustOrderDetail(this.extend(request, params));
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            // 期货订单详情
+            response = await this.privatePostOpenApiFuturesEntrustOrderDetail(this.extend(request, query));
+        }
+        else {
+            // 现货订单详情
+            response = await this.privatePostOpenApiEntrustOrderDetail(this.extend(request, query));
+        }
         //
         // 需要根据实际API响应结构调整
         //
@@ -1014,16 +1176,38 @@ class websea extends websea$1["default"] {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            market['id'];
+            market = this.market(symbol);
+            request['symbol'] = market['id'];
         }
-        // 注意：Websea API没有提供获取当前订单的端点
-        // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-        throw new errors.NotSupported(this.id + ' fetchOpenOrders is not supported by the API');
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            // 期货当前订单列表
+            response = await this.privatePostOpenApiFuturesEntrustOrderList(this.extend(request, query));
+        }
+        else {
+            // 注意：Websea API没有提供获取当前订单的端点
+            // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
+            throw new errors.NotSupported(this.id + ' fetchOpenOrders is not supported by the API');
+        }
+        //
+        // 需要根据实际API响应结构调整
+        //
+        const result = this.safeValue(response, 'result', []);
+        return this.parseOrders(result, undefined, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1034,12 +1218,14 @@ class websea extends websea$1["default"] {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market(symbol);
+            market = this.market(symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
@@ -1048,7 +1234,17 @@ class websea extends websea$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenApiEntrustHistoryList(this.extend(request, params));
+        const [marketType, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
+        let response = undefined;
+        if (marketType === 'swap') {
+            // Websea API没有提供期货历史订单列表的端点
+            // 使用现货历史订单端点作为替代，但可能不会返回期货订单
+            response = await this.privateGetOpenApiEntrustHistoryList(this.extend(request, query));
+        }
+        else {
+            // 现货历史订单列表
+            response = await this.privateGetOpenApiEntrustHistoryList(this.extend(request, query));
+        }
         //
         // Websea API响应格式示例:
         // {
@@ -1073,51 +1269,6 @@ class websea extends websea$1["default"] {
         //
         const result = this.safeValue(response, 'result', []);
         return this.parseOrders(result, undefined, since, limit);
-    }
-    parseOrder(order, market = undefined) {
-        //
-        // 需要根据实际API响应结构调整
-        //
-        const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
-        const id = this.safeString(order, 'order_id');
-        const timestamp = this.safeInteger(order, 'create_time');
-        const status = this.safeString(order, 'status');
-        const side = this.safeString(order, 'side');
-        const type = this.safeString(order, 'type');
-        const price = this.safeNumber(order, 'price');
-        const amount = this.safeNumber(order, 'amount');
-        const filled = this.safeNumber(order, 'filled');
-        const remaining = this.safeNumber(order, 'remaining');
-        const cost = this.safeNumber(order, 'cost');
-        const fee = undefined; // 需要根据实际API调整
-        return this.safeOrder({
-            'info': order,
-            'id': id,
-            'clientOrderId': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': price,
-            'triggerPrice': undefined,
-            'amount': amount,
-            'cost': cost,
-            'average': undefined,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': undefined,
-        }, market);
-    }
-    nonce() {
-        return this.milliseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'];

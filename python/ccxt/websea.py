@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.websea import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Any, Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -206,6 +206,10 @@ class websea(Exchange, ImplicitAPI):
                     'discount': 0,
                 },
             },
+            'options': {
+                'defaultType': 'spot',  # 'spot', 'swap'
+                'defaultSubType': 'linear',  # 'linear'
+            },
             'api': {
                 'public': {
                     'get': {
@@ -273,13 +277,90 @@ class websea(Exchange, ImplicitAPI):
             },
         })
 
+    def parse_order(self, order, market: Market = None) -> Order:
+        #
+        # 需要根据实际API响应结构调整
+        #
+        marketId = self.safe_string(order, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        id = self.safe_string(order, 'order_id')
+        timestamp = self.safe_integer(order, 'create_time')
+        status = self.safe_string(order, 'status')
+        side = self.safe_string(order, 'side')
+        type = self.safe_string(order, 'type')
+        price = self.safe_number(order, 'price')
+        amount = self.safe_number(order, 'amount')
+        filled = self.safe_number(order, 'filled')
+        remaining = self.safe_number(order, 'remaining')
+        cost = self.safe_number(order, 'cost')
+        fee = None  # 需要根据实际API调整
+        return self.safe_order({
+            'info': order,
+            'id': id,
+            'clientOrderId': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'triggerPrice': None,
+            'amount': amount,
+            'cost': cost,
+            'average': None,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': None,
+        }, market)
+
+    def market(self, symbol: str) -> MarketInterface:
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        # 根据defaultType选择市场
+        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+        if isinstance(symbol, str):
+            if symbol in self.markets:
+                market = self.markets[symbol]
+                # 如果指定了类型，优先返回对应类型的市场
+                typeInParams = self.safe_string_2(self.options, 'defaultType', 'type')
+                if typeInParams is not None and typeInParams != market['type']:
+                    # 尝试查找相同交易对但不同类型 markets
+                    baseQuote = symbol.split(':')[0]  # 移除结算货币部分
+                    for i in range(0, len(self.symbols)):
+                        otherSymbol = self.symbols[i]
+                        otherMarket = self.markets[otherSymbol]
+                        if otherMarket['type'] == typeInParams:
+                            otherBaseQuote = otherSymbol.split(':')[0]
+                            if baseQuote == otherBaseQuote:
+                                return otherMarket
+                return market
+            elif symbol in self.markets_by_id:
+                markets = self.markets_by_id[symbol]
+                typeInParams = self.safe_string_2(self.options, 'defaultType', 'type', defaultType)
+                for i in range(0, len(markets)):
+                    market = markets[i]
+                    if market[typeInParams]:
+                        return market
+                return markets[0]
+        raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
+
+    def nonce(self):
+        return self.milliseconds()
+
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for websea
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = self.publicGetOpenApiMarketSymbols(params)
+        # 获取现货市场
+        spotResponse = self.publicGetOpenApiMarketSymbols(params)
         #
         #     {
         #         "errno": 0,
@@ -300,11 +381,30 @@ class websea(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result = self.safe_value(response, 'result', [])
-        return self.parse_markets(result)
+        # 获取期货市场
+        swapResponse = None
+        try:
+            swapResponse = self.publicGetOpenApiFuturesSymbols(params)
+        except Exception as e:
+            # 如果期货API不可用，继续使用现货市场数据
+            swapResponse = {'result': []}
+        #
+        # 需要根据实际API响应结构调整
+        #
+        spotMarkets = self.safe_value(spotResponse, 'result', [])
+        swapMarkets = self.safe_value(swapResponse, 'result', [])
+        # 为现货市场添加type字段
+        for i in range(0, len(spotMarkets)):
+            spotMarkets[i]['type'] = 'spot'
+        # 为期货市场添加type字段
+        for i in range(0, len(swapMarkets)):
+            swapMarkets[i]['type'] = 'swap'
+        allMarkets = self.array_concat(spotMarkets, swapMarkets)
+        return self.parse_markets(allMarkets)
 
     def parse_market(self, market) -> Market:
         #
+        # 现货市场:
         #     {
         #         "id": 1223,
         #         "symbol": "BTC-USDT",
@@ -316,6 +416,11 @@ class websea(Exchange, ImplicitAPI):
         #         "max_price": 1000,
         #         "maker_fee": 0.002,
         #         "taker_fee": 0.002
+        #     }
+        #
+        # 期货市场:
+        #     {
+        #         # 需要根据实际API响应结构调整
         #     }
         #
         marketId = self.safe_string(market, 'symbol')
@@ -749,10 +854,19 @@ class websea(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        response = self.privateGetOpenApiWalletList(params)
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        response = None
+        if marketType == 'swap':
+            # 期货账户余额查询
+            # 需要根据实际API端点调整
+            raise NotSupported(self.id + ' fetchBalance() for swap market is not yet implemented')
+        else:
+            # 现货账户余额查询
+            response = self.privateGetOpenApiWalletList(query)
         #
         # Websea API响应格式示例:
         # {
@@ -890,10 +1004,12 @@ class websea(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         orderType = side + '-limit' if (type == 'limit') else side + '-market'
         request = {
             'symbol': market['id'],
@@ -902,7 +1018,13 @@ class websea(Exchange, ImplicitAPI):
         }
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOpenApiEntrustAdd(self.extend(request, params))
+        response = None
+        if marketType == 'swap':
+            # 期货下单
+            response = self.privatePostOpenApiFuturesEntrustAdd(self.extend(request, query))
+        else:
+            # 现货下单
+            response = self.privatePostOpenApiEntrustAdd(self.extend(request, query))
         #
         # 需要根据实际API响应结构调整
         #
@@ -915,16 +1037,25 @@ class websea(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
             'order_id': id,
         }
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privatePostOpenApiEntrustCancel(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        response = None
+        if marketType == 'swap':
+            # 期货取消订单
+            response = self.privatePostOpenApiFuturesEntrustCancel(self.extend(request, query))
+        else:
+            # 现货取消订单
+            response = self.privatePostOpenApiEntrustCancel(self.extend(request, query))
         #
         # 需要根据实际API响应结构调整
         #
@@ -937,16 +1068,25 @@ class websea(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {
             'order_id': id,
         }
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = self.privatePostOpenApiEntrustOrderDetail(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        response = None
+        if marketType == 'swap':
+            # 期货订单详情
+            response = self.privatePostOpenApiFuturesEntrustOrderDetail(self.extend(request, query))
+        else:
+            # 现货订单详情
+            response = self.privatePostOpenApiEntrustOrderDetail(self.extend(request, query))
         #
         # 需要根据实际API响应结构调整
         #
@@ -960,10 +1100,12 @@ class websea(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -971,9 +1113,20 @@ class websea(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        # 注意：Websea API没有提供获取当前订单的端点
-        # 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-        raise NotSupported(self.id + ' fetchOpenOrders is not supported by the API')
+        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        response = None
+        if marketType == 'swap':
+            # 期货当前订单列表
+            response = self.privatePostOpenApiFuturesEntrustOrderList(self.extend(request, query))
+        else:
+            # 注意：Websea API没有提供获取当前订单的端点
+            # 只能获取历史订单，所以fetchOpenOrders暂时无法实现
+            raise NotSupported(self.id + ' fetchOpenOrders is not supported by the API')
+        #
+        # 需要根据实际API响应结构调整
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_orders(result, None, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -982,10 +1135,12 @@ class websea(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         request = {}
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -993,7 +1148,15 @@ class websea(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.privateGetOpenApiEntrustHistoryList(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        response = None
+        if marketType == 'swap':
+            # Websea API没有提供期货历史订单列表的端点
+            # 使用现货历史订单端点作为替代，但可能不会返回期货订单
+            response = self.privateGetOpenApiEntrustHistoryList(self.extend(request, query))
+        else:
+            # 现货历史订单列表
+            response = self.privateGetOpenApiEntrustHistoryList(self.extend(request, query))
         #
         # Websea API响应格式示例:
         # {
@@ -1018,51 +1181,6 @@ class websea(Exchange, ImplicitAPI):
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, None, since, limit)
-
-    def parse_order(self, order, market: Market = None) -> Order:
-        #
-        # 需要根据实际API响应结构调整
-        #
-        marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
-        id = self.safe_string(order, 'order_id')
-        timestamp = self.safe_integer(order, 'create_time')
-        status = self.safe_string(order, 'status')
-        side = self.safe_string(order, 'side')
-        type = self.safe_string(order, 'type')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'filled')
-        remaining = self.safe_number(order, 'remaining')
-        cost = self.safe_number(order, 'cost')
-        fee = None  # 需要根据实际API调整
-        return self.safe_order({
-            'info': order,
-            'id': id,
-            'clientOrderId': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': None,
-            'postOnly': None,
-            'side': side,
-            'price': price,
-            'triggerPrice': None,
-            'amount': amount,
-            'cost': cost,
-            'average': None,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': None,
-        }, market)
-
-    def nonce(self):
-        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest']

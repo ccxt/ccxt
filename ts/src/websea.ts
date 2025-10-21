@@ -415,7 +415,7 @@ export default class websea extends Exchange {
         for (let i = 0; i < swapMarkets.length; i++) {
             swapMarkets[i]['type'] = 'swap';
         }
-        const allMarkets = spotMarkets.concat (swapMarkets);
+        const allMarkets = this.arrayConcat (spotMarkets, swapMarkets);
         return this.parseMarkets (allMarkets);
     }
 

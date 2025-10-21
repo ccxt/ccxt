@@ -178,6 +178,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
 
 
 ```javascript
@@ -261,6 +262,7 @@ create a trade order
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
 
 
 ```javascript
@@ -282,6 +284,7 @@ cancels an open order
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
 
 
 ```javascript
@@ -303,6 +306,7 @@ fetches information on an order made by the user
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
 
 
 ```javascript
@@ -325,6 +329,7 @@ fetch all unfilled currently open orders
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
 
 
 ```javascript
@@ -347,6 +352,7 @@ fetches information on multiple closed orders made by the user
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
 
 
 ```javascript
