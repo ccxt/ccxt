@@ -241,38 +241,10 @@ export default class xcoin extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
             const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params) + '.json';
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'v1_01Public') {
-            const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'v1_01Private') {
-            this.checkRequiredCredentials ();
-            const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params);
-            const nonce = this.milliseconds ().toString ();
-            let payload: Str = undefined;
-            if (method !== 'POST') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-                payload = this.apiKey + nonce;
-            } else if (body === undefined) {
-                body = this.json (query);
-                payload = this.apiKey + nonce + body;
-            }
-            headers = {
-                'Request-Timestamp': nonce,
-                'Operation-Id': this.uuid (),
-                'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (payload), this.encode (this.secret), sha512),
-                'Content-Type': 'application/json',
-            };
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
