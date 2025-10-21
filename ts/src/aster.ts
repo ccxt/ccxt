@@ -208,7 +208,6 @@ export default class aster extends Exchange {
                         'v1/ticker/24hr',
                         'v1/ticker/price',
                         'v1/ticker/bookTicker',
-                        'v1/leverageBracket',
                         'v1/adlQuantile',
                         'v1/forceOrders',
                     ],
@@ -239,6 +238,7 @@ export default class aster extends Exchange {
                         'v3/positionRisk',
                         'v1/userTrades',
                         'v1/income',
+                        'v1/leverageBracket',
                         'v1/commissionRate',
                     ],
                     'post': [
@@ -711,6 +711,7 @@ export default class aster extends Exchange {
             if (contractType === 'PERPETUAL') {
                 swap = true;
             }
+            let contractSize = undefined;
             let linear = undefined;
             let inverse = undefined;
             let symbol = base + '/' + quote;
@@ -722,6 +723,7 @@ export default class aster extends Exchange {
                 }
                 linear = settle === quote;
                 inverse = settle === base;
+                contractSize = this.safeNumber2 (market, 'contractSize', 'unit', this.parseNumber ('1'));
             }
             let unifiedType = undefined;
             if (spot) {
@@ -754,7 +756,7 @@ export default class aster extends Exchange {
                 'inverse': inverse,
                 'taker': fees['trading']['taker'],
                 'maker': fees['trading']['maker'],
-                'contractSize': undefined,
+                'contractSize': contractSize,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -2918,20 +2920,124 @@ export default class aster extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
+        const isolatedMarginString = this.safeString (position, 'isolatedMargin');
+        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
+        const leverageBracket = this.safeList (leverageBrackets, symbol, []);
+        const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
+        const notionalStringAbs = Precise.stringAbs (notionalString);
+        let maintenanceMarginPercentageString = undefined;
+        for (let i = 0; i < leverageBracket.length; i++) {
+            const bracket = leverageBracket[i];
+            if (Precise.stringLt (notionalStringAbs, bracket[0])) {
+                break;
+            }
+            maintenanceMarginPercentageString = bracket[1];
+        }
+        const notional = this.parseNumber (notionalStringAbs);
         const contractsAbs = Precise.stringAbs (this.safeString (position, 'positionAmt'));
         const contracts = this.parseNumber (contractsAbs);
         const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
         const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
-        const marginMode = this.safeString (position, 'marginType');
-        const side = this.safeStringLower (position, 'positionSide');
+        let collateralString = undefined;
+        let marginMode = this.safeString (position, 'marginType');
+        if (marginMode === undefined && isolatedMarginString !== undefined) {
+            marginMode = Precise.stringEq (isolatedMarginString, '0') ? 'cross' : 'isolated';
+        }
+        let side = undefined;
+        if (Precise.stringGt (notionalString, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (notionalString, '0')) {
+            side = 'short';
+        }
         const entryPriceString = this.safeString (position, 'entryPrice');
         const entryPrice = this.parseNumber (entryPriceString);
-        const collateralString = this.safeString (position, 'isolatedMargin');
+        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSizeString = this.numberToString (contractSize);
+        // as oppose to notionalValue
+        const linear = ('notional' in position);
+        if (marginMode === 'cross') {
+            // calculate collateral
+            const precision = this.safeDict (market, 'precision', {});
+            const basePrecisionValue = this.safeString (precision, 'base');
+            const quotePrecisionValue = this.safeString2 (precision, 'quote', 'price');
+            const precisionIsUndefined = (basePrecisionValue === undefined) && (quotePrecisionValue === undefined);
+            if (!precisionIsUndefined) {
+                if (linear) {
+                    // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let entryPriceSignString = entryPriceString;
+                    if (side === 'short') {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
+                    } else {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('-1', maintenanceMarginPercentageString);
+                    }
+                    const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
+                    const leftSide = Precise.stringAdd (inner, entryPriceSignString);
+                    const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
+                    if (quotePrecision !== undefined) {
+                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
+                    }
+                } else {
+                    // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let entryPriceSignString = entryPriceString;
+                    if (side === 'short') {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub ('1', maintenanceMarginPercentageString);
+                    } else {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
+                    }
+                    const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
+                    const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
+                    const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
+                    if (basePrecision !== undefined) {
+                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
+                    }
+                }
+            }
+        } else {
+            collateralString = this.safeString (position, 'isolatedMargin');
+        }
+        collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
-        const timestamp = this.safeInteger (position, 'updateTime');
+        let timestamp = this.safeInteger (position, 'updateTime');
+        if (timestamp === 0) {
+            timestamp = undefined;
+        }
+        const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
+        let maintenanceMarginString = Precise.stringMul (maintenanceMarginPercentageString, notionalStringAbs);
+        if (maintenanceMarginString === undefined) {
+            // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
+            maintenanceMarginString = this.safeString (position, 'maintMargin');
+        }
+        const maintenanceMargin = this.parseNumber (maintenanceMarginString);
+        let initialMarginString = undefined;
+        let initialMarginPercentageString = undefined;
+        const leverageString = this.safeString (position, 'leverage');
+        if (leverageString !== undefined) {
+            const leverage = parseInt (leverageString);
+            const rational = this.isRoundNumber (1000 % leverage);
+            initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
+            if (!rational) {
+                initialMarginPercentageString = Precise.stringAdd (initialMarginPercentageString, '1e-8');
+            }
+            const unrounded = Precise.stringMul (notionalStringAbs, initialMarginPercentageString);
+            initialMarginString = Precise.stringDiv (unrounded, '1', 8);
+        } else {
+            initialMarginString = this.safeString (position, 'initialMargin');
+            const unrounded = Precise.stringMul (initialMarginString, '1');
+            initialMarginPercentageString = Precise.stringDiv (unrounded, notionalStringAbs, 8);
+        }
+        let marginRatio = undefined;
+        let percentage = undefined;
+        if (!Precise.stringEquals (collateralString, '0')) {
+            marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
+            percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
+        }
         const positionSide = this.safeString (position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
         return {
@@ -2939,26 +3045,26 @@ export default class aster extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'contracts': contracts,
-            'contractSize': undefined,
+            'contractSize': contractSize,
             'unrealizedPnl': unrealizedPnl,
-            'leverage': this.safeNumber (position, 'leverage'),
+            'leverage': this.parseNumber (leverageString),
             'liquidationPrice': liquidationPrice,
             'collateral': collateral,
-            'notional': undefined,
+            'notional': notional,
             'markPrice': markPrice,
             'entryPrice': entryPrice,
             'timestamp': timestamp,
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': undefined,
-            'marginRatio': undefined,
+            'initialMargin': this.parseNumber (initialMarginString),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
+            'maintenanceMargin': maintenanceMargin,
+            'maintenanceMarginPercentage': maintenanceMarginPercentage,
+            'marginRatio': marginRatio,
             'datetime': this.iso8601 (timestamp),
             'marginMode': marginMode,
             'marginType': marginMode, // deprecated
             'side': side,
             'hedged': hedged,
-            'percentage': undefined,
+            'percentage': percentage,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         };
@@ -2980,6 +3086,7 @@ export default class aster extends Exchange {
             }
         }
         await this.loadMarkets ();
+        await this.loadLeverageBrackets (false, params);
         const request: Dict = {};
         const response = await this.fapiPrivateGetV2PositionRisk (this.extend (request, params));
         //
@@ -3011,6 +3118,32 @@ export default class aster extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
+    async loadLeverageBrackets (reload = false, params = {}) {
+        await this.loadMarkets ();
+        // by default cache the leverage bracket
+        // it contains useful stuff like the maintenance margin and initial margin for positions
+        const leverageBrackets = this.safeDict (this.options, 'leverageBrackets');
+        if ((leverageBrackets === undefined) || (reload)) {
+            const response = await this.fapiPrivateGetV1LeverageBracket (params);
+            this.options['leverageBrackets'] = this.createSafeDictionary ();
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'swap');
+                const brackets = this.safeList (entry, 'brackets', []);
+                const result = [];
+                for (let j = 0; j < brackets.length; j++) {
+                    const bracket = brackets[j];
+                    const floorValue = this.safeString (bracket, 'notionalFloor');
+                    const maintenanceMarginPercentage = this.safeString (bracket, 'maintMarginRatio');
+                    result.push ([ floorValue, maintenanceMarginPercentage ]);
+                }
+                this.options['leverageBrackets'][symbol] = result;
+            }
+        }
+        return this.options['leverageBrackets'];
     }
 
     hashMessage (binaryMessage) {
