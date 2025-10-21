@@ -359,40 +359,30 @@ class websea(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        # 获取现货市场
-        spotResponse = self.publicGetOpenApiMarketSymbols(params)
-        #
-        #     {
-        #         "errno": 0,
-        #         "errmsg": "success",
-        #         "result": [
-        #             {
-        #                 "id": 1223,
-        #                 "symbol": "BTC-USDT",
-        #                 "base_currency": "BTC",
-        #                 "quote_currency": "USDT",
-        #                 "min_size": "0.0000001",
-        #                 "max_size": "10000",
-        #                 "min_price": "0.001",
-        #                 "max_price": "1000",
-        #                 "maker_fee": "0.002",
-        #                 "taker_fee": "0.002"
-        #             }
-        #         ]
-        #     }
-        #
-        # 获取期货市场
-        swapResponse = None
+        # 并发获取现货和期货市场数据
+        requests = [
+            self.publicGetOpenApiMarketSymbols(params),
+        ]
+        # 尝试获取期货市场数据，如果失败则使用空数组
+        swapRequestPromise = None
         try:
-            swapResponse = self.publicGetOpenApiFuturesSymbols(params)
+            swapRequestPromise = self.publicGetOpenApiFuturesSymbols(params)
+            requests.append(swapRequestPromise)
         except Exception as e:
-            # 如果期货API不可用，继续使用现货市场数据
-            swapResponse = {'result': []}
-        #
-        # 需要根据实际API响应结构调整
-        #
-        spotMarkets = self.safe_value(spotResponse, 'result', [])
-        swapMarkets = self.safe_value(swapResponse, 'result', [])
+            # 如果期货API不可用，在后续处理中使用空数组
+            # 这里不需要做任何操作
+            pass
+        # 并发执行所有请求
+        responses = []
+        try:
+            responses = requests
+        except Exception as e:
+            # 如果期货请求失败，只使用现货市场的响应
+            spotResponse = self.publicGetOpenApiMarketSymbols(params)
+            responses = [spotResponse]
+        spotMarkets = self.safe_value(responses[0], 'result', [])
+        # 如果有期货市场响应则使用，否则使用空数组
+        swapMarkets = self.safe_value(responses[1], 'result', []) if len(responses) > 1 else []
         # 为现货市场添加type字段
         for i in range(0, len(spotMarkets)):
             spotMarkets[i]['type'] = 'spot'
@@ -861,9 +851,10 @@ class websea(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         response = None
         if marketType == 'swap':
-            # 期货账户余额查询
-            # 需要根据实际API端点调整
-            raise NotSupported(self.id + ' fetchBalance() for swap market is not yet implemented')
+            # Websea API没有专门的期货账户余额查询端点
+            # 根据API文档，使用通用的钱包列表端点
+            # 注意：这可能返回所有账户的余额，需要在解析时进行过滤
+            response = self.privateGetOpenApiWalletList(query)
         else:
             # 现货账户余额查询
             response = self.privateGetOpenApiWalletList(query)
@@ -1151,8 +1142,9 @@ class websea(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         response = None
         if marketType == 'swap':
-            # Websea API没有提供期货历史订单列表的端点
-            # 使用现货历史订单端点作为替代，但可能不会返回期货订单
+            # Websea API没有提供专门的期货历史订单列表端点
+            # 根据API文档，使用通用的历史订单列表端点
+            # 注意：这可能不会区分现货和期货订单，需要在解析时进行过滤
             response = self.privateGetOpenApiEntrustHistoryList(self.extend(request, query))
         else:
             # 现货历史订单列表
@@ -1180,7 +1172,17 @@ class websea(Exchange, ImplicitAPI):
         # }
         #
         result = self.safe_value(response, 'result', [])
-        return self.parse_orders(result, None, since, limit)
+        # 如果是期货市场类型，需要过滤结果以仅包含期货订单
+        filteredResult = result
+        if marketType == 'swap' and market is not None:
+            filteredResult = []
+            for i in range(0, len(result)):
+                order = result[i]
+                orderSymbol = self.safe_string(order, 'symbol')
+                # 检查订单符号是否为期货市场
+                if orderSymbol == market['id'] and market['swap']:
+                    filteredResult.append(order)
+        return self.parse_orders(filteredResult, None, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest']
