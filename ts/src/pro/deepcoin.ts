@@ -3,8 +3,8 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -30,9 +30,9 @@ export default class deepcoin extends deepcoinRest {
                 'watchMyLiquidationsForSymbols': false,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchMyTrades': true,
-                'watchPositions': false,
+                'watchPositions': true,
                 'watchFundingRate': false,
                 'watchFundingRates': false,
                 'createOrderWs': false,
@@ -84,6 +84,10 @@ export default class deepcoin extends deepcoinRest {
     }
 
     ping (client: Client) {
+        const url = client.url;
+        if (url.indexOf ('private') >= 0) {
+            client.lastPong = this.milliseconds (); // prevent automatic disconnects on private channel
+        }
         return 'ping';
     }
 
@@ -1003,6 +1007,157 @@ export default class deepcoin extends deepcoinRest {
         return this.safeString (statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name deepcoin#watchPositions
+     * @description watch all open positions
+     * @see https://www.deepcoin.com/docs/privateWS/Position
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const listenKey = await this.authenticate ();
+        symbols = this.marketSymbols (symbols);
+        const messageHash = 'positions';
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const symbolMessageHash = messageHash + '::' + symbol;
+                messageHashes.push (symbolMessageHash);
+            }
+        } else {
+            messageHashes.push (messageHash);
+        }
+        const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+        const positions = await this.watchMultiple (url, messageHashes, params, [ 'private' ]);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePosition (client: Client, message) {
+        //
+        //     {
+        //         "action": "PushPosition",
+        //         "result": [
+        //             {
+        //                 "table": "Position",
+        //                 "data": {
+        //                     "A": "9256245",
+        //                     "CP": 0,
+        //                     "I": "DOGE/USDT",
+        //                     "M": "9256245",
+        //                     "OP": 0.198845,
+        //                     "Po": 151.696,
+        //                     "U": 1761058213,
+        //                     "i": 1,
+        //                     "l": 1,
+        //                     "p": "0",
+        //                     "u": 0
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList (message, 'result', []);
+        const first = this.safeDict (result, 0, {});
+        const data = this.safeDict (first, 'data', {});
+        let marketId = this.safeString (data, 'I');
+        marketId = marketId.replace ('/', '-');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const messageHash = 'positions';
+        const symbolMessageHash = messageHash + '::' + symbol;
+        if ((messageHash in client.futures) || (symbolMessageHash in client.futures)) {
+            if (this.positions === undefined) {
+                this.positions = new ArrayCacheBySymbolBySide ();
+            }
+            const parsed = this.parseWsPosition (data, market);
+            this.positions.append (parsed);
+            client.resolve (this.positions, messageHash);
+            client.resolve (this.positions, symbolMessageHash);
+        }
+    }
+
+    parseWsPosition (position, market: Market = undefined): Position {
+        //
+        //     {
+        //         "A": "9256245",
+        //         "CP": 0,
+        //         "I": "DOGE/USDT",
+        //         "M": "9256245",
+        //         "OP": 0.198845,
+        //         "Po": 151.696,
+        //         "U": 1761058213,
+        //         "i": 1,
+        //         "l": 1,
+        //         "p": "0",
+        //         "u": 0
+        //     }
+        //
+        const timestamp = this.safeInteger (position, 'U');
+        const direction = this.safeString (position, 'p');
+        const marginMode = this.safeString (position, 'i');
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': this.safeString (position, 'Po'),
+            'contractSize': undefined,
+            'side': this.parsePositionSide (direction),
+            'notional': undefined,
+            'leverage': this.omitZero (this.safeString (position, 'l')),
+            'unrealizedPnl': undefined,
+            'realizedPnl': undefined,
+            'collateral': undefined,
+            'entryPrice': this.safeString (position, 'OP'),
+            'markPrice': undefined,
+            'liquidationPrice': undefined,
+            'marginMode': this.parseWsMarginMode (marginMode),
+            'hedged': true,
+            'maintenanceMargin': this.safeString (position, 'u'),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': undefined,
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+            'info': position,
+        });
+    }
+
+    parsePositionSide (direction: Str): Str {
+        if (direction === undefined) {
+            return direction;
+        }
+        const directions = {
+            '0': 'long',
+            '1': 'short',
+        };
+        return this.safeString (directions, direction, direction);
+    }
+
+    parseWsMarginMode (marginMode: Str): Str {
+        if (marginMode === undefined) {
+            return marginMode;
+        }
+        const modes = {
+            '0': 'isolated',
+            '1': 'cross',
+        };
+        return this.safeString (modes, marginMode, marginMode);
+    }
+
     handleMessage (client: Client, message) {
         if (message === 'pong') {
             this.handlePong (client, message);
@@ -1026,6 +1181,8 @@ export default class deepcoin extends deepcoinRest {
                 this.handleMyTrade (client, message);
             } else if (action === 'PushOrder') {
                 this.handleOrder (client, message);
+            } else if (action === 'PushPosition') {
+                this.handlePosition (client, message);
             }
         }
     }
