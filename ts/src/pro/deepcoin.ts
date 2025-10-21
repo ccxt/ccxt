@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import deepcoinRest from '../deepcoin.js';
-import { BadRequest } from '../base/errors.js';
+import { BadRequest, ExchangeError } from '../base/errors.js';
 import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -1245,18 +1245,21 @@ export default class deepcoin extends deepcoinRest {
         //         ]
         //     }
         //
-        //     RecvTopicAction
-        //     unsupportedAction
-        //     [ { d: { A: '2', L: 1, T: '7', F: 'DeepCoin_BTCUSD', R: -1 } } ]
-        //
-        //     RecvTopicAction
-        //     localIDNotExist
-        //     [ { d: { A: '0', L: 2, T: '7', F: 'DeepCoin_BTC/USDT', R: -1 } } ]
-        //
-        //     a: 'RecvTopicAction',
-        //     m: 'orderbook does not exist: ETHUSD_0.1, no available orderbook data',
-        //     r: [ { d: [Object] } ]
-        //
-        return message; // todo add error handling
+        const messageText = this.safeString (message, 'm', '');
+        const response = this.safeList (message, 'r', []);
+        const first = this.safeDict (response, 0, {});
+        const data = this.safeDict (first, 'd', {});
+        const requestId = this.safeInteger (data, 'L');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeDict (subscriptionsById, requestId, {});
+        const messageHash = this.safeString (subscription, 'subHash');
+        const feedback = this.id + ' ' + this.json (message);
+        try {
+            this.throwExactlyMatchedException (this.exceptions['exact'], messageText, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], messageText, feedback);
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            client.reject (e, messageHash);
+        }
     }
 }
