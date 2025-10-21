@@ -196,16 +196,16 @@
                         },
                         "id": "7e10f528-17e3-4b15-a9f2-1a327d509cd6",
                         "clientOrderId": null,
-                        "timestamp": null,
-                        "datetime": null,
+                        "timestamp": 1707331402406,
+                        "datetime": "2024-02-07T18:43:22.406Z",
                         "lastTradeTimestamp": null,
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1707331402406,
                         "symbol": "LTC/USD:USD",
                         "type": "market",
                         "timeInForce": "ioc",
                         "postOnly": false,
                         "reduceOnly": false,
-                        "side": null,
+                        "side": "buy",
                         "price": 68.96,
                         "stopPrice": null,
                         "triggerPrice": null,
@@ -365,6 +365,7 @@
         "fetchCanceledOrders": [
             {
                 "description": "fetch canceled orders",
+                "disabled": true,
                 "method": "fetchCanceledOrders",
                 "input": [
                     "LTC/USD:USD",
