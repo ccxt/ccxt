@@ -205,42 +205,41 @@ export default class websea extends Exchange {
                 },
             },
             'api': {
-                'openApi': {
-                    'public': {
-                        'get': {
-                            'openApi/market/symbols': 1, // 交易对列表
-                            'openApi/market/currencies': 1, // 币种列表
-                            'openApi/market/trade': 1, // 市场交易记录
-                            'openApi/market/depth': 1, // 市场深度
-                            'openApi/market/orderbook': 1, // 订单簿
-                            'openApi/market/kline': 1, // K线数据
-                            'openApi/market/24kline': 1, // 24小时K线数据
-                            'openApi/market/24kline-list': 1, // 24小时市场列表
-                            'openApi/market/precision': 1, // 交易对精度
-                            'openApi/futures/symbols': 1, // 期货交易对列表
-                            'openApi/futures/trade': 1, // 期货交易记录
-                            'openApi/futures/depth': 1, // 期货市场深度
-                            'openApi/futures/kline': 1, // 期货K线数据
-                        },
+                'public': {
+                    'get': {
+                        'openApi/market/symbols': 1, // 交易对列表
+                        'openApi/market/currencies': 1, // 币种列表
+                        'openApi/market/trade': 1, // 市场交易记录
+                        'openApi/market/depth': 1, // 市场深度
+                        'openApi/market/orderbook': 1, // 订单簿
+                        'openApi/market/kline': 1, // K线数据
+                        'openApi/market/24kline': 1, // 24小时K线数据
+                        'openApi/market/24kline-list': 1, // 24小时市场列表
+                        'openApi/market/precision': 1, // 交易对精度
+                        'openApi/futures/symbols': 1, // 期货交易对列表
+                        'openApi/futures/trade': 1, // 期货交易记录
+                        'openApi/futures/depth': 1, // 期货市场深度
+                        'openApi/futures/kline': 1, // 期货K线数据
                     },
-                    'private': {
-                        'post': {
-                            'openApi/entrust/add': 1, // 下单
-                            'openApi/entrust/cancel': 1, // 取消订单
-                            'openApi/entrust/orderList': 1, // 当前订单列表
-                            'openApi/entrust/orderDetail': 1, // 订单详情
-                            'openApi/entrust/orderTrade': 1, // 订单成交记录
-                            'openApi/entrust/historyList': 1, // 历史订单列表
-                            'openApi/entrust/historyDetail': 1, // 历史订单详情
-                            'openApi/wallet/list': 1, // 钱包列表
-                            'openApi/wallet/detail': 1, // 钱包详情
-                            'openApi/futures/entrust/add': 1, // 期货下单
-                            'openApi/futures/entrust/cancel': 1, // 期货取消订单
-                            'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
-                            'openApi/futures/entrust/orderDetail': 1, // 期货订单详情
-                            'openApi/futures/position/list': 1, // 期货持仓列表
-                            'openApi/futures/position/detail': 1, // 期货持仓详情
-                        },
+                },
+                'private': {
+                    'get': {
+                        'openApi/wallet/list': 1, // 钱包列表 - 余额查询
+                        'openApi/entrust/historylist': 1, // 历史订单列表 - 已完成订单
+                    },
+                    'post': {
+                        'openApi/entrust/add': 1, // 下单
+                        'openApi/entrust/cancel': 1, // 取消订单
+                        'openApi/entrust/orderDetail': 1, // 订单详情
+                        'openApi/entrust/orderTrade': 1, // 订单成交记录
+                        'openApi/entrust/historyDetail': 1, // 历史订单详情
+                        'openApi/wallet/detail': 1, // 钱包详情
+                        'openApi/futures/entrust/add': 1, // 期货下单
+                        'openApi/futures/entrust/cancel': 1, // 期货取消订单
+                        'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
+                        'openApi/futures/entrust/orderDetail': 1, // 期货订单详情
+                        'openApi/futures/position/list': 1, // 期货持仓列表
+                        'openApi/futures/position/detail': 1, // 期货持仓详情
                     },
                 },
             },
@@ -255,8 +254,16 @@ export default class websea extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '1001': BadSymbol, // 交易对错误
+                    '1002': ExchangeError, // 参数错误
+                    '1003': ExchangeError, // 请求方法错误
+                    '1004': ExchangeError, // 请求地址不存在
                 },
                 'broad': {
+                    'symbol error': BadSymbol,
+                    'base symbol error': BadSymbol,
+                    'The request method is wrong': ExchangeError,
+                    'The request address does not exist': ExchangeError,
                 },
             },
             'commonCurrencies': {
@@ -273,7 +280,7 @@ export default class websea extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.openApiPublicGetOpenApiMarketSymbols (params);
+        const response = await this.publicGetOpenApiMarketSymbols (params);
         //
         //     {
         //         "errno": 0,
@@ -408,7 +415,7 @@ export default class websea extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.openApiPublicGetOpenApiMarketCurrencies (params);
+        const response = await this.publicGetOpenApiMarketCurrencies (params);
         //
         //     {
         //         "errno": 0,
@@ -507,7 +514,7 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.openApiPublicGetOpenApiMarketDepth (this.extend (request, params));
+        const response = await this.publicGetOpenApiMarketDepth (this.extend (request, params));
         //
         // {
         //     "errno": 0,
@@ -555,7 +562,7 @@ export default class websea extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.openApiPublicGetOpenApiMarket24kline (this.extend (request, params));
+        const response = await this.publicGetOpenApiMarket24kline (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
         if (Array.isArray (result)) {
             for (let i = 0; i < result.length; i++) {
@@ -582,7 +589,7 @@ export default class websea extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.openApiPublicGetOpenApiMarket24kline (params);
+        const response = await this.publicGetOpenApiMarket24kline (params);
         const result = this.safeValue (response, 'result', []);
         const tickers = [];
         for (let i = 0; i < result.length; i++) {
@@ -669,7 +676,7 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.openApiPublicGetOpenApiMarketKline (this.extend (request, params));
+        const response = await this.publicGetOpenApiMarketKline (this.extend (request, params));
         //
         // 需要根据实际API响应结构调整
         //
@@ -714,7 +721,7 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.openApiPublicGetOpenApiMarketTrade (this.extend (request, params));
+        const response = await this.publicGetOpenApiMarketTrade (this.extend (request, params));
         //
         // {
         //     "errno": 0,
@@ -786,9 +793,21 @@ export default class websea extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.openApiPrivatePostOpenApiWalletList (params);
+        const response = await this.privateGetOpenApiWalletList (params);
         //
-        // 需要根据实际API响应结构调整
+        // Websea API响应格式示例:
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": [
+        //         {
+        //             "currency": "BTC",
+        //             "available": "0.1",
+        //             "frozen": "0.01",
+        //             "total": "0.11"
+        //         }
+        //     ]
+        // }
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseBalance (result);
@@ -804,7 +823,7 @@ export default class websea extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await this.openApiPrivatePostOpenApiFuturesPositionList (params);
+        const response = await this.privatePostOpenApiFuturesPositionList (params);
         //
         // 需要根据实际API响应结构调整
         //
@@ -945,7 +964,7 @@ export default class websea extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.openApiPrivatePostOpenApiEntrustAdd (this.extend (request, params));
+        const response = await this.privatePostOpenApiEntrustAdd (this.extend (request, params));
         //
         // 需要根据实际API响应结构调整
         //
@@ -971,7 +990,7 @@ export default class websea extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.openApiPrivatePostOpenApiEntrustCancel (this.extend (request, params));
+        const response = await this.privatePostOpenApiEntrustCancel (this.extend (request, params));
         //
         // 需要根据实际API响应结构调整
         //
@@ -997,7 +1016,7 @@ export default class websea extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.openApiPrivatePostOpenApiEntrustOrderDetail (this.extend (request, params));
+        const response = await this.privatePostOpenApiEntrustOrderDetail (this.extend (request, params));
         //
         // 需要根据实际API响应结构调整
         //
@@ -1023,17 +1042,14 @@ export default class websea extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.openApiPrivatePostOpenApiEntrustOrderList (this.extend (request, params));
-        //
-        // 需要根据实际API响应结构调整
-        //
-        const result = this.safeValue (response, 'result', []);
-        return this.parseOrders (result, undefined, since, limit);
+        // 注意：Websea API没有提供获取当前订单的端点
+        // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
+        throw new NotSupported (this.id + ' fetchOpenOrders is not supported by the API');
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1054,14 +1070,33 @@ export default class websea extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['since'] = since;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.openApiPrivatePostOpenApiEntrustHistoryList (this.extend (request, params));
+        const response = await this.privateGetOpenApiEntrustHistorylist (this.extend (request, params));
         //
-        // 需要根据实际API响应结构调整
+        // Websea API响应格式示例:
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": [
+        //         {
+        //             "order_id": "123456",
+        //             "symbol": "BTC-USDT",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "50000",
+        //             "amount": "0.1",
+        //             "filled": "0.1",
+        //             "remaining": "0",
+        //             "status": "closed",
+        //             "create_time": 1630000000000,
+        //             "update_time": 1630000001000
+        //         }
+        //     ]
+        // }
         //
         const result = this.safeValue (response, 'result', []);
         return this.parseOrders (result, undefined, since, limit);
@@ -1116,41 +1151,52 @@ export default class websea extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'];
-        url += '/' + this.implodeParams (path, params);
+        url += '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            const nonce = this.milliseconds ().toString () + '_' + this.uuid ();
-            const auth = [
+            // Websea API签名要求：timestamp_5random格式
+            const timestamp = this.seconds ().toString ();
+            const randomChars = this.uuid ().slice (0, 5);
+            const nonce = timestamp + '_' + randomChars;
+            // 构建签名数组：Token + Secret + Nonce + 所有参数
+            const signatureArray = [
                 this.apiKey,
                 this.secret,
                 nonce,
             ];
-            const keys = Object.keys (query);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
+            // 添加所有查询参数到签名数组（格式：key=value）
+            const queryKeys = Object.keys (query);
+            for (let i = 0; i < queryKeys.length; i++) {
+                const key = queryKeys[i];
                 const value = query[key].toString ();
-                auth.push (key + '=' + value);
+                signatureArray.push (key + '=' + value);
             }
-            auth.sort ();
-            const message = auth.join ('');
-            const signature = this.stringToBase64 (this.hash (this.encode (message), sha1, 'hex'));
+            // 对数组进行排序
+            signatureArray.sort ();
+            // 连接所有元素并计算SHA1签名
+            const message = signatureArray.join ('');
+            const signature = this.hash (this.encode (message), sha1, 'hex');
             headers = {
                 'Nonce': nonce,
                 'Token': this.apiKey,
                 'Signature': signature,
+                'Content-Type': 'application/json',
             };
             if (method === 'GET') {
                 if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                    const queryString = this.urlencode (query);
+                    url += '?' + queryString;
                 }
             } else {
-                body = this.urlencode (query);
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = this.json (query);
+                headers['Content-Length'] = this.stringToBase64 (body).length.toString ();
             }
         } else {
+            // 公共API请求
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+                const queryString = this.urlencode (query);
+                url += '?' + queryString;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1163,8 +1209,15 @@ export default class websea extends Exchange {
         const errorCode = this.safeString (response, 'errno');
         if (errorCode !== undefined && errorCode !== '0') {
             const errorMessage = this.safeString (response, 'errmsg', 'Unknown error');
+            // 处理特定的Websea错误消息
             if (errorMessage.indexOf ('symbol error') >= 0 || errorMessage.indexOf ('base symbol error') >= 0) {
                 throw new BadSymbol (this.id + ' ' + errorMessage);
+            }
+            if (errorMessage.indexOf ('The request method is wrong') >= 0) {
+                throw new ExchangeError (this.id + ' Invalid HTTP method for this endpoint. Please check the API documentation.');
+            }
+            if (errorMessage.indexOf ('The request address does not exist') >= 0) {
+                throw new ExchangeError (this.id + ' API endpoint not found. Please check the API documentation.');
             }
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, errorMessage);
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, errorMessage);
