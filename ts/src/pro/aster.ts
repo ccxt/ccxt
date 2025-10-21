@@ -40,7 +40,10 @@ export default class aster extends asterRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://fstream.asterdex.com/stream',
+                    'ws': {
+                        'spot': 'wss://sstream.asterdex.com/stream',
+                        'swap': 'wss://fstream.asterdex.com/stream',
+                    },
                 },
             },
             'options': {},
@@ -49,11 +52,24 @@ export default class aster extends asterRest {
         });
     }
 
+    getAccountTypeFromSubscriptions (subscriptions: string[]): string {
+        let accountType = '';
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if ((subscription === 'spot') || (subscription === 'swap')) {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
+    }
+
     /**
      * @method
      * @name aster#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -70,7 +86,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchTicker
      * @description unWatches a price ticker
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -84,14 +101,17 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
@@ -99,7 +119,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -112,7 +132,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
         if (this.newUpdates) {
             const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
@@ -125,14 +145,17 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchTickers
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-ticker-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#full-ticker-per-symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
@@ -140,7 +163,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -153,14 +176,14 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@ticker');
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
     }
 
     /**
      * @method
      * @name aster#watchMarkPrice
      * @description watches a mark price for a specific market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -178,7 +201,7 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchMarkPrice
      * @description unWatches a mark price for a specific market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -193,7 +216,7 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchMarkPrices
      * @description watches the mark price for all markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -201,7 +224,9 @@ export default class aster extends asterRest {
      */
     async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
@@ -209,7 +234,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -224,7 +249,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('ticker:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
         if (this.newUpdates) {
             const result = {};
             result[newTicker['symbol']] = newTicker;
@@ -237,7 +262,7 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchMarkPrices
      * @description watches the mark price for all markets
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#mark-price-stream
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#mark-price-stream
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
@@ -245,7 +270,9 @@ export default class aster extends asterRest {
      */
     async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
@@ -253,7 +280,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -268,7 +295,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@markPrice' + suffix);
             messageHashes.push ('unsubscribe:ticker:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
     }
 
     handleTicker (client: Client, message) {
@@ -310,21 +337,24 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const ticker = this.safeDict (message, 'data');
-        const parsed = this.parseWsTicker (ticker);
+        const parsed = this.parseWsTicker (ticker, marketType);
         const symbol = parsed['symbol'];
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsed;
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (message) {
+    parseWsTicker (message, marketType) {
         const event = this.safeString (message, 'e');
         const part = event.split ('@');
         const channel = this.safeString (part, 1);
         const marketId = this.safeString (message, 's');
         const timestamp = this.safeInteger (message, 'E');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const last = this.safeString (message, 'c');
         if (channel === 'markPriceUpdate') {
             return this.safeTicker ({
@@ -364,19 +394,22 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchBidsAsks
      * @description watches best bid & ask for symbols
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-book-ticker-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -389,7 +422,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
             messageHashes.push ('bidask:' + market['symbol']);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const newTicker = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
         if (this.newUpdates) {
             const result = {};
             result[newTicker['symbol']] = newTicker;
@@ -402,19 +435,22 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchBidsAsks
      * @description unWatches best bid & ask for symbols
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#individual-symbol-book-ticker-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#best-order-book-information-by-symbol
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#individual-symbol-book-ticker-streams
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -427,7 +463,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@bookTicker');
             messageHashes.push ('unsubscribe:bidask:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
     }
 
     handleBidAsk (client: Client, message) {
@@ -447,8 +483,13 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const data = this.safeDict (message, 'data', {});
-        const ticker = this.parseWsBidAsk (data);
+        const marketId = this.safeString (data, 's');
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const ticker = this.parseWsBidAsk (data, market);
         const symbol = ticker['symbol'];
         this.bidsasks[symbol] = ticker;
         const messageHash = 'bidask:' + symbol;
@@ -457,8 +498,6 @@ export default class aster extends asterRest {
 
     parseWsBidAsk (message, market = undefined) {
         const timestamp = this.safeInteger (message, 'T');
-        const marketId = this.safeString (message, 's');
-        market = this.safeMarket (marketId, market);
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -475,7 +514,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -491,7 +531,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchTrades
      * @description unsubscribe from the trades channel
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
@@ -505,7 +546,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -514,7 +556,9 @@ export default class aster extends asterRest {
      */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
@@ -522,7 +566,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -535,7 +579,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
             messageHashes.push ('trade:' + market['symbol']);
         }
-        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -548,14 +592,17 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchTradesForSymbols
      * @description unsubscribe from the trades channel
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#aggregate-trade-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#collection-transaction-flow
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#aggregate-trade-streams
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchTradesForSymbols');
@@ -563,7 +610,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -576,7 +623,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@aggTrade');
             messageHashes.push ('unsubscribe:trade:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
     }
 
     handleTrade (client: Client, message) {
@@ -597,8 +644,13 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const trade = this.safeDict (message, 'data');
-        const parsed = this.parseWsTrade (trade);
+        const marketId = this.safeString (trade, 's');
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const parsed = this.parseWsTrade (trade, market);
         const symbol = parsed['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -612,9 +664,7 @@ export default class aster extends asterRest {
     }
 
     parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        const marketId = this.safeString (trade, 's');
         const timestamp = this.safeInteger (trade, 'T');
-        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const amountString = this.safeString (trade, 'q');
         const priceString = this.safeString (trade, 'p');
@@ -644,7 +694,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -659,7 +710,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchOrderBook
      * @description unsubscribe from the orderbook channel
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
@@ -674,7 +726,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -682,7 +735,9 @@ export default class aster extends asterRest {
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
@@ -690,7 +745,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -706,7 +761,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit);
             messageHashes.push ('orderbook:' + market['symbol']);
         }
-        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
         return orderbook.limit ();
     }
 
@@ -714,7 +769,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchOrderBookForSymbols
      * @description unsubscribe from the orderbook channel
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#partial-book-depth-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#limited-depth-information
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#partial-book-depth-streams
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
@@ -722,7 +778,9 @@ export default class aster extends asterRest {
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const type = this.safeString (firstMarket, 'type', 'swap');
         const symbolsLength = symbols.length;
         let methodName = undefined;
         [ methodName, params ] = this.handleParamString (params, 'callerMethodName', 'unWatchOrderBookForSymbols');
@@ -730,7 +788,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -748,7 +806,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@depth' + limit);
             messageHashes.push ('unsubscribe:orderbook:' + market['symbol']);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
     }
 
     handleOrderBook (client: Client, message) {
@@ -778,10 +836,13 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const data = this.safeDict (message, 'data');
         const marketId = this.safeString (data, 's');
         const timestamp = this.safeInteger (data, 'T');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -798,7 +859,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -818,7 +880,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -833,7 +896,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#watchOHLCVForSymbols
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
@@ -849,7 +913,11 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (marketSymbols[0]);
+        const type = this.safeString (firstMarket, 'type', 'swap');
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -866,7 +934,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
-        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const [ symbol, timeframe, stored ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
         if (this.newUpdates) {
             limit = stored.getLimit (symbol, limit);
         }
@@ -878,7 +946,8 @@ export default class aster extends asterRest {
      * @method
      * @name aster#unWatchOHLCVForSymbols
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-api.md#klinecandlestick-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#k-line-streams
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#klinecandlestick-streams
      * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -892,7 +961,11 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'];
+        const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const firstMarket = this.market (marketSymbols[0]);
+        const type = this.safeString (firstMarket, 'type', 'swap');
+        const url = this.urls['api']['ws'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request: Dict = {
@@ -909,7 +982,7 @@ export default class aster extends asterRest {
             subscriptionArgs.push (this.safeStringLower (market, 'id') + '@kline_' + timeframeId);
             messageHashes.push ('unsubscribe:ohlcv:' + market['symbol'] + ':' + unfiedTimeframe);
         }
-        return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), [ type ]);
     }
 
     handleOHLCV (client: Client, message) {
@@ -942,9 +1015,12 @@ export default class aster extends asterRest {
         //         }
         //     }
         //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const marketType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const data = this.safeDict (message, 'data');
         const marketId = this.safeString (data, 's');
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const kline = this.safeDict (data, 'k');
         const timeframeId = this.safeString (kline, 'i');
