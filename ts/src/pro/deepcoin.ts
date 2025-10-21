@@ -3,8 +3,8 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ export default class deepcoin extends deepcoinRest {
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchPositions': false,
                 'watchFundingRate': false,
                 'watchFundingRates': false,
@@ -412,6 +412,7 @@ export default class deepcoin extends deepcoinRest {
 
     parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
+        // watchTrades
         //     {
         //         "TradeID": "1001056452325378",
         //         "I": "BTC/USDT",
@@ -421,31 +422,73 @@ export default class deepcoin extends deepcoinRest {
         //         "T": 1760968672
         //     }
         //
+        // watchMyTrades
+        //     {
+        //         "A": "9256245",
+        //         "CC": "USDT",
+        //         "CP": 0,
+        //         "D": "0",
+        //         "F": 0.152,
+        //         "I": "DOGE/USDT",
+        //         "IT": 1761048103,
+        //         "M": "9256245",
+        //         "OS": "1001437462198486",
+        //         "P": 0.19443,
+        //         "T": 14.77668,
+        //         "TI": "1001056459096708",
+        //         "TT": 1761048103,
+        //         "V": 76,
+        //         "f": "DOGE",
+        //         "l": 1,
+        //         "m": "1",
+        //         "o": "0"
+        //     }
+        //
         const direction = this.safeString (trade, 'D');
         const timestamp = this.safeTimestamp2 (trade, 'TT', 'T');
+        const matchRole = this.safeString (trade, 'm');
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'F');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'f')),
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'id': this.safeString (trade, 'TradeID'),
-            'order': undefined,
+            'id': this.safeString2 (trade, 'TradeID', 'TI'),
+            'order': this.safeString (trade, 'OS'),
             'type': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': this.handleTakerOrMaker (matchRole),
             'side': this.parseTradeSide (direction),
             'price': this.safeString (trade, 'P'),
             'amount': this.safeString (trade, 'V'),
-            'cost': undefined, // todo check cost for inverse markets
-            'fee': undefined,
+            'cost': this.safeString (trade, 'T'), // todo check cost for inverse markets
+            'fee': fee,
         }, market);
     }
 
     parseTradeSide (direction: string): string {
         const sides = {
             '0': 'buy',
-            '1': 'sell', // todo check
+            '1': 'sell',
         };
         return this.safeString (sides, direction, direction);
+    }
+
+    handleTakerOrMaker (matchRole: Str): Str {
+        if (matchRole === undefined) {
+            return matchRole;
+        }
+        const roles = {
+            '0': 'maker',
+            '1': 'taker',
+        };
+        return this.safeString (roles, matchRole, matchRole);
     }
 
     /**
@@ -737,6 +780,229 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
+    /**
+     * @method
+     * @name deepcoin#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://www.deepcoin.com/docs/privateWS/Trade
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        let messageHash = 'myTrades';
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += '::' + symbol;
+        }
+        const trades = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleMyTrade (client: Client, message) {
+        //
+        //     {
+        //         "action": "PushTrade",
+        //         "result": [
+        //             {
+        //                 "table": "Trade",
+        //                 "data": {
+        //                     "A": "9256245",
+        //                     "CC": "USDT",
+        //                     "CP": 0,
+        //                     "D": "0",
+        //                     "F": 0.152,
+        //                     "I": "DOGE/USDT",
+        //                     "IT": 1761048103,
+        //                     "M": "9256245",
+        //                     "OS": "1001437462198486",
+        //                     "P": 0.19443,
+        //                     "T": 14.77668,
+        //                     "TI": "1001056459096708",
+        //                     "TT": 1761048103,
+        //                     "V": 76,
+        //                     "f": "DOGE",
+        //                     "l": 1,
+        //                     "m": "1",
+        //                     "o": "0"
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList (message, 'result', []);
+        const first = this.safeDict (result, 0, {});
+        const data = this.safeDict (first, 'data', {});
+        let marketId = this.safeString (data, 'I');
+        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const messageHash = 'myTrades';
+        const symbolMessageHash = messageHash + '::' + symbol;
+        if ((messageHash in client.futures) || (symbolMessageHash in client.futures)) {
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCacheBySymbolById (limit);
+            }
+            const stored = this.myTrades;
+            const parsed = this.parseWsTrade (data, market);
+            stored.append (parsed);
+            client.resolve (stored, messageHash);
+            client.resolve (stored, symbolMessageHash);
+        }
+    }
+
+    /**
+     * @method
+     * @name deepcoin#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.deepcoin.com/docs/privateWS/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        let messageHash = 'orders';
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += '::' + symbol;
+        }
+        const orders = await this.watchPrivate (messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        //     {
+        //         "action": "PushOrder",
+        //         "result": [
+        //             {
+        //                 "table": "Order",
+        //                 "data": {
+        //                     "D": "0",
+        //                     "I": "DOGE/USDT",
+        //                     "IT": 1761051006,
+        //                     "L": "1001437480817468",
+        //                     "OPT": "4",
+        //                     "OS": "1001437480817468",
+        //                     "OT": "0",
+        //                     "Or": "1",
+        //                     "P": 0.19537,
+        //                     "T": 14.84128,
+        //                     "U": 1761051006,
+        //                     "V": 76,
+        //                     "VT": 76,
+        //                     "i": 1,
+        //                     "l": 1,
+        //                     "o": "0",
+        //                     "p": "0",
+        //                     "t": 0.19528
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeList (message, 'result', []);
+        const first = this.safeDict (result, 0, {});
+        const data = this.safeDict (first, 'data', {});
+        let marketId = this.safeString (data, 'I');
+        marketId = marketId.replace ('/', '-'); // replace slash with dash for spot markets
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const messageHash = 'orders';
+        const symbolMessageHash = messageHash + '::' + symbol;
+        if ((messageHash in client.futures) || (symbolMessageHash in client.futures)) {
+            if (this.orders === undefined) {
+                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+                this.orders = new ArrayCacheBySymbolById (limit);
+            }
+            const parsed = this.parseWsOrder (data, market);
+            this.orders.append (parsed);
+            client.resolve (this.orders, messageHash);
+            client.resolve (this.orders, symbolMessageHash);
+        }
+    }
+
+    parseWsOrder (order, market: Market = undefined): Order {
+        //
+        //     {
+        //         "D": "0",
+        //         "I": "DOGE/USDT",
+        //         "IT": 1761051006,
+        //         "L": "1001437480817468",
+        //         "OPT": "4",
+        //         "OS": "1001437480817468",
+        //         "OT": "0",
+        //         "Or": "1",
+        //         "P": 0.19537,
+        //         "T": 14.84128,
+        //         "U": 1761051006,
+        //         "V": 76,
+        //         "VT": 76,
+        //         "i": 1,
+        //         "l": 1,
+        //         "o": "0",
+        //         "p": "0",
+        //         "t": 0.19528
+        //     }
+        //
+        const state = this.safeString (order, 'Or');
+        const timestamp = this.safeTimestamp (order, 'IT');
+        const direction = this.safeString (order, 'D');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'OS'),
+            'clientOrderId': undefined,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeTimestamp (order, 'U'),
+            'status': this.parseWsOrderStatus (state),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'timeInForce': undefined,
+            'side': this.parseTradeSide (direction),
+            'price': this.safeString (order, 'P'),
+            'average': this.safeString (order, 't'),
+            'amount': this.safeString (order, 'V'),
+            'filled': this.safeString (order, 'VT'),
+            'remaining': undefined,
+            'triggerPrice': undefined,
+            'takeProfitPrice': this.safeString (order, 'TPT'),
+            'stopLossPrice': this.safeString (order, 'SLT'),
+            'cost': this.safeString (order, 'T'),
+            'trades': undefined, // todo check
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseWsOrderStatus (status: Str): Str {
+        if (status === undefined) {
+            return status;
+        }
+        const statuses = {
+            '1': 'closed',
+            '4': 'open',
+            '6': 'canceled',
+        };
+        // todo add more statuses
+        return this.safeString (statuses, status, status);
+    }
+
     handleMessage (client: Client, message) {
         if (message === 'pong') {
             this.handlePong (client, message);
@@ -745,7 +1011,7 @@ export default class deepcoin extends deepcoinRest {
             if ((m !== undefined) && (m !== 'Success')) {
                 this.handleErrorMessage (client, message);
             }
-            const action = this.safeString (message, 'a');
+            const action = this.safeString2 (message, 'a', 'action');
             if (action === 'RecvTopicAction') {
                 this.handleSubscriptionStatus (client, message);
             } else if (action === 'PO') {
@@ -756,6 +1022,10 @@ export default class deepcoin extends deepcoinRest {
                 this.handleOHLCV (client, message);
             } else if (action === 'PMO') {
                 this.handleOrderBook (client, message);
+            } else if (action === 'PushTrade') {
+                this.handleMyTrade (client, message);
+            } else if (action === 'PushOrder') {
+                this.handleOrder (client, message);
             }
         }
     }
