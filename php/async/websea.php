@@ -207,42 +207,41 @@ class websea extends Exchange {
                 ),
             ),
             'api' => array(
-                'openApi' => array(
-                    'public' => array(
-                        'get' => array(
-                            'openApi/market/symbols' => 1, // 交易对列表
-                            'openApi/market/currencies' => 1, // 币种列表
-                            'openApi/market/trade' => 1, // 市场交易记录
-                            'openApi/market/depth' => 1, // 市场深度
-                            'openApi/market/orderbook' => 1, // 订单簿
-                            'openApi/market/kline' => 1, // K线数据
-                            'openApi/market/24kline' => 1, // 24小时K线数据
-                            'openApi/market/24kline-list' => 1, // 24小时市场列表
-                            'openApi/market/precision' => 1, // 交易对精度
-                            'openApi/futures/symbols' => 1, // 期货交易对列表
-                            'openApi/futures/trade' => 1, // 期货交易记录
-                            'openApi/futures/depth' => 1, // 期货市场深度
-                            'openApi/futures/kline' => 1, // 期货K线数据
-                        ),
+                'public' => array(
+                    'get' => array(
+                        'openApi/market/symbols' => 1, // 交易对列表
+                        'openApi/market/currencies' => 1, // 币种列表
+                        'openApi/market/trade' => 1, // 市场交易记录
+                        'openApi/market/depth' => 1, // 市场深度
+                        'openApi/market/orderbook' => 1, // 订单簿
+                        'openApi/market/kline' => 1, // K线数据
+                        'openApi/market/24kline' => 1, // 24小时K线数据
+                        'openApi/market/24kline-list' => 1, // 24小时市场列表
+                        'openApi/market/precision' => 1, // 交易对精度
+                        'openApi/futures/symbols' => 1, // 期货交易对列表
+                        'openApi/futures/trade' => 1, // 期货交易记录
+                        'openApi/futures/depth' => 1, // 期货市场深度
+                        'openApi/futures/kline' => 1, // 期货K线数据
                     ),
-                    'private' => array(
-                        'post' => array(
-                            'openApi/entrust/add' => 1, // 下单
-                            'openApi/entrust/cancel' => 1, // 取消订单
-                            'openApi/entrust/orderList' => 1, // 当前订单列表
-                            'openApi/entrust/orderDetail' => 1, // 订单详情
-                            'openApi/entrust/orderTrade' => 1, // 订单成交记录
-                            'openApi/entrust/historyList' => 1, // 历史订单列表
-                            'openApi/entrust/historyDetail' => 1, // 历史订单详情
-                            'openApi/wallet/list' => 1, // 钱包列表
-                            'openApi/wallet/detail' => 1, // 钱包详情
-                            'openApi/futures/entrust/add' => 1, // 期货下单
-                            'openApi/futures/entrust/cancel' => 1, // 期货取消订单
-                            'openApi/futures/entrust/orderList' => 1, // 期货当前订单列表
-                            'openApi/futures/entrust/orderDetail' => 1, // 期货订单详情
-                            'openApi/futures/position/list' => 1, // 期货持仓列表
-                            'openApi/futures/position/detail' => 1, // 期货持仓详情
-                        ),
+                ),
+                'private' => array(
+                    'get' => array(
+                        'openApi/wallet/list' => 1, // 钱包列表 - 余额查询
+                        'openApi/entrust/historyList' => 1, // 历史订单列表 - 已完成订单
+                    ),
+                    'post' => array(
+                        'openApi/entrust/add' => 1, // 下单
+                        'openApi/entrust/cancel' => 1, // 取消订单
+                        'openApi/entrust/orderDetail' => 1, // 订单详情
+                        'openApi/entrust/orderTrade' => 1, // 订单成交记录
+                        'openApi/entrust/historyDetail' => 1, // 历史订单详情
+                        'openApi/wallet/detail' => 1, // 钱包详情
+                        'openApi/futures/entrust/add' => 1, // 期货下单
+                        'openApi/futures/entrust/cancel' => 1, // 期货取消订单
+                        'openApi/futures/entrust/orderList' => 1, // 期货当前订单列表
+                        'openApi/futures/entrust/orderDetail' => 1, // 期货订单详情
+                        'openApi/futures/position/list' => 1, // 期货持仓列表
+                        'openApi/futures/position/detail' => 1, // 期货持仓详情
                     ),
                 ),
             ),
@@ -257,8 +256,16 @@ class websea extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '1001' => '\\ccxt\\BadSymbol', // 交易对错误
+                    '1002' => '\\ccxt\\ExchangeError', // 参数错误
+                    '1003' => '\\ccxt\\ExchangeError', // 请求方法错误
+                    '1004' => '\\ccxt\\ExchangeError', // 请求地址不存在
                 ),
                 'broad' => array(
+                    'symbol error' => '\\ccxt\\BadSymbol',
+                    'base symbol error' => '\\ccxt\\BadSymbol',
+                    'The request method is wrong' => '\\ccxt\\ExchangeError',
+                    'The request address does not exist' => '\\ccxt\\ExchangeError',
                 ),
             ),
             'commonCurrencies' => array(
@@ -274,7 +281,7 @@ class websea extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->openApiPublicGetOpenApiMarketSymbols ($params));
+            $response = Async\await($this->publicGetOpenApiMarketSymbols ($params));
             //
             //     {
             //         "errno" => 0,
@@ -409,7 +416,7 @@ class websea extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $response = Async\await($this->openApiPublicGetOpenApiMarketCurrencies ($params));
+            $response = Async\await($this->publicGetOpenApiMarketCurrencies ($params));
             //
             //     {
             //         "errno" => 0,
@@ -508,7 +515,7 @@ class websea extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->openApiPublicGetOpenApiMarketDepth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenApiMarketDepth ($this->extend($request, $params)));
             //
             // {
             //     "errno" => 0,
@@ -556,7 +563,7 @@ class websea extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->openApiPublicGetOpenApiMarket24kline ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenApiMarket24kline ($this->extend($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
                 for ($i = 0; $i < count($result); $i++) {
@@ -583,7 +590,7 @@ class websea extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->openApiPublicGetOpenApiMarket24kline ($params));
+            $response = Async\await($this->publicGetOpenApiMarket24kline ($params));
             $result = $this->safe_value($response, 'result', array());
             $tickers = array();
             for ($i = 0; $i < count($result); $i++) {
@@ -670,7 +677,7 @@ class websea extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->openApiPublicGetOpenApiMarketKline ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenApiMarketKline ($this->extend($request, $params)));
             //
             // 需要根据实际API响应结构调整
             //
@@ -715,7 +722,7 @@ class websea extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->openApiPublicGetOpenApiMarketTrade ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOpenApiMarketTrade ($this->extend($request, $params)));
             //
             // {
             //     "errno" => 0,
@@ -787,9 +794,21 @@ class websea extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->openApiPrivatePostOpenApiWalletList ($params));
+            $response = Async\await($this->privateGetOpenApiWalletList ($params));
             //
-            // 需要根据实际API响应结构调整
+            // Websea API响应格式示例:
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => array(
+            //         {
+            //             "currency" => "BTC",
+            //             "available" => "0.1",
+            //             "frozen" => "0.01",
+            //             "total" => "0.11"
+            //         }
+            //     )
+            // }
             //
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_balance($result);
@@ -805,7 +824,7 @@ class websea extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->openApiPrivatePostOpenApiFuturesPositionList ($params));
+            $response = Async\await($this->privatePostOpenApiFuturesPositionList ($params));
             //
             // 需要根据实际API响应结构调整
             //
@@ -944,7 +963,7 @@ class websea extends Exchange {
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->openApiPrivatePostOpenApiEntrustAdd ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOpenApiEntrustAdd ($this->extend($request, $params)));
             //
             // 需要根据实际API响应结构调整
             //
@@ -970,7 +989,7 @@ class websea extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->openApiPrivatePostOpenApiEntrustCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOpenApiEntrustCancel ($this->extend($request, $params)));
             //
             // 需要根据实际API响应结构调整
             //
@@ -996,7 +1015,7 @@ class websea extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->openApiPrivatePostOpenApiEntrustOrderDetail ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOpenApiEntrustOrderDetail ($this->extend($request, $params)));
             //
             // 需要根据实际API响应结构调整
             //
@@ -1022,17 +1041,14 @@ class websea extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             if ($since !== null) {
-                $request['since'] = $since;
+                $request['start_time'] = $since;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->openApiPrivatePostOpenApiEntrustOrderList ($this->extend($request, $params)));
-            //
-            // 需要根据实际API响应结构调整
-            //
-            $result = $this->safe_value($response, 'result', array());
-            return $this->parse_orders($result, null, $since, $limit);
+            // 注意：Websea API没有提供获取当前订单的端点
+            // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
+            throw new NotSupported($this->id . ' fetchOpenOrders is not supported by the API');
         }) ();
     }
 
@@ -1053,14 +1069,33 @@ class websea extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             if ($since !== null) {
-                $request['since'] = $since;
+                $request['start_time'] = $since;
             }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->openApiPrivatePostOpenApiEntrustHistoryList ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetOpenApiEntrustHistoryList ($this->extend($request, $params)));
             //
-            // 需要根据实际API响应结构调整
+            // Websea API响应格式示例:
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => array(
+            //         {
+            //             "order_id" => "123456",
+            //             "symbol" => "BTC-USDT",
+            //             "side" => "buy",
+            //             "type" => "limit",
+            //             "price" => "50000",
+            //             "amount" => "0.1",
+            //             "filled" => "0.1",
+            //             "remaining" => "0",
+            //             "status" => "closed",
+            //             "create_time" => 1630000000000,
+            //             "update_time" => 1630000001000
+            //         }
+            //     )
+            // }
             //
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_orders($result, null, $since, $limit);
@@ -1116,41 +1151,52 @@ class websea extends Exchange {
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api']['rest'];
-        $url .= '/' . $this->implode_params($path, $params);
+        $url .= '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
-            $nonce = (string) $this->milliseconds() . '_' . $this->uuid();
-            $auth = array(
+            // Websea API签名要求：timestamp_5random格式
+            $timestamp = (string) $this->seconds();
+            $randomChars = $this->uuid(mb_substr(), 0, 5 - 0);
+            $nonce = $timestamp . '_' . $randomChars;
+            // 构建签名数组：Token . Secret . Nonce . 所有参数
+            $signatureArray = array(
                 $this->apiKey,
                 $this->secret,
                 $nonce,
             );
-            $keys = is_array($query) ? array_keys($query) : array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $key = $keys[$i];
+            // 添加所有查询参数到签名数组（格式：$key=$value）
+            $queryKeys = is_array($query) ? array_keys($query) : array();
+            for ($i = 0; $i < count($queryKeys); $i++) {
+                $key = $queryKeys[$i];
                 $value = (string) $query[$key];
-                $auth[] = $key . '=' . $value;
+                $signatureArray[] = $key . '=' . $value;
             }
-            $auth->sort ();
-            $message = implode('', $auth);
-            $signature = base64_encode($this->hash($this->encode($message), 'sha1', 'hex'));
+            // 对数组进行排序
+            $signatureArray->sort ();
+            // 连接所有元素并计算SHA1签名
+            $message = implode('', $signatureArray);
+            $signature = $this->hash($this->encode($message), 'sha1', 'hex');
             $headers = array(
                 'Nonce' => $nonce,
                 'Token' => $this->apiKey,
                 'Signature' => $signature,
+                'Content-Type' => 'application/json',
             );
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode($query);
+                    $queryString = $this->urlencode($query);
+                    $url .= '?' . $queryString;
                 }
             } else {
-                $body = $this->urlencode($query);
-                $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                $body = $this->json($query);
+                $headers['Content-Length'] = (string) count(base64_encode($body));
             }
         } else {
+            // 公共API请求
             if ($query) {
-                $url .= '?' . $this->urlencode($query);
+                $queryString = $this->urlencode($query);
+                $url .= '?' . $queryString;
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -1163,8 +1209,15 @@ class websea extends Exchange {
         $errorCode = $this->safe_string($response, 'errno');
         if ($errorCode !== null && $errorCode !== '0') {
             $errorMessage = $this->safe_string($response, 'errmsg', 'Unknown error');
+            // 处理特定的Websea错误消息
             if (mb_strpos($errorMessage, 'symbol error') !== false || mb_strpos($errorMessage, 'base symbol error') !== false) {
                 throw new BadSymbol($this->id . ' ' . $errorMessage);
+            }
+            if (mb_strpos($errorMessage, 'The request $method is wrong') !== false) {
+                throw new ExchangeError($this->id . ' Invalid HTTP $method for this endpoint. Please check the API documentation.');
+            }
+            if (mb_strpos($errorMessage, 'The request address does not exist') !== false) {
+                throw new ExchangeError($this->id . ' API endpoint not found. Please check the API documentation.');
             }
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $errorMessage);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $errorMessage);

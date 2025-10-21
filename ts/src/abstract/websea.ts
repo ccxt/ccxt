@@ -23,7 +23,7 @@ interface Exchange {
     publicGetOpenApiFuturesDepth (params?: {}): Promise<implicitReturnType>;
     publicGetOpenApiFuturesKline (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiWalletList (params?: {}): Promise<implicitReturnType>;
-    privateGetOpenApiEntrustHistorylist (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiEntrustHistoryList (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustAdd (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustCancel (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustOrderDetail (params?: {}): Promise<implicitReturnType>;

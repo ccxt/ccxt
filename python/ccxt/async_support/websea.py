@@ -207,42 +207,41 @@ class websea(Exchange, ImplicitAPI):
                 },
             },
             'api': {
-                'openApi': {
-                    'public': {
-                        'get': {
-                            'openApi/market/symbols': 1,  # 交易对列表
-                            'openApi/market/currencies': 1,  # 币种列表
-                            'openApi/market/trade': 1,  # 市场交易记录
-                            'openApi/market/depth': 1,  # 市场深度
-                            'openApi/market/orderbook': 1,  # 订单簿
-                            'openApi/market/kline': 1,  # K线数据
-                            'openApi/market/24kline': 1,  # 24小时K线数据
-                            'openApi/market/24kline-list': 1,  # 24小时市场列表
-                            'openApi/market/precision': 1,  # 交易对精度
-                            'openApi/futures/symbols': 1,  # 期货交易对列表
-                            'openApi/futures/trade': 1,  # 期货交易记录
-                            'openApi/futures/depth': 1,  # 期货市场深度
-                            'openApi/futures/kline': 1,  # 期货K线数据
-                        },
+                'public': {
+                    'get': {
+                        'openApi/market/symbols': 1,  # 交易对列表
+                        'openApi/market/currencies': 1,  # 币种列表
+                        'openApi/market/trade': 1,  # 市场交易记录
+                        'openApi/market/depth': 1,  # 市场深度
+                        'openApi/market/orderbook': 1,  # 订单簿
+                        'openApi/market/kline': 1,  # K线数据
+                        'openApi/market/24kline': 1,  # 24小时K线数据
+                        'openApi/market/24kline-list': 1,  # 24小时市场列表
+                        'openApi/market/precision': 1,  # 交易对精度
+                        'openApi/futures/symbols': 1,  # 期货交易对列表
+                        'openApi/futures/trade': 1,  # 期货交易记录
+                        'openApi/futures/depth': 1,  # 期货市场深度
+                        'openApi/futures/kline': 1,  # 期货K线数据
                     },
-                    'private': {
-                        'post': {
-                            'openApi/entrust/add': 1,  # 下单
-                            'openApi/entrust/cancel': 1,  # 取消订单
-                            'openApi/entrust/orderList': 1,  # 当前订单列表
-                            'openApi/entrust/orderDetail': 1,  # 订单详情
-                            'openApi/entrust/orderTrade': 1,  # 订单成交记录
-                            'openApi/entrust/historyList': 1,  # 历史订单列表
-                            'openApi/entrust/historyDetail': 1,  # 历史订单详情
-                            'openApi/wallet/list': 1,  # 钱包列表
-                            'openApi/wallet/detail': 1,  # 钱包详情
-                            'openApi/futures/entrust/add': 1,  # 期货下单
-                            'openApi/futures/entrust/cancel': 1,  # 期货取消订单
-                            'openApi/futures/entrust/orderList': 1,  # 期货当前订单列表
-                            'openApi/futures/entrust/orderDetail': 1,  # 期货订单详情
-                            'openApi/futures/position/list': 1,  # 期货持仓列表
-                            'openApi/futures/position/detail': 1,  # 期货持仓详情
-                        },
+                },
+                'private': {
+                    'get': {
+                        'openApi/wallet/list': 1,  # 钱包列表 - 余额查询
+                        'openApi/entrust/historyList': 1,  # 历史订单列表 - 已完成订单
+                    },
+                    'post': {
+                        'openApi/entrust/add': 1,  # 下单
+                        'openApi/entrust/cancel': 1,  # 取消订单
+                        'openApi/entrust/orderDetail': 1,  # 订单详情
+                        'openApi/entrust/orderTrade': 1,  # 订单成交记录
+                        'openApi/entrust/historyDetail': 1,  # 历史订单详情
+                        'openApi/wallet/detail': 1,  # 钱包详情
+                        'openApi/futures/entrust/add': 1,  # 期货下单
+                        'openApi/futures/entrust/cancel': 1,  # 期货取消订单
+                        'openApi/futures/entrust/orderList': 1,  # 期货当前订单列表
+                        'openApi/futures/entrust/orderDetail': 1,  # 期货订单详情
+                        'openApi/futures/position/list': 1,  # 期货持仓列表
+                        'openApi/futures/position/detail': 1,  # 期货持仓详情
                     },
                 },
             },
@@ -257,8 +256,16 @@ class websea(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '1001': BadSymbol,  # 交易对错误
+                    '1002': ExchangeError,  # 参数错误
+                    '1003': ExchangeError,  # 请求方法错误
+                    '1004': ExchangeError,  # 请求地址不存在
                 },
                 'broad': {
+                    'symbol error': BadSymbol,
+                    'base symbol error': BadSymbol,
+                    'The request method is wrong': ExchangeError,
+                    'The request address does not exist': ExchangeError,
                 },
             },
             'commonCurrencies': {
@@ -272,7 +279,7 @@ class websea(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        response = await self.openApiPublicGetOpenApiMarketSymbols(params)
+        response = await self.publicGetOpenApiMarketSymbols(params)
         #
         #     {
         #         "errno": 0,
@@ -399,7 +406,7 @@ class websea(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.openApiPublicGetOpenApiMarketCurrencies(params)
+        response = await self.publicGetOpenApiMarketCurrencies(params)
         #
         #     {
         #         "errno": 0,
@@ -492,7 +499,7 @@ class websea(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        response = await self.openApiPublicGetOpenApiMarketDepth(self.extend(request, params))
+        response = await self.publicGetOpenApiMarketDepth(self.extend(request, params))
         #
         # {
         #     "errno": 0,
@@ -537,7 +544,7 @@ class websea(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        response = await self.openApiPublicGetOpenApiMarket24kline(self.extend(request, params))
+        response = await self.publicGetOpenApiMarket24kline(self.extend(request, params))
         result = self.safe_value(response, 'result', [])
         if isinstance(result, list):
             for i in range(0, len(result)):
@@ -558,7 +565,7 @@ class websea(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        response = await self.openApiPublicGetOpenApiMarket24kline(params)
+        response = await self.publicGetOpenApiMarket24kline(params)
         result = self.safe_value(response, 'result', [])
         tickers = []
         for i in range(0, len(result)):
@@ -638,7 +645,7 @@ class websea(Exchange, ImplicitAPI):
             request['since'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.openApiPublicGetOpenApiMarketKline(self.extend(request, params))
+        response = await self.publicGetOpenApiMarketKline(self.extend(request, params))
         #
         # 需要根据实际API响应结构调整
         #
@@ -677,7 +684,7 @@ class websea(Exchange, ImplicitAPI):
             request['since'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.openApiPublicGetOpenApiMarketTrade(self.extend(request, params))
+        response = await self.publicGetOpenApiMarketTrade(self.extend(request, params))
         #
         # {
         #     "errno": 0,
@@ -745,9 +752,21 @@ class websea(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        response = await self.openApiPrivatePostOpenApiWalletList(params)
+        response = await self.privateGetOpenApiWalletList(params)
         #
-        # 需要根据实际API响应结构调整
+        # Websea API响应格式示例:
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": [
+        #         {
+        #             "currency": "BTC",
+        #             "available": "0.1",
+        #             "frozen": "0.01",
+        #             "total": "0.11"
+        #         }
+        #     ]
+        # }
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_balance(result)
@@ -760,7 +779,7 @@ class websea(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
-        response = await self.openApiPrivatePostOpenApiFuturesPositionList(params)
+        response = await self.privatePostOpenApiFuturesPositionList(params)
         #
         # 需要根据实际API响应结构调整
         #
@@ -883,7 +902,7 @@ class websea(Exchange, ImplicitAPI):
         }
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        response = await self.openApiPrivatePostOpenApiEntrustAdd(self.extend(request, params))
+        response = await self.privatePostOpenApiEntrustAdd(self.extend(request, params))
         #
         # 需要根据实际API响应结构调整
         #
@@ -905,7 +924,7 @@ class websea(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.openApiPrivatePostOpenApiEntrustCancel(self.extend(request, params))
+        response = await self.privatePostOpenApiEntrustCancel(self.extend(request, params))
         #
         # 需要根据实际API响应结构调整
         #
@@ -927,7 +946,7 @@ class websea(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.openApiPrivatePostOpenApiEntrustOrderDetail(self.extend(request, params))
+        response = await self.privatePostOpenApiEntrustOrderDetail(self.extend(request, params))
         #
         # 需要根据实际API响应结构调整
         #
@@ -949,15 +968,12 @@ class websea(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['since'] = since
+            request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.openApiPrivatePostOpenApiEntrustOrderList(self.extend(request, params))
-        #
-        # 需要根据实际API响应结构调整
-        #
-        result = self.safe_value(response, 'result', [])
-        return self.parse_orders(result, None, since, limit)
+        # 注意：Websea API没有提供获取当前订单的端点
+        # 只能获取历史订单，所以fetchOpenOrders暂时无法实现
+        raise NotSupported(self.id + ' fetchOpenOrders is not supported by the API')
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -974,12 +990,31 @@ class websea(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
-            request['since'] = since
+            request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.openApiPrivatePostOpenApiEntrustHistoryList(self.extend(request, params))
+        response = await self.privateGetOpenApiEntrustHistoryList(self.extend(request, params))
         #
-        # 需要根据实际API响应结构调整
+        # Websea API响应格式示例:
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": [
+        #         {
+        #             "order_id": "123456",
+        #             "symbol": "BTC-USDT",
+        #             "side": "buy",
+        #             "type": "limit",
+        #             "price": "50000",
+        #             "amount": "0.1",
+        #             "filled": "0.1",
+        #             "remaining": "0",
+        #             "status": "closed",
+        #             "create_time": 1630000000000,
+        #             "update_time": 1630000001000
+        #         }
+        #     ]
+        # }
         #
         result = self.safe_value(response, 'result', [])
         return self.parse_orders(result, None, since, limit)
@@ -1031,38 +1066,49 @@ class websea(Exchange, ImplicitAPI):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest']
-        url += '/' + self.implode_params(path, params)
+        url += '/' + path
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
-            nonce = str(self.milliseconds()) + '_' + self.uuid()
-            auth = [
+            # Websea API签名要求：timestamp_5random格式
+            timestamp = str(self.seconds())
+            randomChars = self.uuid()[0:5]
+            nonce = timestamp + '_' + randomChars
+            # 构建签名数组：Token + Secret + Nonce + 所有参数
+            signatureArray = [
                 self.apiKey,
                 self.secret,
                 nonce,
             ]
-            keys = list(query.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
+            # 添加所有查询参数到签名数组（格式：key=value）
+            queryKeys = list(query.keys())
+            for i in range(0, len(queryKeys)):
+                key = queryKeys[i]
                 value = str(query[key])
-                auth.append(key + '=' + value)
-            auth.sort()
-            message = ''.join(auth)
-            signature = self.string_to_base64(self.hash(self.encode(message), 'sha1', 'hex'))
+                signatureArray.append(key + '=' + value)
+            # 对数组进行排序
+            signatureArray.sort()
+            # 连接所有元素并计算SHA1签名
+            message = ''.join(signatureArray)
+            signature = self.hash(self.encode(message), 'sha1', 'hex')
             headers = {
                 'Nonce': nonce,
                 'Token': self.apiKey,
                 'Signature': signature,
+                'Content-Type': 'application/json',
             }
             if method == 'GET':
                 if query:
-                    url += '?' + self.urlencode(query)
+                    queryString = self.urlencode(query)
+                    url += '?' + queryString
             else:
-                body = self.urlencode(query)
-                headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                body = self.json(query)
+                headers['Content-Length'] = str(self.string_to_base64(len(body)))
         else:
+            # 公共API请求
             if query:
-                url += '?' + self.urlencode(query)
+                queryString = self.urlencode(query)
+                url += '?' + queryString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
@@ -1071,8 +1117,13 @@ class websea(Exchange, ImplicitAPI):
         errorCode = self.safe_string(response, 'errno')
         if errorCode is not None and errorCode != '0':
             errorMessage = self.safe_string(response, 'errmsg', 'Unknown error')
+            # 处理特定的Websea错误消息
             if errorMessage.find('symbol error') >= 0 or errorMessage.find('base symbol error') >= 0:
                 raise BadSymbol(self.id + ' ' + errorMessage)
+            if errorMessage.find('The request method is wrong') >= 0:
+                raise ExchangeError(self.id + ' Invalid HTTP method for self endpoint. Please check the API documentation.')
+            if errorMessage.find('The request address does not exist') >= 0:
+                raise ExchangeError(self.id + ' API endpoint not found. Please check the API documentation.')
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, errorMessage)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, errorMessage)
             raise ExchangeError(self.id + ' ' + errorMessage)

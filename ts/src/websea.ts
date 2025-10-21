@@ -225,7 +225,7 @@ export default class websea extends Exchange {
                 'private': {
                     'get': {
                         'openApi/wallet/list': 1, // 钱包列表 - 余额查询
-                        'openApi/entrust/historylist': 1, // 历史订单列表 - 已完成订单
+                        'openApi/entrust/historyList': 1, // 历史订单列表 - 已完成订单
                     },
                     'post': {
                         'openApi/entrust/add': 1, // 下单
@@ -1075,7 +1075,7 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetOpenApiEntrustHistorylist (this.extend (request, params));
+        const response = await this.privateGetOpenApiEntrustHistoryList (this.extend (request, params));
         //
         // Websea API响应格式示例:
         // {

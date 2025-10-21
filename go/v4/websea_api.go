@@ -7,114 +7,110 @@
 
 package ccxt
 
-func (this *websea) OpenApiPublicGetOpenApiMarketSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketSymbols", args...)
+func (this *websea) PublicGetOpenApiMarketSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketSymbols", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarketCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketCurrencies", args...)
+func (this *websea) PublicGetOpenApiMarketCurrencies (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketCurrencies", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarketTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketTrade", args...)
+func (this *websea) PublicGetOpenApiMarketTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketTrade", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarketDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketDepth", args...)
+func (this *websea) PublicGetOpenApiMarketDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketDepth", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarketOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketOrderbook", args...)
+func (this *websea) PublicGetOpenApiMarketOrderbook (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketOrderbook", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarketKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketKline", args...)
+func (this *websea) PublicGetOpenApiMarketKline (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketKline", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarket24kline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarket24kline", args...)
+func (this *websea) PublicGetOpenApiMarket24kline (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarket24kline", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarket24klineList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarket24klineList", args...)
+func (this *websea) PublicGetOpenApiMarket24klineList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarket24klineList", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiMarketPrecision (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiMarketPrecision", args...)
+func (this *websea) PublicGetOpenApiMarketPrecision (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiMarketPrecision", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiFuturesSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiFuturesSymbols", args...)
+func (this *websea) PublicGetOpenApiFuturesSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiFuturesSymbols", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiFuturesTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiFuturesTrade", args...)
+func (this *websea) PublicGetOpenApiFuturesTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiFuturesTrade", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiFuturesDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiFuturesDepth", args...)
+func (this *websea) PublicGetOpenApiFuturesDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiFuturesDepth", args...)
 }
 
-func (this *websea) OpenApiPublicGetOpenApiFuturesKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPublicGetOpenApiFuturesKline", args...)
+func (this *websea) PublicGetOpenApiFuturesKline (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetOpenApiFuturesKline", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustAdd", args...)
+func (this *websea) PrivateGetOpenApiWalletList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenApiWalletList", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustCancel", args...)
+func (this *websea) PrivateGetOpenApiEntrustHistoryList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenApiEntrustHistoryList", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustOrderList", args...)
+func (this *websea) PrivatePostOpenApiEntrustAdd (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiEntrustAdd", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustOrderDetail", args...)
+func (this *websea) PrivatePostOpenApiEntrustCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiEntrustCancel", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustOrderTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustOrderTrade", args...)
+func (this *websea) PrivatePostOpenApiEntrustOrderDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiEntrustOrderDetail", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustHistoryList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustHistoryList", args...)
+func (this *websea) PrivatePostOpenApiEntrustOrderTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiEntrustOrderTrade", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiEntrustHistoryDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiEntrustHistoryDetail", args...)
+func (this *websea) PrivatePostOpenApiEntrustHistoryDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiEntrustHistoryDetail", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiWalletList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiWalletList", args...)
+func (this *websea) PrivatePostOpenApiWalletDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiWalletDetail", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiWalletDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiWalletDetail", args...)
+func (this *websea) PrivatePostOpenApiFuturesEntrustAdd (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesEntrustAdd", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiFuturesEntrustAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiFuturesEntrustAdd", args...)
+func (this *websea) PrivatePostOpenApiFuturesEntrustCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesEntrustCancel", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiFuturesEntrustCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiFuturesEntrustCancel", args...)
+func (this *websea) PrivatePostOpenApiFuturesEntrustOrderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesEntrustOrderList", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiFuturesEntrustOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiFuturesEntrustOrderList", args...)
+func (this *websea) PrivatePostOpenApiFuturesEntrustOrderDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesEntrustOrderDetail", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiFuturesEntrustOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiFuturesEntrustOrderDetail", args...)
+func (this *websea) PrivatePostOpenApiFuturesPositionList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesPositionList", args...)
 }
 
-func (this *websea) OpenApiPrivatePostOpenApiFuturesPositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiFuturesPositionList", args...)
-}
-
-func (this *websea) OpenApiPrivatePostOpenApiFuturesPositionDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("openApiPrivatePostOpenApiFuturesPositionDetail", args...)
+func (this *websea) PrivatePostOpenApiFuturesPositionDetail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesPositionDetail", args...)
 }

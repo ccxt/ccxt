@@ -11,144 +11,139 @@ public partial class websea : Exchange
 {
     public websea (object args = null): base(args) {}
 
-    public async Task<object> openApiPublicGetOpenApiMarketSymbols (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketSymbols (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketSymbols",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketSymbols",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarketCurrencies (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketCurrencies (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketCurrencies",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketCurrencies",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarketTrade (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketTrade (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketTrade",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketTrade",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarketDepth (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketDepth (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketDepth",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketDepth",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarketOrderbook (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketOrderbook (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketOrderbook",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketOrderbook",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarketKline (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketKline (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketKline",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketKline",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarket24kline (object parameters = null)
+    public async Task<object> publicGetOpenApiMarket24kline (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarket24kline",parameters);
+        return await this.callAsync ("publicGetOpenApiMarket24kline",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarket24klineList (object parameters = null)
+    public async Task<object> publicGetOpenApiMarket24klineList (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarket24klineList",parameters);
+        return await this.callAsync ("publicGetOpenApiMarket24klineList",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiMarketPrecision (object parameters = null)
+    public async Task<object> publicGetOpenApiMarketPrecision (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiMarketPrecision",parameters);
+        return await this.callAsync ("publicGetOpenApiMarketPrecision",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiFuturesSymbols (object parameters = null)
+    public async Task<object> publicGetOpenApiFuturesSymbols (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiFuturesSymbols",parameters);
+        return await this.callAsync ("publicGetOpenApiFuturesSymbols",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiFuturesTrade (object parameters = null)
+    public async Task<object> publicGetOpenApiFuturesTrade (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiFuturesTrade",parameters);
+        return await this.callAsync ("publicGetOpenApiFuturesTrade",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiFuturesDepth (object parameters = null)
+    public async Task<object> publicGetOpenApiFuturesDepth (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiFuturesDepth",parameters);
+        return await this.callAsync ("publicGetOpenApiFuturesDepth",parameters);
     }
 
-    public async Task<object> openApiPublicGetOpenApiFuturesKline (object parameters = null)
+    public async Task<object> publicGetOpenApiFuturesKline (object parameters = null)
     {
-        return await this.callAsync ("openApiPublicGetOpenApiFuturesKline",parameters);
+        return await this.callAsync ("publicGetOpenApiFuturesKline",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustAdd (object parameters = null)
+    public async Task<object> privateGetOpenApiWalletList (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustAdd",parameters);
+        return await this.callAsync ("privateGetOpenApiWalletList",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustCancel (object parameters = null)
+    public async Task<object> privateGetOpenApiEntrustHistoryList (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustCancel",parameters);
+        return await this.callAsync ("privateGetOpenApiEntrustHistoryList",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustOrderList (object parameters = null)
+    public async Task<object> privatePostOpenApiEntrustAdd (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustOrderList",parameters);
+        return await this.callAsync ("privatePostOpenApiEntrustAdd",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustOrderDetail (object parameters = null)
+    public async Task<object> privatePostOpenApiEntrustCancel (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustOrderDetail",parameters);
+        return await this.callAsync ("privatePostOpenApiEntrustCancel",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustOrderTrade (object parameters = null)
+    public async Task<object> privatePostOpenApiEntrustOrderDetail (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustOrderTrade",parameters);
+        return await this.callAsync ("privatePostOpenApiEntrustOrderDetail",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustHistoryList (object parameters = null)
+    public async Task<object> privatePostOpenApiEntrustOrderTrade (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustHistoryList",parameters);
+        return await this.callAsync ("privatePostOpenApiEntrustOrderTrade",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiEntrustHistoryDetail (object parameters = null)
+    public async Task<object> privatePostOpenApiEntrustHistoryDetail (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiEntrustHistoryDetail",parameters);
+        return await this.callAsync ("privatePostOpenApiEntrustHistoryDetail",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiWalletList (object parameters = null)
+    public async Task<object> privatePostOpenApiWalletDetail (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiWalletList",parameters);
+        return await this.callAsync ("privatePostOpenApiWalletDetail",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiWalletDetail (object parameters = null)
+    public async Task<object> privatePostOpenApiFuturesEntrustAdd (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiWalletDetail",parameters);
+        return await this.callAsync ("privatePostOpenApiFuturesEntrustAdd",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiFuturesEntrustAdd (object parameters = null)
+    public async Task<object> privatePostOpenApiFuturesEntrustCancel (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiFuturesEntrustAdd",parameters);
+        return await this.callAsync ("privatePostOpenApiFuturesEntrustCancel",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiFuturesEntrustCancel (object parameters = null)
+    public async Task<object> privatePostOpenApiFuturesEntrustOrderList (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiFuturesEntrustCancel",parameters);
+        return await this.callAsync ("privatePostOpenApiFuturesEntrustOrderList",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiFuturesEntrustOrderList (object parameters = null)
+    public async Task<object> privatePostOpenApiFuturesEntrustOrderDetail (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiFuturesEntrustOrderList",parameters);
+        return await this.callAsync ("privatePostOpenApiFuturesEntrustOrderDetail",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiFuturesEntrustOrderDetail (object parameters = null)
+    public async Task<object> privatePostOpenApiFuturesPositionList (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiFuturesEntrustOrderDetail",parameters);
+        return await this.callAsync ("privatePostOpenApiFuturesPositionList",parameters);
     }
 
-    public async Task<object> openApiPrivatePostOpenApiFuturesPositionList (object parameters = null)
+    public async Task<object> privatePostOpenApiFuturesPositionDetail (object parameters = null)
     {
-        return await this.callAsync ("openApiPrivatePostOpenApiFuturesPositionList",parameters);
-    }
-
-    public async Task<object> openApiPrivatePostOpenApiFuturesPositionDetail (object parameters = null)
-    {
-        return await this.callAsync ("openApiPrivatePostOpenApiFuturesPositionDetail",parameters);
+        return await this.callAsync ("privatePostOpenApiFuturesPositionDetail",parameters);
     }
 
 }

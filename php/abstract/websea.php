@@ -7,172 +7,166 @@ namespace ccxt\abstract;
 
 
 abstract class websea extends \ccxt\Exchange {
-    public function openapi_public_get_openapi_market_symbols($params = array()) {
-        return $this->request('openApi/market/symbols', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_symbols($params = array()) {
+        return $this->request('openApi/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_currencies($params = array()) {
-        return $this->request('openApi/market/currencies', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_currencies($params = array()) {
+        return $this->request('openApi/market/currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_trade($params = array()) {
-        return $this->request('openApi/market/trade', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_trade($params = array()) {
+        return $this->request('openApi/market/trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_depth($params = array()) {
-        return $this->request('openApi/market/depth', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_depth($params = array()) {
+        return $this->request('openApi/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_orderbook($params = array()) {
-        return $this->request('openApi/market/orderbook', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_orderbook($params = array()) {
+        return $this->request('openApi/market/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_kline($params = array()) {
-        return $this->request('openApi/market/kline', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_kline($params = array()) {
+        return $this->request('openApi/market/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_24kline($params = array()) {
-        return $this->request('openApi/market/24kline', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_24kline($params = array()) {
+        return $this->request('openApi/market/24kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_24kline_list($params = array()) {
-        return $this->request('openApi/market/24kline-list', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_24kline_list($params = array()) {
+        return $this->request('openApi/market/24kline-list', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_market_precision($params = array()) {
-        return $this->request('openApi/market/precision', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_market_precision($params = array()) {
+        return $this->request('openApi/market/precision', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_futures_symbols($params = array()) {
-        return $this->request('openApi/futures/symbols', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_futures_symbols($params = array()) {
+        return $this->request('openApi/futures/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_futures_trade($params = array()) {
-        return $this->request('openApi/futures/trade', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_futures_trade($params = array()) {
+        return $this->request('openApi/futures/trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_futures_depth($params = array()) {
-        return $this->request('openApi/futures/depth', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_futures_depth($params = array()) {
+        return $this->request('openApi/futures/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_public_get_openapi_futures_kline($params = array()) {
-        return $this->request('openApi/futures/kline', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_openapi_futures_kline($params = array()) {
+        return $this->request('openApi/futures/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_add($params = array()) {
-        return $this->request('openApi/entrust/add', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_get_openapi_wallet_list($params = array()) {
+        return $this->request('openApi/wallet/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_cancel($params = array()) {
-        return $this->request('openApi/entrust/cancel', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_get_openapi_entrust_historylist($params = array()) {
+        return $this->request('openApi/entrust/historyList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_orderlist($params = array()) {
-        return $this->request('openApi/entrust/orderList', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_entrust_add($params = array()) {
+        return $this->request('openApi/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_orderdetail($params = array()) {
-        return $this->request('openApi/entrust/orderDetail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_entrust_cancel($params = array()) {
+        return $this->request('openApi/entrust/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_ordertrade($params = array()) {
-        return $this->request('openApi/entrust/orderTrade', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_entrust_orderdetail($params = array()) {
+        return $this->request('openApi/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_historylist($params = array()) {
-        return $this->request('openApi/entrust/historyList', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_entrust_ordertrade($params = array()) {
+        return $this->request('openApi/entrust/orderTrade', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_entrust_historydetail($params = array()) {
-        return $this->request('openApi/entrust/historyDetail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_entrust_historydetail($params = array()) {
+        return $this->request('openApi/entrust/historyDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_wallet_list($params = array()) {
-        return $this->request('openApi/wallet/list', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_wallet_detail($params = array()) {
+        return $this->request('openApi/wallet/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_wallet_detail($params = array()) {
-        return $this->request('openApi/wallet/detail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_futures_entrust_add($params = array()) {
+        return $this->request('openApi/futures/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_futures_entrust_add($params = array()) {
-        return $this->request('openApi/futures/entrust/add', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_futures_entrust_cancel($params = array()) {
+        return $this->request('openApi/futures/entrust/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_futures_entrust_cancel($params = array()) {
-        return $this->request('openApi/futures/entrust/cancel', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_futures_entrust_orderlist($params = array()) {
+        return $this->request('openApi/futures/entrust/orderList', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_futures_entrust_orderlist($params = array()) {
-        return $this->request('openApi/futures/entrust/orderList', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_futures_entrust_orderdetail($params = array()) {
+        return $this->request('openApi/futures/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_futures_entrust_orderdetail($params = array()) {
-        return $this->request('openApi/futures/entrust/orderDetail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_futures_position_list($params = array()) {
+        return $this->request('openApi/futures/position/list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_futures_position_list($params = array()) {
-        return $this->request('openApi/futures/position/list', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_futures_position_detail($params = array()) {
+        return $this->request('openApi/futures/position/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openapi_private_post_openapi_futures_position_detail($params = array()) {
-        return $this->request('openApi/futures/position/detail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketSymbols($params = array()) {
+        return $this->request('openApi/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketSymbols($params = array()) {
-        return $this->request('openApi/market/symbols', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketCurrencies($params = array()) {
+        return $this->request('openApi/market/currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketCurrencies($params = array()) {
-        return $this->request('openApi/market/currencies', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketTrade($params = array()) {
+        return $this->request('openApi/market/trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketTrade($params = array()) {
-        return $this->request('openApi/market/trade', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketDepth($params = array()) {
+        return $this->request('openApi/market/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketDepth($params = array()) {
-        return $this->request('openApi/market/depth', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketOrderbook($params = array()) {
+        return $this->request('openApi/market/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketOrderbook($params = array()) {
-        return $this->request('openApi/market/orderbook', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketKline($params = array()) {
+        return $this->request('openApi/market/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketKline($params = array()) {
-        return $this->request('openApi/market/kline', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarket24kline($params = array()) {
+        return $this->request('openApi/market/24kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarket24kline($params = array()) {
-        return $this->request('openApi/market/24kline', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarket24klineList($params = array()) {
+        return $this->request('openApi/market/24kline-list', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarket24klineList($params = array()) {
-        return $this->request('openApi/market/24kline-list', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiMarketPrecision($params = array()) {
+        return $this->request('openApi/market/precision', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiMarketPrecision($params = array()) {
-        return $this->request('openApi/market/precision', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiFuturesSymbols($params = array()) {
+        return $this->request('openApi/futures/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiFuturesSymbols($params = array()) {
-        return $this->request('openApi/futures/symbols', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiFuturesTrade($params = array()) {
+        return $this->request('openApi/futures/trade', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiFuturesTrade($params = array()) {
-        return $this->request('openApi/futures/trade', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiFuturesDepth($params = array()) {
+        return $this->request('openApi/futures/depth', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiFuturesDepth($params = array()) {
-        return $this->request('openApi/futures/depth', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetOpenApiFuturesKline($params = array()) {
+        return $this->request('openApi/futures/kline', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPublicGetOpenApiFuturesKline($params = array()) {
-        return $this->request('openApi/futures/kline', array('openApi', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetOpenApiWalletList($params = array()) {
+        return $this->request('openApi/wallet/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustAdd($params = array()) {
-        return $this->request('openApi/entrust/add', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privateGetOpenApiEntrustHistoryList($params = array()) {
+        return $this->request('openApi/entrust/historyList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustCancel($params = array()) {
-        return $this->request('openApi/entrust/cancel', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiEntrustAdd($params = array()) {
+        return $this->request('openApi/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustOrderList($params = array()) {
-        return $this->request('openApi/entrust/orderList', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiEntrustCancel($params = array()) {
+        return $this->request('openApi/entrust/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustOrderDetail($params = array()) {
-        return $this->request('openApi/entrust/orderDetail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiEntrustOrderDetail($params = array()) {
+        return $this->request('openApi/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustOrderTrade($params = array()) {
-        return $this->request('openApi/entrust/orderTrade', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiEntrustOrderTrade($params = array()) {
+        return $this->request('openApi/entrust/orderTrade', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustHistoryList($params = array()) {
-        return $this->request('openApi/entrust/historyList', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiEntrustHistoryDetail($params = array()) {
+        return $this->request('openApi/entrust/historyDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiEntrustHistoryDetail($params = array()) {
-        return $this->request('openApi/entrust/historyDetail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiWalletDetail($params = array()) {
+        return $this->request('openApi/wallet/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiWalletList($params = array()) {
-        return $this->request('openApi/wallet/list', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiFuturesEntrustAdd($params = array()) {
+        return $this->request('openApi/futures/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiWalletDetail($params = array()) {
-        return $this->request('openApi/wallet/detail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiFuturesEntrustCancel($params = array()) {
+        return $this->request('openApi/futures/entrust/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiFuturesEntrustAdd($params = array()) {
-        return $this->request('openApi/futures/entrust/add', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiFuturesEntrustOrderList($params = array()) {
+        return $this->request('openApi/futures/entrust/orderList', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiFuturesEntrustCancel($params = array()) {
-        return $this->request('openApi/futures/entrust/cancel', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiFuturesEntrustOrderDetail($params = array()) {
+        return $this->request('openApi/futures/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiFuturesEntrustOrderList($params = array()) {
-        return $this->request('openApi/futures/entrust/orderList', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiFuturesPositionList($params = array()) {
+        return $this->request('openApi/futures/position/list', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function openApiPrivatePostOpenApiFuturesEntrustOrderDetail($params = array()) {
-        return $this->request('openApi/futures/entrust/orderDetail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function openApiPrivatePostOpenApiFuturesPositionList($params = array()) {
-        return $this->request('openApi/futures/position/list', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
-    }
-    public function openApiPrivatePostOpenApiFuturesPositionDetail($params = array()) {
-        return $this->request('openApi/futures/position/detail', array('openApi', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenApiFuturesPositionDetail($params = array()) {
+        return $this->request('openApi/futures/position/detail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }
