@@ -469,9 +469,11 @@ export default class hyperliquid extends hyperliquidRest {
             const assetObject = spotAssets[i];
             const marketId = this.safeString (assetObject, 'coin');
             const market = this.safeMarket (marketId, undefined, undefined, 'spot');
+            const symbol = market['symbol'];
             const ticker = this.parseWsTicker (assetObject, market);
             this.streamProduce ('tickers', ticker);
             parsedTickers.push (ticker);
+            this.tickers[symbol] = ticker;
         }
         // perpetuals
         const meta = this.safeDict (rawData, 'meta', {});
@@ -484,8 +486,10 @@ export default class hyperliquid extends hyperliquidRest {
             );
             const id = data['name'] + '/USDC:USDC';
             const market = this.safeMarket (id, undefined, undefined, 'swap');
+            const symbol = market['symbol'];
             const ticker = this.parseWsTicker (data, market);
             this.streamProduce ('tickers', ticker);
+            this.tickers[symbol] = ticker;
             parsedTickers.push (ticker);
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');

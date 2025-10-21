@@ -189,7 +189,7 @@ class okx extends Exchange {
                 'referral' => array(
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url' => 'https://www.okx.com/join/CCXT2023',
+                    'url' => 'https://www.okx.com/join/CCXTCOM',
                     'discount' => 0.2,
                 ),
                 'test' => array(
