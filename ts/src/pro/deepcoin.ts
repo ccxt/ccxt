@@ -58,6 +58,11 @@ export default class deepcoin extends deepcoinRest {
             },
             'options': {
                 'lastRequestId': undefined,
+                'listenKey': undefined,
+                'listenKeyExpiryTimestamp': undefined,
+                'authenticate': {
+                    'method': 'privateGetDeepcoinListenkeyExtend', // refresh existing listen key or 'privateGetDeepcoinListenkeyAcquire' - get a new one
+                },
                 'timeframes': {
                     '1m': '1m',
                     '5m': '5m',
@@ -74,7 +79,6 @@ export default class deepcoin extends deepcoinRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000, // todo find real value
             },
         });
     }
@@ -145,6 +149,43 @@ export default class deepcoin extends deepcoinRest {
             'id': requestId,
         });
         return await this.watch (url, unsubHash, this.deepExtend (request, params), unsubHash, subscription);
+    }
+
+    async watchPrivate (messageHash: string, params: Dict = {}): Promise<any> {
+        const listenKey = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+        return await this.watch (url, messageHash, undefined, 'private', params);
+    }
+
+    async authenticate (params = {}) {
+        this.checkRequiredCredentials ();
+        const time = this.milliseconds ();
+        let listenKeyExpiryTimestamp = this.safeInteger (this.options, 'listenKeyExpiryTimestamp', time);
+        const expired = (time - listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
+        let listenKey = this.safeString (this.options, 'listenKey');
+        let response = undefined;
+        if (listenKey === undefined) {
+            response = await this.privateGetDeepcoinListenkeyAcquire (params);
+        } else if (expired) {
+            const method = this.safeString (this.options, 'method', 'privateGetDeepcoinListenkeyExtend');
+            const getNewKey = (method === 'privateGetDeepcoinListenkeyAcquire');
+            if (getNewKey) {
+                response = await this.privateGetDeepcoinListenkeyAcquire (params);
+            } else {
+                const request: Dict = {
+                    'listenkey': listenKey,
+                };
+                response = await this.privateGetDeepcoinListenkeyExtend (this.extend (request, params));
+            }
+        }
+        if (response !== undefined) {
+            const data = this.safeDict (response, 'data', {});
+            listenKey = this.safeString (data, 'listenkey');
+            listenKeyExpiryTimestamp = this.safeTimestamp (data, 'expire_time');
+            this.options['listenKey'] = listenKey;
+            this.options['listenKeyExpiryTimestamp'] = listenKeyExpiryTimestamp;
+        }
+        return listenKey;
     }
 
     /**
