@@ -4,7 +4,7 @@ import Exchange from './abstract/aster.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, MarketClosed, NetworkError, NoChange, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -153,7 +153,7 @@ export default class aster extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
-                'fetchPositions': false,
+                'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -186,8 +186,8 @@ export default class aster extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'signIn': false,
-                'transfer': false,
-                'withdraw': false,
+                'transfer': true,
+                'withdraw': true,
             },
             'api': {
                 'fapiPublic': {
@@ -3401,6 +3401,127 @@ export default class aster extends Exchange {
             }
         }
         return this.options['leverageBrackets'];
+    }
+
+    /**
+     * @method
+     * @name aster#withdraw
+     * @description make a withdrawal
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#withdraw-user_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'asset': currency['id'],
+            'receiver': address,
+        };
+        if (tag !== undefined) {
+            request['addressTag'] = tag;
+        }
+        const networks = this.safeDict (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['network'] = network;
+            params = this.omit (params, 'network');
+        }
+        request['amount'] = this.currencyToPrecision (code, amount, network);
+        const response = await this.sapiPrivatePostV1AsterUserWithdraw (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'withdrawId'),
+            'txid': this.safeString (response, 'hash'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': network,
+            'address': address,
+            'addressTo': address,
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        } as Transaction;
+    }
+
+    /**
+     * @method
+     * @name aster#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#transfer-asset-to-other-address-trade
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#transfer-between-futures-and-spot-user_data
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'asset': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        let type = undefined;
+        if (fromAccount.toUpperCase () === 'SPOT' && toAccount.toUpperCase () === 'FUTURE') {
+            type = 'SPOT_FUTURE';
+        } else if (fromAccount.toUpperCase () === 'FUTURE' && toAccount.toUpperCase () === 'SPOT') {
+            type = 'FUTURE_SPOT';
+        }
+        let response = undefined;
+        if (type !== undefined) {
+            request['kindType'] = type;
+            response = await this.fapiPrivatePostV1AssetWalletTransfer (this.extend (request, params));
+        } else {
+            request['toAddress'] = toAccount;
+            response = await this.sapiPrivatePostV1AssetSendToAddress (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "tranId":13526853623,
+        //         "status": "SUCCESS"
+        //     }
+        //
+        return {
+            'info': response,
+            'id': this.safeString (response, 'tranId'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': fromAccount,
+            'addressFrom': toAccount,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': 'transfer',
+            'amount': amount,
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        } as Transaction;
     }
 
     hashMessage (binaryMessage) {
