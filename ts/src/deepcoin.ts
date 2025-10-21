@@ -187,6 +187,8 @@ export default class deepcoin extends Exchange {
                         'deepcoin/asset/deposit-list': 5, // done
                         'deepcoin/asset/withdraw-list': 5,
                         'deepcoin/asset/recharge-chain-list': 5,
+                        'deepcoin/listenkey/acquire': 5, // done
+                        'deepcoin/listenkey/extend': 5, // done
                     },
                     'post': {
                         'deepcoin/account/set-leverage': 5, // done
