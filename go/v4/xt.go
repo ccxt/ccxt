@@ -328,7 +328,7 @@ func (this *XtCore) Describe() interface{} {
 						"user/account/api-key": 1,
 					},
 					"delete": map[string]interface{}{
-						"user/account/{apikeyId}": 1,
+						"user/account/{apiKeyId}": 1,
 					},
 				},
 			},
