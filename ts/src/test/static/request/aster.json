@@ -552,6 +552,25 @@
                 "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
                 "input": []
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            },
+            {
+                "description": "fetchPositions - account",
+                "method": "fetchPositions",
+                "url": "https://fapi.asterdex.com/fapi/v4/account?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    null,
+                    {
+                        "method": "account"
+                    }
+                ]
+            }
         ]
     }
 }
