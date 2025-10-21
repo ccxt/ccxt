@@ -17,15 +17,31 @@ class alpaca extends \ccxt\async\alpaca {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createReduceOnlyOrderWs' => false,
+                'createStopLossOrderWs' => false,
+                'createTakeProfitOrderWs' => false,
+                'fetchPositionForSymbolWs' => false,
+                'fetchPositionsForSymbolWs' => false,
+                'fetchPositionsWs' => false,
+                'fetchPositionWs' => false,
+                'unWatchPositions' => false,
                 'watchBalance' => false,
+                'watchLiquidations' => false,
+                'watchLiquidationsForSymbols' => false,
+                'watchMarkPrice' => false,
+                'watchMarkPrices' => false,
+                'watchMyLiquidations' => false,
+                'watchMyLiquidationsForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
+                'watchPosition' => false,
+                'watchPositions' => false,
                 'watchTicker' => true,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
-                'watchPosition' => false,
             ),
             'urls' => array(
                 'api' => array(
