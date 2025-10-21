@@ -2072,6 +2072,9 @@
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://github.com/ccxt/ccxt/actions/runs/18630110901/job/53113603278?pr=27030",
                 "compareOHLC": "open below low",
                 "checkActiveSymbols": "todo"
+            },
+            "watchTickers": {
+                "ask": "https://github.com/ccxt/ccxt/actions/runs/18687047607/job/53282758515?pr=27030"
             }
         }
     }
