@@ -165,7 +165,8 @@ export default class xcoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        
+        const response = await this.publicGetV2PublicSymbols (params);
+        debugger;
     }
 
     parseMarket (item): Market {
