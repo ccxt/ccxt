@@ -3078,7 +3078,7 @@ export default class aster extends Exchange {
                     throw new ArgumentsRequired (this.id + ' requires signerAddress in options when use v3 api');
                 }
                 // the keys order matter
-                const keys = this.keys (extendedParams);
+                const keys = Object.keys (extendedParams);
                 const sortedKeys = this.sort (keys);
                 const signingPayload = {};
                 for (let i = 0; i < sortedKeys.length; i++) {
