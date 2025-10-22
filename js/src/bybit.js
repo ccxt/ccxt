@@ -6651,7 +6651,7 @@ export default class bybit extends Exchange {
         }
         const notional = this.safeString2(position, 'positionValue', 'cumExitValue');
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
-        let initialMarginString = this.safeStringN(position, ['positionIM', 'cumEntryValue']);
+        let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
         const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
         let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
@@ -6688,7 +6688,7 @@ export default class bybit extends Exchange {
                     const maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
                     }
                 }
@@ -6701,7 +6701,7 @@ export default class bybit extends Exchange {
                     const multiply = Precise.stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if (entryPrice !== undefined) {
+                    if ((entryPrice !== undefined) && (initialMarginString === undefined)) {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
                     }
                 }
