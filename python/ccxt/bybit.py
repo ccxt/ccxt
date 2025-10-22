@@ -6313,7 +6313,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = None
         notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
-        initialMarginString = self.safe_string_n(position, ['positionIM', 'cumEntryValue'])
+        initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.safe_integer_n(position, ['createdTime', 'createdAt'])
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
@@ -6346,7 +6346,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
                     maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
                     # Initial Margin = Contracts x Entry Price / Leverage
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
                 else:
                     # Contracts * (1 / Entry price - 1 / Bust price) = Collateral
@@ -6357,7 +6357,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     multiply = Precise.string_mul(bustPrice, liquidationPrice)
                     maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
                     # Initial Margin = Leverage x Contracts / EntryPrice
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
