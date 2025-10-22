@@ -112,8 +112,7 @@ export default class deepcoin extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
-                'fetchTransfer': true,
-                'fetchTransfers': true,
+                'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
@@ -181,7 +180,7 @@ export default class deepcoin extends Exchange {
                         'deepcoin/copytrading/history-profit': 5, // not unified
                         'deepcoin/copytrading/follower-rank': 5, // not unified
                         'deepcoin/internal-transfer/support': 5, // not unified
-                        'deepcoin/internal-transfer/history-order': 5, // done
+                        'deepcoin/internal-transfer/history-order': 5, // not unified
                         'deepcoin/rebate/config': 5, // not unified
                         'deepcoin/agents/users': 5,  // not unified
                         'deepcoin/agents/users/rebate-list': 5, // not unified
@@ -1128,100 +1127,6 @@ export default class deepcoin extends Exchange {
             'address': address,
             'tag': this.safeString (response, 'memo'),
         } as DepositAddress;
-    }
-
-    /**
-     * @method
-     * @name deepcoin#fetchTransfers
-     * @description fetch a history of internal transfers made on an account
-     * @see https://www.deepcoin.com/docs/InternalTransfer/internalTransferHistory
-     * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for
-     * @param {int} [limit] the maximum number of transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-     */
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-            params = this.omit (params, 'until');
-        }
-        // todo check after permission issue is resolved
-        const response = await this.privateGetDeepcoinInternalTransferHistoryOrder (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'data', []);
-        return this.parseTransfers (items, currency, since, limit);
-    }
-
-    /**
-     * @method
-     * @name deepcoin#fetchTransfer
-     * @description fetches a transfer
-     * @see https://www.deepcoin.com/docs/InternalTransfer/internalTransferHistory
-     * @param {string} id transfer id
-     * @param {string} [code] unified currency code of the currency transferred
-     * @param {object} params extra parameters specific to the exchange api endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-     */
-    async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
-        const request: Dict = {
-            'orderId': id,
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        const response = await this.privateGetDeepcoinInternalTransferHistoryOrder (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const transfers = this.safeList (data, 'data', []);
-        const first = this.safeDict (transfers, 0, {});
-        return this.parseTransfer (first, currency);
-    }
-
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        //
-        //
-        const timestamp = this.safeTimestamp (transfer, 'createTime');
-        const currencyId = this.safeString2 (transfer, 'coin', 'currency_id');
-        currency = this.safeCurrency (currencyId, currency);
-        const status = this.safeString (transfer, 'status');
-        return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'orderId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'currency': currency['code'],
-            'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': undefined,
-            'toAccount': this.safeString (transfer, 'receiverAccount'),
-            'status': this.parseTransferStatus (status),
-        };
-    }
-
-    parseTransferStatus (status: Str): Str {
-        const statuses: Dict = {
-            'In Process': 'pending',
-            'Processing': 'pending',
-            'Approved': 'ok',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     /**
@@ -2645,5 +2550,6 @@ export default class deepcoin extends Exchange {
                 throw new NullResponse (feedback);
             }
         }
+        return undefined;
     }
 }
