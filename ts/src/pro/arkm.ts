@@ -296,7 +296,7 @@ export default class arkm extends arkmRest {
             const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
             orderbook.reset (parsedOrderBook);
         } else if (type === 'update') {
-            const timestamp = this.safeInteger (data, 'time');
+            const timestamp = this.safeIntegerProduct (data, 'time', 0.001);
             const side = this.safeString (data, 'side');
             const bookside = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
             this.handleDelta (bookside, data);
