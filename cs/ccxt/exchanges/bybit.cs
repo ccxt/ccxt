@@ -7081,7 +7081,7 @@ public partial class bybit : Exchange
         }
         object notional = this.safeString2(position, "positionValue", "cumExitValue");
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
-        object initialMarginString = this.safeStringN(position, new List<object>() {"positionIM", "cumEntryValue"});
+        object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         object maintenanceMarginString = this.safeString(position, "positionMM");
         object timestamp = this.safeIntegerN(position, new List<object>() {"createdTime", "createdAt"});
         object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
@@ -7124,7 +7124,7 @@ public partial class bybit : Exchange
                     object maintenanceMarginPriceDifference = Precise.stringAbs(Precise.stringSub(liquidationPrice, bustPrice));
                     maintenanceMarginString = Precise.stringMul(maintenanceMarginPriceDifference, size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if (isTrue(!isEqual(entryPrice, null)))
+                    if (isTrue(isTrue((!isEqual(entryPrice, null))) && isTrue((isEqual(initialMarginString, null)))))
                     {
                         initialMarginString = Precise.stringDiv(Precise.stringMul(size, entryPrice), leverage);
                     }
@@ -7138,7 +7138,7 @@ public partial class bybit : Exchange
                     object multiply = Precise.stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if (isTrue(!isEqual(entryPrice, null)))
+                    if (isTrue(isTrue((!isEqual(entryPrice, null))) && isTrue((isEqual(initialMarginString, null)))))
                     {
                         initialMarginString = Precise.stringDiv(size, Precise.stringMul(entryPrice, leverage));
                     }
