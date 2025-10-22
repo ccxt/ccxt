@@ -174,17 +174,17 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/fund-rate/history': 5, // done
                         'deepcoin/trade/trigger-orders-pending': 5,
                         'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5,
-                        'deepcoin/copytrading/leader-position': 5,
-                        'deepcoin/copytrading/estimate-profit': 5,
-                        'deepcoin/copytrading/history-profit': 5,
-                        'deepcoin/copytrading/follower-rank': 5,
+                        'deepcoin/copytrading/support-contracts': 5, // not unified
+                        'deepcoin/copytrading/leader-position': 5, // not unified
+                        'deepcoin/copytrading/estimate-profit': 5, // not unified
+                        'deepcoin/copytrading/history-profit': 5, // not unified
+                        'deepcoin/copytrading/follower-rank': 5, // not unified
                         'deepcoin/internal-transfer/support': 5,
                         'deepcoin/internal-transfer/history-order': 5,
                         'deepcoin/rebate/config': 5,
-                        'deepcoin/agents/users': 5,
-                        'deepcoin/agents/users/rebate-list': 5,
-                        'deepcoin/agents/users/rebates': 5,
+                        'deepcoin/agents/users': 5,  // not unified
+                        'deepcoin/agents/users/rebate-list': 5, // not unified
+                        'deepcoin/agents/users/rebates': 5, // not unified
                         'deepcoin/asset/deposit-list': 5, // done
                         'deepcoin/asset/withdraw-list': 5, // done
                         'deepcoin/asset/recharge-chain-list': 5, // done
@@ -203,10 +203,10 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/batch-close-position': 5, // done
                         'deepcoin/trade/replace-order-sltp': 5,
                         'deepcoin/trade/close-position-by-ids': 5, // done
-                        'deepcoin/copytrading/leader-settings': 5,
-                        'deepcoin/copytrading/set-contracts': 5,
+                        'deepcoin/copytrading/leader-settings': 5, // not unified
+                        'deepcoin/copytrading/set-contracts': 5, // not unified
                         'deepcoin/internal-transfer': 5,
-                        'deepcoin/rebate/config': 5,
+                        'deepcoin/rebate/config': 5, // not unified
                         'deepcoin/asset/transfer': 5,
                     },
                 },
@@ -1082,15 +1082,13 @@ export default class deepcoin extends Exchange {
         }
         const addressess = await this.fetchDepositAddresses ([ code ], params);
         const length = addressess.length;
-        if ((network === undefined) || (length === 1)) {
-            return addressess[0] as DepositAddress;
-        } else if (length === 0) {
-            throw new ExchangeError (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code);
+        if ((network === undefined) || (length < 2)) {
+            return this.safeDict (addressess, 0, {}) as DepositAddress;
         }
         for (let i = 0; i < length; i++) {
             const address = addressess[i];
             if (address['network'] === network) {
-                return address as DepositAddress;
+                return address;
             }
         }
     }
