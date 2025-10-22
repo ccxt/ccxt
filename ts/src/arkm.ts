@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/arkm.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected, BadSymbol } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected, BadSymbol, OperationFailed, AuthenticationError, RateLimitExceeded, PermissionDenied, InvalidOrder, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage, LeverageTier, LeverageTiers, Position } from './base/types.js';
@@ -330,7 +330,97 @@ export default class arkm extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'exact': {},
+                'exact': {
+                    // 1XXXX General Errors
+                    // These errors can occur for a variety of reasons and may be returned by the API or Websocket on any endpoint.
+                    '10000': OperationFailed,
+                    '10001': BadRequest,
+                    '10002': AuthenticationError,
+                    '10003': BadSymbol,
+                    '10004': ArgumentsRequired,
+                    '10005': RateLimitExceeded,
+                    '10006': PermissionDenied,
+                    '10007': PermissionDenied,
+                    '10008': RateLimitExceeded,
+                    '10009': PermissionDenied,
+                    '10010': PermissionDenied,
+                    '10011': AuthenticationError,
+                    '10012': PermissionDenied,
+                    '10013': PermissionDenied,
+                    '10014': AuthenticationError,
+                    '10015': PermissionDenied,
+                    '10016': PermissionDenied,
+                    '10017': PermissionDenied,
+                    '10018': AuthenticationError,
+                    '10019': AuthenticationError,
+                    '10020': PermissionDenied,
+                    '10021': PermissionDenied,
+                    '10022': ExchangeError,
+                    '10023': BadRequest,
+                    '10024': ExchangeError,
+                    '10025': BadRequest,
+                    // #2XXXX General Websocket Errors
+                    '20001': BadRequest,
+                    '20002': ArgumentsRequired,
+                    '20003': BadRequest,
+                    '20004': ArgumentsRequired,
+                    '20005': BadRequest,
+                    // #3XXXX Trading Errors
+                    '30001': InvalidOrder,
+                    '30002': InvalidOrder,
+                    '30003': InvalidOrder,
+                    '30004': InvalidOrder,
+                    '30005': InvalidOrder,
+                    '30006': InvalidOrder,
+                    '30007': BadSymbol,
+                    '30008': OperationRejected,
+                    '30009': OperationRejected,
+                    '30010': InsufficientFunds,
+                    '30011': BadSymbol,
+                    '30012': OperationRejected,
+                    '30013': OperationRejected,
+                    '30014': InvalidOrder,
+                    '30015': OrderNotFound,
+                    '30016': InvalidOrder,
+                    '30017': InvalidOrder,
+                    '30018': InvalidOrder,
+                    '30019': OperationRejected,
+                    '30020': InvalidOrder,
+                    '30021': InvalidOrder,
+                    '30022': InvalidOrder,
+                    '30023': InvalidOrder,
+                    '30024': InvalidOrder,
+                    '30025': BadRequest,
+                    '30026': PermissionDenied,
+                    '30027': PermissionDenied,
+                    '30028': OrderNotFound,
+                    // #4XXXX Funding Errors
+                    '40001': OperationRejected,
+                    '40002': BadRequest,
+                    '40003': InvalidAddress,
+                    '40004': OperationRejected,
+                    '40005': BadRequest,
+                    '40006': PermissionDenied,
+                    '40007': OperationRejected,
+                    '40008': OperationRejected,
+                    '40009': OperationRejected,
+                    '40010': BadRequest,
+                    '40011': OperationRejected,
+                    '40012': BadRequest,
+                    '40013': BadRequest,
+                    // #9XXXX Other Errors
+                    '90001': BadRequest,
+                    '90002': BadRequest,
+                    '90003': OperationRejected,
+                    '90004': BadRequest,
+                    '90005': BadRequest,
+                    '90006': RateLimitExceeded,
+                    '90007': AuthenticationError,
+                    '90008': RateLimitExceeded,
+                    '90009': PermissionDenied,
+                    '90010': BadRequest,
+                    '90011': RateLimitExceeded,
+                },
                 'broad': {
                     'less than min withdrawal ': OperationRejected, // {"message":"amount 1 less than min withdrawal 5"}
                 },
@@ -2354,7 +2444,7 @@ export default class arkm extends Exchange {
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         // response examples:
-        //   {message: 'Not Found'}
+        //   { message: 'Not Found' }
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
             const feedback = this.id + ' ' + body;
