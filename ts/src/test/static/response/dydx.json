@@ -1,4 +1,4 @@
-{
+1753767909{
     "exchange": "dydx",
     "skipKeys": [],
     "options": {},
@@ -9,8 +9,8 @@
                 "method": "fetchTime",
                 "input": [],
                 "httpResponse": {
-                    "iso": "2025-07-29T05:45:08.535Z",
-                    "epoch": 1753767908.535
+                    "iso": "2025-07-29T05:45:08Z",
+                    "epoch": 1753767908
                 },
                 "parsedResponse": 1753767908
             }
