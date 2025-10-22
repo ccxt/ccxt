@@ -4,8 +4,9 @@
 import arkmRest from '../arkm.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ExchangeError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -48,11 +49,9 @@ export default class arkm extends arkmRest {
         // confirmation
         //
         //     {channel: 'confirmations', confirmationId: 'myCustomId-123'}
-        //
-        // if (!this.handleErrorMessage (client, message)) {
-        //     return;
-        // }
-        //
+        if (this.handleErrorMessage (client, message)) {
+            return;
+        }
         const methods: Dict = {
             'ticker': this.handleTicker,
             'candles': this.handleOHLCV,
@@ -702,5 +701,28 @@ export default class arkm extends arkmRest {
     parseWsOrder (order, market = undefined): Order {
         // same as REST api
         return this.parseOrder (order, market);
+    }
+
+    handleErrorMessage (client: Client, response): Bool {
+        //
+        // error example:
+        //
+        //    {
+        //        "id": "30005",
+        //        "name": "InvalidNotional",
+        //        "message": "order validation failed: invalid notional: notional 0.25 is less than min notional 1"
+        //    }
+        //
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            const body = this.json (response);
+            const errorCode = this.safeString (response, 'id');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (this.id + ' ' + body);
+        }
+        return false;
     }
 }

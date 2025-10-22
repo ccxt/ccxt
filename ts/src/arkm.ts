@@ -2443,12 +2443,22 @@ export default class arkm extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        // response examples:
-        //   { message: 'Not Found' }
+        //
+        // error example:
+        //
+        //    {
+        //        "id": "30005",
+        //        "name": "InvalidNotional",
+        //        "message": "order validation failed: invalid notional: notional 0.25 is less than min notional 1"
+        //    }
+        //
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
+            const errorCode = this.safeString (response, 'id');
             const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (this.id + ' ' + body);
         }
         return undefined;
