@@ -5,7 +5,7 @@ import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
+import type { Int, Market, Dict, int, Trade, OHLCV, Balances, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -36,7 +36,7 @@ export default class dydx extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': true,
                 'cancelWithdraw': false,
                 'closeAllPositions': false,
@@ -59,7 +59,7 @@ export default class dydx extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'fetchAccounts': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -2288,6 +2288,99 @@ export default class dydx extends Exchange {
             });
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name dydx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
+        let subaccountNumber = undefined;
+        [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'subaccountNumber', 0);
+        const request: Dict = {
+            'address': userAddress,
+            'subaccountNumber': subaccountNumber,
+        };
+        const response = await this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber (this.extend (request, params));
+        //
+        // {
+        //     "subaccount": {
+        //         "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+        //         "subaccountNumber": 0,
+        //         "equity": "161451.040416029",
+        //         "freeCollateral": "152508.28819133578",
+        //         "openPerpetualPositions": {
+        //             "ETH-USD": {
+        //                 "market": "ETH-USD",
+        //                 "status": "OPEN",
+        //                 "side": "LONG",
+        //                 "size": "0.001",
+        //                 "maxSize": "0.002",
+        //                 "entryPrice": "3894.7",
+        //                 "exitPrice": "3864.5",
+        //                 "realizedPnl": "-0.034847",
+        //                 "unrealizedPnl": "-0.044675155",
+        //                 "createdAt": "2025-10-22T08:34:05.883Z",
+        //                 "createdAtHeight": "52228825",
+        //                 "closedAt": null,
+        //                 "sumOpen": "0.002",
+        //                 "sumClose": "0.001",
+        //                 "netFunding": "-0.004647",
+        //                 "subaccountNumber": 0
+        //             },
+        //             "BTC-USD": {
+        //                 "market": "BTC-USD",
+        //                 "status": "OPEN",
+        //                 "side": "SHORT",
+        //                 "size": "-4.1368",
+        //                 "maxSize": "-0.009",
+        //                 "entryPrice": "112196.87848803433219017636",
+        //                 "exitPrice": "113885.21872652924977050823",
+        //                 "realizedPnl": "-15180.426770788459736511679821",
+        //                 "unrealizedPnl": "17002.285719484425404321566048",
+        //                 "createdAt": "2025-07-14T07:53:55.631Z",
+        //                 "createdAtHeight": "44140908",
+        //                 "closedAt": null,
+        //                 "sumOpen": "5.3361",
+        //                 "sumClose": "1.1983",
+        //                 "netFunding": "-13157.288663",
+        //                 "subaccountNumber": 0
+        //             }
+        //         },
+        //         "assetPositions": {
+        //             "USDC": {
+        //                 "size": "608580.951601",
+        //                 "symbol": "USDC",
+        //                 "side": "LONG",
+        //                 "assetId": "0",
+        //                 "subaccountNumber": 0
+        //             }
+        //         },
+        //         "marginEnabled": true,
+        //         "updatedAtHeight": "52228833",
+        //         "latestProcessedBlockHeight": "52246761"
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'subaccount');
+        return this.parseBalance (data);
+    }
+
+    parseBalance (response): Balances {
+        const account = this.account ();
+        account['free'] = this.safeString (response, 'freeCollateral');
+        const result: Dict = {
+            'info': response,
+            'USDC': account,
+        };
+        return this.safeBalance (result);
     }
 
     nonce () {

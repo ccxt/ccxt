@@ -238,6 +238,14 @@
                     }
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://indexer.v4testnet.dydx.exchange/v4/addresses/wallet/subaccountNumber/0",
+                "input": []
+            }
         ]
     }
 }

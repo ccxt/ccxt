@@ -1272,6 +1272,53 @@
                     }
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "subaccount": {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "subaccountNumber": 0,
+                        "equity": "161451.040416029",
+                        "freeCollateral": "152508",
+                        "openPerpetualPositions": {},
+                        "assetPositions": {},
+                        "marginEnabled": true,
+                        "updatedAtHeight": "52228833",
+                        "latestProcessedBlockHeight": "52246761"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "subaccountNumber": 0,
+                        "equity": "161451.040416029",
+                        "freeCollateral": "152508",
+                        "openPerpetualPositions": {},
+                        "assetPositions": {},
+                        "marginEnabled": true,
+                        "updatedAtHeight": "52228833",
+                        "latestProcessedBlockHeight": "52246761"
+                    },
+                    "USDC": {
+                        "free": 152508,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDC": 152508
+                    },
+                    "used": {
+                        "USDC": null
+                    },
+                    "total": {
+                        "USDC": null
+                    }
+                }
+            }
         ]
     }
 }
