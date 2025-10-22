@@ -259,6 +259,10 @@ export default class deepcoin extends Exchange {
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
+                    // subscription cluster does not "exist": BTC/USD
+                    // unsupportedAction
+                    // orderbook does not exist: ETHUSD_0.1, no available orderbook data
+                    // localIDNotExist
                 },
                 'broad': {},
             },
@@ -891,6 +895,46 @@ export default class deepcoin extends Exchange {
         return this.parseTransactions (items, currency, since, limit, transactionParams);
     }
 
+    /**
+     * @method
+     * @name deepcoin#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://www.deepcoin.com/docs/assets/withdraw
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const items = this.safeList (data, 'data', []);
+        const transactionParams: Dict = {
+            'type': 'withdrawal',
+        };
+        return this.parseTransactions (items, currency, since, limit, transactionParams);
+    }
+
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
@@ -919,7 +963,7 @@ export default class deepcoin extends Exchange {
             'network': network,
             'addressFrom': undefined,
             'addressTo': undefined,
-            'address': undefined,
+            'address': this.safeString (transaction, 'address'), // todo check
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': undefined,
