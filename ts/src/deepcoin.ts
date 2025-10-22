@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../ccxt.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -262,23 +262,21 @@ export default class deepcoin extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    // { code: '51', msg: 'The instType field is required', data: null }
-                    // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
-                    // {"code":"51","msg":"The productGroup field is required","data":null}
-                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
-                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
-                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
-                    // {"code":"50","msg":"len(rows) expected(1) got(0) rows([])","data":null}
-                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
-                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
-                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
-                    // {"code":"0","msg":"","data":{"list":null}}
-                    // subscription cluster does not "exist": BTC/USD
-                    // unsupportedAction
-                    // orderbook does not exist: ETHUSD_0.1, no available orderbook data
-                    // localIDNotExist
+                    '24': OrderNotFound, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
+                    '31': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
+                    '36': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
+                    '44': BadRequest, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    '194': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
+                    '195': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    'unsupportedAction': BadRequest,
+                    'localIDNotExist': BadRequest,
                 },
-                'broad': {},
+                'broad': {
+                    'no available': NotSupported, // orderbook does not exist: ETHUSD_0.1, no available orderbook data
+                    'field is required': ArgumentsRequired, // {"code":"51","msg":"The productGroup field is required","data":null}
+                    'not in acceptable range': BadRequest, // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
+                    'subscription cluster does not "exist"': BadRequest,
+                },
             },
         });
     }
@@ -2569,5 +2567,27 @@ export default class deepcoin extends Exchange {
             headers['DC-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        const data = this.safeDict (response, 'data', {});
+        let msg = this.safeString (response, 'msg');
+        const sCode = this.safeString (data, 'sCode');
+        const sMsg = this.safeString (data, 'sMsg');
+        if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
+            msg = sMsg;
+        }
+        const feedback = this.id + ' ' + body;
+        if (code !== 0 || (sCode !== undefined && sCode !== '0')) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], sCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+            throw new ExchangeError (feedback);
+        } else {
+            const list = this.safeList (data, 'list', []);
+            if (('list' in data) && (list === undefined)) {
+                throw new NullResponse (feedback);
+            }
+        }
     }
 }
