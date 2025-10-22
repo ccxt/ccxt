@@ -1082,15 +1082,16 @@ export default class deepcoin extends Exchange {
         }
         const addressess = await this.fetchDepositAddresses ([ code ], params);
         const length = addressess.length;
-        if ((network === undefined) || (length < 2)) {
-            return this.safeDict (addressess, 0, {}) as DepositAddress;
-        }
-        for (let i = 0; i < length; i++) {
-            const address = addressess[i];
-            if (address['network'] === network) {
-                return address;
+        let address = this.safeDict (addressess, 0, {});
+        if ((network !== undefined) && (length > 1)) {
+            for (let i = 0; i < length; i++) {
+                const entry = addressess[i];
+                if (entry['network'] === network) {
+                    address = entry;
+                }
             }
         }
+        return address as DepositAddress;
     }
 
     parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
