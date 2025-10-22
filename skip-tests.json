@@ -2074,6 +2074,9 @@
                 "checkActiveSymbols": "todo",
                 "ask": "could be lower than bid"
             },
+            "watchOrderBook": {
+                "spread": " bid > ask issue, https://github.com/ccxt/ccxt/actions/runs/18689193674/job/53290204849?pr=27030"
+            },
             "watchTickers": {
                 "ask": "could be lower than bid, https://github.com/ccxt/ccxt/actions/runs/18687047607/job/53282758515?pr=27030"
             }
