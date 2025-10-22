@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, Dict, FundingRate, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -70,7 +70,8 @@ export default class deepcoin extends Exchange {
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
@@ -112,7 +113,7 @@ export default class deepcoin extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
                 'setLeverage': true,
@@ -185,8 +186,8 @@ export default class deepcoin extends Exchange {
                         'deepcoin/agents/users/rebate-list': 5,
                         'deepcoin/agents/users/rebates': 5,
                         'deepcoin/asset/deposit-list': 5, // done
-                        'deepcoin/asset/withdraw-list': 5,
-                        'deepcoin/asset/recharge-chain-list': 5,
+                        'deepcoin/asset/withdraw-list': 5, // done
+                        'deepcoin/asset/recharge-chain-list': 5, // done
                         'deepcoin/listenkey/acquire': 5, // done
                         'deepcoin/listenkey/extend': 5, // done
                     },
@@ -226,8 +227,19 @@ export default class deepcoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'recvWindow': 5000,
+                'defaultNetworks': {
+                    'ETH': 'ERC20',
+                    'USDT': 'TRC20',
+                    'USDC': 'ERC20',
+                },
                 'networks': {
                     'ERC20': 'ERC20', // todo add more networks
+                    'TRC20': 'TRC20',
+                    'ARB': 'ARBITRUM',
+                    'BSC': 'BSC(BEP20)',
+                    'SOL': 'SOL',
+                    'BTC': 'Bitcoin',
+                    'ADA': 'Cardano',
                 },
                 'networksById': {
                 },
@@ -259,6 +271,7 @@ export default class deepcoin extends Exchange {
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
                     // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
+                    // {"code":"0","msg":"","data":{"list":null}}
                     // subscription cluster does not "exist": BTC/USD
                     // unsupportedAction
                     // orderbook does not exist: ETHUSD_0.1, no available orderbook data
@@ -988,6 +1001,129 @@ export default class deepcoin extends Exchange {
             'succeed': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @see https://www.deepcoin.com/docs/assets/chainlist
+     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        await this.loadMarkets ();
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list with one currency code');
+        }
+        if (codes.length !== 1) {
+            throw new NotSupported (this.id + ' fetchDepositAddresses requires a list with one currency code');
+        }
+        const code = codes[0];
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency_id': currency['id'],
+            'lang': 'en',
+        };
+        const response = await this.privateGetDeepcoinAssetRechargeChainList (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "chain": "TRC20",
+        //                     "state": 1,
+        //                     "remind": "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
+        //                     "inNotice": "",
+        //                     "actLogo": "",
+        //                     "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
+        //                     "hasMemo": false,
+        //                     "memo": "",
+        //                     "estimatedTime": 1,
+        //                     "fastConfig": {
+        //                         "fastLimitNum": 0,
+        //                         "fastBlock": 10,
+        //                         "realBlock": 1
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const list = this.safeList (data, 'list', []);
+        const additionalParams: Dict = {
+            'currency': code,
+        };
+        return this.parseDepositAddresses (list, codes, false, additionalParams);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.deepcoin.com/docs/assets/chainlist
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code for deposit chain
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        let network = this.safeString (params, 'network');
+        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
+        const defaultNetwork = this.safeString (defaultNetworks, code);
+        network = network ? network : defaultNetwork;
+        if (network !== undefined) {
+            params = this.omit (params, 'network');
+        }
+        const addressess = await this.fetchDepositAddresses ([ code ], params);
+        const length = addressess.length;
+        if ((network === undefined) || (length === 1)) {
+            return addressess[0] as DepositAddress;
+        } else if (length === 0) {
+            throw new ExchangeError (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code);
+        }
+        for (let i = 0; i < length; i++) {
+            const address = addressess[i];
+            if (address['network'] === network) {
+                return address as DepositAddress;
+            }
+        }
+    }
+
+    parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
+        //
+        //     {
+        //         "chain": "TRC20",
+        //         "state": 1,
+        //         "remind": "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
+        //         "inNotice": "",
+        //         "actLogo": "",
+        //         "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
+        //         "hasMemo": false,
+        //         "memo": "",
+        //         "estimatedTime": 1,
+        //         "fastConfig": {
+        //             "fastLimitNum": 0,
+        //             "fastBlock": 10,
+        //             "realBlock": 1
+        //         }
+        //     }
+        //
+        const chain = this.safeString (response, 'chain');
+        const address = this.safeString (response, 'address');
+        this.checkAddress (address);
+        return {
+            'info': response,
+            'currency': undefined,
+            'network': this.networkIdToCode (chain),
+            'address': address,
+            'tag': this.safeString (response, 'memo'),
+        } as DepositAddress;
     }
 
     /**
