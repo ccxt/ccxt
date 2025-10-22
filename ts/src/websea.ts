@@ -879,19 +879,28 @@ export default class websea extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetOpenApiMarket24kline (this.extend (request, params));
+        let response;
+        if (market['type'] === 'swap') {
+            // 合约市场使用合约API
+            response = await this.contractGetOpenApiContract24kline (this.extend (request, params));
+        } else {
+            // 现货市场使用现货API
+            response = await this.publicGetOpenApiMarket24kline (this.extend (request, params));
+        }
         const result = this.safeValue (response, 'result', []);
         if (Array.isArray (result)) {
             for (let i = 0; i < result.length; i++) {
                 const tickerData = result[i];
                 const marketId = this.safeString (tickerData, 'symbol');
                 if (marketId === market['id']) {
+                    tickerData['type'] = market['type']; // 设置市场类型
                     return this.parseTicker (tickerData, market);
                 }
             }
             throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
         } else {
             // If result is not an array, it might be a single ticker object
+            result['type'] = market['type']; // 设置市场类型
             return this.parseTicker (result, market);
         }
     }
@@ -906,11 +915,25 @@ export default class websea extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetOpenApiMarket24kline (params);
-        const result = this.safeValue (response, 'result', []);
+        // 获取现货市场ticker
+        const spotResponse = await this.publicGetOpenApiMarket24kline (params);
+        const spotResult = this.safeValue (spotResponse, 'result', []);
+        // 获取合约市场ticker
+        const swapResponse = await this.contractGetOpenApiContract24kline (params);
+        const swapResult = this.safeValue (swapResponse, 'result', []);
         const tickers = [];
-        for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
+        // 处理现货市场ticker
+        for (let i = 0; i < spotResult.length; i++) {
+            const tickerData = spotResult[i];
+            tickerData['type'] = 'spot'; // 标记为现货市场
+            const ticker = this.parseTicker (tickerData);
+            tickers.push (ticker);
+        }
+        // 处理合约市场ticker
+        for (let i = 0; i < swapResult.length; i++) {
+            const tickerData = swapResult[i];
+            tickerData['type'] = 'swap'; // 标记为合约市场
+            const ticker = this.parseTicker (tickerData);
             tickers.push (ticker);
         }
         return this.filterByArray (tickers, 'symbol', symbols);
@@ -1446,9 +1469,9 @@ export default class websea extends Exchange {
             // 期货当前订单列表
             response = await this.privateGetOpenApiFuturesEntrustOrderList (this.extend (request, query));
         } else {
-            // 注意：Websea API没有提供获取当前订单的端点
+            // 注意：Websea API没有提供获取现货当前订单的端点
             // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported by the API');
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for spot markets by the API');
         }
         //
         // 需要根据实际API响应结构调整
