@@ -290,20 +290,20 @@ export default class arkm extends arkmRest {
             ob['symbol'] = symbol;
             this.orderbooks[symbol] = ob;
         }
-        const storedOrderBook = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[symbol];
         if (type === 'snapshot') {
             const timestamp = this.safeIntegerProduct (data, 'lastTime', 0.001);
             const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
-            storedOrderBook.reset (parsedOrderBook);
+            orderbook.reset (parsedOrderBook);
         } else if (type === 'update') {
             const timestamp = this.safeInteger (data, 'time');
             const side = this.safeString (data, 'side');
-            const bookside = (side === 'buy') ? storedOrderBook['bids'] : storedOrderBook['asks'];
+            const bookside = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
             this.handleDelta (bookside, data);
-            storedOrderBook['timestamp'] = timestamp;
-            storedOrderBook['datetime'] = this.iso8601 (timestamp);
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
-        this.orderbooks[symbol] = storedOrderBook;
+        this.orderbooks[symbol] = orderbook;
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
