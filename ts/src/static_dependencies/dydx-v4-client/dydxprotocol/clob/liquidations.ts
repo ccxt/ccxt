@@ -1,5 +1,5 @@
 import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount";
-import * as _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal.js";
 import { DeepPartial, Long } from "../../helpers";
 /**
  * PerpetualLiquidationInfo holds information about a liquidation that occurred

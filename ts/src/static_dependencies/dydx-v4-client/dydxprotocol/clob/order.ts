@@ -1,6 +1,6 @@
 import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount";
 import { PerpetualLiquidationInfo, PerpetualLiquidationInfoSDKType } from "./liquidations";
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial, Long } from "../../helpers";
 /**
  * Represents the side of the orderbook the order will be placed on.

@@ -1,6 +1,6 @@
 import { AssetPosition, AssetPositionSDKType } from "./asset_position";
 import { PerpetualPosition, PerpetualPositionSDKType } from "./perpetual_position";
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial } from "../../helpers";
 /** SubaccountId defines a unique identifier for a Subaccount. */
 

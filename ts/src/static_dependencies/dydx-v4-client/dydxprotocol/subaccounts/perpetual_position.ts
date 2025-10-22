@@ -1,4 +1,4 @@
-import * as _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal.js";
 import { DeepPartial } from "../../helpers";
 /**
  * PerpetualPositions are an account’s positions of a `Perpetual`.

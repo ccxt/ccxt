@@ -6,7 +6,7 @@ import { BlockRateLimitConfiguration, BlockRateLimitConfigurationSDKType } from 
 import { LiquidationsConfig, LiquidationsConfigSDKType } from "./liquidations_config";
 import { ClobMatch, ClobMatchSDKType } from "./matches";
 import { OrderRemoval, OrderRemovalSDKType } from "./order_removals";
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial } from "../../helpers";
 /** MsgCreateClobPair is a message used by x/gov for creating a new clob pair. */
 

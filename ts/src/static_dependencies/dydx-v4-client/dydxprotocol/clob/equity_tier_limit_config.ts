@@ -1,4 +1,4 @@
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial } from "../../helpers";
 /**
  * Defines the set of equity tiers to limit how many open orders

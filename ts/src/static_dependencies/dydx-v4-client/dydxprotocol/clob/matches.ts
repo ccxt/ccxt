@@ -1,6 +1,6 @@
 import { OrderId, OrderIdSDKType } from "./order";
 import { SubaccountId, SubaccountIdSDKType } from "../subaccounts/subaccount";
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial, Long } from "../../helpers";
 /**
  * ClobMatch represents an operations queue entry around all different types

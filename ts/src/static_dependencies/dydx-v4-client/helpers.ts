@@ -4,7 +4,7 @@
 * and run the transpile command or yarn proto command to regenerate this bundle.
 */
 
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import Long from './long/index.cjs';
 
 // @ts-ignore

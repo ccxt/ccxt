@@ -1,5 +1,5 @@
 import { Long, DeepPartial } from "../../helpers";
-import * as _m0 from "protobufjs/minimal";
+import * as _m0 from "protobufjs/minimal.js";
 /**
  * AssetPositions define an account’s positions of an `Asset`.
  * Therefore they hold any information needed to trade on Spot and Margin.

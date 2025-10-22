@@ -1,5 +1,5 @@
 import { OrderId, OrderIdSDKType } from "./order";
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial } from "../../helpers";
 export enum OrderRemoval_RemovalReason {
   /**

@@ -1,4 +1,4 @@
-import _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal.js";
 import { DeepPartial } from "../../helpers";
 /** Defines the block rate limits for CLOB specific operations. */
 
