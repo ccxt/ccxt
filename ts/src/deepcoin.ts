@@ -5,7 +5,7 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ export default class deepcoin extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
@@ -163,7 +163,7 @@ export default class deepcoin extends Exchange {
                 'private': {
                     'get': {
                         'deepcoin/account/balances': 5, // done
-                        'deepcoin/account/bills': 5,
+                        'deepcoin/account/bills': 5, // done
                         'deepcoin/account/positions': 5, // done
                         'deepcoin/trade/fills': 5, // done
                         'deepcoin/trade/orderByID': 5, // done
@@ -805,9 +805,6 @@ export default class deepcoin extends Exchange {
     }
 
     parseTakerOrMaker (execType: Str) {
-        if (execType === undefined) {
-            return undefined;
-        }
         const types = {
             'T': 'taker',
             'M': 'maker',
@@ -996,7 +993,7 @@ export default class deepcoin extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'confirming': 'pending',
             'succeed': 'ok',
@@ -1212,15 +1209,128 @@ export default class deepcoin extends Exchange {
     }
 
     parseTransferStatus (status: Str): Str {
-        if (status === undefined) {
-            return status;
-        }
         const statuses: Dict = {
             'In Process': 'pending',
             'Processing': 'pending',
             'Approved': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+     */
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        await this.loadMarkets ();
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, marketType);
+        const request: Dict = {
+            'instType': this.convertToInstrumentType (marketType),
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['ccy'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['before'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetDeepcoinAccountBills (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "",
+        //         "data": [
+        //             {
+        //                 "billId": "1001044652247714",
+        //                 "ccy": "USDT",
+        //                 "clientId": "",
+        //                 "balChg": "-0.03543537",
+        //                 "bal": "72.41881427",
+        //                 "type": "5",
+        //                 "ts": "1761047448000"
+        //             },
+        //             {
+        //                 "billId": "1001044652258368",
+        //                 "ccy": "DOGE",
+        //                 "clientId": "",
+        //                 "balChg": "76",
+        //                 "bal": "76",
+        //                 "type": "2",
+        //                 "ts": "1761051006000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseLedger (data, currency, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        //     {
+        //         "billId": "1001044652247714",
+        //         "ccy": "USDT",
+        //         "clientId": "",
+        //         "balChg": "-0.03543537",
+        //         "bal": "72.41881427",
+        //         "type": "5",
+        //         "ts": "1761047448000"
+        //     }
+        //
+        const timestamp = this.safeInteger (item, 'ts');
+        const change = this.safeString (item, 'balChg');
+        const amount = Precise.stringAbs (change);
+        const direction = Precise.stringLt (change, '0') ? 'out' : 'in';
+        const currencyId = this.safeString (item, 'ccy');
+        currency = this.safeCurrency (currencyId, currency);
+        const type = this.safeString (item, 'type');
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'billId'),
+            'direction': direction,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': undefined,
+            'type': this.parseLedgerEntryType (type),
+            'currency': currency['code'],
+            'amount': amount,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': this.safeString (item, 'bal'),
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType: Dict = {
+            '1': 'trade',
+            '2': 'trade',
+            '3': 'transfer',
+            '4': 'transfer',
+            '5': 'fee',
+        };
+        return this.safeString (ledgerType, type, type);
     }
 
     /**
