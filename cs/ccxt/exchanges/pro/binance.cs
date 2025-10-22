@@ -447,7 +447,7 @@ public partial class binance : ccxt.binance
         //    }
         //
         object marketId = this.safeString(liquidation, "s");
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, null, "swap");
         object timestamp = this.safeInteger(liquidation, "T");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
@@ -586,8 +586,8 @@ public partial class binance : ccxt.binance
             return;
         }
         object marketId = this.safeString(message, "s");
-        object market = this.safeMarket(marketId);
-        object symbol = this.safeSymbol(marketId);
+        object market = this.safeMarket(marketId, null, null, "swap");
+        object symbol = this.safeSymbol(marketId, market);
         object liquidation = this.parseWsLiquidation(message, market);
         object myLiquidations = this.safeValue(this.myLiquidations, symbol);
         if (isTrue(isEqual(myLiquidations, null)))
@@ -1009,7 +1009,7 @@ public partial class binance : ccxt.binance
         //     }
         //
         object isSpot = this.isSpotUrl(client);
-        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
+        object marketType = ((bool) isTrue((isSpot))) ? "spot" : "swap";
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
@@ -4563,7 +4563,7 @@ public partial class binance : ccxt.binance
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", this.safeSymbol(marketId, null, null, "contract") },
+            { "symbol", this.safeSymbol(marketId, null, null, "swap") },
             { "notional", null },
             { "marginMode", this.safeString(position, "mt") },
             { "liquidationPrice", null },
