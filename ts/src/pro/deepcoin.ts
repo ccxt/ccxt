@@ -476,7 +476,7 @@ export default class deepcoin extends deepcoinRest {
         }, market);
     }
 
-    parseTradeSide (direction: string): string {
+    parseTradeSide (direction: Str): Str {
         const sides = {
             '0': 'buy',
             '1': 'sell',
@@ -485,9 +485,6 @@ export default class deepcoin extends deepcoinRest {
     }
 
     handleTakerOrMaker (matchRole: Str): Str {
-        if (matchRole === undefined) {
-            return matchRole;
-        }
         const roles = {
             '0': 'maker',
             '1': 'taker',
@@ -995,9 +992,6 @@ export default class deepcoin extends deepcoinRest {
     }
 
     parseWsOrderStatus (status: Str): Str {
-        if (status === undefined) {
-            return status;
-        }
         const statuses = {
             '1': 'closed',
             '4': 'open',
