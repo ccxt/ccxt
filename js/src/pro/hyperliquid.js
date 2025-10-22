@@ -99,6 +99,11 @@ export default class hyperliquid extends hyperliquidRest {
         await this.loadMarkets();
         const [order, globalParams] = this.parseCreateEditOrderArgs(undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs([order], globalParams);
+        const ordersLength = orders.length;
+        if (ordersLength === 0) {
+            // not sure why but it is happening sometimes
+            return this.safeOrder({});
+        }
         const parsedOrder = orders[0];
         return parsedOrder;
     }
@@ -449,8 +454,10 @@ export default class hyperliquid extends hyperliquidRest {
             const assetObject = spotAssets[i];
             const marketId = this.safeString(assetObject, 'coin');
             const market = this.safeMarket(marketId, undefined, undefined, 'spot');
+            const symbol = market['symbol'];
             const ticker = this.parseWsTicker(assetObject, market);
             parsedTickers.push(ticker);
+            this.tickers[symbol] = ticker;
         }
         // perpetuals
         const meta = this.safeDict(rawData, 'meta', {});
@@ -460,7 +467,9 @@ export default class hyperliquid extends hyperliquidRest {
             const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
             const id = data['name'] + '/USDC:USDC';
             const market = this.safeMarket(id, undefined, undefined, 'swap');
+            const symbol = market['symbol'];
             const ticker = this.parseWsTicker(data, market);
+            this.tickers[symbol] = ticker;
             parsedTickers.push(ticker);
         }
         const tickers = this.indexBy(parsedTickers, 'symbol');
@@ -921,7 +930,10 @@ export default class hyperliquid extends hyperliquidRest {
             return true;
         }
         const data = this.safeDict(message, 'data', {});
-        const id = this.safeString(message, 'id');
+        let id = this.safeString(message, 'id');
+        if (id === undefined) {
+            id = this.safeString(data, 'id');
+        }
         const response = this.safeDict(data, 'response', {});
         const payload = this.safeDict(response, 'payload', {});
         const status = this.safeString(payload, 'status');

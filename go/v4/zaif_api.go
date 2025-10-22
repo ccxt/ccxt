@@ -7,138 +7,138 @@
 
 package ccxt
 
-func (this *zaif) PublicGetDepthPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetDepthPair", args...)
+func (this *ZaifCore) PublicGetDepthPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetDepthPair", args...)
 }
 
-func (this *zaif) PublicGetCurrenciesPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrenciesPair", args...)
+func (this *ZaifCore) PublicGetCurrenciesPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrenciesPair", args...)
 }
 
-func (this *zaif) PublicGetCurrenciesAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrenciesAll", args...)
+func (this *ZaifCore) PublicGetCurrenciesAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrenciesAll", args...)
 }
 
-func (this *zaif) PublicGetCurrencyPairsPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencyPairsPair", args...)
+func (this *ZaifCore) PublicGetCurrencyPairsPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencyPairsPair", args...)
 }
 
-func (this *zaif) PublicGetCurrencyPairsAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencyPairsAll", args...)
+func (this *ZaifCore) PublicGetCurrencyPairsAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencyPairsAll", args...)
 }
 
-func (this *zaif) PublicGetLastPricePair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetLastPricePair", args...)
+func (this *ZaifCore) PublicGetLastPricePair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetLastPricePair", args...)
 }
 
-func (this *zaif) PublicGetTickerPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickerPair", args...)
+func (this *ZaifCore) PublicGetTickerPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTickerPair", args...)
 }
 
-func (this *zaif) PublicGetTradesPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradesPair", args...)
+func (this *ZaifCore) PublicGetTradesPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradesPair", args...)
 }
 
-func (this *zaif) PrivatePostActiveOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostActiveOrders", args...)
+func (this *ZaifCore) PrivatePostActiveOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostActiveOrders", args...)
 }
 
-func (this *zaif) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *ZaifCore) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *zaif) PrivatePostDepositHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostDepositHistory", args...)
+func (this *ZaifCore) PrivatePostDepositHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostDepositHistory", args...)
 }
 
-func (this *zaif) PrivatePostGetIdInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetIdInfo", args...)
+func (this *ZaifCore) PrivatePostGetIdInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostGetIdInfo", args...)
 }
 
-func (this *zaif) PrivatePostGetInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetInfo", args...)
+func (this *ZaifCore) PrivatePostGetInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostGetInfo", args...)
 }
 
-func (this *zaif) PrivatePostGetInfo2(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetInfo2", args...)
+func (this *ZaifCore) PrivatePostGetInfo2 (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostGetInfo2", args...)
 }
 
-func (this *zaif) PrivatePostGetPersonalInfo(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostGetPersonalInfo", args...)
+func (this *ZaifCore) PrivatePostGetPersonalInfo (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostGetPersonalInfo", args...)
 }
 
-func (this *zaif) PrivatePostTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTrade", args...)
+func (this *ZaifCore) PrivatePostTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTrade", args...)
 }
 
-func (this *zaif) PrivatePostTradeHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostTradeHistory", args...)
+func (this *ZaifCore) PrivatePostTradeHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostTradeHistory", args...)
 }
 
-func (this *zaif) PrivatePostWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdraw", args...)
+func (this *ZaifCore) PrivatePostWithdraw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostWithdraw", args...)
 }
 
-func (this *zaif) PrivatePostWithdrawHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostWithdrawHistory", args...)
+func (this *ZaifCore) PrivatePostWithdrawHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostWithdrawHistory", args...)
 }
 
-func (this *zaif) EcapiPostCreateInvoice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("ecapiPostCreateInvoice", args...)
+func (this *ZaifCore) EcapiPostCreateInvoice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("ecapiPostCreateInvoice", args...)
 }
 
-func (this *zaif) EcapiPostGetInvoice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("ecapiPostGetInvoice", args...)
+func (this *ZaifCore) EcapiPostGetInvoice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("ecapiPostGetInvoice", args...)
 }
 
-func (this *zaif) EcapiPostGetInvoiceIdsByOrderNumber(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("ecapiPostGetInvoiceIdsByOrderNumber", args...)
+func (this *ZaifCore) EcapiPostGetInvoiceIdsByOrderNumber (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("ecapiPostGetInvoiceIdsByOrderNumber", args...)
 }
 
-func (this *zaif) EcapiPostCancelInvoice(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("ecapiPostCancelInvoice", args...)
+func (this *ZaifCore) EcapiPostCancelInvoice (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("ecapiPostCancelInvoice", args...)
 }
 
-func (this *zaif) TlapiPostGetPositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tlapiPostGetPositions", args...)
+func (this *ZaifCore) TlapiPostGetPositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tlapiPostGetPositions", args...)
 }
 
-func (this *zaif) TlapiPostPositionHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tlapiPostPositionHistory", args...)
+func (this *ZaifCore) TlapiPostPositionHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tlapiPostPositionHistory", args...)
 }
 
-func (this *zaif) TlapiPostActivePositions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tlapiPostActivePositions", args...)
+func (this *ZaifCore) TlapiPostActivePositions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tlapiPostActivePositions", args...)
 }
 
-func (this *zaif) TlapiPostCreatePosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tlapiPostCreatePosition", args...)
+func (this *ZaifCore) TlapiPostCreatePosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tlapiPostCreatePosition", args...)
 }
 
-func (this *zaif) TlapiPostChangePosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tlapiPostChangePosition", args...)
+func (this *ZaifCore) TlapiPostChangePosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tlapiPostChangePosition", args...)
 }
 
-func (this *zaif) TlapiPostCancelPosition(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("tlapiPostCancelPosition", args...)
+func (this *ZaifCore) TlapiPostCancelPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("tlapiPostCancelPosition", args...)
 }
 
-func (this *zaif) FapiGetGroupsGroupId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiGetGroupsGroupId", args...)
+func (this *ZaifCore) FapiGetGroupsGroupId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("fapiGetGroupsGroupId", args...)
 }
 
-func (this *zaif) FapiGetLastPriceGroupIdPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiGetLastPriceGroupIdPair", args...)
+func (this *ZaifCore) FapiGetLastPriceGroupIdPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("fapiGetLastPriceGroupIdPair", args...)
 }
 
-func (this *zaif) FapiGetTickerGroupIdPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiGetTickerGroupIdPair", args...)
+func (this *ZaifCore) FapiGetTickerGroupIdPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("fapiGetTickerGroupIdPair", args...)
 }
 
-func (this *zaif) FapiGetTradesGroupIdPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiGetTradesGroupIdPair", args...)
+func (this *ZaifCore) FapiGetTradesGroupIdPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("fapiGetTradesGroupIdPair", args...)
 }
 
-func (this *zaif) FapiGetDepthGroupIdPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("fapiGetDepthGroupIdPair", args...)
+func (this *ZaifCore) FapiGetDepthGroupIdPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("fapiGetDepthGroupIdPair", args...)
 }

@@ -80,6 +80,19 @@ export default class binance extends binanceRest {
                         },
                     },
                 },
+                'demo': {
+                    'ws': {
+                        'spot': 'wss://demo-stream.binance.com/ws',
+                        'margin': 'wss://demo-stream.binance.com/ws',
+                        'future': 'wss://fstream.binancefuture.com/ws',
+                        'delivery': 'wss://dstream.binancefuture.com/ws',
+                        'ws-api': {
+                            'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
+                            'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
+                            'delivery': 'wss://testnet.binancefuture.com/ws-dapi/v1',
+                        },
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://stream.binance.com:9443/ws',
@@ -177,6 +190,10 @@ export default class binance extends binanceRest {
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
+    }
+
+    isSpotUrl (client: Client) {
+        return (client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('demo-stream') > -1);
     }
 
     stream (type: Str, subscriptionHash: Str, numSubscriptions = 1) {
@@ -414,7 +431,7 @@ export default class binance extends binanceRest {
         //    }
         //
         const marketId = this.safeString (liquidation, 's');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (liquidation, 'T');
         return this.safeLiquidation ({
             'info': liquidation,
@@ -538,8 +555,8 @@ export default class binance extends binanceRest {
             return;
         }
         const marketId = this.safeString (message, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+        const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
         let myLiquidations = this.safeValue (this.myLiquidations, symbol);
         if (myLiquidations === undefined) {
@@ -921,8 +938,8 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const isSpot = (client.url.indexOf ('/stream') > -1);
-        const marketType = (isSpot) ? 'spot' : 'contract';
+        const isSpot = this.isSpotUrl (client);
+        const marketType = (isSpot) ? 'spot' : 'swap';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
@@ -1384,7 +1401,7 @@ export default class binance extends binanceRest {
     handleTrade (client: Client, message) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
@@ -1416,7 +1433,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1484,7 +1501,8 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         params = this.omit (params, 'callerMethodName');
-        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
+        const res = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
+        const [ symbol, timeframe, candles ] = res;
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
         }
@@ -1573,7 +1591,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1631,7 +1649,7 @@ export default class binance extends binanceRest {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
@@ -1704,7 +1722,7 @@ export default class binance extends binanceRest {
      * @param {string} params.timeZone default=0 (UTC)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.getMarketType ('fetchOHLCVWs', market, params);
@@ -2279,7 +2297,7 @@ export default class binance extends binanceRest {
     }
 
     handleTickersAndBidsAsks (client: Client, message, methodType) {
-        const isSpot = (client.url.indexOf ('/stream') > -1);
+        const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
         let channelName = undefined;
@@ -2360,6 +2378,60 @@ export default class binance extends binanceRest {
         return extendedParams;
     }
 
+    /**
+     * Ensures a User Data Stream WebSocket subscription is active for the specified scope
+     * @param marketType {string} only support on 'spot'
+     * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
+     * @returns Promise<number> The subscription ID for the user data stream
+     */
+    async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
+        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const client = this.client (url);
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (accountType === marketType) {
+            return;
+        }
+        client.subscriptions[marketType] = true;
+        const requestId = this.requestId (url);
+        const messageHash = requestId.toString ();
+        const message: Dict = {
+            'id': messageHash,
+            'method': 'userDataStream.subscribe.signature',
+            'params': this.signParams ({}),
+        };
+        const subscription: Dict = {
+            'id': messageHash,
+            'method': this.handleUserDataStreamSubscribe,
+            'subscription': marketType,
+        };
+        await this.watch (url, messageHash, message, messageHash, subscription);
+    }
+
+    handleUserDataStreamSubscribe (client: Client, message) {
+        //
+        //   {
+        //     "id": 1,
+        //     "status": 200,
+        //     "result": {
+        //         "subscriptionId": 0
+        //     }
+        //   }
+        //
+        const messageHash = this.safeString (message, 'id');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        const result = this.safeDict (message, 'result', {});
+        const subscriptionId = this.safeInteger (result, 'subscriptionId');
+        if (subscriptionId === undefined) {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+        client.resolve (message, messageHash);
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         let type = undefined;
@@ -2372,6 +2444,11 @@ export default class binance extends binanceRest {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
+        }
+        // For spot use WebSocket API signature subscription
+        if (type === 'spot') {
+            await this.ensureUserDataStreamWsSubscribeSignature ('spot');
+            return;
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
@@ -2491,7 +2568,7 @@ export default class binance extends binanceRest {
     }
 
     setBalanceCache (client: Client, type, isPortfolioMargin = false) {
-        if (type in client.subscriptions) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
         const options = this.safeValue (this.options, 'watchBalance');
@@ -2760,11 +2837,17 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let url = '';
         let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        if (type === 'spot') {
+            // route to WebSocket API connection where the user data stream is subscribed
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -2836,12 +2919,20 @@ export default class binance extends binanceRest {
         //             ]
         //         }
         //     }
+        // externalLockUpdate
+        //    {
+        //        "e": "externalLockUpdate",  // Event Type
+        //        "E": 1581557507324,         // Event Time
+        //        "a": "NEO",                 // Asset
+        //        "d": "10.00000000",         // Delta
+        //        "T": 1581557507268          // Transaction Time
+        //    }
         //
         const wallet = this.safeString (this.options, 'wallet', 'wb'); // cw for cross wallet
         // each account is connected to a different endpoint
-        // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         const messageHash = accountType + ':balance';
         if (this.balance[accountType] === undefined) {
             this.balance[accountType] = {};
@@ -2882,6 +2973,18 @@ export default class binance extends binanceRest {
         this.balance[accountType]['datetime'] = this.iso8601 (timestamp);
         this.balance[accountType] = this.safeBalance (this.balance[accountType]);
         client.resolve (this.balance[accountType], messageHash);
+    }
+
+    getAccountTypeFromSubscriptions (subscriptions: string[]): string {
+        let accountType = '';
+        for (let i = 0; i < subscriptions.length; i++) {
+            const subscription = subscriptions[i];
+            if ((subscription === 'spot') || (subscription === 'margin') || (subscription === 'future') || (subscription === 'delivery')) {
+                accountType = subscription;
+                break;
+            }
+        }
+        return accountType;
     }
 
     getMarketType (method, market, params = {}) {
@@ -3266,8 +3369,8 @@ export default class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelAllOrdersWs', market, params);
-        if (type !== 'spot' && type !== 'future') {
-            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot or swap markets');
+        if (type !== 'spot') {
+            throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
         const url = this.urls['api']['ws']['ws-api'][type];
         const requestId = this.requestId (url);
@@ -3280,13 +3383,13 @@ export default class binance extends binanceRest {
         };
         const message: Dict = {
             'id': messageHash,
-            'method': 'order.cancel',
+            'method': 'openOrders.cancelAll',
             'params': this.signParams (this.extend (payload, params)),
         };
         const subscription: Dict = {
             'method': this.handleOrdersWs,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription) as Order[];
     }
 
     /**
@@ -3490,10 +3593,16 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            // route orders to ws-api user data stream
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -3883,8 +3992,9 @@ export default class binance extends binanceRest {
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        const subscriptions = Object.keys (client.subscriptions);
-        const accountType = subscriptions[0];
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -3949,7 +4059,7 @@ export default class binance extends binanceRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol (marketId, undefined, undefined, 'contract'),
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'swap'),
             'notional': undefined,
             'marginMode': this.safeString (position, 'mt'),
             'liquidationPrice': undefined,
@@ -4164,10 +4274,15 @@ export default class binance extends binanceRest {
         }
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
-        if (isPortfolioMargin) {
-            urlType = 'papi';
+        let url = '';
+        if (type === 'spot') {
+            url = this.urls['api']['ws']['ws-api'][type];
+        } else {
+            if (isPortfolioMargin) {
+                urlType = 'papi';
+            }
+            url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         }
-        const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, undefined, isPortfolioMargin);
@@ -4312,8 +4427,12 @@ export default class binance extends binanceRest {
             for (let i = 0; i < subscriptionKeys.length; i++) {
                 const subscriptionHash = subscriptionKeys[i];
                 const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
                 if (id === subscriptionId) {
                     client.reject (e, subscriptionHash);
+                    if (subscription !== undefined) {
+                        delete client.subscriptions[subscription];
+                    }
                 }
             }
         }
@@ -4327,14 +4446,36 @@ export default class binance extends binanceRest {
         }
     }
 
+    handleEventStreamTerminated (client: Client, message) {
+        //
+        //    {
+        //        e: 'eventStreamTerminated',
+        //        E: 1757896885229
+        //    }
+        //
+        const event = this.safeString (message, 'e');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys (subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions (subscriptionsKeys);
+        if (event === 'eventStreamTerminated') {
+            delete client.subscriptions[accountType];
+            client.reject (message, accountType);
+        }
+    }
+
     handleMessage (client: Client, message) {
         // handle WebSocketAPI
+        const eventMsg = this.safeDict (message, 'event');
+        if (eventMsg !== undefined) {
+            message = eventMsg;
+        }
         const status = this.safeString (message, 'status');
         const error = this.safeValue (message, 'error');
         if ((error !== undefined) || (status !== undefined && status !== '200')) {
             this.handleWsError (client, message);
             return;
         }
+        // user subscription wraps message in subscriptionId and event
         const id = this.safeString (message, 'id');
         const subscriptions = this.safeValue (client.subscriptions, id);
         let method = this.safeValue (subscriptions, 'method');
@@ -4369,6 +4510,8 @@ export default class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'forceOrder': this.handleLiquidation,
+            'eventStreamTerminated': this.handleEventStreamTerminated,
+            'externalLockUpdate': this.handleBalance,
         };
         let event = this.safeString (message, 'e');
         if (Array.isArray (message)) {

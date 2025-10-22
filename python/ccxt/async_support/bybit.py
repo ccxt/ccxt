@@ -200,7 +200,7 @@ class bybit(Exchange, ImplicitAPI):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -1257,6 +1257,9 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'spot': {
                     'extends': 'default',
+                    'fetchCurrencies': {
+                        'private': True,
+                    },
                     'createOrder': {
                         'triggerPriceType': None,
                         'triggerDirection': False,
@@ -1304,7 +1307,9 @@ class bybit(Exchange, ImplicitAPI):
     def enable_demo_trading(self, enable: bool):
         """
         enables or disables demo trading mode
+
         https://bybit-exchange.github.io/docs/v5/demo
+
         :param boolean [enable]: True if demo trading should be enabled, False otherwise
         """
         if self.isSandboxModeEnabled:
@@ -1595,9 +1600,9 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         if not self.check_required_credentials(False):
-            return None
+            return {}
         if self.options['enableDemoTrading']:
-            return None
+            return {}
         response = await self.privateGetV5AssetCoinQueryInfo(params)
         #
         #     {
@@ -2494,7 +2499,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2908,15 +2913,68 @@ class bybit(Exchange, ImplicitAPI):
         #         "tradeId": "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
         #     }
         #
+        # watchMyTrades execution.fast
+        #
+        #     {
+        #         "category": "linear",
+        #         "symbol": "ICPUSDT",
+        #         "execId": "3510f361-0add-5c7b-a2e7-9679810944fc",
+        #         "execPrice": "12.015",
+        #         "execQty": "3000",
+        #         "orderId": "443d63fa-b4c3-4297-b7b1-23bca88b04dc",
+        #         "isMaker": False,
+        #         "orderLinkId": "test-00001",
+        #         "side": "Sell",
+        #         "execTime": "1716800399334",
+        #         "seq": 34771365464
+        #     }
+        #
+        # watchMyTrades execution
+        #
+        #     {
+        #         "category": "linear",
+        #         "symbol": "BTCUSDT",
+        #         "closedSize": "0",
+        #         "execFee": "0.0679239",
+        #         "execId": "135dbae5-cbed-5275-9290-3956bb2ed907",
+        #         "execPrice": "123498",
+        #         "execQty": "0.001",
+        #         "execType": "Trade",
+        #         "execValue": "123.498",
+        #         "feeRate": "0.00055",
+        #         "tradeIv": "",
+        #         "markIv": "",
+        #         "blockTradeId": "",
+        #         "markPrice": "122392",
+        #         "indexPrice": "",
+        #         "underlyingPrice": "",
+        #         "leavesQty": "0",
+        #         "orderId": "aee7453a-a100-465f-857a-3db780e9329a",
+        #         "orderLinkId": "",
+        #         "orderPrice": "123615.9",
+        #         "orderQty": "0.001",
+        #         "orderType": "Market",
+        #         "stopOrderType": "UNKNOWN",
+        #         "side": "Buy",
+        #         "execTime": "1757837580469",
+        #         "isLeverage": "0",
+        #         "isMaker": False,
+        #         "seq": 9517074055,
+        #         "marketUnit": "",
+        #         "execPnl": "0",
+        #         "createType": "CreateByUser",
+        #         "extraFees": [],
+        #         "feeCoin": "USDT"
+        #  }
+        #
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
         marketType = 'contract' if ('createType' in trade) else 'spot'
-        if market is not None:
-            marketType = market['type']
         category = self.safe_string(trade, 'category')
         if category is not None:
-            if category == 'spot':
-                marketType = 'spot'
+            marketType = 'spot' if (category == 'spot') else 'contract'
+        if market is not None:
+            marketType = market['type']
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
@@ -2964,7 +3022,7 @@ class bybit(Exchange, ImplicitAPI):
                 feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrencyCode,
+                'currency': self.safe_string(trade, 'feeCoin', feeCurrencyCode),
                 'rate': feeRateString,
             }
         return self.safe_trade({
@@ -3502,48 +3560,56 @@ class bybit(Exchange, ImplicitAPI):
         #
         # v5
         #     {
-        #         "orderId": "14bad3a1-6454-43d8-bcf2-5345896cf74d",
-        #         "orderLinkId": "YLxaWKMiHU",
-        #         "blockTradeId": "",
         #         "symbol": "BTCUSDT",
-        #         "price": "26864.40",
-        #         "qty": "0.003",
-        #         "side": "Buy",
-        #         "isLeverage": "",
-        #         "positionIdx": 1,
-        #         "orderStatus": "Cancelled",
+        #         "orderType": "Market",
+        #         "orderLinkId": "",
+        #         "slLimitPrice": "0",
+        #         "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         #         "cancelType": "UNKNOWN",
-        #         "rejectReason": "EC_PostOnlyWillTakeLiquidity",
-        #         "avgPrice": "0",
-        #         "leavesQty": "0.000",
-        #         "leavesValue": "0",
-        #         "cumExecQty": "0.000",
-        #         "cumExecValue": "0",
-        #         "cumExecFee": "0",
-        #         "timeInForce": "PostOnly",
-        #         "orderType": "Limit",
-        #         "stopOrderType": "UNKNOWN",
-        #         "orderIv": "",
-        #         "triggerPrice": "0.00",
-        #         "takeProfit": "0.00",
-        #         "stopLoss": "0.00",
-        #         "tpTriggerBy": "UNKNOWN",
-        #         "slTriggerBy": "UNKNOWN",
-        #         "triggerDirection": 0,
-        #         "triggerBy": "UNKNOWN",
-        #         "lastPriceOnCreated": "0.00",
-        #         "reduceOnly": False,
-        #         "closeOnTrigger": False,
-        #         "smpType": "None",
-        #         "smpGroup": 0,
-        #         "smpOrderId": "",
+        #         "avgPrice": "122529.9",
+        #         "stopOrderType": "",
+        #         "lastPriceOnCreated": "123747.9",
+        #         "orderStatus": "Filled",
+        #         "createType": "CreateByUser",
+        #         "takeProfit": "",
+        #         "cumExecValue": "122.5299",
         #         "tpslMode": "",
-        #         "tpLimitPrice": "",
-        #         "slLimitPrice": "",
+        #         "smpType": "None",
+        #         "triggerDirection": 0,
+        #         "blockTradeId": "",
+        #         "cumFeeDetail": {
+        #             "USDT": "0.06739145"
+        #         },
+        #         "rejectReason": "EC_NoError",
+        #         "isLeverage": "",
+        #         "price": "120518",
+        #         "orderIv": "",
+        #         "createdTime": "1757837618905",
+        #         "tpTriggerBy": "",
+        #         "positionIdx": 0,
+        #         "timeInForce": "IOC",
+        #         "leavesValue": "0",
+        #         "updatedTime": "1757837618909",
+        #         "side": "Sell",
+        #         "smpGroup": 0,
+        #         "triggerPrice": "",
+        #         "tpLimitPrice": "0",
+        #         "cumExecFee": "0.06739145",
+        #         "slTriggerBy": "",
+        #         "leavesQty": "0",
+        #         "closeOnTrigger": False,
+        #         "slippageToleranceType": "UNKNOWN",
         #         "placeType": "",
-        #         "createdTime": "1684476068369",
-        #         "updatedTime": "1684476068372"
+        #         "cumExecQty": "0.001",
+        #         "reduceOnly": True,
+        #         "qty": "0.001",
+        #         "stopLoss": "",
+        #         "smpOrderId": "",
+        #         "slippageTolerance": "0",
+        #         "triggerBy": "",
+        #         "extraFees": ""
         #     }
+        #
         # createOrders failed order
         #    {
         #        "category": "linear",
@@ -3595,25 +3661,13 @@ class bybit(Exchange, ImplicitAPI):
         status = self.parse_order_status(rawStatus)
         side = self.safe_string_lower(order, 'side')
         fee = None
-        feeCostString = self.safe_string(order, 'cumExecFee')
-        if feeCostString is not None:
-            feeCurrencyCode = None
-            if market['spot']:
-                if Precise.string_gt(feeCostString, '0'):
-                    if side == 'buy':
-                        feeCurrencyCode = market['base']
-                    else:
-                        feeCurrencyCode = market['quote']
-                else:
-                    if side == 'buy':
-                        feeCurrencyCode = market['quote']
-                    else:
-                        feeCurrencyCode = market['base']
-            else:
-                feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
+        cumFeeDetail = self.safe_dict(order, 'cumFeeDetail', {})
+        feeCoins = list(cumFeeDetail.keys())
+        feeCoinId = self.safe_string(feeCoins, 0)
+        if feeCoinId is not None:
             fee = {
-                'cost': self.parse_number(feeCostString),
-                'currency': feeCurrencyCode,
+                'cost': self.safe_number(cumFeeDetail, feeCoinId),
+                'currency': feeCoinId,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
@@ -3882,7 +3936,7 @@ class bybit(Exchange, ImplicitAPI):
                 # only works for spot market
                 if triggerPrice is not None:
                     request['orderFilter'] = 'StopOrder'
-                elif stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                     request['orderFilter'] = 'tpslOrder'
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -3899,7 +3953,8 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         isMarketBuyAndCostInferable = (lowerCaseType == 'market') and (side == 'buy') and ((price is not None) or (cost is not None))
-        if market['spot'] and (type == 'market') and isUTA and not isMarketBuyAndCostInferable:
+        isMarketOrder = lowerCaseType == 'market'
+        if market['spot'] and isMarketOrder and isUTA and not isMarketBuyAndCostInferable:
             # UTA account can specify the cost of the order on both sides
             if (cost is not None) or (price is not None):
                 request['marketUnit'] = 'quoteCoin'
@@ -3913,7 +3968,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 request['marketUnit'] = 'baseCoin'
                 request['qty'] = amountString
-        elif market['spot'] and (type == 'market') and (side == 'buy'):
+        elif market['spot'] and isMarketOrder and (side == 'buy'):
             # classic accounts
             # for market buy it requires the amount of quote currency to spend
             createMarketBuyOrderRequiresPrice = True
@@ -3968,6 +4023,13 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['slOrderType'] = 'Limit'
                     request['slLimitPrice'] = self.get_price(symbol, slLimitPrice)
+                else:
+                    # for spot market, we need to add self
+                    if market['spot']:
+                        request['slOrderType'] = 'Market'
+                # for spot market, we need to add self
+                if market['spot'] and isMarketOrder:
+                    raise InvalidOrder(self.id + ' createOrder(): attached stopLoss is not supported for spot market orders')
             if isTakeProfit:
                 tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                 request['takeProfit'] = self.get_price(symbol, tpTriggerPrice)
@@ -3976,6 +4038,13 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['tpOrderType'] = 'Limit'
                     request['tpLimitPrice'] = self.get_price(symbol, tpLimitPrice)
+                else:
+                    # for spot market, we need to add self
+                    if market['spot']:
+                        request['tpOrderType'] = 'Market'
+                # for spot market, we need to add self
+                if market['spot'] and isMarketOrder:
+                    raise InvalidOrder(self.id + ' createOrder(): attached takeProfit is not supported for spot market orders')
         if not market['spot'] and hedged:
             if reduceOnly:
                 params = self.omit(params, 'reduceOnly')
@@ -4320,7 +4389,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -4947,49 +5016,63 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #         "retCode": 0,
         #         "retMsg": "OK",
         #         "result": {
-        #             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
+        #             "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
         #             "category": "linear",
         #             "list": [
         #                 {
         #                     "symbol": "BTCUSDT",
-        #                     "orderType": "Limit",
-        #                     "orderLinkId": "test-001",
-        #                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
-        #                     "cancelType": "CancelByUser",
-        #                     "avgPrice": "0",
-        #                     "stopOrderType": "UNKNOWN",
-        #                     "lastPriceOnCreated": "16656.5",
-        #                     "orderStatus": "Cancelled",
+        #                     "orderType": "Market",
+        #                     "orderLinkId": "",
+        #                     "slLimitPrice": "0",
+        #                     "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
+        #                     "cancelType": "UNKNOWN",
+        #                     "avgPrice": "122529.9",
+        #                     "stopOrderType": "",
+        #                     "lastPriceOnCreated": "123747.9",
+        #                     "orderStatus": "Filled",
+        #                     "createType": "CreateByUser",
         #                     "takeProfit": "",
-        #                     "cumExecValue": "0",
+        #                     "cumExecValue": "122.5299",
+        #                     "tpslMode": "",
+        #                     "smpType": "None",
         #                     "triggerDirection": 0,
         #                     "blockTradeId": "",
-        #                     "rejectReason": "EC_PerCancelRequest",
+        #                     "cumFeeDetail": {
+        #                         "USDT": "0.06739145"
+        #                     },
+        #                     "rejectReason": "EC_NoError",
         #                     "isLeverage": "",
-        #                     "price": "18000",
+        #                     "price": "120518",
         #                     "orderIv": "",
-        #                     "createdTime": "1672220109387",
-        #                     "tpTriggerBy": "UNKNOWN",
+        #                     "createdTime": "1757837618905",
+        #                     "tpTriggerBy": "",
         #                     "positionIdx": 0,
-        #                     "timeInForce": "GoodTillCancel",
+        #                     "timeInForce": "IOC",
         #                     "leavesValue": "0",
-        #                     "updatedTime": "1672220114123",
+        #                     "updatedTime": "1757837618909",
         #                     "side": "Sell",
+        #                     "smpGroup": 0,
         #                     "triggerPrice": "",
-        #                     "cumExecFee": "0",
-        #                     "slTriggerBy": "UNKNOWN",
+        #                     "tpLimitPrice": "0",
+        #                     "cumExecFee": "0.06739145",
+        #                     "slTriggerBy": "",
         #                     "leavesQty": "0",
         #                     "closeOnTrigger": False,
-        #                     "cumExecQty": "0",
-        #                     "reduceOnly": False,
-        #                     "qty": "0.1",
+        #                     "slippageToleranceType": "UNKNOWN",
+        #                     "placeType": "",
+        #                     "cumExecQty": "0.001",
+        #                     "reduceOnly": True,
+        #                     "qty": "0.001",
         #                     "stopLoss": "",
-        #                     "triggerBy": "UNKNOWN"
-        #                 }
+        #                     "smpOrderId": "",
+        #                     "slippageTolerance": "0",
+        #                     "triggerBy": "",
+        #                     "extraFees": ""
+        #                 },
         #             ]
         #         },
         #         "retExtInfo": {},
-        #         "time": 1672221263862
+        #         "time": 1758187806376
         #     }
         #
         data = self.add_pagination_cursor_to_result(response)
@@ -5096,48 +5179,63 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #         "retCode": 0,
         #         "retMsg": "OK",
         #         "result": {
-        #             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
-        #             "category": "spot",
+        #             "nextPageCursor": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe%3A1757837618905%2Caee7453a-a100-465f-857a-3db780e9329a%3A1757837580469",
+        #             "category": "linear",
         #             "list": [
         #                 {
-        #                     "symbol": "ETHUSDT",
-        #                     "orderType": "Limit",
-        #                     "orderLinkId": "1672217748277652",
-        #                     "orderId": "1321052653536515584",
+        #                     "symbol": "BTCUSDT",
+        #                     "orderType": "Market",
+        #                     "orderLinkId": "",
+        #                     "slLimitPrice": "0",
+        #                     "orderId": "f5f2d355-9a11-4af3-9b83-aa1d6ab6ddfe",
         #                     "cancelType": "UNKNOWN",
-        #                     "avgPrice": "",
-        #                     "stopOrderType": "tpslOrder",
-        #                     "lastPriceOnCreated": "",
-        #                     "orderStatus": "Cancelled",
+        #                     "avgPrice": "122529.9",
+        #                     "stopOrderType": "",
+        #                     "lastPriceOnCreated": "123747.9",
+        #                     "orderStatus": "Filled",
+        #                     "createType": "CreateByUser",
         #                     "takeProfit": "",
-        #                     "cumExecValue": "0",
+        #                     "cumExecValue": "122.5299",
+        #                     "tpslMode": "",
+        #                     "smpType": "None",
         #                     "triggerDirection": 0,
-        #                     "isLeverage": "0",
-        #                     "rejectReason": "",
-        #                     "price": "1000",
+        #                     "blockTradeId": "",
+        #                     "cumFeeDetail": {
+        #                         "USDT": "0.06739145"
+        #                     },
+        #                     "rejectReason": "EC_NoError",
+        #                     "isLeverage": "",
+        #                     "price": "120518",
         #                     "orderIv": "",
-        #                     "createdTime": "1672217748287",
+        #                     "createdTime": "1757837618905",
         #                     "tpTriggerBy": "",
         #                     "positionIdx": 0,
-        #                     "timeInForce": "GTC",
-        #                     "leavesValue": "500",
-        #                     "updatedTime": "1672217748287",
-        #                     "side": "Buy",
-        #                     "triggerPrice": "1500",
-        #                     "cumExecFee": "0",
-        #                     "leavesQty": "0",
+        #                     "timeInForce": "IOC",
+        #                     "leavesValue": "0",
+        #                     "updatedTime": "1757837618909",
+        #                     "side": "Sell",
+        #                     "smpGroup": 0,
+        #                     "triggerPrice": "",
+        #                     "tpLimitPrice": "0",
+        #                     "cumExecFee": "0.06739145",
         #                     "slTriggerBy": "",
+        #                     "leavesQty": "0",
         #                     "closeOnTrigger": False,
-        #                     "cumExecQty": "0",
-        #                     "reduceOnly": False,
-        #                     "qty": "0.5",
+        #                     "slippageToleranceType": "UNKNOWN",
+        #                     "placeType": "",
+        #                     "cumExecQty": "0.001",
+        #                     "reduceOnly": True,
+        #                     "qty": "0.001",
         #                     "stopLoss": "",
-        #                     "triggerBy": "1192.5"
-        #                 }
+        #                     "smpOrderId": "",
+        #                     "slippageTolerance": "0",
+        #                     "triggerBy": "",
+        #                     "extraFees": ""
+        #                 },
         #             ]
         #         },
         #         "retExtInfo": {},
-        #         "time": 1672219526294
+        #         "time": 1758187806376
         #     }
         #
         data = self.add_pagination_cursor_to_result(response)
@@ -5853,15 +5951,16 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT(for classic accounts only)
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
         accounts = await self.is_unified_enabled()
         isUta = accounts[1]
-        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
-        if isUta:
-            accountType = 'UTA'
+        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType')
+        if accountType is None:
+            accountType = 'UTA' if isUta else 'SPOT'
         await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
@@ -6215,7 +6314,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = None
         notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
-        initialMarginString = self.safe_string_n(position, ['positionIM', 'cumEntryValue'])
+        initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.safe_integer_n(position, ['createdTime', 'createdAt'])
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
@@ -6248,7 +6347,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     maintenanceMarginPriceDifference = Precise.string_abs(Precise.string_sub(liquidationPrice, bustPrice))
                     maintenanceMarginString = Precise.string_mul(maintenanceMarginPriceDifference, size)
                     # Initial Margin = Contracts x Entry Price / Leverage
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(Precise.string_mul(size, entryPrice), leverage)
                 else:
                     # Contracts * (1 / Entry price - 1 / Bust price) = Collateral
@@ -6259,7 +6358,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     multiply = Precise.string_mul(bustPrice, liquidationPrice)
                     maintenanceMarginString = Precise.string_div(Precise.string_mul(size, difference), multiply)
                     # Initial Margin = Leverage x Contracts / EntryPrice
-                    if entryPrice is not None:
+                    if (entryPrice is not None) and (initialMarginString is None):
                         initialMarginString = Precise.string_div(size, Precise.string_mul(entryPrice, leverage))
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)

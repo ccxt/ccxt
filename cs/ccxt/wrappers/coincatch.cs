@@ -577,6 +577,12 @@ public partial class coincatch
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : *swap markets only* must be set to true if position mode is hedged (default false)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.cost</term>
     /// <description>
     /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -750,6 +756,12 @@ public partial class coincatch
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.hedged</term>
+    /// <description>
+    /// bool : must be set to true if position mode is hedged (default false)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.postOnly</term>
     /// <description>
     /// bool : *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
@@ -832,7 +844,7 @@ public partial class coincatch
     /// <item>
     /// <term>params.hedged</term>
     /// <description>
-    /// bool : default false
+    /// bool : must be set to true if position mode is hedged (default false)
     /// </description>
     /// </item>
     /// <item>

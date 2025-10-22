@@ -1087,7 +1087,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2284,6 +2284,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.subAccountAddress]: sub account user address
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2292,12 +2293,18 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAddress, params = self.handle_public_address('fetchOrder', params)
         await self.load_markets()
         market = self.safe_market(symbol)
-        isClientOrderId = len(id) >= 34
+        clientOrderId = self.safe_string(params, 'clientOrderId')
         request: dict = {
             'type': 'orderStatus',
-            'oid': id if isClientOrderId else self.parse_to_numeric(id),
+            # 'oid': id if isClientOrderId else self.parse_to_numeric(id),
             'user': userAddress,
         }
+        if clientOrderId is not None:
+            params = self.omit(params, 'clientOrderId')
+            request['oid'] = clientOrderId
+        else:
+            isClientOrderId = len(id) >= 34
+            request['oid'] = id if isClientOrderId else self.parse_to_numeric(id)
         response = await self.publicPostInfo(self.extend(request, params))
         #
         #     {
@@ -3008,8 +3015,6 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'nonce': nonce,
                 'signature': transferSig,
             }
-            if vaultAddress is not None:
-                transferRequest['vaultAddress'] = vaultAddress
             transferResponse = await self.privatePostExchange(transferRequest)
             return transferResponse
         # transfer between main account and subaccount
@@ -3393,6 +3398,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param str [params.subAccountAddress]: sub account user address
+        :param str [params.vaultAddress]: vault address
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -3406,6 +3412,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             request['startTime'] = since
         until = self.safe_integer(params, 'until')
         if until is not None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchDeposits requires since while until is set')
             request['endTime'] = until
             params = self.omit(params, ['until'])
         response = await self.publicPostInfo(self.extend(request, params))
@@ -3423,7 +3431,19 @@ class hyperliquid(Exchange, ImplicitAPI):
         # ]
         #
         records = self.extract_type_from_delta(response)
-        deposits = self.filter_by_array(records, 'type', ['deposit'], False)
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
+        deposits = []
+        if vaultAddress is not None:
+            for i in range(0, len(records)):
+                record = records[i]
+                if record['type'] == 'vaultDeposit':
+                    delta = self.safe_dict(record, 'delta')
+                    if delta['vault'] == '0x' + vaultAddress:
+                        deposits.append(record)
+        else:
+            deposits = self.filter_by_array(records, 'type', ['deposit'], False)
         return self.parse_transactions(deposits, None, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -3435,6 +3455,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch withdrawals for
         :param str [params.subAccountAddress]: sub account user address
+        :param str [params.vaultAddress]: vault address
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -3465,7 +3486,19 @@ class hyperliquid(Exchange, ImplicitAPI):
         # ]
         #
         records = self.extract_type_from_delta(response)
-        withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
+        withdrawals = []
+        if vaultAddress is not None:
+            for i in range(0, len(records)):
+                record = records[i]
+                if record['type'] == 'vaultWithdraw':
+                    delta = self.safe_dict(record, 'delta')
+                    if delta['vault'] == '0x' + vaultAddress:
+                        withdrawals.append(record)
+        else:
+            withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
         return self.parse_transactions(withdrawals, None, since, limit)
 
     async def fetch_open_interests(self, symbols: Strings = None, params={}):
@@ -3669,11 +3702,15 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
         #
+        # {"status":"unknownOid"}
+        #
         status = self.safe_string(response, 'status', '')
         error = self.safe_string(response, 'error')
         message = None
         if status == 'err':
             message = self.safe_string(response, 'response')
+        elif status == 'unknownOid':
+            raise OrderNotFound(self.id + ' ' + body)  # {"status":"unknownOid"}
         elif error is not None:
             message = error
         else:

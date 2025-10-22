@@ -921,7 +921,7 @@ public partial class bitmart : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", true },
+                { "active", isEqual(this.safeStringLower2(market, "status", "trade_status"), "trading") },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -1043,7 +1043,7 @@ public partial class bitmart : Exchange
                 { "swap", isSwap },
                 { "future", isFutures },
                 { "option", false },
-                { "active", true },
+                { "active", isEqual(this.safeStringLower(market, "status"), "trading") },
                 { "contract", true },
                 { "linear", true },
                 { "inverse", false },
@@ -3264,7 +3264,7 @@ public partial class bitmart : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

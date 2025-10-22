@@ -1989,7 +1989,15 @@ class woo extends Exchange {
         //         "positionSide" => "BOTH"
         //     }
         //
-        $timestamp = $this->safe_timestamp($order, 'createdTime');
+        $timestamp = null;
+        $timestrampString = $this->safe_string($order, 'createdTime');
+        if ($timestrampString !== null) {
+            if (mb_strpos($timestrampString, '.') !== false) {
+                $timestamp = $this->safe_timestamp($order, 'createdTime'); // algo orders
+            } else {
+                $timestamp = $this->safe_integer($order, 'createdTime'); // regular orders
+            }
+        }
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($order, 'timestamp');
         }
@@ -2010,7 +2018,15 @@ class woo extends Exchange {
         $fee = $this->safe_number($order, 'totalFee');
         $feeCurrency = $this->safe_string($order, 'feeAsset');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
-        $lastUpdateTimestamp = $this->safe_timestamp($order, 'updatedTime');
+        $lastUpdateTimestampString = $this->safe_string($order, 'updatedTime');
+        $lastUpdateTimestamp = null;
+        if ($lastUpdateTimestampString !== null) {
+            if (mb_strpos($lastUpdateTimestampString, '.') !== false) {
+                $lastUpdateTimestamp = $this->safe_timestamp($order, 'updatedTime'); // algo orders
+            } else {
+                $lastUpdateTimestamp = $this->safe_integer($order, 'updatedTime'); // regular orders
+            }
+        }
         return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -2107,7 +2123,7 @@ class woo extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://developer.woox.io/api-reference/endpoint/public_data/klineHistory

@@ -26,6 +26,7 @@ public partial class apex : Exchange
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelAllOrdersAfter", false },
                 { "cancelOrder", true },
@@ -44,10 +45,14 @@ public partial class apex : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", true },
+                { "fetchAllGreeks", false },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCanceledAndClosedOrders", false },
                 { "fetchCanceledOrders", false },
                 { "fetchClosedOrders", false },
@@ -63,6 +68,7 @@ public partial class apex : Exchange
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -81,6 +87,8 @@ public partial class apex : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -98,6 +106,7 @@ public partial class apex : Exchange
                 { "fetchTradingFees", false },
                 { "fetchTransfer", true },
                 { "fetchTransfers", true },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", false },
                 { "reduceMargin", false },
@@ -830,12 +839,12 @@ public partial class apex : Exchange
             limit = 200; // default is 200 when requested with `since`
         }
         ((IDictionary<string,object>)request)["limit"] = limit; // max 200, default 200
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("end", request, parameters, 0.001);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["start"] = since;
+            ((IDictionary<string,object>)request)["start"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         }
         object response = await this.publicGetV3Klines(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});

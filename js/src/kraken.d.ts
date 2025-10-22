@@ -17,7 +17,6 @@ export default class kraken extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    safeCurrency(currencyId: any, currency?: Currency): import("./base/types.js").CurrencyInterface;
     /**
      * @method
      * @name kraken#fetchStatus
@@ -299,13 +298,13 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -430,7 +429,7 @@ export default class kraken extends Exchange {
      * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address the address to withdraw to
+     * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}

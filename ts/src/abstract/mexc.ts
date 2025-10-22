@@ -65,6 +65,7 @@ interface Exchange {
     spotPrivateGetMxDeductEnable (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetUserDataStream (params?: {}): Promise<implicitReturnType>;
     spotPrivateGetSelfSymbols (params?: {}): Promise<implicitReturnType>;
+    spotPrivateGetAssetInternalTransferRecord (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostOrderTest (params?: {}): Promise<implicitReturnType>;
     spotPrivatePostSubAccountVirtualSubAccount (params?: {}): Promise<implicitReturnType>;

@@ -47,6 +47,7 @@ class bitbank extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -593,7 +594,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -980,7 +981,7 @@ class bitbank extends Exchange {
             $address = $this->safe_string($firstAccount, 'address');
             return array(
                 'info' => $response,
-                'currency' => $currency,
+                'currency' => $currency['code'],
                 'network' => null,
                 'address' => $address,
                 'tag' => null,

@@ -1014,7 +1014,7 @@ export default class bitmart extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower2 (market, 'status', 'trade_status') === 'trading',
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -1132,7 +1132,7 @@ export default class bitmart extends Exchange {
                 'swap': isSwap,
                 'future': isFutures,
                 'option': false,
-                'active': true,
+                'active': this.safeStringLower (market, 'status') === 'trading',
                 'contract': true,
                 'linear': true,
                 'inverse': false,
@@ -2102,7 +2102,7 @@ export default class bitmart extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);

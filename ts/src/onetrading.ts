@@ -488,34 +488,80 @@ export default class onetrading extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const baseAsset = this.safeValue (market, 'base', {});
-        const quoteAsset = this.safeValue (market, 'quote', {});
+        //
+        //   {
+        //      "base":{
+        //         "code":"BTC",
+        //         "precision":"5"
+        //      },
+        //      "quote":{
+        //         "code":"USDC",
+        //         "precision":"2"
+        //      },
+        //      "amount_precision":"5",
+        //      "market_precision":"2",
+        //      "min_size":"10.0",
+        //      "min_price":"1000",
+        //      "max_price":"10000000",
+        //      "id":"BTC_USDC",
+        //      "type":"SPOT",
+        //      "state":"ACTIVE"
+        //   }
+        //
+        //
+        //  {
+        //      "base": {
+        //          "code": "BTC",
+        //          "precision": 5
+        //      },
+        //      "quote": {
+        //          "code": "EUR",
+        //          "precision": 2
+        //      },
+        //      "amount_precision": 5,
+        //      "market_precision": 2,
+        //      "min_size": "10.0",
+        //      "min_price": "1000",
+        //      "max_price": "10000000",
+        //      "id": "BTC_EUR_P",
+        //      "type": "PERP",
+        //      "state": "ACTIVE"
+        //  }
+        //
+        const baseAsset = this.safeDict (market, 'base', {});
+        const quoteAsset = this.safeDict (market, 'quote', {});
         const baseId = this.safeString (baseAsset, 'code');
         const quoteId = this.safeString (quoteAsset, 'code');
-        const id = baseId + '_' + quoteId;
+        const id = this.safeString (market, 'id');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const state = this.safeString (market, 'state');
+        const type = this.safeString (market, 'type');
+        const isPerp = type === 'PERP';
+        let symbol = base + '/' + quote;
+        if (isPerp) {
+            symbol = symbol + ':' + quote;
+        }
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': undefined,
+            'settle': isPerp ? quote : undefined,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': undefined,
-            'type': 'spot',
-            'spot': true,
+            'settleId': isPerp ? quoteId : undefined,
+            'type': isPerp ? 'swap' : 'spot',
+            'spot': !isPerp,
             'margin': false,
-            'swap': false,
+            'swap': isPerp,
             'future': false,
             'option': false,
             'active': (state === 'ACTIVE'),
-            'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'contract': isPerp,
+            'linear': isPerp ? true : undefined,
+            'inverse': isPerp ? false : undefined,
+            'contractSize': isPerp ? this.parseNumber ('1') : undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -554,6 +600,7 @@ export default class onetrading extends Exchange {
      * @see https://docs.onetrading.com/#fee-groups
      * @see https://docs.onetrading.com/#fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
@@ -576,39 +623,68 @@ export default class onetrading extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetFees (params);
         //
-        //     [
-        //         {
-        //             "fee_group_id":"default",
-        //             "display_text":"The standard fee plan.",
-        //             "fee_tiers":[
-        //                 {"volume":"0.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.15"},
-        //                 {"volume":"100.0","fee_group_id":"default","maker_fee":"0.1","taker_fee":"0.13"},
-        //                 {"volume":"250.0","fee_group_id":"default","maker_fee":"0.09","taker_fee":"0.13"},
-        //                 {"volume":"1000.0","fee_group_id":"default","maker_fee":"0.075","taker_fee":"0.1"},
-        //                 {"volume":"5000.0","fee_group_id":"default","maker_fee":"0.06","taker_fee":"0.09"},
-        //                 {"volume":"10000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.075"},
-        //                 {"volume":"20000.0","fee_group_id":"default","maker_fee":"0.05","taker_fee":"0.065"}
-        //             ],
-        //             "fee_discount_rate":"25.0",
-        //             "minimum_price_value":"0.12"
-        //         }
-        //     ]
+        // [
+        //     {
+        //         'fee_group_id': 'SPOT',
+        //         'display_text': 'The fee plan for spot trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'SPOT',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        //     {
+        //         'fee_group_id': 'FUTURES',
+        //         'display_text': 'The fee plan for futures trading.',
+        //         'volume_currency': 'EUR',
+        //         'fee_tiers': [
+        //             {
+        //                 'volume': '0',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.1000',
+        //                 'taker_fee': '0.2000',
+        //             },
+        //             {
+        //                 'volume': '10000',
+        //                 'fee_group_id': 'FUTURES',
+        //                 'maker_fee': '0.0400',
+        //                 'taker_fee': '0.0800',
+        //             },
+        //         ],
+        //     },
+        // ];
         //
-        const first = this.safeValue (response, 0, {});
-        const feeTiers = this.safeValue (first, 'fee_tiers');
-        const tiers = this.parseFeeTiers (feeTiers);
-        const firstTier = this.safeValue (feeTiers, 0, {});
+        const spotFees = this.safeDict (response, 0, {});
+        const futuresFees = this.safeDict (response, 1, {});
+        const spotFeeTiers = this.safeList (spotFees, 'fee_tiers', []);
+        const futuresFeeTiers = this.safeList (futuresFees, 'fee_tiers', []);
+        const spotTiers = this.parseFeeTiers (spotFeeTiers);
+        const futuresTiers = this.parseFeeTiers (futuresFeeTiers);
+        const firstSpotTier = this.safeDict (spotTiers, 0, {});
+        const firstFuturesTier = this.safeDict (futuresTiers, 0, {});
         const result: Dict = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
-                'info': first,
+                'info': spotFees,
                 'symbol': symbol,
-                'maker': this.safeNumber (firstTier, 'maker_fee'),
-                'taker': this.safeNumber (firstTier, 'taker_fee'),
+                'maker': this.safeNumber (tierObject, 'maker_fee'),
+                'taker': this.safeNumber (tierObject, 'taker_fee'),
                 'percentage': true,
                 'tierBased': true,
-                'tiers': tiers,
+                'tiers': spotTiers,
             };
         }
         return result;
@@ -618,36 +694,55 @@ export default class onetrading extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetAccountFees (params);
         //
-        //     {
-        //         "account_id": "ed524d00-820a-11e9-8f1e-69602df16d85",
-        //         "running_trading_volume": "0.0",
-        //         "fee_group_id": "default",
-        //         "collect_fees_in_best": false,
-        //         "fee_discount_rate": "25.0",
-        //         "minimum_price_value": "0.12",
-        //         "fee_tiers": [
-        //             { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" },
-        //             { "volume": "100.0", "fee_group_id": "default", "maker_fee": "0.09", "taker_fee": "0.1" },
-        //             { "volume": "250.0", "fee_group_id": "default", "maker_fee": "0.08", "taker_fee": "0.1" },
-        //             { "volume": "1000.0", "fee_group_id": "default", "maker_fee": "0.07", "taker_fee": "0.09" },
-        //             { "volume": "5000.0", "fee_group_id": "default", "maker_fee": "0.06", "taker_fee": "0.08" },
-        //             { "volume": "10000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.07" },
-        //             { "volume": "20000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.06" },
-        //             { "volume": "50000.0", "fee_group_id": "default", "maker_fee": "0.05", "taker_fee": "0.05" }
-        //         ],
-        //         "active_fee_tier": { "volume": "0.0", "fee_group_id": "default", "maker_fee": "0.1", "taker_fee": "0.1" }
-        //     }
+        // {
+        //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
+        //    "running_volumes":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "currency":"EUR"
+        //       }
+        //    ],
+        //    "active_fee_tiers":[
+        //       {
+        //          "fee_group_id":"SPOT",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       },
+        //       {
+        //          "fee_group_id":"FUTURES",
+        //          "volume":"0",
+        //          "maker_fee":"0.1000",
+        //          "taker_fee":"0.2000"
+        //       }
+        //    ]
+        // }
         //
-        const activeFeeTier = this.safeValue (response, 'active_fee_tier', {});
-        let makerFee = this.safeString (activeFeeTier, 'maker_fee');
-        let takerFee = this.safeString (activeFeeTier, 'taker_fee');
-        makerFee = Precise.stringDiv (makerFee, '100');
-        takerFee = Precise.stringDiv (takerFee, '100');
-        const feeTiers = this.safeValue (response, 'fee_tiers');
+        const activeFeeTier = this.safeList (response, 'active_fee_tiers');
+        const spotFees = this.safeDict (activeFeeTier, 0, {});
+        const futuresFees = this.safeDict (activeFeeTier, 1, {});
+        let spotMakerFee = this.safeString (spotFees, 'maker_fee');
+        let spotTakerFee = this.safeString (spotFees, 'taker_fee');
+        spotMakerFee = Precise.stringDiv (spotMakerFee, '100');
+        spotTakerFee = Precise.stringDiv (spotTakerFee, '100');
+        // const feeTiers = this.safeValue (response, 'fee_tiers');
+        let futuresMakerFee = this.safeString (futuresFees, 'maker_fee');
+        let futuresTakerFee = this.safeString (futuresFees, 'taker_fee');
+        futuresMakerFee = Precise.stringDiv (futuresMakerFee, '100');
+        futuresTakerFee = Precise.stringDiv (futuresTakerFee, '100');
         const result: Dict = {};
-        const tiers = this.parseFeeTiers (feeTiers);
+        // const tiers = this.parseFeeTiers (feeTiers);
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
+            const market = this.market (symbol);
+            const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -655,7 +750,7 @@ export default class onetrading extends Exchange {
                 'taker': this.parseNumber (takerFee),
                 'percentage': true,
                 'tierBased': true,
-                'tiers': tiers,
+                'tiers': undefined,
             };
         }
         return result;
@@ -952,7 +1047,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const periodUnit = this.safeString (this.timeframes, timeframe);
@@ -1401,7 +1496,7 @@ export default class onetrading extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'ids': ids.join (','),
@@ -1412,7 +1507,8 @@ export default class onetrading extends Exchange {
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return response;
+        const order = this.safeOrder ({ 'info': response });
+        return [ order ];
     }
 
     /**

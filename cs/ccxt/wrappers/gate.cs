@@ -60,9 +60,14 @@ public partial class gate
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<List<Dictionary<string, object>>> FetchContractMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchContractMarkets(parameters);
+        var res = await this.fetchSwapMarkets(parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    public async Task<List<Dictionary<string, object>>> FetchFutureMarkets(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFutureMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public async Task<List<Dictionary<string, object>>> FetchOptionMarkets(Dictionary<string, object> parameters = null)
@@ -360,6 +365,12 @@ public partial class gate
     /// undefined
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#margin-account-list"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-futures-account"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2"/>  <br/>
+    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#query-account-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

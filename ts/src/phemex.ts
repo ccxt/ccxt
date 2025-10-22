@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -191,7 +191,8 @@ export default class phemex extends Exchange {
                         // swap
                         'accounts/accountPositions': 1, // ?currency=<currency>
                         'g-accounts/accountPositions': 1, // ?currency=<currency>
-                        'accounts/positions': 25, // ?currency=<currency>
+                        'g-accounts/positions': 25, // ?currency=<currency>
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5, // ?symbol=<symbol>
                         'api-data/futures/orders': 5, // ?symbol=<symbol>
@@ -1279,7 +1280,7 @@ export default class phemex extends Exchange {
         return this.parseToNumeric (preciseString);
     }
 
-    toEv (amount, market: Market = undefined) {
+    toEv (amount, market: Dictionary<any> = undefined) {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
@@ -1368,7 +1369,7 @@ export default class phemex extends Exchange {
      * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const userLimit = limit;
@@ -3788,7 +3789,7 @@ export default class phemex extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -3827,7 +3828,7 @@ export default class phemex extends Exchange {
             if (method === 'privateGetGAccountsAccountPositions') {
                 response = await this.privateGetGAccountsAccountPositions (this.extend (request, params));
             } else {
-                response = await this.privateGetAccountsPositions (this.extend (request, params));
+                response = await this.privateGetGAccountsPositions (this.extend (request, params));
             }
         } else {
             response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
@@ -4001,7 +4002,7 @@ export default class phemex extends Exchange {
         const initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
         const liquidationPrice = this.safeNumber2 (position, 'liquidationPrice', 'liquidationPriceRp');
         const markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
-        const contracts = this.safeString (position, 'size');
+        const contracts = this.safeString2 (position, 'size', 'sizeRq');
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         const leverage = this.parseNumber (Precise.stringAbs ((this.safeString2 (position, 'leverage', 'leverageRr'))));
@@ -4011,9 +4012,12 @@ export default class phemex extends Exchange {
         if (rawSide !== undefined) {
             side = (rawSide === 'Buy') ? 'long' : 'short';
         }
+        // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
+        // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
+        // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
+        // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         let priceDiff = undefined;
-        const currency = this.safeString (position, 'currency');
-        if (currency === 'USD') {
+        if (market['linear']) {
             if (side === 'long') {
                 priceDiff = Precise.stringSub (markPriceString, entryPriceString);
             } else {
@@ -4028,15 +4032,18 @@ export default class phemex extends Exchange {
             }
         }
         const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
+        // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
+        const apiUnrealizedPnl = this.safeString (position, 'unRealisedPnlRv', unrealizedPnl);
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         const isCross = this.safeValue (position, 'crossMargin');
         return this.safePosition ({
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'execSeq'),
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
-            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'realizedPnl': this.safeNumber (position, 'curTermRealisedPnlRv'),
+            'unrealizedPnl': this.parseNumber (apiUnrealizedPnl),
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
             'collateral': this.parseNumber (collateral),
@@ -4045,7 +4052,7 @@ export default class phemex extends Exchange {
             'lastPrice': undefined,
             'entryPrice': this.parseNumber (entryPriceString),
             'timestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeIntegerProduct (position, 'transactTimeNs', 0.000001),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
             'maintenanceMargin': this.parseNumber (maintenanceMarginString),
@@ -4054,7 +4061,7 @@ export default class phemex extends Exchange {
             'datetime': undefined,
             'marginMode': isCross ? 'cross' : 'isolated',
             'side': side,
-            'hedged': false,
+            'hedged': this.safeString (position, 'posMode') === 'Hedged',
             'percentage': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
@@ -4349,12 +4356,24 @@ export default class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap'] || market['settle'] === 'USDT' || market['settle'] === 'USDC') {
-            throw new BadSymbol (this.id + ' setMarginMode() supports swap (non USDT/USDC based) contracts only');
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const isCross = marginMode === 'cross';
+        if (this.inArray (market['settle'], [ 'USDT', 'USDC' ])) {
+            const currentLeverage = this.safeString (params, 'leverage');
+            if (currentLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a "leverage" parameter for USDT markets');
+            }
+            request['leverageRr'] = isCross ? Precise.stringNeg (Precise.stringAbs (currentLeverage)) : Precise.stringAbs (currentLeverage);
+            return await this.privatePutGPositionsLeverage (this.extend (request, params));
         }
         let leverage = this.safeInteger (params, 'leverage');
         if (marginMode === 'cross') {
@@ -4363,10 +4382,7 @@ export default class phemex extends Exchange {
         if (leverage === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
         }
-        const request: Dict = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        };
+        request['leverage'] = leverage;
         return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 

@@ -41,6 +41,7 @@ public partial class bithumb : Exchange
                 { "fetchBorrowRatesPerSymbol", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
@@ -223,6 +224,14 @@ public partial class bithumb : Exchange
                             { "cost", new Dictionary<string, object>() {
                                 { "min", 500 },
                                 { "max", 5000000000 },
+                            } },
+                        } },
+                    } },
+                    { "USDT", new Dictionary<string, object>() {
+                        { "limits", new Dictionary<string, object>() {
+                            { "cost", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
                             } },
                         } },
                     } },

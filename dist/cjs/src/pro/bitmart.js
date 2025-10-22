@@ -219,7 +219,7 @@ class bitmart extends bitmart$1["default"] {
         //                    "fz_bal":"0.100000000000000000000000000000"
         //                 }
         //              ],
-        //              "event_time":"1701632345415",
+        //              "event_time":"1701632345416",
         //              "event_type":"TRANSACTION_COMPLETED"
         //           }
         //        ],
@@ -1502,7 +1502,7 @@ class bitmart extends bitmart$1["default"] {
         const url = this.implodeHostname(this.urls['api']['ws'][type]['private']);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds().toString();

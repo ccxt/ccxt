@@ -894,7 +894,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         hollaex has large gaps between candles, so it's recommended to specify since
 

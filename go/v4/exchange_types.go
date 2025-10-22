@@ -3,6 +3,8 @@ package ccxt
 import (
 	"fmt"
 	"math"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -50,6 +52,20 @@ func SafeBoolTyped(m interface{}, key interface{}) *bool {
 		return &resBool
 	}
 	return nil
+}
+
+func SafeMapToMap(sm *sync.Map) map[string]interface{} {
+	if sm == nil {
+		return nil
+	}
+	result := make(map[string]interface{})
+	sm.Range(func(key, value interface{}) bool {
+		if strKey, ok := key.(string); ok {
+			result[strKey] = value
+		}
+		return true
+	})
+	return result
 }
 
 // MarketInterface struct
@@ -130,6 +146,22 @@ func NewMarketInterface(data interface{}) MarketInterface {
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
 	}
+}
+
+func NewMarketsMap(data2 interface{}) map[string]MarketInterface {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
+	// data := ConvertToMap(data2)
+	if dataMap, ok := data2.(*sync.Map); ok {
+		data2 = SafeMapToMap(dataMap)
+	}
+	data := data2.(map[string]interface{})
+	result := make(map[string]MarketInterface)
+	for key, value := range data {
+		result[key] = NewMarketInterface(value)
+	}
+	return result
 }
 
 // Precision struct
@@ -525,6 +557,9 @@ type OrderBook struct {
 
 // NewOrderBook initializes an OrderBook struct from a map.
 func NewOrderBook(orderbook2 interface{}) OrderBook {
+	if orderbook2 == nil {
+		return OrderBook{}
+	}
 	orderbook := orderbook2.(map[string]interface{})
 	return OrderBook{
 		Bids:      parseOrderBookEntries(orderbook, "bids"),
@@ -539,8 +574,8 @@ func NewOrderBook(orderbook2 interface{}) OrderBook {
 // parseOrderBookEntries extracts and converts order book entries to [][]float64.
 func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]float64 {
 	if value, ok := orderbook[key]; ok {
+		var result [][]float64
 		if entries, ok := value.([]interface{}); ok {
-			var result [][]float64
 			for _, entry := range entries {
 				if pair, ok := entry.([]interface{}); ok {
 					var floatPair []float64
@@ -552,6 +587,19 @@ func parseOrderBookEntries(orderbook map[string]interface{}, key string) [][]flo
 					if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
 						result = append(result, floatPair)
 					}
+				}
+			}
+			return result
+		} else if entries, ok := value.([][]interface{}); ok {
+			for _, entry := range entries {
+				var floatPair []float64
+				for _, v := range entry {
+					if num, ok := v.(float64); ok {
+						floatPair = append(floatPair, num)
+					}
+				}
+				if len(floatPair) == 2 { // Ensure bid/ask pairs have two values
+					result = append(result, floatPair)
 				}
 			}
 			return result
@@ -616,6 +664,33 @@ type Balance struct {
 	Free  *float64
 	Used  *float64
 	Total *float64
+}
+
+// String returns a string representation of the Balance struct
+func (b *Balance) String() string {
+	var result strings.Builder
+	result.WriteString("Balance{")
+
+	if b.Free != nil {
+		result.WriteString(fmt.Sprintf(" Free:%v", *b.Free))
+	} else {
+		result.WriteString(" Free:nil")
+	}
+
+	if b.Used != nil {
+		result.WriteString(fmt.Sprintf(" Used:%v", *b.Used))
+	} else {
+		result.WriteString(" Used:nil")
+	}
+
+	if b.Total != nil {
+		result.WriteString(fmt.Sprintf(" Total:%v", *b.Total))
+	} else {
+		result.WriteString(" Total:nil")
+	}
+
+	result.WriteString("}")
+	return result.String()
 }
 
 type Balances struct {
@@ -712,6 +787,59 @@ func (b *Balances) GetBalance(key string) (Balance, error) {
 // SetBalance sets or updates a Balance by key.
 func (b *Balances) SetBalance(key string, balance Balance) {
 	b.Balances[key] = balance
+}
+
+// String returns a string representation of the Balances struct
+func (b *Balances) String() string {
+	var result strings.Builder
+	result.WriteString("Balances{")
+
+	if len(b.Balances) > 0 {
+		result.WriteString(" Balances:{")
+		for key, balance := range b.Balances {
+			result.WriteString(fmt.Sprintf(" %s:%s", key, balance.String()))
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Free) > 0 {
+		result.WriteString(" Free:{")
+		for key, value := range b.Free {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Used) > 0 {
+		result.WriteString(" Used:{")
+		for key, value := range b.Used {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	if len(b.Total) > 0 {
+		result.WriteString(" Total:{")
+		for key, value := range b.Total {
+			if value != nil {
+				result.WriteString(fmt.Sprintf(" %s:%v", key, *value))
+			} else {
+				result.WriteString(fmt.Sprintf(" %s:nil", key))
+			}
+		}
+		result.WriteString("}")
+	}
+
+	result.WriteString("}")
+	return result.String()
 }
 
 // funding rate
@@ -1620,6 +1748,9 @@ type Currencies struct {
 }
 
 func NewCurrencies(data2 interface{}) Currencies {
+	if data2 == nil {
+		data2 = make(map[string]interface{})
+	}
 	data := data2.(map[string]interface{})
 	info := GetInfo(data)
 	currencies := make(map[string]Currency)

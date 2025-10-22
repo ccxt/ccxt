@@ -39,6 +39,7 @@ class blockchaincom extends blockchaincom$1["default"] {
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': false,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,

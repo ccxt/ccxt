@@ -45,6 +45,7 @@ public partial class indodax : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", true },
@@ -186,6 +187,16 @@ public partial class indodax : Exchange
                     { "Minimum order", typeof(InvalidOrder) },
                 } },
             } },
+            { "timeframes", new Dictionary<string, object>() {
+                { "1m", "1" },
+                { "15m", "15" },
+                { "30m", "30" },
+                { "1h", "60" },
+                { "4h", "240" },
+                { "1d", "1D" },
+                { "3d", "3D" },
+                { "1w", "1W" },
+            } },
             { "options", new Dictionary<string, object>() {
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
@@ -195,16 +206,6 @@ public partial class indodax : Exchange
                     { "BSC", "bep20" },
                     { "TRC20", "trc20" },
                     { "MATIC", "polygon" },
-                } },
-                { "timeframes", new Dictionary<string, object>() {
-                    { "1m", "1" },
-                    { "15m", "15" },
-                    { "30m", "30" },
-                    { "1h", "60" },
-                    { "4h", "240" },
-                    { "1d", "1D" },
-                    { "3d", "3D" },
-                    { "1w", "1W" },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -350,7 +351,7 @@ public partial class indodax : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
-            object id = this.safeString(market, "ticker_id");
+            object id = this.safeString(market, "id");
             object baseId = this.safeString(market, "traded_currency");
             object quoteId = this.safeString(market, "base_currency");
             object bs = this.safeCurrencyCode(baseId);
@@ -498,7 +499,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "pair", getValue(market, "id") },
         };
         object orderbook = await this.publicGetApiDepthPair(this.extend(request, parameters));
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buy", "sell");
@@ -562,7 +563,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetApiTickerPair(this.extend(request, parameters));
         //
@@ -614,7 +615,18 @@ public partial class indodax : Exchange
         //
         object response = await this.publicGetApiTickerAll(parameters);
         object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
-        return this.parseTickers(tickers, symbols);
+        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        object parsedTickers = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        {
+            object key = getValue(keys, i);
+            object rawTicker = getValue(tickers, key);
+            object marketId = ((string)key).Replace((string)"_", (string)"");
+            object market = this.safeMarket(marketId);
+            object parsed = this.parseTicker(rawTicker, market);
+            ((IDictionary<string,object>)parsedTickers)[(string)marketId] = parsed;
+        }
+        return this.filterByArray(parsedTickers, "symbol", symbols);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -654,7 +666,7 @@ public partial class indodax : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pair", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetApiTradesPair(this.extend(request, parameters));
         return this.parseTrades(response, market, since, limit);
@@ -693,15 +705,14 @@ public partial class indodax : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object timeframes = getValue(this.options, "timeframes");
-        object selectedTimeframe = this.safeString(timeframes, timeframe, timeframe);
+        object selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
         object now = this.seconds();
         object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
             { "to", until },
             { "tf", selectedTimeframe },
-            { "symbol", add(getValue(market, "base"), getValue(market, "quote")) },
+            { "symbol", getValue(market, "id") },
         };
         if (isTrue(isEqual(limit, null)))
         {

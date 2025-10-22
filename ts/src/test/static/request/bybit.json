@@ -18,6 +18,47 @@
         ],
         "createOrder": [
             {
+                "description": "spot order with sl type 3",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.2,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 0.1
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"slOrderType\":\"Market\"}"
+            },
+            {
+                "description": "spot order with to/sl",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "ADA/USDT",
+                    "limit",
+                    "buy",
+                    50,
+                    0.2,
+                    {
+                        "takeProfit": {
+                            "triggerPrice": 5,
+                            "price": 5
+                        },
+                        "stopLoss": {
+                            "price": 0.1,
+                            "triggerPrice": 0.1
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"0.2\",\"category\":\"spot\",\"qty\":\"50\",\"stopLoss\":\"0.1\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"0.1\",\"takeProfit\":\"5\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"5\"}"
+            },
+            {
                 "description": "spot stopLossPrice order",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",
@@ -1547,6 +1588,37 @@
               }
         ],
         "withdraw": [
+            {
+                "description": "withdraw  using UTA account",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    4.34,
+                    "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
+                    null,
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879504108,\"accountType\":\"UTA\",\"chain\":\"TRX\"}"
+            },
+            {
+                "description": "withdraw from fund account using UTA account",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                    "USDT",
+                    4.34,
+                    "TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6",
+                    null,
+                    {
+                        "network": "TRC20",
+                        "accountType": "FUND"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"4.34\",\"address\":\"TCb3SXELLBn81JWPNhTbGBEoXHtCX62eU6\",\"timestamp\":1758879459515,\"accountType\":\"FUND\",\"chain\":\"TRX\"}"
+            },
             {
                 "description": "withdraw usdt on uta",
                 "method": "withdraw",

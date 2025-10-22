@@ -761,7 +761,7 @@ export default class blockchaincom extends blockchaincomRest {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const isAuthenticated = this.safeValue(client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
             this.checkRequiredCredentials();

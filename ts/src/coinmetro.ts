@@ -569,6 +569,17 @@ export default class coinmetro extends Exchange {
                 }
             }
         }
+        if (baseId === undefined || quoteId === undefined) {
+            // https://github.com/ccxt/ccxt/issues/26820
+            if (marketId.endsWith ('USDT')) {
+                baseId = marketId.replace ('USDT', '');
+                quoteId = 'USDT';
+            }
+            if (marketId.endsWith ('USD')) {
+                baseId = marketId.replace ('USD', '');
+                quoteId = 'USD';
+            }
+        }
         const result: Dict = {
             'baseId': baseId,
             'quoteId': quoteId,
@@ -602,7 +613,7 @@ export default class coinmetro extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
