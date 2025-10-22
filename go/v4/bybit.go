@@ -7536,7 +7536,7 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 	}
 	var notional interface{} = this.SafeString2(position, "positionValue", "cumExitValue")
 	var unrealisedPnl interface{} = this.OmitZero(this.SafeString(position, "unrealisedPnl"))
-	var initialMarginString interface{} = this.SafeStringN(position, []interface{}{"positionIM", "cumEntryValue"})
+	var initialMarginString interface{} = this.SafeString2(position, "positionIM", "cumEntryValue")
 	var maintenanceMarginString interface{} = this.SafeString(position, "positionMM")
 	var timestamp interface{} = this.SafeIntegerN(position, []interface{}{"createdTime", "createdAt"})
 	var lastUpdateTimestamp interface{} = this.Parse8601(this.SafeString(position, "updated_at"))
@@ -7572,7 +7572,7 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 				var maintenanceMarginPriceDifference interface{} = Precise.StringAbs(Precise.StringSub(liquidationPrice, bustPrice))
 				maintenanceMarginString = Precise.StringMul(maintenanceMarginPriceDifference, size)
 				// Initial Margin = Contracts x Entry Price / Leverage
-				if IsTrue(!IsEqual(entryPrice, nil)) {
+				if IsTrue(IsTrue((!IsEqual(entryPrice, nil))) && IsTrue((IsEqual(initialMarginString, nil)))) {
 					initialMarginString = Precise.StringDiv(Precise.StringMul(size, entryPrice), leverage)
 				}
 			} else {
@@ -7584,7 +7584,7 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 				var multiply interface{} = Precise.StringMul(bustPrice, liquidationPrice)
 				maintenanceMarginString = Precise.StringDiv(Precise.StringMul(size, difference), multiply)
 				// Initial Margin = Leverage x Contracts / EntryPrice
-				if IsTrue(!IsEqual(entryPrice, nil)) {
+				if IsTrue(IsTrue((!IsEqual(entryPrice, nil))) && IsTrue((IsEqual(initialMarginString, nil)))) {
 					initialMarginString = Precise.StringDiv(size, Precise.StringMul(entryPrice, leverage))
 				}
 			}
