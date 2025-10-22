@@ -285,7 +285,6 @@ export default class arkm extends arkmRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderBook::' + symbol;
-        const timestamp = this.safeIntegerProduct (data, 'lastTime', 0.000001);
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook ({});
             ob['symbol'] = symbol;
@@ -293,9 +292,11 @@ export default class arkm extends arkmRest {
         }
         const storedOrderBook = this.orderbooks[symbol];
         if (type === 'snapshot') {
+            const timestamp = this.safeIntegerProduct (data, 'lastTime', 0.001);
             const parsedOrderBook = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'size');
             storedOrderBook.reset (parsedOrderBook);
         } else if (type === 'update') {
+            const timestamp = this.safeInteger (data, 'time');
             const side = this.safeString (data, 'side');
             const bookside = (side === 'buy') ? storedOrderBook['bids'] : storedOrderBook['asks'];
             this.handleDelta (bookside, data);
