@@ -233,7 +233,7 @@ public partial class binance : Exchange
                 } },
                 { "www", "https://www.binance.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://accounts.binance.com/en/register?ref=D7YA7CLY" },
+                    { "url", "https://accounts.binance.com/register?ref=CCXTCOM" },
                     { "discount", 0.1 },
                 } },
                 { "doc", new List<object>() {"https://developers.binance.com/en"} },

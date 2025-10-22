@@ -1325,6 +1325,12 @@ class okx extends Exchange {
                     ),
                 ),
             ),
+            'currencies' => array(
+                'USD' => $this->safe_currency_structure(array( 'id' => 'USD', 'code' => 'USD', 'precision' => $this->parse_number('0.0001') )),
+                'EUR' => $this->safe_currency_structure(array( 'id' => 'EUR', 'code' => 'EUR', 'precision' => $this->parse_number('0.0001') )),
+                'AED' => $this->safe_currency_structure(array( 'id' => 'AED', 'code' => 'AED', 'precision' => $this->parse_number('0.0001') )),
+                'GBP' => $this->safe_currency_structure(array( 'id' => 'GBP', 'code' => 'GBP', 'precision' => $this->parse_number('0.0001') )),
+            ),
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981

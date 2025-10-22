@@ -173,7 +173,7 @@ public partial class okx : Exchange
                 { "doc", "https://www.okx.com/docs-v5/en/" },
                 { "fees", "https://www.okx.com/pages/products/fees.html" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.okx.com/join/CCXT2023" },
+                    { "url", "https://www.okx.com/join/CCXTCOM" },
                     { "discount", 0.2 },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -1223,6 +1223,28 @@ public partial class okx : Exchange
                         { "extends", "default" },
                     } },
                 } },
+            } },
+            { "currencies", new Dictionary<string, object>() {
+                { "USD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "USD" },
+                    { "code", "USD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "EUR", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "EUR" },
+                    { "code", "EUR" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "AED", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AED" },
+                    { "code", "AED" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
+                { "GBP", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "GBP" },
+                    { "code", "GBP" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },

@@ -2803,7 +2803,9 @@ class bitget extends \ccxt\async\bitget {
             unset($client->subscriptions[$messageHash]);
         }
         $error = new UnsubscribeError ($this->id . ' orderbook ' . $symbol);
-        $client->reject ($error, $subMessageHash);
+        if (is_array($client->futures) && array_key_exists($subMessageHash, $client->futures)) {
+            $client->reject ($error, $subMessageHash);
+        }
         $client->resolve (true, $messageHash);
     }
 
@@ -2829,7 +2831,9 @@ class bitget extends \ccxt\async\bitget {
             unset($client->subscriptions[$messageHash]);
         }
         $error = new UnsubscribeError ($this->id . ' trades ' . $symbol);
-        $client->reject ($error, $subMessageHash);
+        if (is_array($client->futures) && array_key_exists($subMessageHash, $client->futures)) {
+            $client->reject ($error, $subMessageHash);
+        }
         $client->resolve (true, $messageHash);
     }
 
@@ -2855,7 +2859,9 @@ class bitget extends \ccxt\async\bitget {
             unset($client->subscriptions[$messageHash]);
         }
         $error = new UnsubscribeError ($this->id . ' ticker ' . $symbol);
-        $client->reject ($error, $subMessageHash);
+        if (is_array($client->futures) && array_key_exists($subMessageHash, $client->futures)) {
+            $client->reject ($error, $subMessageHash);
+        }
         $client->resolve (true, $messageHash);
     }
 

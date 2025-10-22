@@ -1353,6 +1353,12 @@ class okx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'currencies': {
+                'USD': self.safe_currency_structure({'id': 'USD', 'code': 'USD', 'precision': self.parse_number('0.0001')}),
+                'EUR': self.safe_currency_structure({'id': 'EUR', 'code': 'EUR', 'precision': self.parse_number('0.0001')}),
+                'AED': self.safe_currency_structure({'id': 'AED', 'code': 'AED', 'precision': self.parse_number('0.0001')}),
+                'GBP': self.safe_currency_structure({'id': 'GBP', 'code': 'GBP', 'precision': self.parse_number('0.0001')}),
+            },
             'commonCurrencies': {
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
