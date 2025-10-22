@@ -184,7 +184,7 @@ export default class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -2577,7 +2577,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
         }
@@ -4090,7 +4090,7 @@ export default class bybit extends Exchange {
                 // only works for spot market
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
-                } else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+                } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4112,7 +4112,8 @@ export default class bybit extends Exchange {
         params = this.omit (params, 'cost');
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
-        if (market['spot'] && (type === 'market') && isUTA && !isMarketBuyAndCostInferable) {
+        const isMarketOrder = lowerCaseType === 'market';
+        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4128,7 +4129,7 @@ export default class bybit extends Exchange {
                 request['marketUnit'] = 'baseCoin';
                 request['qty'] = amountString;
             }
-        } else if (market['spot'] && (type === 'market') && (side === 'buy')) {
+        } else if (market['spot'] && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4194,6 +4195,15 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice (symbol, slLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new InvalidOrder (this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
                 }
             }
             if (isTakeProfit) {
@@ -4204,6 +4214,15 @@ export default class bybit extends Exchange {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice (symbol, tpLimitPrice);
+                } else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new InvalidOrder (this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }
@@ -4591,7 +4610,7 @@ export default class bybit extends Exchange {
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}): Promise<Order[]> {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -6242,6 +6261,7 @@ export default class bybit extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
@@ -6249,9 +6269,9 @@ export default class bybit extends Exchange {
         let accountType = undefined;
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
-        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType', 'SPOT');
-        if (isUta) {
-            accountType = 'UTA';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
+        if (accountType === undefined) {
+            accountType = isUta ? 'UTA' : 'SPOT';
         }
         await this.loadMarkets ();
         this.checkAddress (address);

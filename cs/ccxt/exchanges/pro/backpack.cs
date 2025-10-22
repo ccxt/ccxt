@@ -393,7 +393,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -503,7 +503,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -910,7 +910,7 @@ public partial class backpack : ccxt.backpack
 
     /**
      * @method
-     * @name kucoin#unWatchOrderBookForSymbols
+     * @name backpack#unWatchOrderBookForSymbols
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -979,7 +979,7 @@ public partial class backpack : ccxt.backpack
             }
             ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(data);
             return;
-        } else if (isTrue(isGreaterThanOrEqual(nonce, deltaNonce)))
+        } else if (isTrue(isGreaterThan(nonce, deltaNonce)))
         {
             return;
         }
@@ -993,8 +993,8 @@ public partial class backpack : ccxt.backpack
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
-        object bids = this.safeDict(delta, "b", new List<object>() {});
-        object asks = this.safeDict(delta, "a", new List<object>() {});
+        object bids = this.safeList(delta, "b", new List<object>() {});
+        object asks = this.safeList(delta, "a", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
@@ -1012,9 +1012,11 @@ public partial class backpack : ccxt.backpack
 
     public override object getCacheIndex(object orderbook, object cache)
     {
+        //
+        // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         object firstDelta = this.safeDict(cache, 0);
         object nonce = this.safeInteger(orderbook, "nonce");
-        object firstDeltaStart = this.safeInteger(firstDelta, "sequenceStart");
+        object firstDeltaStart = this.safeInteger(firstDelta, "U");
         if (isTrue(isLessThan(nonce, subtract(firstDeltaStart, 1))))
         {
             return -1;
@@ -1022,8 +1024,8 @@ public partial class backpack : ccxt.backpack
         for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaStart = this.safeInteger(delta, "sequenceStart");
-            object deltaEnd = this.safeInteger(delta, "sequenceEnd");
+            object deltaStart = this.safeInteger(delta, "U");
+            object deltaEnd = this.safeInteger(delta, "u");
             if (isTrue(isTrue((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1)))) && isTrue((isLessThan(nonce, deltaEnd)))))
             {
                 return i;

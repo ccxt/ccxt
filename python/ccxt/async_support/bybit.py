@@ -200,7 +200,7 @@ class bybit(Exchange, ImplicitAPI):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -2499,7 +2499,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3936,7 +3936,7 @@ class bybit(Exchange, ImplicitAPI):
                 # only works for spot market
                 if triggerPrice is not None:
                     request['orderFilter'] = 'StopOrder'
-                elif stopLossTriggerPrice is not None or takeProfitTriggerPrice is not None or isStopLoss or isTakeProfit:
+                elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                     request['orderFilter'] = 'tpslOrder'
             clientOrderId = self.safe_string(params, 'clientOrderId')
             if clientOrderId is not None:
@@ -3953,7 +3953,8 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, 'cost')
         # if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         isMarketBuyAndCostInferable = (lowerCaseType == 'market') and (side == 'buy') and ((price is not None) or (cost is not None))
-        if market['spot'] and (type == 'market') and isUTA and not isMarketBuyAndCostInferable:
+        isMarketOrder = lowerCaseType == 'market'
+        if market['spot'] and isMarketOrder and isUTA and not isMarketBuyAndCostInferable:
             # UTA account can specify the cost of the order on both sides
             if (cost is not None) or (price is not None):
                 request['marketUnit'] = 'quoteCoin'
@@ -3967,7 +3968,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 request['marketUnit'] = 'baseCoin'
                 request['qty'] = amountString
-        elif market['spot'] and (type == 'market') and (side == 'buy'):
+        elif market['spot'] and isMarketOrder and (side == 'buy'):
             # classic accounts
             # for market buy it requires the amount of quote currency to spend
             createMarketBuyOrderRequiresPrice = True
@@ -4022,6 +4023,13 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['slOrderType'] = 'Limit'
                     request['slLimitPrice'] = self.get_price(symbol, slLimitPrice)
+                else:
+                    # for spot market, we need to add self
+                    if market['spot']:
+                        request['slOrderType'] = 'Market'
+                # for spot market, we need to add self
+                if market['spot'] and isMarketOrder:
+                    raise InvalidOrder(self.id + ' createOrder(): attached stopLoss is not supported for spot market orders')
             if isTakeProfit:
                 tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
                 request['takeProfit'] = self.get_price(symbol, tpTriggerPrice)
@@ -4030,6 +4038,13 @@ class bybit(Exchange, ImplicitAPI):
                     request['tpslMode'] = 'Partial'
                     request['tpOrderType'] = 'Limit'
                     request['tpLimitPrice'] = self.get_price(symbol, tpLimitPrice)
+                else:
+                    # for spot market, we need to add self
+                    if market['spot']:
+                        request['tpOrderType'] = 'Market'
+                # for spot market, we need to add self
+                if market['spot'] and isMarketOrder:
+                    raise InvalidOrder(self.id + ' createOrder(): attached takeProfit is not supported for spot market orders')
         if not market['spot'] and hedged:
             if reduceOnly:
                 params = self.omit(params, 'reduceOnly')
@@ -4374,7 +4389,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -5936,15 +5951,16 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.accountType]: 'UTA', 'FUND', 'FUND,UTA', and 'SPOT(for classic accounts only)
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         accountType = None
         accounts = await self.is_unified_enabled()
         isUta = accounts[1]
-        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
-        if isUta:
-            accountType = 'UTA'
+        accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType')
+        if accountType is None:
+            accountType = 'UTA' if isUta else 'SPOT'
         await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)

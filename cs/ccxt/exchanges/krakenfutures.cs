@@ -42,6 +42,7 @@ public partial class krakenfutures : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
@@ -1312,7 +1313,7 @@ public partial class krakenfutures : Exchange
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1901,6 +1902,22 @@ public partial class krakenfutures : Exchange
         //        }
         //    }
         //
+        //   {
+        //     uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //     accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //     tradeable: 'PF_LTCUSD',
+        //     direction: 'Buy',
+        //     quantity: '0',
+        //     filled: '0.1',
+        //     timestamp: '1707258274849',
+        //     limitPrice: '69.2200000000',
+        //     orderType: 'IoC',
+        //     clientId: '',
+        //     reduceOnly: false,
+        //     lastUpdateTimestamp: '1707258274849',
+        //     status: 'closed'
+        //   }
+        //
         object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
         object errorStatus = this.safeString(order, "status");
         object orderEventsLength = getArrayLength(orderEvents);
@@ -2048,20 +2065,26 @@ public partial class krakenfutures : Exchange
         {
             timeInForce = "ioc";
         }
+        object symbol = this.safeString(market, "symbol");
+        if (isTrue(inOp(details, "tradeable")))
+        {
+            symbol = this.safeSymbol(this.safeString(details, "tradeable"), market);
+        }
+        object ts = this.safeInteger(details, "timestamp", timestamp);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
             { "clientOrderId", this.safeStringN(details, new List<object>() {"clientOrderId", "clientId", "cliOrdId"}) },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", ts },
+            { "datetime", this.iso8601(ts) },
             { "lastTradeTimestamp", null },
-            { "lastUpdateTimestamp", lastUpdateTimestamp },
-            { "symbol", this.safeString(market, "symbol") },
+            { "lastUpdateTimestamp", this.safeInteger(details, "lastUpdateTimestamp", lastUpdateTimestamp) },
+            { "symbol", symbol },
             { "type", this.parseOrderType(type) },
             { "timeInForce", timeInForce },
             { "postOnly", isEqual(type, "post") },
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
-            { "side", this.safeString(details, "side") },
+            { "side", this.safeStringLower2(details, "side", "direction") },
             { "price", price },
             { "triggerPrice", this.safeString(details, "triggerPrice") },
             { "amount", amount },

@@ -45,6 +45,7 @@ public partial class wavesexchange : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", null },
                 { "fetchDepositAddressesByNetwork", null },

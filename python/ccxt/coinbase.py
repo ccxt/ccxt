@@ -289,6 +289,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': 1,
                             'brokerage/payment_methods': 1,
                             'brokerage/payment_methods/{payment_method_id}': 1,
+                            'brokerage/key_permissions': 1,
                         },
                         'post': {
                             'brokerage/orders': 1,
@@ -2836,7 +2837,7 @@ class coinbase(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' prepareAccountRequestWithCurrencyCode() method requires an account_id(or accountId) parameter OR a currency code argument')
             accountId = self.find_account_id(code, params)
             if accountId is None:
-                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code)
+                raise ExchangeError(self.id + ' prepareAccountRequestWithCurrencyCode() could not find account id for ' + code + '. You might try to generate the deposit address in the website for that coin first.')
         request: dict = {
             'account_id': accountId,
         }
@@ -3260,7 +3261,7 @@ class coinbase(Exchange, ImplicitAPI):
         orders = self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0, {})
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -3611,7 +3612,7 @@ class coinbase(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_status('CANCELLED', symbol, since, limit, params)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 

@@ -51,6 +51,7 @@ export default class krakenfutures extends Exchange {
                 'fetchClosedOrders': true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -721,7 +722,7 @@ export default class krakenfutures extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let paginate = false;
@@ -1847,6 +1848,22 @@ export default class krakenfutures extends Exchange {
         //        }
         //    }
         //
+        //   {
+        //     uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        //     accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //     tradeable: 'PF_LTCUSD',
+        //     direction: 'Buy',
+        //     quantity: '0',
+        //     filled: '0.1',
+        //     timestamp: '1707258274849',
+        //     limitPrice: '69.2200000000',
+        //     orderType: 'IoC',
+        //     clientId: '',
+        //     reduceOnly: false,
+        //     lastUpdateTimestamp: '1707258274849',
+        //     status: 'closed'
+        //   }
+        //
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
@@ -1964,20 +1981,25 @@ export default class krakenfutures extends Exchange {
         if (type === 'ioc' || this.parseOrderType (type) === 'market') {
             timeInForce = 'ioc';
         }
+        let symbol = this.safeString (market, 'symbol');
+        if ('tradeable' in details) {
+            symbol = this.safeSymbol (this.safeString (details, 'tradeable'), market);
+        }
+        const ts = this.safeInteger (details, 'timestamp', timestamp);
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': this.safeStringN (details, [ 'clientOrderId', 'clientId', 'cliOrdId' ]),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': ts,
+            'datetime': this.iso8601 (ts),
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': lastUpdateTimestamp,
-            'symbol': this.safeString (market, 'symbol'),
+            'lastUpdateTimestamp': this.safeInteger (details, 'lastUpdateTimestamp', lastUpdateTimestamp),
+            'symbol': symbol,
             'type': this.parseOrderType (type),
             'timeInForce': timeInForce,
             'postOnly': type === 'post',
             'reduceOnly': this.safeBool2 (details, 'reduceOnly', 'reduce_only'),
-            'side': this.safeString (details, 'side'),
+            'side': this.safeStringLower2 (details, 'side', 'direction'),
             'price': price,
             'triggerPrice': this.safeString (details, 'triggerPrice'),
             'amount': amount,

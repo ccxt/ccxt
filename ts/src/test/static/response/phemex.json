@@ -3,6 +3,50 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "setMarginMode": [
+            {
+                "description": "cross",
+                "method": "setMarginMode",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                }
+            },
+            {
+                "description": "isolated",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "BTC/USDT:USDT",
+                    {
+                        "leverage": 5
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": "OK"
+                }
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "fetchCurrencies",

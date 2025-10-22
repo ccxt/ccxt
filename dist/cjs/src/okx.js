@@ -21,7 +21,7 @@ class okx extends okx$1["default"] {
             'name': 'OKX',
             'countries': ['CN', 'US'],
             'version': 'v5',
-            'rateLimit': 100 * 1.03,
+            'rateLimit': 100 * 1.10,
             'pro': true,
             'certified': true,
             'has': {
@@ -184,7 +184,7 @@ class okx extends okx$1["default"] {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url': 'https://www.okx.com/join/CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXTCOM',
                     'discount': 0.2,
                 },
                 'test': {
@@ -690,6 +690,7 @@ class okx extends okx$1["default"] {
                     '51031': errors.InvalidOrder,
                     '51046': errors.InvalidOrder,
                     '51047': errors.InvalidOrder,
+                    '51051': errors.InvalidOrder,
                     '51072': errors.InvalidOrder,
                     '51073': errors.InvalidOrder,
                     '51074': errors.InvalidOrder,
@@ -1301,7 +1302,8 @@ class okx extends okx$1["default"] {
                     },
                     'fetchOHLCV': {
                         'limit': 300,
-                        'historical': 100,
+                        'mark': 100,
+                        'index': 100,
                     },
                 },
                 'spot': {
@@ -1326,6 +1328,12 @@ class okx extends okx$1["default"] {
                         'extends': 'default',
                     },
                 },
+            },
+            'currencies': {
+                'USD': this.safeCurrencyStructure({ 'id': 'USD', 'code': 'USD', 'precision': this.parseNumber('0.0001') }),
+                'EUR': this.safeCurrencyStructure({ 'id': 'EUR', 'code': 'EUR', 'precision': this.parseNumber('0.0001') }),
+                'AED': this.safeCurrencyStructure({ 'id': 'AED', 'code': 'AED', 'precision': this.parseNumber('0.0001') }),
+                'GBP': this.safeCurrencyStructure({ 'id': 'GBP', 'code': 'GBP', 'precision': this.parseNumber('0.0001') }),
             },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
@@ -2469,16 +2477,18 @@ class okx extends okx$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 200);
         }
-        const price = this.safeString(params, 'price');
+        const priceType = this.safeString(params, 'price');
+        const isMarkOrIndex = this.inArray(priceType, ['mark', 'index']);
         params = this.omit(params, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
         const limitIsUndefined = (limit === undefined);
         if (limit === undefined) {
-            limit = 100; // default 100, max 100
+            limit = 100; // default 100, max 300
         }
         else {
-            limit = Math.min(limit, 300); // max 100
+            const maxLimit = isMarkOrIndex ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+            limit = Math.min(limit, maxLimit);
         }
         const duration = this.parseTimeframe(timeframe);
         let bar = this.safeString(this.timeframes, timeframe, timeframe);
@@ -2498,8 +2508,8 @@ class okx extends okx$1["default"] {
             const historyBorder = now - ((1440 - 1) * durationInMilliseconds);
             if (since < historyBorder) {
                 defaultType = 'HistoryCandles';
-                const maxLimit = (price !== undefined) ? 100 : 300;
-                limit = Math.min(limit, maxLimit); // max 300 for historical endpoint
+                const maxLimit = isMarkOrIndex ? 100 : 300;
+                limit = Math.min(limit, maxLimit);
             }
             const startTime = Math.max(since - 1, 0);
             request['before'] = startTime;
@@ -2515,7 +2525,7 @@ class okx extends okx$1["default"] {
         params = this.omit(params, 'type');
         const isHistoryCandles = (type === 'HistoryCandles');
         let response = undefined;
-        if (price === 'mark') {
+        if (priceType === 'mark') {
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryMarkPriceCandles(this.extend(request, params));
             }
@@ -2523,7 +2533,7 @@ class okx extends okx$1["default"] {
                 response = await this.publicGetMarketMarkPriceCandles(this.extend(request, params));
             }
         }
-        else if (price === 'index') {
+        else if (priceType === 'index') {
             request['instId'] = market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if (isHistoryCandles) {
                 response = await this.publicGetMarketHistoryIndexCandles(this.extend(request, params));
@@ -3188,7 +3198,8 @@ class okx extends okx$1["default"] {
                 request['attachAlgoOrds'] = [attachAlgoOrd];
             }
         }
-        else if (trigger) {
+        // algo order details
+        if (trigger) {
             request['ordType'] = 'trigger';
             request['triggerPx'] = this.priceToPrecision(symbol, triggerPrice);
             request['orderPx'] = isMarketOrder ? '-1' : this.priceToPrecision(symbol, price);
@@ -3639,10 +3650,18 @@ class okx extends okx$1["default"] {
         }
         else {
             for (let i = 0; i < clientOrderIds.length; i++) {
-                request.push({
-                    'instId': market['id'],
-                    'clOrdId': clientOrderIds[i],
-                });
+                if (trailing || trigger) {
+                    request.push({
+                        'instId': market['id'],
+                        'algoClOrdId': clientOrderIds[i],
+                    });
+                }
+                else {
+                    request.push({
+                        'instId': market['id'],
+                        'clOrdId': clientOrderIds[i],
+                    });
+                }
             }
         }
         let response = undefined;
@@ -3719,7 +3738,12 @@ class okx extends okx$1["default"] {
                 idKey = 'algoId';
             }
             else if (clientOrderId !== undefined) {
-                idKey = 'clOrdId';
+                if (isStopOrTrailing) {
+                    idKey = 'algoClOrdId';
+                }
+                else {
+                    idKey = 'clOrdId';
+                }
             }
             const requestItem = {
                 'instId': market['id'],

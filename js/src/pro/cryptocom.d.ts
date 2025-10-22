@@ -283,7 +283,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
     handleCancelAllOrders(client: Client, message: any): void;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
     watchPublicMultiple(messageHashes: any, topics: any, params?: {}): Promise<any>;

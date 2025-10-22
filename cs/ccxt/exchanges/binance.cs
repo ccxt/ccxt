@@ -233,7 +233,7 @@ public partial class binance : Exchange
                 } },
                 { "www", "https://www.binance.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://accounts.binance.com/en/register?ref=D7YA7CLY" },
+                    { "url", "https://accounts.binance.com/register?ref=CCXTCOM" },
                     { "discount", 0.1 },
                 } },
                 { "doc", new List<object>() {"https://developers.binance.com/en"} },
@@ -1450,10 +1450,10 @@ public partial class binance : Exchange
                         { "marketBuyByCost", true },
                         { "marketBuyRequiresPrice", false },
                         { "selfTradePrevention", new Dictionary<string, object>() {
-                            { "expire_maker", true },
-                            { "expire_taker", true },
-                            { "expire_both", true },
-                            { "none", true },
+                            { "EXPIRE_MAKER", true },
+                            { "EXPIRE_TAKER", true },
+                            { "EXPIRE_BOTH", true },
+                            { "NONE", true },
                         } },
                         { "trailing", false },
                         { "icebergAmount", true },
@@ -3322,7 +3322,7 @@ public partial class binance : Exchange
         //                 "expiryDate": 1677225600000,
         //                 "filters": [
         //                     {"filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"},
-        //                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01"}
+        //                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1001","stepSize":"0.01"}
         //                 ],
         //                 "id": 2474,
         //                 "symbol": "ETH-230224-800-C",
@@ -6491,7 +6491,7 @@ public partial class binance : Exchange
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
-     * @param {string} [params.selfTradePrevention] set unified value for stp (see .features for available values)
+     * @param {string} [params.selfTradePrevention] set unified value for stp, one of NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH
      * @param {float} [params.icebergAmount] set iceberg amount for limit orders
      * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
@@ -6974,7 +6974,10 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
         }
         // unified stp
-        object selfTradePrevention = this.safeString(parameters, "selfTradePrevention");
+        object selfTradePrevention = null;
+        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        selfTradePrevention = ((IList<object>)selfTradePreventionparametersVariable)[0];
+        parameters = ((IList<object>)selfTradePreventionparametersVariable)[1];
         if (isTrue(!isEqual(selfTradePrevention, null)))
         {
             if (isTrue(getValue(market, "spot")))
@@ -6991,7 +6994,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["icebergQty"] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
-        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "selfTradePrevention", "icebergAmount"});
+        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount"});
         return this.extend(request, requestParams);
     }
 
@@ -8174,7 +8177,7 @@ public partial class binance : Exchange
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -12565,6 +12568,10 @@ public partial class binance : Exchange
         } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivateV3")))) || isTrue((isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping"))))))
         {
             this.checkRequiredCredentials();
+            if (isTrue(isTrue(isTrue((isGreaterThan(getIndexOf(url, "testnet.binancefuture.com"), -1))) && isTrue(this.isSandboxModeEnabled)) && isTrue((!isTrue(this.safeBool(this.options, "disableFuturesSandboxWarning"))))))
+            {
+                throw new NotSupported ((string)add(this.id, " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
+            }
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue((isEqual(path, "order"))) || isTrue((isEqual(path, "sor/order")))))))
             {
                 // inject in implicit API calls

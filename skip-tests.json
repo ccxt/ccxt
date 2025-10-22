@@ -22,7 +22,10 @@
                 "spread": "bid > ask issue https://github.com/ccxt/ccxt/actions/runs/14901691674/job/41855075107?pr=25907#step:9:389"
             },
             "watchTrades": {
-                "timestamp": "order is messed"
+                "timestampSort": "order is messed"
+            },
+            "watchTradesForSymbols": {
+                "timestampSort": "same"
             }
         }
     },
@@ -975,6 +978,7 @@
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
+                "precision": "not provided",
                 "activeMajorCurrencies": "todo"
             },
             "loadMarkets": "strike is set when option is not true",
@@ -1105,7 +1109,9 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
-                "limits": "max should be above min"
+                "limits": "max should be above min",
+                "taker": "undefined",
+                "maker": "undefined"
             },
             "fetchCurrencies": {
                 "currencyIdAndCode": "https://app.travis-ci.com/github/ccxt/ccxt/builds/268371892#L2559"
@@ -1724,6 +1730,9 @@
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing",
                 "compareOHLC": "broken from API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:898"
             },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo check why there are more tickers"
+            },
             "orderBook":{
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L6363"
             }
@@ -1878,6 +1887,9 @@
             "orderBook": {
                 "compareToZero":"some of them mare zero",
                 "compareToNextItem": "several rows are same zero"
+            },
+            "fetchTickers": {
+                "maxIncrease": "change should be above -price is failing"
             },
             "fetchOrderBooks": {
                 "spread": "https://github.com/ccxt/ccxt/actions/runs/17955230405/job/51065006659?pr=26884#step:9:410"

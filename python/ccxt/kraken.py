@@ -252,6 +252,23 @@ class kraken(Exchange, ImplicitAPI):
                 'XBT': 'BTC',
                 'XDG': 'DOGE',
                 'FEE': 'KFEE',
+                'XETC': 'ETC',
+                'XETH': 'ETH',
+                'XLTC': 'LTC',
+                'XMLN': 'MLN',
+                'XREP': 'REP',
+                'XXBT': 'BTC',
+                'XXDG': 'DOGE',
+                'XXLM': 'XLM',
+                'XXMR': 'XMR',
+                'XXRP': 'XRP',
+                'XZEC': 'ZEC',
+                'ZAUD': 'AUD',
+                'ZCAD': 'CAD',
+                'ZEUR': 'EUR',
+                'ZGBP': 'GBP',
+                'ZJPY': 'JPY',
+                'ZUSD': 'USD',
             },
             'options': {
                 'timeDifference': 0,  # the difference between system clock and Binance clock
@@ -631,10 +648,12 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(keys)):
             id = keys[i]
             market = markets[id]
-            baseId = self.safe_string(market, 'base')
-            quoteId = self.safe_string(market, 'quote')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
+            baseIdRaw = self.safe_string(market, 'base')
+            quoteIdRaw = self.safe_string(market, 'quote')
+            baseId = self.safe_currency_code(baseIdRaw)
+            quoteId = self.safe_currency_code(quoteIdRaw)
+            base = baseId
+            quote = quoteId
             makerFees = self.safe_list(market, 'fees_maker', [])
             firstMakerFee = self.safe_list(makerFees, 0, [])
             firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
@@ -1115,7 +1134,7 @@ class kraken(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1673,6 +1692,10 @@ class kraken(Exchange, ImplicitAPI):
         statuses: dict = {
             'pending': 'open',  # order pending book entry
             'open': 'open',
+            'pending_new': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
             'closed': 'closed',
             'canceled': 'canceled',
             'expired': 'expired',
@@ -2371,7 +2394,7 @@ class kraken(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -2406,7 +2429,7 @@ class kraken(Exchange, ImplicitAPI):
 
         https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str symbol: unified market symbol, not used by kraken cancelAllOrders(all open orders are cancelled)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -3045,7 +3068,6 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
         if 'key' in params:
             self.load_markets()
             currency = self.currency(code)
@@ -3056,6 +3078,7 @@ class kraken(Exchange, ImplicitAPI):
             }
             if address is not None and address != '':
                 request['address'] = address
+                self.check_address(address)
             response = self.privatePostWithdraw(self.extend(request, params))
             #
             #     {

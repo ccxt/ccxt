@@ -162,7 +162,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = self.safe_string(self.options, 'defaultType')
         data = self.safe_dict(message, 'data', {})
         rawTickers = self.safe_list(data, 'state_list', [])
-        newTickers = []
+        newTickers = {}
         for i in range(0, len(rawTickers)):
             entry = rawTickers[i]
             marketId = self.safe_string(entry, 'market')
@@ -170,7 +170,7 @@ class coinex(ccxt.async_support.coinex):
             market = self.safe_market(marketId, None, None, defaultType)
             parsedTicker = self.parse_ws_ticker(entry, market)
             self.tickers[symbol] = parsedTicker
-            newTickers.append(parsedTicker)
+            newTickers[symbol] = parsedTicker
         messageHashes = self.find_message_hashes(client, 'tickers::')
         for i in range(0, len(messageHashes)):
             messageHash = messageHashes[i]
@@ -640,6 +640,7 @@ class coinex(ccxt.async_support.coinex):
                 market = self.market(symbol)
                 messageHashes.append('tickers::' + market['symbol'])
         else:
+            marketIds = []
             messageHashes.append('tickers')
         type = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
@@ -702,13 +703,13 @@ class coinex(ccxt.async_support.coinex):
         type = None
         type, params = self.handle_market_type_and_params(callerMethodName, market, params)
         url = self.urls['api']['ws'][type]
-        subscriptionHashes = ['trades']
+        # subscriptionHashes = ['trades']
         subscribe: dict = {
             'method': 'deals.subscribe',
             'params': {'market_list': subscribedSymbols},
             'id': self.request_id(),
         }
-        trades = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), subscriptionHashes)
+        trades = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), messageHashes)
         if self.newUpdates:
             return trades
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -759,9 +760,9 @@ class coinex(ccxt.async_support.coinex):
             'params': {'market_list': marketList},
             'id': self.request_id(),
         }
-        subscriptionHashes = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
+        # subscriptionHashes = self.hash(self.encode(self.json(watchOrderBookSubscriptions)), 'sha256')
         url = self.urls['api']['ws'][type]
-        orderbooks = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), subscriptionHashes)
+        orderbooks = await self.watch_multiple(url, messageHashes, self.deep_extend(subscribe, params), messageHashes)
         if self.newUpdates:
             return orderbooks
         return orderbooks.limit()
@@ -1340,7 +1341,7 @@ class coinex(ccxt.async_support.coinex):
         time = self.milliseconds()
         timestamp = str(time)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is not None:
             return await future

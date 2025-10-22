@@ -18,15 +18,31 @@ class alpaca(ccxt.async_support.alpaca):
         return self.deep_extend(super(alpaca, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createReduceOnlyOrderWs': False,
+                'createStopLossOrderWs': False,
+                'createTakeProfitOrderWs': False,
+                'fetchPositionForSymbolWs': False,
+                'fetchPositionsForSymbolWs': False,
+                'fetchPositionsWs': False,
+                'fetchPositionWs': False,
+                'unWatchPositions': False,
                 'watchBalance': False,
+                'watchLiquidations': False,
+                'watchLiquidationsForSymbols': False,
+                'watchMarkPrice': False,
+                'watchMarkPrices': False,
+                'watchMyLiquidations': False,
+                'watchMyLiquidationsForSymbols': False,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
+                'watchPosition': False,
+                'watchPositions': False,
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
-                'watchPosition': False,
             },
             'urls': {
                 'api': {
@@ -129,7 +145,7 @@ class alpaca(ccxt.async_support.alpaca):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -559,7 +575,7 @@ class alpaca(ccxt.async_support.alpaca):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             request = {

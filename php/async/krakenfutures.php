@@ -53,6 +53,7 @@ class krakenfutures extends Exchange {
                 'fetchClosedOrders' => true, // https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
+                'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
@@ -716,7 +717,7 @@ class krakenfutures extends Exchange {
         ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -1879,6 +1880,22 @@ class krakenfutures extends Exchange {
         //        }
         //    }
         //
+        //   {
+        //     uid => '85805e01-9eed-4395-8360-ed1a228237c9',
+        //     accountUid => '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        //     tradeable => 'PF_LTCUSD',
+        //     direction => 'Buy',
+        //     quantity => '0',
+        //     $filled => '0.1',
+        //     $timestamp => '1707258274849',
+        //     limitPrice => '69.2200000000',
+        //     orderType => 'IoC',
+        //     clientId => '',
+        //     reduceOnly => false,
+        //     $lastUpdateTimestamp => '1707258274849',
+        //     $status => 'closed'
+        //   }
+        //
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
         $orderEventsLength = count($orderEvents);
@@ -1996,20 +2013,25 @@ class krakenfutures extends Exchange {
         if ($type === 'ioc' || $this->parse_order_type($type) === 'market') {
             $timeInForce = 'ioc';
         }
+        $symbol = $this->safe_string($market, 'symbol');
+        if (is_array($details) && array_key_exists('tradeable', $details)) {
+            $symbol = $this->safe_symbol($this->safe_string($details, 'tradeable'), $market);
+        }
+        $ts = $this->safe_integer($details, 'timestamp', $timestamp);
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => $this->safe_string_n($details, array( 'clientOrderId', 'clientId', 'cliOrdId' )),
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $ts,
+            'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
-            'lastUpdateTimestamp' => $lastUpdateTimestamp,
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'lastUpdateTimestamp' => $this->safe_integer($details, 'lastUpdateTimestamp', $lastUpdateTimestamp),
+            'symbol' => $symbol,
             'type' => $this->parse_order_type($type),
             'timeInForce' => $timeInForce,
             'postOnly' => $type === 'post',
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
-            'side' => $this->safe_string($details, 'side'),
+            'side' => $this->safe_string_lower_2($details, 'side', 'direction'),
             'price' => $price,
             'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
             'amount' => $amount,

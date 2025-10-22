@@ -166,7 +166,7 @@ class coinex extends \ccxt\async\coinex {
             $market = $this->safe_market($marketId, null, null, $defaultType);
             $parsedTicker = $this->parse_ws_ticker($entry, $market);
             $this->tickers[$symbol] = $parsedTicker;
-            $newTickers[] = $parsedTicker;
+            $newTickers[$symbol] = $parsedTicker;
         }
         $messageHashes = $this->find_message_hashes($client, 'tickers::');
         for ($i = 0; $i < count($messageHashes); $i++) {
@@ -677,6 +677,7 @@ class coinex extends \ccxt\async\coinex {
                     $messageHashes[] = 'tickers::' . $market['symbol'];
                 }
             } else {
+                $marketIds = array();
                 $messageHashes[] = 'tickers';
             }
             $type = null;
@@ -749,13 +750,13 @@ class coinex extends \ccxt\async\coinex {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params($callerMethodName, $market, $params);
             $url = $this->urls['api']['ws'][$type];
-            $subscriptionHashes = array( 'trades' );
+            // $subscriptionHashes = array( 'trades' );
             $subscribe = array(
                 'method' => 'deals.subscribe',
                 'params' => array( 'market_list' => $subscribedSymbols ),
                 'id' => $this->request_id(),
             );
-            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $subscriptionHashes));
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $messageHashes));
             if ($this->newUpdates) {
                 return $trades;
             }
@@ -815,9 +816,9 @@ class coinex extends \ccxt\async\coinex {
                 'params' => array( 'market_list' => $marketList ),
                 'id' => $this->request_id(),
             );
-            $subscriptionHashes = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)), 'sha256');
+            // $subscriptionHashes = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)), 'sha256');
             $url = $this->urls['api']['ws'][$type];
-            $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $subscriptionHashes));
+            $orderbooks = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($subscribe, $params), $messageHashes));
             if ($this->newUpdates) {
                 return $orderbooks;
             }
@@ -1442,7 +1443,7 @@ class coinex extends \ccxt\async\coinex {
             $time = $this->milliseconds();
             $timestamp = (string) $time;
             $messageHash = 'authenticated';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated !== null) {
                 return Async\await($future);

@@ -461,7 +461,7 @@ class backpack extends \ccxt\async\backpack {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -921,7 +921,7 @@ class backpack extends \ccxt\async\backpack {
             }
             $storedOrderBook->cache[] = $data;
             return;
-        } elseif ($nonce >= $deltaNonce) {
+        } elseif ($nonce > $deltaNonce) {
             return;
         }
         $this->handle_delta($storedOrderBook, $data);
@@ -933,8 +933,8 @@ class backpack extends \ccxt\async\backpack {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['nonce'] = $this->safe_integer($delta, 'u');
-        $bids = $this->safe_dict($delta, 'b', array());
-        $asks = $this->safe_dict($delta, 'a', array());
+        $bids = $this->safe_list($delta, 'b', array());
+        $asks = $this->safe_list($delta, 'a', array());
         $storedBids = $orderbook['bids'];
         $storedAsks = $orderbook['asks'];
         $this->handle_bid_asks($storedBids, $bids);
@@ -949,16 +949,18 @@ class backpack extends \ccxt\async\backpack {
     }
 
     public function get_cache_index($orderbook, $cache) {
+        //
+        // array("E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":array(),"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171)
         $firstDelta = $this->safe_dict($cache, 0);
         $nonce = $this->safe_integer($orderbook, 'nonce');
-        $firstDeltaStart = $this->safe_integer($firstDelta, 'sequenceStart');
+        $firstDeltaStart = $this->safe_integer($firstDelta, 'U');
         if ($nonce < $firstDeltaStart - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
-            $deltaStart = $this->safe_integer($delta, 'sequenceStart');
-            $deltaEnd = $this->safe_integer($delta, 'sequenceEnd');
+            $deltaStart = $this->safe_integer($delta, 'U');
+            $deltaEnd = $this->safe_integer($delta, 'u');
             if (($nonce >= $deltaStart - 1) && ($nonce < $deltaEnd)) {
                 return $i;
             }

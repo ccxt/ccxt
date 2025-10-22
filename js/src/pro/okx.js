@@ -170,7 +170,6 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTrades
-     * @name okx#watchTradesForSymbols
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
@@ -1350,7 +1349,9 @@ export default class okx extends okxRest {
             }
             if (error !== undefined) {
                 delete client.subscriptions[messageHash];
-                delete this.orderbooks[symbol];
+                if (symbol !== undefined) {
+                    delete this.orderbooks[symbol];
+                }
                 client.reject(error, messageHash);
             }
         }
@@ -1504,7 +1505,7 @@ export default class okx extends okxRest {
         const url = this.getUrl('users', access);
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.seconds().toString();

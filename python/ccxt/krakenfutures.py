@@ -65,6 +65,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -709,7 +710,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'info': ticker,
         })
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.kraken.com/api/docs/futures-api/charts/candles
@@ -1780,6 +1781,22 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        }
         #    }
         #
+        #   {
+        #     uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        #     accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        #     tradeable: 'PF_LTCUSD',
+        #     direction: 'Buy',
+        #     quantity: '0',
+        #     filled: '0.1',
+        #     timestamp: '1707258274849',
+        #     limitPrice: '69.2200000000',
+        #     orderType: 'IoC',
+        #     clientId: '',
+        #     reduceOnly: False,
+        #     lastUpdateTimestamp: '1707258274849',
+        #     status: 'closed'
+        #   }
+        #
         orderEvents = self.safe_value(order, 'orderEvents', [])
         errorStatus = self.safe_string(order, 'status')
         orderEventsLength = len(orderEvents)
@@ -1874,20 +1891,24 @@ class krakenfutures(Exchange, ImplicitAPI):
         timeInForce = 'gtc'
         if type == 'ioc' or self.parse_order_type(type) == 'market':
             timeInForce = 'ioc'
+        symbol = self.safe_string(market, 'symbol')
+        if 'tradeable' in details:
+            symbol = self.safe_symbol(self.safe_string(details, 'tradeable'), market)
+        ts = self.safe_integer(details, 'timestamp', timestamp)
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': self.safe_string_n(details, ['clientOrderId', 'clientId', 'cliOrdId']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': ts,
+            'datetime': self.iso8601(ts),
             'lastTradeTimestamp': None,
-            'lastUpdateTimestamp': lastUpdateTimestamp,
-            'symbol': self.safe_string(market, 'symbol'),
+            'lastUpdateTimestamp': self.safe_integer(details, 'lastUpdateTimestamp', lastUpdateTimestamp),
+            'symbol': symbol,
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
             'postOnly': type == 'post',
             'reduceOnly': self.safe_bool_2(details, 'reduceOnly', 'reduce_only'),
-            'side': self.safe_string(details, 'side'),
+            'side': self.safe_string_lower_2(details, 'side', 'direction'),
             'price': price,
             'triggerPrice': self.safe_string(details, 'triggerPrice'),
             'amount': amount,

@@ -9,7 +9,6 @@ export default class okx extends okxRest {
     /**
      * @method
      * @name okx#watchTrades
-     * @name okx#watchTradesForSymbols
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
      * @description get the list of most recent trades for a particular symbol
@@ -389,7 +388,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
     /**
      * @method
      * @name okx#cancelAllOrdersWs
@@ -399,7 +398,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<any>;
+    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
     handleCancelAllOrders(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;

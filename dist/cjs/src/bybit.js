@@ -184,7 +184,7 @@ class bybit extends bybit$1["default"] {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
             },
             'api': {
                 'public': {
@@ -4107,7 +4107,7 @@ class bybit extends bybit$1["default"] {
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
                 }
-                else if (stopLossTriggerPrice !== undefined || takeProfitTriggerPrice !== undefined || isStopLoss || isTakeProfit) {
+                else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                     request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4130,7 +4130,8 @@ class bybit extends bybit$1["default"] {
         params = this.omit(params, 'cost');
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
-        if (market['spot'] && (type === 'market') && isUTA && !isMarketBuyAndCostInferable) {
+        const isMarketOrder = lowerCaseType === 'market';
+        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4149,7 +4150,7 @@ class bybit extends bybit$1["default"] {
                 request['qty'] = amountString;
             }
         }
-        else if (market['spot'] && (type === 'market') && (side === 'buy')) {
+        else if (market['spot'] && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4225,6 +4226,16 @@ class bybit extends bybit$1["default"] {
                     request['slOrderType'] = 'Limit';
                     request['slLimitPrice'] = this.getPrice(symbol, slLimitPrice);
                 }
+                else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
+                }
             }
             if (isTakeProfit) {
                 const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
@@ -4234,6 +4245,16 @@ class bybit extends bybit$1["default"] {
                     request['tpslMode'] = 'Partial';
                     request['tpOrderType'] = 'Limit';
                     request['tpLimitPrice'] = this.getPrice(symbol, tpLimitPrice);
+                }
+                else {
+                    // for spot market, we need to add this
+                    if (market['spot']) {
+                        request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot market, we need to add this
+                if (market['spot'] && isMarketOrder) {
+                    throw new errors.InvalidOrder(this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }
@@ -6243,6 +6264,7 @@ class bybit extends bybit$1["default"] {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -6250,9 +6272,9 @@ class bybit extends bybit$1["default"] {
         let accountType = undefined;
         const accounts = await this.isUnifiedEnabled();
         const isUta = accounts[1];
-        [accountType, params] = this.handleOptionAndParams(params, 'withdraw', 'accountType', 'SPOT');
-        if (isUta) {
-            accountType = 'UTA';
+        [accountType, params] = this.handleOptionAndParams(params, 'withdraw', 'accountType');
+        if (accountType === undefined) {
+            accountType = isUta ? 'UTA' : 'SPOT';
         }
         await this.loadMarkets();
         this.checkAddress(address);
