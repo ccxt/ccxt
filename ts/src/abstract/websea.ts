@@ -18,12 +18,15 @@ interface Exchange {
     publicGetOpenApiMarket24kline (params?: {}): Promise<implicitReturnType>;
     publicGetOpenApiMarket24klineList (params?: {}): Promise<implicitReturnType>;
     publicGetOpenApiMarketPrecision (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenApiFuturesSymbols (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenApiFuturesTrade (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenApiFuturesDepth (params?: {}): Promise<implicitReturnType>;
-    publicGetOpenApiFuturesKline (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractSymbols (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractTrade (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractDepth (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractKline (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContract24kline (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiWalletList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustHistoryList (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiFuturesEntrustOrderList (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiFuturesPositionList (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustAdd (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustCancel (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustOrderDetail (params?: {}): Promise<implicitReturnType>;
@@ -32,10 +35,9 @@ interface Exchange {
     privatePostOpenApiWalletDetail (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesEntrustAdd (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesEntrustCancel (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesEntrustOrderList (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesEntrustOrderDetail (params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesPositionList (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesPositionDetail (params?: {}): Promise<implicitReturnType>;
+    privatePostOpenApiFuturesPositionSetLeverage (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

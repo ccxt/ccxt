@@ -4,7 +4,8 @@ import Exchange from './abstract/websea.js';
 import { ExchangeError, BadSymbol, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha1 } from './static_dependencies/noble-hashes/sha1.js';
-import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, FundingRate, MarketInterface } from './base/types.js';
+import { Precise } from './base/Precise.js';
+import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, MarketInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -49,7 +50,7 @@ export default class websea extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': true,
+                'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
@@ -190,6 +191,7 @@ export default class websea extends Exchange {
                 'logo': 'https://webseaex.github.io/favicon.ico',
                 'api': {
                     'rest': 'https://oapi.websea.com',
+                    'contract': 'https://coapi.websea.com',
                 },
                 'test': {
                     'rest': 'https://oapi.websea.com',
@@ -207,6 +209,9 @@ export default class websea extends Exchange {
             'options': {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear'
+                'fetchMarkets': {
+                    'types': [ 'spot', 'swap' ], // 默认获取的市场类型
+                },
             },
             'api': {
                 'public': {
@@ -220,30 +225,36 @@ export default class websea extends Exchange {
                         'openApi/market/24kline': 1, // 24小时K线数据
                         'openApi/market/24kline-list': 1, // 24小时市场列表
                         'openApi/market/precision': 1, // 交易对精度
-                        'openApi/futures/symbols': 1, // 期货交易对列表
-                        'openApi/futures/trade': 1, // 期货交易记录
-                        'openApi/futures/depth': 1, // 期货市场深度
-                        'openApi/futures/kline': 1, // 期货K线数据
+                    },
+                },
+                'contract': {
+                    'get': {
+                        'openApi/contract/symbols': 1, // 合约交易对列表
+                        'openApi/contract/trade': 1, // 合约交易记录
+                        'openApi/contract/depth': 1, // 合约市场深度
+                        'openApi/contract/kline': 1, // 合约K线数据
+                        'openApi/contract/24kline': 1, // 合约24小时K线数据
                     },
                 },
                 'private': {
                     'get': {
                         'openApi/wallet/list': 1, // 钱包列表 - 余额查询
                         'openApi/entrust/historyList': 1, // 历史订单列表 - 已完成订单
+                        'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
+                        'openApi/futures/position/list': 1, // 期货持仓列表
                     },
                     'post': {
-                        'openApi/entrust/add': 1, // 下单
-                        'openApi/entrust/cancel': 1, // 取消订单
-                        'openApi/entrust/orderDetail': 1, // 订单详情
-                        'openApi/entrust/orderTrade': 1, // 订单成交记录
+                        'openApi/entrust/add': 1, // 现货下单
+                        'openApi/entrust/cancel': 1, // 现货取消订单
+                        'openApi/entrust/orderDetail': 1, // 现货订单详情
+                        'openApi/entrust/orderTrade': 1, // 现货订单成交记录
                         'openApi/entrust/historyDetail': 1, // 历史订单详情
                         'openApi/wallet/detail': 1, // 钱包详情
                         'openApi/futures/entrust/add': 1, // 期货下单
                         'openApi/futures/entrust/cancel': 1, // 期货取消订单
-                        'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
                         'openApi/futures/entrust/orderDetail': 1, // 期货订单详情
-                        'openApi/futures/position/list': 1, // 期货持仓列表
                         'openApi/futures/position/detail': 1, // 期货持仓详情
+                        'openApi/futures/position/setLeverage': 1, // 设置杠杆
                     },
                 },
             },
@@ -271,14 +282,93 @@ export default class websea extends Exchange {
                 },
             },
             'commonCurrencies': {
-                // 常见货币映射
+                'COAI': 'COAI',
+                'MON': 'MON',
+                'YB': 'YB',
+                '4': '4',
+                'AIA': 'AIA',
+                'FF': 'FF',
+                '0G': '0G',
+                'LINEA': 'LINEA',
+                'SOMI': 'SOMI',
+                'XPL': 'XPL',
+                'CUDIS': 'CUDIS',
+                'PLUME': 'PLUME',
+                'XNY': 'XNY',
+                'BIO': 'BIO',
+                'PROVE': 'PROVE',
+                'TREE': 'TREE',
+                'ZORA': 'ZORA',
+                'HYPE': 'HYPE',
+                'POPCAT': 'POPCAT',
+                'CROSS': 'CROSS',
+                'M': 'M',
+                'RESOLV': 'RESOLV',
+                'SAHARA': 'SAHARA',
+                'SPK': 'SPK',
+                'DOOD': 'DOOD',
+                'SIGN': 'SIGN',
+                'WCT': 'WCT',
+                'HBAR': 'HBAR',
+                'XEC': 'XEC',
+                'XMR': 'XMR',
+                'XLM': 'XLM',
+                'ICP': 'ICP',
+                'VET': 'VET',
+                'STX': 'STX',
+                'XTZ': 'XTZ',
+                'THETA': 'THETA',
+                'RUNE': 'RUNE',
+                'FLOW': 'FLOW',
+                'GMX': 'GMX',
+                'AR': 'AR',
+                'BSV': 'BSV',
+                'KAS': 'KAS',
+                'PYTH': 'PYTH',
+                'SEI': 'SEI',
             },
         });
     }
 
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name websea#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://webseaex.github.io/zh/#futures-trading-position-set-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostOpenApiFuturesPositionSetLeverage (this.extend (request, params));
+    }
+
     parseOrder (order, market: Market = undefined): Order {
         //
-        // 需要根据实际API响应结构调整
+        // futures: openApi/futures/entrust/orderDetail
+        //     {
+        //         "order_id": "123456789",
+        //         "symbol": "BTC-USDT",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "60000.00",
+        //         "amount": "1.000",
+        //         "filled_amount": "0.500",
+        //         "unfilled_amount": "0.500",
+        //         "status": "partially_filled",
+        //         "create_time": 1630000000000,
+        //         "update_time": 1630000001000
+        //     }
         //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -290,31 +380,31 @@ export default class websea extends Exchange {
         const type = this.safeString (order, 'type');
         const price = this.safeNumber (order, 'price');
         const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'filled');
-        const remaining = this.safeNumber (order, 'remaining');
-        const cost = this.safeNumber (order, 'cost');
-        const fee = undefined; // 需要根据实际API调整
+        const filled = this.safeNumber (order, 'filled_amount');
+        const remaining = this.safeNumber (order, 'unfilled_amount');
+        const lastTradeTimestamp = this.safeInteger (order, 'update_time');
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'triggerPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         }, market);
     }
@@ -350,7 +440,7 @@ export default class websea extends Exchange {
                 const typeInParams = this.safeString2 (this.options, 'defaultType', 'type', defaultType);
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
-                    if (market[typeInParams]) {
+                    if (market['type'] === typeInParams) {
                         return market;
                     }
                 }
@@ -372,41 +462,127 @@ export default class websea extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        // 并发获取现货和期货市场数据
-        const requests = [
-            this.publicGetOpenApiMarketSymbols (params),
-        ];
-        // 尝试获取期货市场数据，如果失败则使用空数组
-        let swapRequestPromise = undefined;
-        try {
-            swapRequestPromise = this.publicGetOpenApiFuturesSymbols (params);
-            requests.push (swapRequestPromise);
-        } catch (e) {
-            // 如果期货API不可用，在后续处理中使用空数组
-            // 这里不需要做任何操作
+        // 获取支持的市场类型（基于has属性）
+        const supportedTypes = [];
+        if (this.has['spot']) {
+            supportedTypes.push ('spot');
         }
-        // 并发执行所有请求
-        let responses = [];
-        try {
-            responses = await Promise.all (requests);
-        } catch (e) {
-            // 如果期货请求失败，只使用现货市场的响应
+        if (this.has['swap']) {
+            supportedTypes.push ('swap');
+        }
+        if (this.has['future']) {
+            supportedTypes.push ('future');
+        }
+        if (this.has['option']) {
+            supportedTypes.push ('option');
+        }
+        // 获取用户指定的市场类型或使用默认值
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
+        const requestedTypes = this.safeList (fetchMarketsOptions, 'types', supportedTypes);
+        // 验证请求的市场类型是否支持
+        const validTypes = [];
+        for (let i = 0; i < requestedTypes.length; i++) {
+            const type = requestedTypes[i];
+            if (supportedTypes.indexOf (type) >= 0) {
+                validTypes.push (type);
+            }
+        }
+        // 如果没有有效的市场类型，返回空数组
+        if (validTypes.length === 0) {
+            return [];
+        }
+        // 并行获取市场数据
+        const promises = [];
+        for (let i = 0; i < validTypes.length; i++) {
+            const type = validTypes[i];
+            promises.push (this.fetchMarketsByType (type, params));
+        }
+        const results = await Promise.all (promises);
+        // 使用循环合并所有市场数据
+        let allMarkets = [];
+        for (let i = 0; i < results.length; i++) {
+            allMarkets = this.arrayConcat (allMarkets, results[i]);
+        }
+        return allMarkets;
+    }
+
+    async fetchMarketsByType (type: string, params = {}): Promise<Market[]> {
+        // 首先获取货币列表，确保所有货币代码都存在
+        const currenciesResponse = await this.publicGetOpenApiMarketCurrencies (params);
+        const currencies = this.safeValue (currenciesResponse, 'result', {});
+        let markets = [];
+        if (type === 'spot') {
+            // 获取现货市场数据
             const spotResponse = await this.publicGetOpenApiMarketSymbols (params);
-            responses = [ spotResponse ];
+            markets = this.safeValue (spotResponse, 'result', []);
+        } else if (type === 'swap') {
+            // 尝试获取合约市场数据
+            try {
+                const swapResponse = await this.contractGetOpenApiContractSymbols (params);
+                markets = this.safeValue (swapResponse, 'result', []);
+            } catch (e) {
+                // 如果合约API不可用，返回空数组
+                // This is expected behavior if no swap markets are available
+                return [];
+            }
+            // 为合约市场特有的货币代码创建虚拟的货币条目
+            const swapCurrencies = [];
+            for (let i = 0; i < markets.length; i++) {
+                const market = markets[i];
+                const baseId = this.safeString (market, 'base_currency');
+                const quoteId = this.safeString (market, 'quote_currency');
+                if (baseId && !(baseId in currencies)) {
+                    if (swapCurrencies.indexOf (baseId) === -1) {
+                        swapCurrencies.push (baseId);
+                    }
+                }
+                if (quoteId && !(quoteId in currencies)) {
+                    if (swapCurrencies.indexOf (quoteId) === -1) {
+                        swapCurrencies.push (quoteId);
+                    }
+                }
+            }
+            // 将合约市场特有的货币代码添加到货币列表中
+            for (let j = 0; j < swapCurrencies.length; j++) {
+                const currencyId = swapCurrencies[j];
+                currencies[currencyId] = {
+                    'name': currencyId,
+                    'canWithdraw': false,
+                    'canDeposit': false,
+                    'minWithdraw': '0',
+                    'maxWithdraw': '0',
+                    'makerFee': '0.0016',
+                    'takerFee': '0.0018',
+                };
+                // 同时添加到this.currencies字典中，以便通过CCXT的货币代码验证
+                if (this.currencies === undefined) {
+                    this.currencies = {};
+                }
+                this.currencies[currencyId] = {
+                    'id': currencyId,
+                    'code': currencyId,
+                    'name': currencyId,
+                    'active': false,
+                    'deposit': false,
+                    'withdraw': false,
+                    'precision': undefined,
+                    'fee': undefined,
+                    'limits': {
+                        'amount': { 'min': undefined, 'max': undefined },
+                        'withdraw': { 'min': 0, 'max': 0 },
+                    },
+                    'networks': {},
+                    'info': undefined,
+                };
+            }
         }
-        const spotMarkets = this.safeValue (responses[0], 'result', []);
-        // 如果有期货市场响应则使用，否则使用空数组
-        const swapMarkets = responses.length > 1 ? this.safeValue (responses[1], 'result', []) : [];
-        // 为现货市场添加type字段
-        for (let i = 0; i < spotMarkets.length; i++) {
-            spotMarkets[i]['type'] = 'spot';
+        // 解析货币列表
+        this.parseCurrencies (currencies);
+        // 为市场添加type字段
+        for (let i = 0; i < markets.length; i++) {
+            markets[i]['type'] = type;
         }
-        // 为期货市场添加type字段
-        for (let i = 0; i < swapMarkets.length; i++) {
-            swapMarkets[i]['type'] = 'swap';
-        }
-        const allMarkets = this.arrayConcat (spotMarkets, swapMarkets);
-        return this.parseMarkets (allMarkets);
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market): Market {
@@ -425,24 +601,55 @@ export default class websea extends Exchange {
         //         "taker_fee": 0.002
         //     }
         //
-        // 期货市场:
+        // 合约市场:
         //     {
-        //         // 需要根据实际API响应结构调整
+        //         "base_currency": "BTC",
+        //         "symbol": "BTC-USDT",
+        //         "max_price": "150000",
+        //         "min_price": "1",
+        //         "max_hold": "350000",
+        //         "maker_fee": 1,
+        //         "taker_fee": 1,
+        //         "min_size": "1",
+        //         "id": 1,
+        //         "contract_size": "0.001",
+        //         "quote_currency": "USDT",
+        //         "max_size": "175000"
         //     }
         //
         const marketId = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'base_currency');
         const quoteId = this.safeString (market, 'quote_currency');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        // 检测是否为永续合约市场
+        const marketType = this.safeString (market, 'type', 'spot');
+        const isSwap = marketType === 'swap';
+        // 使用更宽松的货币代码处理策略
+        // 对于合约市场，允许使用原始货币ID，因为合约市场可能包含现货市场不存在的货币代码
+        let base = undefined;
+        let quote = undefined;
+        if (isSwap) {
+            // 对于合约市场，直接使用原始ID，避免货币代码验证错误
+            base = baseId;
+            quote = quoteId;
+        } else {
+            // 对于现货市场，使用标准的货币代码验证
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            // 如果货币代码不存在，使用原始ID作为备用方案
+            if (base === undefined) {
+                base = baseId;
+            }
+            if (quote === undefined) {
+                quote = quoteId;
+            }
+        }
         const minAmount = this.safeNumber (market, 'min_size');
         const maxAmount = this.safeNumber (market, 'max_size');
         const minPrice = this.safeNumber (market, 'min_price');
         const maxPrice = this.safeNumber (market, 'max_price');
-        // 检测是否为永续合约市场
-        const isSwap = marketId.indexOf ('-PERP') >= 0 || marketId.indexOf ('-SWAP') >= 0;
-        const isSpot = !isSwap;
+        const isSpot = marketType === 'spot';
         // Convert market ID to unified symbol format
+        // 对于swap市场，使用标准的CCXT格式: BASE/QUOTE:QUOTE
         const symbol = isSpot ? (base + '/' + quote) : (base + '/' + quote + ':' + quote);
         // Calculate precision from min values - derive tick sizes from the minimum values
         const minSizeString = this.safeString (market, 'min_size');
@@ -485,7 +692,7 @@ export default class websea extends Exchange {
             'contract': isSwap,
             'linear': isSwap ? true : undefined, // U本位永续合约
             'inverse': isSwap ? false : undefined,
-            'contractSize': isSwap ? 1 : undefined, // 永续合约的合约大小
+            'contractSize': this.safeNumber (market, 'contract_size'), // 永续合约的合约大小
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -729,7 +936,9 @@ export default class websea extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
+        // 需要指定市场类型来区分现货和合约市场
+        const marketType = this.safeString (ticker, 'type', 'spot');
+        market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const data = this.safeValue (ticker, 'data', {});
         const last = this.safeNumber (data, 'close');
@@ -944,9 +1153,29 @@ export default class websea extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostOpenApiFuturesPositionList (params);
+        const response = await this.privateGetOpenApiFuturesPositionList (params);
         //
-        // 需要根据实际API响应结构调整
+        // Websea API响应格式示例:
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": [
+        //         {
+        //             "symbol": "BTC-USDT",
+        //             "hold_side": "buy",
+        //             "hold_amount": "1.000",
+        //             "available_amount": "1.000",
+        //             "frozen_amount": "0.000",
+        //             "hold_avg_price": "60000.00",
+        //             "mark_price": "61000.00",
+        //             "liq_price": "55000.00",
+        //             "leverage": "10",
+        //             "unrealized_profit_loss": "1000.00",
+        //             "realized_profit_loss": "0.00",
+        //             "margin_amount": "6000.00"
+        //         }
+        //     ]
+        // }
         //
         const positions = this.safeValue (response, 'result', []);
         const result = [];
@@ -957,64 +1186,66 @@ export default class websea extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parsePosition (position, market = undefined) {
+    parsePosition (position, market: Market = undefined): Position {
         //
-        // 需要根据实际API响应结构调整
+        //     {
+        //         "symbol": "BTC-USDT",
+        //         "hold_side": "buy",
+        //         "hold_amount": "1.000",
+        //         "available_amount": "1.000",
+        //         "frozen_amount": "0.000",
+        //         "hold_avg_price": "60000.00",
+        //         "mark_price": "61000.00",
+        //         "liq_price": "55000.00",
+        //         "leverage": "10",
+        //         "unrealized_profit_loss": "1000.00",
+        //         "realized_profit_loss": "0.00", // This is not part of the unified position structure
+        //         "margin_amount": "6000.00"
+        //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
-        const side = this.safeString (position, 'side');
-        const amount = this.safeNumber (position, 'amount');
-        const entryPrice = this.safeNumber (position, 'entryPrice');
-        const markPrice = this.safeNumber (position, 'markPrice');
-        const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
+        const side = this.safeString (position, 'hold_side');
+        const contracts = this.safeNumber (position, 'hold_amount');
+        const entryPrice = this.safeNumber (position, 'hold_avg_price');
+        const markPrice = this.safeNumber (position, 'mark_price');
+        const liquidationPrice = this.safeNumber (position, 'liq_price');
         const leverage = this.safeNumber (position, 'leverage');
-        const unrealizedPnl = this.safeNumber (position, 'unrealizedPnl');
-        const realizedPnl = this.safeNumber (position, 'realizedPnl');
-        return {
+        const unrealizedPnl = this.safeNumber (position, 'unrealized_profit_loss');
+        const collateral = this.safeNumber (position, 'margin_amount');
+        // notional value is not directly provided, can be calculated
+        const notionalString = Precise.stringMul (this.numberToString (contracts), this.numberToString (markPrice));
+        const notional = this.parseNumber (notionalString);
+        return this.safePosition ({
             'info': position,
             'symbol': symbol,
+            'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'isolated': undefined,
-            'leverage': leverage,
+            'isolated': undefined, // API does not specify margin mode, assuming cross
+            'hedged': undefined, // API does not specify position mode
             'side': side,
-            'contracts': amount,
+            'contracts': contracts,
             'contractSize': market['contractSize'],
             'entryPrice': entryPrice,
             'markPrice': markPrice,
-            'notional': undefined,
+            'notional': notional,
+            'leverage': leverage,
+            'collateral': collateral,
+            'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': liquidationPrice,
-            'collateral': undefined,
             'initialMargin': undefined,
-            'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'marginRatio': undefined,
-            'hedged': undefined,
             'percentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
-            'realizedPnl': realizedPnl,
-        };
-    }
-
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        /**
-         * @method
-         * @name websea#fetchFundingRate
-         * @description fetch the current funding rate
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (!market['swap']) {
-            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
-        }
-        // 需要根据实际API实现
-        throw new NotSupported (this.id + ' fetchFundingRate() is not yet implemented');
+            'lastUpdateTimestamp': undefined,
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
     }
 
     parseBalance (response): Balances {
@@ -1073,13 +1304,14 @@ export default class websea extends Exchange {
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
+         * @param {boolean} [params.reduceOnly] *swap only* true if the order is to reduce the size of a position
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const orderType = (type === 'limit') ? side + '-limit' : side + '-market';
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'type': orderType,
             'amount': this.amountToPrecision (symbol, amount),
@@ -1089,8 +1321,16 @@ export default class websea extends Exchange {
         }
         let response = undefined;
         if (marketType === 'swap') {
-            // 期货下单
-            response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, query));
+            const reduceOnly = this.safeBool (query, 'reduceOnly', false);
+            if (reduceOnly) {
+                request['reduce_only'] = true;
+                const queryWithoutReduceOnly = this.omit (query, 'reduceOnly');
+                // 期货下单
+                response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, queryWithoutReduceOnly));
+            } else {
+                // 期货下单
+                response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, query));
+            }
         } else {
             // 现货下单
             response = await this.privatePostOpenApiEntrustAdd (this.extend (request, query));
@@ -1199,11 +1439,12 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ marketTypeConst, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const marketType = marketTypeConst;
         let response = undefined;
         if (marketType === 'swap') {
             // 期货当前订单列表
-            response = await this.privatePostOpenApiFuturesEntrustOrderList (this.extend (request, query));
+            response = await this.privateGetOpenApiFuturesEntrustOrderList (this.extend (request, query));
         } else {
             // 注意：Websea API没有提供获取当前订单的端点
             // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
@@ -1241,7 +1482,8 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const [ marketTypeConst, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        const marketType = marketTypeConst;
         let response = undefined;
         if (marketType === 'swap') {
             // Websea API没有提供专门的期货历史订单列表端点
@@ -1293,6 +1535,9 @@ export default class websea extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'];
+        if (api === 'contract' || (api === 'private' && (path.indexOf ('futures') >= 0))) {
+            url = this.urls['api']['contract'];
+        }
         url += '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
