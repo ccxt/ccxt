@@ -240,7 +240,7 @@ func (this *BinanceCore) Describe() interface{} {
 			},
 			"www": "https://www.binance.com",
 			"referral": map[string]interface{}{
-				"url":      "https://accounts.binance.com/en/register?ref=D7YA7CLY",
+				"url":      "https://accounts.binance.com/register?ref=CCXTCOM",
 				"discount": 0.1,
 			},
 			"doc":            []interface{}{"https://developers.binance.com/en"},

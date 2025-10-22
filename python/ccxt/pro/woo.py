@@ -939,8 +939,50 @@ class woo(ccxt.async_support.woo):
         #         "reduceOnly": False,
         #         "maker": False
         #     }
+        #     {
+        #      "symbol": "SPOT_BTC_USDT",
+        #      "rootAlgoOrderId": 2573778,
+        #      "parentAlgoOrderId": 0,
+        #      "algoOrderId": 2573778,
+        #      "clientOrderId": 0,
+        #      "orderTag": "default",
+        #      "algoType": "STOP_LOSS",
+        #      "side": "SELL",
+        #      "quantity": 0.00011,
+        #      "triggerPrice": 98566.67,
+        #      "triggerStatus": "USELESS",
+        #      "price": 0,
+        #      "type": "MARKET",
+        #      "triggerTradePrice": 0,
+        #      "triggerTime": 0,
+        #      "tradeId": 0,
+        #      "executedPrice": 0,
+        #      "executedQuantity": 0,
+        #      "fee": 0,
+        #      "reason": "",
+        #      "feeAsset": "",
+        #      "totalExecutedQuantity": 0,
+        #      "averageExecutedPrice": 0,
+        #      "totalFee": 0,
+        #      "timestamp": 1761030467426,
+        #      "visibleQuantity": 0,
+        #      "reduceOnly": False,
+        #      "triggerPriceType": "MARKET_PRICE",
+        #      "positionSide": "BOTH",
+        #      "feeCurrency": "",
+        #      "totalRebate": 0.0,
+        #      "rebateCurrency": "",
+        #      "triggered": False,
+        #      "maker": False,
+        #      "activated": False,
+        #      "isTriggered": False,
+        #      "isMaker": False,
+        #      "isActivated": False,
+        #      "rootAlgoStatus": "NEW",
+        #      "algoStatus": "NEW"
+        # }
         #
-        orderId = self.safe_string(order, 'orderId')
+        orderId = self.safe_string_2(order, 'orderId', 'algoOrderId')
         marketId = self.safe_string(order, 'symbol')
         market = self.market(marketId)
         symbol = market['symbol']
@@ -962,10 +1004,11 @@ class woo(ccxt.async_support.woo):
         remaining = amount
         if amount >= totalExecQuantity:
             remaining -= totalExecQuantity
-        rawStatus = self.safe_string(order, 'status')
+        rawStatus = self.safe_string_2(order, 'status', 'algoStatus')
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        triggerPrice = self.safe_string(order, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'symbol': symbol,
@@ -979,8 +1022,9 @@ class woo(ccxt.async_support.woo):
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
             'amount': amount,
             'cost': None,
             'average': avgPrice,

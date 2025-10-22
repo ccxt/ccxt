@@ -185,7 +185,7 @@ export default class okx extends Exchange {
                 'referral': {
                     // old reflink 0% discount https://www.okx.com/join/1888677
                     // new reflink 20% discount https://www.okx.com/join/CCXT2023
-                    'url': 'https://www.okx.com/join/CCXT2023',
+                    'url': 'https://www.okx.com/join/CCXTCOM',
                     'discount': 0.2,
                 },
                 'test': {
@@ -1329,6 +1329,12 @@ export default class okx extends Exchange {
                         'extends': 'default',
                     },
                 },
+            },
+            'currencies': {
+                'USD': this.safeCurrencyStructure({ 'id': 'USD', 'code': 'USD', 'precision': this.parseNumber('0.0001') }),
+                'EUR': this.safeCurrencyStructure({ 'id': 'EUR', 'code': 'EUR', 'precision': this.parseNumber('0.0001') }),
+                'AED': this.safeCurrencyStructure({ 'id': 'AED', 'code': 'AED', 'precision': this.parseNumber('0.0001') }),
+                'GBP': this.safeCurrencyStructure({ 'id': 'GBP', 'code': 'GBP', 'precision': this.parseNumber('0.0001') }),
             },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)

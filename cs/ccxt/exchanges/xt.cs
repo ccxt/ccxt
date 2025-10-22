@@ -321,7 +321,7 @@ public partial class xt : Exchange
                             { "user/account/api-key", 1 },
                         } },
                         { "delete", new Dictionary<string, object>() {
-                            { "user/account/{apikeyId}", 1 },
+                            { "user/account/{apiKeyId}", 1 },
                         } },
                     } },
                 } },
