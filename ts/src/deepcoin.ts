@@ -121,7 +121,7 @@ export default class deepcoin extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -206,9 +206,9 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/close-position-by-ids': 5, // done
                         'deepcoin/copytrading/leader-settings': 5, // not unified
                         'deepcoin/copytrading/set-contracts': 5, // not unified
-                        'deepcoin/internal-transfer': 5,
+                        'deepcoin/internal-transfer': 5, // not unified
                         'deepcoin/rebate/config': 5, // not unified
-                        'deepcoin/asset/transfer': 5,
+                        'deepcoin/asset/transfer': 5, // done
                     },
                 },
             },
@@ -258,6 +258,14 @@ export default class deepcoin extends Exchange {
                     'SPOT': 'SPOT',
                     'SWAP': 'SWAP',
                 },
+                'accountsByType': {
+                    'spot': 1,
+                    'fund': 2,
+                    'rebate': 3,
+                    'inverse': 5,
+                    'linear': 7,
+                    'demo': 10,
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -268,6 +276,7 @@ export default class deepcoin extends Exchange {
                     '44': BadRequest, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
                     '194': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
                     '195': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    '199': BadRequest, // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
                     'unsupportedAction': BadRequest,
                     'localIDNotExist': BadRequest,
                 },
@@ -1190,7 +1199,7 @@ export default class deepcoin extends Exchange {
         //
         //
         const timestamp = this.safeTimestamp (transfer, 'createTime');
-        const currencyId = this.safeString (transfer, 'coin');
+        const currencyId = this.safeString2 (transfer, 'coin', 'currency_id');
         currency = this.safeCurrency (currencyId, currency);
         const status = this.safeString (transfer, 'status');
         return {
@@ -1329,6 +1338,51 @@ export default class deepcoin extends Exchange {
             '5': 'fee',
         };
         return this.safeString (ledgerType, type, type);
+    }
+
+    /**
+     * @method
+     * @name deepcoin#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.deepcoin.com/docs/assets/transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+     * @param {string} toAccount account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.userId] user id
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        let userId = undefined;
+        [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
+        userId = userId ? userId : this.safeString (params, 'uid');
+        if (userId === undefined) {
+            throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request: Dict = {
+            'currency_id': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'from_id': fromId,
+            'to_id': toId,
+            'uid': userId,
+        };
+        const response = await this.privatePostDeepcoinAssetTransfer (this.extend (request, params));
+        // todo check after finding out a userId
+        const transfer = this.parseTransfer (response, currency);
+        const transferOptions = this.safeDict (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            transfer['fromAccount'] = fromAccount;
+            transfer['toAccount'] = toAccount;
+            transfer['amount'] = amount;
+        }
+        return transfer;
     }
 
     /**
@@ -2572,15 +2626,17 @@ export default class deepcoin extends Exchange {
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         const data = this.safeDict (response, 'data', {});
         let msg = this.safeString (response, 'msg');
+        const messageCode = this.safeString (response, 'code');
         const sCode = this.safeString (data, 'sCode');
         const sMsg = this.safeString (data, 'sMsg');
         if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
             msg = sMsg;
         }
         const feedback = this.id + ' ' + body;
-        if (code !== 0 || (sCode !== undefined && sCode !== '0')) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        if ((code !== 200) || (messageCode !== '0') || (sCode !== undefined && sCode !== '0')) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], sCode, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], msg, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
             throw new ExchangeError (feedback);
         } else {
