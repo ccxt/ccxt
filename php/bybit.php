@@ -6637,7 +6637,7 @@ class bybit extends Exchange {
         }
         $notional = $this->safe_string_2($position, 'positionValue', 'cumExitValue');
         $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
-        $initialMarginString = $this->safe_string_n($position, array( 'positionIM', 'cumEntryValue' ));
+        $initialMarginString = $this->safe_string_2($position, 'positionIM', 'cumEntryValue');
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
         $timestamp = $this->safe_integer_n($position, array( 'createdTime', 'createdAt' ));
         $lastUpdateTimestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
@@ -6673,7 +6673,7 @@ class bybit extends Exchange {
                     $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
                     $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if ($entryPrice !== null) {
+                    if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
                     }
                 } else {
@@ -6685,7 +6685,7 @@ class bybit extends Exchange {
                     $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
                     $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if ($entryPrice !== null) {
+                    if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div($size, Precise::string_mul($entryPrice, $leverage));
                     }
                 }
