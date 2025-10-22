@@ -1,15 +1,17 @@
 import Exchange from './abstract/websea.js';
-import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, FundingRate, MarketInterface } from './base/types.js';
+import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, MarketInterface } from './base/types.js';
 /**
  * @class websea
  * @augments Exchange
  */
 export default class websea extends Exchange {
     describe(): any;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     parseOrder(order: any, market?: Market): Order;
     market(symbol: string): MarketInterface;
     nonce(): number;
     fetchMarkets(params?: {}): Promise<Market[]>;
+    fetchMarketsByType(type: string, params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(currency: any, code?: any): {
@@ -49,32 +51,7 @@ export default class websea extends Exchange {
     parseTrade(trade: any, market?: Market): Trade;
     fetchBalance(params?: {}): Promise<Balances>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePosition(position: any, market?: any): {
-        info: any;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
-        isolated: any;
-        leverage: number;
-        side: string;
-        contracts: number;
-        contractSize: any;
-        entryPrice: number;
-        markPrice: number;
-        notional: any;
-        liquidationPrice: number;
-        collateral: any;
-        initialMargin: any;
-        maintenanceMargin: any;
-        initialMarginPercentage: any;
-        maintenanceMarginPercentage: any;
-        marginRatio: any;
-        hedged: any;
-        percentage: any;
-        unrealizedPnl: number;
-        realizedPnl: number;
-    };
-    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    parsePosition(position: any, market?: Market): Position;
     parseBalance(response: any): Balances;
     aggregateOrderBookSide(orderBookSide: any[]): any[];
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;

@@ -5,6 +5,7 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [setLeverage](#setleverage)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchOrderBook](#fetchorderbook)
@@ -14,13 +15,34 @@
 * [fetchTrades](#fetchtrades)
 * [fetchBalance](#fetchbalance)
 * [fetchPositions](#fetchpositions)
-* [fetchFundingRate](#fetchfundingrate)
 * [aggregateOrderBookSide](#aggregateorderbookside)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
+
+<a name="setLeverage" id="setleverage"></a>
+
+### setLeverage{docsify-ignore}
+set the level of leverage for a market
+
+**Kind**: instance method of [<code>websea</code>](#websea)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://webseaex.github.io/zh/#futures-trading-position-set-leverage  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| leverage | <code>float</code> | Yes | the rate of leverage |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+websea.setLeverage (leverage, symbol[, params])
+```
+
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -206,26 +228,6 @@ websea.fetchPositions ([symbols, params])
 ```
 
 
-<a name="fetchFundingRate" id="fetchfundingrate"></a>
-
-### fetchFundingRate{docsify-ignore}
-fetch the current funding rate
-
-**Kind**: instance method of [<code>websea</code>](#websea)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-
-
-```javascript
-websea.fetchFundingRate (symbol[, params])
-```
-
-
 <a name="aggregateOrderBookSide" id="aggregateorderbookside"></a>
 
 ### aggregateOrderBookSide{docsify-ignore}
@@ -263,6 +265,7 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
+| params.reduceOnly | <code>boolean</code> | No | *swap only* true if the order is to reduce the size of a position |
 
 
 ```javascript

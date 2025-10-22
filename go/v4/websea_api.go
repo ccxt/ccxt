@@ -43,20 +43,24 @@ func (this *websea) PublicGetOpenApiMarketPrecision (args ...interface{}) <-chan
    return this.callEndpointAsync("publicGetOpenApiMarketPrecision", args...)
 }
 
-func (this *websea) PublicGetOpenApiFuturesSymbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOpenApiFuturesSymbols", args...)
+func (this *websea) ContractGetOpenApiContractSymbols (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractGetOpenApiContractSymbols", args...)
 }
 
-func (this *websea) PublicGetOpenApiFuturesTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOpenApiFuturesTrade", args...)
+func (this *websea) ContractGetOpenApiContractTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractGetOpenApiContractTrade", args...)
 }
 
-func (this *websea) PublicGetOpenApiFuturesDepth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOpenApiFuturesDepth", args...)
+func (this *websea) ContractGetOpenApiContractDepth (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractGetOpenApiContractDepth", args...)
 }
 
-func (this *websea) PublicGetOpenApiFuturesKline (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOpenApiFuturesKline", args...)
+func (this *websea) ContractGetOpenApiContractKline (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractGetOpenApiContractKline", args...)
+}
+
+func (this *websea) ContractGetOpenApiContract24kline (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractGetOpenApiContract24kline", args...)
 }
 
 func (this *websea) PrivateGetOpenApiWalletList (args ...interface{}) <-chan interface{} {
@@ -65,6 +69,14 @@ func (this *websea) PrivateGetOpenApiWalletList (args ...interface{}) <-chan int
 
 func (this *websea) PrivateGetOpenApiEntrustHistoryList (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privateGetOpenApiEntrustHistoryList", args...)
+}
+
+func (this *websea) PrivateGetOpenApiFuturesEntrustOrderList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenApiFuturesEntrustOrderList", args...)
+}
+
+func (this *websea) PrivateGetOpenApiFuturesPositionList (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenApiFuturesPositionList", args...)
 }
 
 func (this *websea) PrivatePostOpenApiEntrustAdd (args ...interface{}) <-chan interface{} {
@@ -99,18 +111,14 @@ func (this *websea) PrivatePostOpenApiFuturesEntrustCancel (args ...interface{})
    return this.callEndpointAsync("privatePostOpenApiFuturesEntrustCancel", args...)
 }
 
-func (this *websea) PrivatePostOpenApiFuturesEntrustOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOpenApiFuturesEntrustOrderList", args...)
-}
-
 func (this *websea) PrivatePostOpenApiFuturesEntrustOrderDetail (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePostOpenApiFuturesEntrustOrderDetail", args...)
 }
 
-func (this *websea) PrivatePostOpenApiFuturesPositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOpenApiFuturesPositionList", args...)
-}
-
 func (this *websea) PrivatePostOpenApiFuturesPositionDetail (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePostOpenApiFuturesPositionDetail", args...)
+}
+
+func (this *websea) PrivatePostOpenApiFuturesPositionSetLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiFuturesPositionSetLeverage", args...)
 }
