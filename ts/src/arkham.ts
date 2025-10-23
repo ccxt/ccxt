@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import Exchange from './abstract/arkm.js';
+import Exchange from './abstract/arkham.js';
 import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, ArgumentsRequired, InvalidAddress, OperationRejected, BadSymbol, OperationFailed, AuthenticationError, RateLimitExceeded, PermissionDenied, InvalidOrder, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -15,8 +15,8 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, Order
 export default class arkm extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
-            'id': 'arkm',
-            'name': 'ARKM',
+            'id': 'arkham',
+            'name': 'ARKHAM',
             'countries': [ 'US' ],
             'version': 'v1',
             'rateLimit': 20 / 3, // 150 req/s
@@ -430,7 +430,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchCurrencies
+     * @name arkham#fetchCurrencies
      * @description fetches all available currencies on an exchange
      * @see https://arkm.com/docs#get/public/assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -525,7 +525,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchMarkets
+     * @name arkham#fetchMarkets
      * @see https://arkm.com/docs#get/public/pairs
      * @description retrieves data on all markets for arkm
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -664,7 +664,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchTime
+     * @name arkham#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://arkm.com/docs#get/public/server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -682,7 +682,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchOrderBook
+     * @name arkham#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://arkm.com/docs#get/public/book
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -736,7 +736,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchOHLCV
+     * @name arkham#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://arkm.com/docs#get/public/candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -852,7 +852,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchTicker
+     * @name arkham#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -918,7 +918,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchTrades
+     * @name arkham#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://arkm.com/docs#get/public/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
@@ -1072,7 +1072,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchClosedOrders
+     * @name arkham#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://arkm.com/docs#get/orders/history
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -1133,7 +1133,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchOpenOrders
+     * @name arkham#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://arkm.com/docs#get/orders
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -1217,7 +1217,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#cancelOrder
+     * @name arkham#cancelOrder
      * @description cancels an open order
      * @see https://arkm.com/docs#post/orders/cancel
      * @param {string} id order id
@@ -1259,7 +1259,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#cancelAllOrders
+     * @name arkham#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://arkm.com/docs#post/orders/cancel/all
      * @param {string} symbol cancel alls open orders
@@ -1286,7 +1286,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#createOrder
+     * @name arkham#createOrder
      * @description create a trade order on the exchange
      * @see https://arkm.com/docs#post/orders/new
      * @param {string} symbol unified CCXT market symbol
@@ -1569,7 +1569,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchMyTrades
+     * @name arkham#fetchMyTrades
      * @description fetch all trades made by the user
      * @see https://arkm.com/docs#get/trades/time
      * @param {string} [symbol] unified market symbol
@@ -1624,7 +1624,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchAccounts
+     * @name arkham#fetchAccounts
      * @description fetch all the accounts associated with a profile
      * @see https://arkm.com/docs#get/user
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1707,7 +1707,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchBalance
+     * @name arkham#fetchBalance
      * @description query for account info
      * @see https://arkm.com/docs#get/account/balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1770,7 +1770,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#createDepositAddress
+     * @name arkham#createDepositAddress
      * @description create a currency deposit address
      * @see https://arkm.com/docs#post/account/deposit/addresses/new
      * @param {string} code unified currency code of the currency for the deposit address
@@ -1799,7 +1799,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchDepositAddressesByNetwork
+     * @name arkham#fetchDepositAddressesByNetwork
      * @description fetch the deposit addresses for a currency associated with this account
      * @see https://arkm.com/docs#get/account/deposit/addresses
      * @param {string} code unified currency code
@@ -1844,7 +1844,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchDeposits
+     * @name arkham#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://arkm.com/docs#get/account/deposits
      * @param {string} code unified currency code
@@ -1931,7 +1931,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchTradingFees
+     * @name arkham#fetchTradingFees
      * @description fetch the trading fees for multiple markets
      * @see https://arkm.com/docs#get/account/fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1975,7 +1975,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchFundingHistory
+     * @name arkham#fetchFundingHistory
      * @description fetch the history of funding payments paid and received on this account
      * @see https://arkm.com/docs#get/account/funding-rate-payments
      * @param {string} [symbol] unified market symbol
@@ -2043,7 +2043,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchLeverage
+     * @name arkham#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://arkm.com/docs#get/account/leverage
      * @param {string} symbol unified market symbol
@@ -2097,7 +2097,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#setLeverage
+     * @name arkham#setLeverage
      * @description set the level of leverage for a market
      * @see https://arkm.com/docs#post/account/leverage
      * @param {float} leverage the rate of leverage
@@ -2301,7 +2301,7 @@ export default class arkm extends Exchange {
 
     /**
      * @method
-     * @name arkm#fetchLeverageTiers
+     * @name arkham#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://arkm.com/docs#get/public/margin-schedules
      * @param {string[]|undefined} symbols list of unified market symbols
