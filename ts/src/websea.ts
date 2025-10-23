@@ -357,23 +357,43 @@ export default class websea extends Exchange {
 
     parseOrder (order, market: Market = undefined): Order {
         //
-        // futures: openApi/futures/entrust/orderDetail
+        // Spot current orders: openApi/entrust/currentList
         //     {
-        //         "order_id": "123456789",
-        //         "symbol": "BTC-USDT",
+        //         "order_id": 121,
+        //         "order_sn": "BL123456789987523",
+        //         "symbol": "MCO-BTC",
+        //         "ctime": "2018-10-02 10:33:33",
+        //         "type": 2,
         //         "side": "buy",
-        //         "type": "limit",
-        //         "price": "60000.00",
-        //         "amount": "1.000",
-        //         "filled_amount": "0.500",
-        //         "unfilled_amount": "0.500",
-        //         "status": "partially_filled",
-        //         "create_time": 1630000000000,
-        //         "update_time": 1630000001000
+        //         "price": "0.123456",
+        //         "number": "1.0000",
+        //         "total_price": "0.123456",
+        //         "deal_number": "0.00000",
+        //         "deal_price": "0.00000",
+        //         "status": 1
+        //     }
+        //
+        // Futures current orders: openApi/contract/currentList
+        //     {
+        //         "order_id": "BG5000181583375122413SZXEIX",
+        //         "ctime": 1576746253,
+        //         "symbol": "ETH-USDT",
+        //         "price": "1",
+        //         "price_avg": "0",
+        //         "lever_rate": 10,
+        //         "amount": "10",
+        //         "deal_amount": "0",
+        //         "type": "buy-limit",
+        //         "status": 1,
+        //         "contract_type": "open",
+        //         "trigger_price": "1",
+        //         "stop_profit_price": "15",
+        //         "stop_loss_price": "10"
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        // If the market is not provided or has no type, try to use the exchange's current type context
+        // If the symbol contains type information (like BASE/QUOTE:SETTLE),
+        // use the exchange's current type context
         // to disambiguate between spot and swap markets that have the same base ID
         let resolvedMarket = undefined;
         if (market !== undefined && market['type'] !== undefined) {
@@ -386,40 +406,160 @@ export default class websea extends Exchange {
         }
         market = resolvedMarket;
         const symbol = market['symbol'];
-        const id = this.safeString (order, 'order_id');
-        const timestamp = this.safeInteger (order, 'create_time');
-        const status = this.safeString (order, 'status');
-        const side = this.safeString (order, 'side');
-        const type = this.safeString (order, 'type');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'amount');
-        const filled = this.safeNumber (order, 'filled_amount');
-        const remaining = this.safeNumber (order, 'unfilled_amount');
-        const lastTradeTimestamp = this.safeInteger (order, 'update_time');
+        // Get order ID - prefer order_sn for spot, order_id for futures
+        const id = this.safeString2 (order, 'order_sn', 'order_id');
+        // Parse timestamp - spot uses string format, futures uses timestamp
+        let timestamp = this.safeTimestamp (order, 'ctime');
+        if (timestamp === undefined || timestamp === 0) {
+            // For spot markets, ctime is in "YYYY-MM-DD HH:mm:ss" format
+            const ctimeString = this.safeString (order, 'ctime');
+            if (ctimeString !== undefined && ctimeString.length > 0) {
+                // Check if it's a Unix timestamp string or date string
+                if (/^\d+$/.test (ctimeString)) {
+                    // If it's all digits, it's likely a Unix timestamp
+                    timestamp = parseInt (ctimeString) * 1000; // Convert seconds to milliseconds
+                } else {
+                    // If it's in "YYYY-MM-DD HH:mm:ss" format, parse manually
+                    // First replace space with 'T' to get "YYYY-MM-DDTHH:mm:ss" format
+                    const isoString = ctimeString.replace (' ', 'T');
+                    // Use Date.parse which handles the format after conversion
+                    timestamp = Date.parse (isoString);
+                    // If Date.parse failed, it returns NaN, so check for that
+                    if (Number.isNaN (timestamp)) {
+                        // Fallback to safeInteger if parsing fails
+                        timestamp = this.safeInteger (order, 'ctime');
+                        if (timestamp !== undefined && timestamp.toString ().length === 10) {
+                            // If it looks like a 10-digit Unix timestamp, convert to milliseconds
+                            timestamp = timestamp * 1000;
+                        }
+                    }
+                }
+            }
+        } else {
+            // If timestamp was found via safeTimestamp, make sure it's in milliseconds
+            if (timestamp < 1e12) { // If it appears to be in seconds
+                timestamp = timestamp * 1000; // Convert to milliseconds
+            }
+        }
+        // Determine order status
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // Determine order side
+        let side = this.safeStringLower (order, 'side');
+        if (side === undefined) {
+            const typeValue = this.safeString (order, 'type');
+            if (typeValue !== undefined) {
+                // For futures: type may be like "buy-limit", "sell-market"
+                if (typeValue.startsWith ('buy')) {
+                    side = 'buy';
+                } else if (typeValue.startsWith ('sell')) {
+                    side = 'sell';
+                }
+            }
+        }
+        // Determine order type
+        let type = this.safeString (order, 'type');
+        if (type !== undefined) {
+            // For futures: type is like "buy-limit", "sell-market", etc
+            if (type.includes ('-')) {
+                if (type.includes ('-limit')) {
+                    type = 'limit';
+                } else if (type.includes ('-market')) {
+                    type = 'market';
+                } else {
+                    type = type.split ('-')[1]; // take the part after dash
+                }
+            } else {
+                // For spot: type is an integer (1=market, 2=limit)
+                if (type === '1') {
+                    type = 'market';
+                } else if (type === '2') {
+                    type = 'limit';
+                }
+            }
+        }
+        // Price and amount
+        const price = this.safeNumber2 (order, 'price', 'price_avg');
+        const amount = this.safeNumber2 (order, 'number', 'amount');
+        const filled = this.safeNumber2 (order, 'deal_number', 'deal_amount');
+        // Calculate remaining amount
+        let remaining = undefined;
+        if (amount !== undefined && filled !== undefined) {
+            remaining = amount - filled;
+        } else if (this.safeValue (order, 'total_price') !== undefined) {
+            // For market orders, the 'number' field might be 0, but 'total_price' contains value
+            remaining = amount; // if we don't know filled amount, assume nothing filled
+        }
+        // Average price
+        const average = this.safeNumber (order, 'deal_price');
+        // Extract other fields for futures orders
+        const leverage = this.safeInteger (order, 'lever_rate');
+        const triggerPrice = this.safeNumber (order, 'trigger_price');
+        const stopLossPrice = this.safeNumber (order, 'stop_loss_price');
+        const takeProfitPrice = this.safeNumber (order, 'stop_profit_price');
+        // Calculate cost as price * filled amount
+        let cost = undefined;
+        if (price !== undefined && filled !== undefined) {
+            cost = price * filled;
+        }
+        // Determine if order is reduce-only based on contract_type
+        let reduceOnly = undefined;
+        const contractType = this.safeString (order, 'contract_type');
+        if (contractType !== undefined) {
+            // contract_type: 1=open position, 2=close position
+            // If it's a close position order, it's reduce-only
+            reduceOnly = (contractType === '2');
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,  // Map trigger price to stopPrice
+            'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': undefined,
-            'average': undefined,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
+            'fees': [],
+            'reduceOnly': reduceOnly,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
+            'leverage': leverage,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        if (status === undefined) {
+            return undefined;
+        }
+        // Spot market status values: 1=挂单中, 2=部分成交, 4=撤销中
+        if (status === '1') {
+            return 'open';  // 挂单中
+        } else if (status === '2') {
+            return 'partially_filled';  // 部分成交
+        } else if (status === '4') {
+            return 'canceled';  // 撤销中
+        } else if (status === '3') {
+            // Futures market status values: 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
+            return 'closed';  // 已成交
+        } else if (status === '5') {
+            return 'canceled';  // 部分撤销
+        } else if (status === '6') {
+            return 'canceled';  // 已撤销
+        }
+        return status;
     }
 
     market (symbol: string): MarketInterface {
