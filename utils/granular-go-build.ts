@@ -148,9 +148,10 @@ function createWsExchangeTypedInterfaceFile(exchanges: string[]) {
             '}'
         ].join('\n');
 
-    const caseStatements = exchanges.map(exchange => `       case "${exchange}":
+    const caseStatements = exchanges.map(exchange => {
+        return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? `       case "${exchange}":
            itf := New${capitalizeFirstLetter(exchange)}(options)
-           return itf`).join('\n    ');
+           return itf` : ''}).join('\n    ');
 
     const template = `
 package ccxtpro
