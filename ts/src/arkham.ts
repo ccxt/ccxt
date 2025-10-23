@@ -2449,7 +2449,7 @@ export default class arkham extends Exchange {
             if (queryString !== '') {
                 path = path + '?' + queryString;
             }
-            const bodyStr = body !== undefined ? body : '';
+            const bodyStr = (body !== undefined) ? body : '';
             const payload = this.apiKey + expires.toString () + method.toUpperCase () + '/' + path + bodyStr;
             const decodedSecret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (payload), decodedSecret, sha256, 'base64');
