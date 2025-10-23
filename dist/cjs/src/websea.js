@@ -234,13 +234,15 @@ class websea extends websea$1["default"] {
                         'openApi/contract/trade': 1,
                         'openApi/contract/depth': 1,
                         'openApi/contract/kline': 1,
-                        'openApi/contract/24kline': 1, // 合约24小时K线数据
+                        'openApi/contract/24kline': 1,
+                        'openApi/contract/currentList': 1, // 合约当前委托列表
                     },
                 },
                 'private': {
                     'get': {
                         'openApi/wallet/list': 1,
                         'openApi/entrust/historyList': 1,
+                        'openApi/entrust/currentList': 1,
                         'openApi/futures/entrust/orderList': 1,
                         'openApi/futures/position/list': 1, // 期货持仓列表
                     },
@@ -354,58 +356,251 @@ class websea extends websea$1["default"] {
     }
     parseOrder(order, market = undefined) {
         //
-        // futures: openApi/futures/entrust/orderDetail
+        // Spot current orders: openApi/entrust/currentList
         //     {
-        //         "order_id": "123456789",
-        //         "symbol": "BTC-USDT",
+        //         "order_id": 121,
+        //         "order_sn": "BL123456789987523",
+        //         "symbol": "MCO-BTC",
+        //         "ctime": "2018-10-02 10:33:33",
+        //         "type": 2,
         //         "side": "buy",
-        //         "type": "limit",
-        //         "price": "60000.00",
-        //         "amount": "1.000",
-        //         "filled_amount": "0.500",
-        //         "unfilled_amount": "0.500",
-        //         "status": "partially_filled",
-        //         "create_time": 1630000000000,
-        //         "update_time": 1630000001000
+        //         "price": "0.123456",
+        //         "number": "1.0000",
+        //         "total_price": "0.123456",
+        //         "deal_number": "0.00000",
+        //         "deal_price": "0.00000",
+        //         "status": 1
+        //     }
+        //
+        // Futures current orders: openApi/contract/currentList
+        //     {
+        //         "order_id": "BG5000181583375122413SZXEIX",
+        //         "ctime": 1576746253,
+        //         "symbol": "ETH-USDT",
+        //         "price": "1",
+        //         "price_avg": "0",
+        //         "lever_rate": 10,
+        //         "amount": "10",
+        //         "deal_amount": "0",
+        //         "type": "buy-limit",
+        //         "status": 1,
+        //         "contract_type": "open",
+        //         "trigger_price": "1",
+        //         "stop_profit_price": "15",
+        //         "stop_loss_price": "10"
         //     }
         //
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        // If the symbol contains type information (like BASE/QUOTE:SETTLE),
+        // use the exchange's current type context
+        // to disambiguate between spot and swap markets that have the same base ID
+        let resolvedMarket = undefined;
+        if (market !== undefined && market['type'] !== undefined) {
+            // If a market is provided with a specific type, use it
+            resolvedMarket = this.safeMarket(marketId, market);
+        }
+        else {
+            // Otherwise, check the exchange's default type to disambiguate
+            const defaultType = this.safeString(this.options, 'defaultType', 'spot');
+            resolvedMarket = this.safeMarket(marketId, market, defaultType);
+        }
+        market = resolvedMarket;
         const symbol = market['symbol'];
-        const id = this.safeString(order, 'order_id');
-        const timestamp = this.safeInteger(order, 'create_time');
-        const status = this.safeString(order, 'status');
-        const side = this.safeString(order, 'side');
-        const type = this.safeString(order, 'type');
-        const price = this.safeNumber(order, 'price');
-        const amount = this.safeNumber(order, 'amount');
-        const filled = this.safeNumber(order, 'filled_amount');
-        const remaining = this.safeNumber(order, 'unfilled_amount');
-        const lastTradeTimestamp = this.safeInteger(order, 'update_time');
+        // Get order ID - prefer order_sn for spot, order_id for futures
+        const id = this.safeString2(order, 'order_sn', 'order_id');
+        // Parse timestamp - spot uses string format, futures uses timestamp
+        let timestamp = undefined;
+        const ctimeString = this.safeString(order, 'ctime');
+        if (ctimeString !== undefined && ctimeString.length > 0) {
+            // Check if it's a Unix timestamp string or date string
+            // Use CCXT-compatible string checking methods instead of regex
+            const isAllDigits = this.isStringAllDigits(ctimeString);
+            const isDateFormat = this.isStringDateFormat(ctimeString);
+            if (isAllDigits) {
+                // If it's all digits, it's likely a Unix timestamp
+                timestamp = parseInt(ctimeString);
+                // Check if it's in seconds (10 digits) or milliseconds (13 digits)
+                const timestampString = timestamp.toString();
+                if (timestampString.length === 10) {
+                    timestamp = timestamp * 1000; // Convert seconds to milliseconds
+                }
+            }
+            else if (isDateFormat) {
+                // If it's in "YYYY-MM-DD HH:mm:ss" format, parse manually
+                // Websea API returns time in UTC+8 (China Standard Time)
+                // Convert to UTC by subtracting 8 hours (28800000 milliseconds)
+                const isoString = ctimeString.replace(' ', 'T') + '+08:00'; // Explicitly specify UTC+8
+                timestamp = Date.parse(isoString);
+                // If Date.parse failed, it returns NaN, so check for that
+                if (Number.isNaN(timestamp)) {
+                    // Fallback: manually parse the date components and adjust for UTC+8
+                    // Use string replacement and split instead of regex for CCXT compatibility
+                    const normalizedString = ctimeString.replace('-', ' ').replace(':', ' ');
+                    const parts = normalizedString.split(' ');
+                    if (parts.length === 6) {
+                        const year = parseInt(parts[0]);
+                        const month = parseInt(parts[1]) - 1; // Month is 0-indexed in JavaScript
+                        const day = parseInt(parts[2]);
+                        const hour = parseInt(parts[3]);
+                        const minute = parseInt(parts[4]);
+                        const second = parseInt(parts[5]);
+                        // Create date object in UTC+8 timezone
+                        const date = new Date(Date.UTC(year, month, day, hour, minute, second));
+                        // Convert to UTC by subtracting 8 hours
+                        timestamp = date.getTime() - (8 * 60 * 60 * 1000);
+                    }
+                    else {
+                        // Fallback to safeTimestamp if parsing fails
+                        timestamp = this.safeTimestamp(order, 'ctime');
+                    }
+                }
+            }
+            else {
+                // Try safeTimestamp as fallback
+                timestamp = this.safeTimestamp(order, 'ctime');
+            }
+        }
+        else {
+            // If no string value, try safeTimestamp
+            timestamp = this.safeTimestamp(order, 'ctime');
+        }
+        // Final check: if timestamp is still undefined or invalid, try safeInteger
+        if (timestamp === undefined || timestamp === 0 || Number.isNaN(timestamp)) {
+            timestamp = this.safeInteger(order, 'ctime');
+            if (timestamp !== undefined && timestamp.toString().length === 10) {
+                // If it looks like a 10-digit Unix timestamp, convert to milliseconds
+                timestamp = timestamp * 1000;
+            }
+        }
+        // Determine order status
+        const status = this.parseOrderStatus(this.safeString(order, 'status'));
+        // Determine order side
+        let side = this.safeStringLower(order, 'side');
+        if (side === undefined) {
+            const typeValue = this.safeString(order, 'type');
+            if (typeValue !== undefined) {
+                // For futures: type may be like "buy-limit", "sell-market"
+                if (typeValue.startsWith('buy')) {
+                    side = 'buy';
+                }
+                else if (typeValue.startsWith('sell')) {
+                    side = 'sell';
+                }
+            }
+        }
+        // Determine order type
+        let type = this.safeString(order, 'type');
+        if (type !== undefined) {
+            // For futures: type is like "buy-limit", "sell-market", etc
+            if (type.includes('-')) {
+                if (type.includes('-limit')) {
+                    type = 'limit';
+                }
+                else if (type.includes('-market')) {
+                    type = 'market';
+                }
+                else {
+                    type = type.split('-')[1]; // take the part after dash
+                }
+            }
+            else {
+                // For spot: type is an integer (1=market, 2=limit)
+                if (type === '1') {
+                    type = 'market';
+                }
+                else if (type === '2') {
+                    type = 'limit';
+                }
+            }
+        }
+        // Price and amount
+        const price = this.safeNumber2(order, 'price', 'price_avg');
+        const amount = this.safeNumber2(order, 'number', 'amount');
+        const filled = this.safeNumber2(order, 'deal_number', 'deal_amount');
+        // Calculate remaining amount
+        let remaining = undefined;
+        if (amount !== undefined && filled !== undefined) {
+            remaining = amount - filled;
+        }
+        else if (this.safeValue(order, 'total_price') !== undefined) {
+            // For market orders, the 'number' field might be 0, but 'total_price' contains value
+            remaining = amount; // if we don't know filled amount, assume nothing filled
+        }
+        // Average price
+        const average = this.safeNumber(order, 'deal_price');
+        // Extract other fields for futures orders
+        const leverage = this.safeInteger(order, 'lever_rate');
+        const triggerPrice = this.safeNumber(order, 'trigger_price');
+        const stopLossPrice = this.safeNumber(order, 'stop_loss_price');
+        const takeProfitPrice = this.safeNumber(order, 'stop_profit_price');
+        // Calculate cost as price * filled amount
+        let cost = undefined;
+        if (price !== undefined && filled !== undefined) {
+            cost = price * filled;
+        }
+        // Determine if order is reduce-only based on contract_type
+        let reduceOnly = undefined;
+        const contractType = this.safeString(order, 'contract_type');
+        if (contractType !== undefined) {
+            // contract_type: 1=open position, 2=close position
+            // If it's a close position order, it's reduce-only
+            reduceOnly = (contractType === '2');
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': undefined,
-            'average': undefined,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
+            'fees': [],
+            'reduceOnly': reduceOnly,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
+            'leverage': leverage,
         }, market);
+    }
+    parseOrderStatus(status) {
+        if (status === undefined) {
+            return undefined;
+        }
+        // Spot market status values: 1=挂单中, 2=部分成交, 4=撤销中
+        if (status === '1') {
+            return 'open'; // 挂单中
+        }
+        else if (status === '2') {
+            return 'partially_filled'; // 部分成交
+        }
+        else if (status === '4') {
+            return 'canceled'; // 撤销中
+        }
+        else if (status === '3') {
+            // Futures market status values: 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
+            return 'closed'; // 已成交
+        }
+        else if (status === '5') {
+            return 'canceled'; // 部分撤销
+        }
+        else if (status === '6') {
+            return 'canceled'; // 已撤销
+        }
+        return status;
     }
     market(symbol) {
         if (this.markets === undefined) {
@@ -416,15 +611,22 @@ class websea extends websea$1["default"] {
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 const market = this.markets[symbol];
-                // 如果指定了类型，优先返回对应类型的市场
-                const typeInParams = this.safeString2(this.options, 'defaultType', 'type');
-                if (typeInParams !== undefined && typeInParams !== market['type']) {
+                // If the symbol contains type information (like BASE/QUOTE:SETTLE),
+                // don't override it with default type preferences
+                if (symbol.indexOf(':') !== -1) {
+                    // This is a unified symbol with settlement currency (e.g., ETH/USDT:USDT)
+                    // Return the exact match since the user specified the full symbol
+                    return market;
+                }
+                // For ambiguous symbols (like just "ETH/USDT"), apply type preferences
+                const typeInOptions = this.safeString(this.options, 'type');
+                if (typeInOptions !== undefined && typeInOptions !== market['type']) {
                     // 尝试查找相同交易对但不同类型 markets
                     const baseQuote = symbol.split(':')[0]; // 移除结算货币部分
                     for (let i = 0; i < this.symbols.length; i++) {
                         const otherSymbol = this.symbols[i];
                         const otherMarket = this.markets[otherSymbol];
-                        if (otherMarket['type'] === typeInParams) {
+                        if (otherMarket['type'] === typeInOptions) {
                             const otherBaseQuote = otherSymbol.split(':')[0];
                             if (baseQuote === otherBaseQuote) {
                                 return otherMarket;
@@ -1567,23 +1769,24 @@ class websea extends websea$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [marketTypeConst, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        const marketType = marketTypeConst;
+        // Determine market type: use the resolved market's type if available and specific,
+        // otherwise use the result from handleMarketTypeAndParams
+        const [detectedMarketType, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const marketType = (market && market['type']) ? market['type'] : detectedMarketType;
         let response = undefined;
         if (marketType === 'swap') {
             // 期货当前订单列表
-            response = await this.privateGetOpenApiFuturesEntrustOrderList(this.extend(request, query));
+            response = await this.contractGetOpenApiContractCurrentList(this.extend(request, query));
+        }
+        else if (marketType === 'spot') {
+            // 现货当前委托列表 - 使用正确的API端点
+            response = await this.privateGetOpenApiEntrustCurrentList(this.extend(request, query));
         }
         else {
-            // 注意：Websea API没有提供获取现货当前订单的端点
-            // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-            throw new errors.NotSupported(this.id + ' fetchOpenOrders is not supported for spot markets by the API');
+            throw new errors.NotSupported(this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets by the API');
         }
-        //
-        // 需要根据实际API响应结构调整
-        //
         const result = this.safeValue(response, 'result', []);
-        return this.parseOrders(result, undefined, since, limit);
+        return this.parseOrders(result, market, since, limit);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1668,6 +1871,9 @@ class websea extends websea$1["default"] {
         if (path.indexOf('futures/entrust/orderList') >= 0) {
             finalPath = 'openApi/contract/currentList';
         }
+        else if (path.indexOf('entrust/currentList') >= 0) {
+            finalPath = 'openApi/entrust/currentList';
+        }
         else if (path.indexOf('futures/entrust/add') >= 0) {
             finalPath = 'openApi/contract/add';
         }
@@ -1692,7 +1898,7 @@ class websea extends websea$1["default"] {
         }
         url += '/' + finalPath;
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'private') {
+        if (api === 'private' || api === 'contract') { // Also handle contract API as private
             this.checkRequiredCredentials();
             // Websea API签名要求：timestamp_5random格式
             const timestamp = this.seconds().toString();
@@ -1764,6 +1970,48 @@ class websea extends websea$1["default"] {
             throw new errors.ExchangeError(this.id + ' ' + errorMessage);
         }
         return undefined;
+    }
+    isStringAllDigits(str) {
+        // Check if string contains only digits (0-9)
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charAt(i);
+            if (char < '0' || char > '9') {
+                return false;
+            }
+        }
+        return str.length > 0;
+    }
+    isStringDateFormat(str) {
+        // Check if string matches "YYYY-MM-DD HH:mm:ss" format
+        if (str.length !== 19) {
+            return false;
+        }
+        // Check positions of separators using string indexing
+        if (str[4] !== '-') {
+            return false;
+        }
+        if (str[7] !== '-') {
+            return false;
+        }
+        if (str[10] !== ' ') {
+            return false;
+        }
+        if (str[13] !== ':') {
+            return false;
+        }
+        if (str[16] !== ':') {
+            return false;
+        }
+        // Check that all other characters are digits
+        const digitPositions = [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18];
+        for (let i = 0; i < digitPositions.length; i++) {
+            const pos = digitPositions[i];
+            const char = str[pos];
+            if (char < '0' || char > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 }
 

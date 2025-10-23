@@ -8,6 +8,7 @@ export default class websea extends Exchange {
     describe(): any;
     setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
     parseOrder(order: any, market?: Market): Order;
+    parseOrderStatus(status: any): any;
     market(symbol: string): MarketInterface;
     nonce(): number;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -66,4 +67,6 @@ export default class websea extends Exchange {
         headers: any;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    isStringAllDigits(str: string): boolean;
+    isStringDateFormat(str: string): boolean;
 }

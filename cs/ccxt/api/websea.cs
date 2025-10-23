@@ -81,6 +81,11 @@ public partial class websea : Exchange
         return await this.callAsync ("contractGetOpenApiContract24kline",parameters);
     }
 
+    public async Task<object> contractGetOpenApiContractCurrentList (object parameters = null)
+    {
+        return await this.callAsync ("contractGetOpenApiContractCurrentList",parameters);
+    }
+
     public async Task<object> privateGetOpenApiWalletList (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenApiWalletList",parameters);
@@ -89,6 +94,11 @@ public partial class websea : Exchange
     public async Task<object> privateGetOpenApiEntrustHistoryList (object parameters = null)
     {
         return await this.callAsync ("privateGetOpenApiEntrustHistoryList",parameters);
+    }
+
+    public async Task<object> privateGetOpenApiEntrustCurrentList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOpenApiEntrustCurrentList",parameters);
     }
 
     public async Task<object> privateGetOpenApiFuturesEntrustOrderList (object parameters = null)

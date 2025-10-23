@@ -413,14 +413,18 @@ export default class websea extends Exchange {
         const ctimeString = this.safeString (order, 'ctime');
         if (ctimeString !== undefined && ctimeString.length > 0) {
             // Check if it's a Unix timestamp string or date string
-            if (/^\d+$/.test (ctimeString)) {
+            // Use CCXT-compatible string checking methods instead of regex
+            const isAllDigits = this.isStringAllDigits (ctimeString);
+            const isDateFormat = this.isStringDateFormat (ctimeString);
+            if (isAllDigits) {
                 // If it's all digits, it's likely a Unix timestamp
                 timestamp = parseInt (ctimeString);
                 // Check if it's in seconds (10 digits) or milliseconds (13 digits)
-                if (timestamp.toString ().length === 10) {
+                const timestampString = timestamp.toString ();
+                if (timestampString.length === 10) {
                     timestamp = timestamp * 1000; // Convert seconds to milliseconds
                 }
-            } else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test (ctimeString)) {
+            } else if (isDateFormat) {
                 // If it's in "YYYY-MM-DD HH:mm:ss" format, parse manually
                 // Websea API returns time in UTC+8 (China Standard Time)
                 // Convert to UTC by subtracting 8 hours (28800000 milliseconds)
@@ -429,7 +433,9 @@ export default class websea extends Exchange {
                 // If Date.parse failed, it returns NaN, so check for that
                 if (Number.isNaN (timestamp)) {
                     // Fallback: manually parse the date components and adjust for UTC+8
-                    const parts = ctimeString.split (/[- :]/);
+                    // Use string replacement and split instead of regex for CCXT compatibility
+                    const normalizedString = ctimeString.replace ('-', ' ').replace (':', ' ');
+                    const parts = normalizedString.split (' ');
                     if (parts.length === 6) {
                         const year = parseInt (parts[0]);
                         const month = parseInt (parts[1]) - 1; // Month is 0-indexed in JavaScript
@@ -1950,5 +1956,49 @@ export default class websea extends Exchange {
             throw new ExchangeError (this.id + ' ' + errorMessage);
         }
         return undefined;
+    }
+
+    isStringAllDigits (str: string): boolean {
+        // Check if string contains only digits (0-9)
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charAt (i);
+            if (char < '0' || char > '9') {
+                return false;
+            }
+        }
+        return str.length > 0;
+    }
+
+    isStringDateFormat (str: string): boolean {
+        // Check if string matches "YYYY-MM-DD HH:mm:ss" format
+        if (str.length !== 19) {
+            return false;
+        }
+        // Check positions of separators using string indexing
+        if (str[4] !== '-') {
+            return false;
+        }
+        if (str[7] !== '-') {
+            return false;
+        }
+        if (str[10] !== ' ') {
+            return false;
+        }
+        if (str[13] !== ':') {
+            return false;
+        }
+        if (str[16] !== ':') {
+            return false;
+        }
+        // Check that all other characters are digits
+        const digitPositions = [ 0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18 ];
+        for (let i = 0; i < digitPositions.length; i++) {
+            const pos = digitPositions[i];
+            const char = str[pos];
+            if (char < '0' || char > '9') {
+                return false;
+            }
+        }
+        return true;
     }
 }

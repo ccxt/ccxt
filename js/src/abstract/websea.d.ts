@@ -15,8 +15,10 @@ interface Exchange {
     contractGetOpenApiContractDepth(params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContractKline(params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContract24kline(params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractCurrentList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiWalletList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustHistoryList(params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiEntrustCurrentList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiFuturesEntrustOrderList(params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiFuturesPositionList(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustAdd(params?: {}): Promise<implicitReturnType>;

@@ -49,11 +49,17 @@ abstract class websea extends \ccxt\async\Exchange {
     public function contract_get_openapi_contract_24kline($params = array()) {
         return $this->request('openApi/contract/24kline', 'contract', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contract_get_openapi_contract_currentlist($params = array()) {
+        return $this->request('openApi/contract/currentList', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_openapi_wallet_list($params = array()) {
         return $this->request('openApi/wallet/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_openapi_entrust_historylist($params = array()) {
         return $this->request('openApi/entrust/historyList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_openapi_entrust_currentlist($params = array()) {
+        return $this->request('openApi/entrust/currentList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_openapi_futures_entrust_orderlist($params = array()) {
         return $this->request('openApi/futures/entrust/orderList', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -136,11 +142,17 @@ abstract class websea extends \ccxt\async\Exchange {
     public function contractGetOpenApiContract24kline($params = array()) {
         return $this->request('openApi/contract/24kline', 'contract', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contractGetOpenApiContractCurrentList($params = array()) {
+        return $this->request('openApi/contract/currentList', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetOpenApiWalletList($params = array()) {
         return $this->request('openApi/wallet/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetOpenApiEntrustHistoryList($params = array()) {
         return $this->request('openApi/entrust/historyList', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOpenApiEntrustCurrentList($params = array()) {
+        return $this->request('openApi/entrust/currentList', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetOpenApiFuturesEntrustOrderList($params = array()) {
         return $this->request('openApi/futures/entrust/orderList', 'private', 'GET', $params, null, null, array("cost" => 1));

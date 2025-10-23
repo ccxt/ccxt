@@ -236,12 +236,14 @@ class websea(Exchange, ImplicitAPI):
                         'openApi/contract/depth': 1,  # 合约市场深度
                         'openApi/contract/kline': 1,  # 合约K线数据
                         'openApi/contract/24kline': 1,  # 合约24小时K线数据
+                        'openApi/contract/currentList': 1,  # 合约当前委托列表
                     },
                 },
                 'private': {
                     'get': {
                         'openApi/wallet/list': 1,  # 钱包列表 - 余额查询
                         'openApi/entrust/historyList': 1,  # 历史订单列表 - 已完成订单
+                        'openApi/entrust/currentList': 1,  # 现货当前委托列表
                         'openApi/futures/entrust/orderList': 1,  # 期货当前订单列表
                         'openApi/futures/position/list': 1,  # 期货持仓列表
                     },
@@ -352,58 +354,215 @@ class websea(Exchange, ImplicitAPI):
 
     def parse_order(self, order, market: Market = None) -> Order:
         #
-        # futures: openApi/futures/entrust/orderDetail
+        # Spot current orders: openApi/entrust/currentList
         #     {
-        #         "order_id": "123456789",
-        #         "symbol": "BTC-USDT",
+        #         "order_id": 121,
+        #         "order_sn": "BL123456789987523",
+        #         "symbol": "MCO-BTC",
+        #         "ctime": "2018-10-02 10:33:33",
+        #         "type": 2,
         #         "side": "buy",
-        #         "type": "limit",
-        #         "price": "60000.00",
-        #         "amount": "1.000",
-        #         "filled_amount": "0.500",
-        #         "unfilled_amount": "0.500",
-        #         "status": "partially_filled",
-        #         "create_time": 1630000000000,
-        #         "update_time": 1630000001000
+        #         "price": "0.123456",
+        #         "number": "1.0000",
+        #         "total_price": "0.123456",
+        #         "deal_number": "0.00000",
+        #         "deal_price": "0.00000",
+        #         "status": 1
+        #     }
+        #
+        # Futures current orders: openApi/contract/currentList
+        #     {
+        #         "order_id": "BG5000181583375122413SZXEIX",
+        #         "ctime": 1576746253,
+        #         "symbol": "ETH-USDT",
+        #         "price": "1",
+        #         "price_avg": "0",
+        #         "lever_rate": 10,
+        #         "amount": "10",
+        #         "deal_amount": "0",
+        #         "type": "buy-limit",
+        #         "status": 1,
+        #         "contract_type": "open",
+        #         "trigger_price": "1",
+        #         "stop_profit_price": "15",
+        #         "stop_loss_price": "10"
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        # If the symbol contains type information(like BASE/QUOTE:SETTLE),
+        # use the exchange's current type context
+        # to disambiguate between spot and swap markets that have the same base ID
+        resolvedMarket = None
+        if market is not None and market['type'] is not None:
+            # If a market is provided with a specific type, use it
+            resolvedMarket = self.safe_market(marketId, market)
+        else:
+            # Otherwise, check the exchange's default type to disambiguate
+            defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+            resolvedMarket = self.safe_market(marketId, market, defaultType)
+        market = resolvedMarket
         symbol = market['symbol']
-        id = self.safe_string(order, 'order_id')
-        timestamp = self.safe_integer(order, 'create_time')
-        status = self.safe_string(order, 'status')
-        side = self.safe_string(order, 'side')
+        # Get order ID - prefer order_sn for spot, order_id for futures
+        id = self.safe_string_2(order, 'order_sn', 'order_id')
+        # Parse timestamp - spot uses string format, futures uses timestamp
+        timestamp = None
+        ctimeString = self.safe_string(order, 'ctime')
+        if ctimeString is not None and len(ctimeString) > 0:
+            # Check if it's a Unix timestamp string or date string
+            # Use CCXT-compatible string checking methods instead of regex
+            isAllDigits = self.is_string_all_digits(ctimeString)
+            isDateFormat = self.is_string_date_format(ctimeString)
+            if isAllDigits:
+                # If it's all digits, it's likely a Unix timestamp
+                timestamp = int(ctimeString)
+                # Check if it's in seconds(10 digits) or milliseconds(13 digits)
+                timestampString = str(timestamp)
+                if len(timestampString) == 10:
+                    timestamp = timestamp * 1000  # Convert seconds to milliseconds
+            elif isDateFormat:
+                # If it's in "YYYY-MM-DD HH:mm:ss" format, parse manually
+                # Websea API returns time in UTC+8(China Standard Time)
+                # Convert to UTC by subtracting 8 hours(28800000 milliseconds)
+                isoString = ctimeString.replace(' ', 'T') + '+08:00'  # Explicitly specify UTC+8
+                timestamp = Date.parse(isoString)
+                # If Date.parse failed, it returns NaN, so check for that
+                if Number.isNaN(timestamp):
+                    # Fallback: manually parse the date components and adjust for UTC+8
+                    # Use string replacement and split instead of regex for CCXT compatibility
+                    normalizedString = ctimeString.replace('-', ' ').replace(':', ' ')
+                    parts = normalizedString.split(' ')
+                    if len(parts) == 6:
+                        year = int(parts[0])
+                        month = int(parts[1]) - 1  # Month is 0-indexed in JavaScript
+                        day = int(parts[2])
+                        hour = int(parts[3])
+                        minute = int(parts[4])
+                        second = int(parts[5])
+                        # Create date object in UTC+8 timezone
+                        date = Date(Date.UTC(year, month, day, hour, minute, second))
+                        # Convert to UTC by subtracting 8 hours
+                        timestamp = date.getTime() - (8 * 60 * 60 * 1000)
+                    else:
+                        # Fallback to safeTimestamp if parsing fails
+                        timestamp = self.safe_timestamp(order, 'ctime')
+            else:
+                # Try safeTimestamp
+                timestamp = self.safe_timestamp(order, 'ctime')
+        else:
+            # If no string value, try safeTimestamp
+            timestamp = self.safe_timestamp(order, 'ctime')
+        # Final check: if timestamp is still None or invalid, try safeInteger
+        if timestamp is None or timestamp == 0 or Number.isNaN(timestamp):
+            timestamp = self.safe_integer(order, 'ctime')
+            if timestamp is not None and timestamp.toString(len()) == 10:
+                # If it looks like a 10-digit Unix timestamp, convert to milliseconds
+                timestamp = timestamp * 1000
+        # Determine order status
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        # Determine order side
+        side = self.safe_string_lower(order, 'side')
+        if side is None:
+            typeValue = self.safe_string(order, 'type')
+            if typeValue is not None:
+                # For futures: type may be like "buy-limit", "sell-market"
+                if typeValue.startswith('buy'):
+                    side = 'buy'
+                elif typeValue.startswith('sell'):
+                    side = 'sell'
+        # Determine order type
         type = self.safe_string(order, 'type')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'amount')
-        filled = self.safe_number(order, 'filled_amount')
-        remaining = self.safe_number(order, 'unfilled_amount')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time')
+        if type is not None:
+            # For futures: type is like "buy-limit", "sell-market", etc
+            if type.includes('-'):
+                if type.includes('-limit'):
+                    type = 'limit'
+                elif type.includes('-market'):
+                    type = 'market'
+                else:
+                    type = type.split('-')[1]  # take the part after dash
+            else:
+                # For spot: type is an integer(1=market, 2=limit)
+                if type == '1':
+                    type = 'market'
+                elif type == '2':
+                    type = 'limit'
+        # Price and amount
+        price = self.safe_number_2(order, 'price', 'price_avg')
+        amount = self.safe_number_2(order, 'number', 'amount')
+        filled = self.safe_number_2(order, 'deal_number', 'deal_amount')
+        # Calculate remaining amount
+        remaining = None
+        if amount is not None and filled is not None:
+            remaining = amount - filled
+        elif self.safe_value(order, 'total_price') is not None:
+            # For market orders, the 'number' field might be 0, but 'total_price' contains value
+            remaining = amount  # if we don't know filled amount, assume nothing filled
+        # Average price
+        average = self.safe_number(order, 'deal_price')
+        # Extract other fields for futures orders
+        leverage = self.safe_integer(order, 'lever_rate')
+        triggerPrice = self.safe_number(order, 'trigger_price')
+        stopLossPrice = self.safe_number(order, 'stop_loss_price')
+        takeProfitPrice = self.safe_number(order, 'stop_profit_price')
+        # Calculate cost * filled amount
+        cost = None
+        if price is not None and filled is not None:
+            cost = price * filled
+        # Determine if order is reduce-only based on contract_type
+        reduceOnly = None
+        contractType = self.safe_string(order, 'contract_type')
+        if contractType is not None:
+            # contract_type: 1=open position, 2=close position
+            # If it's a close position order, it's reduce-only
+            reduceOnly = (contractType == '2')
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': None,
-            'triggerPrice': None,
+            'stopPrice': triggerPrice,  # Map trigger price to stopPrice
+            'triggerPrice': triggerPrice,
             'amount': amount,
-            'cost': None,
-            'average': None,
+            'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': None,
             'trades': None,
+            'fees': [],
+            'reduceOnly': reduceOnly,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
+            'leverage': leverage,
         }, market)
+
+    def parse_order_status(self, status):
+        if status is None:
+            return None
+        # Spot market status values: 1=挂单中, 2=部分成交, 4=撤销中
+        if status == '1':
+            return 'open'  # 挂单中
+        elif status == '2':
+            return 'partially_filled'  # 部分成交
+        elif status == '4':
+            return 'canceled'  # 撤销中
+        elif status == '3':
+            # Futures market status values: 1=挂单中, 2=部分成交, 3=已成交, 4=撤销中, 5=部分撤销, 6=已撤销
+            return 'closed'  # 已成交
+        elif status == '5':
+            return 'canceled'  # 部分撤销
+        elif status == '6':
+            return 'canceled'  # 已撤销
+        return status
 
     def market(self, symbol: str) -> MarketInterface:
         if self.markets is None:
@@ -413,15 +572,21 @@ class websea(Exchange, ImplicitAPI):
         if isinstance(symbol, str):
             if symbol in self.markets:
                 market = self.markets[symbol]
-                # 如果指定了类型，优先返回对应类型的市场
-                typeInParams = self.safe_string_2(self.options, 'defaultType', 'type')
-                if typeInParams is not None and typeInParams != market['type']:
+                # If the symbol contains type information(like BASE/QUOTE:SETTLE),
+                # don't override it with default type preferences
+                if symbol.find(':') != -1:
+                    # This is a unified symbol with settlement currency(e.g., ETH/USDT:USDT)
+                    # Return the exact match since the user specified the full symbol
+                    return market
+                # For ambiguous symbols(like just "ETH/USDT"), apply type preferences
+                typeInOptions = self.safe_string(self.options, 'type')
+                if typeInOptions is not None and typeInOptions != market['type']:
                     # 尝试查找相同交易对但不同类型 markets
                     baseQuote = symbol.split(':')[0]  # 移除结算货币部分
                     for i in range(0, len(self.symbols)):
                         otherSymbol = self.symbols[i]
                         otherMarket = self.markets[otherSymbol]
-                        if otherMarket['type'] == typeInParams:
+                        if otherMarket['type'] == typeInOptions:
                             otherBaseQuote = otherSymbol.split(':')[0]
                             if baseQuote == otherBaseQuote:
                                 return otherMarket
@@ -1443,21 +1608,21 @@ class websea(Exchange, ImplicitAPI):
             request['start_time'] = since
         if limit is not None:
             request['limit'] = limit
-        marketTypeConst, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
-        marketType = marketTypeConst
+        # Determine market type: use the resolved market's type if available and specific,
+        # otherwise use the result from handleMarketTypeAndParams
+        detectedMarketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        marketType = market['type'] if (market and market['type']) else detectedMarketType
         response = None
         if marketType == 'swap':
             # 期货当前订单列表
-            response = self.privateGetOpenApiFuturesEntrustOrderList(self.extend(request, query))
+            response = self.contractGetOpenApiContractCurrentList(self.extend(request, query))
+        elif marketType == 'spot':
+            # 现货当前委托列表 - 使用正确的API端点
+            response = self.privateGetOpenApiEntrustCurrentList(self.extend(request, query))
         else:
-            # 注意：Websea API没有提供获取现货当前订单的端点
-            # 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-            raise NotSupported(self.id + ' fetchOpenOrders is not supported for spot markets by the API')
-        #
-        # 需要根据实际API响应结构调整
-        #
+            raise NotSupported(self.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets by the API')
         result = self.safe_value(response, 'result', [])
-        return self.parse_orders(result, None, since, limit)
+        return self.parse_orders(result, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1531,6 +1696,8 @@ class websea(Exchange, ImplicitAPI):
         # For Websea, map futures-related paths to contract paths
         if path.find('futures/entrust/orderList') >= 0:
             finalPath = 'openApi/contract/currentList'
+        elif path.find('entrust/currentList') >= 0:
+            finalPath = 'openApi/entrust/currentList'
         elif path.find('futures/entrust/add') >= 0:
             finalPath = 'openApi/contract/add'
         elif path.find('futures/entrust/cancel') >= 0:
@@ -1548,7 +1715,7 @@ class websea(Exchange, ImplicitAPI):
             url = self.urls['api']['contract']
         url += '/' + finalPath
         query = self.omit(params, self.extract_params(path))
-        if api == 'private':
+        if api == 'private' or api == 'contract':  # Also handle contract API
             self.check_required_credentials()
             # Websea API签名要求：timestamp_5random格式
             timestamp = str(self.seconds())
@@ -1608,3 +1775,35 @@ class websea(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, errorMessage)
             raise ExchangeError(self.id + ' ' + errorMessage)
         return None
+
+    def is_string_all_digits(self, str: str) -> bool:
+        # Check if string contains only digits(0-9)
+        for i in range(0, len(str)):
+            char = str.charAt(i)
+            if char < '0' or char > '9':
+                return False
+        return len(str) > 0
+
+    def is_string_date_format(self, str: str) -> bool:
+        # Check if string matches "YYYY-MM-DD HH:mm:ss" format
+        if len(str) != 19:
+            return False
+        # Check positions of separators using string indexing
+        if str[4] != '-':
+            return False
+        if str[7] != '-':
+            return False
+        if str[10] != ' ':
+            return False
+        if str[13] != ':':
+            return False
+        if str[16] != ':':
+            return False
+        # Check that all other characters are digits
+        digitPositions = [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18]
+        for i in range(0, len(digitPositions)):
+            pos = digitPositions[i]
+            char = str[pos]
+            if char < '0' or char > '9':
+                return False
+        return True
