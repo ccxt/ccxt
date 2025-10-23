@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import arkmRest from '../arkham.js';
+import arkhamRest from '../arkham.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool } from '../base/types.js';
