@@ -338,6 +338,7 @@ class bybit extends bybit$1["default"] {
                         // account
                         'v5/account/wallet-balance': 1,
                         'v5/account/borrow-history': 1,
+                        'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,
@@ -368,6 +369,7 @@ class bybit extends bybit$1["default"] {
                         'v5/asset/deposit/query-address': 10,
                         'v5/asset/deposit/query-sub-member-address': 10,
                         'v5/asset/coin/query-info': 28,
+                        'v5/asset/withdraw/query-address': 10,
                         'v5/asset/withdraw/query-record': 10,
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
@@ -386,6 +388,10 @@ class bybit extends bybit$1["default"] {
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
+                        'v5/spot-margin-trade/max-borrowable': 5,
+                        'v5/spot-margin-trade/position-tiers': 5,
+                        'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,
                         'v5/spot-cross-margin-trade/account': 1,
                         'v5/spot-cross-margin-trade/orders': 1,
@@ -506,6 +512,8 @@ class bybit extends bybit$1["default"] {
                         'v5/account/set-hedging-mode': 5,
                         'v5/account/mmp-modify': 5,
                         'v5/account/mmp-reset': 5,
+                        'v5/account/borrow': 5,
+                        'v5/account/repay': 5,
                         // asset
                         'v5/asset/exchange/quote-apply': 1,
                         'v5/asset/exchange/convert-execute': 1,
