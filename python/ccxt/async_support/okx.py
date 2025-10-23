@@ -1359,6 +1359,7 @@ class okx(Exchange, ImplicitAPI):
                 'EUR': self.safe_currency_structure({'id': 'EUR', 'code': 'EUR', 'precision': self.parse_number('0.0001')}),
                 'AED': self.safe_currency_structure({'id': 'AED', 'code': 'AED', 'precision': self.parse_number('0.0001')}),
                 'GBP': self.safe_currency_structure({'id': 'GBP', 'code': 'GBP', 'precision': self.parse_number('0.0001')}),
+                'AUD': self.safe_currency_structure({'id': 'AUD', 'code': 'AUD', 'precision': self.parse_number('0.0001')}),
             },
             'commonCurrencies': {
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
