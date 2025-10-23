@@ -1860,7 +1860,7 @@ export default class arkham extends Exchange {
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
         const address = this.safeDict (indexedAddresses, selectedNetworkCode);
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ' ' + (networkCode ? ('on network ' + networkCode) : '') + '. The only available networks are: ' + Object.keys (indexedAddresses).join (', '));
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code);
         }
         return address as DepositAddress;
     }
