@@ -243,8 +243,8 @@ export default class arkham extends arkhamRest {
             'snapshot': true,
         };
         const messageHash = 'orderBook::' + market['symbol'];
-        const orderBook = await this.subscribe (messageHash, 'l2_updates', this.extend (requestArg, params));
-        return orderBook.limit ();
+        const orderbook = await this.subscribe (messageHash, 'l2_updates', this.extend (requestArg, params));
+        return orderbook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
