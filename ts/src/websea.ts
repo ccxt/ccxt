@@ -431,15 +431,22 @@ export default class websea extends Exchange {
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 const market = this.markets[symbol];
-                // 如果指定了类型，优先返回对应类型的市场
-                const typeInParams = this.safeString2 (this.options, 'defaultType', 'type');
-                if (typeInParams !== undefined && typeInParams !== market['type']) {
+                // If the symbol contains type information (like BASE/QUOTE:SETTLE),
+                // don't override it with default type preferences
+                if (symbol.indexOf (':') !== -1) {
+                    // This is a unified symbol with settlement currency (e.g., ETH/USDT:USDT)
+                    // Return the exact match since the user specified the full symbol
+                    return market;
+                }
+                // For ambiguous symbols (like just "ETH/USDT"), apply type preferences
+                const typeInOptions = this.safeString (this.options, 'type');
+                if (typeInOptions !== undefined && typeInOptions !== market['type']) {
                     // 尝试查找相同交易对但不同类型 markets
                     const baseQuote = symbol.split (':')[0]; // 移除结算货币部分
                     for (let i = 0; i < this.symbols.length; i++) {
                         const otherSymbol = this.symbols[i];
                         const otherMarket = this.markets[otherSymbol];
-                        if (otherMarket['type'] === typeInParams) {
+                        if (otherMarket['type'] === typeInOptions) {
                             const otherBaseQuote = otherSymbol.split (':')[0];
                             if (baseQuote === otherBaseQuote) {
                                 return otherMarket;
@@ -1590,7 +1597,10 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        // Determine market type: use the resolved market's type if available and specific,
+        // otherwise use the result from handleMarketTypeAndParams
+        const [ detectedMarketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const marketType = (market && market['type']) ? market['type'] : detectedMarketType;
         let response = undefined;
         if (marketType === 'swap') {
             // 期货当前订单列表
