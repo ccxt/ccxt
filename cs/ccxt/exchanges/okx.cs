@@ -1245,6 +1245,11 @@ public partial class okx : Exchange
                     { "code", "GBP" },
                     { "precision", this.parseNumber("0.0001") },
                 }) },
+                { "AUD", this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "id", "AUD" },
+                    { "code", "AUD" },
+                    { "precision", this.parseNumber("0.0001") },
+                }) },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
