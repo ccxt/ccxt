@@ -61,10 +61,13 @@ function createExchangeDynamicFile(exchanges: string[], ws = false) {
     const imports = ws ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : ''
     const prefix = ws ? 'ccxt.' : '';
 
-    const caseStatements = exchanges.map(exchange => `    case "${exchange}":
+    const caseStatements = exchanges.map(exchange => {
+        return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? `    case "${exchange}":
             ${exchange}Itf := New${capitalizeFirstLetter(exchange)}Core()
             ${exchange}Itf.Init(exchangeArgs)
-            return ${exchange}Itf, true`).join('\n');
+            return ${exchange}Itf, true`
+            : '';
+        }).join('\n');
 
 const ExchangeStatement = `
     case "Exchange":
