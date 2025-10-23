@@ -62,11 +62,14 @@ function createExchangeDynamicFile(exchanges: string[], ws = false) {
     const prefix = ws ? 'ccxt.' : '';
 
     const caseStatements = exchanges.map(exchange => {
-        return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? `    case "${exchange}":
+        const statement = `    case "${exchange}":
             ${exchange}Itf := New${capitalizeFirstLetter(exchange)}Core()
             ${exchange}Itf.Init(exchangeArgs)
-            return ${exchange}Itf, true`
-            : '';
+            return ${exchange}Itf, true`;
+        if (!ws) {
+            return statement;
+        }
+        return fs.existsSync('./ts/src/pro/' + exchange + '.ts') ? statement : '';
         }).join('\n');
 
 const ExchangeStatement = `
