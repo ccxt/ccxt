@@ -3,7 +3,7 @@
         "skip": "private endpoints, todo",
         "skipWs": "private endpoints, todo"
     },
-    "arkm": {
+    "arkham": {
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
