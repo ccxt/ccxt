@@ -5,6 +5,20 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address using ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://arkm.com/api/account/deposit/addresses?chain=ETH",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchLeverageTiers": [
             {
                 "description": "with args",

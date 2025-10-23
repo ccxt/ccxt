@@ -2,6 +2,35 @@
     "exchange": "arkm",
     "skipKeys": [],
     "methods": {
+        "fetchDepositAddress": [
+            {
+                "description": "fetch deposit address using ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "addresses": [
+                        "0x14af05e850030ff8cfce1cd11b4be16675c27e9e",
+                        "0x3e0da5b895818f57da7eee7cbf20b5b85b402551",
+                        "0xbac8495bdd328d7e8681cfde1f8ddf7f1390246b",
+                        "0xe37546f416040ec461957f97bada62b9ce96ecba",
+                        "0xefdb2f9e7fa25117e5e17be8d4b23d8de7f3ab7c",
+                        "0x5dab87b5f339edb7e638e05bced5cbea1ff668cc"
+                    ]
+                },
+                "parsedResponse": {
+                    "info": "0x5dab87b5f339edb7e638e05bced5cbea1ff668cc",
+                    "currency": null,
+                    "network": "ERC20",
+                    "address": "0x5dab87b5f339edb7e638e05bced5cbea1ff668cc",
+                    "tag": null
+                }
+            }
+        ],
         "fetchLeverageTiers": [
             {
                 "description": "with args",
