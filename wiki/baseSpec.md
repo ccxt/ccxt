@@ -6114,6 +6114,24 @@ parse a position structure from the exchange response
 
 ---
 
+<a name="parseSwapBalance" id="parseswapbalance"></a>
+
+## parseSwapBalance
+parse swap balance response from Websea API
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| response | <code>object</code> | API response |
+
+##### Supported exchanges
+* [websea](/exchanges/websea.md#webseaparseswapbalance)
+
+---
+
 <a name="parseTicker" id="parseticker"></a>
 
 ## parseTicker

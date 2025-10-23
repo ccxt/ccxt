@@ -247,6 +247,7 @@ class websea(Exchange, ImplicitAPI):
                         'openApi/entrust/currentList': 1,  # 现货当前委托列表
                         'openApi/futures/entrust/orderList': 1,  # 期货当前订单列表
                         'openApi/futures/position/list': 1,  # 期货持仓列表
+                        'openApi/contract/walletList/full': 1,  # 全仓资产列表
                     },
                     'post': {
                         'openApi/entrust/add': 1,  # 现货下单
@@ -425,9 +426,9 @@ class websea(Exchange, ImplicitAPI):
                 # Websea API returns time in UTC+8(China Standard Time)
                 # Convert to UTC by subtracting 8 hours(28800000 milliseconds)
                 isoString = ctimeString.replace(' ', 'T') + '+08:00'  # Explicitly specify UTC+8
-                timestamp = Date.parse(isoString)
+                timestamp = self.parse_date(isoString)
                 # If Date.parse failed, it returns NaN, so check for that
-                if Number.isNaN(timestamp):
+                if timestamp is None:
                     # Fallback: manually parse the date components and adjust for UTC+8
                     # Use string replacement and split instead of regex for CCXT compatibility
                     normalizedString = ctimeString.replace('-', ' ').replace(':', ' ')
@@ -453,7 +454,7 @@ class websea(Exchange, ImplicitAPI):
             # If no string value, try safeTimestamp
             timestamp = self.safe_timestamp(order, 'ctime')
         # Final check: if timestamp is still None or invalid, try safeInteger
-        if timestamp is None or timestamp == 0 or Number.isNaN(timestamp):
+        if timestamp is None or timestamp == 0:
             timestamp = self.safe_integer(order, 'ctime')
             if timestamp is not None and timestamp.toString(len()) == 10:
                 # If it looks like a 10-digit Unix timestamp, convert to milliseconds
@@ -474,13 +475,14 @@ class websea(Exchange, ImplicitAPI):
         type = self.safe_string(order, 'type')
         if type is not None:
             # For futures: type is like "buy-limit", "sell-market", etc
-            if type.includes('-'):
-                if type.includes('-limit'):
+            if type.find('-') >= 0:
+                if type.find('-limit') >= 0:
                     type = 'limit'
-                elif type.includes('-market'):
+                elif type.find('-market') >= 0:
                     type = 'market'
                 else:
-                    type = type.split('-')[1]  # take the part after dash
+                    parts = type.split('-')
+                    type = self.safe_string(parts, 1, type)  # take the part after dash
             else:
                 # For spot: type is an integer(1=market, 2=limit)
                 if type == '1':
@@ -1278,30 +1280,47 @@ class websea(Exchange, ImplicitAPI):
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         response = None
         if marketType == 'swap':
-            # Websea API没有专门的期货账户余额查询端点
-            # 根据API文档，使用通用的钱包列表端点
-            # 注意：这可能返回所有账户的余额，需要在解析时进行过滤
-            response = await self.privateGetOpenApiWalletList(query)
+            # 全仓资产查询 - 使用合约全仓资产列表接口
+            response = await self.privateGetOpenApiContractWalletListFull(query)
+            return self.parse_swap_balance(response)
         else:
-            # 现货账户余额查询
+            # 现货账户余额查询 - 保持现有逻辑不变
             response = await self.privateGetOpenApiWalletList(query)
-        #
-        # Websea API响应格式示例:
-        # {
-        #     "errno": 0,
-        #     "errmsg": "success",
-        #     "result": [
-        #         {
-        #             "currency": "BTC",
-        #             "available": "0.1",
-        #             "frozen": "0.01",
-        #             "total": "0.11"
-        #         }
-        #     ]
-        # }
-        #
+            result = self.safe_value(response, 'result', [])
+            return self.parse_balance(result)
+
+    def parse_swap_balance(self, response) -> Balances:
+        """
+        parse swap balance response from Websea API
+        :param dict response: API response
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
         result = self.safe_value(response, 'result', [])
-        return self.parse_balance(result)
+        balance = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+            'free': {},
+            'used': {},
+            'total': {},
+        }
+        for i in range(0, len(result)):
+            item = result[i]
+            tradeArea = self.safe_string(item, 'trade_area')
+            currencyCode = self.safe_currency_code(tradeArea)
+            avail = self.safe_string(item, 'avail')
+            isolatedEquity = self.safe_string(item, 'isolatedEquity')
+            # 根据新的API响应格式更新字段映射逻辑
+            # avail → total(总余额)
+            # isolatedEquity → free(可用余额)
+            # used = total - free(通过计算差值得到已使用余额)
+            total = avail
+            free = isolatedEquity
+            used = Precise.string_sub(total, free)
+            balance['free'][currencyCode] = free
+            balance['used'][currencyCode] = used
+            balance['total'][currencyCode] = total
+        return self.safe_balance(balance)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
@@ -1780,7 +1799,7 @@ class websea(Exchange, ImplicitAPI):
     def is_string_all_digits(self, str: str) -> bool:
         # Check if string contains only digits(0-9)
         for i in range(0, len(str)):
-            char = str.charAt(i)
+            char = str[i]
             if char < '0' or char > '9':
                 return False
         return len(str) > 0

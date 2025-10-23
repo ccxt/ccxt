@@ -240,6 +240,7 @@ class websea extends Exchange {
                         'openApi/entrust/currentList' => 1, // 现货当前委托列表
                         'openApi/futures/entrust/orderList' => 1, // 期货当前订单列表
                         'openApi/futures/position/list' => 1, // 期货持仓列表
+                        'openApi/contract/walletList/full' => 1, // 全仓资产列表
                     ),
                     'post' => array(
                         'openApi/entrust/add' => 1, // 现货下单
@@ -423,9 +424,9 @@ class websea extends Exchange {
                 // Websea API returns time in UTC+8 (China Standard Time)
                 // Convert to UTC by subtracting 8 hours (28800000 milliseconds)
                 $isoString = str_replace(' ', 'T', $ctimeString) . '+08:00'; // Explicitly specify UTC+8
-                $timestamp = Date.parse ($isoString);
+                $timestamp = $this->parse_date($isoString);
                 // If Date.parse failed, it returns NaN, so check for that
-                if (Number.isNaN ($timestamp)) {
+                if ($timestamp === null) {
                     // Fallback => manually parse the $date components and adjust for UTC+8
                     // Use string replacement and split instead of regex for CCXT compatibility
                     $normalizedString = str_replace(':', ' ', $ctimeString->replace ('-', ' '));
@@ -455,7 +456,7 @@ class websea extends Exchange {
             $timestamp = $this->safe_timestamp($order, 'ctime');
         }
         // Final check => if $timestamp is still null or invalid, try safeInteger
-        if ($timestamp === null || $timestamp === 0 || Number.isNaN ($timestamp)) {
+        if ($timestamp === null || $timestamp === 0) {
             $timestamp = $this->safe_integer($order, 'ctime');
             if ($timestamp !== null && (string) strlen($timestamp) === 10) {
                 // If it looks like a 10-digit Unix $timestamp, convert to milliseconds
@@ -481,13 +482,14 @@ class websea extends Exchange {
         $type = $this->safe_string($order, 'type');
         if ($type !== null) {
             // For futures => $type is like "buy-limit", "sell-$market", etc
-            if ($type->includes ('-')) {
-                if ($type->includes ('-limit')) {
+            if (mb_strpos($type, '-') !== false) {
+                if (mb_strpos($type, '-limit') !== false) {
                     $type = 'limit';
-                } elseif ($type->includes ('-market')) {
+                } elseif (mb_strpos($type, '-market') !== false) {
                     $type = 'market';
                 } else {
-                    $type = explode('-', $type)[1]; // take the part after dash
+                    $parts = explode('-', $type);
+                    $type = $this->safe_string($parts, 1, $type); // take the part after dash
                 }
             } else {
                 // For spot => $type is an integer (1=$market, 2=limit)
@@ -1368,31 +1370,50 @@ class websea extends Exchange {
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $response = null;
         if ($marketType === 'swap') {
-            // Websea API没有专门的期货账户余额查询端点
-            // 根据API文档，使用通用的钱包列表端点
-            // 注意：这可能返回所有账户的余额，需要在解析时进行过滤
-            $response = $this->privateGetOpenApiWalletList ($query);
+            // 全仓资产查询 - 使用合约全仓资产列表接口
+            $response = $this->privateGetOpenApiContractWalletListFull ($query);
+            return $this->parse_swap_balance($response);
         } else {
-            // 现货账户余额查询
+            // 现货账户余额查询 - 保持现有逻辑不变
             $response = $this->privateGetOpenApiWalletList ($query);
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_balance($result);
         }
-        //
-        // Websea API响应格式示例:
-        // {
-        //     "errno" => 0,
-        //     "errmsg" => "success",
-        //     "result" => array(
-        //         {
-        //             "currency" => "BTC",
-        //             "available" => "0.1",
-        //             "frozen" => "0.01",
-        //             "total" => "0.11"
-        //         }
-        //     )
-        // }
-        //
+    }
+
+    public function parse_swap_balance($response): array {
+        /**
+         * parse swap $balance $response from Websea API
+         * @param {array} $response API $response
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
+         */
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_balance($result);
+        $balance = array(
+            'info' => $response,
+            'timestamp' => null,
+            'datetime' => null,
+            'free' => array(),
+            'used' => array(),
+            'total' => array(),
+        );
+        for ($i = 0; $i < count($result); $i++) {
+            $item = $result[$i];
+            $tradeArea = $this->safe_string($item, 'trade_area');
+            $currencyCode = $this->safe_currency_code($tradeArea);
+            $avail = $this->safe_string($item, 'avail');
+            $isolatedEquity = $this->safe_string($item, 'isolatedEquity');
+            // 根据新的API响应格式更新字段映射逻辑
+            // $avail → $total (总余额)
+            // $isolatedEquity → $free (可用余额)
+            // $used = $total - $free (通过计算差值得到已使用余额)
+            $total = $avail;
+            $free = $isolatedEquity;
+            $used = Precise::string_sub($total, $free);
+            $balance['free'][$currencyCode] = $free;
+            $balance['used'][$currencyCode] = $used;
+            $balance['total'][$currencyCode] = $total;
+        }
+        return $this->safe_balance($balance);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array ()): array {
@@ -1925,7 +1946,7 @@ class websea extends Exchange {
     public function is_string_all_digits(string $str): bool {
         // Check if string contains only digits (0-9)
         for ($i = 0; $i < count($str); $i++) {
-            $char = $str->charAt ($i);
+            $char = $str[$i];
             if ($char < '0' || $char > '9') {
                 return false;
             }

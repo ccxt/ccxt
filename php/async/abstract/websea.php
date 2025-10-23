@@ -67,6 +67,9 @@ abstract class websea extends \ccxt\async\Exchange {
     public function private_get_openapi_futures_position_list($params = array()) {
         return $this->request('openApi/futures/position/list', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_openapi_contract_walletlist_full($params = array()) {
+        return $this->request('openApi/contract/walletList/full', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_openapi_entrust_add($params = array()) {
         return $this->request('openApi/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -159,6 +162,9 @@ abstract class websea extends \ccxt\async\Exchange {
     }
     public function privateGetOpenApiFuturesPositionList($params = array()) {
         return $this->request('openApi/futures/position/list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetOpenApiContractWalletListFull($params = array()) {
+        return $this->request('openApi/contract/walletList/full', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenApiEntrustAdd($params = array()) {
         return $this->request('openApi/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));

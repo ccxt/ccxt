@@ -14,6 +14,7 @@
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
 * [fetchBalance](#fetchbalance)
+* [parseSwapBalance](#parseswapbalance)
 * [fetchPositions](#fetchpositions)
 * [aggregateOrderBookSide](#aggregateorderbookside)
 * [createOrder](#createorder)
@@ -205,6 +206,25 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ```javascript
 websea.fetchBalance ([params])
+```
+
+
+<a name="parseSwapBalance" id="parseswapbalance"></a>
+
+### parseSwapBalance{docsify-ignore}
+parse swap balance response from Websea API
+
+**Kind**: instance method of [<code>websea</code>](#websea)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| response | <code>object</code> | API response |
+
+
+```javascript
+websea.parseSwapBalance (response, [undefined])
 ```
 
 

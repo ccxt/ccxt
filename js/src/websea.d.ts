@@ -51,6 +51,7 @@ export default class websea extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: any, market?: Market): Trade;
     fetchBalance(params?: {}): Promise<Balances>;
+    parseSwapBalance(response: any): Balances;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     parsePosition(position: any, market?: Market): Position;
     parseBalance(response: any): Balances;

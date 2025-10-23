@@ -430,9 +430,9 @@ export default class websea extends Exchange {
                 // Websea API returns time in UTC+8 (China Standard Time)
                 // Convert to UTC by subtracting 8 hours (28800000 milliseconds)
                 const isoString = ctimeString.replace (' ', 'T') + '+08:00'; // Explicitly specify UTC+8
-                timestamp = Date.parse (isoString);
+                timestamp = this.parseDate (isoString);
                 // If Date.parse failed, it returns NaN, so check for that
-                if (Number.isNaN (timestamp)) {
+                if (timestamp === undefined) {
                     // Fallback: manually parse the date components and adjust for UTC+8
                     // Use string replacement and split instead of regex for CCXT compatibility
                     const normalizedString = ctimeString.replace ('-', ' ').replace (':', ' ');
@@ -462,7 +462,7 @@ export default class websea extends Exchange {
             timestamp = this.safeTimestamp (order, 'ctime');
         }
         // Final check: if timestamp is still undefined or invalid, try safeInteger
-        if (timestamp === undefined || timestamp === 0 || Number.isNaN (timestamp)) {
+        if (timestamp === undefined || timestamp === 0) {
             timestamp = this.safeInteger (order, 'ctime');
             if (timestamp !== undefined && timestamp.toString ().length === 10) {
                 // If it looks like a 10-digit Unix timestamp, convert to milliseconds
@@ -488,13 +488,14 @@ export default class websea extends Exchange {
         let type = this.safeString (order, 'type');
         if (type !== undefined) {
             // For futures: type is like "buy-limit", "sell-market", etc
-            if (type.includes ('-')) {
-                if (type.includes ('-limit')) {
+            if (type.indexOf ('-') >= 0) {
+                if (type.indexOf ('-limit') >= 0) {
                     type = 'limit';
-                } else if (type.includes ('-market')) {
+                } else if (type.indexOf ('-market') >= 0) {
                     type = 'market';
                 } else {
-                    type = type.split ('-')[1]; // take the part after dash
+                    const parts = type.split ('-');
+                    type = this.safeString (parts, 1, type); // take the part after dash
                 }
             } else {
                 // For spot: type is an integer (1=market, 2=limit)
