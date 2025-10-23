@@ -9,10 +9,10 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Str, Ticker, OrderBook, Tickers, Strings, Currencies, Market, Num, Dict, int, Balances, Currency, DepositAddress, Account, Transaction, TradingFees, Leverage, LeverageTier, LeverageTiers, Position } from './base/types.js';
 
 /**
- * @class arkm
+ * @class arkham
  * @augments Exchange
  */
-export default class arkm extends Exchange {
+export default class arkham extends Exchange {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'arkham',
