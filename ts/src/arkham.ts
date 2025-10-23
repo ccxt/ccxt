@@ -1844,6 +1844,29 @@ export default class arkham extends Exchange {
 
     /**
      * @method
+     * @name arkham#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://arkm.com/docs#get/account/deposit/addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networkCodeAndParams = this.handleNetworkCodeAndParams (params);
+        const networkCode = networkCodeAndParams[0];
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, params);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, indexedAddresses);
+        const address = this.safeDict (indexedAddresses, selectedNetworkCode);
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ' ' + (networkCode ? ('on network ' + networkCode) : '') + '. The only available networks are: ' + Object.keys (indexedAddresses).join (', '));
+        }
+        return address as DepositAddress;
+    }
+
+    /**
+     * @method
      * @name arkham#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://arkm.com/docs#get/account/deposits
