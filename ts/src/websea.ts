@@ -409,36 +409,57 @@ export default class websea extends Exchange {
         // Get order ID - prefer order_sn for spot, order_id for futures
         const id = this.safeString2 (order, 'order_sn', 'order_id');
         // Parse timestamp - spot uses string format, futures uses timestamp
-        let timestamp = this.safeTimestamp (order, 'ctime');
-        if (timestamp === undefined || timestamp === 0) {
-            // For spot markets, ctime is in "YYYY-MM-DD HH:mm:ss" format
-            const ctimeString = this.safeString (order, 'ctime');
-            if (ctimeString !== undefined && ctimeString.length > 0) {
-                // Check if it's a Unix timestamp string or date string
-                if (/^\d+$/.test (ctimeString)) {
-                    // If it's all digits, it's likely a Unix timestamp
-                    timestamp = parseInt (ctimeString) * 1000; // Convert seconds to milliseconds
-                } else {
-                    // If it's in "YYYY-MM-DD HH:mm:ss" format, parse manually
-                    // First replace space with 'T' to get "YYYY-MM-DDTHH:mm:ss" format
-                    const isoString = ctimeString.replace (' ', 'T');
-                    // Use Date.parse which handles the format after conversion
-                    timestamp = Date.parse (isoString);
-                    // If Date.parse failed, it returns NaN, so check for that
-                    if (Number.isNaN (timestamp)) {
-                        // Fallback to safeInteger if parsing fails
-                        timestamp = this.safeInteger (order, 'ctime');
-                        if (timestamp !== undefined && timestamp.toString ().length === 10) {
-                            // If it looks like a 10-digit Unix timestamp, convert to milliseconds
-                            timestamp = timestamp * 1000;
-                        }
+        let timestamp = undefined;
+        const ctimeString = this.safeString (order, 'ctime');
+        if (ctimeString !== undefined && ctimeString.length > 0) {
+            // Check if it's a Unix timestamp string or date string
+            if (/^\d+$/.test (ctimeString)) {
+                // If it's all digits, it's likely a Unix timestamp
+                timestamp = parseInt (ctimeString);
+                // Check if it's in seconds (10 digits) or milliseconds (13 digits)
+                if (timestamp.toString ().length === 10) {
+                    timestamp = timestamp * 1000; // Convert seconds to milliseconds
+                }
+            } else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test (ctimeString)) {
+                // If it's in "YYYY-MM-DD HH:mm:ss" format, parse manually
+                // Websea API returns time in UTC+8 (China Standard Time)
+                // Convert to UTC by subtracting 8 hours (28800000 milliseconds)
+                const isoString = ctimeString.replace (' ', 'T') + '+08:00'; // Explicitly specify UTC+8
+                timestamp = Date.parse (isoString);
+                // If Date.parse failed, it returns NaN, so check for that
+                if (Number.isNaN (timestamp)) {
+                    // Fallback: manually parse the date components and adjust for UTC+8
+                    const parts = ctimeString.split (/[- :]/);
+                    if (parts.length === 6) {
+                        const year = parseInt (parts[0]);
+                        const month = parseInt (parts[1]) - 1; // Month is 0-indexed in JavaScript
+                        const day = parseInt (parts[2]);
+                        const hour = parseInt (parts[3]);
+                        const minute = parseInt (parts[4]);
+                        const second = parseInt (parts[5]);
+                        // Create date object in UTC+8 timezone
+                        const date = new Date (Date.UTC (year, month, day, hour, minute, second));
+                        // Convert to UTC by subtracting 8 hours
+                        timestamp = date.getTime () - (8 * 60 * 60 * 1000);
+                    } else {
+                        // Fallback to safeTimestamp if parsing fails
+                        timestamp = this.safeTimestamp (order, 'ctime');
                     }
                 }
+            } else {
+                // Try safeTimestamp as fallback
+                timestamp = this.safeTimestamp (order, 'ctime');
             }
         } else {
-            // If timestamp was found via safeTimestamp, make sure it's in milliseconds
-            if (timestamp < 1e12) { // If it appears to be in seconds
-                timestamp = timestamp * 1000; // Convert to milliseconds
+            // If no string value, try safeTimestamp
+            timestamp = this.safeTimestamp (order, 'ctime');
+        }
+        // Final check: if timestamp is still undefined or invalid, try safeInteger
+        if (timestamp === undefined || timestamp === 0 || Number.isNaN (timestamp)) {
+            timestamp = this.safeInteger (order, 'ctime');
+            if (timestamp !== undefined && timestamp.toString ().length === 10) {
+                // If it looks like a 10-digit Unix timestamp, convert to milliseconds
+                timestamp = timestamp * 1000;
             }
         }
         // Determine order status
