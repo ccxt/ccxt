@@ -1439,6 +1439,12 @@ class websea extends Exchange {
             $balance['free'][$currencyCode] = $free;
             $balance['used'][$currencyCode] = $used;
             $balance['total'][$currencyCode] = $total;
+            // 为每个货币代码也创建完整的账户结构
+            $balance[$currencyCode] = array(
+                'free' => $this->parse_number($free),
+                'used' => $this->parse_number($used),
+                'total' => $this->parse_number($total),
+            );
         }
         return $this->safe_balance($balance);
     }

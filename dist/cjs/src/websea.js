@@ -1440,6 +1440,12 @@ class websea extends websea$1["default"] {
             balance['free'][currencyCode] = free;
             balance['used'][currencyCode] = used;
             balance['total'][currencyCode] = total;
+            // 为每个货币代码也创建完整的账户结构
+            balance[currencyCode] = {
+                'free': this.parseNumber(free),
+                'used': this.parseNumber(used),
+                'total': this.parseNumber(total),
+            };
         }
         return this.safeBalance(balance);
     }

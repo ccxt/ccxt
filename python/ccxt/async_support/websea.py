@@ -1320,6 +1320,12 @@ class websea(Exchange, ImplicitAPI):
             balance['free'][currencyCode] = free
             balance['used'][currencyCode] = used
             balance['total'][currencyCode] = total
+            # 为每个货币代码也创建完整的账户结构
+            balance[currencyCode] = {
+                'free': self.parse_number(free),
+                'used': self.parse_number(used),
+                'total': self.parse_number(total),
+            }
         return self.safe_balance(balance)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
