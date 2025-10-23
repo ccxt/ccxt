@@ -1498,13 +1498,20 @@ export default class arkham extends Exchange {
         const typeRaw = this.safeString (order, 'type');
         const orderType = isPostOnly ? 'limit' : this.parseOrderType (typeRaw);
         const timeInForce = isPostOnly ? 'PO' : this.parseTimeInForce (typeRaw);
-        const feeValue = this.safeString (order, 'commission');
-        let fee = undefined;
-        if (feeValue !== undefined) {
-            fee = {
-                'cost': feeValue,
-                'currency': 'USD',
-            };
+        const quoteFeePaid = this.safeString (order, 'quoteFeePaid');
+        const arkmFeePaid = this.safeString (order, 'arkmFeePaid');
+        const fees = [];
+        if (quoteFeePaid !== undefined) {
+            fees.push ({
+                'cost': quoteFeePaid,
+                'currency': this.safeString (market, 'quote'),
+            });
+        }
+        if (arkmFeePaid !== undefined) {
+            fees.push ({
+                'cost': arkmFeePaid,
+                'currency': 'ARKM',
+            });
         }
         const timestamp = this.safeIntegerProduct (order, 'time', 0.001);
         return this.safeOrder ({
@@ -1528,7 +1535,7 @@ export default class arkham extends Exchange {
             'filled': this.safeNumber (order, ''),
             'remaining': undefined,
             'trades': undefined,
-            'fee': fee,
+            'fees': fees,
             'reduceOnly': this.safeBool (order, 'reduceOnly'),
             'info': order,
         }, market);
