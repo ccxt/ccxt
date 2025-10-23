@@ -178,7 +178,8 @@ function transpileAndGenerateAPI(exchanges: string[]) {
     execSync.execSync(`tsx ./build/generateImplicitAPI.ts`, { stdio: 'inherit' });
     for (const exchange of exchanges) {
         execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange}`, { stdio: 'inherit' });
-        if (WS_SUPPORT) {
+        const WS_EXISTED = fs.existsSync('./ts/src/pro/' + exchange + '.ts');
+        if (WS_SUPPORT && WS_EXISTED) {
             execSync.execSync(`tsx ./build/goTranspiler.ts ${exchange} --ws`, { stdio: 'inherit' });
         }
     }
