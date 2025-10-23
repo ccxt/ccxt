@@ -234,12 +234,14 @@ export default class websea extends Exchange {
                         'openApi/contract/depth': 1, // 合约市场深度
                         'openApi/contract/kline': 1, // 合约K线数据
                         'openApi/contract/24kline': 1, // 合约24小时K线数据
+                        'openApi/contract/currentList': 1, // 合约当前委托列表
                     },
                 },
                 'private': {
                     'get': {
                         'openApi/wallet/list': 1, // 钱包列表 - 余额查询
                         'openApi/entrust/historyList': 1, // 历史订单列表 - 已完成订单
+                        'openApi/entrust/currentList': 1, // 现货当前委托列表
                         'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
                         'openApi/futures/position/list': 1, // 期货持仓列表
                     },
@@ -371,7 +373,18 @@ export default class websea extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        // If the market is not provided or has no type, try to use the exchange's current type context
+        // to disambiguate between spot and swap markets that have the same base ID
+        let resolvedMarket = undefined;
+        if (market !== undefined && market['type'] !== undefined) {
+            // If a market is provided with a specific type, use it
+            resolvedMarket = this.safeMarket (marketId, market);
+        } else {
+            // Otherwise, check the exchange's default type to disambiguate
+            const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+            resolvedMarket = this.safeMarket (marketId, market, defaultType);
+        }
+        market = resolvedMarket;
         const symbol = market['symbol'];
         const id = this.safeString (order, 'order_id');
         const timestamp = this.safeInteger (order, 'create_time');
@@ -1577,22 +1590,19 @@ export default class websea extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const [ marketTypeConst, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const marketType = marketTypeConst;
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let response = undefined;
         if (marketType === 'swap') {
             // 期货当前订单列表
-            response = await this.privateGetOpenApiFuturesEntrustOrderList (this.extend (request, query));
+            response = await this.contractGetOpenApiContractCurrentList (this.extend (request, query));
+        } else if (marketType === 'spot') {
+            // 现货当前委托列表 - 使用正确的API端点
+            response = await this.privateGetOpenApiEntrustCurrentList (this.extend (request, query));
         } else {
-            // 注意：Websea API没有提供获取现货当前订单的端点
-            // 只能获取历史订单，所以fetchOpenOrders暂时无法实现
-            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for spot markets by the API');
+            throw new NotSupported (this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets by the API');
         }
-        //
-        // 需要根据实际API响应结构调整
-        //
         const result = this.safeValue (response, 'result', []);
-        return this.parseOrders (result, undefined, since, limit);
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1677,6 +1687,8 @@ export default class websea extends Exchange {
         // For Websea, map futures-related paths to contract paths
         if (path.indexOf ('futures/entrust/orderList') >= 0) {
             finalPath = 'openApi/contract/currentList';
+        } else if (path.indexOf ('entrust/currentList') >= 0) {
+            finalPath = 'openApi/entrust/currentList';
         } else if (path.indexOf ('futures/entrust/add') >= 0) {
             finalPath = 'openApi/contract/add';
         } else if (path.indexOf ('futures/entrust/cancel') >= 0) {
@@ -1696,7 +1708,7 @@ export default class websea extends Exchange {
         }
         url += '/' + finalPath;
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
+        if (api === 'private' || api === 'contract') {  // Also handle contract API as private
             this.checkRequiredCredentials ();
             // Websea API签名要求：timestamp_5random格式
             const timestamp = this.seconds ().toString ();
