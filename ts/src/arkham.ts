@@ -1296,6 +1296,13 @@ export default class arkham extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {float} [params.triggerPrice] price for a trigger (conditional) order
+     * @param {float} [params.stopLossPrice] price for a stoploss order
+     * @param {float} [params.takeProfitPrice] price for a takeprofit order
+     * @param {string} [params.triggerDirection] the direction for trigger orders, 'ascending' or 'descending'
+     * @param {string} [params.triggerPriceType] mark, index or last
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
      * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1336,22 +1343,6 @@ export default class arkham extends Exchange {
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @ignore
-         * @name ascendex#createOrderRequest
-         * @description helper function to build request
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-         * @param {bool} [params.postOnly] true or false
-         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
-         * @returns {object} request to be sent to the exchange
-         */
         const market = this.market (symbol);
         symbol = market['symbol'];
         const request: Dict = {
@@ -1409,7 +1400,7 @@ export default class arkham extends Exchange {
         } else if (isMarketOrder) {
             request['type'] = 'market';
         }
-        // we don't need to manually handle `reduceOnly`, `clientOrderId`, `triggerPriceType` here as exchange-specific keyname& values matches
+        // we don't need to manually handle `reduceOnly`, `clientOrderId`, `triggerPriceType` here as exchange-specific keyname & values matches
         return this.extend (request, params);
     }
 
