@@ -1154,7 +1154,7 @@
                             "lastQuoteFee": "0",
                             "lastArkmFee": "0"
                         },
-                        "fees": [],
+                        "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
                         "lastTradeTimestamp": null,
                         "stopPrice": null,
                         "takeProfitPrice": null,
@@ -1213,7 +1213,7 @@
                             "lastQuoteFee": "0",
                             "lastArkmFee": "0"
                         },
-                        "fees": [],
+                        "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
                         "lastTradeTimestamp": null,
                         "stopPrice": null,
                         "takeProfitPrice": null,
@@ -1313,7 +1313,7 @@
                             "lastQuoteFee": "0",
                             "lastArkmFee": "0"
                         },
-                        "fees": [],
+                        "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
                         "lastTradeTimestamp": null,
                         "stopPrice": null,
                         "takeProfitPrice": null,
@@ -1456,7 +1456,7 @@
                         "lastQuoteFee": "0",
                         "lastArkmFee": "0"
                     },
-                    "fees": [],
+                    "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
                     "lastTradeTimestamp": null,
                     "stopPrice": null,
                     "takeProfitPrice": null,
@@ -1552,7 +1552,7 @@
                         "lastQuoteFee": "0",
                         "lastArkmFee": "0"
                     },
-                    "fees": [],
+                    "fees": [{"currency":"USDT","cost":0},{"currency":"ARKM","cost":0}],
                     "lastTradeTimestamp": null,
                     "stopPrice": null,
                     "takeProfitPrice": null,
