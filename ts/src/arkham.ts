@@ -1814,7 +1814,7 @@ export default class arkham extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddressesByNetwork() requires a "network" param');
         }
         const request: Dict = {
-            'chain': networkCode,
+            'chain': this.networkCodeToId (networkCode),
         };
         const response = await this.v1PrivateGetAccountDepositAddresses (this.extend (request, params));
         //
