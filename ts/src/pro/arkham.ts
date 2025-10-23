@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import arkmRest from '../arkm.js';
+import arkmRest from '../arkham.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Dict, Position, Bool } from '../base/types.js';
@@ -10,7 +10,7 @@ import { ExchangeError } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class arkm extends arkmRest {
+export default class arkham extends arkhamRest {
     describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -92,7 +92,7 @@ export default class arkm extends arkmRest {
 
     /**
      * @method
-     * @name arkm#watchTicker
+     * @name arkham#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://arkm.com/docs#stream/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -156,7 +156,7 @@ export default class arkm extends arkmRest {
 
     /**
      * @method
-     * @name arkm#watchOHLCV
+     * @name arkham#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://arkm.com/docs#stream/candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -227,7 +227,7 @@ export default class arkm extends arkmRest {
 
     /**
      * @method
-     * @name arkm#watchOrderBook
+     * @name arkham#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://arkm.com/docs#stream/l2_updates
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -314,7 +314,7 @@ export default class arkm extends arkmRest {
 
     /**
      * @method
-     * @name arkm#watchTrades
+     * @name arkham#watchTrades
      * @description watches information on multiple trades made in a market
      * @see https://arkm.com/docs#stream/trades
      * @param {string} symbol unified market symbol of the market trades were made in
@@ -504,7 +504,7 @@ export default class arkm extends arkmRest {
 
     /**
      * @method
-     * @name arkm#watchPositions
+     * @name arkham#watchPositions
      * @see https://arkm.com/docs#stream/positions
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
@@ -622,7 +622,7 @@ export default class arkm extends arkmRest {
 
     /**
      * @method
-     * @name arkm#watchOrders
+     * @name arkham#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://arkm.com/docs#stream/order_statuses
      * @param {string} symbol unified market symbol of the market orders were made in
