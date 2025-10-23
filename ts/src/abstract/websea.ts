@@ -29,6 +29,7 @@ interface Exchange {
     privateGetOpenApiEntrustCurrentList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiFuturesEntrustOrderList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiFuturesPositionList (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiContractWalletListFull (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustAdd (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustCancel (params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiEntrustOrderDetail (params?: {}): Promise<implicitReturnType>;

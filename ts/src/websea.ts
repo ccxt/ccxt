@@ -244,6 +244,7 @@ export default class websea extends Exchange {
                         'openApi/entrust/currentList': 1, // 现货当前委托列表
                         'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
                         'openApi/futures/position/list': 1, // 期货持仓列表
+                        'openApi/contract/walletList/full': 1, // 全仓资产列表
                     },
                     'post': {
                         'openApi/entrust/add': 1, // 现货下单
@@ -1390,31 +1391,52 @@ export default class websea extends Exchange {
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let response = undefined;
         if (marketType === 'swap') {
-            // Websea API没有专门的期货账户余额查询端点
-            // 根据API文档，使用通用的钱包列表端点
-            // 注意：这可能返回所有账户的余额，需要在解析时进行过滤
-            response = await this.privateGetOpenApiWalletList (query);
+            // 全仓资产查询 - 使用合约全仓资产列表接口
+            response = await this.privateGetOpenApiContractWalletListFull (query);
+            return this.parseSwapBalance (response);
         } else {
-            // 现货账户余额查询
+            // 现货账户余额查询 - 保持现有逻辑不变
             response = await this.privateGetOpenApiWalletList (query);
+            const result = this.safeValue (response, 'result', []);
+            return this.parseBalance (result);
         }
-        //
-        // Websea API响应格式示例:
-        // {
-        //     "errno": 0,
-        //     "errmsg": "success",
-        //     "result": [
-        //         {
-        //             "currency": "BTC",
-        //             "available": "0.1",
-        //             "frozen": "0.01",
-        //             "total": "0.11"
-        //         }
-        //     ]
-        // }
-        //
+    }
+
+    parseSwapBalance (response): Balances {
+        /**
+         * @method
+         * @name websea#parseSwapBalance
+         * @description parse swap balance response from Websea API
+         * @param {object} response API response
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
         const result = this.safeValue (response, 'result', []);
-        return this.parseBalance (result);
+        const balance = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'free': {},
+            'used': {},
+            'total': {},
+        };
+        for (let i = 0; i < result.length; i++) {
+            const item = result[i];
+            const tradeArea = this.safeString (item, 'trade_area');
+            const currencyCode = this.safeCurrencyCode (tradeArea);
+            const avail = this.safeString (item, 'avail');
+            const isolatedEquity = this.safeString (item, 'isolatedEquity');
+            // 根据新的API响应格式更新字段映射逻辑
+            // avail → total (总余额)
+            // isolatedEquity → free (可用余额)
+            // used = total - free (通过计算差值得到已使用余额)
+            const total = avail;
+            const free = isolatedEquity;
+            const used = Precise.stringSub (total, free);
+            balance['free'][currencyCode] = free;
+            balance['used'][currencyCode] = used;
+            balance['total'][currencyCode] = total;
+        }
+        return this.safeBalance (balance);
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
