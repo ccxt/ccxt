@@ -5,7 +5,27 @@ import { ExchangeError, BadSymbol, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha1 } from './static_dependencies/noble-hashes/sha1.js';
 import { Precise } from './base/Precise.js';
-import type { Int, OHLCV, Order, OrderSide, OrderType, Str, Trade, Balances, Ticker, OrderBook, Tickers, Strings, Num, Market, Currencies, Dict, int, Position, MarketInterface } from './base/types.js';
+import type {
+    Int,
+    OHLCV,
+    Order,
+    OrderSide,
+    OrderType,
+    Str,
+    Trade,
+    Balances,
+    Ticker,
+    OrderBook,
+    Tickers,
+    Strings,
+    Num,
+    Market,
+    Currencies,
+    Dict,
+    int,
+    Position,
+    MarketInterface,
+} from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -403,7 +423,7 @@ export default class websea extends Exchange {
         } else {
             // Otherwise, check the exchange's default type to disambiguate
             const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-            resolvedMarket = this.safeMarket (marketId, market, defaultType);
+            resolvedMarket = this.safeMarket (marketId, market, undefined, defaultType);
         }
         market = resolvedMarket;
         const symbol = market['symbol'];
@@ -1795,7 +1815,7 @@ export default class websea extends Exchange {
         }
         // Determine market type: use the resolved market's type if available and specific,
         // otherwise use the result from handleMarketTypeAndParams
-        const [ detectedMarketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ detectedMarketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params, this.safeString (this.options, 'defaultType', 'spot'));
         const marketType = (market && market['type']) ? market['type'] : detectedMarketType;
         let response = undefined;
         if (marketType === 'swap') {
