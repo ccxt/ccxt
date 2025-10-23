@@ -1353,7 +1353,7 @@ export default class arkham extends Exchange {
         const isBuy = (side === 'buy');
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
-        const triggerPriceAny = this.safeNumberN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const triggerPriceAny = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (triggerPriceAny !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPriceAny);
             if (stopLossPrice !== undefined) {
