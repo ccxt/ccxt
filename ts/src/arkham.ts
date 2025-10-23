@@ -1360,25 +1360,26 @@ export default class arkham extends Exchange {
             'size': this.amountToPrecision (symbol, amount),
         };
         const isBuy = (side === 'buy');
-        const triggerPrice = this.safeNumber (params, 'triggerPrice');
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
         const triggerPriceAny = this.safeNumberN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
-        const triggerDirection = this.safeString (params, 'triggerDirection');
-        if (triggerPrice !== undefined && triggerDirection === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
-        }
         if (triggerPriceAny !== undefined) {
             request['triggerPrice'] = this.priceToPrecision (symbol, triggerPriceAny);
             if (stopLossPrice !== undefined) {
                 request['triggerType'] = isBuy ? 'stopLoss' : 'takeProfit';
             } else if (takeProfitPrice !== undefined) {
                 request['triggerType'] = isBuy ? 'takeProfit' : 'stopLoss';
-            } else if (triggerDirection !== undefined) {
-                if (triggerDirection === 'ascending') {
-                    request['triggerType'] = isBuy ? 'stopLoss' : 'takeProfit';
-                } else if (triggerDirection === 'descending') {
-                    request['triggerType'] = isBuy ? 'takeProfit' : 'stopLoss';
+            } else {
+                const triggerDirection = this.safeString (params, 'triggerDirection');
+                if (triggerDirection === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
+                }
+                if (triggerDirection !== undefined) {
+                    if (triggerDirection === 'ascending') {
+                        request['triggerType'] = isBuy ? 'stopLoss' : 'takeProfit';
+                    } else if (triggerDirection === 'descending') {
+                        request['triggerType'] = isBuy ? 'takeProfit' : 'stopLoss';
+                    }
                 }
             }
             // mandatory triggerPriceType
