@@ -76,7 +76,7 @@ export default class arkm extends Exchange {
                 },
                 'www': 'https://arkm.com/',
                 'referral': {
-                    'url': 'https://arkm.com',
+                    'url': 'https://arkm.com/register?ref=ccxt',
                     'discount': 0,
                 },
                 'doc': [
