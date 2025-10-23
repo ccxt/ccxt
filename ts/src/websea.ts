@@ -1983,7 +1983,7 @@ export default class websea extends Exchange {
     isStringAllDigits (str: string): boolean {
         // Check if string contains only digits (0-9)
         for (let i = 0; i < str.length; i++) {
-            const char = str.charAt (i);
+            const char = str[i];
             if (char < '0' || char > '9') {
                 return false;
             }
