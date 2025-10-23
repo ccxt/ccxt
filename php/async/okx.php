@@ -1340,6 +1340,7 @@ class okx extends Exchange {
                 'EUR' => $this->safe_currency_structure(array( 'id' => 'EUR', 'code' => 'EUR', 'precision' => $this->parse_number('0.0001') )),
                 'AED' => $this->safe_currency_structure(array( 'id' => 'AED', 'code' => 'AED', 'precision' => $this->parse_number('0.0001') )),
                 'GBP' => $this->safe_currency_structure(array( 'id' => 'GBP', 'code' => 'GBP', 'precision' => $this->parse_number('0.0001') )),
+                'AUD' => $this->safe_currency_structure(array( 'id' => 'AUD', 'code' => 'AUD', 'precision' => $this->parse_number('0.0001') )),
             ),
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
