@@ -2437,6 +2437,7 @@ export default class arkm extends Exchange {
                 'Arkham-Api-Key': this.apiKey,
                 'Arkham-Expires': expires,
                 'Arkham-Signature': signature,
+                'Arkham-Broker-Id': '1001',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
