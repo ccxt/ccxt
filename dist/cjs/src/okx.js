@@ -1334,6 +1334,7 @@ class okx extends okx$1["default"] {
                 'EUR': this.safeCurrencyStructure({ 'id': 'EUR', 'code': 'EUR', 'precision': this.parseNumber('0.0001') }),
                 'AED': this.safeCurrencyStructure({ 'id': 'AED', 'code': 'AED', 'precision': this.parseNumber('0.0001') }),
                 'GBP': this.safeCurrencyStructure({ 'id': 'GBP', 'code': 'GBP', 'precision': this.parseNumber('0.0001') }),
+                'AUD': this.safeCurrencyStructure({ 'id': 'AUD', 'code': 'AUD', 'precision': this.parseNumber('0.0001') }),
             },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
