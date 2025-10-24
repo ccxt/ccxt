@@ -2029,7 +2029,6 @@ export default class websea extends Exchange {
                 'Nonce': nonce,
                 'Token': this.apiKey,
                 'Signature': signature,
-                'Content-Type': 'application/json',
             };
             if (method === 'GET') {
                 if (Object.keys (query).length) {
@@ -2037,8 +2036,16 @@ export default class websea extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
-                headers['Content-Length'] = this.stringToBase64 (body).length.toString ();
+                // POST请求：现货API使用表单提交，合约API使用JSON
+                if (api === 'contract') {
+                    // 合约API使用JSON
+                    body = this.json (query);
+                    headers['Content-Type'] = 'application/json';
+                } else {
+                    // 现货API使用表单提交
+                    body = this.urlencode (query);
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
             }
         } else {
             // 公共API请求
