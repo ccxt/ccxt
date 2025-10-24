@@ -1778,9 +1778,24 @@ export default class websea extends Exchange {
             response = await this.privatePostOpenApiEntrustAdd (this.extend (request, query));
         }
         //
-        // 需要根据实际API响应结构调整
+        // 响应示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "order_sn": "BL123456789987523"  // 订单编号
+        //     }
+        // }
         //
         const result = this.safeValue (response, 'result', {});
+        const orderId = this.safeString (result, 'order_sn');
+        
+        // 如果成功获取订单ID，使用fetchOrder获取完整订单信息
+        if (orderId !== undefined) {
+            return await this.fetchOrder (orderId, symbol, { 'type': marketType });
+        }
+        
+        // 如果没有订单ID，返回解析后的结果
         return this.parseOrder (result, market);
     }
 
