@@ -1631,7 +1631,21 @@ public partial class hyperliquid : Exchange
         object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
-        return this.parseOrders(statuses, null);
+        object ordersToBeParsed = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        {
+            object order = getValue(statuses, i);
+            if (isTrue(isEqual(order, "waitingForTrigger")))
+            {
+                ((IList<object>)ordersToBeParsed).Add(new Dictionary<string, object>() {
+                    { "status", order },
+                }); // tp/sl orders can return a string like "waitingForTrigger",
+            } else
+            {
+                ((IList<object>)ordersToBeParsed).Add(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, null);
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1775,10 +1789,10 @@ public partial class hyperliquid : Exchange
             {
                 // grouping opposed orders for sl/tp
                 object stopLossOrderTriggerPrice = this.safeStringN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
-                object stopLossOrderType = this.safeString(stopLoss, "type");
+                object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
                 object stopLossOrderLimitPrice = this.safeStringN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
                 object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
-                object takeProfitOrderType = this.safeString(takeProfit, "type");
+                object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
                 grouping = "normalTpsl";
                 orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
