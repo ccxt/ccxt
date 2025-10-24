@@ -856,16 +856,10 @@ export default class websea extends Exchange {
             const priceDecimalPlaces = this.safeString (precisionData, 'price');
             // 将小数位数转换为tick size：例如 "3" -> 0.001
             if (amountDecimalPlaces !== undefined) {
-                const decimals = parseInt (amountDecimalPlaces);
-                if (!Number.isNaN (decimals) && decimals >= 0) {
-                    amountPrecision = this.parseNumber (this.parsePrecision (amountDecimalPlaces));
-                }
+                amountPrecision = this.parseNumber (this.parsePrecision (amountDecimalPlaces));
             }
             if (priceDecimalPlaces !== undefined) {
-                const decimals = parseInt (priceDecimalPlaces);
-                if (!Number.isNaN (decimals) && decimals >= 0) {
-                    pricePrecision = this.parseNumber (this.parsePrecision (priceDecimalPlaces));
-                }
+                pricePrecision = this.parseNumber (this.parsePrecision (priceDecimalPlaces));
             }
             // 使用precision中的min/max值（优先级更高）
             const minQuantity = this.safeNumber (precisionData, 'minQuantity');

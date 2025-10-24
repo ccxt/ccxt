@@ -47,6 +47,10 @@ func (this *websea) ContractGetOpenApiContractSymbols (args ...interface{}) <-ch
    return this.callEndpointAsync("contractGetOpenApiContractSymbols", args...)
 }
 
+func (this *websea) ContractGetOpenApiContractPrecision (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("contractGetOpenApiContractPrecision", args...)
+}
+
 func (this *websea) ContractGetOpenApiContractTrade (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("contractGetOpenApiContractTrade", args...)
 }

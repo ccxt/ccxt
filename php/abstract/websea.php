@@ -37,6 +37,9 @@ abstract class websea extends \ccxt\Exchange {
     public function contract_get_openapi_contract_symbols($params = array()) {
         return $this->request('openApi/contract/symbols', 'contract', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function contract_get_openapi_contract_precision($params = array()) {
+        return $this->request('openApi/contract/precision', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function contract_get_openapi_contract_trade($params = array()) {
         return $this->request('openApi/contract/trade', 'contract', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -135,6 +138,9 @@ abstract class websea extends \ccxt\Exchange {
     }
     public function contractGetOpenApiContractSymbols($params = array()) {
         return $this->request('openApi/contract/symbols', 'contract', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function contractGetOpenApiContractPrecision($params = array()) {
+        return $this->request('openApi/contract/precision', 'contract', 'GET', $params, null, null, array("cost" => 1));
     }
     public function contractGetOpenApiContractTrade($params = array()) {
         return $this->request('openApi/contract/trade', 'contract', 'GET', $params, null, null, array("cost" => 1));

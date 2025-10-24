@@ -232,6 +232,7 @@ class websea(Exchange, ImplicitAPI):
                 'contract': {
                     'get': {
                         'openApi/contract/symbols': 1,  # 合约交易对列表
+                        'openApi/contract/precision': 1,  # 合约交易对精度
                         'openApi/contract/trade': 1,  # 合约交易记录
                         'openApi/contract/depth': 1,  # 合约市场深度
                         'openApi/contract/kline': 1,  # 合约K线数据
@@ -653,78 +654,48 @@ class websea(Exchange, ImplicitAPI):
         return allMarkets
 
     def fetch_markets_by_type(self, type: str, params={}) -> List[Market]:
-        # 首先获取货币列表，确保所有货币代码都存在
-        currenciesResponse = self.publicGetOpenApiMarketCurrencies(params)
-        currencies = self.safe_value(currenciesResponse, 'result', {})
         markets = []
         if type == 'spot':
-            # 获取现货市场数据
-            spotResponse = self.publicGetOpenApiMarketSymbols(params)
-            markets = self.safe_value(spotResponse, 'result', [])
+            # 现货市场：并发请求symbols和precision接口
+            promises = [
+                self.publicGetOpenApiMarketSymbols(params),
+                self.publicGetOpenApiMarketPrecision(params),
+            ]
+            symbolsResponse, precisionResponse = promises
+            symbolsList = self.safe_value(symbolsResponse, 'result', [])
+            precisionData = self.safe_value(precisionResponse, 'result', {})
+            # 合并precision数据到symbols数据中
+            for i in range(0, len(symbolsList)):
+                market = symbolsList[i]
+                symbol = self.safe_string(market, 'symbol')
+                precision = self.safe_value(precisionData, symbol)
+                # 如果存在precision数据，将其合并到market对象中（优先级更高）
+                if precision is not None and not self.is_empty(precision):
+                    market['precision'] = precision
+            markets = symbolsList
         elif type == 'swap':
-            # 尝试获取合约市场数据
+            # 合约市场：并发请求symbols和precision接口
             try:
-                swapResponse = self.contractGetOpenApiContractSymbols(params)
-                markets = self.safe_value(swapResponse, 'result', [])
+                promises = [
+                    self.contractGetOpenApiContractSymbols(params),
+                    self.contractGetOpenApiContractPrecision(params),
+                ]
+                symbolsResponse, precisionResponse = promises
+                symbolsList = self.safe_value(symbolsResponse, 'result', [])
+                precisionData = self.safe_value(precisionResponse, 'result', {})
+                # 合并precision数据到symbols数据中
+                for i in range(0, len(symbolsList)):
+                    market = symbolsList[i]
+                    symbol = self.safe_string(market, 'symbol')
+                    precision = self.safe_value(precisionData, symbol)
+                    # 如果存在precision数据，将其合并到market对象中（优先级更高）
+                    if precision is not None and not self.is_empty(precision):
+                        market['precision'] = precision
+                markets = symbolsList
             except Exception as e:
                 # 如果合约API不可用，返回空数组
                 # This is expected behavior if no swap markets are available
                 return []
-            # 为合约市场特有的货币代码创建虚拟的货币条目
-            swapCurrencies = []
-            for i in range(0, len(markets)):
-                market = markets[i]
-                baseId = self.safe_string(market, 'base_currency')
-                quoteId = self.safe_string(market, 'quote_currency')
-                if baseId and not (baseId in currencies):
-                    baseIdFound = False
-                    for k in range(0, len(swapCurrencies)):
-                        if swapCurrencies[k] == baseId:
-                            baseIdFound = True
-                            break
-                    if not baseIdFound:
-                        swapCurrencies.append(baseId)
-                if quoteId and not (quoteId in currencies):
-                    quoteIdFound = False
-                    for k in range(0, len(swapCurrencies)):
-                        if swapCurrencies[k] == quoteId:
-                            quoteIdFound = True
-                            break
-                    if not quoteIdFound:
-                        swapCurrencies.append(quoteId)
-            # 将合约市场特有的货币代码添加到货币列表中
-            for j in range(0, len(swapCurrencies)):
-                currencyId = swapCurrencies[j]
-                currencies[currencyId] = {
-                    'name': currencyId,
-                    'canWithdraw': False,
-                    'canDeposit': False,
-                    'minWithdraw': '0',
-                    'maxWithdraw': '0',
-                    'makerFee': '0.0016',
-                    'takerFee': '0.0018',
-                }
-                # 同时添加到self.currencies字典中，以便通过CCXT的货币代码验证
-                if self.currencies is None:
-                    self.currencies = {}
-                self.currencies[currencyId] = {
-                    'id': currencyId,
-                    'code': currencyId,
-                    'name': currencyId,
-                    'active': False,
-                    'deposit': False,
-                    'withdraw': False,
-                    'precision': None,
-                    'fee': None,
-                    'limits': {
-                        'amount': {'min': None, 'max': None},
-                        'withdraw': {'min': 0, 'max': 0},
-                    },
-                    'networks': {},
-                    'info': None,
-                }
-        # 解析货币列表
-        self.parse_currencies(currencies)
         # 为市场添加type字段
         for i in range(0, len(markets)):
             markets[i]['type'] = type
@@ -772,45 +743,56 @@ class websea(Exchange, ImplicitAPI):
         # 对于合约市场，允许使用原始货币ID，因为合约市场可能包含现货市场不存在的货币代码
         base = None
         quote = None
-        if isSwap:
-            # 对于合约市场，直接使用原始ID，避免货币代码验证错误
+        # 对于现货市场，使用标准的货币代码验证
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        # 如果货币代码不存在，使用原始ID作为备用方案
+        if base is None:
             base = baseId
+        if quote is None:
             quote = quoteId
-        else:
-            # 对于现货市场，使用标准的货币代码验证
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            # 如果货币代码不存在，使用原始ID作为备用方案
-            if base is None:
-                base = baseId
-            if quote is None:
-                quote = quoteId
         minAmount = self.safe_number(market, 'min_size')
         maxAmount = self.safe_number(market, 'max_size')
         minPrice = self.safe_number(market, 'min_price')
         maxPrice = self.safe_number(market, 'max_price')
+        contractSize = self.safe_number(market, 'contract_size', 1)  # 合约大小，默认为1
         isSpot = marketType == 'spot'
         # Convert market ID to unified symbol format
         # 对于swap市场，使用标准的CCXT格式: BASE/QUOTE:QUOTE
         symbol = (base + '/' + quote) if isSpot else (base + '/' + quote + ':' + quote)
-        # Calculate precision from min values - derive tick sizes from the minimum values
-        minSizeString = self.safe_string(market, 'min_size')
-        minPriceString = self.safe_string(market, 'min_price')
-        # For TICK_SIZE mode, we need to ensure precision values are proper tick sizes
-        # Use the minimum values sizes, but ensure they're not problematic integers
-        amountPrecision = self.parse_number(minSizeString)
-        pricePrecision = self.parse_number(minPriceString)
-        # Ensure precision values are valid tick sizes(not integers like 5.0)
-        # Convert problematic integer-like values to proper decimal tick sizes
-        if amountPrecision is not None and amountPrecision >= 1 and amountPrecision % 1 == 0:
-            amountPrecision = self.parse_number('0.00000001')  # Default to 8 decimal places
-        if pricePrecision is not None and pricePrecision >= 1 and pricePrecision % 1 == 0:
-            pricePrecision = self.parse_number('0.0001')  # Default to 4 decimal places for price
-        # If precision values are still None, set safe defaults
-        if amountPrecision is None:
-            amountPrecision = self.parse_number('0.00000001')
-        if pricePrecision is None:
-            pricePrecision = self.parse_number('0.0001')
+        # 处理精度信息
+        amountPrecision = self.parse_number('0.00000001')  # 默认8位小数
+        pricePrecision = self.parse_number('0.00000001')  # 默认8位小数
+        finalMinAmount = minAmount
+        finalMaxAmount = maxAmount
+        finalMinPrice = minPrice
+        finalMaxPrice = maxPrice
+        # 如果market对象中包含precision数据（来自/openApi/market/precision接口）
+        precisionData = self.safe_value(market, 'precision')
+        if precisionData is not None:
+            # precision数据优先级更高
+            amountDecimalPlaces = self.safe_string(precisionData, 'amount')
+            priceDecimalPlaces = self.safe_string(precisionData, 'price')
+            # 将小数位数转换为tick size：例如 "3" -> 0.001
+            if amountDecimalPlaces is not None:
+                amountPrecision = self.parse_number(self.parse_precision(amountDecimalPlaces))
+            if priceDecimalPlaces is not None:
+                pricePrecision = self.parse_number(self.parse_precision(priceDecimalPlaces))
+            # 使用precision中的min/max值（优先级更高）
+            minQuantity = self.safe_number(precisionData, 'minQuantity')
+            maxQuantity = self.safe_number(precisionData, 'maxQuantity')
+            precisionMinPrice = self.safe_number(precisionData, 'minPrice')
+            precisionMaxPrice = self.safe_number(precisionData, 'maxPrice')
+            if minQuantity is not None:
+                finalMinAmount = minQuantity
+            finalMinAmount *= contractSize
+            if maxQuantity is not None:
+                finalMaxAmount = maxQuantity
+            finalMaxAmount *= contractSize
+            if precisionMinPrice is not None:
+                finalMinPrice = precisionMinPrice
+            if precisionMaxPrice is not None:
+                finalMaxPrice = precisionMaxPrice
         return {
             'id': marketId,
             'symbol': symbol,
@@ -845,12 +827,12 @@ class websea(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
+                    'min': finalMinAmount,
+                    'max': finalMaxAmount,
                 },
                 'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
+                    'min': finalMinPrice,
+                    'max': finalMaxPrice,
                 },
                 'cost': {
                     'min': None,
@@ -861,9 +843,70 @@ class websea(Exchange, ImplicitAPI):
             'info': market,
         }
 
+    def load_markets(self, reload=False, params={}):
+        markets = super(websea, self).load_markets(reload, params)
+        # 补充市场中存在但currencies接口未返回的币种
+        # 这是因为/openApi/market/currencies接口可能缺少某些币种
+        currencies = self.currencies or {}
+        marketValues = list(markets.values())
+        for i in range(0, len(marketValues)):
+            market = marketValues[i]
+            baseId = self.safe_string(market, 'baseId')
+            quoteId = self.safe_string(market, 'quoteId')
+            base = self.safe_string(market, 'base')
+            quote = self.safe_string(market, 'quote')
+            # 检查并补充base货币
+            if base is not None and not (base in currencies):
+                currencies[base] = {
+                    'id': baseId,
+                    'code': base,
+                    'name': base,
+                    'active': True,
+                    'fee': None,
+                    'precision': self.parse_number('0.00000001'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                }
+            # 检查并补充quote货币
+            if quote is not None and not (quote in currencies):
+                currencies[quote] = {
+                    'id': quoteId,
+                    'code': quote,
+                    'name': quote,
+                    'active': True,
+                    'fee': None,
+                    'precision': self.parse_number('0.00000001'),
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                }
+        self.currencies = currencies
+        self.currencies_by_id = self.index_by(currencies, 'id')
+        return markets
+
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
+        https://webseaex.github.io/zh/spot-market/currency-list/
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -886,15 +929,15 @@ class websea(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        currencies = {}
-        currencyCodes = list(result.keys())
+        rawCurrencies = self.safe_value(response, 'result', {})
+        result = {}
+        currencyCodes = list(rawCurrencies.keys())
         for i in range(0, len(currencyCodes)):
             code = currencyCodes[i]
-            currency = result[code]
+            currency = rawCurrencies[code]
             parsed = self.parse_currency(currency, code)
-            currencies[code] = parsed
-        return currencies
+            result[parsed['code']] = parsed
+        return result
 
     def parse_currency(self, currency, code=None):
         #
@@ -1034,11 +1077,13 @@ class websea(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
-        # 获取现货市场ticker
-        spotResponse = self.publicGetOpenApiMarket24kline(params)
+        # 并发获取现货和合约市场的ticker数据
+        promises = [
+            self.publicGetOpenApiMarket24kline(params),
+            self.contractGetOpenApiContract24kline(params),
+        ]
+        spotResponse, swapResponse = promises
         spotResult = self.safe_value(spotResponse, 'result', [])
-        # 获取合约市场ticker
-        swapResponse = self.contractGetOpenApiContract24kline(params)
         swapResult = self.safe_value(swapResponse, 'result', [])
         tickers = []
         # 处理现货市场ticker
@@ -1311,11 +1356,11 @@ class websea(Exchange, ImplicitAPI):
             avail = self.safe_string(item, 'avail')
             isolatedEquity = self.safe_string(item, 'isolatedEquity')
             # 根据新的API响应格式更新字段映射逻辑
-            # avail → total(总余额)
-            # isolatedEquity → free(可用余额)
+            # isolatedEquity → total(总余额)
+            # avail → free(可用余额)
             # used = total - free(通过计算差值得到已使用余额)
-            total = avail
-            free = isolatedEquity
+            total = isolatedEquity
+            free = avail
             used = Precise.string_sub(total, free)
             balance['free'][currencyCode] = free
             balance['used'][currencyCode] = used

@@ -232,6 +232,7 @@ export default class websea extends Exchange {
                 'contract': {
                     'get': {
                         'openApi/contract/symbols': 1,
+                        'openApi/contract/precision': 1,
                         'openApi/contract/trade': 1,
                         'openApi/contract/depth': 1,
                         'openApi/contract/kline': 1,
@@ -716,93 +717,56 @@ export default class websea extends Exchange {
         return allMarkets;
     }
     async fetchMarketsByType(type, params = {}) {
-        // 首先获取货币列表，确保所有货币代码都存在
-        const currenciesResponse = await this.publicGetOpenApiMarketCurrencies(params);
-        const currencies = this.safeValue(currenciesResponse, 'result', {});
         let markets = [];
         if (type === 'spot') {
-            // 获取现货市场数据
-            const spotResponse = await this.publicGetOpenApiMarketSymbols(params);
-            markets = this.safeValue(spotResponse, 'result', []);
+            // 现货市场：并发请求symbols和precision接口
+            const promises = [
+                this.publicGetOpenApiMarketSymbols(params),
+                this.publicGetOpenApiMarketPrecision(params),
+            ];
+            const [symbolsResponse, precisionResponse] = await Promise.all(promises);
+            const symbolsList = this.safeValue(symbolsResponse, 'result', []);
+            const precisionData = this.safeValue(precisionResponse, 'result', {});
+            // 合并precision数据到symbols数据中
+            for (let i = 0; i < symbolsList.length; i++) {
+                const market = symbolsList[i];
+                const symbol = this.safeString(market, 'symbol');
+                const precision = this.safeValue(precisionData, symbol);
+                // 如果存在precision数据，将其合并到market对象中（优先级更高）
+                if (precision !== undefined && !this.isEmpty(precision)) {
+                    market['precision'] = precision;
+                }
+            }
+            markets = symbolsList;
         }
         else if (type === 'swap') {
-            // 尝试获取合约市场数据
+            // 合约市场：并发请求symbols和precision接口
             try {
-                const swapResponse = await this.contractGetOpenApiContractSymbols(params);
-                markets = this.safeValue(swapResponse, 'result', []);
+                const promises = [
+                    this.contractGetOpenApiContractSymbols(params),
+                    this.contractGetOpenApiContractPrecision(params),
+                ];
+                const [symbolsResponse, precisionResponse] = await Promise.all(promises);
+                const symbolsList = this.safeValue(symbolsResponse, 'result', []);
+                const precisionData = this.safeValue(precisionResponse, 'result', {});
+                // 合并precision数据到symbols数据中
+                for (let i = 0; i < symbolsList.length; i++) {
+                    const market = symbolsList[i];
+                    const symbol = this.safeString(market, 'symbol');
+                    const precision = this.safeValue(precisionData, symbol);
+                    // 如果存在precision数据，将其合并到market对象中（优先级更高）
+                    if (precision !== undefined && !this.isEmpty(precision)) {
+                        market['precision'] = precision;
+                    }
+                }
+                markets = symbolsList;
             }
             catch (e) {
                 // 如果合约API不可用，返回空数组
                 // This is expected behavior if no swap markets are available
                 return [];
             }
-            // 为合约市场特有的货币代码创建虚拟的货币条目
-            const swapCurrencies = [];
-            for (let i = 0; i < markets.length; i++) {
-                const market = markets[i];
-                const baseId = this.safeString(market, 'base_currency');
-                const quoteId = this.safeString(market, 'quote_currency');
-                if (baseId && !(baseId in currencies)) {
-                    let baseIdFound = false;
-                    for (let k = 0; k < swapCurrencies.length; k++) {
-                        if (swapCurrencies[k] === baseId) {
-                            baseIdFound = true;
-                            break;
-                        }
-                    }
-                    if (!baseIdFound) {
-                        swapCurrencies.push(baseId);
-                    }
-                }
-                if (quoteId && !(quoteId in currencies)) {
-                    let quoteIdFound = false;
-                    for (let k = 0; k < swapCurrencies.length; k++) {
-                        if (swapCurrencies[k] === quoteId) {
-                            quoteIdFound = true;
-                            break;
-                        }
-                    }
-                    if (!quoteIdFound) {
-                        swapCurrencies.push(quoteId);
-                    }
-                }
-            }
-            // 将合约市场特有的货币代码添加到货币列表中
-            for (let j = 0; j < swapCurrencies.length; j++) {
-                const currencyId = swapCurrencies[j];
-                currencies[currencyId] = {
-                    'name': currencyId,
-                    'canWithdraw': false,
-                    'canDeposit': false,
-                    'minWithdraw': '0',
-                    'maxWithdraw': '0',
-                    'makerFee': '0.0016',
-                    'takerFee': '0.0018',
-                };
-                // 同时添加到this.currencies字典中，以便通过CCXT的货币代码验证
-                if (this.currencies === undefined) {
-                    this.currencies = {};
-                }
-                this.currencies[currencyId] = {
-                    'id': currencyId,
-                    'code': currencyId,
-                    'name': currencyId,
-                    'active': false,
-                    'deposit': false,
-                    'withdraw': false,
-                    'precision': undefined,
-                    'fee': undefined,
-                    'limits': {
-                        'amount': { 'min': undefined, 'max': undefined },
-                        'withdraw': { 'min': 0, 'max': 0 },
-                    },
-                    'networks': {},
-                    'info': undefined,
-                };
-            }
         }
-        // 解析货币列表
-        this.parseCurrencies(currencies);
         // 为市场添加type字段
         for (let i = 0; i < markets.length; i++) {
             markets[i]['type'] = type;
@@ -851,52 +815,64 @@ export default class websea extends Exchange {
         // 对于合约市场，允许使用原始货币ID，因为合约市场可能包含现货市场不存在的货币代码
         let base = undefined;
         let quote = undefined;
-        if (isSwap) {
-            // 对于合约市场，直接使用原始ID，避免货币代码验证错误
+        // 对于现货市场，使用标准的货币代码验证
+        base = this.safeCurrencyCode(baseId);
+        quote = this.safeCurrencyCode(quoteId);
+        // 如果货币代码不存在，使用原始ID作为备用方案
+        if (base === undefined) {
             base = baseId;
-            quote = quoteId;
         }
-        else {
-            // 对于现货市场，使用标准的货币代码验证
-            base = this.safeCurrencyCode(baseId);
-            quote = this.safeCurrencyCode(quoteId);
-            // 如果货币代码不存在，使用原始ID作为备用方案
-            if (base === undefined) {
-                base = baseId;
-            }
-            if (quote === undefined) {
-                quote = quoteId;
-            }
+        if (quote === undefined) {
+            quote = quoteId;
         }
         const minAmount = this.safeNumber(market, 'min_size');
         const maxAmount = this.safeNumber(market, 'max_size');
         const minPrice = this.safeNumber(market, 'min_price');
         const maxPrice = this.safeNumber(market, 'max_price');
+        const contractSize = this.safeNumber(market, 'contract_size', 1); // 合约大小，默认为1
         const isSpot = marketType === 'spot';
         // Convert market ID to unified symbol format
         // 对于swap市场，使用标准的CCXT格式: BASE/QUOTE:QUOTE
         const symbol = isSpot ? (base + '/' + quote) : (base + '/' + quote + ':' + quote);
-        // Calculate precision from min values - derive tick sizes from the minimum values
-        const minSizeString = this.safeString(market, 'min_size');
-        const minPriceString = this.safeString(market, 'min_price');
-        // For TICK_SIZE mode, we need to ensure precision values are proper tick sizes
-        // Use the minimum values as tick sizes, but ensure they're not problematic integers
-        let amountPrecision = this.parseNumber(minSizeString);
-        let pricePrecision = this.parseNumber(minPriceString);
-        // Ensure precision values are valid tick sizes (not integers like 5.0)
-        // Convert problematic integer-like values to proper decimal tick sizes
-        if (amountPrecision !== undefined && amountPrecision >= 1 && amountPrecision % 1 === 0) {
-            amountPrecision = this.parseNumber('0.00000001'); // Default to 8 decimal places
-        }
-        if (pricePrecision !== undefined && pricePrecision >= 1 && pricePrecision % 1 === 0) {
-            pricePrecision = this.parseNumber('0.0001'); // Default to 4 decimal places for price
-        }
-        // If precision values are still undefined, set safe defaults
-        if (amountPrecision === undefined) {
-            amountPrecision = this.parseNumber('0.00000001');
-        }
-        if (pricePrecision === undefined) {
-            pricePrecision = this.parseNumber('0.0001');
+        // 处理精度信息
+        let amountPrecision = this.parseNumber('0.00000001'); // 默认8位小数
+        let pricePrecision = this.parseNumber('0.00000001'); // 默认8位小数
+        let finalMinAmount = minAmount;
+        let finalMaxAmount = maxAmount;
+        let finalMinPrice = minPrice;
+        let finalMaxPrice = maxPrice;
+        // 如果market对象中包含precision数据（来自/openApi/market/precision接口）
+        const precisionData = this.safeValue(market, 'precision');
+        if (precisionData !== undefined) {
+            // precision数据优先级更高
+            const amountDecimalPlaces = this.safeString(precisionData, 'amount');
+            const priceDecimalPlaces = this.safeString(precisionData, 'price');
+            // 将小数位数转换为tick size：例如 "3" -> 0.001
+            if (amountDecimalPlaces !== undefined) {
+                amountPrecision = this.parseNumber(this.parsePrecision(amountDecimalPlaces));
+            }
+            if (priceDecimalPlaces !== undefined) {
+                pricePrecision = this.parseNumber(this.parsePrecision(priceDecimalPlaces));
+            }
+            // 使用precision中的min/max值（优先级更高）
+            const minQuantity = this.safeNumber(precisionData, 'minQuantity');
+            const maxQuantity = this.safeNumber(precisionData, 'maxQuantity');
+            const precisionMinPrice = this.safeNumber(precisionData, 'minPrice');
+            const precisionMaxPrice = this.safeNumber(precisionData, 'maxPrice');
+            if (minQuantity !== undefined) {
+                finalMinAmount = minQuantity;
+            }
+            finalMinAmount *= contractSize;
+            if (maxQuantity !== undefined) {
+                finalMaxAmount = maxQuantity;
+            }
+            finalMaxAmount *= contractSize;
+            if (precisionMinPrice !== undefined) {
+                finalMinPrice = precisionMinPrice;
+            }
+            if (precisionMaxPrice !== undefined) {
+                finalMaxPrice = precisionMaxPrice;
+            }
         }
         return {
             'id': marketId,
@@ -932,12 +908,12 @@ export default class websea extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
+                    'min': finalMinAmount,
+                    'max': finalMaxAmount,
                 },
                 'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
+                    'min': finalMinPrice,
+                    'max': finalMaxPrice,
                 },
                 'cost': {
                     'min': undefined,
@@ -948,11 +924,75 @@ export default class websea extends Exchange {
             'info': market,
         };
     }
+    async loadMarkets(reload = false, params = {}) {
+        const markets = await super.loadMarkets(reload, params);
+        // 补充市场中存在但currencies接口未返回的币种
+        // 这是因为/openApi/market/currencies接口可能缺少某些币种
+        const currencies = this.currencies || {};
+        const marketValues = Object.values(markets);
+        for (let i = 0; i < marketValues.length; i++) {
+            const market = marketValues[i];
+            const baseId = this.safeString(market, 'baseId');
+            const quoteId = this.safeString(market, 'quoteId');
+            const base = this.safeString(market, 'base');
+            const quote = this.safeString(market, 'quote');
+            // 检查并补充base货币
+            if (base !== undefined && !(base in currencies)) {
+                currencies[base] = {
+                    'id': baseId,
+                    'code': base,
+                    'name': base,
+                    'active': true,
+                    'fee': undefined,
+                    'precision': this.parseNumber('0.00000001'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                };
+            }
+            // 检查并补充quote货币
+            if (quote !== undefined && !(quote in currencies)) {
+                currencies[quote] = {
+                    'id': quoteId,
+                    'code': quote,
+                    'name': quote,
+                    'active': true,
+                    'fee': undefined,
+                    'precision': this.parseNumber('0.00000001'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                };
+            }
+        }
+        this.currencies = currencies;
+        this.currencies_by_id = this.indexBy(currencies, 'id');
+        return markets;
+    }
     async fetchCurrencies(params = {}) {
         /**
          * @method
          * @name websea#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://webseaex.github.io/zh/spot-market/currency-list/
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -975,16 +1015,16 @@ export default class websea extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue(response, 'result', {});
-        const currencies = {};
-        const currencyCodes = Object.keys(result);
+        const rawCurrencies = this.safeValue(response, 'result', {});
+        const result = {};
+        const currencyCodes = Object.keys(rawCurrencies);
         for (let i = 0; i < currencyCodes.length; i++) {
             const code = currencyCodes[i];
-            const currency = result[code];
+            const currency = rawCurrencies[code];
             const parsed = this.parseCurrency(currency, code);
-            currencies[code] = parsed;
+            result[parsed['code']] = parsed;
         }
-        return currencies;
+        return result;
     }
     parseCurrency(currency, code = undefined) {
         //
@@ -1137,11 +1177,13 @@ export default class websea extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        // 获取现货市场ticker
-        const spotResponse = await this.publicGetOpenApiMarket24kline(params);
+        // 并发获取现货和合约市场的ticker数据
+        const promises = [
+            this.publicGetOpenApiMarket24kline(params),
+            this.contractGetOpenApiContract24kline(params),
+        ];
+        const [spotResponse, swapResponse] = await Promise.all(promises);
         const spotResult = this.safeValue(spotResponse, 'result', []);
-        // 获取合约市场ticker
-        const swapResponse = await this.contractGetOpenApiContract24kline(params);
         const swapResult = this.safeValue(swapResponse, 'result', []);
         const tickers = [];
         // 处理现货市场ticker
@@ -1433,11 +1475,11 @@ export default class websea extends Exchange {
             const avail = this.safeString(item, 'avail');
             const isolatedEquity = this.safeString(item, 'isolatedEquity');
             // 根据新的API响应格式更新字段映射逻辑
-            // avail → total (总余额)
-            // isolatedEquity → free (可用余额)
+            // isolatedEquity → total (总余额)
+            // avail → free (可用余额)
             // used = total - free (通过计算差值得到已使用余额)
-            const total = avail;
-            const free = isolatedEquity;
+            const total = isolatedEquity;
+            const free = avail;
             const used = Precise.stringSub(total, free);
             balance['free'][currencyCode] = free;
             balance['used'][currencyCode] = used;

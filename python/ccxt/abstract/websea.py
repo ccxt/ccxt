@@ -12,6 +12,7 @@ class ImplicitAPI:
     public_get_openapi_market_24kline_list = publicGetOpenApiMarket24klineList = Entry('openApi/market/24kline-list', 'public', 'GET', {'cost': 1})
     public_get_openapi_market_precision = publicGetOpenApiMarketPrecision = Entry('openApi/market/precision', 'public', 'GET', {'cost': 1})
     contract_get_openapi_contract_symbols = contractGetOpenApiContractSymbols = Entry('openApi/contract/symbols', 'contract', 'GET', {'cost': 1})
+    contract_get_openapi_contract_precision = contractGetOpenApiContractPrecision = Entry('openApi/contract/precision', 'contract', 'GET', {'cost': 1})
     contract_get_openapi_contract_trade = contractGetOpenApiContractTrade = Entry('openApi/contract/trade', 'contract', 'GET', {'cost': 1})
     contract_get_openapi_contract_depth = contractGetOpenApiContractDepth = Entry('openApi/contract/depth', 'contract', 'GET', {'cost': 1})
     contract_get_openapi_contract_kline = contractGetOpenApiContractKline = Entry('openApi/contract/kline', 'contract', 'GET', {'cost': 1})

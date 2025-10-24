@@ -72,6 +72,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>websea</code>](#websea)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
+**See**: https://webseaex.github.io/zh/spot-market/currency-list/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

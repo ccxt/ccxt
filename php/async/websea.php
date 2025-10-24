@@ -233,6 +233,7 @@ class websea extends Exchange {
                 'contract' => array(
                     'get' => array(
                         'openApi/contract/symbols' => 1, // 合约交易对列表
+                        'openApi/contract/precision' => 1, // 合约交易对精度
                         'openApi/contract/trade' => 1, // 合约交易记录
                         'openApi/contract/depth' => 1, // 合约市场深度
                         'openApi/contract/kline' => 1, // 合约K线数据
@@ -708,91 +709,54 @@ class websea extends Exchange {
 
     public function fetch_markets_by_type(string $type, $params = array ()): PromiseInterface {
         return Async\async(function () use ($type, $params) {
-            // 首先获取货币列表，确保所有货币代码都存在
-            $currenciesResponse = Async\await($this->publicGetOpenApiMarketCurrencies ($params));
-            $currencies = $this->safe_value($currenciesResponse, 'result', array());
             $markets = array();
             if ($type === 'spot') {
-                // 获取现货市场数据
-                $spotResponse = Async\await($this->publicGetOpenApiMarketSymbols ($params));
-                $markets = $this->safe_value($spotResponse, 'result', array());
+                // 现货市场：并发请求symbols和$precision接口
+                $promises = array(
+                    $this->publicGetOpenApiMarketSymbols ($params),
+                    $this->publicGetOpenApiMarketPrecision ($params),
+                );
+                list($symbolsResponse, $precisionResponse) = Async\await(Promise\all($promises));
+                $symbolsList = $this->safe_value($symbolsResponse, 'result', array());
+                $precisionData = $this->safe_value($precisionResponse, 'result', array());
+                // 合并$precision数据到symbols数据中
+                for ($i = 0; $i < count($symbolsList); $i++) {
+                    $market = $symbolsList[$i];
+                    $symbol = $this->safe_string($market, 'symbol');
+                    $precision = $this->safe_value($precisionData, $symbol);
+                    // 如果存在$precision数据，将其合并到$market对象中（优先级更高）
+                    if ($precision !== null && !$this->is_empty($precision)) {
+                        $market['precision'] = $precision;
+                    }
+                }
+                $markets = $symbolsList;
             } elseif ($type === 'swap') {
-                // 尝试获取合约市场数据
+                // 合约市场：并发请求symbols和$precision接口
                 try {
-                    $swapResponse = Async\await($this->contractGetOpenApiContractSymbols ($params));
-                    $markets = $this->safe_value($swapResponse, 'result', array());
+                    $promises = array(
+                        $this->contractGetOpenApiContractSymbols ($params),
+                        $this->contractGetOpenApiContractPrecision ($params),
+                    );
+                    list($symbolsResponse, $precisionResponse) = Async\await(Promise\all($promises));
+                    $symbolsList = $this->safe_value($symbolsResponse, 'result', array());
+                    $precisionData = $this->safe_value($precisionResponse, 'result', array());
+                    // 合并$precision数据到symbols数据中
+                    for ($i = 0; $i < count($symbolsList); $i++) {
+                        $market = $symbolsList[$i];
+                        $symbol = $this->safe_string($market, 'symbol');
+                        $precision = $this->safe_value($precisionData, $symbol);
+                        // 如果存在$precision数据，将其合并到$market对象中（优先级更高）
+                        if ($precision !== null && !$this->is_empty($precision)) {
+                            $market['precision'] = $precision;
+                        }
+                    }
+                    $markets = $symbolsList;
                 } catch (Exception $e) {
                     // 如果合约API不可用，返回空数组
                     // This is expected behavior if no swap $markets are available
                     return array();
                 }
-                // 为合约市场特有的货币代码创建虚拟的货币条目
-                $swapCurrencies = array();
-                for ($i = 0; $i < count($markets); $i++) {
-                    $market = $markets[$i];
-                    $baseId = $this->safe_string($market, 'base_currency');
-                    $quoteId = $this->safe_string($market, 'quote_currency');
-                    if ($baseId && !(is_array($currencies) && array_key_exists($baseId, $currencies))) {
-                        $baseIdFound = false;
-                        for ($k = 0; $k < count($swapCurrencies); $k++) {
-                            if ($swapCurrencies[$k] === $baseId) {
-                                $baseIdFound = true;
-                                break;
-                            }
-                        }
-                        if (!$baseIdFound) {
-                            $swapCurrencies[] = $baseId;
-                        }
-                    }
-                    if ($quoteId && !(is_array($currencies) && array_key_exists($quoteId, $currencies))) {
-                        $quoteIdFound = false;
-                        for ($k = 0; $k < count($swapCurrencies); $k++) {
-                            if ($swapCurrencies[$k] === $quoteId) {
-                                $quoteIdFound = true;
-                                break;
-                            }
-                        }
-                        if (!$quoteIdFound) {
-                            $swapCurrencies[] = $quoteId;
-                        }
-                    }
-                }
-                // 将合约市场特有的货币代码添加到货币列表中
-                for ($j = 0; $j < count($swapCurrencies); $j++) {
-                    $currencyId = $swapCurrencies[$j];
-                    $currencies[$currencyId] = array(
-                        'name' => $currencyId,
-                        'canWithdraw' => false,
-                        'canDeposit' => false,
-                        'minWithdraw' => '0',
-                        'maxWithdraw' => '0',
-                        'makerFee' => '0.0016',
-                        'takerFee' => '0.0018',
-                    );
-                    // 同时添加到$this->currencies字典中，以便通过CCXT的货币代码验证
-                    if ($this->currencies === null) {
-                        $this->currencies = array();
-                    }
-                    $this->currencies[$currencyId] = array(
-                        'id' => $currencyId,
-                        'code' => $currencyId,
-                        'name' => $currencyId,
-                        'active' => false,
-                        'deposit' => false,
-                        'withdraw' => false,
-                        'precision' => null,
-                        'fee' => null,
-                        'limits' => array(
-                            'amount' => array( 'min' => null, 'max' => null ),
-                            'withdraw' => array( 'min' => 0, 'max' => 0 ),
-                        ),
-                        'networks' => array(),
-                        'info' => null,
-                    );
-                }
             }
-            // 解析货币列表
-            $this->parse_currencies($currencies);
             // 为市场添加$type字段
             for ($i = 0; $i < count($markets); $i++) {
                 $markets[$i]['type'] = $type;
@@ -843,51 +807,64 @@ class websea extends Exchange {
         // 对于合约市场，允许使用原始货币ID，因为合约市场可能包含现货市场不存在的货币代码
         $base = null;
         $quote = null;
-        if ($isSwap) {
-            // 对于合约市场，直接使用原始ID，避免货币代码验证错误
+        // 对于现货市场，使用标准的货币代码验证
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        // 如果货币代码不存在，使用原始ID作为备用方案
+        if ($base === null) {
             $base = $baseId;
+        }
+        if ($quote === null) {
             $quote = $quoteId;
-        } else {
-            // 对于现货市场，使用标准的货币代码验证
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            // 如果货币代码不存在，使用原始ID作为备用方案
-            if ($base === null) {
-                $base = $baseId;
-            }
-            if ($quote === null) {
-                $quote = $quoteId;
-            }
         }
         $minAmount = $this->safe_number($market, 'min_size');
         $maxAmount = $this->safe_number($market, 'max_size');
         $minPrice = $this->safe_number($market, 'min_price');
         $maxPrice = $this->safe_number($market, 'max_price');
+        $contractSize = $this->safe_number($market, 'contract_size', 1); // 合约大小，默认为1
         $isSpot = $marketType === 'spot';
         // Convert $market ID to unified $symbol format
         // 对于swap市场，使用标准的CCXT格式 => BASE/QUOTE:QUOTE
         $symbol = $isSpot ? ($base . '/' . $quote) : ($base . '/' . $quote . ':' . $quote);
-        // Calculate precision from min values - derive tick sizes from the minimum values
-        $minSizeString = $this->safe_string($market, 'min_size');
-        $minPriceString = $this->safe_string($market, 'min_price');
-        // For TICK_SIZE mode, we need to ensure precision values are proper tick sizes
-        // Use the minimum values sizes, but ensure they're not problematic integers
-        $amountPrecision = $this->parse_number($minSizeString);
-        $pricePrecision = $this->parse_number($minPriceString);
-        // Ensure precision values are valid tick sizes (not integers like 5.0)
-        // Convert problematic integer-like values to proper decimal tick sizes
-        if ($amountPrecision !== null && $amountPrecision >= 1 && fmod($amountPrecision, 1) === 0) {
-            $amountPrecision = $this->parse_number('0.00000001'); // Default to 8 decimal places
-        }
-        if ($pricePrecision !== null && $pricePrecision >= 1 && fmod($pricePrecision, 1) === 0) {
-            $pricePrecision = $this->parse_number('0.0001'); // Default to 4 decimal places for price
-        }
-        // If precision values are still null, set safe defaults
-        if ($amountPrecision === null) {
-            $amountPrecision = $this->parse_number('0.00000001');
-        }
-        if ($pricePrecision === null) {
-            $pricePrecision = $this->parse_number('0.0001');
+        // 处理精度信息
+        $amountPrecision = $this->parse_number('0.00000001'); // 默认8位小数
+        $pricePrecision = $this->parse_number('0.00000001');  // 默认8位小数
+        $finalMinAmount = $minAmount;
+        $finalMaxAmount = $maxAmount;
+        $finalMinPrice = $minPrice;
+        $finalMaxPrice = $maxPrice;
+        // 如果$market对象中包含precision数据（来自/openApi/market/precision接口）
+        $precisionData = $this->safe_value($market, 'precision');
+        if ($precisionData !== null) {
+            // precision数据优先级更高
+            $amountDecimalPlaces = $this->safe_string($precisionData, 'amount');
+            $priceDecimalPlaces = $this->safe_string($precisionData, 'price');
+            // 将小数位数转换为tick size：例如 "3" -> 0.001
+            if ($amountDecimalPlaces !== null) {
+                $amountPrecision = $this->parse_number($this->parse_precision($amountDecimalPlaces));
+            }
+            if ($priceDecimalPlaces !== null) {
+                $pricePrecision = $this->parse_number($this->parse_precision($priceDecimalPlaces));
+            }
+            // 使用precision中的min/max值（优先级更高）
+            $minQuantity = $this->safe_number($precisionData, 'minQuantity');
+            $maxQuantity = $this->safe_number($precisionData, 'maxQuantity');
+            $precisionMinPrice = $this->safe_number($precisionData, 'minPrice');
+            $precisionMaxPrice = $this->safe_number($precisionData, 'maxPrice');
+            if ($minQuantity !== null) {
+                $finalMinAmount = $minQuantity;
+            }
+            $finalMinAmount *= $contractSize;
+            if ($maxQuantity !== null) {
+                $finalMaxAmount = $maxQuantity;
+            }
+            $finalMaxAmount *= $contractSize;
+            if ($precisionMinPrice !== null) {
+                $finalMinPrice = $precisionMinPrice;
+            }
+            if ($precisionMaxPrice !== null) {
+                $finalMaxPrice = $precisionMaxPrice;
+            }
         }
         return array(
             'id' => $marketId,
@@ -923,12 +900,12 @@ class websea extends Exchange {
                     'max' => null,
                 ),
                 'amount' => array(
-                    'min' => $minAmount,
-                    'max' => $maxAmount,
+                    'min' => $finalMinAmount,
+                    'max' => $finalMaxAmount,
                 ),
                 'price' => array(
-                    'min' => $minPrice,
-                    'max' => $maxPrice,
+                    'min' => $finalMinPrice,
+                    'max' => $finalMaxPrice,
                 ),
                 'cost' => array(
                     'min' => null,
@@ -940,12 +917,79 @@ class websea extends Exchange {
         );
     }
 
+    public function load_markets($reload = false, $params = array ()) {
+        return Async\async(function () use ($reload, $params) {
+            $markets = Async\await(parent::load_markets($reload, $params));
+            // 补充市场中存在但$currencies接口未返回的币种
+            // 这是因为/openApi/market/currencies接口可能缺少某些币种
+            $currencies = $this->currencies || array();
+            $marketValues = is_array($markets) ? array_values($markets) : array();
+            for ($i = 0; $i < count($marketValues); $i++) {
+                $market = $marketValues[$i];
+                $baseId = $this->safe_string($market, 'baseId');
+                $quoteId = $this->safe_string($market, 'quoteId');
+                $base = $this->safe_string($market, 'base');
+                $quote = $this->safe_string($market, 'quote');
+                // 检查并补充$base货币
+                if ($base !== null && !(is_array($currencies) && array_key_exists($base, $currencies))) {
+                    $currencies[$base] = array(
+                        'id' => $baseId,
+                        'code' => $base,
+                        'name' => $base,
+                        'active' => true,
+                        'fee' => null,
+                        'precision' => $this->parse_number('0.00000001'),
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'networks' => array(),
+                        'info' => array(),
+                    );
+                }
+                // 检查并补充$quote货币
+                if ($quote !== null && !(is_array($currencies) && array_key_exists($quote, $currencies))) {
+                    $currencies[$quote] = array(
+                        'id' => $quoteId,
+                        'code' => $quote,
+                        'name' => $quote,
+                        'active' => true,
+                        'fee' => null,
+                        'precision' => $this->parse_number('0.00000001'),
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                        ),
+                        'networks' => array(),
+                        'info' => array(),
+                    );
+                }
+            }
+            $this->currencies = $currencies;
+            $this->currencies_by_id = $this->index_by($currencies, 'id');
+            return $markets;
+        }) ();
+    }
+
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches all available $currencies on an exchange
+             * fetches all available currencies on an exchange
+             * @see https://webseaex.github.io/zh/spot-market/currency-list/
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of $currencies
+             * @return {array} an associative dictionary of currencies
              */
             $response = Async\await($this->publicGetOpenApiMarketCurrencies ($params));
             //
@@ -966,16 +1010,16 @@ class websea extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_value($response, 'result', array());
-            $currencies = array();
-            $currencyCodes = is_array($result) ? array_keys($result) : array();
+            $rawCurrencies = $this->safe_value($response, 'result', array());
+            $result = array();
+            $currencyCodes = is_array($rawCurrencies) ? array_keys($rawCurrencies) : array();
             for ($i = 0; $i < count($currencyCodes); $i++) {
                 $code = $currencyCodes[$i];
-                $currency = $result[$code];
+                $currency = $rawCurrencies[$code];
                 $parsed = $this->parse_currency($currency, $code);
-                $currencies[$code] = $parsed;
+                $result[$parsed['code']] = $parsed;
             }
-            return $currencies;
+            return $result;
         }) ();
     }
 
@@ -1130,11 +1174,13 @@ class websea extends Exchange {
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
-            // 获取现货市场$ticker
-            $spotResponse = Async\await($this->publicGetOpenApiMarket24kline ($params));
+            // 并发获取现货和合约市场的$ticker数据
+            $promises = array(
+                $this->publicGetOpenApiMarket24kline ($params),
+                $this->contractGetOpenApiContract24kline ($params),
+            );
+            list($spotResponse, $swapResponse) = Async\await(Promise\all($promises));
             $spotResult = $this->safe_value($spotResponse, 'result', array());
-            // 获取合约市场$ticker
-            $swapResponse = Async\await($this->contractGetOpenApiContract24kline ($params));
             $swapResult = $this->safe_value($swapResponse, 'result', array());
             $tickers = array();
             // 处理现货市场$ticker
@@ -1431,11 +1477,11 @@ class websea extends Exchange {
             $avail = $this->safe_string($item, 'avail');
             $isolatedEquity = $this->safe_string($item, 'isolatedEquity');
             // 根据新的API响应格式更新字段映射逻辑
-            // $avail → $total (总余额)
-            // $isolatedEquity → $free (可用余额)
+            // $isolatedEquity → $total (总余额)
+            // $avail → $free (可用余额)
             // $used = $total - $free (通过计算差值得到已使用余额)
-            $total = $avail;
-            $free = $isolatedEquity;
+            $total = $isolatedEquity;
+            $free = $avail;
             $used = Precise::string_sub($total, $free);
             $balance['free'][$currencyCode] = $free;
             $balance['used'][$currencyCode] = $used;

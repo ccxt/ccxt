@@ -14,6 +14,7 @@ export default class websea extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsByType(type: string, params?: {}): Promise<Market[]>;
     parseMarket(market: any): Market;
+    loadMarkets(reload?: boolean, params?: {}): Promise<import("./base/types.js").Dictionary<MarketInterface>>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     parseCurrency(currency: any, code?: any): {
         id: string;
