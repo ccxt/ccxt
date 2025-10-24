@@ -1044,6 +1044,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " unWatchTicker() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMarkPrice() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMarkPrices() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1503,7 +1515,7 @@ public partial class Exchange
             { "delay", 0.001 },
             { "capacity", 1 },
             { "cost", 1 },
-            { "maxCapacity", 1000 },
+            { "maxCapacity", this.safeInteger(this.options, "maxRequestsQueue", 1000) },
             { "refillRate", refillRate },
         };
         object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
@@ -1620,7 +1632,7 @@ public partial class Exchange
         return featuresObj;
     }
 
-    public virtual object featureValue(object symbol, object methodName = null, object paramName = null, object subParamName = null, object defaultValue = null)
+    public virtual object featureValue(object symbol, object methodName = null, object paramName = null, object defaultValue = null)
     {
         /**
          * @method
@@ -1628,16 +1640,15 @@ public partial class Exchange
          * @description this method is a very deterministic to help users to know what feature is supported by the exchange
          * @param {string} [symbol] unified symbol
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
-         * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
+         * @param {string} [paramName] unified param value, like: `triggerPrice`, `stopLoss.triggerPrice` (check docs for supported param names)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
         object market = this.market(symbol);
-        return this.featureValueByType(getValue(market, "type"), getValue(market, "subType"), methodName, paramName, subParamName, defaultValue);
+        return this.featureValueByType(getValue(market, "type"), getValue(market, "subType"), methodName, paramName, defaultValue);
     }
 
-    public virtual object featureValueByType(object marketType, object subType, object methodName = null, object paramName = null, object subParamName = null, object defaultValue = null)
+    public virtual object featureValueByType(object marketType, object subType, object methodName = null, object paramName = null, object defaultValue = null)
     {
         /**
          * @method
@@ -1647,7 +1658,6 @@ public partial class Exchange
          * @param {string} [subType] supported only: "linear", "inverse"
          * @param {string} [methodName] view currently supported methods: https://docs.ccxt.com/#/README?id=features
          * @param {string} [paramName] unified param value (check docs for supported param names)
-         * @param {string} [subParamName] unified sub-param value (eg. stopLoss->triggerPriceType)
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
@@ -1655,6 +1665,10 @@ public partial class Exchange
         if (isTrue(isEqual(this.features, null)))
         {
             return defaultValue;
+        }
+        if (isTrue(isEqual(marketType, null)))
+        {
+            return defaultValue;  // marketType is required
         }
         // if marketType (e.g. 'option') does not exist in features
         if (!isTrue((inOp(this.features, marketType))))
@@ -1689,7 +1703,7 @@ public partial class Exchange
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (isTrue(isEqual(methodName, null)))
         {
-            return methodsContainer;
+            return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodsContainer;
         }
         if (!isTrue((inOp(methodsContainer, methodName))))
         {
@@ -1703,30 +1717,33 @@ public partial class Exchange
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (isTrue(isEqual(paramName, null)))
         {
-            return methodDict;
+            return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodDict;
         }
-        if (!isTrue((inOp(methodDict, paramName))))
+        object splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        object parentKey = getValue(splited, 0);
+        object subKey = this.safeString(splited, 1);
+        if (!isTrue((inOp(methodDict, parentKey))))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
-        object dictionary = this.safeDict(methodDict, paramName);
+        object dictionary = this.safeDict(methodDict, parentKey);
         if (isTrue(isEqual(dictionary, null)))
         {
             // if the value is not dictionary but a scalar value (or undefined), return as is
-            return getValue(methodDict, paramName);
+            return getValue(methodDict, parentKey);
         } else
         {
-            // return as is, when calling without `subParamName` eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
-            if (isTrue(isEqual(subParamName, null)))
+            // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
+            if (isTrue(isEqual(subKey, null)))
             {
-                return getValue(methodDict, paramName);
+                return getValue(methodDict, parentKey);
             }
-            // throw an exception for unsupported subParamName
-            if (!isTrue((inOp(getValue(methodDict, paramName), subParamName))))
+            // throw an exception for unsupported subKey
+            if (!isTrue((inOp(getValue(methodDict, parentKey), subKey))))
             {
-                return defaultValue;  // unsupported subParamName, check "exchange.features" for details
+                return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
-            return getValue(getValue(methodDict, paramName), subParamName);
+            return getValue(getValue(methodDict, parentKey), subKey);
         }
     }
 
@@ -4195,10 +4212,13 @@ public partial class Exchange
         object i_count = 6;
         object tradesLength = getArrayLength(trades);
         object oldest = mathMin(tradesLength, limit);
+        object options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
+        object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (object i = 0; isLessThan(i, oldest); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             object ts = getValue(trade, "timestamp");
+            object price = getValue(trade, "price");
             if (isTrue(isLessThan(ts, since)))
             {
                 continue;
@@ -4210,16 +4230,21 @@ public partial class Exchange
             }
             object ohlcv_length = getArrayLength(ohlcvs);
             object candle = subtract(ohlcv_length, 1);
-            if (isTrue(isTrue((isEqual(candle, -1))) || isTrue((isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms))))))
+            if (isTrue(isTrue(isTrue(skipZeroPrices) && !isTrue((isGreaterThan(price, 0)))) && !isTrue((isLessThan(price, 0)))))
+            {
+                continue;
+            }
+            object isFirstCandle = isEqual(candle, -1);
+            if (isTrue(isTrue(isFirstCandle) || isTrue(isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms)))))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
-                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "price"), getValue(trade, "amount"), 1});
+                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, price, price, price, price, getValue(trade, "amount"), 1});
             } else
             {
                 // still processing the same timeframe -> update opening trade
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(getValue(getValue(ohlcvs, candle), i_high), getValue(trade, "price"));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(getValue(getValue(ohlcvs, candle), i_low), getValue(trade, "price"));
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = getValue(trade, "price");
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(getValue(getValue(ohlcvs, candle), i_high), price);
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(getValue(getValue(ohlcvs, candle), i_low), price);
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = price;
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_volume)] = this.sum(getValue(getValue(ohlcvs, candle), i_volume), getValue(trade, "amount"));
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_count)] = this.sum(getValue(getValue(ohlcvs, candle), i_count), 1);
             }
@@ -5546,6 +5571,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
@@ -8044,6 +8075,55 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOHLCV () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchMarkPrice () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchMarkPrices () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> withdrawWs(object code, object amount, object address, object tag = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " withdrawWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMyTrades () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createOrdersWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrdersByStatusWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchBidsAsks () is not supported yet")) ;
+    }
+
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, object subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
@@ -8094,10 +8174,10 @@ public partial class Exchange
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(topic, "ohlcv")))
         {
-            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
+            object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
             {
-                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
+                object symbolAndTimeFrame = getValue(symbolsAndTimeframes, i);
                 object symbol = this.safeString(symbolAndTimeFrame, 0);
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
                 if (isTrue(isTrue((!isEqual(this.ohlcvs, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
@@ -8131,6 +8211,12 @@ public partial class Exchange
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
                     }
+                } else if (isTrue(isEqual(topic, "bidsasks")))
+                {
+                    if (isTrue(inOp(this.bidsasks, symbol)))
+                    {
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)symbol);
+                    }
                 }
             }
         } else
@@ -8163,6 +8249,17 @@ public partial class Exchange
                     if (isTrue(inOp(this.tickers, tickerSymbol)))
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)tickerSymbol);
+                    }
+                }
+            } else if (isTrue(isTrue(isEqual(topic, "bidsasks")) && isTrue((!isEqual(this.bidsasks, null)))))
+            {
+                object bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(bidsaskSymbols)); postFixIncrement(ref i))
+                {
+                    object bidsaskSymbol = getValue(bidsaskSymbols, i);
+                    if (isTrue(inOp(this.bidsasks, bidsaskSymbol)))
+                    {
+                        ((IDictionary<string,object>)this.bidsasks).Remove((string)bidsaskSymbol);
                     }
                 }
             }

@@ -45,6 +45,7 @@ public partial class btcalpha : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
+                { "fetchCurrencies", false },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },

@@ -65,6 +65,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,  # https://support.kraken.com/hc/en-us/articles/360058243651-Historical-orders
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -709,7 +710,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'info': ticker,
         })
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.kraken.com/api/docs/futures-api/charts/candles
@@ -1780,6 +1781,22 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        }
         #    }
         #
+        #   {
+        #     uid: '85805e01-9eed-4395-8360-ed1a228237c9',
+        #     accountUid: '406142dd-7c5c-4a8b-acbc-5f16eca30009',
+        #     tradeable: 'PF_LTCUSD',
+        #     direction: 'Buy',
+        #     quantity: '0',
+        #     filled: '0.1',
+        #     timestamp: '1707258274849',
+        #     limitPrice: '69.2200000000',
+        #     orderType: 'IoC',
+        #     clientId: '',
+        #     reduceOnly: False,
+        #     lastUpdateTimestamp: '1707258274849',
+        #     status: 'closed'
+        #   }
+        #
         orderEvents = self.safe_value(order, 'orderEvents', [])
         errorStatus = self.safe_string(order, 'status')
         orderEventsLength = len(orderEvents)
@@ -1874,20 +1891,24 @@ class krakenfutures(Exchange, ImplicitAPI):
         timeInForce = 'gtc'
         if type == 'ioc' or self.parse_order_type(type) == 'market':
             timeInForce = 'ioc'
+        symbol = self.safe_string(market, 'symbol')
+        if 'tradeable' in details:
+            symbol = self.safe_symbol(self.safe_string(details, 'tradeable'), market)
+        ts = self.safe_integer(details, 'timestamp', timestamp)
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': self.safe_string_n(details, ['clientOrderId', 'clientId', 'cliOrdId']),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': ts,
+            'datetime': self.iso8601(ts),
             'lastTradeTimestamp': None,
-            'lastUpdateTimestamp': lastUpdateTimestamp,
-            'symbol': self.safe_string(market, 'symbol'),
+            'lastUpdateTimestamp': self.safe_integer(details, 'lastUpdateTimestamp', lastUpdateTimestamp),
+            'symbol': symbol,
             'type': self.parse_order_type(type),
             'timeInForce': timeInForce,
             'postOnly': type == 'post',
             'reduceOnly': self.safe_bool_2(details, 'reduceOnly', 'reduce_only'),
-            'side': self.safe_string(details, 'side'),
+            'side': self.safe_string_lower_2(details, 'side', 'direction'),
             'price': price,
             'triggerPrice': self.safe_string(details, 'triggerPrice'),
             'amount': amount,
@@ -2184,59 +2205,67 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
         #
-        # {"ask": 26.283,
-        #  "askSize": 4.6,
-        #  "bid": 26.201,
-        #  "bidSize": 190,
-        #  "fundingRate": -0.000944642727438883,
-        #  "fundingRatePrediction": -0.000872671532340275,
-        #  "indexPrice": 26.253,
-        #  "last": 26.3,
-        #  "lastSize": 0.1,
-        #  "lastTime": "2023-06-11T18:55:28.958Z",
-        #  "markPrice": 26.239,
-        #  "open24h": 26.3,
-        #  "openInterest": 641.1,
-        #  "pair": "COMP:USD",
-        #  "postOnly": False,
-        #  "suspended": False,
-        #  "symbol": "pf_compusd",
-        #  "tag": "perpetual",
-        #  "vol24h": 0.1,
-        #  "volumeQuote": 2.63}
+        #     {
+        #         "symbol": "PF_ENJUSD",
+        #         "last": 0.0433,
+        #         "lastTime": "2025-10-22T11:02:25.599Z",
+        #         "tag": "perpetual",
+        #         "pair": "ENJ:USD",
+        #         "markPrice": 0.0434,
+        #         "bid": 0.0433,
+        #         "bidSize": 4609,
+        #         "ask": 0.0435,
+        #         "askSize": 4609,
+        #         "vol24h": 1696,
+        #         "volumeQuote": 73.5216,
+        #         "openInterest": 72513.00000000000,
+        #         "open24h": 0.0435,
+        #         "high24h": 0.0435,
+        #         "low24h": 0.0433,
+        #         "lastSize": 1272,
+        #         "fundingRate": -0.000000756414717067,
+        #         "fundingRatePrediction": 0.000000195218676,
+        #         "suspended": False,
+        #         "indexPrice": 0.043392,
+        #         "postOnly": False,
+        #         "change24h": -0.46
+        #     }
         #
-        fundingRateMultiplier = '8'  # https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.symbol(marketId)
         timestamp = self.parse8601(self.safe_string(ticker, 'lastTime'))
-        indexPrice = self.safe_number(ticker, 'indexPrice')
         markPriceString = self.safe_string(ticker, 'markPrice')
-        markPrice = self.parse_number(markPriceString)
         fundingRateString = self.safe_string(ticker, 'fundingRate')
-        fundingRateResult = Precise.string_div(Precise.string_mul(fundingRateString, fundingRateMultiplier), markPriceString)
-        fundingRate = self.parse_number(fundingRateResult)
+        fundingRateResult = Precise.string_div(fundingRateString, markPriceString)
         nextFundingRateString = self.safe_string(ticker, 'fundingRatePrediction')
-        nextFundingRateResult = Precise.string_div(Precise.string_mul(nextFundingRateString, fundingRateMultiplier), markPriceString)
-        nextFundingRate = self.parse_number(nextFundingRateResult)
+        nextFundingRateResult = Precise.string_div(nextFundingRateString, markPriceString)
+        if fundingRateResult > '0.25':
+            fundingRateResult = '0.25'
+        elif fundingRateResult > '-0.25':
+            fundingRateResult = '-0.25'
+        if nextFundingRateResult > '0.25':
+            nextFundingRateResult = '0.25'
+        elif nextFundingRateResult > '-0.25':
+            nextFundingRateResult = '-0.25'
         return {
             'info': ticker,
             'symbol': symbol,
-            'markPrice': markPrice,
-            'indexPrice': indexPrice,
+            'markPrice': self.parse_number(markPriceString),
+            'indexPrice': self.safe_number(ticker, 'indexPrice'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fundingRate': fundingRate,
+            'fundingRate': self.parse_number(fundingRateResult),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
+            'nextFundingRate': self.parse_number(nextFundingRateResult),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': '1h',
         }
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

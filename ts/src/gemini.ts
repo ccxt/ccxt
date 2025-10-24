@@ -676,9 +676,9 @@ export default class gemini extends Exchange {
                 const indexedTradingPairs = this.indexBy (tradingPairs, 0);
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];
-                    const tradingPair = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
-                    if (tradingPair !== undefined && !this.inArray (tradingPair, brokenPairs)) {
-                        result.push (this.parseMarket (tradingPair));
+                    const pairInfo = this.safeList (indexedTradingPairs, marketId.toUpperCase ());
+                    if (pairInfo !== undefined && !this.inArray (marketId, brokenPairs)) {
+                        result.push (this.parseMarket (pairInfo));
                     }
                 }
             } else {
@@ -2013,7 +2013,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);

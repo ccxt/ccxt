@@ -312,7 +312,7 @@ create a trade order
 | params.takeProfitPrice | <code>float</code> | No | The price at which a take profit order is triggered at |
 | params.triggerType | <code>string</code> | No | "price" |
 | params.triggerReference | <code>string</code> | No | "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order |
-| params.selfTradePrevention | <code>string</code> | No | "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth" |
+| params.selfTradePrevention | <code>string</code> | No | one of EXPIRE_BOTH, cancelOldest, cancelNewest or decrementAndCancel |
 | params.disableMarketProtection | <code>bool</code> | No | don't cancel if the next fill price is 10% worse than the best fill price |
 | params.responseRequired | <code>bool</code> | No | Set this to 'false' when only an acknowledgement of success or failure is required, this is faster. |
 

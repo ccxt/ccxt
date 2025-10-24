@@ -686,9 +686,9 @@ class gemini extends Exchange {
                     $indexedTradingPairs = $this->index_by($tradingPairs, 0);
                     for ($i = 0; $i < count($marketIds); $i++) {
                         $marketId = $marketIds[$i];
-                        $tradingPair = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
-                        if ($tradingPair !== null && !$this->in_array($tradingPair, $brokenPairs)) {
-                            $result[] = $this->parse_market($tradingPair);
+                        $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
+                        if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
+                            $result[] = $this->parse_market($pairInfo);
                         }
                     }
                 } else {
@@ -2050,7 +2050,7 @@ class gemini extends Exchange {
         }) ();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market

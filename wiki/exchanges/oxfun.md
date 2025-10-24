@@ -577,7 +577,7 @@ create a trade order
 | params.limitPrice | <code>float</code> | No | Limit price for the STOP_LIMIT order |
 | params.postOnly | <code>bool</code> | No | if true, the order will only be posted if it will be a maker order |
 | params.timeInForce | <code>string</code> | No | GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade) |
-| params.selfTradePreventionMode | <code>string</code> | No | NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here [https://docs.ox.fun/?json#self-trade-prevention-modes](https://docs.ox.fun/?json#self-trade-prevention-modes) |
+| params.selfTradePrevention | <code>string</code> | No | NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here [https://docs.ox.fun/?json#self-trade-prevention-modes](https://docs.ox.fun/?json#self-trade-prevention-modes) |
 | params.displayQuantity | <code>string</code> | No | for an iceberg order, pass both quantity and displayQuantity fields in the order request |
 
 

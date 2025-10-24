@@ -2,12 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./_virtual/_commonjsHelpers.js');
-require('./_virtual/formats.cjs.js');
-require('./_virtual/index.cjs.js');
-require('./_virtual/parse.cjs.js');
-require('./_virtual/stringify.cjs.js');
-require('./_virtual/utils.cjs.js');
 var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
@@ -95,7 +89,6 @@ var myokx = require('./src/myokx.js');
 var ndax = require('./src/ndax.js');
 var novadax = require('./src/novadax.js');
 var oceanex = require('./src/oceanex.js');
-var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var okxus = require('./src/okxus.js');
 var onetrading = require('./src/onetrading.js');
@@ -175,7 +168,6 @@ var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
 var myokx$1 = require('./src/pro/myokx.js');
 var ndax$1 = require('./src/pro/ndax.js');
-var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var okxus$1 = require('./src/pro/okxus.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
@@ -192,9 +184,10 @@ var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
 var xt$1 = require('./src/pro/xt.js');
 
+// ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.6';
+const version = '4.5.12';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],
@@ -280,7 +273,6 @@ const exchanges = {
     'ndax': ndax["default"],
     'novadax': novadax["default"],
     'oceanex': oceanex["default"],
-    'okcoin': okcoin["default"],
     'okx': okx["default"],
     'okxus': okxus["default"],
     'onetrading': onetrading["default"],
@@ -362,7 +354,6 @@ const pro = {
     'modetrade': modetrade$1["default"],
     'myokx': myokx$1["default"],
     'ndax': ndax$1["default"],
-    'okcoin': okcoin$1["default"],
     'okx': okx$1["default"],
     'okxus': okxus$1["default"],
     'onetrading': onetrading$1["default"],
@@ -513,7 +504,6 @@ exports.myokx = myokx["default"];
 exports.ndax = ndax["default"];
 exports.novadax = novadax["default"];
 exports.oceanex = oceanex["default"];
-exports.okcoin = okcoin["default"];
 exports.okx = okx["default"];
 exports.okxus = okxus["default"];
 exports.onetrading = onetrading["default"];

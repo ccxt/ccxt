@@ -1243,7 +1243,7 @@
             {
                 "description": "Fetch cross margin balance",
                 "method": "fetchBalance",
-                "url": "https://api.bitget.com/api/margin/v1/cross/account/assets",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/account/assets",
                 "input": [
                     {
                         "marginMode": "cross"
@@ -1253,7 +1253,7 @@
             {
                 "description": "Fetch isolated margin balance",
                 "method": "fetchBalance",
-                "url": "https://api.bitget.com/api/margin/v1/isolated/account/assets",
+                "url": "https://api.bitget.com/api/v2/margin/isolated/account/assets",
                 "input": [
                     {
                         "marginMode": "isolated"
@@ -1293,6 +1293,15 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch positions empty list",
+                "method": "fetchPositions",
+                "url": "https://api.bitget.com/api/v2/mix/position/all-position?marginCoin=USDT&productType=USDT-FUTURES",
+                "input": [
+                    []
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch linear positions",
                 "method": "fetchPositions",

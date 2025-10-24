@@ -670,10 +670,10 @@ public partial class gemini : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
-                    object tradingPair = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
-                    if (isTrue(isTrue(!isEqual(tradingPair, null)) && !isTrue(this.inArray(tradingPair, brokenPairs))))
+                    object pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
+                    if (isTrue(isTrue(!isEqual(pairInfo, null)) && !isTrue(this.inArray(marketId, brokenPairs))))
                     {
-                        ((IList<object>)result).Add(this.parseMarket(tradingPair));
+                        ((IList<object>)result).Add(this.parseMarket(pairInfo));
                     }
                 }
             } else

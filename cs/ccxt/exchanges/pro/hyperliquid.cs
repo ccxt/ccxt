@@ -62,7 +62,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -503,8 +503,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             object assetObject = getValue(spotAssets, i);
             object marketId = this.safeString(assetObject, "coin");
             object market = this.safeMarket(marketId, null, null, "spot");
+            object symbol = getValue(market, "symbol");
             object ticker = this.parseWsTicker(assetObject, market);
             ((IList<object>)parsedTickers).Add(ticker);
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
         // perpetuals
         object meta = this.safeDict(rawData, "meta", new Dictionary<string, object>() {});
@@ -515,7 +517,9 @@ public partial class hyperliquid : ccxt.hyperliquid
             object data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             object id = add(getValue(data, "name"), "/USDC:USDC");
             object market = this.safeMarket(id, null, null, "swap");
+            object symbol = getValue(market, "symbol");
             object ticker = this.parseWsTicker(data, market);
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)parsedTickers).Add(ticker);
         }
         object tickers = this.indexBy(parsedTickers, "symbol");
@@ -812,7 +816,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();

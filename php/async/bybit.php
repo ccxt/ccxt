@@ -188,7 +188,7 @@ class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ),
                 'fees' => 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral' => 'https://www.bybit.com/register?affiliate_id=35953',
+                'referral' => 'https://www.bybit.com/invite?ref=XDK12WP',
             ),
             'api' => array(
                 'public' => array(
@@ -342,6 +342,7 @@ class bybit extends Exchange {
                         // account
                         'v5/account/wallet-balance' => 1,
                         'v5/account/borrow-history' => 1,
+                        'v5/account/instruments-info' => 1,
                         'v5/account/collateral-info' => 1,
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
@@ -372,6 +373,7 @@ class bybit extends Exchange {
                         'v5/asset/deposit/query-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-sub-member-address' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/coin/query-info' => 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address' => 10,
                         'v5/asset/withdraw/query-record' => 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount' => 5,
                         'v5/asset/withdraw/vasp/list' => 5,
@@ -390,6 +392,10 @@ class bybit extends Exchange {
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history' => 5,
                         'v5/spot-margin-trade/state' => 5,
+                        'v5/spot-margin-trade/max-borrowable' => 5,
+                        'v5/spot-margin-trade/position-tiers' => 5,
+                        'v5/spot-margin-trade/coinstate' => 5,
+                        'v5/spot-margin-trade/repayment-available-amount' => 5,
                         'v5/spot-cross-margin-trade/loan-info' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account' => 1, // 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders' => 1, // 50/s => cost = 50 / 50 = 1
@@ -510,6 +516,8 @@ class bybit extends Exchange {
                         'v5/account/set-hedging-mode' => 5,
                         'v5/account/mmp-modify' => 5,
                         'v5/account/mmp-reset' => 5,
+                        'v5/account/borrow' => 5,
+                        'v5/account/repay' => 5,
                         // asset
                         'v5/asset/exchange/quote-apply' => 1, // 50/s
                         'v5/asset/exchange/convert-execute' => 1, // 50/s
@@ -2586,7 +2594,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -4134,7 +4142,7 @@ class bybit extends Exchange {
                 // only works for spot $market
                 if ($triggerPrice !== null) {
                     $request['orderFilter'] = 'StopOrder';
-                } elseif ($stopLossTriggerPrice !== null || $takeProfitTriggerPrice !== null || $isStopLoss || $isTakeProfit) {
+                } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                     $request['orderFilter'] = 'tpslOrder';
                 }
             }
@@ -4156,7 +4164,8 @@ class bybit extends Exchange {
         $params = $this->omit($params, 'cost');
         // if the $cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         $isMarketBuyAndCostInferable = ($lowerCaseType === 'market') && ($side === 'buy') && (($price !== null) || ($cost !== null));
-        if ($market['spot'] && ($type === 'market') && $isUTA && !$isMarketBuyAndCostInferable) {
+        $isMarketOrder = $lowerCaseType === 'market';
+        if ($market['spot'] && $isMarketOrder && $isUTA && !$isMarketBuyAndCostInferable) {
             // UTA account can specify the $cost of the order on both sides
             if (($cost !== null) || ($price !== null)) {
                 $request['marketUnit'] = 'quoteCoin';
@@ -4172,7 +4181,7 @@ class bybit extends Exchange {
                 $request['marketUnit'] = 'baseCoin';
                 $request['qty'] = $amountString;
             }
-        } elseif ($market['spot'] && ($type === 'market') && ($side === 'buy')) {
+        } elseif ($market['spot'] && $isMarketOrder && ($side === 'buy')) {
             // classic accounts
             // for $market buy it requires the $amount of quote currency to spend
             $createMarketBuyOrderRequiresPrice = true;
@@ -4238,6 +4247,15 @@ class bybit extends Exchange {
                     $request['tpslMode'] = 'Partial';
                     $request['slOrderType'] = 'Limit';
                     $request['slLimitPrice'] = $this->get_price($symbol, $slLimitPrice);
+                } else {
+                    // for spot $market, we need to add this
+                    if ($market['spot']) {
+                        $request['slOrderType'] = 'Market';
+                    }
+                }
+                // for spot $market, we need to add this
+                if ($market['spot'] && $isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() => attached $stopLoss is not supported for spot $market orders');
                 }
             }
             if ($isTakeProfit) {
@@ -4248,6 +4266,15 @@ class bybit extends Exchange {
                     $request['tpslMode'] = 'Partial';
                     $request['tpOrderType'] = 'Limit';
                     $request['tpLimitPrice'] = $this->get_price($symbol, $tpLimitPrice);
+                } else {
+                    // for spot $market, we need to add this
+                    if ($market['spot']) {
+                        $request['tpOrderType'] = 'Market';
+                    }
+                }
+                // for spot $market, we need to add this
+                if ($market['spot'] && $isMarketOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() => attached $takeProfit is not supported for spot $market orders');
                 }
             }
         }
@@ -4632,7 +4659,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -6724,7 +6751,7 @@ class bybit extends Exchange {
         }
         $notional = $this->safe_string_2($position, 'positionValue', 'cumExitValue');
         $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
-        $initialMarginString = $this->safe_string_n($position, array( 'positionIM', 'cumEntryValue' ));
+        $initialMarginString = $this->safe_string_2($position, 'positionIM', 'cumEntryValue');
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
         $timestamp = $this->safe_integer_n($position, array( 'createdTime', 'createdAt' ));
         $lastUpdateTimestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
@@ -6760,7 +6787,7 @@ class bybit extends Exchange {
                     $maintenanceMarginPriceDifference = Precise::string_abs(Precise::string_sub($liquidationPrice, $bustPrice));
                     $maintenanceMarginString = Precise::string_mul($maintenanceMarginPriceDifference, $size);
                     // Initial Margin = Contracts x Entry Price / Leverage
-                    if ($entryPrice !== null) {
+                    if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div(Precise::string_mul($size, $entryPrice), $leverage);
                     }
                 } else {
@@ -6772,7 +6799,7 @@ class bybit extends Exchange {
                     $multiply = Precise::string_mul($bustPrice, $liquidationPrice);
                     $maintenanceMarginString = Precise::string_div(Precise::string_mul($size, $difference), $multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
-                    if ($entryPrice !== null) {
+                    if (($entryPrice !== null) && ($initialMarginString === null)) {
                         $initialMarginString = Precise::string_div($size, Precise::string_mul($entryPrice, $leverage));
                     }
                 }

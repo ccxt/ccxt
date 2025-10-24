@@ -750,8 +750,9 @@ class coinbase(ccxt.async_support.coinbase):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_order_id')
         marketId = self.safe_string(order, 'product_id')
-        datetime = self.safe_string(order, 'time')
+        datetime = self.safe_string_2(order, 'time', 'creation_time')
         market = self.safe_market(marketId, market)
+        stopPrice = self.safe_string(order, 'stop_price')
         return self.safe_order({
             'info': order,
             'symbol': self.safe_string(market, 'symbol'),
@@ -763,12 +764,12 @@ class coinbase(ccxt.async_support.coinbase):
             'type': self.safe_string(order, 'order_type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': self.safe_string(order, 'side'),
-            'price': None,
-            'stopPrice': None,
-            'triggerPrice': None,
-            'amount': None,
-            'cost': None,
+            'side': self.safe_string_2(order, 'side', 'order_side'),
+            'price': self.safe_string(order, 'limit_price'),
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'amount': self.safe_string(order, 'cumulative_quantity'),
+            'cost': self.omit_zero(self.safe_string(order, 'filled_value')),
             'average': self.safe_string(order, 'avg_price'),
             'filled': self.safe_string(order, 'cumulative_quantity'),
             'remaining': self.safe_string(order, 'leaves_quantity'),

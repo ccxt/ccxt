@@ -332,6 +332,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/websocket/private/Plan-Order-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders"/>  <br/>

@@ -76,7 +76,6 @@ Exchange::$exchanges = array(
     'modetrade',
     'myokx',
     'ndax',
-    'okcoin',
     'okx',
     'okxus',
     'onetrading',
