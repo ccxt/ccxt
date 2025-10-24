@@ -241,6 +241,7 @@ class websea extends Exchange {
                         'openApi/futures/entrust/orderList' => 1, // 期货当前订单列表
                         'openApi/futures/position/list' => 1, // 期货持仓列表
                         'openApi/contract/walletList/full' => 1, // 全仓资产列表
+                        'openApi/contract/position' => 1, // 合约持仓查询
                     ),
                     'post' => array(
                         'openApi/entrust/add' => 1, // 现货下单
@@ -397,7 +398,7 @@ class websea extends Exchange {
         } else {
             // Otherwise, check the exchange's default $type to disambiguate
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-            $resolvedMarket = $this->safe_market($marketId, $market, $defaultType);
+            $resolvedMarket = $this->safe_market($marketId, $market, null, $defaultType);
         }
         $market = $resolvedMarket;
         $symbol = $market['symbol'];
@@ -1425,31 +1426,44 @@ class websea extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()): array {
         /**
          * fetch all open $positions
+         * @see https://webseaex.github.io/zh/#contract-$position
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'isolated' or 'cross' - margin mode
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $this->load_markets();
-        $response = $this->privateGetOpenApiFuturesPositionList ($params);
+        $request = array();
+        // 处理 $marginMode 参数并转换为 is_full
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params);
+        if ($marginMode !== null) {
+            // 转换为 Websea 格式 => isolated=1, cross=2
+            $request['is_full'] = ($marginMode === 'isolated') ? 1 : 2;
+        }
+        $response = $this->privateGetOpenApiContractPosition ($this->extend($request, $params));
         //
-        // Websea API响应格式示例:
+        // Websea API响应格式 (实际文档):
         // {
         //     "errno" => 0,
         //     "errmsg" => "success",
         //     "result" => array(
         //         {
-        //             "symbol" => "BTC-USDT",
-        //             "hold_side" => "buy",
-        //             "hold_amount" => "1.000",
-        //             "available_amount" => "1.000",
-        //             "frozen_amount" => "0.000",
-        //             "hold_avg_price" => "60000.00",
-        //             "mark_price" => "61000.00",
-        //             "liq_price" => "55000.00",
-        //             "leverage" => "10",
-        //             "unrealized_profit_loss" => "1000.00",
-        //             "realized_profit_loss" => "0.00",
-        //             "margin_amount" => "6000.00"
+        //             "type" => 1,                      // 1多仓 2空仓
+        //             "symbol" => "ETH-USDT",
+        //             "lever_rate" => 10,               // 杠杆倍数
+        //             "amount" => "10",                 // 持有数量
+        //             "profit" => "10",                 // 已实现盈亏
+        //             "open_price_avg" => "0.3",       // 开仓均价
+        //             "bood" => "6",                    // 冻结保证金(USDT)
+        //             "contract_frozen" => "5",        // 委托冻结(张数)
+        //             "settle_rate" => "0.1",          // 当期资金结算费用
+        //             "equity" => "3.4",               // 账户权益(USDT)
+        //             "avail" => "20",                 // 可用(USDT)
+        //             "bond_rate" => "1.1",            // 保证金率
+        //             "liquidation_price" => "0.9",   // 强平价
+        //             "avail_amount" => "50",          // 可平数量(张数)
+        //             "un_profit" => "0"               // 未实现盈亏
         //         }
         //     )
         // }
@@ -1473,77 +1487,85 @@ class websea extends Exchange {
 
     public function parse_position($position, ?array $market = null): array {
         //
+        // API实际返回格式 (根据测试响应):
         //     {
+        //         "type" => "1",                    // 1多仓 2空仓
+        //         "userId" => "590640",
         //         "symbol" => "BTC-USDT",
-        //         "hold_side" => "buy",
-        //         "hold_amount" => "1.000",
-        //         "available_amount" => "1.000",
-        //         "frozen_amount" => "0.000",
-        //         "hold_avg_price" => "60000.00",
-        //         "mark_price" => "61000.00",
-        //         "liq_price" => "55000.00",
-        //         "leverage" => "10",
-        //         "unrealized_profit_loss" => "1000.00",
-        //         "realized_profit_loss" => "0.00", // This is not part of the unified $position structure
-        //         "margin_amount" => "6000.00"
+        //         "lever_rate" => "20",             // 杠杆倍数
+        //         "amount" => "1",                  // 持有数量
+        //         "profit" => "-0.0711",            // 已实现盈亏
+        //         "open_price_avg" => "110743.51",  // 开仓均价
+        //         "bood" => "5.5342",               // 冻结保证金(USDT)
+        //         "avail_amount" => "1",            // 可平数量(张数)
+        //         "contract_frozen" => "0",         // 委托冻结(张数)
+        //         "settle_rate" => null,            // 当期资金结算费用
+        //         "equity" => "15.8522",            // 账户权益(USDT)
+        //         "avail" => "0.2692",              // 可用(USDT)
+        //         "bond_rate" => "2.79",            // 保证金率
+        //         "liquidation_price" => "95200.86",// 强平价
+        //         "un_profit" => "-0.0711",         // 未实现盈亏
+        //         "open_time" => "1760952524",      // 开仓时间(Unix时间戳-秒)
+        //         "is_full" => "2"                  // 1逐仓 2全仓
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'swap');
         $symbol = $market['symbol'];
         // Determine the $side of the $position from the 'type' field
-        // According to Websea documentation => 1 = long, 2 = short
+        // According to Websea API => type => "1" = 多仓(long), "2" = 空仓(short)
         $typeValue = $this->safe_string($position, 'type');
         $side = null;
         if ($typeValue !== null) {
             $side = ($typeValue === '1') ? 'long' : 'short';
-        } else {
-            // Fallback to hold_side if type is not available
-            $side = $this->safe_string_lower($position, 'hold_side');
         }
-        $contracts = $this->safe_number_2($position, 'hold_amount', 'amount'); // Using 'amount' field from API response
-        $entryPrice = $this->safe_number($position, 'open_price_avg'); // Using 'open_price_avg' entry price in API response
-        // Get $markPrice - Websea API may use different field names
-        $markPrice = $this->safe_number($position, 'mark_price');
-        if ($markPrice === null) {
-            // Try to calculate $markPrice from available data or use $entryPrice
-            // Looking at the API response, we might need to derive this differently
-            // If we have unrealized PnL, we might be able to calculate current price
-            if ($entryPrice !== null && $contracts !== null && $this->safe_number($position, 'un_profit') !== null) {
-                // Estimate $markPrice based on unrealized profit/loss and entry price
-                $unProfit = $this->safe_number($position, 'un_profit');
-                $estimatedMarkPrice = $entryPrice . ($unProfit / $contracts); // Simplified calculation
-                $markPrice = $estimatedMarkPrice;
+        $contracts = $this->safe_number($position, 'amount'); // 持有数量
+        $contractSize = $this->safe_number($market, 'contractSize', 1);
+        $entryPrice = $this->safe_number($position, 'open_price_avg'); // 开仓均价
+        $liquidationPrice = $this->safe_number($position, 'liquidation_price'); // 强平价
+        $leverage = $this->safe_integer($position, 'lever_rate'); // 杠杆倍数
+        $unrealizedPnl = $this->safe_number($position, 'un_profit'); // 未实现盈亏
+        $realizedPnl = $this->safe_number($position, 'profit'); // 已实现盈亏
+        $collateral = $this->safe_number($position, 'bood'); // 冻结保证金(USDT)
+        $equity = $this->safe_number($position, 'equity'); // 账户权益(USDT)
+        $marginRatio = $this->safe_number($position, 'bond_rate'); // 保证金率
+        // 解析开仓时间戳 - API返回的是Unix时间戳(秒)
+        $timestamp = $this->safe_timestamp($position, 'open_time');
+        // 注意 => API响应中没有mark_price字段，需要通过其他方式获取或估算
+        // 可以通过 $entryPrice . ($unrealizedPnl / $contracts) 来估算当前价格
+        $markPrice = null;
+        if ($entryPrice !== null && $contracts !== null && $contracts !== 0 && $unrealizedPnl !== null) {
+            // 估算标记价格 => $markPrice ≈ $entryPrice . ($unrealizedPnl / ($contracts * $contractSize))
+            $pnlPerContract = $unrealizedPnl / ($contracts * $contractSize);
+            if ($side === 'long') {
+                $markPrice = $entryPrice . $pnlPerContract;
+            } else {
+                $markPrice = $entryPrice - $pnlPerContract;
             }
         }
-        $liquidationPrice = $this->safe_number($position, 'liq_price');
-        $leverage = $this->safe_number($position, 'lever_rate'); // Using 'lever_rate' $leverage field
-        $unrealizedPnl = $this->safe_number($position, 'un_profit');
-        $collateral = $this->safe_number_2($position, 'bood', 'margin_amount'); // Using 'bood' from API response
-        // $notional value is not directly provided, can be calculated
+        // $notional value计算
         $notional = null;
-        if ($contracts !== null && $markPrice !== null) {
-            $notionalString = Precise::string_mul($this->number_to_string($contracts), $this->number_to_string($markPrice));
-            $notional = $this->parse_number($notionalString);
+        if ($contracts !== null && $markPrice !== null && $contractSize !== null) {
+            $notional = $contracts * $contractSize * $markPrice;
         }
-        $timestamp = $this->safe_timestamp($position, 'open_time'); // Using 'open_time' field $timestamp
-        // Calculate $percentage - unrealized PnL $percentage relative to $equity or $collateral
+        // Calculate $percentage - unrealized PnL $percentage relative to $equity
         $percentage = null;
-        $equity = $this->safe_number($position, 'equity');
         if ($unrealizedPnl !== null && $equity !== null && $equity !== 0) {
             $percentage = ($unrealizedPnl / $equity) * 100;
-        } elseif ($unrealizedPnl !== null && $collateral !== null && $collateral !== 0) {
-            $percentage = ($unrealizedPnl / $collateral) * 100;
         }
-        // Determine margin mode from 'is_full' field in API response
-        // is_full => 1 = $isolated, 2 = cross (based on Websea documentation)
-        $marginMode = null;
+        // 从响应中获取保证金模式 - API返回的is_full字段 => "1"=逐仓, "2"=全仓
         $isFullValue = $this->safe_string($position, 'is_full');
+        $marginMode = null;
+        $isolated = null;
         if ($isFullValue !== null) {
-            $marginMode = ($isFullValue === '2') ? 'cross' : 'isolated';
+            $marginMode = ($isFullValue === '1') ? 'isolated' : 'cross';
+            $isolated = ($isFullValue === '1');
         }
-        // Determine if $position is $isolated from margin mode
-        $isolated = ($marginMode === 'isolated');
+        // 计算初始保证金百分比 = 1 / $leverage
+        $initialMarginPercentage = null;
+        if ($leverage !== null && $leverage !== 0) {
+            $initialMarginPercentage = $this->parse_number(Precise::string_div('1', (string) $leverage));
+        }
         return $this->safe_position(array(
             'info' => $position,
             'symbol' => $symbol,
@@ -1552,7 +1574,7 @@ class websea extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'marginMode' => $marginMode,
             'isolated' => $isolated,
-            'hedged' => null, // API does not specify $position mode
+            'hedged' => false, // Websea不支持双向持仓模式
             'side' => $side,
             'contracts' => $contracts,
             'contractSize' => $market['contractSize'],
@@ -1561,13 +1583,14 @@ class websea extends Exchange {
             'notional' => $notional,
             'leverage' => $leverage,
             'collateral' => $collateral,
-            'unrealizedPnl' => $unrealizedPnl,
-            'liquidationPrice' => $liquidationPrice,
             'initialMargin' => $collateral, // Using $collateral margin approximation
-            'initialMarginPercentage' => null,
+            'initialMarginPercentage' => $initialMarginPercentage,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'marginRatio' => null,
+            'unrealizedPnl' => $unrealizedPnl,
+            'realizedPnl' => $realizedPnl,
+            'liquidationPrice' => $liquidationPrice,
+            'marginRatio' => $marginRatio,
             'percentage' => $percentage, // Calculated PnL $percentage
             'lastUpdateTimestamp' => null,
             'lastPrice' => $markPrice, // Using $markPrice
@@ -1759,7 +1782,7 @@ class websea extends Exchange {
         }
         // Determine $market type => use the resolved market's type if available and specific,
         // otherwise use the $result from handleMarketTypeAndParams
-        list($detectedMarketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        list($detectedMarketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params, $this->safe_string($this->options, 'defaultType', 'spot'));
         $marketType = ($market && $market['type']) ? $market['type'] : $detectedMarketType;
         $response = null;
         if ($marketType === 'swap') {

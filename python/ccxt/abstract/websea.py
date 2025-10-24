@@ -23,6 +23,7 @@ class ImplicitAPI:
     private_get_openapi_futures_entrust_orderlist = privateGetOpenApiFuturesEntrustOrderList = Entry('openApi/futures/entrust/orderList', 'private', 'GET', {'cost': 1})
     private_get_openapi_futures_position_list = privateGetOpenApiFuturesPositionList = Entry('openApi/futures/position/list', 'private', 'GET', {'cost': 1})
     private_get_openapi_contract_walletlist_full = privateGetOpenApiContractWalletListFull = Entry('openApi/contract/walletList/full', 'private', 'GET', {'cost': 1})
+    private_get_openapi_contract_position = privateGetOpenApiContractPosition = Entry('openApi/contract/position', 'private', 'GET', {'cost': 1})
     private_post_openapi_entrust_add = privatePostOpenApiEntrustAdd = Entry('openApi/entrust/add', 'private', 'POST', {'cost': 1})
     private_post_openapi_entrust_cancel = privatePostOpenApiEntrustCancel = Entry('openApi/entrust/cancel', 'private', 'POST', {'cost': 1})
     private_post_openapi_entrust_orderdetail = privatePostOpenApiEntrustOrderDetail = Entry('openApi/entrust/orderDetail', 'private', 'POST', {'cost': 1})

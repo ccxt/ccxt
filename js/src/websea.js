@@ -246,7 +246,8 @@ export default class websea extends Exchange {
                         'openApi/entrust/currentList': 1,
                         'openApi/futures/entrust/orderList': 1,
                         'openApi/futures/position/list': 1,
-                        'openApi/contract/walletList/full': 1, // 全仓资产列表
+                        'openApi/contract/walletList/full': 1,
+                        'openApi/contract/position': 1, // 合约持仓查询
                     },
                     'post': {
                         'openApi/entrust/add': 1,
@@ -404,7 +405,7 @@ export default class websea extends Exchange {
         else {
             // Otherwise, check the exchange's default type to disambiguate
             const defaultType = this.safeString(this.options, 'defaultType', 'spot');
-            resolvedMarket = this.safeMarket(marketId, market, defaultType);
+            resolvedMarket = this.safeMarket(marketId, market, undefined, defaultType);
         }
         market = resolvedMarket;
         const symbol = market['symbol'];
@@ -1455,31 +1456,44 @@ export default class websea extends Exchange {
          * @method
          * @name websea#fetchPositions
          * @description fetch all open positions
+         * @see https://webseaex.github.io/zh/#contract-position
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] 'isolated' or 'cross' - margin mode
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
-        const response = await this.privateGetOpenApiFuturesPositionList(params);
+        const request = {};
+        // 处理 marginMode 参数并转换为 is_full
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('fetchPositions', params);
+        if (marginMode !== undefined) {
+            // 转换为 Websea 格式: isolated=1, cross=2
+            request['is_full'] = (marginMode === 'isolated') ? 1 : 2;
+        }
+        const response = await this.privateGetOpenApiContractPosition(this.extend(request, params));
         //
-        // Websea API响应格式示例:
+        // Websea API响应格式 (实际文档):
         // {
         //     "errno": 0,
         //     "errmsg": "success",
         //     "result": [
         //         {
-        //             "symbol": "BTC-USDT",
-        //             "hold_side": "buy",
-        //             "hold_amount": "1.000",
-        //             "available_amount": "1.000",
-        //             "frozen_amount": "0.000",
-        //             "hold_avg_price": "60000.00",
-        //             "mark_price": "61000.00",
-        //             "liq_price": "55000.00",
-        //             "leverage": "10",
-        //             "unrealized_profit_loss": "1000.00",
-        //             "realized_profit_loss": "0.00",
-        //             "margin_amount": "6000.00"
+        //             "type": 1,                      // 1多仓 2空仓
+        //             "symbol": "ETH-USDT",
+        //             "lever_rate": 10,               // 杠杆倍数
+        //             "amount": "10",                 // 持有数量
+        //             "profit": "10",                 // 已实现盈亏
+        //             "open_price_avg": "0.3",       // 开仓均价
+        //             "bood": "6",                    // 冻结保证金(USDT)
+        //             "contract_frozen": "5",        // 委托冻结(张数)
+        //             "settle_rate": "0.1",          // 当期资金结算费用
+        //             "equity": "3.4",               // 账户权益(USDT)
+        //             "avail": "20",                 // 可用(USDT)
+        //             "bond_rate": "1.1",            // 保证金率
+        //             "liquidation_price": "0.9",   // 强平价
+        //             "avail_amount": "50",          // 可平数量(张数)
+        //             "un_profit": "0"               // 未实现盈亏
         //         }
         //     ]
         // }
@@ -1503,79 +1517,86 @@ export default class websea extends Exchange {
     }
     parsePosition(position, market = undefined) {
         //
+        // API实际返回格式 (根据测试响应):
         //     {
+        //         "type": "1",                    // 1多仓 2空仓
+        //         "userId": "590640",
         //         "symbol": "BTC-USDT",
-        //         "hold_side": "buy",
-        //         "hold_amount": "1.000",
-        //         "available_amount": "1.000",
-        //         "frozen_amount": "0.000",
-        //         "hold_avg_price": "60000.00",
-        //         "mark_price": "61000.00",
-        //         "liq_price": "55000.00",
-        //         "leverage": "10",
-        //         "unrealized_profit_loss": "1000.00",
-        //         "realized_profit_loss": "0.00", // This is not part of the unified position structure
-        //         "margin_amount": "6000.00"
+        //         "lever_rate": "20",             // 杠杆倍数
+        //         "amount": "1",                  // 持有数量
+        //         "profit": "-0.0711",            // 已实现盈亏
+        //         "open_price_avg": "110743.51",  // 开仓均价
+        //         "bood": "5.5342",               // 冻结保证金(USDT)
+        //         "avail_amount": "1",            // 可平数量(张数)
+        //         "contract_frozen": "0",         // 委托冻结(张数)
+        //         "settle_rate": null,            // 当期资金结算费用
+        //         "equity": "15.8522",            // 账户权益(USDT)
+        //         "avail": "0.2692",              // 可用(USDT)
+        //         "bond_rate": "2.79",            // 保证金率
+        //         "liquidation_price": "95200.86",// 强平价
+        //         "un_profit": "-0.0711",         // 未实现盈亏
+        //         "open_time": "1760952524",      // 开仓时间(Unix时间戳-秒)
+        //         "is_full": "2"                  // 1逐仓 2全仓
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
         market = this.safeMarket(marketId, market, undefined, 'swap');
         const symbol = market['symbol'];
         // Determine the side of the position from the 'type' field
-        // According to Websea documentation: 1 = long, 2 = short
+        // According to Websea API: type: "1" = 多仓(long), "2" = 空仓(short)
         const typeValue = this.safeString(position, 'type');
         let side = undefined;
         if (typeValue !== undefined) {
             side = (typeValue === '1') ? 'long' : 'short';
         }
-        else {
-            // Fallback to hold_side if type is not available
-            side = this.safeStringLower(position, 'hold_side');
-        }
-        const contracts = this.safeNumber2(position, 'hold_amount', 'amount'); // Using 'amount' field from API response
-        const entryPrice = this.safeNumber(position, 'open_price_avg'); // Using 'open_price_avg' as the entry price as seen in API response
-        // Get markPrice - Websea API may use different field names
-        let markPrice = this.safeNumber(position, 'mark_price');
-        if (markPrice === undefined) {
-            // Try to calculate markPrice from available data or use entryPrice as approximation
-            // Looking at the API response, we might need to derive this differently
-            // If we have unrealized PnL, we might be able to calculate current price
-            if (entryPrice !== undefined && contracts !== undefined && this.safeNumber(position, 'un_profit') !== undefined) {
-                // Estimate markPrice based on unrealized profit/loss and entry price
-                const unProfit = this.safeNumber(position, 'un_profit');
-                const estimatedMarkPrice = entryPrice + (unProfit / contracts); // Simplified calculation
-                markPrice = estimatedMarkPrice;
+        const contracts = this.safeNumber(position, 'amount'); // 持有数量
+        const contractSize = this.safeNumber(market, 'contractSize', 1);
+        const entryPrice = this.safeNumber(position, 'open_price_avg'); // 开仓均价
+        const liquidationPrice = this.safeNumber(position, 'liquidation_price'); // 强平价
+        const leverage = this.safeInteger(position, 'lever_rate'); // 杠杆倍数
+        const unrealizedPnl = this.safeNumber(position, 'un_profit'); // 未实现盈亏
+        const realizedPnl = this.safeNumber(position, 'profit'); // 已实现盈亏
+        const collateral = this.safeNumber(position, 'bood'); // 冻结保证金(USDT)
+        const equity = this.safeNumber(position, 'equity'); // 账户权益(USDT)
+        const marginRatio = this.safeNumber(position, 'bond_rate'); // 保证金率
+        // 解析开仓时间戳 - API返回的是Unix时间戳(秒)
+        const timestamp = this.safeTimestamp(position, 'open_time');
+        // 注意: API响应中没有mark_price字段，需要通过其他方式获取或估算
+        // 可以通过 entryPrice + (unrealizedPnl / contracts) 来估算当前价格
+        let markPrice = undefined;
+        if (entryPrice !== undefined && contracts !== undefined && contracts !== 0 && unrealizedPnl !== undefined) {
+            // 估算标记价格: markPrice ≈ entryPrice + (unrealizedPnl / (contracts * contractSize))
+            const pnlPerContract = unrealizedPnl / (contracts * contractSize);
+            if (side === 'long') {
+                markPrice = entryPrice + pnlPerContract;
+            }
+            else {
+                markPrice = entryPrice - pnlPerContract;
             }
         }
-        const liquidationPrice = this.safeNumber(position, 'liq_price');
-        const leverage = this.safeNumber(position, 'lever_rate'); // Using 'lever_rate' as the leverage field
-        const unrealizedPnl = this.safeNumber(position, 'un_profit');
-        const collateral = this.safeNumber2(position, 'bood', 'margin_amount'); // Using 'bood' as margin_amount from API response
-        // notional value is not directly provided, can be calculated
+        // notional value计算
         let notional = undefined;
-        if (contracts !== undefined && markPrice !== undefined) {
-            const notionalString = Precise.stringMul(this.numberToString(contracts), this.numberToString(markPrice));
-            notional = this.parseNumber(notionalString);
+        if (contracts !== undefined && markPrice !== undefined && contractSize !== undefined) {
+            notional = contracts * contractSize * markPrice;
         }
-        const timestamp = this.safeTimestamp(position, 'open_time'); // Using 'open_time' field as the timestamp
-        // Calculate percentage - unrealized PnL percentage relative to equity or collateral
+        // Calculate percentage - unrealized PnL percentage relative to equity
         let percentage = undefined;
-        const equity = this.safeNumber(position, 'equity');
         if (unrealizedPnl !== undefined && equity !== undefined && equity !== 0) {
             percentage = (unrealizedPnl / equity) * 100;
         }
-        else if (unrealizedPnl !== undefined && collateral !== undefined && collateral !== 0) {
-            percentage = (unrealizedPnl / collateral) * 100;
-        }
-        // Determine margin mode from 'is_full' field in API response
-        // is_full: 1 = isolated, 2 = cross (based on Websea documentation)
-        let marginMode = undefined;
+        // 从响应中获取保证金模式 - API返回的is_full字段: "1"=逐仓, "2"=全仓
         const isFullValue = this.safeString(position, 'is_full');
+        let marginMode = undefined;
+        let isolated = undefined;
         if (isFullValue !== undefined) {
-            marginMode = (isFullValue === '2') ? 'cross' : 'isolated';
+            marginMode = (isFullValue === '1') ? 'isolated' : 'cross';
+            isolated = (isFullValue === '1');
         }
-        // Determine if position is isolated from margin mode
-        const isolated = (marginMode === 'isolated');
+        // 计算初始保证金百分比 = 1 / leverage
+        let initialMarginPercentage = undefined;
+        if (leverage !== undefined && leverage !== 0) {
+            initialMarginPercentage = this.parseNumber(Precise.stringDiv('1', leverage.toString()));
+        }
         return this.safePosition({
             'info': position,
             'symbol': symbol,
@@ -1584,7 +1605,7 @@ export default class websea extends Exchange {
             'datetime': this.iso8601(timestamp),
             'marginMode': marginMode,
             'isolated': isolated,
-            'hedged': undefined,
+            'hedged': false,
             'side': side,
             'contracts': contracts,
             'contractSize': market['contractSize'],
@@ -1593,13 +1614,14 @@ export default class websea extends Exchange {
             'notional': notional,
             'leverage': leverage,
             'collateral': collateral,
-            'unrealizedPnl': unrealizedPnl,
-            'liquidationPrice': liquidationPrice,
             'initialMargin': collateral,
-            'initialMarginPercentage': undefined,
+            'initialMarginPercentage': initialMarginPercentage,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'marginRatio': undefined,
+            'unrealizedPnl': unrealizedPnl,
+            'realizedPnl': realizedPnl,
+            'liquidationPrice': liquidationPrice,
+            'marginRatio': marginRatio,
             'percentage': percentage,
             'lastUpdateTimestamp': undefined,
             'lastPrice': markPrice,
@@ -1800,7 +1822,7 @@ export default class websea extends Exchange {
         }
         // Determine market type: use the resolved market's type if available and specific,
         // otherwise use the result from handleMarketTypeAndParams
-        const [detectedMarketType, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
+        const [detectedMarketType, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params, this.safeString(this.options, 'defaultType', 'spot'));
         const marketType = (market && market['type']) ? market['type'] : detectedMarketType;
         let response = undefined;
         if (marketType === 'swap') {

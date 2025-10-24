@@ -91,6 +91,10 @@ func (this *websea) PrivateGetOpenApiContractWalletListFull (args ...interface{}
    return this.callEndpointAsync("privateGetOpenApiContractWalletListFull", args...)
 }
 
+func (this *websea) PrivateGetOpenApiContractPosition (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetOpenApiContractPosition", args...)
+}
+
 func (this *websea) PrivatePostOpenApiEntrustAdd (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePostOpenApiEntrustAdd", args...)
 }

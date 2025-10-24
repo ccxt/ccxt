@@ -236,11 +236,13 @@ fetch all open positions
 **Kind**: instance method of [<code>websea</code>](#websea)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
+**See**: https://webseaex.github.io/zh/#contract-position  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'isolated' or 'cross' - margin mode |
 
 
 ```javascript
