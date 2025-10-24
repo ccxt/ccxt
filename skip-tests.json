@@ -237,7 +237,10 @@
                 "spread": "ask equals to bid",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:291"
             },
-            "fetchTickers": "todo fix parsing"
+            "fetchTickers": "todo fix parsing",
+            "fetchTrades": {
+                "amountPriceCost": "todo"
+            }
         }
     },
     "bitfinex": {
