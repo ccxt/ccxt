@@ -28,6 +28,7 @@ interface Exchange {
     privateGetOpenApiWalletList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustHistoryList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustCurrentList (params?: {}): Promise<implicitReturnType>;
+    privateGetOpenApiEntrustStatus (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiFuturesEntrustOrderList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiFuturesPositionList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiContractWalletListFull (params?: {}): Promise<implicitReturnType>;

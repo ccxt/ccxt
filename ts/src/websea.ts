@@ -263,6 +263,7 @@ export default class websea extends Exchange {
                         'openApi/wallet/list': 1, // 钱包列表 - 余额查询
                         'openApi/entrust/historyList': 1, // 历史订单列表 - 已完成订单
                         'openApi/entrust/currentList': 1, // 现货当前委托列表
+                        'openApi/entrust/status': 1, // 现货订单详情（查询委托详情）
                         'openApi/futures/entrust/orderList': 1, // 期货当前订单列表
                         'openApi/futures/position/list': 1, // 期货持仓列表
                         'openApi/contract/walletList/full': 1, // 全仓资产列表
@@ -1832,7 +1833,7 @@ export default class websea extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'order_id': id,
+            'order_sn': id,  // Websea现货API使用order_sn参数
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -1845,14 +1846,31 @@ export default class websea extends Exchange {
             // 期货订单详情
             response = await this.privatePostOpenApiFuturesEntrustOrderDetail (this.extend (request, query));
         } else {
-            // 现货订单详情
-            response = await this.privatePostOpenApiEntrustOrderDetail (this.extend (request, query));
+            // 现货订单详情 - 使用GET方法和正确的端点
+            response = await this.privateGetOpenApiEntrustStatus (this.extend (request, query));
         }
         //
-        // 需要根据实际API响应结构调整
+        // 现货返回示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "order_sn": "BL123456789987523",
+        //         "symbol": "BTC-USDT",
+        //         "ctime": "2018-10-02 10:33:33",
+        //         "type": "2",
+        //         "side": "buy",
+        //         "price": "0.123456",
+        //         "number": "1.0000",
+        //         "total_price": "0.123456",
+        //         "deal_number": "0.00000",
+        //         "deal_price": "0.00000",
+        //         "status": 1
+        //     }
+        // }
         //
         const result = this.safeValue (response, 'result', {});
-        return this.parseOrder (result);
+        return this.parseOrder (result, market);
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
