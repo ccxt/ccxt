@@ -1534,7 +1534,16 @@ export default class hyperliquid extends Exchange {
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
-        return this.parseOrders (statuses, undefined);
+        const ordersToBeParsed = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const order = statuses[i];
+            if (order === 'waitingForTrigger') {
+                ordersToBeParsed.push ({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
+            } else {
+                ordersToBeParsed.push (order);
+            }
+        }
+        return this.parseOrders (ordersToBeParsed, undefined);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
