@@ -4517,12 +4517,15 @@ class bitmart(Exchange, ImplicitAPI):
         #         "code": 1000,
         #         "message": "Ok",
         #         "data": {
-        #             "timestamp": 1695184410697,
         #             "symbol": "BTCUSDT",
-        #             "rate_value": "-0.00002614",
-        #             "expected_rate": "-0.00002"
+        #             "expected_rate": "-0.0000238",
+        #             "rate_value": "0.000009601106",
+        #             "funding_time": 1761292800000,
+        #             "funding_upper_limit": "0.0375",
+        #             "funding_lower_limit": "-0.0375",
+        #             "timestamp": 1761291544336
         #         },
-        #         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
+        #         "trace": "64b7a589-e1e-4ac2-86b1-41058757421"
         #     }
         #
         data = self.safe_dict(response, 'data', {})
@@ -4587,14 +4590,18 @@ class bitmart(Exchange, ImplicitAPI):
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #     {
-        #         "timestamp": 1695184410697,
         #         "symbol": "BTCUSDT",
-        #         "rate_value": "-0.00002614",
-        #         "expected_rate": "-0.00002"
+        #         "expected_rate": "-0.0000238",
+        #         "rate_value": "0.000009601106",
+        #         "funding_time": 1761292800000,
+        #         "funding_upper_limit": "0.0375",
+        #         "funding_lower_limit": "-0.0375",
+        #         "timestamp": 1761291544336
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
         timestamp = self.safe_integer(contract, 'timestamp')
+        fundingTimestamp = self.safe_integer(contract, 'funding_time')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market),
@@ -4605,8 +4612,8 @@ class bitmart(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'expected_rate'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': None,
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
