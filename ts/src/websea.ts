@@ -739,9 +739,9 @@ export default class websea extends Exchange {
             for (let i = 0; i < symbolsList.length; i++) {
                 const market = symbolsList[i];
                 const symbol = this.safeString (market, 'symbol');
-                const precision = this.safeValue (precisionData, symbol, {});
+                const precision = this.safeValue (precisionData, symbol);
                 // 如果存在precision数据，将其合并到market对象中（优先级更高）
-                if (precision !== undefined && Object.keys (precision).length > 0) {
+                if (precision !== undefined && !this.isEmpty (precision)) {
                     market['precision'] = precision;
                 }
             }
@@ -760,9 +760,9 @@ export default class websea extends Exchange {
                 for (let i = 0; i < symbolsList.length; i++) {
                     const market = symbolsList[i];
                     const symbol = this.safeString (market, 'symbol');
-                    const precision = this.safeValue (precisionData, symbol, {});
+                    const precision = this.safeValue (precisionData, symbol);
                     // 如果存在precision数据，将其合并到market对象中（优先级更高）
-                    if (precision !== undefined && Object.keys (precision).length > 0) {
+                    if (precision !== undefined && !this.isEmpty (precision)) {
                         market['precision'] = precision;
                     }
                 }
@@ -857,13 +857,13 @@ export default class websea extends Exchange {
             // 将小数位数转换为tick size：例如 "3" -> 0.001
             if (amountDecimalPlaces !== undefined) {
                 const decimals = parseInt (amountDecimalPlaces);
-                if (!isNaN (decimals) && decimals >= 0) {
+                if (!Number.isNaN (decimals) && decimals >= 0) {
                     amountPrecision = this.parseNumber (this.parsePrecision (amountDecimalPlaces));
                 }
             }
             if (priceDecimalPlaces !== undefined) {
                 const decimals = parseInt (priceDecimalPlaces);
-                if (!isNaN (decimals) && decimals >= 0) {
+                if (!Number.isNaN (decimals) && decimals >= 0) {
                     pricePrecision = this.parseNumber (this.parsePrecision (priceDecimalPlaces));
                 }
             }
@@ -938,14 +938,14 @@ export default class websea extends Exchange {
         };
     }
 
-    async loadMarkets (reload: boolean = false, params = {}): Promise<import('./base/types.js').Dictionary<import('./base/types.js').Market>> {
+    async loadMarkets (reload = false, params = {}) {
         const markets = await super.loadMarkets (reload, params);
         // 补充市场中存在但currencies接口未返回的币种
         // 这是因为/openApi/market/currencies接口可能缺少某些币种
         const currencies = this.currencies || {};
         const marketValues = Object.values (markets);
         for (let i = 0; i < marketValues.length; i++) {
-            const market = marketValues[i] as any;
+            const market = marketValues[i];
             const baseId = this.safeString (market, 'baseId');
             const quoteId = this.safeString (market, 'quoteId');
             const base = this.safeString (market, 'base');
@@ -1194,11 +1194,13 @@ export default class websea extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        // 获取现货市场ticker
-        const spotResponse = await this.publicGetOpenApiMarket24kline (params);
+        // 并发获取现货和合约市场的ticker数据
+        const promises = [
+            this.publicGetOpenApiMarket24kline (params),
+            this.contractGetOpenApiContract24kline (params),
+        ];
+        const [ spotResponse, swapResponse ] = await Promise.all (promises);
         const spotResult = this.safeValue (spotResponse, 'result', []);
-        // 获取合约市场ticker
-        const swapResponse = await this.contractGetOpenApiContract24kline (params);
         const swapResult = this.safeValue (swapResponse, 'result', []);
         const tickers = [];
         // 处理现货市场ticker
