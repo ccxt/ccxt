@@ -1659,10 +1659,10 @@ export default class hyperliquid extends Exchange {
             if (isTrigger) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
-                const stopLossOrderType = this.safeString (stopLoss, 'type');
+                const stopLossOrderType = this.safeString (stopLoss, 'type', 'limit');
                 const stopLossOrderLimitPrice = this.safeStringN (stopLoss, [ 'price', 'stopLossPrice' ], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
-                const takeProfitOrderType = this.safeString (takeProfit, 'type');
+                const takeProfitOrderType = this.safeString (takeProfit, 'type', 'limit');
                 const takeProfitOrderLimitPrice = this.safeStringN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
                 grouping = 'normalTpsl';
                 orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
