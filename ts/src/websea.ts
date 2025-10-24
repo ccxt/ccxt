@@ -1496,11 +1496,11 @@ export default class websea extends Exchange {
             const avail = this.safeString (item, 'avail');
             const isolatedEquity = this.safeString (item, 'isolatedEquity');
             // 根据新的API响应格式更新字段映射逻辑
-            // avail → total (总余额)
-            // isolatedEquity → free (可用余额)
+            // isolatedEquity → total (总余额)
+            // avail → free (可用余额)
             // used = total - free (通过计算差值得到已使用余额)
-            const total = avail;
-            const free = isolatedEquity;
+            const total = isolatedEquity;
+            const free = avail;
             const used = Precise.stringSub (total, free);
             balance['free'][currencyCode] = free;
             balance['used'][currencyCode] = used;
