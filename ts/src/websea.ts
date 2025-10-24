@@ -729,9 +729,25 @@ export default class websea extends Exchange {
         const currencies = this.safeValue (currenciesResponse, 'result', {});
         let markets = [];
         if (type === 'spot') {
-            // 获取现货市场数据
-            const spotResponse = await this.publicGetOpenApiMarketSymbols (params);
-            markets = this.safeValue (spotResponse, 'result', []);
+            // 现货市场：并发请求symbols和precision接口
+            const promises = [
+                this.publicGetOpenApiMarketSymbols (params),
+                this.publicGetOpenApiMarketPrecision (params),
+            ];
+            const [ symbolsResponse, precisionResponse ] = await Promise.all (promises);
+            const symbolsList = this.safeValue (symbolsResponse, 'result', []);
+            const precisionData = this.safeValue (precisionResponse, 'result', {});
+            // 合并precision数据到symbols数据中
+            for (let i = 0; i < symbolsList.length; i++) {
+                const market = symbolsList[i];
+                const symbol = this.safeString (market, 'symbol');
+                const precision = this.safeValue (precisionData, symbol, {});
+                // 如果存在precision数据，将其合并到market对象中（优先级更高）
+                if (precision !== undefined && Object.keys (precision).length > 0) {
+                    market['precision'] = precision;
+                }
+            }
+            markets = symbolsList;
         } else if (type === 'swap') {
             // 尝试获取合约市场数据
             try {
@@ -882,27 +898,49 @@ export default class websea extends Exchange {
         // Convert market ID to unified symbol format
         // 对于swap市场，使用标准的CCXT格式: BASE/QUOTE:QUOTE
         const symbol = isSpot ? (base + '/' + quote) : (base + '/' + quote + ':' + quote);
-        // Calculate precision from min values - derive tick sizes from the minimum values
-        const minSizeString = this.safeString (market, 'min_size');
-        const minPriceString = this.safeString (market, 'min_price');
-        // For TICK_SIZE mode, we need to ensure precision values are proper tick sizes
-        // Use the minimum values as tick sizes, but ensure they're not problematic integers
-        let amountPrecision = this.parseNumber (minSizeString);
-        let pricePrecision = this.parseNumber (minPriceString);
-        // Ensure precision values are valid tick sizes (not integers like 5.0)
-        // Convert problematic integer-like values to proper decimal tick sizes
-        if (amountPrecision !== undefined && amountPrecision >= 1 && amountPrecision % 1 === 0) {
-            amountPrecision = this.parseNumber ('0.00000001'); // Default to 8 decimal places
-        }
-        if (pricePrecision !== undefined && pricePrecision >= 1 && pricePrecision % 1 === 0) {
-            pricePrecision = this.parseNumber ('0.0001'); // Default to 4 decimal places for price
-        }
-        // If precision values are still undefined, set safe defaults
-        if (amountPrecision === undefined) {
-            amountPrecision = this.parseNumber ('0.00000001');
-        }
-        if (pricePrecision === undefined) {
-            pricePrecision = this.parseNumber ('0.0001');
+        // 处理精度信息
+        let amountPrecision = this.parseNumber ('0.00000001'); // 默认8位小数
+        let pricePrecision = this.parseNumber ('0.00000001');  // 默认8位小数
+        let finalMinAmount = minAmount;
+        let finalMaxAmount = maxAmount;
+        let finalMinPrice = minPrice;
+        let finalMaxPrice = maxPrice;
+        // 如果market对象中包含precision数据（来自/openApi/market/precision接口）
+        const precisionData = this.safeValue (market, 'precision');
+        if (precisionData !== undefined) {
+            // precision数据优先级更高
+            const amountDecimalPlaces = this.safeString (precisionData, 'amount');
+            const priceDecimalPlaces = this.safeString (precisionData, 'price');
+            // 将小数位数转换为tick size：例如 "3" -> 0.001
+            if (amountDecimalPlaces !== undefined) {
+                const decimals = parseInt (amountDecimalPlaces);
+                if (!isNaN (decimals) && decimals >= 0) {
+                    amountPrecision = this.parseNumber (this.parsePrecision (amountDecimalPlaces));
+                }
+            }
+            if (priceDecimalPlaces !== undefined) {
+                const decimals = parseInt (priceDecimalPlaces);
+                if (!isNaN (decimals) && decimals >= 0) {
+                    pricePrecision = this.parseNumber (this.parsePrecision (priceDecimalPlaces));
+                }
+            }
+            // 使用precision中的min/max值（优先级更高）
+            const minQuantity = this.safeNumber (precisionData, 'minQuantity');
+            const maxQuantity = this.safeNumber (precisionData, 'maxQuantity');
+            const precisionMinPrice = this.safeNumber (precisionData, 'minPrice');
+            const precisionMaxPrice = this.safeNumber (precisionData, 'maxPrice');
+            if (minQuantity !== undefined) {
+                finalMinAmount = minQuantity;
+            }
+            if (maxQuantity !== undefined) {
+                finalMaxAmount = maxQuantity;
+            }
+            if (precisionMinPrice !== undefined) {
+                finalMinPrice = precisionMinPrice;
+            }
+            if (precisionMaxPrice !== undefined) {
+                finalMaxPrice = precisionMaxPrice;
+            }
         }
         return {
             'id': marketId,
@@ -938,12 +976,12 @@ export default class websea extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': minAmount,
-                    'max': maxAmount,
+                    'min': finalMinAmount,
+                    'max': finalMaxAmount,
                 },
                 'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
+                    'min': finalMinPrice,
+                    'max': finalMaxPrice,
                 },
                 'cost': {
                     'min': undefined,
