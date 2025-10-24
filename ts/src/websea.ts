@@ -938,6 +938,70 @@ export default class websea extends Exchange {
         };
     }
 
+    async loadMarkets (reload: boolean = false, params = {}): Promise<import('./base/types.js').Dictionary<import('./base/types.js').Market>> {
+        const markets = await super.loadMarkets (reload, params);
+        // 补充市场中存在但currencies接口未返回的币种
+        // 这是因为/openApi/market/currencies接口可能缺少某些币种
+        const currencies = this.currencies || {};
+        const marketValues = Object.values (markets);
+        for (let i = 0; i < marketValues.length; i++) {
+            const market = marketValues[i] as any;
+            const baseId = this.safeString (market, 'baseId');
+            const quoteId = this.safeString (market, 'quoteId');
+            const base = this.safeString (market, 'base');
+            const quote = this.safeString (market, 'quote');
+            // 检查并补充base货币
+            if (base !== undefined && !(base in currencies)) {
+                currencies[base] = {
+                    'id': baseId,
+                    'code': base,
+                    'name': base,
+                    'active': true,
+                    'fee': undefined,
+                    'precision': this.parseNumber ('0.00000001'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                };
+            }
+            // 检查并补充quote货币
+            if (quote !== undefined && !(quote in currencies)) {
+                currencies[quote] = {
+                    'id': quoteId,
+                    'code': quote,
+                    'name': quote,
+                    'active': true,
+                    'fee': undefined,
+                    'precision': this.parseNumber ('0.00000001'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'networks': {},
+                    'info': {},
+                };
+            }
+        }
+        this.currencies = currencies;
+        this.currencies_by_id = this.indexBy (currencies, 'id');
+        return markets;
+    }
+
     async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
