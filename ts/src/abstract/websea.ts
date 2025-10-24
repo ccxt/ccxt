@@ -19,6 +19,7 @@ interface Exchange {
     publicGetOpenApiMarket24klineList (params?: {}): Promise<implicitReturnType>;
     publicGetOpenApiMarketPrecision (params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContractSymbols (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractPrecision (params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContractTrade (params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContractDepth (params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContractKline (params?: {}): Promise<implicitReturnType>;

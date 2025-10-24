@@ -250,6 +250,7 @@ export default class websea extends Exchange {
                 'contract': {
                     'get': {
                         'openApi/contract/symbols': 1, // 合约交易对列表
+                        'openApi/contract/precision': 1, // 合约交易对精度
                         'openApi/contract/trade': 1, // 合约交易记录
                         'openApi/contract/depth': 1, // 合约市场深度
                         'openApi/contract/kline': 1, // 合约K线数据
@@ -746,10 +747,26 @@ export default class websea extends Exchange {
             }
             markets = symbolsList;
         } else if (type === 'swap') {
-            // 尝试获取合约市场数据
+            // 合约市场：并发请求symbols和precision接口
             try {
-                const swapResponse = await this.contractGetOpenApiContractSymbols (params);
-                markets = this.safeValue (swapResponse, 'result', []);
+                const promises = [
+                    this.contractGetOpenApiContractSymbols (params),
+                    this.contractGetOpenApiContractPrecision (params),
+                ];
+                const [ symbolsResponse, precisionResponse ] = await Promise.all (promises);
+                const symbolsList = this.safeValue (symbolsResponse, 'result', []);
+                const precisionData = this.safeValue (precisionResponse, 'result', {});
+                // 合并precision数据到symbols数据中
+                for (let i = 0; i < symbolsList.length; i++) {
+                    const market = symbolsList[i];
+                    const symbol = this.safeString (market, 'symbol');
+                    const precision = this.safeValue (precisionData, symbol, {});
+                    // 如果存在precision数据，将其合并到market对象中（优先级更高）
+                    if (precision !== undefined && Object.keys (precision).length > 0) {
+                        market['precision'] = precision;
+                    }
+                }
+                markets = symbolsList;
             } catch (e) {
                 // 如果合约API不可用，返回空数组
                 // This is expected behavior if no swap markets are available
@@ -819,6 +836,7 @@ export default class websea extends Exchange {
         const maxAmount = this.safeNumber (market, 'max_size');
         const minPrice = this.safeNumber (market, 'min_price');
         const maxPrice = this.safeNumber (market, 'max_price');
+        const contractSize = this.safeNumber (market, 'contract_size', 1); // 合约大小，默认为1
         const isSpot = marketType === 'spot';
         // Convert market ID to unified symbol format
         // 对于swap市场，使用标准的CCXT格式: BASE/QUOTE:QUOTE
@@ -857,9 +875,11 @@ export default class websea extends Exchange {
             if (minQuantity !== undefined) {
                 finalMinAmount = minQuantity;
             }
+            finalMinAmount *= contractSize;
             if (maxQuantity !== undefined) {
                 finalMaxAmount = maxQuantity;
             }
+            finalMaxAmount *= contractSize;
             if (precisionMinPrice !== undefined) {
                 finalMinPrice = precisionMinPrice;
             }
