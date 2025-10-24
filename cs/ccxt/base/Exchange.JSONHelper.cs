@@ -10,8 +10,8 @@ public partial class Exchange
 
     public static bool isValidJson(string json)
     {
-        if ((json.StartsWith("{") && json.EndsWith("}")) || //For object
-            (json.StartsWith("[") && json.EndsWith("]"))) //For array
+        if ((json.StartsWith("{") && json.EndsWith("}")) || json.EndsWith("}\n") || //For object
+            (json.StartsWith("[") && json.EndsWith("]")) || json.EndsWith("]\n")) //For array
         {
             return true;
         }
