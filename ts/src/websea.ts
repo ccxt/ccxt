@@ -724,9 +724,6 @@ export default class websea extends Exchange {
     }
 
     async fetchMarketsByType (type: string, params = {}): Promise<Market[]> {
-        // 首先获取货币列表，确保所有货币代码都存在
-        const currenciesResponse = await this.publicGetOpenApiMarketCurrencies (params);
-        const currencies = this.safeValue (currenciesResponse, 'result', {});
         let markets = [];
         if (type === 'spot') {
             // 现货市场：并发请求symbols和precision接口
@@ -758,73 +755,7 @@ export default class websea extends Exchange {
                 // This is expected behavior if no swap markets are available
                 return [];
             }
-            // 为合约市场特有的货币代码创建虚拟的货币条目
-            const swapCurrencies = [];
-            for (let i = 0; i < markets.length; i++) {
-                const market = markets[i];
-                const baseId = this.safeString (market, 'base_currency');
-                const quoteId = this.safeString (market, 'quote_currency');
-                if (baseId && !(baseId in currencies)) {
-                    let baseIdFound = false;
-                    for (let k = 0; k < swapCurrencies.length; k++) {
-                        if (swapCurrencies[k] === baseId) {
-                            baseIdFound = true;
-                            break;
-                        }
-                    }
-                    if (!baseIdFound) {
-                        swapCurrencies.push (baseId);
-                    }
-                }
-                if (quoteId && !(quoteId in currencies)) {
-                    let quoteIdFound = false;
-                    for (let k = 0; k < swapCurrencies.length; k++) {
-                        if (swapCurrencies[k] === quoteId) {
-                            quoteIdFound = true;
-                            break;
-                        }
-                    }
-                    if (!quoteIdFound) {
-                        swapCurrencies.push (quoteId);
-                    }
-                }
-            }
-            // 将合约市场特有的货币代码添加到货币列表中
-            for (let j = 0; j < swapCurrencies.length; j++) {
-                const currencyId = swapCurrencies[j];
-                currencies[currencyId] = {
-                    'name': currencyId,
-                    'canWithdraw': false,
-                    'canDeposit': false,
-                    'minWithdraw': '0',
-                    'maxWithdraw': '0',
-                    'makerFee': '0.0016',
-                    'takerFee': '0.0018',
-                };
-                // 同时添加到this.currencies字典中，以便通过CCXT的货币代码验证
-                if (this.currencies === undefined) {
-                    this.currencies = {};
-                }
-                this.currencies[currencyId] = {
-                    'id': currencyId,
-                    'code': currencyId,
-                    'name': currencyId,
-                    'active': false,
-                    'deposit': false,
-                    'withdraw': false,
-                    'precision': undefined,
-                    'fee': undefined,
-                    'limits': {
-                        'amount': { 'min': undefined, 'max': undefined },
-                        'withdraw': { 'min': 0, 'max': 0 },
-                    },
-                    'networks': {},
-                    'info': undefined,
-                };
-            }
         }
-        // 解析货币列表
-        this.parseCurrencies (currencies);
         // 为市场添加type字段
         for (let i = 0; i < markets.length; i++) {
             markets[i]['type'] = type;
@@ -874,21 +805,15 @@ export default class websea extends Exchange {
         // 对于合约市场，允许使用原始货币ID，因为合约市场可能包含现货市场不存在的货币代码
         let base = undefined;
         let quote = undefined;
-        if (isSwap) {
-            // 对于合约市场，直接使用原始ID，避免货币代码验证错误
+        // 对于现货市场，使用标准的货币代码验证
+        base = this.safeCurrencyCode (baseId);
+        quote = this.safeCurrencyCode (quoteId);
+        // 如果货币代码不存在，使用原始ID作为备用方案
+        if (base === undefined) {
             base = baseId;
+        }
+        if (quote === undefined) {
             quote = quoteId;
-        } else {
-            // 对于现货市场，使用标准的货币代码验证
-            base = this.safeCurrencyCode (baseId);
-            quote = this.safeCurrencyCode (quoteId);
-            // 如果货币代码不存在，使用原始ID作为备用方案
-            if (base === undefined) {
-                base = baseId;
-            }
-            if (quote === undefined) {
-                quote = quoteId;
-            }
         }
         const minAmount = this.safeNumber (market, 'min_size');
         const maxAmount = this.safeNumber (market, 'max_size');
@@ -998,6 +923,7 @@ export default class websea extends Exchange {
          * @method
          * @name websea#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://webseaex.github.io/zh/spot-market/currency-list/
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1020,16 +946,16 @@ export default class websea extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const currencies = {};
-        const currencyCodes = Object.keys (result);
+        const rawCurrencies = this.safeValue (response, 'result', {});
+        const result = {};
+        const currencyCodes = Object.keys (rawCurrencies);
         for (let i = 0; i < currencyCodes.length; i++) {
             const code = currencyCodes[i];
-            const currency = result[code];
+            const currency = rawCurrencies[code];
             const parsed = this.parseCurrency (currency, code);
-            currencies[code] = parsed;
+            result[parsed['code']] = parsed;
         }
-        return currencies;
+        return result;
     }
 
     parseCurrency (currency, code = undefined) {
