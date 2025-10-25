@@ -5,6 +5,7 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { decodeSbeOrderbook } from './base/functions/sbe.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 
@@ -199,6 +200,7 @@ export default class okx extends Exchange {
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1 / 2,
+                        'market/books-sbe': 1, // 10 requests per 10 seconds
                         'market/books-lite': 5 / 3,
                         'market/candles': 1 / 2,
                         'market/history-candles': 1,
@@ -2012,6 +2014,79 @@ export default class okx extends Exchange {
         const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
         return this.parseOrderBook (first, symbol, timestamp);
+    }
+
+    decodeSbeOrderBook (buffer: any): Dict {
+        /**
+         * @ignore
+         * @method
+         * Decodes an OKX SBE (Simple Binary Encoding) orderbook snapshot
+         * @param {ArrayBuffer} buffer the binary data received from OKX
+         * @returns {object} decoded orderbook data with bids, asks, and metadata
+         */
+        // Convert to ArrayBuffer if needed (Node.js environment)
+        let arrayBuffer: ArrayBuffer;
+        if (typeof buffer === 'string') {
+            // If it's a string, convert it to binary (likely binary data encoded as latin1/binary string)
+            const uint8Array = new Uint8Array (buffer.length);
+            for (let i = 0; i < buffer.length; i++) {
+                uint8Array[i] = buffer.charCodeAt (i);
+            }
+            arrayBuffer = uint8Array.buffer;
+        } else if (Buffer.isBuffer (buffer)) {
+            // Create a proper ArrayBuffer copy from the Buffer
+            const uint8Array = new Uint8Array (buffer.length);
+            uint8Array.set (new Uint8Array (buffer));
+            arrayBuffer = uint8Array.buffer;
+        } else {
+            arrayBuffer = buffer;
+        }
+        // Lazy load the SBE schema
+        if (!this.sbeSchema) {
+            this.loadSbeSchema ('okx_sbe_1_0.xml');
+        }
+        // Use the generic SBE decoder
+        const decoded = decodeSbeOrderbook (arrayBuffer, this.sbeSchema);
+        // Return in expected format
+        return {
+            'instIdCode': decoded.instIdCode,
+            'timestamp': decoded.timestamp,
+            'seqId': decoded.seqId,
+            'bids': decoded.bids,
+            'asks': decoded.asks,
+        };
+    }
+
+    async fetchOrderBookSbe (symbol: string, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name okx#fetchOrderBookSbe
+         * @description fetches information on an orderbook for a particular symbol using SBE binary encoding
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book-sbe
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} instIdCode the instrument ID code for the symbol (required for SBE endpoint)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.source] the source of order book, 0: normal (default), 1: ELP
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol); // validate symbol
+        const source = this.safeInteger (params, 'source', 0);
+        params = this.omit (params, 'source');
+        const instIdCode = market['info']['instIdCode'];
+        const request: Dict = {
+            'instIdCode': instIdCode,
+            'source': source,
+        };
+        const response = await (this as any).publicGetMarketBooksSbe (this.extend (request, params));
+        // Response is binary data (ArrayBuffer) if successful
+        // If error, it will be JSON with code/msg
+        if (typeof response === 'object' && 'code' in response) {
+            throw new ExchangeError (this.id + ' fetchOrderBookSbe() error: ' + this.json (response));
+        }
+        const decoded = this.decodeSbeOrderBook (response);
+        const timestamp = decoded['timestamp'];
+        return this.parseOrderBook (decoded, symbol, timestamp, 'bids', 'asks', 0, 1);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {

@@ -1,5 +1,6 @@
 // ----------------------------------------------------------------------------
 
+import path from 'path';
 import * as functions from './functions.js';
 import {
     keys as keysFunc,
@@ -7,6 +8,7 @@ import {
     // inArray as inArrayFunc,
     vwap as vwapFunc,
 } from './functions.js';
+import { parseSbeSchema } from './functions/sbe.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
     ExchangeError,
@@ -378,6 +380,8 @@ export default class Exchange {
 
     reloadingMarkets: boolean = undefined;
     marketsLoading: Promise<Dictionary<Market>> = undefined;
+
+    sbeSchema: any = undefined;
 
     accounts: Account[] = undefined;
     accountsById: Dictionary<Account> = undefined;
@@ -1096,6 +1100,42 @@ export default class Exchange {
             });
         }
         return this.marketsLoading;
+    }
+
+    /**
+     * @method
+     * @name Exchange#loadSbeSchema
+     * @description Loads the SBE (Simple Binary Encoding) schema for the exchange.
+     * @param {string} schemaName - The name of the schema to load (e.g., 'okx_sbe_1_0.xml').
+     * @returns The parsed SBE schema object.
+     * @throws {ExchangeError} If the schema file cannot be found or parsed.
+     */
+    loadSbeSchema (schemaName: string): any {
+        if (!this.sbeSchema) {
+            const exchangeId = this.id;
+            let schemaPath = '';
+            let lastError = undefined;
+
+            // Try to load from process.cwd() first
+            try {
+                schemaPath = path.join (process.cwd (), 'sbe', exchangeId, schemaName);
+                this.sbeSchema = parseSbeSchema (schemaPath);
+                return this.sbeSchema;
+            } catch (error) {
+                lastError = error;
+            }
+
+            // Fallback: try relative to module location
+            try {
+                schemaPath = path.join (__dirname, '..', '..', 'sbe', exchangeId, schemaName);
+                this.sbeSchema = parseSbeSchema (schemaPath);
+                return this.sbeSchema;
+            } catch (error) {
+                // Throw error if schema not found in both locations
+                throw new ExchangeError (this.id + ' loadSbeSchema() could not load schema: ' + schemaName + ' - ' + String (lastError));
+            }
+        }
+        return this.sbeSchema;
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
