@@ -331,7 +331,7 @@ export default class tetherland extends Exchange {
         //         'priority': 18,
         //     },
         // }
-        const marketType = 'otc';
+        const marketType = 'spot';
         const marketId = this.safeString (ticker, 'id');
         const quote = this.safeString (ticker, 'quote');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);

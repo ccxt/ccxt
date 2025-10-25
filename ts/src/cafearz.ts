@@ -22,7 +22,7 @@ export default class cafearz extends Exchange {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -169,7 +169,7 @@ export default class cafearz extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': undefined,
-            'type': 'otc',
+            'type': 'spot',
             'spot': false,
             'margin': false,
             'swap': false,
