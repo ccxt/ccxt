@@ -288,7 +288,12 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
-| params.reduceOnly | <code>boolean</code> | No | *swap only* true if the order is to reduce the size of a position |
+| params.reduceOnly | <code>boolean</code> | No | *swap only* true for closing positions (contract_type='close'), false for opening positions (contract_type='open'), default is false |
+| params.leverage | <code>int</code> | No | *swap only* leverage rate (1-100), default is 10 |
+| params.marginMode | <code>string</code> | No | *swap only* 'isolated' or 'cross', default is 'isolated' |
+| params.triggerPrice | <code>float</code> | No | *swap only* trigger price for conditional orders |
+| params.stopLossPrice | <code>float</code> | No | *swap only* stop loss price |
+| params.takeProfitPrice | <code>float</code> | No | *swap only* take profit price |
 
 
 ```javascript

@@ -212,6 +212,7 @@ class websea extends Exchange {
             'options' => array(
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear'
+                'defaultMarginMode' => 'cross', // 'isolated', 'cross'
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'swap' ), // 默认获取的市场类型
                 ),
@@ -239,6 +240,7 @@ class websea extends Exchange {
                         'openApi/contract/kline' => 1, // 合约K线数据
                         'openApi/contract/24kline' => 1, // 合约24小时K线数据
                         'openApi/contract/currentList' => 1, // 合约当前委托列表
+                        'openApi/contract/getOrderDetail' => 1, // 合约订单详情
                     ),
                 ),
                 'private' => array(
@@ -246,6 +248,7 @@ class websea extends Exchange {
                         'openApi/wallet/list' => 1, // 钱包列表 - 余额查询
                         'openApi/entrust/historyList' => 1, // 历史订单列表 - 已完成订单
                         'openApi/entrust/currentList' => 1, // 现货当前委托列表
+                        'openApi/entrust/status' => 1, // 现货订单详情（查询委托详情）
                         'openApi/futures/entrust/orderList' => 1, // 期货当前订单列表
                         'openApi/futures/position/list' => 1, // 期货持仓列表
                         'openApi/contract/walletList/full' => 1, // 全仓资产列表
@@ -515,6 +518,16 @@ class websea extends Exchange {
         $price = $this->safe_number_2($order, 'price', 'price_avg');
         $amount = $this->safe_number_2($order, 'number', 'amount');
         $filled = $this->safe_number_2($order, 'deal_number', 'deal_amount');
+        // 合约订单：将张数转换为实际合约数量
+        if ($market !== null && $market['swap']) {
+            $contractSize = $this->safe_number($market, 'contractSize', 1);
+            if ($amount !== null) {
+                $amount = $this->parse_number(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($contractSize)));
+            }
+            if ($filled !== null) {
+                $filled = $this->parse_number(Precise::string_mul($this->number_to_string($filled), $this->number_to_string($contractSize)));
+            }
+        }
         // Calculate $remaining $amount
         $remaining = null;
         if ($amount !== null && $filled !== null) {
@@ -530,10 +543,18 @@ class websea extends Exchange {
         $triggerPrice = $this->safe_number($order, 'trigger_price');
         $stopLossPrice = $this->safe_number($order, 'stop_loss_price');
         $takeProfitPrice = $this->safe_number($order, 'stop_profit_price');
-        // Calculate $cost * $filled $amount
+        // Calculate $cost
         $cost = null;
-        if ($price !== null && $filled !== null) {
-            $cost = $price * $filled;
+        if ($market !== null && $market['swap']) {
+            // 合约：$cost = $price * $filled (已经转换为实际合约数量)
+            if ($price !== null && $filled !== null) {
+                $cost = $this->parse_number(Precise::string_mul($this->number_to_string($price), $this->number_to_string($filled)));
+            }
+        } else {
+            // 现货：$cost = $price * $filled
+            if ($price !== null && $filled !== null) {
+                $cost = $price * $filled;
+            }
         }
         // Determine if $order is reduce-only based on contract_type
         $reduceOnly = null;
@@ -1727,41 +1748,103 @@ class websea extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
-             * @param {boolean} [$params->reduceOnly] *swap only* true if the order is to reduce the size of a position
+             * @param {boolean} [$params->reduceOnly] *swap only* true for closing positions (contract_type='close'), false for opening positions (contract_type='open'), default is false
+             * @param {int} [$params->leverage] *swap only* $leverage rate (1-100), default is 10
+             * @param {string} [$params->marginMode] *swap only* 'isolated' or 'cross', default is 'isolated'
+             * @param {float} [$params->triggerPrice] *swap only* trigger $price for conditional orders
+             * @param {float} [$params->stopLossPrice] *swap only* stop loss $price
+             * @param {float} [$params->takeProfitPrice] *swap only* take profit $price
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $orderType = ($type === 'limit') ? $side . '-limit' : $side . '-market';
+            // 处理$amount
+            $requestAmount = null;
+            if ($marketType === 'swap') {
+                // 合约：将$amount（合约数量）转换为张数
+                $contractSize = $this->safe_number($market, 'contractSize', 1);
+                $amountString = $this->number_to_string($amount);
+                $numContracts = Precise::string_div($amountString, $this->number_to_string($contractSize));
+                $requestAmount = $this->parse_to_int($numContracts);
+            } else {
+                // 现货：直接使用$amount
+                $requestAmount = $this->amount_to_precision($symbol, $amount);
+            }
             $request = array(
                 'symbol' => $market['id'],
                 'type' => $orderType,
-                'amount' => $this->amount_to_precision($symbol, $amount),
+                'amount' => $this->number_to_string($requestAmount),
             );
             if ($type === 'limit') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
             $response = null;
+            $orderIdField = 'order_sn'; // 现货使用order_sn
             if ($marketType === 'swap') {
-                $reduceOnly = $this->safe_bool($query, 'reduceOnly', false);
-                if ($reduceOnly) {
-                    $request['reduce_only'] = true;
-                    $queryWithoutReduceOnly = $this->omit($query, 'reduceOnly');
-                    // 期货下单
-                    $response = Async\await($this->privatePostOpenApiFuturesEntrustAdd ($this->extend($request, $queryWithoutReduceOnly)));
-                } else {
-                    // 期货下单
-                    $response = Async\await($this->privatePostOpenApiFuturesEntrustAdd ($this->extend($request, $query)));
+                // 根据$reduceOnly参数确定contract_type
+                $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+                $contractType = $reduceOnly ? 'close' : 'open';
+                $request['contract_type'] = $contractType;
+                // lever_rate：仅开仓时必填，默认10倍杠杆
+                if ($contractType === 'open') {
+                    $leverage = $this->safe_integer($params, 'leverage', 10);
+                    $request['lever_rate'] = $leverage;
                 }
+                // 其他可选参数
+                $triggerPrice = $this->safe_string($params, 'triggerPrice');
+                if ($triggerPrice !== null) {
+                    $request['trigger_price'] = $triggerPrice;
+                }
+                $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
+                if ($stopLossPrice !== null) {
+                    $request['stop_loss_price'] = $stopLossPrice;
+                }
+                $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
+                if ($takeProfitPrice !== null) {
+                    $request['stop_profit_price'] = $takeProfitPrice;
+                }
+                // 仓位模式：isolated(逐仓) = 1, cross(全仓) = 2
+                list($marginMode, $marginQuery) = $this->handle_margin_mode_and_params('createOrder', $query);
+                $isFull = ($marginMode === 'cross') ? 2 : 1;
+                $request['is_full'] = $isFull;
+                // 移除已处理的参数
+                $cleanParams = $this->omit($marginQuery, array( 'reduceOnly', 'leverage', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+                // 合约下单
+                $response = Async\await($this->privatePostOpenApiFuturesEntrustAdd ($this->extend($request, $cleanParams)));
+                $orderIdField = 'order_id'; // 合约使用order_id
             } else {
                 // 现货下单
                 $response = Async\await($this->privatePostOpenApiEntrustAdd ($this->extend($request, $query)));
+                $orderIdField = 'order_sn'; // 现货使用order_sn
             }
             //
-            // 需要根据实际API响应结构调整
+            // 现货响应示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "order_sn" => "BL123456789987523"
+            //     }
+            // }
+            //
+            // 合约响应示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "order_id" => "BL786401542840282676"
+            //     }
+            // }
             //
             $result = $this->safe_value($response, 'result', array());
+            $orderId = $this->safe_string($result, $orderIdField);
+            // 如果成功获取订单ID，使用fetchOrder获取完整订单信息
+            if ($orderId !== null) {
+                return Async\await($this->fetch_order($orderId, $symbol, array( 'type' => $marketType )));
+            }
+            // 如果没有订单ID，返回解析后的结果
             return $this->parse_order($result, $market);
         }) ();
     }
@@ -1813,28 +1896,67 @@ class websea extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $request = array(
-                'order_id' => $id,
-            );
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
             }
             list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+            $request = array();
             $response = null;
             if ($marketType === 'swap') {
-                // 期货订单详情
-                $response = Async\await($this->privatePostOpenApiFuturesEntrustOrderDetail ($this->extend($request, $query)));
+                // 合约订单详情 - 使用GET方法和正确的端点
+                $request['order_id'] = $id;
+                $response = Async\await($this->contractGetOpenApiContractGetOrderDetail ($this->extend($request, $query)));
             } else {
-                // 现货订单详情
-                $response = Async\await($this->privatePostOpenApiEntrustOrderDetail ($this->extend($request, $query)));
+                // 现货订单详情 - 使用GET方法和正确的端点
+                $request['order_sn'] = $id;
+                if ($symbol !== null) {
+                    $request['symbol'] = $market['id'];
+                }
+                $response = Async\await($this->privateGetOpenApiEntrustStatus ($this->extend($request, $query)));
             }
             //
-            // 需要根据实际API响应结构调整
+            // 合约返回示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "order_id" => "11532",
+            //         "ctime" => 1576746253,
+            //         "symbol" => "EOS-USDT",
+            //         "price" => "14",
+            //         "amount" => "150",
+            //         "price_avg" => "15",
+            //         "lever_rate" => 10,
+            //         "deal_amount" => "100",
+            //         "type" => "buy-limit",
+            //         "status" => 3,
+            //         "contract_type" => 1,
+            //         "profit" => "10"
+            //     }
+            // }
+            //
+            // 现货返回示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "order_sn" => "BL123456789987523",
+            //         "symbol" => "BTC-USDT",
+            //         "ctime" => "2018-10-02 10:33:33",
+            //         "type" => "2",
+            //         "side" => "buy",
+            //         "price" => "0.123456",
+            //         "number" => "1.0000",
+            //         "total_price" => "0.123456",
+            //         "deal_number" => "0.00000",
+            //         "deal_price" => "0.00000",
+            //         "status" => 1
+            //     }
+            // }
             //
             $result = $this->safe_value($response, 'result', array());
-            return $this->parse_order($result);
+            return $this->parse_order($result, $market);
         }) ();
     }
 
@@ -2012,7 +2134,6 @@ class websea extends Exchange {
                 'Nonce' => $nonce,
                 'Token' => $this->apiKey,
                 'Signature' => $signature,
-                'Content-Type' => 'application/json',
             );
             if ($method === 'GET') {
                 if ($query) {
@@ -2020,8 +2141,16 @@ class websea extends Exchange {
                     $url .= '?' . $queryString;
                 }
             } else {
-                $body = $this->json($query);
-                $headers['Content-Length'] = (string) count(base64_encode($body));
+                // POST请求：现货API使用表单提交，合约API使用JSON
+                if ($api === 'contract') {
+                    // 合约API使用JSON
+                    $body = $this->json($query);
+                    $headers['Content-Type'] = 'application/json';
+                } else {
+                    // 现货API使用表单提交
+                    $body = $this->urlencode($query);
+                    $headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                }
             }
         } else {
             // 公共API请求

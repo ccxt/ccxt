@@ -211,6 +211,7 @@ class websea(Exchange, ImplicitAPI):
             'options': {
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear'
+                'defaultMarginMode': 'cross',  # 'isolated', 'cross'
                 'fetchMarkets': {
                     'types': ['spot', 'swap'],  # 默认获取的市场类型
                 },
@@ -238,6 +239,7 @@ class websea(Exchange, ImplicitAPI):
                         'openApi/contract/kline': 1,  # 合约K线数据
                         'openApi/contract/24kline': 1,  # 合约24小时K线数据
                         'openApi/contract/currentList': 1,  # 合约当前委托列表
+                        'openApi/contract/getOrderDetail': 1,  # 合约订单详情
                     },
                 },
                 'private': {
@@ -245,6 +247,7 @@ class websea(Exchange, ImplicitAPI):
                         'openApi/wallet/list': 1,  # 钱包列表 - 余额查询
                         'openApi/entrust/historyList': 1,  # 历史订单列表 - 已完成订单
                         'openApi/entrust/currentList': 1,  # 现货当前委托列表
+                        'openApi/entrust/status': 1,  # 现货订单详情（查询委托详情）
                         'openApi/futures/entrust/orderList': 1,  # 期货当前订单列表
                         'openApi/futures/position/list': 1,  # 期货持仓列表
                         'openApi/contract/walletList/full': 1,  # 全仓资产列表
@@ -494,6 +497,13 @@ class websea(Exchange, ImplicitAPI):
         price = self.safe_number_2(order, 'price', 'price_avg')
         amount = self.safe_number_2(order, 'number', 'amount')
         filled = self.safe_number_2(order, 'deal_number', 'deal_amount')
+        # 合约订单：将张数转换为实际合约数量
+        if market is not None and market['swap']:
+            contractSize = self.safe_number(market, 'contractSize', 1)
+            if amount is not None:
+                amount = self.parse_number(Precise.string_mul(self.number_to_string(amount), self.number_to_string(contractSize)))
+            if filled is not None:
+                filled = self.parse_number(Precise.string_mul(self.number_to_string(filled), self.number_to_string(contractSize)))
         # Calculate remaining amount
         remaining = None
         if amount is not None and filled is not None:
@@ -508,10 +518,16 @@ class websea(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number(order, 'trigger_price')
         stopLossPrice = self.safe_number(order, 'stop_loss_price')
         takeProfitPrice = self.safe_number(order, 'stop_profit_price')
-        # Calculate cost * filled amount
+        # Calculate cost
         cost = None
-        if price is not None and filled is not None:
-            cost = price * filled
+        if market is not None and market['swap']:
+            # 合约：cost = price * filled(已经转换为实际合约数量)
+            if price is not None and filled is not None:
+                cost = self.parse_number(Precise.string_mul(self.number_to_string(price), self.number_to_string(filled)))
+        else:
+            # 现货：cost = price * filled
+            if price is not None and filled is not None:
+                cost = price * filled
         # Determine if order is reduce-only based on contract_type
         reduceOnly = None
         contractType = self.safe_string(order, 'contract_type')
@@ -1583,38 +1599,95 @@ class websea(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
-        :param boolean [params.reduceOnly]: *swap only* True if the order is to reduce the size of a position
+        :param boolean [params.reduceOnly]: *swap only* True for closing positions(contract_type='close'), False for opening positions(contract_type='open'), default is False
+        :param int [params.leverage]: *swap only* leverage rate(1-100), default is 10
+        :param str [params.marginMode]: *swap only* 'isolated' or 'cross', default is 'isolated'
+        :param float [params.triggerPrice]: *swap only* trigger price for conditional orders
+        :param float [params.stopLossPrice]: *swap only* stop loss price
+        :param float [params.takeProfitPrice]: *swap only* take profit price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
         orderType = side + '-limit' if (type == 'limit') else side + '-market'
+        # 处理amount
+        requestAmount = None
+        if marketType == 'swap':
+            # 合约：将amount（合约数量）转换为张数
+            contractSize = self.safe_number(market, 'contractSize', 1)
+            amountString = self.number_to_string(amount)
+            numContracts = Precise.string_div(amountString, self.number_to_string(contractSize))
+            requestAmount = self.parse_to_int(numContracts)
+        else:
+            # 现货：直接使用amount
+            requestAmount = self.amount_to_precision(symbol, amount)
         request: dict = {
             'symbol': market['id'],
             'type': orderType,
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.number_to_string(requestAmount),
         }
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
         response = None
+        orderIdField = 'order_sn'  # 现货使用order_sn
         if marketType == 'swap':
-            reduceOnly = self.safe_bool(query, 'reduceOnly', False)
-            if reduceOnly:
-                request['reduce_only'] = True
-                queryWithoutReduceOnly = self.omit(query, 'reduceOnly')
-                # 期货下单
-                response = self.privatePostOpenApiFuturesEntrustAdd(self.extend(request, queryWithoutReduceOnly))
-            else:
-                # 期货下单
-                response = self.privatePostOpenApiFuturesEntrustAdd(self.extend(request, query))
+            # 根据reduceOnly参数确定contract_type
+            reduceOnly = self.safe_bool(params, 'reduceOnly', False)
+            contractType = 'close' if reduceOnly else 'open'
+            request['contract_type'] = contractType
+            # lever_rate：仅开仓时必填，默认10倍杠杆
+            if contractType == 'open':
+                leverage = self.safe_integer(params, 'leverage', 10)
+                request['lever_rate'] = leverage
+            # 其他可选参数
+            triggerPrice = self.safe_string(params, 'triggerPrice')
+            if triggerPrice is not None:
+                request['trigger_price'] = triggerPrice
+            stopLossPrice = self.safe_string(params, 'stopLossPrice')
+            if stopLossPrice is not None:
+                request['stop_loss_price'] = stopLossPrice
+            takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+            if takeProfitPrice is not None:
+                request['stop_profit_price'] = takeProfitPrice
+            # 仓位模式：isolated(逐仓) = 1, cross(全仓) = 2
+            marginMode, marginQuery = self.handle_margin_mode_and_params('createOrder', query)
+            isFull = 2 if (marginMode == 'cross') else 1
+            request['is_full'] = isFull
+            # 移除已处理的参数
+            cleanParams = self.omit(marginQuery, ['reduceOnly', 'leverage', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+            # 合约下单
+            response = self.privatePostOpenApiFuturesEntrustAdd(self.extend(request, cleanParams))
+            orderIdField = 'order_id'  # 合约使用order_id
         else:
             # 现货下单
             response = self.privatePostOpenApiEntrustAdd(self.extend(request, query))
+            orderIdField = 'order_sn'  # 现货使用order_sn
         #
-        # 需要根据实际API响应结构调整
+        # 现货响应示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "order_sn": "BL123456789987523"
+        #     }
+        # }
+        #
+        # 合约响应示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "order_id": "BL786401542840282676"
+        #     }
+        # }
         #
         result = self.safe_value(response, 'result', {})
+        orderId = self.safe_string(result, orderIdField)
+        # 如果成功获取订单ID，使用fetchOrder获取完整订单信息
+        if orderId is not None:
+            return self.fetch_order(orderId, symbol, {'type': marketType})
+        # 如果没有订单ID，返回解析后的结果
         return self.parse_order(result, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1658,26 +1731,64 @@ class websea(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
-            'order_id': id,
-        }
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        request: dict = {}
         response = None
         if marketType == 'swap':
-            # 期货订单详情
-            response = self.privatePostOpenApiFuturesEntrustOrderDetail(self.extend(request, query))
+            # 合约订单详情 - 使用GET方法和正确的端点
+            request['order_id'] = id
+            response = self.contractGetOpenApiContractGetOrderDetail(self.extend(request, query))
         else:
-            # 现货订单详情
-            response = self.privatePostOpenApiEntrustOrderDetail(self.extend(request, query))
+            # 现货订单详情 - 使用GET方法和正确的端点
+            request['order_sn'] = id
+            if symbol is not None:
+                request['symbol'] = market['id']
+            response = self.privateGetOpenApiEntrustStatus(self.extend(request, query))
         #
-        # 需要根据实际API响应结构调整
+        # 合约返回示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "order_id": "11532",
+        #         "ctime": 1576746253,
+        #         "symbol": "EOS-USDT",
+        #         "price": "14",
+        #         "amount": "150",
+        #         "price_avg": "15",
+        #         "lever_rate": 10,
+        #         "deal_amount": "100",
+        #         "type": "buy-limit",
+        #         "status": 3,
+        #         "contract_type": 1,
+        #         "profit": "10"
+        #     }
+        # }
+        #
+        # 现货返回示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "order_sn": "BL123456789987523",
+        #         "symbol": "BTC-USDT",
+        #         "ctime": "2018-10-02 10:33:33",
+        #         "type": "2",
+        #         "side": "buy",
+        #         "price": "0.123456",
+        #         "number": "1.0000",
+        #         "total_price": "0.123456",
+        #         "deal_number": "0.00000",
+        #         "deal_price": "0.00000",
+        #         "status": 1
+        #     }
+        # }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order(result)
+        return self.parse_order(result, market)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1833,15 +1944,21 @@ class websea(Exchange, ImplicitAPI):
                 'Nonce': nonce,
                 'Token': self.apiKey,
                 'Signature': signature,
-                'Content-Type': 'application/json',
             }
             if method == 'GET':
                 if query:
                     queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
-                body = self.json(query)
-                headers['Content-Length'] = str(self.string_to_base64(len(body)))
+                # POST请求：现货API使用表单提交，合约API使用JSON
+                if api == 'contract':
+                    # 合约API使用JSON
+                    body = self.json(query)
+                    headers['Content-Type'] = 'application/json'
+                else:
+                    # 现货API使用表单提交
+                    body = self.urlencode(query)
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
             # 公共API请求
             if query:
