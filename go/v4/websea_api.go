@@ -135,10 +135,6 @@ func (this *websea) PrivatePostOpenApiFuturesEntrustAdd (args ...interface{}) <-
    return this.callEndpointAsync("privatePostOpenApiFuturesEntrustAdd", args...)
 }
 
-func (this *websea) PrivatePostOpenApiFuturesEntrustCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOpenApiFuturesEntrustCancel", args...)
-}
-
 func (this *websea) PrivatePostOpenApiFuturesEntrustOrderDetail (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePostOpenApiFuturesEntrustOrderDetail", args...)
 }
@@ -149,4 +145,8 @@ func (this *websea) PrivatePostOpenApiFuturesPositionDetail (args ...interface{}
 
 func (this *websea) PrivatePostOpenApiFuturesPositionSetLeverage (args ...interface{}) <-chan interface{} {
    return this.callEndpointAsync("privatePostOpenApiFuturesPositionSetLeverage", args...)
+}
+
+func (this *websea) PrivatePostOpenApiContractCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostOpenApiContractCancel", args...)
 }

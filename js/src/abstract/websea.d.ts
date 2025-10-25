@@ -33,10 +33,10 @@ interface Exchange {
     privatePostOpenApiEntrustHistoryDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiWalletDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesEntrustAdd(params?: {}): Promise<implicitReturnType>;
-    privatePostOpenApiFuturesEntrustCancel(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesEntrustOrderDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesPositionDetail(params?: {}): Promise<implicitReturnType>;
     privatePostOpenApiFuturesPositionSetLeverage(params?: {}): Promise<implicitReturnType>;
+    privatePostOpenApiContractCancel(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

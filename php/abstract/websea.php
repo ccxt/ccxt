@@ -103,9 +103,6 @@ abstract class websea extends \ccxt\Exchange {
     public function private_post_openapi_futures_entrust_add($params = array()) {
         return $this->request('openApi/futures/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_openapi_futures_entrust_cancel($params = array()) {
-        return $this->request('openApi/futures/entrust/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
     public function private_post_openapi_futures_entrust_orderdetail($params = array()) {
         return $this->request('openApi/futures/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -114,6 +111,9 @@ abstract class websea extends \ccxt\Exchange {
     }
     public function private_post_openapi_futures_position_setleverage($params = array()) {
         return $this->request('openApi/futures/position/setLeverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_contract_cancel($params = array()) {
+        return $this->request('openApi/contract/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function publicGetOpenApiMarketSymbols($params = array()) {
         return $this->request('openApi/market/symbols', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -211,9 +211,6 @@ abstract class websea extends \ccxt\Exchange {
     public function privatePostOpenApiFuturesEntrustAdd($params = array()) {
         return $this->request('openApi/futures/entrust/add', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOpenApiFuturesEntrustCancel($params = array()) {
-        return $this->request('openApi/futures/entrust/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
-    }
     public function privatePostOpenApiFuturesEntrustOrderDetail($params = array()) {
         return $this->request('openApi/futures/entrust/orderDetail', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -222,5 +219,8 @@ abstract class websea extends \ccxt\Exchange {
     }
     public function privatePostOpenApiFuturesPositionSetLeverage($params = array()) {
         return $this->request('openApi/futures/position/setLeverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenApiContractCancel($params = array()) {
+        return $this->request('openApi/contract/cancel', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

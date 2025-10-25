@@ -1952,7 +1952,7 @@ export default class websea extends Exchange {
         throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (failList));
     }
 
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
          * @name websea#cancelAllOrders

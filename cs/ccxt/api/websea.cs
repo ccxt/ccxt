@@ -171,11 +171,6 @@ public partial class websea : Exchange
         return await this.callAsync ("privatePostOpenApiFuturesEntrustAdd",parameters);
     }
 
-    public async Task<object> privatePostOpenApiFuturesEntrustCancel (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOpenApiFuturesEntrustCancel",parameters);
-    }
-
     public async Task<object> privatePostOpenApiFuturesEntrustOrderDetail (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenApiFuturesEntrustOrderDetail",parameters);
@@ -189,6 +184,11 @@ public partial class websea : Exchange
     public async Task<object> privatePostOpenApiFuturesPositionSetLeverage (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenApiFuturesPositionSetLeverage",parameters);
+    }
+
+    public async Task<object> privatePostOpenApiContractCancel (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenApiContractCancel",parameters);
     }
 
 }

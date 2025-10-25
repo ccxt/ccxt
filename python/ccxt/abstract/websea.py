@@ -34,7 +34,7 @@ class ImplicitAPI:
     private_post_openapi_entrust_historydetail = privatePostOpenApiEntrustHistoryDetail = Entry('openApi/entrust/historyDetail', 'private', 'POST', {'cost': 1})
     private_post_openapi_wallet_detail = privatePostOpenApiWalletDetail = Entry('openApi/wallet/detail', 'private', 'POST', {'cost': 1})
     private_post_openapi_futures_entrust_add = privatePostOpenApiFuturesEntrustAdd = Entry('openApi/futures/entrust/add', 'private', 'POST', {'cost': 1})
-    private_post_openapi_futures_entrust_cancel = privatePostOpenApiFuturesEntrustCancel = Entry('openApi/futures/entrust/cancel', 'private', 'POST', {'cost': 1})
     private_post_openapi_futures_entrust_orderdetail = privatePostOpenApiFuturesEntrustOrderDetail = Entry('openApi/futures/entrust/orderDetail', 'private', 'POST', {'cost': 1})
     private_post_openapi_futures_position_detail = privatePostOpenApiFuturesPositionDetail = Entry('openApi/futures/position/detail', 'private', 'POST', {'cost': 1})
     private_post_openapi_futures_position_setleverage = privatePostOpenApiFuturesPositionSetLeverage = Entry('openApi/futures/position/setLeverage', 'private', 'POST', {'cost': 1})
+    private_post_openapi_contract_cancel = privatePostOpenApiContractCancel = Entry('openApi/contract/cancel', 'private', 'POST', {'cost': 1})

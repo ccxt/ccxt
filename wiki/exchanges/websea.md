@@ -19,6 +19,7 @@
 * [aggregateOrderBookSide](#aggregateorderbookside)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
+* [cancelAllOrders](#cancelallorders)
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchClosedOrders](#fetchclosedorders)
@@ -320,6 +321,28 @@ cancels an open order
 
 ```javascript
 websea.cancelOrder (id, symbol[, params])
+```
+
+
+<a name="cancelAllOrders" id="cancelallorders"></a>
+
+### cancelAllOrders{docsify-ignore}
+cancel all open orders in a market
+
+**Kind**: instance method of [<code>websea</code>](#websea)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap', if not provided this.options['defaultType'] is used |
+| params.order_ids | <code>string</code> | No | comma-separated list of order ids to cancel |
+
+
+```javascript
+websea.cancelAllOrders (symbol[, params])
 ```
 
 

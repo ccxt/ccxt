@@ -32,7 +32,7 @@ class websea extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'cancelAllOrders' => false,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createOrders' => false,
@@ -262,10 +262,10 @@ class websea extends Exchange {
                         'openApi/entrust/historyDetail' => 1, // 历史订单详情
                         'openApi/wallet/detail' => 1, // 钱包详情
                         'openApi/futures/entrust/add' => 1, // 期货下单
-                        'openApi/futures/entrust/cancel' => 1, // 期货取消订单
                         'openApi/futures/entrust/orderDetail' => 1, // 期货订单详情
                         'openApi/futures/position/detail' => 1, // 期货持仓详情
                         'openApi/futures/position/setLeverage' => 1, // 期货设置杠杆
+                        'openApi/contract/cancel' => 1, // 合约取消订单
                     ),
                 ),
             ),
@@ -1860,28 +1860,139 @@ class websea extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $request = array(
-                'order_id' => $id,
-            );
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
             }
             list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+            $request = array(
+                'order_ids' => $id,
+            );
+            if ($symbol !== null) {
+                $request['symbol'] = $market['id'];
+            }
             $response = null;
             if ($marketType === 'swap') {
-                // 期货取消订单
-                $response = Async\await($this->privatePostOpenApiFuturesEntrustCancel ($this->extend($request, $query)));
+                // 合约取消订单
+                $response = Async\await($this->privatePostOpenApiContractCancel ($this->extend($request, $query)));
             } else {
                 // 现货取消订单
                 $response = Async\await($this->privatePostOpenApiEntrustCancel ($this->extend($request, $query)));
             }
             //
-            // 需要根据实际API响应结构调整
+            // 现货返回示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "success" => ["avl12121", "bl3123123"],
+            //         "fail" => ["sd24564", "sdf6564564"]
+            //     }
+            // }
+            //
+            // 合约返回示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "success" => ["order_id1", "order_id2"],
+            //         "failed" => ["order_id1", "order_id2"]
+            //     }
+            // }
             //
             $result = $this->safe_value($response, 'result', array());
-            return $this->parse_order($result);
+            $successList = $this->safe_value($result, 'success', array());
+            $failList = $this->safe_value_2($result, 'fail', 'failed', array());
+            // 如果取消成功，返回订单结构
+            if (strlen($successList) > 0) {
+                return $this->safe_order(array(
+                    'info' => $response,
+                    'id' => $id,
+                    'clientOrderId' => null,
+                    'timestamp' => null,
+                    'datetime' => null,
+                    'lastTradeTimestamp' => null,
+                    'symbol' => $symbol,
+                    'type' => null,
+                    'timeInForce' => null,
+                    'postOnly' => null,
+                    'side' => null,
+                    'price' => null,
+                    'stopPrice' => null,
+                    'triggerPrice' => null,
+                    'amount' => null,
+                    'cost' => null,
+                    'average' => null,
+                    'filled' => null,
+                    'remaining' => null,
+                    'status' => 'canceled',
+                    'fee' => null,
+                    'trades' => null,
+                ));
+            }
+            // 如果取消失败，抛出异常
+            throw new ExchangeError($this->id . ' cancelOrder() failed => ' . $this->json($failList));
+        }) ();
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders in a $market
+             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->type] 'spot' or 'swap', if not provided $this->options['defaultType'] is used
+             * @param {string} [$params->order_ids] comma-separated list of order ids to cancel
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+            $request = array();
+            // 如果指定了order_ids，使用批量取消
+            $orderIds = $this->safe_string($params, 'order_ids');
+            if ($orderIds !== null) {
+                $request['order_ids'] = $orderIds;
+                $params = $this->omit($params, 'order_ids');
+            }
+            // 如果指定了$symbol，取消该交易对的所有订单
+            if ($symbol !== null) {
+                $request['symbol'] = $market['id'];
+            }
+            $response = null;
+            if ($marketType === 'swap') {
+                // 合约取消订单
+                $response = Async\await($this->privatePostOpenApiContractCancel ($this->extend($request, $query)));
+            } else {
+                // 现货取消订单
+                $response = Async\await($this->privatePostOpenApiEntrustCancel ($this->extend($request, $query)));
+            }
+            //
+            // 返回示例：
+            // {
+            //     "errno" => 0,
+            //     "errmsg" => "success",
+            //     "result" => {
+            //         "success" => ["order_id1", "order_id2"],
+            //         "fail" => ["order_id3"]
+            //     }
+            // }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $successList = $this->safe_value($result, 'success', array());
+            // 并发获取订单详情
+            $promises = array();
+            for ($i = 0; $i < count($successList); $i++) {
+                $orderId = $successList[$i];
+                $promises[] = $this->fetch_order($orderId, $symbol, array( 'type' => $marketType ));
+            }
+            if (strlen($promises) > 0) {
+                return Async\await(Promise\all($promises));
+            }
+            return array();
         }) ();
     }
 

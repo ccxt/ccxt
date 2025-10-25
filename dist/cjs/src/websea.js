@@ -30,7 +30,7 @@ class websea extends websea$1["default"] {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'createOrders': false,
@@ -260,10 +260,10 @@ class websea extends websea$1["default"] {
                         'openApi/entrust/historyDetail': 1,
                         'openApi/wallet/detail': 1,
                         'openApi/futures/entrust/add': 1,
-                        'openApi/futures/entrust/cancel': 1,
                         'openApi/futures/entrust/orderDetail': 1,
                         'openApi/futures/position/detail': 1,
-                        'openApi/futures/position/setLeverage': 1, // 期货设置杠杆
+                        'openApi/futures/position/setLeverage': 1,
+                        'openApi/contract/cancel': 1, // 合约取消订单
                     },
                 },
             },
@@ -1860,29 +1860,140 @@ class websea extends websea$1["default"] {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const request = {
-            'order_id': id,
-        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['symbol'] = market['id'];
         }
         const [marketType, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
+        const request = {
+            'order_ids': id,
+        };
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
         let response = undefined;
         if (marketType === 'swap') {
-            // 期货取消订单
-            response = await this.privatePostOpenApiFuturesEntrustCancel(this.extend(request, query));
+            // 合约取消订单
+            response = await this.privatePostOpenApiContractCancel(this.extend(request, query));
         }
         else {
             // 现货取消订单
             response = await this.privatePostOpenApiEntrustCancel(this.extend(request, query));
         }
         //
-        // 需要根据实际API响应结构调整
+        // 现货返回示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "success": ["avl12121", "bl3123123"],
+        //         "fail": ["sd24564", "sdf6564564"]
+        //     }
+        // }
+        //
+        // 合约返回示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "success": ["order_id1", "order_id2"],
+        //         "failed": ["order_id1", "order_id2"]
+        //     }
+        // }
         //
         const result = this.safeValue(response, 'result', {});
-        return this.parseOrder(result);
+        const successList = this.safeValue(result, 'success', []);
+        const failList = this.safeValue2(result, 'fail', 'failed', []);
+        // 如果取消成功，返回订单结构
+        if (successList.length > 0) {
+            return this.safeOrder({
+                'info': response,
+                'id': id,
+                'clientOrderId': undefined,
+                'timestamp': undefined,
+                'datetime': undefined,
+                'lastTradeTimestamp': undefined,
+                'symbol': symbol,
+                'type': undefined,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'side': undefined,
+                'price': undefined,
+                'stopPrice': undefined,
+                'triggerPrice': undefined,
+                'amount': undefined,
+                'cost': undefined,
+                'average': undefined,
+                'filled': undefined,
+                'remaining': undefined,
+                'status': 'canceled',
+                'fee': undefined,
+                'trades': undefined,
+            });
+        }
+        // 如果取消失败，抛出异常
+        throw new errors.ExchangeError(this.id + ' cancelOrder() failed: ' + this.json(failList));
+    }
+    async cancelAllOrders(symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name websea#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
+         * @param {string} [params.order_ids] comma-separated list of order ids to cancel
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const [marketType, query] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
+        const request = {};
+        // 如果指定了order_ids，使用批量取消
+        const orderIds = this.safeString(params, 'order_ids');
+        if (orderIds !== undefined) {
+            request['order_ids'] = orderIds;
+            params = this.omit(params, 'order_ids');
+        }
+        // 如果指定了symbol，取消该交易对的所有订单
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        let response = undefined;
+        if (marketType === 'swap') {
+            // 合约取消订单
+            response = await this.privatePostOpenApiContractCancel(this.extend(request, query));
+        }
+        else {
+            // 现货取消订单
+            response = await this.privatePostOpenApiEntrustCancel(this.extend(request, query));
+        }
+        //
+        // 返回示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "success": ["order_id1", "order_id2"],
+        //         "fail": ["order_id3"]
+        //     }
+        // }
+        //
+        const result = this.safeValue(response, 'result', {});
+        const successList = this.safeValue(result, 'success', []);
+        // 并发获取订单详情
+        const promises = [];
+        for (let i = 0; i < successList.length; i++) {
+            const orderId = successList[i];
+            promises.push(this.fetchOrder(orderId, symbol, { 'type': marketType }));
+        }
+        if (promises.length > 0) {
+            return await Promise.all(promises);
+        }
+        return [];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

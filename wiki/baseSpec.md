@@ -218,6 +218,7 @@ cancel all open orders in a market
 * [phemex](/exchanges/phemex.md#phemexcancelallorders)
 * [poloniex](/exchanges/poloniex.md#poloniexcancelallorders)
 * [toobit](/exchanges/toobit.md#toobitcancelallorders)
+* [websea](/exchanges/websea.md#webseacancelallorders)
 * [whitebit](/exchanges/whitebit.md#whitebitcancelallorders)
 * [woo](/exchanges/woo.md#woocancelallorders)
 * [woofipro](/exchanges/woofipro.md#woofiprocancelallorders)

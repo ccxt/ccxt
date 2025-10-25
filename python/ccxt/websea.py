@@ -31,7 +31,7 @@ class websea(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'cancelAllOrders': False,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
                 'createOrders': False,
@@ -261,10 +261,10 @@ class websea(Exchange, ImplicitAPI):
                         'openApi/entrust/historyDetail': 1,  # 历史订单详情
                         'openApi/wallet/detail': 1,  # 钱包详情
                         'openApi/futures/entrust/add': 1,  # 期货下单
-                        'openApi/futures/entrust/cancel': 1,  # 期货取消订单
                         'openApi/futures/entrust/orderDetail': 1,  # 期货订单详情
                         'openApi/futures/position/detail': 1,  # 期货持仓详情
                         'openApi/futures/position/setLeverage': 1,  # 期货设置杠杆
+                        'openApi/contract/cancel': 1,  # 合约取消订单
                     },
                 },
             },
@@ -1700,26 +1700,126 @@ class websea(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        request = {
-            'order_id': id,
-        }
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        request: dict = {
+            'order_ids': id,
+        }
+        if symbol is not None:
+            request['symbol'] = market['id']
         response = None
         if marketType == 'swap':
-            # 期货取消订单
-            response = self.privatePostOpenApiFuturesEntrustCancel(self.extend(request, query))
+            # 合约取消订单
+            response = self.privatePostOpenApiContractCancel(self.extend(request, query))
         else:
             # 现货取消订单
             response = self.privatePostOpenApiEntrustCancel(self.extend(request, query))
         #
-        # 需要根据实际API响应结构调整
+        # 现货返回示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "success": ["avl12121", "bl3123123"],
+        #         "fail": ["sd24564", "sdf6564564"]
+        #     }
+        # }
+        #
+        # 合约返回示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "success": ["order_id1", "order_id2"],
+        #         "failed": ["order_id1", "order_id2"]
+        #     }
+        # }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order(result)
+        successList = self.safe_value(result, 'success', [])
+        failList = self.safe_value_2(result, 'fail', 'failed', [])
+        # 如果取消成功，返回订单结构
+        if len(successList) > 0:
+            return self.safe_order({
+                'info': response,
+                'id': id,
+                'clientOrderId': None,
+                'timestamp': None,
+                'datetime': None,
+                'lastTradeTimestamp': None,
+                'symbol': symbol,
+                'type': None,
+                'timeInForce': None,
+                'postOnly': None,
+                'side': None,
+                'price': None,
+                'stopPrice': None,
+                'triggerPrice': None,
+                'amount': None,
+                'cost': None,
+                'average': None,
+                'filled': None,
+                'remaining': None,
+                'status': 'canceled',
+                'fee': None,
+                'trades': None,
+            })
+        # 如果取消失败，抛出异常
+        raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(failList))
+
+    def cancel_all_orders(self, symbol: Str = None, params={}) -> List[Order]:
+        """
+        cancel all open orders in a market
+        :param str symbol: unified market symbol of the market to cancel orders in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'spot' or 'swap', if not provided self.options['defaultType'] is used
+        :param str [params.order_ids]: comma-separated list of order ids to cancel
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        request: dict = {}
+        # 如果指定了order_ids，使用批量取消
+        orderIds = self.safe_string(params, 'order_ids')
+        if orderIds is not None:
+            request['order_ids'] = orderIds
+            params = self.omit(params, 'order_ids')
+        # 如果指定了symbol，取消该交易对的所有订单
+        if symbol is not None:
+            request['symbol'] = market['id']
+        response = None
+        if marketType == 'swap':
+            # 合约取消订单
+            response = self.privatePostOpenApiContractCancel(self.extend(request, query))
+        else:
+            # 现货取消订单
+            response = self.privatePostOpenApiEntrustCancel(self.extend(request, query))
+        #
+        # 返回示例：
+        # {
+        #     "errno": 0,
+        #     "errmsg": "success",
+        #     "result": {
+        #         "success": ["order_id1", "order_id2"],
+        #         "fail": ["order_id3"]
+        #     }
+        # }
+        #
+        result = self.safe_value(response, 'result', {})
+        successList = self.safe_value(result, 'success', [])
+        # 并发获取订单详情
+        promises = []
+        for i in range(0, len(successList)):
+            orderId = successList[i]
+            promises.append(self.fetch_order(orderId, symbol, {'type': marketType}))
+        if len(promises) > 0:
+            return promises
+        return []
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
