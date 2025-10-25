@@ -609,10 +609,11 @@ export default class bithumb extends bithumbRest {
         const feeCost = this.safeString (order, 'paid_fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            const marketForFee = this.market (symbol);
+            const marketForFee = this.safeMarket (marketId, market);
+            const feeCurrency = this.safeString (marketForFee, 'quote');
             fee = {
                 'cost': feeCost,
-                'currency': this.safeString (marketForFee, 'quote'),
+                'currency': feeCurrency,
             };
         }
         return this.safeOrder ({
