@@ -1,11 +1,8 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import ccxt, { Exchange } from '../../../../ccxt.js';
+import { createFutureOrderAfterDelay } from './utils.js';
 
-async function createOrderAfterDelay (exchange: Exchange) {
-    await exchange.sleep (3000);
-    await exchange.createOrder ('BTC/USDT:USDT', 'market', 'buy', 0.001);
-}
 
 async function testUnWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'unWatchPositions';
@@ -17,7 +14,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
         // First call uses snapshot
         positionsSubscription = await exchange.watchPositions ();
         // trigger a position update
-        exchange.spawn (createOrderAfterDelay, exchange);
+        exchange.spawn (createFutureOrderAfterDelay, exchange);
         // Second call uses subscription
         positionsSubscription = await exchange.watchPositions ();
     } catch (e) {
@@ -58,7 +55,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     let resubscribeResponse = undefined;
     try {
         resubscribeResponse = await exchange.watchPositions ();
-        exchange.spawn (createOrderAfterDelay, exchange);
+        exchange.spawn (createFutureOrderAfterDelay, exchange);
         resubscribeResponse = await exchange.watchPositions ();
     } catch (e) {
         if (!testSharedMethods.isTemporaryFailure (e)) {
