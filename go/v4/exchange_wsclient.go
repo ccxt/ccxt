@@ -88,7 +88,7 @@ func (this *WSClient) CreateConnection() error {
 	}
 	this.Connection = conn
 
-	//handle connection pong here:
+	// handle connection pong here:
 	this.Connection.SetPongHandler(func(string) error {
 		this.OnPong()
 		return nil
@@ -214,19 +214,19 @@ func (this *WSClient) OnPingInterval() {
 	if this.KeepAlive.(int64) > 0 {
 		if this.IsConnected.(bool) == true {
 			now := time.Now().UnixNano() / int64(time.Millisecond)
-			this.PongSetMu.Lock()
-			if this.LastPong == nil {
-				this.LastPong = now
-				this.PongSetMu.Unlock()
+			lastPong := this.GetLastPong()
+			if lastPong == nil {
+				lastPong = now
+				this.SetLastPong(lastPong)
 			}
-			lastPong := this.LastPong.(int64)
+			lastPongVal := lastPong.(int64)
 			maxPingPongMisses := float64(2.0)
 			if this.MaxPingPongMisses != nil {
 				if misses, ok := this.MaxPingPongMisses.(float64); ok {
 					maxPingPongMisses = misses
 				}
 			}
-			if (lastPong + this.KeepAlive.(int64)*int64(maxPingPongMisses)) < now {
+			if (lastPongVal + this.KeepAlive.(int64)*int64(maxPingPongMisses)) < now {
 				err := RequestTimeout("Connection to " + this.Url + " timed out due to a ping-pong keepalive missing on time")
 				this.OnError(err)
 			} else {

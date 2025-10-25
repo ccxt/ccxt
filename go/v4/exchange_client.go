@@ -563,6 +563,8 @@ func (this *Client) GetSubscriptions() map[string]interface{} {
 }
 
 func (this *Client) GetLastPong() interface{} {
+	this.PongSetMu.RLock()
+	defer this.PongSetMu.RUnlock()
 	return this.LastPong
 }
 func (this *Client) SetLastPong(lastPong interface{}) {
