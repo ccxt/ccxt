@@ -1076,6 +1076,9 @@ class NewTranspiler {
             return `(res).(int64)`;
         }
 
+        if (unwrappedType === 'float64') {
+            return `(res).(float64)`;
+        }
         if (methodName.startsWith('watchOrderBook')) {
             return `NewOrderBookFromWs(res)`;
         }
@@ -1291,15 +1294,17 @@ class NewTranspiler {
             methodDoc.push(goComments[exchangeName][methodName]);
         }
 
-        let emtpyObject = `${unwrappedType}{}`;
+        let emptyObject = `${unwrappedType}{}`;
         if (unwrappedType.startsWith('[]')) {
-            emtpyObject = 'nil';
+            emptyObject = 'nil'
         } else if (unwrappedType.includes('int64')) {
-            emtpyObject = '-1';
+            emptyObject = '-1'
+        } else if (unwrappedType.includes('float64')) {
+            emptyObject = 'float64(-1)'
         } else if (unwrappedType === 'string') {
-            emtpyObject = '""';
+            emptyObject = '""'
         } else if (unwrappedType === 'interface{}') {
-            emtpyObject = 'nil';
+            emptyObject = 'nil';
         }
 
         const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
@@ -1317,7 +1322,7 @@ class NewTranspiler {
            `${defaultParams}`,
             `${two}res := <- ${accessor}${methodNameCapitalized}(${params})`,
             `${two}if IsError(res) {`,
-            `${three}return ${emtpyObject}, CreateReturnError(res)`,
+            `${three}return ${emptyObject}, CreateReturnError(res)`,
             `${two}}`,
             `${two}return ${this.createReturnStatement(methodName, unwrappedType)}, nil`,
             // `${two}}()`,

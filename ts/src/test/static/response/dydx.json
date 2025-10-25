@@ -1,0 +1,1324 @@
+{
+    "exchange": "dydx",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "iso": "2025-07-29T05:45:08Z",
+                    "epoch": 1753767908
+                },
+                "parsedResponse": 1753767908
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "markets": {
+                        "BTC-USD": {
+                            "clobPairId": "0",
+                            "ticker": "BTC-USD",
+                            "status": "ACTIVE",
+                            "oraclePrice": "118700.5426",
+                            "priceChange24H": "-790.15561",
+                            "volume24H": "563041.3490",
+                            "trades24H": 195,
+                            "nextFundingRate": "0.00016451111111111111",
+                            "initialMarginFraction": "0.02",
+                            "maintenanceMarginFraction": "0.012",
+                            "openInterest": "59.0763",
+                            "atomicResolution": -10,
+                            "quantumConversionExponent": -9,
+                            "tickSize": "1",
+                            "stepSize": "0.0001",
+                            "stepBaseQuantums": 1000000,
+                            "subticksPerTick": 100000,
+                            "marketType": "CROSS",
+                            "openInterestLowerCap": "0",
+                            "openInterestUpperCap": "0",
+                            "baseOpenInterest": "50.3776",
+                            "defaultFundingRate1H": "0"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USD",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "base": "BTC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": null,
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "clobPairId": "0",
+                            "ticker": "BTC-USD",
+                            "status": "ACTIVE",
+                            "oraclePrice": "118700.5426",
+                            "priceChange24H": "-790.15561",
+                            "volume24H": "563041.3490",
+                            "trades24H": 195,
+                            "nextFundingRate": "0.00016451111111111111",
+                            "initialMarginFraction": "0.02",
+                            "maintenanceMarginFraction": "0.012",
+                            "openInterest": "59.0763",
+                            "atomicResolution": -10,
+                            "quantumConversionExponent": -9,
+                            "tickSize": "1",
+                            "stepSize": "0.0001",
+                            "stepBaseQuantums": 1000000,
+                            "subticksPerTick": 100000,
+                            "marketType": "CROSS",
+                            "openInterestLowerCap": "0",
+                            "openInterestUpperCap": "0",
+                            "baseOpenInterest": "50.3776",
+                            "defaultFundingRate1H": "0"
+                        },
+                        "baseName": "BTC"
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1
+                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "id": "02b03aba000000020000000e",
+                            "side": "BUY",
+                            "size": "0.0001",
+                            "price": "118810",
+                            "type": "LIMIT",
+                            "createdAt": "2025-07-29T05:16:49.920Z",
+                            "createdAtHeight": "45103802"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "02b03aba000000020000000e",
+                        "timestamp": 1753766209920,
+                        "datetime": "2025-07-29T05:16:49.920Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "side": "buy",
+                        "price": 118810,
+                        "amount": 0.0001,
+                        "cost": 11.881,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "id": "02b03aba000000020000000e",
+                            "side": "BUY",
+                            "size": "0.0001",
+                            "price": "118810",
+                            "type": "LIMIT",
+                            "createdAt": "2025-07-29T05:16:49.920Z",
+                            "createdAtHeight": "45103802"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1700791022001,
+                    1
+                ],
+                "httpResponse": {
+                    "candles": [
+                        {
+                            "startedAt": "2025-07-29T05:46:00.000Z",
+                            "ticker": "BTC-USD",
+                            "resolution": "1MIN",
+                            "low": "118810",
+                            "high": "118810",
+                            "open": "118810",
+                            "close": "118810",
+                            "baseTokenVolume": "0",
+                            "usdVolume": "0",
+                            "trades": 0,
+                            "startingOpenInterest": "59.0763",
+                            "orderbookMidPriceOpen": "118930.25",
+                            "orderbookMidPriceClose": "118930.25"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1753767960000,
+                        118810,
+                        118810,
+                        118810,
+                        118810,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1
+                ],
+                "httpResponse": {
+                    "historicalFunding": [
+                        {
+                            "ticker": "BTC-USD",
+                            "rate": "0.000176",
+                            "price": "118536.67532",
+                            "effectiveAtHeight": "45103017",
+                            "effectiveAt": "2025-07-29T05:00:01.053Z"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ticker": "BTC-USD",
+                            "rate": "0.000176",
+                            "price": "118536.67532",
+                            "effectiveAtHeight": "45103017",
+                            "effectiveAt": "2025-07-29T05:00:01.053Z"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "fundingRate": 0.000176,
+                        "timestamp": 1753765201053,
+                        "datetime": "2025-07-29T05:00:01.053Z"
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "66390c15-ebad-53f8-86ad-99b3dfedbc85"
+                ],
+                "httpResponse": {
+                    "id": "66390c15-ebad-53f8-86ad-99b3dfedbc85",
+                    "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                    "clientId": "2116631218",
+                    "clobPairId": "1",
+                    "side": "BUY",
+                    "size": "0.001",
+                    "totalFilled": "0",
+                    "price": "2000",
+                    "type": "LIMIT",
+                    "status": "CANCELED",
+                    "timeInForce": "GTT",
+                    "reduceOnly": false,
+                    "orderFlags": "64",
+                    "goodTilBlockTime": "2025-05-27T09:01:21.000Z",
+                    "createdAtHeight": "33080808",
+                    "clientMetadata": "4",
+                    "updatedAt": "2025-02-26T09:01:29.102Z",
+                    "updatedAtHeight": "33080813",
+                    "postOnly": false,
+                    "ticker": "ETH-USD",
+                    "subaccountNumber": 0
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "66390c15-ebad-53f8-86ad-99b3dfedbc85",
+                        "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                        "clientId": "2116631218",
+                        "clobPairId": "1",
+                        "side": "BUY",
+                        "size": "0.001",
+                        "totalFilled": "0",
+                        "price": "2000",
+                        "type": "LIMIT",
+                        "status": "CANCELED",
+                        "timeInForce": "GTT",
+                        "reduceOnly": false,
+                        "orderFlags": "64",
+                        "goodTilBlockTime": "2025-05-27T09:01:21.000Z",
+                        "createdAtHeight": "33080808",
+                        "clientMetadata": "4",
+                        "updatedAt": "2025-02-26T09:01:29.102Z",
+                        "updatedAtHeight": "33080813",
+                        "postOnly": false,
+                        "ticker": "ETH-USD",
+                        "subaccountNumber": 0
+                    },
+                    "id": "66390c15-ebad-53f8-86ad-99b3dfedbc85",
+                    "clientOrderId": "2116631218",
+                    "timestamp": 1740560489102,
+                    "datetime": "2025-02-26T09:01:29.102Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1740560489102,
+                    "symbol": "ETH-USD",
+                    "type": "LIMIT",
+                    "timeInForce": "GTT",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 2000,
+                    "triggerPrice": null,
+                    "amount": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "status": "canceled",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                        "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                        "clientId": "522832734",
+                        "clobPairId": "0",
+                        "side": "BUY",
+                        "size": "0.001",
+                        "totalFilled": "0.001",
+                        "price": "400000",
+                        "type": "LIMIT",
+                        "status": "FILLED",
+                        "timeInForce": "GTT",
+                        "reduceOnly": false,
+                        "orderFlags": "64",
+                        "goodTilBlockTime": "2025-07-28T17:30:52.000Z",
+                        "createdAtHeight": "45072543",
+                        "clientMetadata": "2",
+                        "updatedAt": "2025-07-28T17:29:54.277Z",
+                        "updatedAtHeight": "45072544",
+                        "postOnly": false,
+                        "ticker": "BTC-USD",
+                        "subaccountNumber": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                            "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                            "clientId": "522832734",
+                            "clobPairId": "0",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "totalFilled": "0.001",
+                            "price": "400000",
+                            "type": "LIMIT",
+                            "status": "FILLED",
+                            "timeInForce": "GTT",
+                            "reduceOnly": false,
+                            "orderFlags": "64",
+                            "goodTilBlockTime": "2025-07-28T17:30:52.000Z",
+                            "createdAtHeight": "45072543",
+                            "clientMetadata": "2",
+                            "updatedAt": "2025-07-28T17:29:54.277Z",
+                            "updatedAtHeight": "45072544",
+                            "postOnly": false,
+                            "ticker": "BTC-USD",
+                            "subaccountNumber": 0
+                        },
+                        "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                        "clientOrderId": "522832734",
+                        "timestamp": 1753723794277,
+                        "datetime": "2025-07-28T17:29:54.277Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1753723794277,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "LIMIT",
+                        "timeInForce": "GTT",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 400000,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": 400,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                        "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                        "clientId": "522832734",
+                        "clobPairId": "0",
+                        "side": "BUY",
+                        "size": "0.001",
+                        "totalFilled": "0",
+                        "price": "400000",
+                        "type": "LIMIT",
+                        "status": "OPEN",
+                        "timeInForce": "GTT",
+                        "reduceOnly": false,
+                        "orderFlags": "64",
+                        "goodTilBlockTime": "2025-07-28T17:30:52.000Z",
+                        "createdAtHeight": "45072543",
+                        "clientMetadata": "2",
+                        "updatedAt": "2025-07-28T17:29:54.277Z",
+                        "updatedAtHeight": "45072544",
+                        "postOnly": false,
+                        "ticker": "BTC-USD",
+                        "subaccountNumber": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                            "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                            "clientId": "522832734",
+                            "clobPairId": "0",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "totalFilled": "0",
+                            "price": "400000",
+                            "type": "LIMIT",
+                            "status": "OPEN",
+                            "timeInForce": "GTT",
+                            "reduceOnly": false,
+                            "orderFlags": "64",
+                            "goodTilBlockTime": "2025-07-28T17:30:52.000Z",
+                            "createdAtHeight": "45072543",
+                            "clientMetadata": "2",
+                            "updatedAt": "2025-07-28T17:29:54.277Z",
+                            "updatedAtHeight": "45072544",
+                            "postOnly": false,
+                            "ticker": "BTC-USD",
+                            "subaccountNumber": 0
+                        },
+                        "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                        "clientOrderId": "522832734",
+                        "timestamp": 1753723794277,
+                        "datetime": "2025-07-28T17:29:54.277Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1753723794277,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "LIMIT",
+                        "timeInForce": "GTT",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 400000,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                        "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                        "clientId": "522832734",
+                        "clobPairId": "0",
+                        "side": "BUY",
+                        "size": "0.001",
+                        "totalFilled": "0.001",
+                        "price": "400000",
+                        "type": "LIMIT",
+                        "status": "FILLED",
+                        "timeInForce": "GTT",
+                        "reduceOnly": false,
+                        "orderFlags": "64",
+                        "goodTilBlockTime": "2025-07-28T17:30:52.000Z",
+                        "createdAtHeight": "45072543",
+                        "clientMetadata": "2",
+                        "updatedAt": "2025-07-28T17:29:54.277Z",
+                        "updatedAtHeight": "45072544",
+                        "postOnly": false,
+                        "ticker": "BTC-USD",
+                        "subaccountNumber": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                            "subaccountId": "8586bcf6-1f58-5ec9-a0bc-e53db273e7b0",
+                            "clientId": "522832734",
+                            "clobPairId": "0",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "totalFilled": "0.001",
+                            "price": "400000",
+                            "type": "LIMIT",
+                            "status": "FILLED",
+                            "timeInForce": "GTT",
+                            "reduceOnly": false,
+                            "orderFlags": "64",
+                            "goodTilBlockTime": "2025-07-28T17:30:52.000Z",
+                            "createdAtHeight": "45072543",
+                            "clientMetadata": "2",
+                            "updatedAt": "2025-07-28T17:29:54.277Z",
+                            "updatedAtHeight": "45072544",
+                            "postOnly": false,
+                            "ticker": "BTC-USD",
+                            "subaccountNumber": 0
+                        },
+                        "id": "cf37ba82-eb64-52dd-bd14-337394b7081a",
+                        "clientOrderId": "522832734",
+                        "timestamp": 1753723794277,
+                        "datetime": "2025-07-28T17:29:54.277Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1753723794277,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "LIMIT",
+                        "timeInForce": "GTT",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 400000,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": 400,
+                        "average": null,
+                        "filled": 0.001,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                    "BTC/USDC:USDC",
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "positions": [
+                        {
+                            "market": "BTC-USD",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-0.407",
+                            "maxSize": "-0.009",
+                            "entryPrice": "118692.04840909090909090909",
+                            "exitPrice": "119526.565625",
+                            "realizedPnl": "476.42665909090909090909088",
+                            "unrealizedPnl": "-57.26681734000000000000037",
+                            "createdAt": "2025-07-14T07:53:55.631Z",
+                            "createdAtHeight": "44140908",
+                            "closedAt": null,
+                            "sumOpen": "0.44",
+                            "sumClose": "0.032",
+                            "netFunding": "503.13121",
+                            "subaccountNumber": 0
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market": "BTC-USD",
+                        "status": "OPEN",
+                        "side": "SHORT",
+                        "size": "-0.407",
+                        "maxSize": "-0.009",
+                        "entryPrice": "118692.04840909090909090909",
+                        "exitPrice": "119526.565625",
+                        "realizedPnl": "476.42665909090909090909088",
+                        "unrealizedPnl": "-57.26681734000000000000037",
+                        "createdAt": "2025-07-14T07:53:55.631Z",
+                        "createdAtHeight": "44140908",
+                        "closedAt": null,
+                        "sumOpen": "0.44",
+                        "sumClose": "0.032",
+                        "netFunding": "503.13121",
+                        "subaccountNumber": 0
+                    },
+                    "id": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "entryPrice": 118692.04840909092,
+                    "markPrice": null,
+                    "notional": null,
+                    "collateral": null,
+                    "unrealizedPnl": -57.26681734,
+                    "side": "short",
+                    "contracts": 0.407,
+                    "contractSize": null,
+                    "timestamp": 1752479635631,
+                    "datetime": "2025-07-14T07:53:55.631Z",
+                    "hedged": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": null,
+                    "liquidationPrice": null,
+                    "marginRatio": null,
+                    "marginMode": null,
+                    "percentage": null
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "positions": [
+                        {
+                            "market": "BTC-USD",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-0.407",
+                            "maxSize": "-0.009",
+                            "entryPrice": "118692.04840909090909090909",
+                            "exitPrice": "119526.565625",
+                            "realizedPnl": "476.42665909090909090909088",
+                            "unrealizedPnl": "-57.26681734000000000000037",
+                            "createdAt": "2025-07-14T07:53:55.631Z",
+                            "createdAtHeight": "44140908",
+                            "closedAt": null,
+                            "sumOpen": "0.44",
+                            "sumClose": "0.032",
+                            "netFunding": "503.13121",
+                            "subaccountNumber": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "market": "BTC-USD",
+                            "status": "OPEN",
+                            "side": "SHORT",
+                            "size": "-0.407",
+                            "maxSize": "-0.009",
+                            "entryPrice": "118692.04840909090909090909",
+                            "exitPrice": "119526.565625",
+                            "realizedPnl": "476.42665909090909090909088",
+                            "unrealizedPnl": "-57.26681734000000000000037",
+                            "createdAt": "2025-07-14T07:53:55.631Z",
+                            "createdAtHeight": "44140908",
+                            "closedAt": null,
+                            "sumOpen": "0.44",
+                            "sumClose": "0.032",
+                            "netFunding": "503.13121",
+                            "subaccountNumber": 0
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "entryPrice": 118692.04840909092,
+                        "markPrice": null,
+                        "notional": null,
+                        "collateral": null,
+                        "unrealizedPnl": -57.26681734,
+                        "side": "short",
+                        "contracts": 0.407,
+                        "contractSize": null,
+                        "timestamp": 1752479635631,
+                        "datetime": "2025-07-14T07:53:55.631Z",
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "bids": [
+                        {
+                            "price": "118267",
+                            "size": "0.3182"
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "118485",
+                            "size": "0.0001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            118267,
+                            0.3182
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            118485,
+                            0.0001
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                                "subaccountNumber": 1
+                            },
+                            "size": "0.000001",
+                            "createdAt": "2025-07-29T09:43:02.105Z",
+                            "createdAtHeight": "45116125",
+                            "symbol": "USDC",
+                            "type": "TRANSFER_OUT",
+                            "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                        "timestamp": 1753782182105,
+                        "datetime": "2025-07-29T09:43:02.105Z",
+                        "direction": "out",
+                        "account": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "referenceId": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF",
+                        "referenceAccount": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                        "type": "transfer",
+                        "currency": "USDC",
+                        "amount": 0.000001,
+                        "before": null,
+                        "after": null,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                                "subaccountNumber": 1
+                            },
+                            "size": "0.000001",
+                            "createdAt": "2025-07-29T09:43:02.105Z",
+                            "createdAtHeight": "45116125",
+                            "symbol": "USDC",
+                            "type": "TRANSFER_OUT",
+                            "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                                "subaccountNumber": 1
+                            },
+                            "size": "0.000001",
+                            "createdAt": "2025-07-29T09:43:02.105Z",
+                            "createdAtHeight": "45116125",
+                            "symbol": "USDC",
+                            "type": "TRANSFER_OUT",
+                            "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                                "subaccountNumber": 1
+                            },
+                            "size": "0.000001",
+                            "createdAt": "2025-07-29T09:43:02.105Z",
+                            "createdAtHeight": "45116125",
+                            "symbol": "USDC",
+                            "type": "TRANSFER_OUT",
+                            "transactionHash": "92B4744BA1B783CF37C79A50BEBC47FFD59C8D5197D62A8485D3DCCE9AF220AF"
+                        },
+                        "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
+                        "timestamp": 1753782182105,
+                        "datetime": "2025-07-29T09:43:02.105Z",
+                        "currency": "USDC",
+                        "amount": 0.000001,
+                        "fromAccount": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "toAccount": "dydx1slanxj8x9ntk9knwa6cvfv2tzlsq5gk3dshml0",
+                        "status": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "WITHDRAWAL",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "WITHDRAWAL",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        },
+                        "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                        "txid": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81",
+                        "timestamp": 1753939498236,
+                        "datetime": "2025-07-31T05:24:58.236Z",
+                        "network": null,
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressTo": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressFrom": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "withdrawal",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "DEPOSIT",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "DEPOSIT",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        },
+                        "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                        "txid": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81",
+                        "timestamp": 1753939498236,
+                        "datetime": "2025-07-31T05:24:58.236Z",
+                        "network": null,
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressTo": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressFrom": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetchDepositsWithdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                    "USDC",
+                    1700791022001,
+                    1,
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "transfers": [
+                        {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "DEPOSIT",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                            "sender": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                                "subaccountNumber": 0
+                            },
+                            "recipient": {
+                                "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                            },
+                            "size": "10",
+                            "createdAt": "2025-07-31T05:24:58.236Z",
+                            "createdAtHeight": "45234639",
+                            "symbol": "USDC",
+                            "type": "DEPOSIT",
+                            "transactionHash": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81"
+                        },
+                        "id": "499a6da5-fa38-5eed-a623-1e54984a5db6",
+                        "txid": "13149545082FA441C07E7D1E776445D8EE9F8EA9C7BACC434BE21764D446DF81",
+                        "timestamp": 1753939498236,
+                        "datetime": "2025-07-31T05:24:58.236Z",
+                        "network": null,
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressTo": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "addressFrom": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 10,
+                        "currency": "USDC",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "input": [
+                    {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art"
+                    }
+                ],
+                "httpResponse": {
+                    "subaccounts": [
+                        {
+                            "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                            "subaccountNumber": 0,
+                            "equity": "25346.73993597",
+                            "freeCollateral": "24207.8530595294",
+                            "openPerpetualPositions": {
+                                "BTC-USD": {
+                                    "market": "BTC-USD",
+                                    "status": "OPEN",
+                                    "side": "SHORT",
+                                    "size": "-0.491",
+                                    "maxSize": "-0.009",
+                                    "entryPrice": "118703.60811320754716981132",
+                                    "exitPrice": "119655.95",
+                                    "realizedPnl": "3075.17994830188679245283016",
+                                    "unrealizedPnl": "1339.12776155490566037735812",
+                                    "createdAt": "2025-07-14T07:53:55.631Z",
+                                    "createdAtHeight": "44140908",
+                                    "closedAt": null,
+                                    "sumOpen": "0.53",
+                                    "sumClose": "0.038",
+                                    "netFunding": "3111.36894",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "assetPositions": {
+                                "USDC": {
+                                    "size": "82291.083758",
+                                    "symbol": "USDC",
+                                    "side": "LONG",
+                                    "assetId": "0",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "marginEnabled": true,
+                            "updatedAtHeight": "45234659",
+                            "latestProcessedBlockHeight": "45293477"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0",
+                        "type": null,
+                        "currency": null,
+                        "info": {
+                            "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                            "subaccountNumber": 0,
+                            "equity": "25346.73993597",
+                            "freeCollateral": "24207.8530595294",
+                            "openPerpetualPositions": {
+                                "BTC-USD": {
+                                    "market": "BTC-USD",
+                                    "status": "OPEN",
+                                    "side": "SHORT",
+                                    "size": "-0.491",
+                                    "maxSize": "-0.009",
+                                    "entryPrice": "118703.60811320754716981132",
+                                    "exitPrice": "119655.95",
+                                    "realizedPnl": "3075.17994830188679245283016",
+                                    "unrealizedPnl": "1339.12776155490566037735812",
+                                    "createdAt": "2025-07-14T07:53:55.631Z",
+                                    "createdAtHeight": "44140908",
+                                    "closedAt": null,
+                                    "sumOpen": "0.53",
+                                    "sumClose": "0.038",
+                                    "netFunding": "3111.36894",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "assetPositions": {
+                                "USDC": {
+                                    "size": "82291.083758",
+                                    "symbol": "USDC",
+                                    "side": "LONG",
+                                    "assetId": "0",
+                                    "subaccountNumber": 0
+                                }
+                            },
+                            "marginEnabled": true,
+                            "updatedAtHeight": "45234659",
+                            "latestProcessedBlockHeight": "45293477"
+                        },
+                        "code": null
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "subaccount": {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "subaccountNumber": 0,
+                        "equity": "161451.040416029",
+                        "freeCollateral": "152508",
+                        "openPerpetualPositions": {},
+                        "assetPositions": {},
+                        "marginEnabled": true,
+                        "updatedAtHeight": "52228833",
+                        "latestProcessedBlockHeight": "52246761"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "dydx14zzueazeh0hj67cghhf9jypslcf9sh2n5k6art",
+                        "subaccountNumber": 0,
+                        "equity": "161451.040416029",
+                        "freeCollateral": "152508",
+                        "openPerpetualPositions": {},
+                        "assetPositions": {},
+                        "marginEnabled": true,
+                        "updatedAtHeight": "52228833",
+                        "latestProcessedBlockHeight": "52246761"
+                    },
+                    "USDC": {
+                        "free": 152508,
+                        "used": null,
+                        "total": null
+                    },
+                    "free": {
+                        "USDC": 152508
+                    },
+                    "used": {
+                        "USDC": null
+                    },
+                    "total": {
+                        "USDC": null
+                    }
+                }
+            }
+        ]
+    }
+}
