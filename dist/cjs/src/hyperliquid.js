@@ -1503,7 +1503,17 @@ class hyperliquid extends hyperliquid$1["default"] {
         const responseObj = this.safeDict(response, 'response', {});
         const data = this.safeDict(responseObj, 'data', {});
         const statuses = this.safeList(data, 'statuses', []);
-        return this.parseOrders(statuses, undefined);
+        const ordersToBeParsed = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const order = statuses[i];
+            if (order === 'waitingForTrigger') {
+                ordersToBeParsed.push({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
+            }
+            else {
+                ordersToBeParsed.push(order);
+            }
+        }
+        return this.parseOrders(ordersToBeParsed, undefined);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -1629,10 +1639,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (isTrigger) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice']);
-                const stopLossOrderType = this.safeString(stopLoss, 'type');
+                const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
                 const stopLossOrderLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice']);
-                const takeProfitOrderType = this.safeString(takeProfit, 'type');
+                const takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
                 const takeProfitOrderLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
                 grouping = 'normalTpsl';
                 orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
@@ -3146,9 +3156,6 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'nonce': nonce,
                 'signature': transferSig,
             };
-            if (vaultAddress !== undefined) {
-                transferRequest['vaultAddress'] = vaultAddress;
-            }
             const transferResponse = await this.privatePostExchange(transferRequest);
             return transferResponse;
         }

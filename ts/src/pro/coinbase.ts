@@ -794,8 +794,9 @@ export default class coinbase extends coinbaseRest {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_order_id');
         const marketId = this.safeString (order, 'product_id');
-        const datetime = this.safeString (order, 'time');
+        const datetime = this.safeString2 (order, 'time', 'creation_time');
         market = this.safeMarket (marketId, market);
+        const stopPrice = this.safeString (order, 'stop_price');
         return this.safeOrder ({
             'info': order,
             'symbol': this.safeString (market, 'symbol'),
@@ -807,12 +808,12 @@ export default class coinbase extends coinbaseRest {
             'type': this.safeString (order, 'order_type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.safeString (order, 'side'),
-            'price': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': undefined,
-            'cost': undefined,
+            'side': this.safeString2 (order, 'side', 'order_side'),
+            'price': this.safeString (order, 'limit_price'),
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'amount': this.safeString (order, 'cumulative_quantity'),
+            'cost': this.omitZero (this.safeString (order, 'filled_value')),
             'average': this.safeString (order, 'avg_price'),
             'filled': this.safeString (order, 'cumulative_quantity'),
             'remaining': this.safeString (order, 'leaves_quantity'),

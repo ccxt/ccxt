@@ -215,6 +215,17 @@ export default class coinbaseexchange extends Exchange {
                         'conversions/{conversion_id}',
                         'conversions',
                         'conversions/fees',
+                        'loans/lending-overview',
+                        'loans/lending-overview-xm',
+                        'loans/loan-preview',
+                        'loans/loan-preview-xm',
+                        'loans/repayment-preview',
+                        'loans/repayment-preview-xm',
+                        'loans/interest/{loan_id}',
+                        'loans/interest/history/{loan_id}',
+                        'loans/interest',
+                        'loans/assets',
+                        'loans',
                     ],
                     'post': [
                         'conversions',
@@ -231,6 +242,9 @@ export default class coinbaseexchange extends Exchange {
                         'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
+                        'loans/open',
+                        'loans/repay-interest',
+                        'loans/repay-principal',
                     ],
                     'delete': [
                         'orders',
@@ -1196,7 +1210,7 @@ export default class coinbaseexchange extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);

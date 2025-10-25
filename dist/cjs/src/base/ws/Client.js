@@ -51,6 +51,10 @@ class Client {
         // connection-related Future
         this.connected = Future.Future();
     }
+    reusableFuture(messageHash) {
+        // only used in go
+        return this.future(messageHash);
+    }
     future(messageHash) {
         if (!(messageHash in this.futures)) {
             this.futures[messageHash] = Future.Future();

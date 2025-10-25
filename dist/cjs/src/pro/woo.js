@@ -842,7 +842,7 @@ class woo extends woo$1["default"] {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
@@ -976,8 +976,50 @@ class woo extends woo$1["default"] {
         //         "reduceOnly": false,
         //         "maker": false
         //     }
+        //     {
+        //      "symbol": "SPOT_BTC_USDT",
+        //      "rootAlgoOrderId": 2573778,
+        //      "parentAlgoOrderId": 0,
+        //      "algoOrderId": 2573778,
+        //      "clientOrderId": 0,
+        //      "orderTag": "default",
+        //      "algoType": "STOP_LOSS",
+        //      "side": "SELL",
+        //      "quantity": 0.00011,
+        //      "triggerPrice": 98566.67,
+        //      "triggerStatus": "USELESS",
+        //      "price": 0,
+        //      "type": "MARKET",
+        //      "triggerTradePrice": 0,
+        //      "triggerTime": 0,
+        //      "tradeId": 0,
+        //      "executedPrice": 0,
+        //      "executedQuantity": 0,
+        //      "fee": 0,
+        //      "reason": "",
+        //      "feeAsset": "",
+        //      "totalExecutedQuantity": 0,
+        //      "averageExecutedPrice": 0,
+        //      "totalFee": 0,
+        //      "timestamp": 1761030467426,
+        //      "visibleQuantity": 0,
+        //      "reduceOnly": false,
+        //      "triggerPriceType": "MARKET_PRICE",
+        //      "positionSide": "BOTH",
+        //      "feeCurrency": "",
+        //      "totalRebate": 0.0,
+        //      "rebateCurrency": "",
+        //      "triggered": false,
+        //      "maker": false,
+        //      "activated": false,
+        //      "isTriggered": false,
+        //      "isMaker": false,
+        //      "isActivated": false,
+        //      "rootAlgoStatus": "NEW",
+        //      "algoStatus": "NEW"
+        // }
         //
-        const orderId = this.safeString(order, 'orderId');
+        const orderId = this.safeString2(order, 'orderId', 'algoOrderId');
         const marketId = this.safeString(order, 'symbol');
         market = this.market(marketId);
         const symbol = market['symbol'];
@@ -1001,10 +1043,11 @@ class woo extends woo$1["default"] {
         if (amount >= totalExecQuantity) {
             remaining -= totalExecQuantity;
         }
-        const rawStatus = this.safeString(order, 'status');
+        const rawStatus = this.safeString2(order, 'status', 'algoStatus');
         const status = this.parseOrderStatus(rawStatus);
         const trades = undefined;
         const clientOrderId = this.safeString(order, 'clientOrderId');
+        const triggerPrice = this.safeString(order, 'triggerPrice');
         return this.safeOrder({
             'info': order,
             'symbol': symbol,
@@ -1018,8 +1061,9 @@ class woo extends woo$1["default"] {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'reduceOnly': this.safeBool(order, 'reduceOnly'),
             'amount': amount,
             'cost': undefined,
             'average': avgPrice,

@@ -175,6 +175,8 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 
 	// Handle maps
 	if dict, ok := obj.(map[string]interface{}); ok {
+		// serialize map reads to avoid races with concurrent writes elsewhere
+		addElementMu.Lock()
 		for _, key := range keys {
 			if key == nil {
 				continue
@@ -182,10 +184,12 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 			keyStr := fmt.Sprintf("%v", key)
 			if value, found := dict[keyStr]; found {
 				if value != nil && value != "" {
+					addElementMu.Unlock()
 					return value
 				}
 			}
 		}
+		addElementMu.Unlock()
 		return defVal
 	} else if syncDict, ok := obj.(*sync.Map); ok {
 		if syncDict == nil {
@@ -219,6 +223,17 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}
 	case []float64:
 		return getValueFromList(list, keys, defVal)
 	default:
+		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
+			return ob.GetValue(keys[0].(string), defVal)
+		}
+		if obs, ok := obj.(IOrderBookSide); ok { // TODO: should takes keys and not keys[0]
+			switch keys[0].(type) {
+			case string:
+				return obs.GetValue(keys[0].(string), defVal)
+			case int:
+				return obs.GetData()[keys[0].(int)]
+			}
+		}
 		return defVal
 	}
 }
@@ -352,6 +367,14 @@ func SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue
 // SafeInteger retrieves an int64 value from a nested structure
 func SafeInteger(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
 	return SafeIntegerN(obj, []interface{}{key}, defaultValue)
+}
+
+func SafeInt64(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
+	res := SafeInteger(obj, key, defaultValue)
+	if res != nil {
+		return res.(int64)
+	}
+	return nil
 }
 
 func SafeInteger2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {

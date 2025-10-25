@@ -79,7 +79,7 @@ class woofipro extends woofipro$1["default"] {
     async watchPublic(messageHash, message) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-        if (this.accountId !== undefined) {
+        if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
         const url = this.urls['api']['ws']['public'] + '/' + id;
@@ -594,7 +594,7 @@ class woofipro extends woofipro$1["default"] {
         const client = this.client(url);
         const messageHash = 'authenticated';
         const event = 'auth';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();

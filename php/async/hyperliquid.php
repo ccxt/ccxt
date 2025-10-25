@@ -1129,7 +1129,7 @@ class hyperliquid extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1532,11 +1532,11 @@ class hyperliquid extends Exchange {
             /**
              * create a list of trade $orders
              *
-             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
              *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             Async\await($this->handle_builder_fee_approval());
@@ -1562,7 +1562,16 @@ class hyperliquid extends Exchange {
             $responseObj = $this->safe_dict($response, 'response', array());
             $data = $this->safe_dict($responseObj, 'data', array());
             $statuses = $this->safe_list($data, 'statuses', array());
-            return $this->parse_orders($statuses, null);
+            $ordersToBeParsed = array();
+            for ($i = 0; $i < count($statuses); $i++) {
+                $order = $statuses[$i];
+                if ($order === 'waitingForTrigger') {
+                    $ordersToBeParsed[] = array( 'status' => $order ); // tp/sl $orders can return a string like "waitingForTrigger",
+                } else {
+                    $ordersToBeParsed[] = $order;
+                }
+            }
+            return $this->parse_orders($ordersToBeParsed, null);
         }) ();
     }
 
@@ -1686,10 +1695,10 @@ class hyperliquid extends Exchange {
             if ($isTrigger) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
-                $stopLossOrderType = $this->safe_string($stopLoss, 'type');
+                $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
                 $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
                 $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
-                $takeProfitOrderType = $this->safe_string($takeProfit, 'type');
+                $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
                 $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
                 $grouping = 'normalTpsl';
                 $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
@@ -3252,9 +3261,6 @@ class hyperliquid extends Exchange {
                     'nonce' => $nonce,
                     'signature' => $transferSig,
                 );
-                if ($vaultAddress !== null) {
-                    $transferRequest['vaultAddress'] = $vaultAddress;
-                }
                 $transferResponse = Async\await($this->privatePostExchange ($transferRequest));
                 return $transferResponse;
             }

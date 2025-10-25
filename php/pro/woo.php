@@ -617,7 +617,7 @@ class woo extends \ccxt\async\woo {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -652,7 +652,7 @@ class woo extends \ccxt\async\woo {
         }) ();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -898,7 +898,7 @@ class woo extends \ccxt\async\woo {
             $client = $this->client($url);
             $messageHash = 'authenticated';
             $event = 'auth';
-            $future = $client->future ($messageHash);
+            $future = $client->reusableFuture ($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $ts = (string) $this->nonce();
@@ -1046,8 +1046,50 @@ class woo extends \ccxt\async\woo {
         //         "reduceOnly" => false,
         //         "maker" => false
         //     }
+        //     {
+        //      "symbol" => "SPOT_BTC_USDT",
+        //      "rootAlgoOrderId" => 2573778,
+        //      "parentAlgoOrderId" => 0,
+        //      "algoOrderId" => 2573778,
+        //      "clientOrderId" => 0,
+        //      "orderTag" => "default",
+        //      "algoType" => "STOP_LOSS",
+        //      "side" => "SELL",
+        //      "quantity" => 0.00011,
+        //      "triggerPrice" => 98566.67,
+        //      "triggerStatus" => "USELESS",
+        //      "price" => 0,
+        //      "type" => "MARKET",
+        //      "triggerTradePrice" => 0,
+        //      "triggerTime" => 0,
+        //      "tradeId" => 0,
+        //      "executedPrice" => 0,
+        //      "executedQuantity" => 0,
+        //      "fee" => 0,
+        //      "reason" => "",
+        //      "feeAsset" => "",
+        //      "totalExecutedQuantity" => 0,
+        //      "averageExecutedPrice" => 0,
+        //      "totalFee" => 0,
+        //      "timestamp" => 1761030467426,
+        //      "visibleQuantity" => 0,
+        //      "reduceOnly" => false,
+        //      "triggerPriceType" => "MARKET_PRICE",
+        //      "positionSide" => "BOTH",
+        //      "feeCurrency" => "",
+        //      "totalRebate" => 0.0,
+        //      "rebateCurrency" => "",
+        //      "triggered" => false,
+        //      "maker" => false,
+        //      "activated" => false,
+        //      "isTriggered" => false,
+        //      "isMaker" => false,
+        //      "isActivated" => false,
+        //      "rootAlgoStatus" => "NEW",
+        //      "algoStatus" => "NEW"
+        // }
         //
-        $orderId = $this->safe_string($order, 'orderId');
+        $orderId = $this->safe_string_2($order, 'orderId', 'algoOrderId');
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
@@ -1071,10 +1113,11 @@ class woo extends \ccxt\async\woo {
         if ($amount >= $totalExecQuantity) {
             $remaining -= $totalExecQuantity;
         }
-        $rawStatus = $this->safe_string($order, 'status');
+        $rawStatus = $this->safe_string_2($order, 'status', 'algoStatus');
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        $triggerPrice = $this->safe_string($order, 'triggerPrice');
         return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
@@ -1088,8 +1131,9 @@ class woo extends \ccxt\async\woo {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => null,
-            'triggerPrice' => null,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'amount' => $amount,
             'cost' => null,
             'average' => $avgPrice,

@@ -643,7 +643,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1012,7 +1012,7 @@ class btcmarkets extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
          *
@@ -1024,11 +1024,13 @@ class btcmarkets extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
+        $numericIds = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $ids[$i] = intval($ids[$i]);
+            // $numericIds[$i] = intval($ids[$i]);
+            $numericIds[] = intval($ids[$i]);
         }
         $request = array(
-            'ids' => $ids,
+            'ids' => $numericIds,
         );
         $response = $this->privateDeleteBatchordersIds ($this->extend($request, $params));
         //

@@ -1125,7 +1125,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until', this.milliseconds ());
@@ -1534,7 +1534,16 @@ export default class hyperliquid extends Exchange {
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
-        return this.parseOrders (statuses, undefined);
+        const ordersToBeParsed = [];
+        for (let i = 0; i < statuses.length; i++) {
+            const order = statuses[i];
+            if (order === 'waitingForTrigger') {
+                ordersToBeParsed.push ({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
+            } else {
+                ordersToBeParsed.push (order);
+            }
+        }
+        return this.parseOrders (ordersToBeParsed, undefined);
     }
 
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: string, price: Str = undefined, params = {}) {
@@ -1659,10 +1668,10 @@ export default class hyperliquid extends Exchange {
             if (isTrigger) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
-                const stopLossOrderType = this.safeString (stopLoss, 'type');
+                const stopLossOrderType = this.safeString (stopLoss, 'type', 'limit');
                 const stopLossOrderLimitPrice = this.safeStringN (stopLoss, [ 'price', 'stopLossPrice' ], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
-                const takeProfitOrderType = this.safeString (takeProfit, 'type');
+                const takeProfitOrderType = this.safeString (takeProfit, 'type', 'limit');
                 const takeProfitOrderLimitPrice = this.safeStringN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
                 grouping = 'normalTpsl';
                 orderParams = this.omit (orderParams, [ 'stopLoss', 'takeProfit' ]);
@@ -1779,7 +1788,7 @@ export default class hyperliquid extends Exchange {
                 'status': status,
             }));
         }
-        return orders;
+        return orders as Order[];
     }
 
     cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}): Dict {
@@ -3198,9 +3207,6 @@ export default class hyperliquid extends Exchange {
                 'nonce': nonce,
                 'signature': transferSig,
             };
-            if (vaultAddress !== undefined) {
-                transferRequest['vaultAddress'] = vaultAddress;
-            }
             const transferResponse = await this.privatePostExchange (transferRequest);
             return transferResponse;
         }

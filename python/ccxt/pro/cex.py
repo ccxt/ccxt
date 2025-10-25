@@ -1007,7 +1007,7 @@ class cex(ccxt.async_support.cex):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://cex.io/websocket-api#minute-data
@@ -1457,7 +1457,7 @@ class cex(ccxt.async_support.cex):
         url = self.urls['api']['ws']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future('authenticated')
+        future = client.reusableFuture('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             self.check_required_credentials()
@@ -1472,5 +1472,5 @@ class cex(ccxt.async_support.cex):
                     'timestamp': nonce,
                 },
             }
-            await self.watch(url, messageHash, self.extend(request, params), messageHash)
+            self.watch(url, messageHash, self.extend(request, params), messageHash)
         return await future

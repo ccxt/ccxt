@@ -555,5 +555,85 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "kPEPE"
+    },
+    "HYPE/USDC:USDC": {
+        "id": "159",
+        "lowercaseId": null,
+        "symbol": "HYPE/USDC:USDC",
+        "base": "HYPE",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "159",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 10
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "2",
+            "name": "HYPE",
+            "maxLeverage": "10",
+            "marginTableId": "52",
+            "funding": "0.0000125",
+            "openInterest": "23138943.400000006",
+            "prevDayPx": "40.0",
+            "dayNtlVlm": "427480212.8216404915",
+            "premium": "-0.0000502109",
+            "oraclePx": "39.832",
+            "markPx": "39.82",
+            "midPx": "39.819",
+            "impactPxs": [
+                "39.8164",
+                "39.83"
+            ],
+            "dayBaseVlm": "10687543.5299999993",
+            "baseId": 159
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "HYPE"
     }
 }

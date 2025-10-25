@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.8';
+const version = '4.5.12';
 
 (Exchange as any).ccxtVersion = version
 
@@ -129,7 +129,6 @@ import myokx from  './src/myokx.js'
 import ndax from  './src/ndax.js'
 import novadax from  './src/novadax.js'
 import oceanex from  './src/oceanex.js'
-import okcoin from  './src/okcoin.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -212,7 +211,6 @@ import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
 import myokxPro from  './src/pro/myokx.js'
 import ndaxPro from  './src/pro/ndax.js'
-import okcoinPro from  './src/pro/okcoin.js'
 import okxPro from  './src/pro/okx.js'
 import okxusPro from  './src/pro/okxus.js'
 import onetradingPro from  './src/pro/onetrading.js'
@@ -313,7 +311,6 @@ const exchanges = {
     'ndax':                   ndax,
     'novadax':                novadax,
     'oceanex':                oceanex,
-    'okcoin':                 okcoin,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -396,7 +393,6 @@ const pro = {
     'modetrade':              modetradePro,
     'myokx':                  myokxPro,
     'ndax':                   ndaxPro,
-    'okcoin':                 okcoinPro,
     'okx':                    okxPro,
     'okxus':                  okxusPro,
     'onetrading':             onetradingPro,
@@ -639,7 +635,6 @@ export {
     ndax,
     novadax,
     oceanex,
-    okcoin,
     okx,
     okxus,
     onetrading,

@@ -210,6 +210,17 @@ class coinbaseexchange extends Exchange {
                         'conversions/{conversion_id}',
                         'conversions',
                         'conversions/fees',
+                        'loans/lending-overview',
+                        'loans/lending-overview-xm',
+                        'loans/loan-preview',
+                        'loans/loan-preview-xm',
+                        'loans/repayment-preview',
+                        'loans/repayment-preview-xm',
+                        'loans/interest/{loan_id}',
+                        'loans/interest/history/{loan_id}',
+                        'loans/interest',
+                        'loans/assets',
+                        'loans',
                     ),
                     'post' => array(
                         'conversions',
@@ -226,6 +237,9 @@ class coinbaseexchange extends Exchange {
                         'withdrawals/coinbase-account',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
+                        'loans/open',
+                        'loans/repay-interest',
+                        'loans/repay-principal',
                     ),
                     'delete' => array(
                         'orders',
@@ -1177,7 +1191,7 @@ class coinbaseexchange extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles

@@ -233,7 +233,7 @@ public partial class binance : Exchange
                 } },
                 { "www", "https://www.binance.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://accounts.binance.com/en/register?ref=D7YA7CLY" },
+                    { "url", "https://accounts.binance.com/register?ref=CCXTCOM" },
                     { "discount", 0.1 },
                 } },
                 { "doc", new List<object>() {"https://developers.binance.com/en"} },
@@ -8177,7 +8177,7 @@ public partial class binance : Exchange
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

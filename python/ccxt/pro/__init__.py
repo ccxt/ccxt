@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.8'
+__version__ = '4.5.12'
 
 # ----------------------------------------------------------------------------
 
@@ -114,7 +114,6 @@ from ccxt.pro.mexc import mexc                                            # noqa
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
-from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.okxus import okxus                                          # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
@@ -189,7 +188,6 @@ exchanges = [
     'modetrade',
     'myokx',
     'ndax',
-    'okcoin',
     'okx',
     'okxus',
     'onetrading',

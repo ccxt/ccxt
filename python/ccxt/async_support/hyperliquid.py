@@ -1087,7 +1087,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1482,7 +1482,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         responseObj = self.safe_dict(response, 'response', {})
         data = self.safe_dict(responseObj, 'data', {})
         statuses = self.safe_list(data, 'statuses', [])
-        return self.parse_orders(statuses, None)
+        ordersToBeParsed = []
+        for i in range(0, len(statuses)):
+            order = statuses[i]
+            if order == 'waitingForTrigger':
+                ordersToBeParsed.append({'status': order})  # tp/sl orders can return a string like "waitingForTrigger",
+            else:
+                ordersToBeParsed.append(order)
+        return self.parse_orders(ordersToBeParsed, None)
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: str, price: Str = None, params={}):
         market = self.market(symbol)
@@ -1592,10 +1599,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             if isTrigger:
                 # grouping opposed orders for sl/tp
                 stopLossOrderTriggerPrice = self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice'])
-                stopLossOrderType = self.safe_string(stopLoss, 'type')
+                stopLossOrderType = self.safe_string(stopLoss, 'type', 'limit')
                 stopLossOrderLimitPrice = self.safe_string_n(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice)
                 takeProfitOrderTriggerPrice = self.safe_string_n(takeProfit, ['triggerPrice', 'stopPrice'])
-                takeProfitOrderType = self.safe_string(takeProfit, 'type')
+                takeProfitOrderType = self.safe_string(takeProfit, 'type', 'limit')
                 takeProfitOrderLimitPrice = self.safe_string_n(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice)
                 grouping = 'normalTpsl'
                 orderParams = self.omit(orderParams, ['stopLoss', 'takeProfit'])
@@ -3015,8 +3022,6 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'nonce': nonce,
                 'signature': transferSig,
             }
-            if vaultAddress is not None:
-                transferRequest['vaultAddress'] = vaultAddress
             transferResponse = await self.privatePostExchange(transferRequest)
             return transferResponse
         # transfer between main account and subaccount
