@@ -229,6 +229,7 @@ export default class websea extends Exchange {
             'options': {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear'
+                'defaultMarginMode': 'cross', // 'isolated', 'cross'
                 'fetchMarkets': {
                     'types': [ 'spot', 'swap' ], // 默认获取的市场类型
                 },
@@ -256,6 +257,7 @@ export default class websea extends Exchange {
                         'openApi/contract/kline': 1, // 合约K线数据
                         'openApi/contract/24kline': 1, // 合约24小时K线数据
                         'openApi/contract/currentList': 1, // 合约当前委托列表
+                        'openApi/contract/getOrderDetail': 1, // 合约订单详情
                     },
                 },
                 'private': {
@@ -531,8 +533,18 @@ export default class websea extends Exchange {
         }
         // Price and amount
         const price = this.safeNumber2 (order, 'price', 'price_avg');
-        const amount = this.safeNumber2 (order, 'number', 'amount');
-        const filled = this.safeNumber2 (order, 'deal_number', 'deal_amount');
+        let amount = this.safeNumber2 (order, 'number', 'amount');
+        let filled = this.safeNumber2 (order, 'deal_number', 'deal_amount');
+        // 合约订单：将张数转换为实际合约数量
+        if (market !== undefined && market['swap']) {
+            const contractSize = this.safeNumber (market, 'contractSize', 1);
+            if (amount !== undefined) {
+                amount = this.parseNumber (Precise.stringMul (this.numberToString (amount), this.numberToString (contractSize)));
+            }
+            if (filled !== undefined) {
+                filled = this.parseNumber (Precise.stringMul (this.numberToString (filled), this.numberToString (contractSize)));
+            }
+        }
         // Calculate remaining amount
         let remaining = undefined;
         if (amount !== undefined && filled !== undefined) {
@@ -548,10 +560,18 @@ export default class websea extends Exchange {
         const triggerPrice = this.safeNumber (order, 'trigger_price');
         const stopLossPrice = this.safeNumber (order, 'stop_loss_price');
         const takeProfitPrice = this.safeNumber (order, 'stop_profit_price');
-        // Calculate cost as price * filled amount
+        // Calculate cost
         let cost = undefined;
-        if (price !== undefined && filled !== undefined) {
-            cost = price * filled;
+        if (market !== undefined && market['swap']) {
+            // 合约：cost = price * filled (已经转换为实际合约数量)
+            if (price !== undefined && filled !== undefined) {
+                cost = this.parseNumber (Precise.stringMul (this.numberToString (price), this.numberToString (filled)));
+            }
+        } else {
+            // 现货：cost = price * filled
+            if (price !== undefined && filled !== undefined) {
+                cost = price * filled;
+            }
         }
         // Determine if order is reduce-only based on contract_type
         let reduceOnly = undefined;
@@ -1746,55 +1766,102 @@ export default class websea extends Exchange {
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap', if not provided this.options['defaultType'] is used
-         * @param {boolean} [params.reduceOnly] *swap only* true if the order is to reduce the size of a position
+         * @param {boolean} [params.reduceOnly] *swap only* true for closing positions (contract_type='close'), false for opening positions (contract_type='open'), default is false
+         * @param {int} [params.leverage] *swap only* leverage rate (1-100), default is 10
+         * @param {string} [params.marginMode] *swap only* 'isolated' or 'cross', default is 'isolated'
+         * @param {float} [params.triggerPrice] *swap only* trigger price for conditional orders
+         * @param {float} [params.stopLossPrice] *swap only* stop loss price
+         * @param {float} [params.takeProfitPrice] *swap only* take profit price
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         const orderType = (type === 'limit') ? side + '-limit' : side + '-market';
+        // 处理amount
+        let requestAmount = undefined;
+        if (marketType === 'swap') {
+            // 合约：将amount（合约数量）转换为张数
+            const contractSize = this.safeNumber (market, 'contractSize', 1);
+            const amountString = this.numberToString (amount);
+            const numContracts = Precise.stringDiv (amountString, this.numberToString (contractSize));
+            requestAmount = this.parseToInt (numContracts);
+        } else {
+            // 现货：直接使用amount
+            requestAmount = this.amountToPrecision (symbol, amount);
+        }
         const request: Dict = {
             'symbol': market['id'],
             'type': orderType,
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.numberToString (requestAmount),
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let response = undefined;
+        let orderIdField = 'order_sn'; // 现货使用order_sn
         if (marketType === 'swap') {
-            const reduceOnly = this.safeBool (query, 'reduceOnly', false);
-            if (reduceOnly) {
-                request['reduce_only'] = true;
-                const queryWithoutReduceOnly = this.omit (query, 'reduceOnly');
-                // 期货下单
-                response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, queryWithoutReduceOnly));
-            } else {
-                // 期货下单
-                response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, query));
+            // 根据reduceOnly参数确定contract_type
+            const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+            const contractType = reduceOnly ? 'close' : 'open';
+            request['contract_type'] = contractType;
+            // lever_rate：仅开仓时必填，默认10倍杠杆
+            if (contractType === 'open') {
+                const leverage = this.safeInteger (params, 'leverage', 10);
+                request['lever_rate'] = leverage;
             }
+            // 其他可选参数
+            const triggerPrice = this.safeString (params, 'triggerPrice');
+            if (triggerPrice !== undefined) {
+                request['trigger_price'] = triggerPrice;
+            }
+            const stopLossPrice = this.safeString (params, 'stopLossPrice');
+            if (stopLossPrice !== undefined) {
+                request['stop_loss_price'] = stopLossPrice;
+            }
+            const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+            if (takeProfitPrice !== undefined) {
+                request['stop_profit_price'] = takeProfitPrice;
+            }
+            // 仓位模式：isolated(逐仓) = 1, cross(全仓) = 2
+            const [ marginMode, marginQuery ] = this.handleMarginModeAndParams ('createOrder', query);
+            const isFull = (marginMode === 'cross') ? 2 : 1;
+            request['is_full'] = isFull;
+            // 移除已处理的参数
+            const cleanParams = this.omit (marginQuery, [ 'reduceOnly', 'leverage', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+            // 合约下单
+            response = await this.privatePostOpenApiFuturesEntrustAdd (this.extend (request, cleanParams));
+            orderIdField = 'order_id'; // 合约使用order_id
         } else {
             // 现货下单
             response = await this.privatePostOpenApiEntrustAdd (this.extend (request, query));
+            orderIdField = 'order_sn'; // 现货使用order_sn
         }
         //
-        // 响应示例：
+        // 现货响应示例：
         // {
         //     "errno": 0,
         //     "errmsg": "success",
         //     "result": {
-        //         "order_sn": "BL123456789987523"  // 订单编号
+        //         "order_sn": "BL123456789987523"
+        //     }
+        // }
+        //
+        // 合约响应示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "order_id": "BL786401542840282676"
         //     }
         // }
         //
         const result = this.safeValue (response, 'result', {});
-        const orderId = this.safeString (result, 'order_sn');
-        
+        const orderId = this.safeString (result, orderIdField);
         // 如果成功获取订单ID，使用fetchOrder获取完整订单信息
         if (orderId !== undefined) {
             return await this.fetchOrder (orderId, symbol, { 'type': marketType });
         }
-        
         // 如果没有订单ID，返回解析后的结果
         return this.parseOrder (result, market);
     }
@@ -1847,23 +1914,45 @@ export default class websea extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
-            'order_sn': id,  // Websea现货API使用order_sn参数
-        };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const request: Dict = {};
         let response = undefined;
         if (marketType === 'swap') {
-            // 期货订单详情
-            response = await this.privatePostOpenApiFuturesEntrustOrderDetail (this.extend (request, query));
+            // 合约订单详情 - 使用GET方法和正确的端点
+            request['order_id'] = id;
+            response = await this.contractGetOpenApiContractGetOrderDetail (this.extend (request, query));
         } else {
             // 现货订单详情 - 使用GET方法和正确的端点
+            request['order_sn'] = id;
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
             response = await this.privateGetOpenApiEntrustStatus (this.extend (request, query));
         }
+        //
+        // 合约返回示例：
+        // {
+        //     "errno": 0,
+        //     "errmsg": "success",
+        //     "result": {
+        //         "order_id": "11532",
+        //         "ctime": 1576746253,
+        //         "symbol": "EOS-USDT",
+        //         "price": "14",
+        //         "amount": "150",
+        //         "price_avg": "15",
+        //         "lever_rate": 10,
+        //         "deal_amount": "100",
+        //         "type": "buy-limit",
+        //         "status": 3,
+        //         "contract_type": 1,
+        //         "profit": "10"
+        //     }
+        // }
         //
         // 现货返回示例：
         // {

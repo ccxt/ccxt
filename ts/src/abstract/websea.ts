@@ -25,6 +25,7 @@ interface Exchange {
     contractGetOpenApiContractKline (params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContract24kline (params?: {}): Promise<implicitReturnType>;
     contractGetOpenApiContractCurrentList (params?: {}): Promise<implicitReturnType>;
+    contractGetOpenApiContractGetOrderDetail (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiWalletList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustHistoryList (params?: {}): Promise<implicitReturnType>;
     privateGetOpenApiEntrustCurrentList (params?: {}): Promise<implicitReturnType>;
