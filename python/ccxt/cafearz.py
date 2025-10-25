@@ -22,7 +22,7 @@ class cafearz(Exchange, ImplicitAPI):
             'pro': False,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': False,
                 'future': False,
@@ -168,7 +168,7 @@ class cafearz(Exchange, ImplicitAPI):
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': None,
-            'type': 'otc',
+            'type': 'spot',
             'spot': False,
             'margin': False,
             'swap': False,

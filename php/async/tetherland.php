@@ -331,7 +331,7 @@ class tetherland extends Exchange {
         //         'priority' => 18,
         //     ),
         // }
-        $marketType = 'otc';
+        $marketType = 'spot';
         $marketId = $this->safe_string($ticker, 'id');
         $quote = $this->safe_string($ticker, 'quote');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);

@@ -312,7 +312,7 @@ class tetherland(Exchange, ImplicitAPI):
         #         'priority': 18,
         #     },
         # }
-        marketType = 'otc'
+        marketType = 'spot'
         marketId = self.safe_string(ticker, 'id')
         quote = self.safe_string(ticker, 'quote')
         symbol = self.safe_symbol(marketId, market, None, marketType)

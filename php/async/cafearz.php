@@ -23,7 +23,7 @@ class cafearz extends Exchange {
             'pro' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => false,
                 'future' => false,
@@ -170,7 +170,7 @@ class cafearz extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
             'settleId' => null,
-            'type' => 'otc',
+            'type' => 'spot',
             'spot' => false,
             'margin' => false,
             'swap' => false,

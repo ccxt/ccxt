@@ -23,7 +23,7 @@ class cafearz extends cafearz$1["default"] {
             'pro': false,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': false,
                 'future': false,
@@ -169,7 +169,7 @@ class cafearz extends cafearz$1["default"] {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': undefined,
-            'type': 'otc',
+            'type': 'spot',
             'spot': false,
             'margin': false,
             'swap': false,

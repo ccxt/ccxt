@@ -326,7 +326,7 @@ class tetherland extends tetherland$1["default"] {
         //         'priority': 18,
         //     },
         // }
-        const marketType = 'otc';
+        const marketType = 'spot';
         const marketId = this.safeString(ticker, 'id');
         const quote = this.safeString(ticker, 'quote');
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);

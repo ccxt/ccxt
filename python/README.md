@@ -242,14 +242,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-- jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.9.12/dist/ccxt.browser.min.js
-- unpkg: https://unpkg.com/ccxt@4.9.12/dist/ccxt.browser.min.js
-  > > > > > > > master
+- jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.9.13/dist/ccxt.browser.min.js
+- unpkg: https://unpkg.com/ccxt@4.9.13/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.9.12/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.9.13/dist/ccxt.browser.min.js"></script>
 console.log (ccxt.exchanges) // print all available exchanges
 ```
 
