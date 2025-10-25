@@ -628,6 +628,75 @@ class websea extends websea$1["default"] {
         }
         return status;
     }
+    parseOrders(orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name websea#parseOrders
+         * @description parse multiple orders from exchange API response
+         * @param {object} orders the raw orders data from exchange
+         * @param {Market} [market] unified market structure
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] max number of orders to return
+         * @param {object} [params] extra parameters
+         * @param {string} [params.type] market type when market is undefined (spot, swap, etc)
+         * @returns {Order[]} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        // 当 market 为 undefined 时，尝试从 params 中获取 type
+        // 然后结合订单数据中的 symbol 来补全 market
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('parseOrders', market, params);
+        let results = [];
+        if (Array.isArray(orders)) {
+            for (let i = 0; i < orders.length; i++) {
+                const orderData = orders[i];
+                let resolvedMarket = market;
+                // 如果 market 为 undefined 且有 marketType，尝试解析 market
+                if (resolvedMarket === undefined && marketType !== undefined) {
+                    const marketId = this.safeString(orderData, 'symbol');
+                    if (marketId !== undefined) {
+                        try {
+                            // 使用 safeMarket 来安全地解析 market，传入 marketType 作为默认类型
+                            resolvedMarket = this.safeMarket(marketId, undefined, undefined, marketType);
+                        }
+                        catch (e) {
+                            // 如果解析失败，继续使用 undefined
+                            resolvedMarket = undefined;
+                        }
+                    }
+                }
+                const parsed = this.parseOrder(orderData, resolvedMarket);
+                const order = this.extend(parsed, params);
+                results.push(order);
+            }
+        }
+        else {
+            const ids = Object.keys(orders);
+            for (let i = 0; i < ids.length; i++) {
+                const id = ids[i];
+                const orderData = orders[id];
+                let resolvedMarket = market;
+                // 如果 market 为 undefined 且有 marketType，尝试解析 market
+                if (resolvedMarket === undefined && marketType !== undefined) {
+                    const marketId = this.safeString(orderData, 'symbol');
+                    if (marketId !== undefined) {
+                        try {
+                            resolvedMarket = this.safeMarket(marketId, undefined, undefined, marketType);
+                        }
+                        catch (e) {
+                            resolvedMarket = undefined;
+                        }
+                    }
+                }
+                const idExtended = this.extend({ 'id': id }, orderData);
+                const parsedOrder = this.parseOrder(idExtended, resolvedMarket);
+                const order = this.extend(parsedOrder, params);
+                results.push(order);
+            }
+        }
+        results = this.sortBy(results, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
+    }
     market(symbol) {
         if (this.markets === undefined) {
             throw new errors.ExchangeError(this.id + ' markets not loaded');
@@ -2112,7 +2181,7 @@ class websea extends websea$1["default"] {
             throw new errors.NotSupported(this.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets by the API');
         }
         const result = this.safeValue(response, 'result', []);
-        return this.parseOrders(result, market, since, limit);
+        return this.parseOrders(result, market, since, limit, params);
     }
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -2188,7 +2257,7 @@ class websea extends websea$1["default"] {
                 }
             }
         }
-        return this.parseOrders(filteredResult, undefined, since, limit);
+        return this.parseOrders(filteredResult, undefined, since, limit, params);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api']['rest'];

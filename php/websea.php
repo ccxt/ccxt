@@ -608,6 +608,71 @@ class websea extends Exchange {
         return $status;
     }
 
+    public function parse_orders(array $orders, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * parse multiple $orders from exchange API response
+         * @param {array} $orders the raw $orders data from exchange
+         * @param {Market} [$market] unified $market structure
+         * @param {int} [$since] timestamp in ms of the earliest $order
+         * @param {int} [$limit] max number of $orders to return
+         * @param {array} [$params] extra parameters
+         * @param {string} [$params->type] $market type when $market is null (spot, swap, etc)
+         * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+         */
+        // 当 $market 为 null 时，尝试从 $params 中获取 type
+        // 然后结合订单数据中的 $symbol 来补全 $market
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('parseOrders', $market, $params);
+        $results = array();
+        if (gettype($orders) === 'array' && array_keys($orders) === array_keys(array_keys($orders))) {
+            for ($i = 0; $i < count($orders); $i++) {
+                $orderData = $orders[$i];
+                $resolvedMarket = $market;
+                // 如果 $market 为 null 且有 $marketType，尝试解析 $market
+                if ($resolvedMarket === null && $marketType !== null) {
+                    $marketId = $this->safe_string($orderData, 'symbol');
+                    if ($marketId !== null) {
+                        try {
+                            // 使用 safeMarket 来安全地解析 $market，传入 $marketType 作为默认类型
+                            $resolvedMarket = $this->safe_market($marketId, null, null, $marketType);
+                        } catch (Exception $e) {
+                            // 如果解析失败，继续使用 null
+                            $resolvedMarket = null;
+                        }
+                    }
+                }
+                $parsed = $this->parse_order($orderData, $resolvedMarket);
+                $order = $this->extend($parsed, $params);
+                $results[] = $order;
+            }
+        } else {
+            $ids = is_array($orders) ? array_keys($orders) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $orderData = $orders[$id];
+                $resolvedMarket = $market;
+                // 如果 $market 为 null 且有 $marketType，尝试解析 $market
+                if ($resolvedMarket === null && $marketType !== null) {
+                    $marketId = $this->safe_string($orderData, 'symbol');
+                    if ($marketId !== null) {
+                        try {
+                            $resolvedMarket = $this->safe_market($marketId, null, null, $marketType);
+                        } catch (Exception $e) {
+                            $resolvedMarket = null;
+                        }
+                    }
+                }
+                $idExtended = $this->extend(array( 'id' => $id ), $orderData);
+                $parsedOrder = $this->parse_order($idExtended, $resolvedMarket);
+                $order = $this->extend($parsedOrder, $params);
+                $results[] = $order;
+            }
+        }
+        $results = $this->sort_by($results, 'timestamp');
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        return $this->filter_by_symbol_since_limit($results, $symbol, $since, $limit);
+    }
+
     public function market(string $symbol): array {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
@@ -2070,7 +2135,7 @@ class websea extends Exchange {
             throw new NotSupported($this->id . ' fetchOpenOrders is not supported for ' . $marketType . ' markets by the API');
         }
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_orders($result, $market, $since, $limit);
+        return $this->parse_orders($result, $market, $since, $limit, $params);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2144,7 +2209,7 @@ class websea extends Exchange {
                 }
             }
         }
-        return $this->parse_orders($filteredResult, null, $since, $limit);
+        return $this->parse_orders($filteredResult, null, $since, $limit, $params);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

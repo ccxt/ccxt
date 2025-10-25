@@ -6,6 +6,7 @@
 **Extends**: <code>Exchange</code>  
 
 * [setLeverage](#setleverage)
+* [parseOrders](#parseorders)
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchOrderBook](#fetchorderbook)
@@ -43,6 +44,30 @@ set the level of leverage for a market
 
 ```javascript
 websea.setLeverage (leverage, symbol[, params])
+```
+
+
+<a name="parseOrders" id="parseorders"></a>
+
+### parseOrders{docsify-ignore}
+parse multiple orders from exchange API response
+
+**Kind**: instance method of [<code>websea</code>](#websea)  
+**Returns**: <code>Array&lt;Order&gt;</code> - an array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>object</code> | Yes | the raw orders data from exchange |
+| market | <code>Market</code> | No | unified market structure |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | max number of orders to return |
+| params | <code>object</code> | No | extra parameters |
+| params.type | <code>string</code> | No | market type when market is undefined (spot, swap, etc) |
+
+
+```javascript
+websea.parseOrders (orders[, market, since, limit, params])
 ```
 
 

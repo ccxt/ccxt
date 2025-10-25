@@ -585,6 +585,61 @@ class websea(Exchange, ImplicitAPI):
             return 'canceled'  # 已撤销
         return status
 
+    def parse_orders(self, orders: object, market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        parse multiple orders from exchange API response
+        :param dict orders: the raw orders data from exchange
+        :param Market [market]: unified market structure
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: max number of orders to return
+        :param dict [params]: extra parameters
+        :param str [params.type]: market type when market is None(spot, swap, etc)
+        :returns Order[]: an array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        # 当 market 为 None 时，尝试从 params 中获取 type
+        # 然后结合订单数据中的 symbol 来补全 market
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('parseOrders', market, params)
+        results = []
+        if isinstance(orders, list):
+            for i in range(0, len(orders)):
+                orderData = orders[i]
+                resolvedMarket = market
+                # 如果 market 为 None 且有 marketType，尝试解析 market
+                if resolvedMarket is None and marketType is not None:
+                    marketId = self.safe_string(orderData, 'symbol')
+                    if marketId is not None:
+                        try:
+                            # 使用 safeMarket 来安全地解析 market，传入 marketType 作为默认类型
+                            resolvedMarket = self.safe_market(marketId, None, None, marketType)
+                        except Exception as e:
+                            # 如果解析失败，继续使用 None
+                            resolvedMarket = None
+                parsed = self.parse_order(orderData, resolvedMarket)
+                order = self.extend(parsed, params)
+                results.append(order)
+        else:
+            ids = list(orders.keys())
+            for i in range(0, len(ids)):
+                id = ids[i]
+                orderData = orders[id]
+                resolvedMarket = market
+                # 如果 market 为 None 且有 marketType，尝试解析 market
+                if resolvedMarket is None and marketType is not None:
+                    marketId = self.safe_string(orderData, 'symbol')
+                    if marketId is not None:
+                        try:
+                            resolvedMarket = self.safe_market(marketId, None, None, marketType)
+                        except Exception as e:
+                            resolvedMarket = None
+                idExtended = self.extend({'id': id}, orderData)
+                parsedOrder = self.parse_order(idExtended, resolvedMarket)
+                order = self.extend(parsedOrder, params)
+                results.append(order)
+        results = self.sort_by(results, 'timestamp')
+        symbol = market['symbol'] if (market is not None) else None
+        return self.filter_by_symbol_since_limit(results, symbol, since, limit)
+
     def market(self, symbol: str) -> MarketInterface:
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
@@ -1925,7 +1980,7 @@ class websea(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchOpenOrders is not supported for ' + marketType + ' markets by the API')
         result = self.safe_value(response, 'result', [])
-        return self.parse_orders(result, market, since, limit)
+        return self.parse_orders(result, market, since, limit, params)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1991,7 +2046,7 @@ class websea(Exchange, ImplicitAPI):
                 # 检查订单符号是否为期货市场
                 if orderSymbol == market['id'] and market['swap']:
                     filteredResult.append(order)
-        return self.parse_orders(filteredResult, None, since, limit)
+        return self.parse_orders(filteredResult, None, since, limit, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api']['rest']

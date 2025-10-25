@@ -6096,6 +6096,29 @@ parse an order structure from the exchange response
 
 ---
 
+<a name="parseOrders" id="parseorders"></a>
+
+## parseOrders
+parse multiple orders from exchange API response
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;Order&gt;</code> - an array of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| orders | <code>object</code> | Yes | the raw orders data from exchange |
+| market | <code>Market</code> | No | unified market structure |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | max number of orders to return |
+| params | <code>object</code> | No | extra parameters |
+| params.type | <code>string</code> | No | market type when market is undefined (spot, swap, etc) |
+
+##### Supported exchanges
+* [websea](/exchanges/websea.md#webseaparseorders)
+
+---
+
 <a name="parsePosition" id="parseposition"></a>
 
 ## parsePosition
