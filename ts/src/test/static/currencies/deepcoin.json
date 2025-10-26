@@ -1,0 +1,41 @@
+{
+    "BTC": {
+        "info": {
+            "coin": "BTC",
+            "name": "BTC"
+        },
+        "id": "BTC",
+        "code": "BTC",
+        "name": "BTC",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {}
+    },
+    "USDT": {
+        "info": {
+            "coin": "USDT",
+            "name": "USDT"
+        },
+        "id": "USDT",
+        "code": "USDT",
+        "name": "USDT",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {}
+    },
+    "ETH": {
+        "info": {
+            "coin": "ETH",
+            "name": "ETH"
+        },
+        "id": "ETH",
+        "code": "ETH",
+        "name": "ETH",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fees": {}
+    }
+}
