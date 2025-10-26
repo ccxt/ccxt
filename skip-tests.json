@@ -2079,6 +2079,9 @@
             },
             "watchTickers": {
                 "ask": "could be lower than bid, https://github.com/ccxt/ccxt/actions/runs/18687047607/job/53282758515?pr=27030"
+            },
+            "fetchOrderBook" {
+                "timestamp": "not provided"
             }
         }
     }
