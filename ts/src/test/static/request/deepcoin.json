@@ -7,7 +7,7 @@
             {
                 "description": "Fetch all markets",
                 "method": "fetchMarkets",
-                "url": "https://api.deepcoin.com/deepcoin/market/instruments?instType=SWAP",
+                "url": "https://api.deepcoin.com/deepcoin/market/instruments?instType=SPOT",
                 "input": [],
                 "output": null
             }
