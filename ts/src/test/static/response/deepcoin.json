@@ -3,5 +3,51 @@
     "skipKeys": [ ],
     "options": {},
     "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "bids": [
+                            [
+                                "4066.17",
+                                "26.939495"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "4066.24",
+                                "0.610085"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            4066.17,
+                            26.939495
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            4066.24,
+                            0.610085
+                        ]
+                    ],
+                    "timestamp": 1761503436320,
+                    "datetime": "2025-10-26T18:30:36.320Z",
+                    "nonce": null
+                }
+            }
+        ],
     }
 }
