@@ -5,8 +5,8 @@ import Exchange from './abstract/deepcoin.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currency, DepositAddress, Dict, FundingRate, FundingRates, int, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, NullResponse } from '../ccxt.js';
+import type { Balances, Currency, Dict, FundingRate, FundingRates, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, NotSupported } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -70,8 +70,7 @@ export default class deepcoin extends Exchange {
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': false,
-                'fetchDepositAddress': true,
-                'fetchDepositAddresses': true,
+                'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFees': false,
@@ -80,7 +79,7 @@ export default class deepcoin extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
-                'fetchLedger': true,
+                'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
@@ -113,21 +112,21 @@ export default class deepcoin extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'sandbox': false,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': true,
+                'transfer': false,
                 'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
                 '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
+                '15': '15m',
+                '30': '30m',
                 '1h': '1H',
                 '4h': '4H',
                 '12h': '12H',
@@ -162,7 +161,7 @@ export default class deepcoin extends Exchange {
                 'private': {
                     'get': {
                         'deepcoin/account/balances': 5, // done
-                        'deepcoin/account/bills': 5, // done
+                        'deepcoin/account/bills': 5,
                         'deepcoin/account/positions': 5, // done
                         'deepcoin/trade/fills': 5, // done
                         'deepcoin/trade/orderByID': 5, // done
@@ -174,22 +173,20 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/fund-rate/history': 5, // done
                         'deepcoin/trade/trigger-orders-pending': 5,
                         'deepcoin/trade/trigger-orders-history': 5,
-                        'deepcoin/copytrading/support-contracts': 5, // not unified
-                        'deepcoin/copytrading/leader-position': 5, // not unified
-                        'deepcoin/copytrading/estimate-profit': 5, // not unified
-                        'deepcoin/copytrading/history-profit': 5, // not unified
-                        'deepcoin/copytrading/follower-rank': 5, // not unified
-                        'deepcoin/internal-transfer/support': 5, // not unified
-                        'deepcoin/internal-transfer/history-order': 5, // not unified
-                        'deepcoin/rebate/config': 5, // not unified
-                        'deepcoin/agents/users': 5,  // not unified
-                        'deepcoin/agents/users/rebate-list': 5, // not unified
-                        'deepcoin/agents/users/rebates': 5, // not unified
+                        'deepcoin/copytrading/support-contracts': 5,
+                        'deepcoin/copytrading/leader-position': 5,
+                        'deepcoin/copytrading/estimate-profit': 5,
+                        'deepcoin/copytrading/history-profit': 5,
+                        'deepcoin/copytrading/follower-rank': 5,
+                        'deepcoin/internal-transfer/support': 5,
+                        'deepcoin/internal-transfer/history-order': 5,
+                        'deepcoin/rebate/config': 5,
+                        'deepcoin/agents/users': 5,
+                        'deepcoin/agents/users/rebate-list': 5,
+                        'deepcoin/agents/users/rebates': 5,
                         'deepcoin/asset/deposit-list': 5, // done
-                        'deepcoin/asset/withdraw-list': 5, // done
-                        'deepcoin/asset/recharge-chain-list': 5, // done
-                        'deepcoin/listenkey/acquire': 5, // done
-                        'deepcoin/listenkey/extend': 5, // done
+                        'deepcoin/asset/withdraw-list': 5,
+                        'deepcoin/asset/recharge-chain-list': 5,
                     },
                     'post': {
                         'deepcoin/account/set-leverage': 5, // done
@@ -203,11 +200,11 @@ export default class deepcoin extends Exchange {
                         'deepcoin/trade/batch-close-position': 5, // done
                         'deepcoin/trade/replace-order-sltp': 5,
                         'deepcoin/trade/close-position-by-ids': 5, // done
-                        'deepcoin/copytrading/leader-settings': 5, // not unified
-                        'deepcoin/copytrading/set-contracts': 5, // not unified
-                        'deepcoin/internal-transfer': 5, // not unified
-                        'deepcoin/rebate/config': 5, // not unified
-                        'deepcoin/asset/transfer': 5, // done
+                        'deepcoin/copytrading/leader-settings': 5,
+                        'deepcoin/copytrading/set-contracts': 5,
+                        'deepcoin/internal-transfer': 5,
+                        'deepcoin/rebate/config': 5,
+                        'deepcoin/asset/transfer': 5,
                     },
                 },
             },
@@ -227,19 +224,8 @@ export default class deepcoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'recvWindow': 5000,
-                'defaultNetworks': {
-                    'ETH': 'ERC20',
-                    'USDT': 'TRC20',
-                    'USDC': 'ERC20',
-                },
                 'networks': {
                     'ERC20': 'ERC20', // todo add more networks
-                    'TRC20': 'TRC20',
-                    'ARB': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
-                    'SOL': 'SOL',
-                    'BTC': 'Bitcoin',
-                    'ADA': 'Cardano',
                 },
                 'networksById': {
                 },
@@ -257,34 +243,22 @@ export default class deepcoin extends Exchange {
                     'SPOT': 'SPOT',
                     'SWAP': 'SWAP',
                 },
-                'accountsByType': {
-                    'spot': 1,
-                    'fund': 2,
-                    'rebate': 3,
-                    'inverse': 5,
-                    'linear': 7,
-                    'demo': 10,
-                },
             },
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '24': OrderNotFound, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
-                    '31': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
-                    '36': InsufficientFunds, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
-                    '44': BadRequest, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
-                    '194': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
-                    '195': InvalidOrder, // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
-                    '199': BadRequest, // {"code":"0","msg":"","data":{"instId":"","lever":"","mgnMode":"","mrgPosition":"","sCode":"199","sMsg":"LeverageTooHigh:Amount[10000.0]\u003eLeverage[75.1880]"}}
-                    'unsupportedAction': BadRequest,
-                    'localIDNotExist': BadRequest,
+                    // { code: '51', msg: 'The instType field is required', data: null }
+                    // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
+                    // {"code":"51","msg":"The productGroup field is required","data":null}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"194","sMsg":"LessThanMinVolume"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"36","sMsg":"InsufficientMoney:-0.000004"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"195","sMsg":"PositionLessThanMinVolume"}}
+                    // {"code":"50","msg":"len(rows) expected(1) got(0) rows([])","data":null}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","sCode":"24","sMsg":"OrderNotFound:1"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"44","sMsg":"VolumeNotOnTick"}}
+                    // {"code":"0","msg":"","data":{"ordId":"","clOrdId":"","tag":"","sCode":"31","sMsg":"NotEnoughPositionToClose:Position=0"}}
                 },
-                'broad': {
-                    'no available': NotSupported, // orderbook does not exist: ETHUSD_0.1, no available orderbook data
-                    'field is required': ArgumentsRequired, // {"code":"51","msg":"The productGroup field is required","data":null}
-                    'not in acceptable range': BadRequest, // {"code":"51","msg":"The instType value `spot` is not in acceptable range: SPOT,SWAP","data":null}
-                    'subscription cluster does not "exist"': BadRequest,
-                },
+                'broad': {},
             },
         });
     }
@@ -544,8 +518,7 @@ export default class deepcoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.milliseconds ();
-        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
     }
 
     /**
@@ -811,6 +784,9 @@ export default class deepcoin extends Exchange {
     }
 
     parseTakerOrMaker (execType: Str) {
+        if (execType === undefined) {
+            return undefined;
+        }
         const types = {
             'T': 'taker',
             'M': 'maker',
@@ -912,46 +888,6 @@ export default class deepcoin extends Exchange {
         return this.parseTransactions (items, currency, since, limit, transactionParams);
     }
 
-    /**
-     * @method
-     * @name deepcoin#fetchWithdrawals
-     * @description fetch all withdrawals made from an account
-     * @see https://www.deepcoin.com/docs/assets/withdraw
-     * @param {string} code unified currency code of the currency transferred
-     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        const request: Dict = {};
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['size'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['endTime'] = until;
-            params = this.omit (params, 'until');
-        }
-        const response = await this.privateGetDeepcoinAssetWithdrawList (this.extend (request, params));
-        const data = this.safeDict (response, 'data', {});
-        const items = this.safeList (data, 'data', []);
-        const transactionParams: Dict = {
-            'type': 'withdrawal',
-        };
-        return this.parseTransactions (items, currency, since, limit, transactionParams);
-    }
-
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
@@ -980,7 +916,7 @@ export default class deepcoin extends Exchange {
             'network': network,
             'addressFrom': undefined,
             'addressTo': undefined,
-            'address': this.safeString (transaction, 'address'), // todo check
+            'address': undefined,
             'tagFrom': undefined,
             'tagTo': undefined,
             'tag': undefined,
@@ -999,295 +935,12 @@ export default class deepcoin extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str): Str {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'confirming': 'pending',
             'succeed': 'ok',
         };
         return this.safeString (statuses, status, status);
-    }
-
-    /**
-     * @method
-     * @name deepcoin#fetchDepositAddresses
-     * @description fetch deposit addresses for multiple currencies and chain types
-     * @see https://www.deepcoin.com/docs/assets/chainlist
-     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-     */
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
-        await this.loadMarkets ();
-        if (codes === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list with one currency code');
-        }
-        if (codes.length !== 1) {
-            throw new NotSupported (this.id + ' fetchDepositAddresses requires a list with one currency code');
-        }
-        const code = codes[0];
-        const currency = this.currency (code);
-        const request: Dict = {
-            'currency_id': currency['id'],
-            'lang': 'en',
-        };
-        const response = await this.privateGetDeepcoinAssetRechargeChainList (this.extend (request, params));
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "",
-        //         "data": {
-        //             "list": [
-        //                 {
-        //                     "chain": "TRC20",
-        //                     "state": 1,
-        //                     "remind": "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
-        //                     "inNotice": "",
-        //                     "actLogo": "",
-        //                     "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        //                     "hasMemo": false,
-        //                     "memo": "",
-        //                     "estimatedTime": 1,
-        //                     "fastConfig": {
-        //                         "fastLimitNum": 0,
-        //                         "fastBlock": 10,
-        //                         "realBlock": 1
-        //                     }
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const list = this.safeList (data, 'list', []);
-        const additionalParams: Dict = {
-            'currency': code,
-        };
-        return this.parseDepositAddresses (list, codes, false, additionalParams);
-    }
-
-    /**
-     * @method
-     * @name deepcoin#fetchDepositAddress
-     * @description fetch the deposit address for a currency associated with this account
-     * @see https://www.deepcoin.com/docs/assets/chainlist
-     * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.network] unified network code for deposit chain
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-     */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        let network = this.safeString (params, 'network');
-        const defaultNetworks = this.safeDict (this.options, 'defaultNetworks', {});
-        const defaultNetwork = this.safeString (defaultNetworks, code);
-        network = network ? network : defaultNetwork;
-        if (network !== undefined) {
-            params = this.omit (params, 'network');
-        }
-        const addressess = await this.fetchDepositAddresses ([ code ], params);
-        const length = addressess.length;
-        let address = this.safeDict (addressess, 0, {});
-        if ((network !== undefined) && (length > 1)) {
-            for (let i = 0; i < length; i++) {
-                const entry = addressess[i];
-                if (entry['network'] === network) {
-                    address = entry;
-                }
-            }
-        }
-        return address as DepositAddress;
-    }
-
-    parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
-        //
-        //     {
-        //         "chain": "TRC20",
-        //         "state": 1,
-        //         "remind": "Only support deposits and withdrawals via TRC20 network. If you send it via other address by mistake, it will not be credited and will result in the permanent loss of your deposit.",
-        //         "inNotice": "",
-        //         "actLogo": "",
-        //         "address": "TNJYDW9Bk87VwfA6s7FtxURLEMHesQbYgF",
-        //         "hasMemo": false,
-        //         "memo": "",
-        //         "estimatedTime": 1,
-        //         "fastConfig": {
-        //             "fastLimitNum": 0,
-        //             "fastBlock": 10,
-        //             "realBlock": 1
-        //         }
-        //     }
-        //
-        const chain = this.safeString (response, 'chain');
-        const address = this.safeString (response, 'address');
-        this.checkAddress (address);
-        return {
-            'info': response,
-            'currency': undefined,
-            'network': this.networkIdToCode (chain),
-            'address': address,
-            'tag': this.safeString (response, 'memo'),
-        } as DepositAddress;
-    }
-
-    /**
-     * @method
-     * @name deepcoin#fetchLedger
-     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills
-     * @param {string} [code] unified currency code
-     * @param {int} [since] timestamp in ms of the earliest ledger entry
-     * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
-     */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, marketType);
-        const request: Dict = {
-            'instType': this.convertToInstrumentType (marketType),
-        };
-        let currency = undefined;
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['ccy'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['after'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['before'] = until;
-            params = this.omit (params, 'until');
-        }
-        const response = await this.privateGetDeepcoinAccountBills (this.extend (request, params));
-        //
-        //     {
-        //         "code": "0",
-        //         "msg": "",
-        //         "data": [
-        //             {
-        //                 "billId": "1001044652247714",
-        //                 "ccy": "USDT",
-        //                 "clientId": "",
-        //                 "balChg": "-0.03543537",
-        //                 "bal": "72.41881427",
-        //                 "type": "5",
-        //                 "ts": "1761047448000"
-        //             },
-        //             {
-        //                 "billId": "1001044652258368",
-        //                 "ccy": "DOGE",
-        //                 "clientId": "",
-        //                 "balChg": "76",
-        //                 "bal": "76",
-        //                 "type": "2",
-        //                 "ts": "1761051006000"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        return this.parseLedger (data, currency, since, limit);
-    }
-
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
-        //
-        //     {
-        //         "billId": "1001044652247714",
-        //         "ccy": "USDT",
-        //         "clientId": "",
-        //         "balChg": "-0.03543537",
-        //         "bal": "72.41881427",
-        //         "type": "5",
-        //         "ts": "1761047448000"
-        //     }
-        //
-        const timestamp = this.safeInteger (item, 'ts');
-        const change = this.safeString (item, 'balChg');
-        const amount = Precise.stringAbs (change);
-        const direction = Precise.stringLt (change, '0') ? 'out' : 'in';
-        const currencyId = this.safeString (item, 'ccy');
-        currency = this.safeCurrency (currencyId, currency);
-        const type = this.safeString (item, 'type');
-        return this.safeLedgerEntry ({
-            'info': item,
-            'id': this.safeString (item, 'billId'),
-            'direction': direction,
-            'account': undefined,
-            'referenceAccount': undefined,
-            'referenceId': undefined,
-            'type': this.parseLedgerEntryType (type),
-            'currency': currency['code'],
-            'amount': amount,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'before': undefined,
-            'after': this.safeString (item, 'bal'),
-            'status': undefined,
-            'fee': undefined,
-        }, currency) as LedgerEntry;
-    }
-
-    parseLedgerEntryType (type) {
-        const ledgerType: Dict = {
-            '1': 'trade',
-            '2': 'trade',
-            '3': 'transfer',
-            '4': 'transfer',
-            '5': 'fee',
-        };
-        return this.safeString (ledgerType, type, type);
-    }
-
-    /**
-     * @method
-     * @name deepcoin#transfer
-     * @description transfer currency internally between wallets on the same account
-     * @see https://www.deepcoin.com/docs/assets/transfer
-     * @param {string} code unified currency code
-     * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
-     * @param {string} toAccount account to transfer to ('spot', 'inverse', 'linear', 'fund', 'rebate' or 'demo')
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.userId] user id
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-     */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        let userId = undefined;
-        [ userId, params ] = this.handleOptionAndParams (params, 'transfer', 'userId');
-        userId = userId ? userId : this.safeString (params, 'uid');
-        if (userId === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a userId parameter');
-        }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
-        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-        const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const request: Dict = {
-            'currency_id': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
-            'from_id': fromId,
-            'to_id': toId,
-            'uid': userId,
-        };
-        const response = await this.privatePostDeepcoinAssetTransfer (this.extend (request, params));
-        // todo check after finding out a userId
-        const transfer = this.parseTransfer (response, currency);
-        const transferOptions = this.safeDict (this.options, 'transfer', {});
-        const fillResponseFromRequest = this.safeBool (transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            transfer['fromAccount'] = fromAccount;
-            transfer['toAccount'] = toAccount;
-            transfer['amount'] = amount;
-        }
-        return transfer;
     }
 
     /**
@@ -2526,30 +2179,5 @@ export default class deepcoin extends Exchange {
             headers['DC-ACCESS-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        const data = this.safeDict (response, 'data', {});
-        let msg = this.safeString (response, 'msg');
-        const messageCode = this.safeString (response, 'code');
-        const sCode = this.safeString (data, 'sCode');
-        const sMsg = this.safeString (data, 'sMsg');
-        if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
-            msg = sMsg;
-        }
-        const feedback = this.id + ' ' + body;
-        if ((code !== 200) || (messageCode !== '0') || (sCode !== undefined && sCode !== '0')) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], sCode, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], msg, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
-            throw new ExchangeError (feedback);
-        } else {
-            const list = this.safeList (data, 'list', []);
-            if (('list' in data) && (list === undefined)) {
-                throw new NullResponse (feedback);
-            }
-        }
-        return undefined;
     }
 }
