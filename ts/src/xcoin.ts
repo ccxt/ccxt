@@ -307,6 +307,29 @@ export default class xcoin extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name xcoin#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.publicGetV1MarketTime (params);
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": {
+        //            "time": "1761576724320"
+        //        },
+        //        "ts": "1761576724320"
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.safeInteger (data, 'time');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
