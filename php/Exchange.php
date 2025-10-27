@@ -340,6 +340,7 @@ class Exchange {
     public static $exchanges = array(
         'alpaca',
         'apex',
+        'arkham',
         'ascendex',
         'backpack',
         'bequant',
