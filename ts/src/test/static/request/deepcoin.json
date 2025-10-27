@@ -3,7 +3,76 @@
     "skipKeys": [ ],
     "outputType": "json",
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT-SWAP&limit=1&productGroup=SwapU",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT&limit=1&productGroup=Spot",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers for spot",
+                "method": "fetchTickers",
+                "url": "https://api.deepcoin.com/deepcoin/market/tickers?instType=SPOT",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch candles for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=ETH-USDT&bar=1m&limit=1",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch candles for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.deepcoin.com/deepcoin/market/candles?instId=ETH-USDT-SWAP&bar=1m&limit=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
         "fetchOrderBook": [
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.deepcoin.com/deepcoin/market/books?instId=ETH-USDT-SWAP&sz=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch order book",
                 "method": "fetchOrderBook",
