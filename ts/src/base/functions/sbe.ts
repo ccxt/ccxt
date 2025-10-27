@@ -21,6 +21,7 @@ interface SbeMessage {
     name: string;
     fields: SbeField[];
     groups: SbeGroup[];
+    data: SbeDataField[];
 }
 
 interface SbeField {
@@ -28,6 +29,11 @@ interface SbeField {
     type: string;
     offset: number;
     size: number;
+}
+
+interface SbeDataField {
+    name: string;
+    type: string;  // varString8, varString16, messageData, etc.
 }
 
 interface SbeGroup {
@@ -88,6 +94,7 @@ export function parseSbeSchema (schemaPath: string): SbeSchema {
             name,
             fields: [],
             groups: [],
+            data: [],
         };
 
         // Parse fields
@@ -136,6 +143,17 @@ export function parseSbeSchema (schemaPath: string): SbeSchema {
             }
 
             message.groups.push(group);
+        }
+
+        // Parse variable-length data fields
+        const dataRegex = /<data\s+id="\d+"\s+name="([^"]+)"\s+type="([^"]+)"/g;
+        let dataMatch;
+        while ((dataMatch = dataRegex.exec(content)) !== null) {
+            const [, dataName, dataType] = dataMatch;
+            message.data.push({
+                name: dataName,
+                type: dataType,
+            });
         }
 
         schema.messages.set(messageId, message);
@@ -245,6 +263,37 @@ export function createSbeDecoder (schema: SbeSchema) {
                 }
 
                 result[group.name] = groupItems;
+            }
+
+            // Decode variable-length data fields
+            for (const dataField of message.data) {
+                // Read length prefix (size depends on type)
+                let length: number;
+                if (dataField.type === 'varString8' || dataField.type === 'varData8' || dataField.type === 'optionalVarString') {
+                    length = view.getUint8(offset);
+                    offset += 1;
+                } else if (dataField.type === 'varString16' || dataField.type === 'varData16' || dataField.type === 'varString' || dataField.type === 'messageData') {
+                    length = view.getUint16(offset, littleEndian);
+                    offset += 2;
+                } else {
+                    console.log(`Unknown variable-length type: ${dataField.type}`);
+                    continue;
+                }
+
+                // Extract the data
+                if (dataField.type.includes('String')) {
+                    // Decode as UTF-8 string
+                    const dataBytes = new Uint8Array(buffer, offset, length);
+                    const decoder = new TextDecoder('utf-8');
+                    result[dataField.name] = decoder.decode(dataBytes);
+                } else if (dataField.type === 'messageData') {
+                    // Return as ArrayBuffer for nested message decoding
+                    result[dataField.name] = buffer.slice(offset, offset + length);
+                } else {
+                    // Return as Uint8Array for binary data
+                    result[dataField.name] = new Uint8Array(buffer, offset, length);
+                }
+                offset += length;
             }
 
             return result;

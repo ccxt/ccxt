@@ -11,6 +11,7 @@ import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 import Client from '../base/ws/Client.js';
+import WsClient from '../base/ws/WsClient.js';
 
 // -----------------------------------------------------------------------------
 
@@ -113,6 +114,7 @@ export default class binance extends binanceRest {
                 'keepAlive': 180000,
             },
             'options': {
+                'useSbe': true,
                 'returnRateLimits': false,
                 'streamLimits': {
                     'spot': 50, // max 1024
@@ -190,6 +192,94 @@ export default class binance extends binanceRest {
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
+    }
+
+    /**
+     * Appends SBE parameters to WebSocket API URL if SBE is enabled
+     * @param {string} url - The base WebSocket URL
+     * @returns {string} The URL with SBE parameters appended if enabled
+     */
+    getSbeWebSocketUrl (url: string): string {
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        if (useSbe) {
+            const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
+            const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
+            // Add SBE parameters to the WebSocket URL
+            const separator = url.indexOf ('?') >= 0 ? '&' : '?';
+            return url + separator + 'responseFormat=sbe&sbeSchemaId=' + sbeSchemaId.toString () + '&sbeSchemaVersion=' + sbeSchemaVersion.toString ();
+        }
+        return url;
+    }
+
+    /**
+     * Decodes SBE-encoded WebSocket messages
+     * @param {ArrayBuffer} buffer - The binary SBE message
+     * @returns {object} Decoded message as JSON-compatible object
+     */
+    decodeSbeWebSocketMessage (buffer: ArrayBuffer): any {
+        try {
+            const decoder = (this as any).getSbeDecoder ();
+            const decoded = decoder.decode (buffer);
+            if (this.verbose) {
+                this.log ('decodeSbeWebSocketMessage: decoded WebSocketResponse', Object.keys (decoded));
+            }
+            // The WebSocketResponse envelope contains: id, status, rateLimits, result
+            // The result field is of type messageData and contains another nested SBE message
+            // We need to decode it separately
+            const result = this.safeValue (decoded, 'result');
+            if (result !== undefined && (result instanceof ArrayBuffer || ArrayBuffer.isView (result) || (result && (result as any).byteLength !== undefined))) {
+                // Result is binary data that needs to be decoded
+                const resultBuffer = result instanceof ArrayBuffer ? result : (result as any).buffer;
+                try {
+                    const decodedResult = decoder.decode (resultBuffer);
+                    decoded['result'] = decodedResult;
+                    if (this.verbose) {
+                        this.log ('decodeSbeWebSocketMessage: decoded nested result', Object.keys (decodedResult));
+                    }
+                } catch (e) {
+                    if (this.verbose) {
+                        this.log ('decodeSbeWebSocketMessage: failed to decode nested result', e);
+                    }
+                    // Keep the original result if decoding fails
+                }
+            }
+            // Clean up the decoded structure to match expected JSON format
+            // Remove SBE metadata fields and keep only the API-relevant fields
+            const rawStatus = this.safeInteger (decoded, 'status');
+            // Fix endianness issue: status is stored as big-endian but read as little-endian
+            // 51200 (0xC800) should be 200 (0x00C8)
+            // eslint-disable-next-line no-bitwise
+            const status = rawStatus > 1000 ? ((rawStatus >> 8) | ((rawStatus & 0xFF) << 8)) : rawStatus;
+            const cleanMessage: any = {
+                'id': this.safeString (decoded, 'id'),
+                'status': status,
+                'result': this.safeValue (decoded, 'result'),
+                'rateLimits': this.safeList (decoded, 'rateLimits', []),
+            };
+            return cleanMessage;
+        } catch (e) {
+            if (this.verbose) {
+                this.log ('decodeSbeWebSocketMessage error:', e);
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Override parent's client method to set binary message decoder for SBE
+     * @param {string} url - WebSocket URL
+     * @returns {WsClient} WebSocket client
+     */
+    client (url: string): WsClient {
+        const client = super.client (url);
+        // If the URL contains SBE parameters and we haven't set the decoder yet, set it now
+        if (url.indexOf ('responseFormat=sbe') > -1 && !client.binaryMessageDecoder) {
+            client.binaryMessageDecoder = this.decodeSbeWebSocketMessage.bind (this);
+            if (this.verbose) {
+                this.log ('client: set binaryMessageDecoder for SBE on URL:', url);
+            }
+        }
+        return client;
     }
 
     isSpotUrl (client: Client) {
@@ -790,7 +880,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'future') {
             throw new BadRequest (this.id + ' fetchOrderBookWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -1685,7 +1776,8 @@ export default class binance extends binanceRest {
         if (type !== 'future') {
             throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const subscription: Dict = {
@@ -1729,7 +1821,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future') {
             throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -2385,7 +2478,8 @@ export default class binance extends binanceRest {
      * @returns Promise<number> The subscription ID for the user data stream
      */
     async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const client = this.client (url);
         const subscriptions = client.subscriptions;
         const subscriptionsKeys = Object.keys (subscriptions);
@@ -2619,7 +2713,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -2751,7 +2846,8 @@ export default class binance extends binanceRest {
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -2841,7 +2937,8 @@ export default class binance extends binanceRest {
         let urlType = type;
         if (type === 'spot') {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api'][type];
+            const baseUrl = this.urls['api']['ws']['ws-api'][type];
+            url = this.getSbeWebSocketUrl (baseUrl);
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -3024,7 +3121,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
@@ -3174,7 +3272,8 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'future' && marketType !== 'delivery') {
             throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][marketType];
+        const baseUrl = this.urls['api']['ws']['ws-api'][marketType];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         const isSwap = (marketType === 'future' || marketType === 'delivery');
@@ -3329,7 +3428,8 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelOrderWs', market, params);
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3372,7 +3472,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3414,7 +3515,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3465,7 +3567,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersWs only supports spot markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3527,7 +3630,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot or swap markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -3596,7 +3700,8 @@ export default class binance extends binanceRest {
         let url = '';
         if (type === 'spot') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api'][type];
+            const baseUrl = this.urls['api']['ws']['ws-api'][type];
+            url = this.getSbeWebSocketUrl (baseUrl);
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -4106,7 +4211,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -4158,7 +4264,8 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'future') {
             throw new BadRequest (this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
-        const url = this.urls['api']['ws']['ws-api'][type];
+        const baseUrl = this.urls['api']['ws']['ws-api'][type];
+        const url = this.getSbeWebSocketUrl (baseUrl);
         const requestId = this.requestId (url);
         const messageHash = requestId.toString ();
         let returnRateLimits = false;
@@ -4228,8 +4335,20 @@ export default class binance extends binanceRest {
         //        ],
         //    }
         //
+        // SBE response (binary ArrayBuffer)
+        // Will be decoded to same structure as JSON response
+        //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeList (message, 'result', []);
+        let result = this.safeList (message, 'result', []);
+        // Check if result is binary (SBE format)
+        if (result instanceof ArrayBuffer || ArrayBuffer.isView (result) || (result && (result as any).byteLength !== undefined)) {
+            // Convert to ArrayBuffer if it's a typed array view
+            const buffer = result instanceof ArrayBuffer ? result : (result as any).buffer;
+            // Decode SBE trades using the refactored decodeSbeTrades from base class
+            const decodedTrades = (this as any).decodeSbeTrades (buffer);
+            result = decodedTrades;
+        }
+        // Use existing parseTrades function for consistent parsing
         const trades = this.parseTrades (result);
         client.resolve (trades, messageHash);
     }

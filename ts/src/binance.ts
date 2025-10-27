@@ -1300,7 +1300,7 @@ export default class binance extends Exchange {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
-                'useSbe': false, // use SBE (Simple Binary Encoding) for spot API when available
+                'useSbe': true, // use SBE (Simple Binary Encoding) for spot API when available
                 'sbeSchemaId': 3, // Binance SBE schema ID
                 'sbeSchemaVersion': 1, // Binance SBE schema version
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -4299,6 +4299,11 @@ export default class binance extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
+        // Check if SBE is enabled for spot bookTicker endpoint
+        const useSbe = this.safeBool (this.options, 'useSbe', false);
+        const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
+        const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
+        const isSpotBookTicker = type === 'spot';
         let response = undefined;
         if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker (params);
@@ -4309,7 +4314,31 @@ export default class binance extends Exchange {
             if (symbols !== undefined) {
                 request['symbols'] = this.json (this.marketIds (symbols));
             }
-            response = await this.publicGetTickerBookTicker (this.extend (request, params));
+            if (useSbe && isSpotBookTicker) {
+                // Use SBE for spot bookTicker endpoint /api/v3/ticker/bookTicker
+                const sbeHeaders = {
+                    'Accept': 'application/sbe',
+                    'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
+                };
+                // Call request directly with headers as a separate parameter
+                response = await this.request ('ticker/bookTicker', 'public', 'GET', this.extend (request, params), sbeHeaders, undefined);
+                // Decode SBE response
+                if (this.verbose) {
+                    this.log ('fetchBidsAsks SBE response type:', typeof response, 'is ArrayBuffer:', response instanceof ArrayBuffer, 'is View:', ArrayBuffer.isView (response));
+                }
+                if (response instanceof ArrayBuffer || ArrayBuffer.isView (response) || (response && (response as any).byteLength !== undefined)) {
+                    // Convert to ArrayBuffer if it's a typed array view
+                    const buffer = response instanceof ArrayBuffer ? response : (response as any).buffer;
+                    const decodedTickers = this.decodeSbeBookTicker (buffer, symbols);
+                    response = decodedTickers;
+                } else {
+                    if (this.verbose) {
+                        this.log ('fetchBidsAsks: Response is not binary, got:', response);
+                    }
+                }
+            } else {
+                response = await this.publicGetTickerBookTicker (this.extend (request, params));
+            }
         } else {
             throw new NotSupported (this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
@@ -5013,12 +5042,11 @@ export default class binance extends Exchange {
         }, market);
     }
 
-    getSbeDecoder () {
+    getSbeDecoder (schemaName = 'spot_3_1.xml') {
         if (this['sbeDecoder'] === undefined) {
             try {
-                // Use path from current working directory to sbe schema
-                // const schemaPath = path.join (process.cwd (), 'sbe', 'binance', 'spot_3_1.xml');
-                const schema = parseSbeSchema ('/Users/pablo/github/ccxt.git/master/sbe/binance/spot_3_1.xml');
+                // Use loadSbeSchema from base Exchange class
+                const schema = this.loadSbeSchema (schemaName);
                 this['sbeDecoder'] = createSbeDecoder (schema);
             } catch (e) {
                 // If schema file not found, disable SBE
@@ -5029,7 +5057,7 @@ export default class binance extends Exchange {
         return this['sbeDecoder'];
     }
 
-    decodeSbeTrades (buffer: ArrayBuffer): any[] {
+    decodeSbeTrades (buffer: ArrayBuffer, market: Market = undefined): Trade[] {
         const decoder = this.getSbeDecoder ();
         const decoded = decoder.decode (buffer);
         if (this.verbose) {
@@ -5057,7 +5085,8 @@ export default class binance extends Exchange {
                 this.log ('decodeSbeTrades: first trade raw:', trades[0]);
             }
         }
-        return trades.map ((trade: any) => {
+        // Convert SBE trades to standard format and use parseTrades
+        const normalizedTrades = trades.map ((trade: any) => {
             const price = applyExponent (trade.price, priceExponent);
             const qty = applyExponent (trade.qty, qtyExponent);
             const quoteQty = applyExponent (trade.quoteQty, priceExponent);
@@ -5072,6 +5101,53 @@ export default class binance extends Exchange {
                 'isBestMatch': trade.isBestMatch === 1,
             };
         });
+        // Reuse existing parseTrades function to ensure consistent trade structure
+        return this.parseTrades (normalizedTrades, market);
+    }
+
+    decodeSbeBookTicker (buffer: ArrayBuffer, symbols: Strings = undefined): Tickers {
+        const decoder = this.getSbeDecoder ();
+        const decoded = decoder.decode (buffer);
+        if (this.verbose) {
+            this.log ('decodeSbeBookTicker: decoded keys:', Object.keys (decoded));
+            this.log ('decodeSbeBookTicker: priceExponent:', decoded.priceExponent, 'qtyExponent:', decoded.qtyExponent);
+        }
+        // Extract exponents
+        const priceExponent = decoded.priceExponent || 0;
+        const qtyExponent = decoded.qtyExponent || 0;
+        // Check if it's a single ticker (BookTickerSymbolResponse) or multiple (BookTickerResponse)
+        let tickers = decoded.tickers || [];
+        const isSingleTicker = !Array.isArray (tickers) && tickers.length === undefined;
+        if (isSingleTicker) {
+            // Single ticker response - wrap in array
+            if (decoded.symbol !== undefined) {
+                tickers = [ decoded ];
+            } else {
+                tickers = [];
+            }
+        }
+        if (this.verbose) {
+            this.log ('decodeSbeBookTicker: tickers count:', tickers.length);
+            if (tickers.length > 0) {
+                this.log ('decodeSbeBookTicker: first ticker raw:', tickers[0]);
+            }
+        }
+        // Convert SBE tickers to standard format
+        const normalizedTickers = tickers.map ((ticker: any) => {
+            const bidPrice = applyExponent (ticker.bidPrice, priceExponent);
+            const bidQty = applyExponent (ticker.bidQty, qtyExponent);
+            const askPrice = applyExponent (ticker.askPrice, priceExponent);
+            const askQty = applyExponent (ticker.askQty, qtyExponent);
+            return {
+                'symbol': this.safeString (ticker, 'symbol'),
+                'bidPrice': String (bidPrice),
+                'bidQty': String (bidQty),
+                'askPrice': String (askPrice),
+                'askQty': String (askQty),
+            };
+        });
+        // Reuse existing parseTickers function to ensure consistent ticker structure
+        return this.parseTickers (normalizedTickers, symbols);
     }
 
     /**
@@ -5145,7 +5221,7 @@ export default class binance extends Exchange {
         const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
         const isSpotTrades = market['spot'] && method === 'publicGetTrades';
         let response = undefined;
-        if (useSbe && isSpotTrades) {
+        if (useSbe) {
             // Use SBE for spot trades endpoint /api/v3/trades
             const sbeHeaders = {
                 'Accept': 'application/sbe',
@@ -5160,7 +5236,7 @@ export default class binance extends Exchange {
             if (response instanceof ArrayBuffer || ArrayBuffer.isView (response) || (response && response.byteLength !== undefined)) {
                 // Convert to ArrayBuffer if it's a typed array view
                 const buffer = response instanceof ArrayBuffer ? response : response.buffer;
-                const decodedTrades = this.decodeSbeTrades (buffer);
+                const decodedTrades = this.decodeSbeTrades (buffer, market);
                 response = decodedTrades;
             } else {
                 if (this.verbose) {
