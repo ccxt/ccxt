@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @class arkham
  * @augments Exchange
@@ -22,7 +22,7 @@ class arkham extends arkham$1["default"] {
             'version': 'v1',
             'rateLimit': 20 / 3,
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -71,7 +71,7 @@ class arkham extends arkham$1["default"] {
                 '1d': '24h',
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/5cefdcfb-2c10-445b-835c-fa21317bf5ac',
                 'api': {
                     'v1': 'https://arkm.com/api',
                 },
