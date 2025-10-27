@@ -31,8 +31,8 @@ export default class xcoin extends Exchange {
                 'fetchTime': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
-            },
-            'timeframes': {
+                'fetchTrades': true,
+                'fetchOHLCV': true,
             },
             'hostname': 'xcoin.com',
             'urls': {
@@ -136,6 +136,23 @@ export default class xcoin extends Exchange {
                         'v1/earn/flexible/setFlexibleOnOff': 1,
                     },
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'options': {
                 'fetchTickers': {
@@ -548,6 +565,72 @@ export default class xcoin extends Exchange {
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://xcoin.com/docs/coinApi/ticker/get-kline-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let request: Dict = {
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 200, default 200
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.publicGetV1MarketKline (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            [
+        //                "1h",
+        //                "1761588000000",
+        //                "1761588972388",
+        //                "115647.3",
+        //                "115674.9",
+        //                "115742",
+        //                "115493.4",
+        //                "254.0191",
+        //                "29372081.25293",
+        //                "1228",
+        //                "27.6",
+        //                "0.000238656674215481"
+        //            ],
+        //        ],
+        //        "ts": "1761588974866"
+        //    }
+        //
+        const data = this.safeList (response, 'data');
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 1),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, 6),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 7),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
