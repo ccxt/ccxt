@@ -1044,6 +1044,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " unWatchTicker() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMarkPrice() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchMarkPrices() is not supported yet")) ;
+    }
+
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();

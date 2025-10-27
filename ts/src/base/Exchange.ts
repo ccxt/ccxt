@@ -2632,6 +2632,14 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchTicker() is not supported yet');
     }
 
+    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchMarkPrice() is not supported yet');
+    }
+
+    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchMarkPrices() is not supported yet');
+    }
+
     async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         throw new NotSupported (this.id + ' fetchDepositAddresses() is not supported yet');
     }
@@ -2981,7 +2989,7 @@ export default class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': this.safeInteger (this.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;

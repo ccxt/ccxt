@@ -1712,9 +1712,26 @@ public partial class bitget : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitget#setSandboxMode
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
     public override void setSandboxMode(object enabled)
     {
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
+    }
+
+    /**
+     * @method
+     * @name bitget#enableDemoTrading
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    public override void enableDemoTrading(object enabled)
+    {
+        this.setSandboxMode(enabled);
     }
 
     public virtual object handleProductTypeAndParams(object market = null, object parameters = null)
@@ -8479,7 +8496,11 @@ public partial class bitget : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            market = this.market(first);
+            // symbols can be undefined or []
+            if (isTrue(!isEqual(first, null)))
+            {
+                market = this.market(first);
+            }
         }
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -8499,7 +8520,7 @@ public partial class bitget : Exchange
         } else if (isTrue(isEqual(method, "privateMixGetV2MixPositionAllPosition")))
         {
             object marginCoin = this.safeString(parameters, "marginCoin", "USDT");
-            if (isTrue(!isEqual(symbols, null)))
+            if (isTrue(!isEqual(market, null)))
             {
                 marginCoin = getValue(market, "settleId");
             } else if (isTrue(isEqual(productType, "USDT-FUTURES")))

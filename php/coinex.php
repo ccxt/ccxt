@@ -2691,7 +2691,7 @@ class coinex extends Exchange {
         return $results;
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
          *

@@ -1097,7 +1097,7 @@ class bithumb(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def cancel_unified_order(self, order, params={}):
+    def cancel_unified_order(self, order: Order, params={}):
         request: dict = {
             'side': order['side'],
         }

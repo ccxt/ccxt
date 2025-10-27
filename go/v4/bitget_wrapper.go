@@ -854,7 +854,7 @@ func (this *Bitget) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
-func (this *Bitget) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]Order, error) {
+func (this *Bitget) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
 	opts := CancelOrdersOptionsStruct{}
 

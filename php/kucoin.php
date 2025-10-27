@@ -1613,7 +1613,7 @@ class kucoin extends Exchange {
                 $networkCodeNew = $this->network_id_to_code($this->safe_string($chain, 'chainId'), $this->safe_string($currency, 'code'));
                 $resultNew['networks'][$networkCodeNew] = array(
                     'withdraw' => array(
-                        'fee' => $this->safe_number($chain, 'withdrawMinFee'),
+                        'fee' => $this->safe_number_2($chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage' => false,
                     ),
                     'deposit' => array(

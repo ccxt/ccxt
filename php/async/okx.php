@@ -1307,8 +1307,9 @@ class okx extends Exchange {
                         'symbolRequired' => false,
                     ),
                     'fetchOHLCV' => array(
-                        'limit' => 300,
-                        'historical' => 100,
+                        'limit' => 300, // regular candles (recent & historical) both have 300 max
+                        'mark' => 100,
+                        'index' => 100,
                     ),
                 ),
                 'spot' => array(
@@ -2483,12 +2484,12 @@ class okx extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              *
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks-history
-             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks
-             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-$price-candlesticks-history
+             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-price-candlesticks
+             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-mark-price-candlesticks-history
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-index-candlesticks-history
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-candlesticks-history
@@ -2498,7 +2499,7 @@ class okx extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
+             * @param {string} [$params->price] "mark" or "index" for mark price and index price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {string} [$params->type] "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -2511,15 +2512,17 @@ class okx extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 200));
             }
-            $price = $this->safe_string($params, 'price');
+            $priceType = $this->safe_string($params, 'price');
+            $isMarkOrIndex = $this->in_array($priceType, array( 'mark', 'index' ));
             $params = $this->omit($params, 'price');
             $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $timezone = $this->safe_string($options, 'timezone', 'UTC');
             $limitIsUndefined = ($limit === null);
             if ($limit === null) {
-                $limit = 100; // default 100, max 100
+                $limit = 100; // default 100, max 300
             } else {
-                $limit = min ($limit, 300); // max 100
+                $maxLimit = $isMarkOrIndex ? 100 : 300; // default 300, only 100 if 'mark' or 'index'
+                $limit = min ($limit, $maxLimit);
             }
             $duration = $this->parse_timeframe($timeframe);
             $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -2539,8 +2542,8 @@ class okx extends Exchange {
                 $historyBorder = $now - ((1440 - 1) * $durationInMilliseconds);
                 if ($since < $historyBorder) {
                     $defaultType = 'HistoryCandles';
-                    $maxLimit = ($price !== null) ? 100 : 300;
-                    $limit = min ($limit, $maxLimit); // max 300 for historical endpoint
+                    $maxLimit = $isMarkOrIndex ? 100 : 300;
+                    $limit = min ($limit, $maxLimit);
                 }
                 $startTime = max ($since - 1, 0);
                 $request['before'] = $startTime;
@@ -2556,13 +2559,13 @@ class okx extends Exchange {
             $params = $this->omit($params, 'type');
             $isHistoryCandles = ($type === 'HistoryCandles');
             $response = null;
-            if ($price === 'mark') {
+            if ($priceType === 'mark') {
                 if ($isHistoryCandles) {
                     $response = Async\await($this->publicGetMarketHistoryMarkPriceCandles ($this->extend($request, $params)));
                 } else {
                     $response = Async\await($this->publicGetMarketMarkPriceCandles ($this->extend($request, $params)));
                 }
-            } elseif ($price === 'index') {
+            } elseif ($priceType === 'index') {
                 $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
                 if ($isHistoryCandles) {
                     $response = Async\await($this->publicGetMarketHistoryIndexCandles ($this->extend($request, $params)));
@@ -3615,7 +3618,7 @@ class okx extends Exchange {
         }
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders

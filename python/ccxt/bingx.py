@@ -5612,7 +5612,7 @@ class bingx(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        walletType = self.safe_integer(params, 'walletType', 1)
+        walletType = self.safe_integer(params, 'walletType', 15)
         request: dict = {
             'coin': currency['id'],
             'address': address,

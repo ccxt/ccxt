@@ -2263,6 +2263,12 @@ class Exchange {
     async unWatchTicker(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchTicker() is not supported yet');
     }
+    async unWatchMarkPrice(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchMarkPrice() is not supported yet');
+    }
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchMarkPrices() is not supported yet');
+    }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
     }
@@ -2550,7 +2556,7 @@ class Exchange {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': this.safeInteger(this.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
@@ -2678,6 +2684,9 @@ class Exchange {
         if (this.features === undefined) {
             return defaultValue;
         }
+        if (marketType === undefined) {
+            return defaultValue; // marketType is required
+        }
         // if marketType (e.g. 'option') does not exist in features
         if (!(marketType in this.features)) {
             return defaultValue; // unsupported marketType, check "exchange.features" for details
@@ -2704,7 +2713,7 @@ class Exchange {
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (methodName === undefined) {
-            return methodsContainer;
+            return (defaultValue !== undefined) ? defaultValue : methodsContainer;
         }
         if (!(methodName in methodsContainer)) {
             return defaultValue; // unsupported method, check "exchange.features" for details');
@@ -2715,7 +2724,7 @@ class Exchange {
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if (paramName === undefined) {
-            return methodDict;
+            return (defaultValue !== undefined) ? defaultValue : methodDict;
         }
         const splited = paramName.split('.'); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         const parentKey = splited[0];
@@ -5704,6 +5713,9 @@ class Exchange {
     }
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelOrderWs() is not supported yet');
+    }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' cancelOrders() is not supported yet');
     }
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' cancelOrdersWs() is not supported yet');

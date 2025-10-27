@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.10'
+__version__ = '4.5.11'
 
 # -----------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool, Order
 
 # -----------------------------------------------------------------------------
 
@@ -2674,6 +2674,12 @@ class Exchange(object):
     def un_watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTicker() is not supported yet')
 
+    def un_watch_mark_price(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchMarkPrice() is not supported yet')
+
+    def un_watch_mark_prices(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchMarkPrices() is not supported yet')
+
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
 
@@ -2943,7 +2949,7 @@ class Exchange(object):
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
-            'maxCapacity': 1000,
+            'maxCapacity': self.safe_integer(self.options, 'maxRequestsQueue', 1000),
             'refillRate': refillRate,
         }
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
@@ -3050,6 +3056,8 @@ class Exchange(object):
         # if exchange does not yet have features manually implemented
         if self.features is None:
             return defaultValue
+        if marketType is None:
+            return defaultValue  # marketType is required
         # if marketType(e.g. 'option') does not exist in features
         if not (marketType in self.features):
             return defaultValue  # unsupported marketType, check "exchange.features" for details
@@ -3069,7 +3077,7 @@ class Exchange(object):
             methodsContainer = self.features[marketType][subType]
         # if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if methodName is None:
-            return methodsContainer
+            return defaultValue if (defaultValue is not None) else methodsContainer
         if not (methodName in methodsContainer):
             return defaultValue  # unsupported method, check "exchange.features" for details')
         methodDict = methodsContainer[methodName]
@@ -3077,7 +3085,7 @@ class Exchange(object):
             return defaultValue
         # if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
         if paramName is None:
-            return methodDict
+            return defaultValue if (defaultValue is not None) else methodDict
         splited = paramName.split('.')  # can be only parent key(`stopLoss`) or with child(`stopLoss.triggerPrice`)
         parentKey = splited[0]
         subKey = self.safe_string(splited, 1)
@@ -5592,6 +5600,9 @@ class Exchange(object):
     def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrderWs() is not supported yet')
 
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' cancelOrders() is not supported yet')
+
     def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelOrdersWs() is not supported yet')
 
@@ -5607,7 +5618,7 @@ class Exchange(object):
     def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')
 
-    def cancel_unified_order(self, order, params={}):
+    def cancel_unified_order(self, order: Order, params={}):
         return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

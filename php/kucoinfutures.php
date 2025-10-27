@@ -1793,7 +1793,7 @@ class kucoinfutures extends kucoin {
         return $this->safe_order(array( 'info' => $response ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
          *

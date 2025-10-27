@@ -5892,7 +5892,7 @@ export default class bingx extends Exchange {
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);
-        const walletType = this.safeInteger(params, 'walletType', 1);
+        const walletType = this.safeInteger(params, 'walletType', 15);
         const request = {
             'coin': currency['id'],
             'address': address,

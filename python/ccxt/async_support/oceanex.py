@@ -944,7 +944,7 @@ class oceanex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

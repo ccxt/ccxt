@@ -1133,7 +1133,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function cancel_unified_order($order, $params = array ()) {
+    public function cancel_unified_order(array $order, $params = array ()) {
         $request = array(
             'side' => $order['side'],
         );
