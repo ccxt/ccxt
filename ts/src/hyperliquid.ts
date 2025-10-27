@@ -632,9 +632,9 @@ export default class hyperliquid extends Exchange {
             const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
             const mappedBaseName = this.safeString (spotCurrencyMapping, baseName, baseName);
             const mappedQuoteId = this.safeString (spotCurrencyMapping, quoteId, quoteId);
-            const base = this.safeCurrencyCode (mappedBaseName);
-            const quote = this.safeCurrencyCode (mappedQuoteId);
-            const symbol = base + '/' + quote;
+            const mappedBase = this.safeCurrencyCode (mappedBaseName);
+            const mappedQuote = this.safeCurrencyCode (mappedQuoteId);
+            const mappedSymbol = mappedBase + '/' + mappedQuote;
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
@@ -647,11 +647,11 @@ export default class hyperliquid extends Exchange {
             const pricePrecisionStr = this.numberToString (pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (index + 10000);
-            markets.push (this.safeMarketStructure ({
+            const entry = {
                 'id': marketName,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
+                'symbol': mappedSymbol,
+                'base': mappedBase,
+                'quote': mappedQuote,
                 'settle': undefined,
                 'baseId': baseId,
                 'baseName': baseName,
@@ -699,7 +699,18 @@ export default class hyperliquid extends Exchange {
                 },
                 'created': undefined,
                 'info': this.extend (extraData, market),
-            }));
+            };
+            markets.push (this.safeMarketStructure (entry));
+            // backward support
+            const base = this.safeCurrencyCode (baseName);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            if (symbol !== mappedSymbol) {
+                entry['symbol'] = symbol;
+                entry['base'] = mappedBase;
+                entry['quote'] = mappedQuote;
+                markets.push (this.safeMarketStructure (entry));
+            }
         }
         return markets;
     }
