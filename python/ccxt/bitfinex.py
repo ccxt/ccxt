@@ -1914,7 +1914,7 @@ class bitfinex(Exchange, ImplicitAPI):
         newOrder = {'result': order}
         return self.parse_order(newOrder, market)
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders at the same time
 
@@ -1926,10 +1926,12 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: an array of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
+        numericIds = []
         for i in range(0, len(ids)):
-            ids[i] = self.parse_to_numeric(ids[i])
+            # numericIds[i] = self.parse_to_numeric(ids[i])
+            numericIds.append(self.parse_to_numeric(ids[i]))
         request: dict = {
-            'id': ids,
+            'id': numericIds,
         }
         market = None
         if symbol is not None:

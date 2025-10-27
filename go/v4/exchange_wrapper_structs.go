@@ -410,6 +410,37 @@ func WithUnWatchTickerParams(params map[string]interface{}) UnWatchTickerOptions
 	}
 }
 
+type UnWatchMarkPriceOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type UnWatchMarkPriceOptions func(opts *UnWatchMarkPriceOptionsStruct)
+
+func WithUnWatchMarkPriceParams(params map[string]interface{}) UnWatchMarkPriceOptions {
+	return func(opts *UnWatchMarkPriceOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type UnWatchMarkPricesOptionsStruct struct {
+	Symbols *[]string
+	Params  *map[string]interface{}
+}
+
+type UnWatchMarkPricesOptions func(opts *UnWatchMarkPricesOptionsStruct)
+
+func WithUnWatchMarkPricesSymbols(symbols []string) UnWatchMarkPricesOptions {
+	return func(opts *UnWatchMarkPricesOptionsStruct) {
+		opts.Symbols = &symbols
+	}
+}
+
+func WithUnWatchMarkPricesParams(params map[string]interface{}) UnWatchMarkPricesOptions {
+	return func(opts *UnWatchMarkPricesOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchDepositAddressesOptionsStruct struct {
 	Codes  *[]string
 	Params *map[string]interface{}

@@ -1739,7 +1739,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_order({'info': response})
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

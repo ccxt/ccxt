@@ -5951,7 +5951,7 @@ class bitget extends Exchange {
         return $this->parse_orders($data, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
          *
@@ -7847,7 +7847,10 @@ class bitget extends Exchange {
         $market = null;
         if ($symbols !== null) {
             $first = $this->safe_string($symbols, 0);
-            $market = $this->market($first);
+            // $symbols can be null or array()
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
         }
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -7861,7 +7864,7 @@ class bitget extends Exchange {
             $response = $this->privateUtaGetV3PositionCurrentPosition ($this->extend($request, $params));
         } elseif ($method === 'privateMixGetV2MixPositionAllPosition') {
             $marginCoin = $this->safe_string($params, 'marginCoin', 'USDT');
-            if ($symbols !== null) {
+            if ($market !== null) {
                 $marginCoin = $market['settleId'];
             } elseif ($productType === 'USDT-FUTURES') {
                 $marginCoin = 'USDT';

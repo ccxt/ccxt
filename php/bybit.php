@@ -4574,7 +4574,7 @@ class bybit extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()): array {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple orders
          *

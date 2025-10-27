@@ -509,6 +509,47 @@ func (this *ExchangeTyped) UnWatchTicker(symbol string, options ...UnWatchTicker
 	}
 	return res, nil
 }
+func (this *ExchangeTyped) UnWatchMarkPrice(symbol string, options ...UnWatchMarkPriceOptions) (interface{}, error) {
+
+	opts := UnWatchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.UnWatchMarkPrice(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *ExchangeTyped) UnWatchMarkPrices(options ...UnWatchMarkPricesOptions) (interface{}, error) {
+
+	opts := UnWatchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.UnWatchMarkPrices(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
 func (this *ExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
 	opts := FetchDepositAddressesOptionsStruct{}

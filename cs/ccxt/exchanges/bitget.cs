@@ -8479,7 +8479,11 @@ public partial class bitget : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            market = this.market(first);
+            // symbols can be undefined or []
+            if (isTrue(!isEqual(first, null)))
+            {
+                market = this.market(first);
+            }
         }
         object productType = null;
         var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
@@ -8499,7 +8503,7 @@ public partial class bitget : Exchange
         } else if (isTrue(isEqual(method, "privateMixGetV2MixPositionAllPosition")))
         {
             object marginCoin = this.safeString(parameters, "marginCoin", "USDT");
-            if (isTrue(!isEqual(symbols, null)))
+            if (isTrue(!isEqual(market, null)))
             {
                 marginCoin = getValue(market, "settleId");
             } else if (isTrue(isEqual(productType, "USDT-FUTURES")))

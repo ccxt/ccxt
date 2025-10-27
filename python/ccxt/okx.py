@@ -3417,7 +3417,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             return ids
 
-    def cancel_orders(self, ids, symbol: Str = None, params={}):
+    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 

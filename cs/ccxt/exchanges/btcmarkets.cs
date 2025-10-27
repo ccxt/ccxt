@@ -1016,12 +1016,14 @@ public partial class btcmarkets : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object numericIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            ((List<object>)ids)[Convert.ToInt32(i)] = parseInt(getValue(ids, i));
+            // numericIds[i] = parseInt (ids[i]);
+            ((IList<object>)numericIds).Add(parseInt(getValue(ids, i)));
         }
         object request = new Dictionary<string, object>() {
-            { "ids", ids },
+            { "ids", numericIds },
         };
         object response = await this.privateDeleteBatchordersIds(this.extend(request, parameters));
         //
