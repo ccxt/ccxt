@@ -166,27 +166,97 @@ export default class xcoin extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetV2PublicSymbols (params);
-        debugger;
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "businessType": "linear_perpetual",
+        //                "symbol": "BTC-USDT-PERP",
+        //                "symbolFamily": "BTC-USDT",
+        //                "quoteCurrency": "USDT",
+        //                "baseCurrency": "BTC",
+        //                "settleCurrency": "USDT",
+        //                "ctVal": "0.0001",
+        //                "tickSize": "0.1",
+        //                "status": "trading",
+        //                "deliveryTime": null,
+        //                "deliveryFeeRate": null,
+        //                "pricePrecision": "1",
+        //                "quantityPrecision": "4",
+        //                "onlineTime": "1750127400000",
+        //                "riskEngineRate": "0.02",
+        //                "maxLeverage": "75.000000000000000000",
+        //                "contractType": null,
+        //                "orderParameters": {
+        //                    "minOrderQty": "0.0001",
+        //                    "minOrderAmt": null,
+        //                    "maxOrderNum": "200",
+        //                    "maxTriggerOrderNum": "30",
+        //                    "maxTpslOrderNum": "30",
+        //                    "maxLmtOrderAmt": null,
+        //                    "maxMktOrderAmt": null,
+        //                    "maxLmtOrderQty": "50",
+        //                    "maxMktOrderQty": "1",
+        //                    "basisLimitRatio": "0.1"
+        //                },
+        //                "priceParameters": {
+        //                    "maxLmtPriceUp": "0.05",
+        //                    "minLmtPriceDown": "0.05",
+        //                    "maxMktPriceUp": "0.05",
+        //                    "minMktPriceDown": "0.05"
+        //                },
+        //                "positionParameters": {
+        //                    "positionRatioThreshold": "10000000",
+        //                    "positionMaxRatio": "0.1",
+        //                    "positionCidMaxRatio": "0.3",
+        //                    "defaultLeverRatio": "10"
+        //                },
+        //                "group": [
+        //                    "0.1",
+        //                    "1",
+        //                    "10",
+        //                    "100"
+        //                ]
+        //            },
+        //        ],
+        //        "ts": "1676428445631"
+        //    }
+        //
+        const data = this.safeDict (response, 'data', []);
+        const result: Market[] = [];
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
+            const market = this.parseMarket (item);
+            result.push (market);
+        }
+        return result;
     }
 
     parseMarket (item): Market {
-        const market = this.safeValue (item, 'market', {});
-        const id = this.safeString (market, 'code');
-        const first = this.safeValue (market, 'first', {});
-        const second = this.safeValue (market, 'second', {});
-        const baseId = this.safeString (first, 'currency');
-        const quoteId = this.safeString (second, 'currency');
+        const id = this.safeString (item, 'symbol');
+        const baseId = this.safeString (item, 'baseCurrency');
+        const quoteId = this.safeString (item, 'quoteCurrency');
+        const settleId = this.safeString (item, 'settleCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let fees = this.safeValue (this.fees, 'trading', {});
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
-        if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
-            fees = this.safeValue (this.fees, 'fiat', {});
+        const settle = this.safeCurrencyCode (settleId);
+        const businessType = this.safeString (item, 'businessType');
+        let marketType = undefined;
+        let symbol = base + '/' + quote;
+        let subType = undefined;
+        if (businessType === 'spot') {
+            marketType = 'spot';
+        } else if (businessType === 'linear_perpetual') {
+            marketType = 'swap';
+            subType = 'linear';
+            symbol = symbol + ':' + settle;
         }
-        // todo: check that the limits have ben interpreted correctly
+        const expiry = this.safeInteger (item, 'deliveryTime');
         return {
             'id': id,
-            'symbol': base + '/' + quote,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
             'settle': undefined,
@@ -194,33 +264,33 @@ export default class xcoin extends Exchange {
             'quoteId': quoteId,
             'settleId': undefined,
             'type': 'spot',
-            'spot': true,
+            'spot': (marketType === 'spot'),
             'margin': false,
-            'swap': false,
+            'swap': (marketType === 'swap'),
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': (this.safeString (item, 'status') === 'trading'),
             'contract': false,
-            'linear': undefined,
-            'inverse': undefined,
-            'taker': this.safeNumber (fees, 'taker'),
-            'maker': this.safeNumber (fees, 'maker'),
-            'contractSize': undefined,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
+            'linear': (subType === 'linear') ? true : undefined,
+            'inverse': (subType === 'linear') ? false : undefined,
+            'taker': undefined,
+            'maker': undefined,
+            'contractSize': this.safeNumber (item, 'ctVal'),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
             'optionType': undefined,
             'strike': undefined,
             'precision': {
-                'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
-                'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (item, 'quantityPrecision'))),
+                'price': this.safeNumber (item, 'tickSize'), // strange, but pricePrecision is different
             },
             'limits': {
                 'leverage': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': this.safeInteger (item, 'maxLeverage'),
                 },
                 'amount': {
-                    'min': this.safeNumber (first, 'minOffer'),
+                    'min': undefined,
                     'max': undefined,
                 },
                 'price': {
@@ -232,7 +302,7 @@ export default class xcoin extends Exchange {
                     'max': undefined,
                 },
             },
-            'created': undefined,
+            'created': this.safeInteger (item, 'onlineTime'),
             'info': item,
         };
     }
