@@ -1683,7 +1683,7 @@ export default class okx extends Exchange {
             baseId = this.safeString (parts, 0);
             quoteId = this.safeString (parts, 1);
         }
-        if (((baseId === '') || (quoteId === ''))) && spot) { // to fix weird preopen markets
+        if (((baseId === '') || (quoteId === '')) && spot) { // to fix weird preopen markets
             const instId = this.safeString (market, 'instId');
             const parts = instId.split ('-');
             baseId = this.safeString (parts, 0);
