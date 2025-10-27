@@ -420,7 +420,7 @@ export default class arkham extends arkhamRest {
         return result;
     }
 
-    handleBalance (client: Client, message, subscription) {
+    handleBalance (client: Client, message) {
         //
         // snapshot:
         //
