@@ -210,6 +210,20 @@ public partial class hyperliquid : Exchange
                 { "sandboxMode", false },
                 { "defaultSlippage", 0.05 },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
+                { "spotCurrencyMapping", new Dictionary<string, object>() {
+                    { "UDZ", "2Z" },
+                    { "UBONK", "BONK" },
+                    { "UBTC", "BTC" },
+                    { "UETH", "ETH" },
+                    { "UFART", "FARTCOIN" },
+                    { "HPENGU", "PENGU" },
+                    { "UPUMP", "PUMP" },
+                    { "USOL", "SOL" },
+                    { "UUUSPX", "SPX" },
+                    { "USDT0", "USDT" },
+                    { "XAUT0", "XAUT" },
+                    { "UXPL", "XPL" },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -615,9 +629,13 @@ public partial class hyperliquid : Exchange
             object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
             object baseName = this.safeString(baseTokenInfo, "name");
             object quoteId = this.safeString(quoteTokenInfo, "name");
-            object bs = this.safeCurrencyCode(baseName);
-            object quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            // do spot currency mapping
+            object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new Dictionary<string, object>() {});
+            object mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
+            object mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
+            object mappedBase = this.safeCurrencyCode(mappedBaseName);
+            object mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+            object mappedSymbol = add(add(mappedBase, "/"), mappedQuote);
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             object amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
@@ -631,11 +649,11 @@ public partial class hyperliquid : Exchange
             object pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(index, 10000));
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            object entry = new Dictionary<string, object>() {
                 { "id", marketName },
-                { "symbol", symbol },
-                { "base", bs },
-                { "quote", quote },
+                { "symbol", mappedSymbol },
+                { "base", mappedBase },
+                { "quote", mappedQuote },
                 { "settle", null },
                 { "baseId", baseId },
                 { "baseName", baseName },
@@ -683,7 +701,19 @@ public partial class hyperliquid : Exchange
                 } },
                 { "created", null },
                 { "info", this.extend(extraData, market) },
-            }));
+            };
+            ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            // backward support
+            object bs = this.safeCurrencyCode(baseName);
+            object quote = this.safeCurrencyCode(quoteId);
+            object symbol = add(add(bs, "/"), quote);
+            if (isTrue(!isEqual(symbol, mappedSymbol)))
+            {
+                ((IDictionary<string,object>)entry)["symbol"] = symbol;
+                ((IDictionary<string,object>)entry)["base"] = mappedBase;
+                ((IDictionary<string,object>)entry)["quote"] = mappedQuote;
+                ((IList<object>)markets).Add(this.safeMarketStructure(entry));
+            }
         }
         return markets;
     }
