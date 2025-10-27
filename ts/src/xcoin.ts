@@ -387,6 +387,7 @@ export default class xcoin extends Exchange {
      * @method
      * @name xcoin#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://xcoin.com/docs/coinApi/ticker/get-24-hour-ticker-data
      * @see https://xcoin.com/docs/coinApi/ticker/get-latest-ticker-information
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -469,6 +470,83 @@ export default class xcoin extends Exchange {
             'mark': this.safeString (ticker, 'markPrice'),
             'index': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name xcoin#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://xcoin.com/docs/coinApi/ticker/get-recent-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV1MarketTrade (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "id": "1121384806",
+        //                "symbol": "BTC-USDT-PERP",
+        //                "side": "buy",
+        //                "price": "115560.1",
+        //                "qty": "0.0006",
+        //                "time": "1761584074207"
+        //            },
+        //         ],
+        //        "ts": "1761584074208"
+        //    }
+        //
+        const trades = this.safeList (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //
+        //            {
+        //                "id": "1121384806",
+        //                "symbol": "BTC-USDT-PERP",
+        //                "side": "buy",
+        //                "price": "115560.1",
+        //                "qty": "0.0006",
+        //                "time": "1761584074207"
+        //            },
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'time');
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'id'),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': this.safeString (trade, 'side'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'qty'),
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
