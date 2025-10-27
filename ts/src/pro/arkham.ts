@@ -389,7 +389,7 @@ export default class arkham extends arkhamRest {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'Arkham-Api-Key': this.apiKey,
-                            'Arkham-Expires': expires,
+                            'Arkham-Expires': expires.toString (),
                             'Arkham-Signature': signature,
                         },
                     },
