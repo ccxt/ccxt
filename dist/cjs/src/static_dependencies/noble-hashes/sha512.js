@@ -6,7 +6,6 @@ var _sha2 = require('./_sha2.js');
 var _u64 = require('./_u64.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 // Round contants (first 32 bits of the fractional parts of the cube roots of the first 80 primes 2..409):
 // prettier-ignore
 const [SHA512_Kh, SHA512_Kl] = _u64["default"].split([

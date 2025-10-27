@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var index = require('../../../scure-base/index.js');
 
-// ----------------------------------------------------------------------------
 function hex2b64(h) {
     return index.base64.encode(index.base16.decode(h));
 }

@@ -421,7 +421,7 @@ public partial class arkham : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetAssets", new object[] { parameters }));
+        object response = await this.v1PublicGetAssets(parameters);
         //
         //    [
         //        {
@@ -520,7 +520,7 @@ public partial class arkham : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetPairs", new object[] { parameters }));
+        object response = await this.v1PublicGetPairs(parameters);
         //
         //    [
         //        {
@@ -664,7 +664,7 @@ public partial class arkham : Exchange
     public async override Task<object> fetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetServerTime", new object[] { parameters }));
+        object response = await this.v1PublicGetServerTime(parameters);
         //
         //    {
         //        "serverTime": "1753465832770820"
@@ -695,7 +695,7 @@ public partial class arkham : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetBook", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PublicGetBook(this.extend(request, parameters));
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -780,7 +780,7 @@ public partial class arkham : Exchange
         // exchange needs microseconds
         ((IDictionary<string,object>)request)["start"] = multiply(getValue(request, "start"), 1000);
         ((IDictionary<string,object>)request)["end"] = multiply(getValue(request, "end"), 1000);
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetCandles", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PublicGetCandles(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -821,7 +821,7 @@ public partial class arkham : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetTickers", new object[] { parameters }));
+        object response = await this.v1PublicGetTickers(parameters);
         //
         //    [
         //        {
@@ -866,7 +866,7 @@ public partial class arkham : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetTicker", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PublicGetTicker(this.extend(request, parameters));
         //
         //        {
         //            "symbol": "BTC_USDT_PERP",
@@ -945,7 +945,7 @@ public partial class arkham : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetTrades", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PublicGetTrades(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1045,7 +1045,7 @@ public partial class arkham : Exchange
         object request = new Dictionary<string, object>() {
             { "id", parseInt(id) },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetOrdersId", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetOrdersId(this.extend(request, parameters));
         //
         //    {
         //        "orderId": "3690478767430",
@@ -1108,7 +1108,7 @@ public partial class arkham : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // note, API does not work for this param
         }
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetOrdersHistory", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetOrdersHistory(this.extend(request, parameters));
         //
         //     [
         //        {
@@ -1172,10 +1172,10 @@ public partial class arkham : Exchange
         object response = null;
         if (isTrue(isTriggerOrder))
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivateGetTriggerOrders", new object[] { this.extend(new Dictionary<string, object>() {}, parameters) }));
+            response = await this.v1PrivateGetTriggerOrders(this.extend(new Dictionary<string, object>() {}, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivateGetOrders", new object[] { this.extend(new Dictionary<string, object>() {}, parameters) }));
+            response = await this.v1PrivateGetOrders(this.extend(new Dictionary<string, object>() {}, parameters));
         }
         return this.parseOrders(response, market, since, limit);
     }
@@ -1220,10 +1220,10 @@ public partial class arkham : Exchange
             }
             object market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            response = await ((Task<object>)callDynamically(this, "v1PrivatePostTriggerOrdersCancel", new object[] { this.extend(request, parameters) }));
+            response = await this.v1PrivatePostTriggerOrdersCancel(this.extend(request, parameters));
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivatePostOrdersCancel", new object[] { this.extend(request, parameters) }));
+            response = await this.v1PrivatePostOrdersCancel(this.extend(request, parameters));
         }
         //
         // {"orderId":3691703758327}
@@ -1252,10 +1252,10 @@ public partial class arkham : Exchange
         object response = null;
         if (isTrue(isTriggerOrder))
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivatePostTriggerOrdersCancelAll", new object[] { parameters }));
+            response = await this.v1PrivatePostTriggerOrdersCancelAll(parameters);
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivatePostOrdersCancelAll", new object[] { parameters }));
+            response = await this.v1PrivatePostOrdersCancelAll(parameters);
         }
         //
         // []  returns an empty array, even when successfully cancels orders
@@ -1294,10 +1294,10 @@ public partial class arkham : Exchange
         object response = null;
         if (isTrue(isTriggerOrder))
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivatePostTriggerOrdersNew", new object[] { request }));
+            response = await this.v1PrivatePostTriggerOrdersNew(request);
         } else
         {
-            response = await ((Task<object>)callDynamically(this, "v1PrivatePostOrdersNew", new object[] { request }));
+            response = await this.v1PrivatePostOrdersNew(request);
         }
         return this.parseOrder(response, market);
     }
@@ -1592,7 +1592,7 @@ public partial class arkham : Exchange
         var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetTradesTime", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetTradesTime(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1634,7 +1634,7 @@ public partial class arkham : Exchange
         {
             ((IDictionary<string,object>)request)["subAccountId"] = accountId;
         }
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetUser", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetUser(this.extend(request, parameters));
         //
         //    {
         //        "id": "2959123",
@@ -1714,7 +1714,7 @@ public partial class arkham : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountBalances", new object[] { parameters }));
+        object response = await this.v1PrivateGetAccountBalances(parameters);
         //
         //    [
         //        {
@@ -1793,7 +1793,7 @@ public partial class arkham : Exchange
         object request = new Dictionary<string, object>() {
             { "chain", networkCode },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PrivatePostAccountDepositAddressesNew", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivatePostAccountDepositAddressesNew(this.extend(request, parameters));
         //
         //    {
         //        "addresses": "12NauJ26TUT9aYkpId7YdePJJDRMGbAsEMVoTVUvBErV"
@@ -1827,7 +1827,7 @@ public partial class arkham : Exchange
         object request = new Dictionary<string, object>() {
             { "chain", this.networkCodeToId(networkCode) },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountDepositAddresses", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetAccountDepositAddresses(this.extend(request, parameters));
         //
         //    {
         //        "addresses": [
@@ -1902,7 +1902,7 @@ public partial class arkham : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountDeposits", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetAccountDeposits(this.extend(request, parameters));
         //
         //    [
         //        {
@@ -1988,7 +1988,7 @@ public partial class arkham : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountFees", new object[] { parameters }));
+        object response = await this.v1PrivateGetAccountFees(parameters);
         //
         // {
         //   "perpMakerFee": "1.23",
@@ -2050,7 +2050,7 @@ public partial class arkham : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountFundingRatePayments", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetAccountFundingRatePayments(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -2115,7 +2115,7 @@ public partial class arkham : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", marketId },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivateGetAccountLeverage(this.extend(request, parameters));
         //
         // might be empty if not changed from default value (which is 1x)
         //
@@ -2179,7 +2179,7 @@ public partial class arkham : Exchange
             { "symbol", marketId },
             { "leverage", leverageString },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PrivatePostAccountLeverage", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivatePostAccountLeverage(this.extend(request, parameters));
         //
         // response is just empty string
         //
@@ -2201,7 +2201,7 @@ public partial class arkham : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountPositions", new object[] { parameters }));
+        object response = await this.v1PrivateGetAccountPositions(parameters);
         //
         //    [
         //        {
@@ -2315,7 +2315,7 @@ public partial class arkham : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         await this.loadMarkets();
-        object withdrawalAddresses = await ((Task<object>)callDynamically(this, "v1PrivateGetAccountWithdrawalAddresses", new object[] {  }));
+        object withdrawalAddresses = await this.v1PrivateGetAccountWithdrawalAddresses();
         //
         //    [
         //        {
@@ -2364,7 +2364,7 @@ public partial class arkham : Exchange
             throw new InvalidAddress ((string)add(add(add(add(this.id, " withdraw() can not find whitelisted withdrawal address for "), address), " with network "), networkCode)) ;
         }
         ((IDictionary<string,object>)request)["addressId"] = this.safeInteger(foundWithdrawalObject, "id");
-        object response = await ((Task<object>)callDynamically(this, "v1PrivatePostAccountWithdraw", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivatePostAccountWithdraw(this.extend(request, parameters));
         //
         // response is a weird string like:
         //
@@ -2395,7 +2395,7 @@ public partial class arkham : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchLeverageTiers() requires a symbols argument")) ;
         }
         symbols = this.marketSymbols(symbols);
-        object response = await ((Task<object>)callDynamically(this, "v1PublicGetMarginSchedules", new object[] { parameters }));
+        object response = await this.v1PublicGetMarginSchedules(parameters);
         //
         //    [
         //        {

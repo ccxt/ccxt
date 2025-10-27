@@ -7,210 +7,210 @@
 
 package ccxt
 
-func (this *LatokenCore) PublicGetBookCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetBookCurrencyQuote", args...)
+func (this *LatokenCore) PublicGetBookCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetBookCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PublicGetChartWeek(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetChartWeek", args...)
+func (this *LatokenCore) PublicGetChartWeek (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetChartWeek", args...)
 }
 
-func (this *LatokenCore) PublicGetChartWeekCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetChartWeekCurrencyQuote", args...)
+func (this *LatokenCore) PublicGetChartWeekCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetChartWeekCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PublicGetCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrency", args...)
+func (this *LatokenCore) PublicGetCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *LatokenCore) PublicGetCurrencyAvailable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencyAvailable", args...)
+func (this *LatokenCore) PublicGetCurrencyAvailable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencyAvailable", args...)
 }
 
-func (this *LatokenCore) PublicGetCurrencyQuotes(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencyQuotes", args...)
+func (this *LatokenCore) PublicGetCurrencyQuotes (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencyQuotes", args...)
 }
 
-func (this *LatokenCore) PublicGetCurrencyCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetCurrencyCurrency", args...)
+func (this *LatokenCore) PublicGetCurrencyCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetCurrencyCurrency", args...)
 }
 
-func (this *LatokenCore) PublicGetPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPair", args...)
+func (this *LatokenCore) PublicGetPair (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetPair", args...)
 }
 
-func (this *LatokenCore) PublicGetPairAvailable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetPairAvailable", args...)
+func (this *LatokenCore) PublicGetPairAvailable (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetPairAvailable", args...)
 }
 
-func (this *LatokenCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTicker", args...)
+func (this *LatokenCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *LatokenCore) PublicGetTickerBaseQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTickerBaseQuote", args...)
+func (this *LatokenCore) PublicGetTickerBaseQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTickerBaseQuote", args...)
 }
 
-func (this *LatokenCore) PublicGetTime(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTime", args...)
+func (this *LatokenCore) PublicGetTime (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *LatokenCore) PublicGetTradeHistoryCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeHistoryCurrencyQuote", args...)
+func (this *LatokenCore) PublicGetTradeHistoryCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeHistoryCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PublicGetTradeFeeCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeFeeCurrencyQuote", args...)
+func (this *LatokenCore) PublicGetTradeFeeCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeFeeCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PublicGetTradeFeeLevels(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTradeFeeLevels", args...)
+func (this *LatokenCore) PublicGetTradeFeeLevels (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTradeFeeLevels", args...)
 }
 
-func (this *LatokenCore) PublicGetTransactionBindings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetTransactionBindings", args...)
+func (this *LatokenCore) PublicGetTransactionBindings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("publicGetTransactionBindings", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthAccount(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthAccount", args...)
+func (this *LatokenCore) PrivateGetAuthAccount (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthAccount", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthAccountCurrencyCurrencyType(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthAccountCurrencyCurrencyType", args...)
+func (this *LatokenCore) PrivateGetAuthAccountCurrencyCurrencyType (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthAccountCurrencyCurrencyType", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthOrder", args...)
+func (this *LatokenCore) PrivateGetAuthOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthOrder", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthOrderGetOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthOrderGetOrderId", args...)
+func (this *LatokenCore) PrivateGetAuthOrderGetOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthOrderGetOrderId", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuote", args...)
+func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuoteActive(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuoteActive", args...)
+func (this *LatokenCore) PrivateGetAuthOrderPairCurrencyQuoteActive (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthOrderPairCurrencyQuoteActive", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthStopOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthStopOrder", args...)
+func (this *LatokenCore) PrivateGetAuthStopOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthStopOrder", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthStopOrderGetOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthStopOrderGetOrderId", args...)
+func (this *LatokenCore) PrivateGetAuthStopOrderGetOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthStopOrderGetOrderId", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuote", args...)
+func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuoteActive(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuoteActive", args...)
+func (this *LatokenCore) PrivateGetAuthStopOrderPairCurrencyQuoteActive (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthStopOrderPairCurrencyQuoteActive", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTrade(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTrade", args...)
+func (this *LatokenCore) PrivateGetAuthTrade (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTrade", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTradePairCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTradePairCurrencyQuote", args...)
+func (this *LatokenCore) PrivateGetAuthTradePairCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTradePairCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTradeFeeCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTradeFeeCurrencyQuote", args...)
+func (this *LatokenCore) PrivateGetAuthTradeFeeCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTradeFeeCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTransaction(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTransaction", args...)
+func (this *LatokenCore) PrivateGetAuthTransaction (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTransaction", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTransactionBindings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTransactionBindings", args...)
+func (this *LatokenCore) PrivateGetAuthTransactionBindings (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTransactionBindings", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTransactionBindingsCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTransactionBindingsCurrency", args...)
+func (this *LatokenCore) PrivateGetAuthTransactionBindingsCurrency (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTransactionBindingsCurrency", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTransactionId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTransactionId", args...)
+func (this *LatokenCore) PrivateGetAuthTransactionId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTransactionId", args...)
 }
 
-func (this *LatokenCore) PrivateGetAuthTransfer(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateGetAuthTransfer", args...)
+func (this *LatokenCore) PrivateGetAuthTransfer (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privateGetAuthTransfer", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthOrderCancel", args...)
+func (this *LatokenCore) PrivatePostAuthOrderCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthOrderCancel", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthOrderCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthOrderCancelAll", args...)
+func (this *LatokenCore) PrivatePostAuthOrderCancelAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthOrderCancelAll", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthOrderCancelAllCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthOrderCancelAllCurrencyQuote", args...)
+func (this *LatokenCore) PrivatePostAuthOrderCancelAllCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthOrderCancelAllCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthOrderPlace(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthOrderPlace", args...)
+func (this *LatokenCore) PrivatePostAuthOrderPlace (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthOrderPlace", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthSpotDeposit(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthSpotDeposit", args...)
+func (this *LatokenCore) PrivatePostAuthSpotDeposit (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthSpotDeposit", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthSpotWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthSpotWithdraw", args...)
+func (this *LatokenCore) PrivatePostAuthSpotWithdraw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthSpotWithdraw", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthStopOrderCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthStopOrderCancel", args...)
+func (this *LatokenCore) PrivatePostAuthStopOrderCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthStopOrderCancel", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthStopOrderCancelAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthStopOrderCancelAll", args...)
+func (this *LatokenCore) PrivatePostAuthStopOrderCancelAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthStopOrderCancelAll", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthStopOrderCancelAllCurrencyQuote(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthStopOrderCancelAllCurrencyQuote", args...)
+func (this *LatokenCore) PrivatePostAuthStopOrderCancelAllCurrencyQuote (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthStopOrderCancelAllCurrencyQuote", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthStopOrderPlace(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthStopOrderPlace", args...)
+func (this *LatokenCore) PrivatePostAuthStopOrderPlace (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthStopOrderPlace", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransactionDepositAddress(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransactionDepositAddress", args...)
+func (this *LatokenCore) PrivatePostAuthTransactionDepositAddress (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransactionDepositAddress", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransactionWithdraw(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransactionWithdraw", args...)
+func (this *LatokenCore) PrivatePostAuthTransactionWithdraw (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransactionWithdraw", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransactionWithdrawCancel(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransactionWithdrawCancel", args...)
+func (this *LatokenCore) PrivatePostAuthTransactionWithdrawCancel (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransactionWithdrawCancel", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransactionWithdrawConfirm(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransactionWithdrawConfirm", args...)
+func (this *LatokenCore) PrivatePostAuthTransactionWithdrawConfirm (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransactionWithdrawConfirm", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransactionWithdrawResendCode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransactionWithdrawResendCode", args...)
+func (this *LatokenCore) PrivatePostAuthTransactionWithdrawResendCode (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransactionWithdrawResendCode", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransferEmail(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransferEmail", args...)
+func (this *LatokenCore) PrivatePostAuthTransferEmail (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransferEmail", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransferId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransferId", args...)
+func (this *LatokenCore) PrivatePostAuthTransferId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransferId", args...)
 }
 
-func (this *LatokenCore) PrivatePostAuthTransferPhone(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privatePostAuthTransferPhone", args...)
+func (this *LatokenCore) PrivatePostAuthTransferPhone (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("privatePostAuthTransferPhone", args...)
 }
