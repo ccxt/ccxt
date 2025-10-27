@@ -138,6 +138,9 @@ export default class xcoin extends Exchange {
                 },
             },
             'options': {
+                'fetchTickers': {
+                    'method': 'publicGetV1MarketTicker24hr', // publicGetV1MarketTicker24hr, publicGetV1MarketTickerMini
+                },
             },
             'features': {
                 'spot': {
@@ -402,7 +405,14 @@ export default class xcoin extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         request['businessType'] = (marketType === 'spot') ? 'spot' : 'linear_perpetual';
-        const response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        let response = undefined;
+        let method: Str = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', 'publicGetV1MarketTicker24hr'); // publicGetV1MarketTicker24hr, publicGetV1MarketTickerMini
+        if (method === 'publicGetV1MarketTickerMini') {
+            response = await this.publicGetV1MarketTickerMini (this.extend (request, params));
+        } else {
+            response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        }
         //
         //    {
         //        "code": "0",
