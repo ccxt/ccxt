@@ -6,7 +6,20 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory
  */
 export default class bitget extends Exchange {
     describe(): any;
-    setSandboxMode(enabled: any): void;
+    /**
+     * @method
+     * @name bitget#setSandboxMode
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    setSandboxMode(enabled: boolean): void;
+    /**
+     * @method
+     * @name bitget#enableDemoTrading
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    enableDemoTrading(enabled: boolean): void;
     handleProductTypeAndParams(market?: any, params?: {}): {}[];
     /**
      * @method

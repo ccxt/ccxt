@@ -187,7 +187,7 @@ var xt$1 = require('./src/pro/xt.js');
 // ----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.10';
+const version = '4.5.11';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alpaca': alpaca["default"],

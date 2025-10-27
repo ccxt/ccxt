@@ -1,3 +1,40 @@
+<a id="v4.5.11"></a>
+# [v4.5.11](https://github.com/ccxt/ccxt/releases/tag/v4.5.11) - 2025-10-15
+
+## What's Changed
+* remove go warnings by [@caoilainnl](https://github.com/caoilainnl) in [#27034](https://github.com/ccxt/ccxt/pull/27034)
+* feat(kraken): update watch methods to v2 by [@Dan-krm](https://github.com/Dan-krm) in [#27032](https://github.com/ccxt/ccxt/pull/27032)
+* fetchOHLCV/watchOHLCV timeframe param type by [@caoilainnl](https://github.com/caoilainnl) in [#27041](https://github.com/ccxt/ccxt/pull/27041)
+* fix(mexc): ws parse trades by [@ttodua](https://github.com/ttodua) in [#27043](https://github.com/ccxt/ccxt/pull/27043)
+* add missing param and return types to fetchCurrenciesWs, cancelUnifiedOrder by [@caoilainnl](https://github.com/caoilainnl) in [#27042](https://github.com/ccxt/ccxt/pull/27042)
+* chore: added cancelOrders to the base exchange class by [@mehrab-hn](https://github.com/mehrab-hn) in [#27040](https://github.com/ccxt/ccxt/pull/27040)
+* Add key_permissions endpoint to Coinbase brokerage permissions by [@Nirator78](https://github.com/Nirator78) in [#27038](https://github.com/ccxt/ccxt/pull/27038)
+* fix(bitget): c# subtract fix by [@carlosmiei](https://github.com/carlosmiei) in [#27044](https://github.com/ccxt/ccxt/pull/27044)
+* test(probit): fetchtickers skip symb & dummy trigger  by [@ttodua](https://github.com/ttodua) in [#27028](https://github.com/ccxt/ccxt/pull/27028)
+* chore(okcoin): delist by [@ttodua](https://github.com/ttodua) in [#27026](https://github.com/ccxt/ccxt/pull/27026)
+* fix(featureValue): return defaults by [@ttodua](https://github.com/ttodua) in [#27023](https://github.com/ccxt/ccxt/pull/27023)
+* fix(bitget): fetchPositions empty array by [@carlosmiei](https://github.com/carlosmiei) in [#27051](https://github.com/ccxt/ccxt/pull/27051)
+* doc(bitget): plan order ^ by [@ttodua](https://github.com/ttodua) in [#27049](https://github.com/ccxt/ccxt/pull/27049)
+* latoken transaction status by [@ndubel](https://github.com/ndubel) in [#27046](https://github.com/ccxt/ccxt/pull/27046)
+* fix(htx): ws order datas by [@ttodua](https://github.com/ttodua) in [#27050](https://github.com/ccxt/ccxt/pull/27050)
+* fix(mexc): ws & rest update timestamp by [@ttodua](https://github.com/ttodua) in [#27045](https://github.com/ccxt/ccxt/pull/27045)
+* fix(js): cancelOrder args and return type by [@carlosmiei](https://github.com/carlosmiei) in [#27053](https://github.com/ccxt/ccxt/pull/27053)
+* feat(Exchange): add unWatchMarkprices to base and fix build by [@carlosmiei](https://github.com/carlosmiei) in [#27054](https://github.com/ccxt/ccxt/pull/27054)
+* feat(phemex): add risk-unit endpoint by [@kilianjanssen](https://github.com/kilianjanssen) in [#27056](https://github.com/ccxt/ccxt/pull/27056)
+* fix(deribit): fetchCUrrencies fix by [@ttodua](https://github.com/ttodua) in [#27024](https://github.com/ccxt/ccxt/pull/27024)
+* doc(manual): recv_window by [@ttodua](https://github.com/ttodua) in [#27057](https://github.com/ccxt/ccxt/pull/27057)
+* feat(bingx): withdraw, switch default account by [@Dan-krm](https://github.com/Dan-krm) in [#27058](https://github.com/ccxt/ccxt/pull/27058)
+* fix(kucoin): fetchDepositWithdrawFees by [@carlosmiei](https://github.com/carlosmiei) in [#27060](https://github.com/ccxt/ccxt/pull/27060)
+* chore: fix response tests by [@carlosmiei](https://github.com/carlosmiei) in [#27062](https://github.com/ccxt/ccxt/pull/27062)
+
+## New Contributors
+* [@kilianjanssen](https://github.com/kilianjanssen) made their first contribution in [#27056](https://github.com/ccxt/ccxt/pull/27056)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.10...v4.5.11
+
+[Changes][v4.5.11]
+
+
 <a id="v4.5.10"></a>
 # [v4.5.10](https://github.com/ccxt/ccxt/releases/tag/v4.5.10) - 2025-10-11
 
@@ -10559,6 +10596,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.11]: https://github.com/ccxt/ccxt/compare/v4.5.10...v4.5.11
 [v4.5.10]: https://github.com/ccxt/ccxt/compare/v4.5.9...v4.5.10
 [v4.5.9]: https://github.com/ccxt/ccxt/compare/v4.5.8...v4.5.9
 [v4.5.8]: https://github.com/ccxt/ccxt/compare/v4.5.7...v4.5.8

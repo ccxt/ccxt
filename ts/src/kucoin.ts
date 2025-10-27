@@ -1618,7 +1618,7 @@ export default class kucoin extends Exchange {
                 const networkCodeNew = this.networkIdToCode (this.safeString (chain, 'chainId'), this.safeString (currency, 'code'));
                 resultNew['networks'][networkCodeNew] = {
                     'withdraw': {
-                        'fee': this.safeNumber (chain, 'withdrawMinFee'),
+                        'fee': this.safeNumber2 (chain, 'withdrawalMinFee', 'withdrawMinFee'),
                         'percentage': false,
                     },
                     'deposit': {

@@ -1380,6 +1380,7 @@ enables or disables demo trading mode
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#binanceenabledemotrading)
+* [bitget](/exchanges/bitget.md#bitgetenabledemotrading)
 * [bybit](/exchanges/bybit.md#bybitenabledemotrading)
 
 ---
@@ -6218,6 +6219,23 @@ set hedged to true or false for a market
 * [phemex](/exchanges/phemex.md#phemexsetpositionmode)
 * [poloniex](/exchanges/poloniex.md#poloniexsetpositionmode)
 * [woo](/exchanges/woo.md#woosetpositionmode)
+
+---
+
+<a name="setSandboxMode" id="setsandboxmode"></a>
+
+## setSandboxMode
+enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+
+**Kind**: instance   
+
+
+| Param |
+| --- |
+| enabled | 
+
+##### Supported exchanges
+* [bitget](/exchanges/bitget.md#bitgetsetsandboxmode)
 
 ---
 

@@ -1779,8 +1779,23 @@ export default class bitget extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name bitget#setSandboxMode
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
     setSandboxMode(enabled) {
         this.options['sandboxMode'] = enabled;
+    }
+    /**
+     * @method
+     * @name bitget#enableDemoTrading
+     * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
+     * @param enabled
+     */
+    enableDemoTrading(enabled) {
+        this.setSandboxMode(enabled);
     }
     handleProductTypeAndParams(market = undefined, params = {}) {
         let subType = undefined;

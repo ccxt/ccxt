@@ -325,7 +325,7 @@ public partial class kraken
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/ohlc"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/ohlc"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -364,7 +364,7 @@ public partial class kraken
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/owntrades"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/executions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -398,7 +398,7 @@ public partial class kraken
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v1/openorders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/executions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
