@@ -3,7 +3,360 @@
     "skipKeys": [ ],
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "Fetch trades for swap",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instId": "ETH-USDT-SWAP",
+                            "tradeId": "1000297395165174",
+                            "px": "4140.77",
+                            "sz": "56",
+                            "side": "sell",
+                            "ts": "1761576798000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "ETH-USDT-SWAP",
+                            "tradeId": "1000297395165174",
+                            "px": "4140.77",
+                            "sz": "56",
+                            "side": "sell",
+                            "ts": "1761576798000"
+                        },
+                        "timestamp": 1761576798000,
+                        "datetime": "2025-10-27T14:53:18.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "id": "1000297395165174",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 4140.77,
+                        "amount": 56,
+                        "cost": 23188.312,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "Fetch trades for spot",
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instId": "ETH-USDT",
+                            "tradeId": "1001056501231214",
+                            "px": "4143.16",
+                            "sz": "0.22217824",
+                            "side": "sell",
+                            "ts": "1761575261000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "ETH-USDT",
+                            "tradeId": "1001056501231214",
+                            "px": "4143.16",
+                            "sz": "0.22217824",
+                            "side": "sell",
+                            "ts": "1761575261000"
+                        },
+                        "timestamp": 1761575261000,
+                        "datetime": "2025-10-27T14:27:41.000Z",
+                        "symbol": "ETH/USDT",
+                        "id": "1001056501231214",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 4143.16,
+                        "amount": 0.22217824,
+                        "cost": 920.5199968384,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": "1761576381000"
+                        },
+                        {
+                            "instType": "SPOT",
+                            "instId": "ETH-USDT",
+                            "last": "4148.95",
+                            "lastSz": "",
+                            "askPx": "4148.89",
+                            "askSz": "4.8597",
+                            "bidPx": "4148.82",
+                            "bidSz": "55.756585",
+                            "open24h": "4074.82",
+                            "high24h": "4253.58",
+                            "low24h": "4046.38",
+                            "volCcy24h": "216148612.4575765",
+                            "vol24h": "103794.1968396",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": "1761576381000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1761576381000,
+                        "datetime": "2025-10-27T14:46:21.000Z",
+                        "high": 116398.8,
+                        "low": 112901,
+                        "bid": 114871.3,
+                        "bidVolume": 23.96317061,
+                        "ask": 114871.6,
+                        "askVolume": 23.7848106,
+                        "vwap": 57520.6988144653,
+                        "open": 113699.7,
+                        "close": 114873.9,
+                        "last": 114873.9,
+                        "previousClose": null,
+                        "change": 1174.2,
+                        "percentage": 1.0327204029562083,
+                        "average": 114286.8,
+                        "baseVolume": 4219.1253998,
+                        "quoteVolume": 242687041.3823563,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instType": "SPOT",
+                            "instId": "BTC-USDT",
+                            "last": "114873.9",
+                            "lastSz": "",
+                            "askPx": "114871.6",
+                            "askSz": "23.7848106",
+                            "bidPx": "114871.3",
+                            "bidSz": "23.96317061",
+                            "open24h": "113699.7",
+                            "high24h": "116398.8",
+                            "low24h": "112901",
+                            "volCcy24h": "242687041.3823563",
+                            "vol24h": "4219.1253998",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": "1761576381000"
+                        }
+                    },
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": 1761576381000,
+                        "datetime": "2025-10-27T14:46:21.000Z",
+                        "high": 4253.58,
+                        "low": 4046.38,
+                        "bid": 4148.82,
+                        "bidVolume": 55.756585,
+                        "ask": 4148.89,
+                        "askVolume": 4.8597,
+                        "vwap": 2082.4729998306666,
+                        "open": 4074.82,
+                        "close": 4148.95,
+                        "last": 4148.95,
+                        "previousClose": null,
+                        "change": 74.13,
+                        "percentage": 1.8192214625431307,
+                        "average": 4111.88,
+                        "baseVolume": 103794.1968396,
+                        "quoteVolume": 216148612.4575765,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instType": "SPOT",
+                            "instId": "ETH-USDT",
+                            "last": "4148.95",
+                            "lastSz": "",
+                            "askPx": "4148.89",
+                            "askSz": "4.8597",
+                            "bidPx": "4148.82",
+                            "bidSz": "55.756585",
+                            "open24h": "4074.82",
+                            "high24h": "4253.58",
+                            "low24h": "4046.38",
+                            "volCcy24h": "216148612.4575765",
+                            "vol24h": "103794.1968396",
+                            "sodUtc0": "",
+                            "sodUtc8": "",
+                            "ts": "1761576381000"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch candles for spot",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        [
+                            "1761576180000",
+                            "4154.7",
+                            "4156.35",
+                            "4152",
+                            "4152.14",
+                            "33.99547046",
+                            "141242.48666242"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1761576180000,
+                        4154.7,
+                        4156.35,
+                        4152,
+                        4152.14,
+                        33.99547046
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch candles for swap",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        [
+                            "1761576120000",
+                            "4155.59",
+                            "4156.94",
+                            "4149.95",
+                            "4152.28",
+                            "6463",
+                            "2683827.203"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1761576120000,
+                        4155.59,
+                        4156.94,
+                        4149.95,
+                        4152.28,
+                        6463
+                    ]
+                ]
+            }
+        ],
         "fetchOrderBook": [
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": {
+                        "bids": [
+                            [
+                                "4153.15",
+                                "107.3"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "4153.16",
+                                "94"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "bids": [
+                        [
+                            4153.15,
+                            107.3
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            4153.16,
+                            94
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            },
             {
                 "description": "Fetch order book",
                 "method": "fetchOrderBook",
