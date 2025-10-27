@@ -1112,20 +1112,9 @@ class astralx(Exchange, ImplicitAPI):
         percentage = self.safe_number(position, 'profitRate')  # 持仓收益率
         # 使用API返回的时间戳，如果没有则使用当前时间
         timestamp = self.safe_integer(position, 'timestamp', self.milliseconds())
-        # 计算实际合约数量（考虑合约大小）
-        actualContracts = contracts
-        if contracts is not None and market['contractSize'] is not None:
-            calculatedContracts = contracts * market['contractSize']
-            # 检查计算后的数量是否大于最小精度
-            # 获取市场的最小数量精度
-            minAmount = self.safe_number(market['precision'], 'amount', 0.001)
-            if calculatedContracts >= minAmount:
-                actualContracts = self.parse_number(self.amount_to_precision(symbol, calculatedContracts))
-            else:
-                actualContracts = 0  # 如果小于最小精度，设置为0
-        # 计算名义价值
+        # 计算名义价值（使用原始合约张数乘以contractSize）
         notional = positionValue
-        if notional is None and entryPrice is not None and contracts is not None:
+        if notional is None and entryPrice is not None and contracts is not None and market['contractSize'] is not None:
             notional = entryPrice * contracts * market['contractSize']
         return self.safe_position({
             'info': position,
@@ -1140,7 +1129,7 @@ class astralx(Exchange, ImplicitAPI):
             'notional': notional,
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
-            'contracts': actualContracts,
+            'contracts': contracts,
             'contractSize': market['contractSize'],
             'realizedPnl': realizedPnl,
             'side': positionSide,

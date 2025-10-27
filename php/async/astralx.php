@@ -1223,22 +1223,9 @@ class astralx extends Exchange {
         $percentage = $this->safe_number($position, 'profitRate'); // 持仓收益率
         // 使用API返回的时间戳，如果没有则使用当前时间
         $timestamp = $this->safe_integer($position, 'timestamp', $this->milliseconds());
-        // 计算实际合约数量（考虑合约大小）
-        $actualContracts = $contracts;
-        if ($contracts !== null && $market['contractSize'] !== null) {
-            $calculatedContracts = $contracts * $market['contractSize'];
-            // 检查计算后的数量是否大于最小精度
-            // 获取市场的最小数量精度
-            $minAmount = $this->safe_number($market['precision'], 'amount', 0.001);
-            if ($calculatedContracts >= $minAmount) {
-                $actualContracts = $this->parse_number($this->amount_to_precision($symbol, $calculatedContracts));
-            } else {
-                $actualContracts = 0; // 如果小于最小精度，设置为0
-            }
-        }
-        // 计算名义价值
+        // 计算名义价值（使用原始合约张数乘以contractSize）
         $notional = $positionValue;
-        if ($notional === null && $entryPrice !== null && $contracts !== null) {
+        if ($notional === null && $entryPrice !== null && $contracts !== null && $market['contractSize'] !== null) {
             $notional = $entryPrice * $contracts * $market['contractSize'];
         }
         return $this->safe_position(array(
@@ -1254,7 +1241,7 @@ class astralx extends Exchange {
             'notional' => $notional,
             'leverage' => $leverage,
             'unrealizedPnl' => $unrealizedPnl,
-            'contracts' => $actualContracts,
+            'contracts' => $contracts,
             'contractSize' => $market['contractSize'],
             'realizedPnl' => $realizedPnl,
             'side' => $positionSide,

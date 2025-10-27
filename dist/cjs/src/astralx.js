@@ -1218,23 +1218,9 @@ class astralx extends astralx$1["default"] {
         const percentage = this.safeNumber(position, 'profitRate'); // 持仓收益率
         // 使用API返回的时间戳，如果没有则使用当前时间
         const timestamp = this.safeInteger(position, 'timestamp', this.milliseconds());
-        // 计算实际合约数量（考虑合约大小）
-        let actualContracts = contracts;
-        if (contracts !== undefined && market['contractSize'] !== undefined) {
-            const calculatedContracts = contracts * market['contractSize'];
-            // 检查计算后的数量是否大于最小精度
-            // 获取市场的最小数量精度
-            const minAmount = this.safeNumber(market['precision'], 'amount', 0.001);
-            if (calculatedContracts >= minAmount) {
-                actualContracts = this.parseNumber(this.amountToPrecision(symbol, calculatedContracts));
-            }
-            else {
-                actualContracts = 0; // 如果小于最小精度，设置为0
-            }
-        }
-        // 计算名义价值
+        // 计算名义价值（使用原始合约张数乘以contractSize）
         let notional = positionValue;
-        if (notional === undefined && entryPrice !== undefined && contracts !== undefined) {
+        if (notional === undefined && entryPrice !== undefined && contracts !== undefined && market['contractSize'] !== undefined) {
             notional = entryPrice * contracts * market['contractSize'];
         }
         return this.safePosition({
@@ -1250,7 +1236,7 @@ class astralx extends astralx$1["default"] {
             'notional': notional,
             'leverage': leverage,
             'unrealizedPnl': unrealizedPnl,
-            'contracts': actualContracts,
+            'contracts': contracts,
             'contractSize': market['contractSize'],
             'realizedPnl': realizedPnl,
             'side': positionSide,
