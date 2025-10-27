@@ -48,6 +48,7 @@ const version = '4.5.12';
 
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
+import arkham from  './src/arkham.js'
 import ascendex from  './src/ascendex.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
@@ -156,6 +157,7 @@ import zonda from  './src/zonda.js'
 // pro exchanges
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
+import arkhamPro from  './src/pro/arkham.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -230,6 +232,7 @@ import xtPro from  './src/pro/xt.js'
 const exchanges = {
     'alpaca':                 alpaca,
     'apex':                   apex,
+    'arkham':                 arkham,
     'ascendex':               ascendex,
     'backpack':               backpack,
     'bequant':                bequant,
@@ -338,6 +341,7 @@ const exchanges = {
 const pro = {
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
+    'arkham':                 arkhamPro,
     'ascendex':               ascendexPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
@@ -554,6 +558,7 @@ export {
     LeverageTiers,
     alpaca,
     apex,
+    arkham,
     ascendex,
     backpack,
     bequant,
