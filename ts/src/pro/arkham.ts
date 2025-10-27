@@ -703,8 +703,8 @@ export default class arkham extends arkhamRest {
         const order = this.parseWsOrder (data);
         orders.append (order);
         client.resolve (orders, 'orders');
-        client.resolve (orders, 'order::' + order['symbol'] + '::' + channel);
-        client.resolve (orders, 'order::' + channel);
+        client.resolve (orders, 'orders::' + order['symbol'] + '::' + channel);
+        client.resolve (orders, 'orders::' + channel);
     }
 
     parseWsOrder (order, market = undefined): Order {
