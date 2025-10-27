@@ -1041,7 +1041,8 @@ class deribit extends deribit$1["default"] {
         if (future === undefined) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
-            const signature = this.hmac(this.encode(timeString + '\n' + nonce + '\n'), this.encode(this.secret), sha256.sha256);
+            const lineBreak = "\n"; // eslint-disable-line quotes
+            const signature = this.hmac(this.encode(timeString + lineBreak + nonce + lineBreak), this.encode(this.secret), sha256.sha256);
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,
