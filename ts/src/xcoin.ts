@@ -380,6 +380,88 @@ export default class xcoin extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
+    /**
+     * @method
+     * @name xcoin#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://xcoin.com/docs/coinApi/ticker/get-latest-ticker-information
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeString (symbols, 0);
+            market = this.market (symbol);
+            const marketIds = this.marketIds (symbols);
+            request['symbol'] = marketIds.join (',');
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        request['businessType'] = (marketType === 'spot') ? 'spot' : 'linear_perpetual';
+        const response = await this.publicGetV1MarketTicker24hr (this.extend (request, params));
+        //
+        //    {
+        //        "code": "0",
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "businessType": "spot",
+        //                "symbol": "ENA-USDT",
+        //                "priceChange": "0.0087",
+        //                "priceChangePercent": "0.017661388550548112",
+        //                "lastPrice": "0.5013",
+        //                "openPrice": "0.4926",
+        //                "highPrice": "0.5344",
+        //                "lowPrice": "0.4926",
+        //                "fillQty": "1694436.24",
+        //                "fillAmount": "868188.786879",
+        //                "count": "14804",
+        //                "baseCurrency": "ENA",
+        //                "indexPrice": "0.5014",
+        //                "markPrice": "0",
+        //                "fundingRate": "0",
+        //                "toNextFundRateTime": "0"
+        //            },
+        //        ],
+        //        "ts": "1676428445631"
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTickers (data, symbols);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'openPrice'),
+            'close': this.safeString (ticker, 'lastPrice'),
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'priceChange'),
+            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'fillAmount'),
+            'quoteVolume': this.safeString (ticker, 'fillQty'),
+            'mark': this.safeString (ticker, 'markPrice'),
+            'index': this.safeString (ticker, 'indexPrice'),
+            'info': ticker,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
