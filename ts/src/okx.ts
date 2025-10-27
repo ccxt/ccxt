@@ -7961,22 +7961,18 @@ export default class okx extends Exchange {
      */
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true);
+        symbols = this.marketSymbols (symbols, undefined, false);
         const length = symbols.length;
-        if (length > 5) {
-            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers(): only 5 symbols at max allowed per request');
+        if (length > 1) {
+            throw new ArgumentsRequired (this.id + ' fetchLeverageTiers(): only one symbol per request');
         }
-        const families = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const family = this.safeString (this.options['instrumentFamilyDict'], symbol);
-            if (family === undefined) {
-                throw new BadSymbol (this.id + ' fetchLeverageTiers(): symbol ' + symbol + ' does not have a corresponding instrument family');
-            }
-            families.push (family);
+        const symbol = symbols[i];
+        const family = this.safeString (this.options['instrumentFamilyDict'], symbol);
+        if (family === undefined) {
+            throw new BadSymbol (this.id + ' fetchLeverageTiers(): symbol ' + symbol + ' does not have a corresponding instrument family');
         }
         const request = {
-            'instFamily': families.join (','),
+            'instFamily': family,
         };
         const firstMarket = this.market (symbols[0]);
         let marketType = undefined;
@@ -8025,31 +8021,15 @@ export default class okx extends Exchange {
     }
 
     parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
-        symbols = this.marketSymbols (symbols);
+        const firstSymbol = this.safeString (symbols, 0);
+        const instFamilySelected = this.safeString (this.options['instrumentFamilyDict'], firstSymbol);
         const tiers = {};
-        let symbolsLength = 0;
-        if (symbols !== undefined) {
-            symbolsLength = symbols.length;
-        }
-        const noSymbols = (symbols === undefined) || (symbolsLength === 0);
-        const firstItem = this.safeDict (response, 0);
-        const familyRemap = {};
-        for (let j = 0; j < this.symbols.length; j++) {
-            const symbol = this.symbols[j];
-            const instFamilyRaw = this.safeString (firstItem, 'instFamily');
-            const instFamilySaved = this.safeString (this.options['instrumentFamilyDict'], symbol);
-            if (instFamilyRaw === instFamilySaved) {
-                for (let i = 0; i < response.length; i++) {
-                    const item = response[i];
-                    const instFamily = this.safeString (item, 'instFamily');
-                    const id = this.safeString (item, marketIdKey);
-                    const market = this.safeMarket (id, undefined, undefined, 'swap');
-                    const symbol = market['symbol'];
-                    const contract = this.safeBool (market, 'contract', false);
-                    if (contract && (noSymbols || this.inArray (symbol, symbols))) {
-                        tiers[symbol] = this.parseMarketLeverageTiers (item, market);
-                    }
-                }
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const instFamilyRaw = this.safeString (item, 'instFamily');
+            if (instFamilySelected === instFamilyRaw) {
+                const market = this.market (firstSymbol);
+                tiers[firstSymbol] = this.parseMarketLeverageTiers (item, market);
             }
         }
         return tiers;
